@@ -38,6 +38,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.swing.JList;
 import org.jetbrains.annotations.NotNull;
@@ -476,7 +477,10 @@ public final class StateChart<T> extends AnimatedComponent {
     int seriesIndex = Math.min(seriesSize - 1, (int)(normalizedMouseY * seriesSize));
     if (seriesIndex < 0 || seriesIndex >= series.size()) {
       Logger.getInstance(StateChart.class).warn(
-        String.format("Series index in getMouseRectanglesUnion is out of bounds: mouseY = %d, scaleY = %f", mousePoint.y, scaleY));
+        String.format(Locale.US,
+                      "Series index in getMouseRectanglesUnion is out of bounds: mouseY = %d, scaleY = %f",
+                      mousePoint.y,
+                      scaleY));
       return new Rectangle2D.Float(0, 0, (float)scaleX, (float)scaleY);
     }
 

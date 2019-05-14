@@ -18,19 +18,19 @@ package com.android.tools.adtui.ui;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterators;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.JEditorPane;
-import javax.swing.SwingUtilities;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.text.html.HTMLDocument;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.swing.JEditorPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTMLDocument;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A component that displays breadcrumbs to allow navigation.
@@ -76,12 +76,7 @@ public class NavigationComponent<T extends NavigationComponent.Item> extends JEd
         final T item = myItemStack.get(idx);
 
         for (final ItemListener<T> listener : myItemListeners) {
-          SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              listener.itemSelected(item);
-            }
-          });
+          ApplicationManager.getApplication().invokeLater(() -> listener.itemSelected(item));
         }
       }
     });
@@ -114,7 +109,7 @@ public class NavigationComponent<T extends NavigationComponent.Item> extends JEd
         if (id.get() == 0) {
           return input.getDisplayText();
         }
-        return String.format("<a href=\"%d\">%s</a>", id.getAndDecrement(), input.getDisplayText());
+        return String.format(Locale.US, "<a href=\"%d\">%s</a>", id.getAndDecrement(), input.getDisplayText());
       }
 
       @Override
