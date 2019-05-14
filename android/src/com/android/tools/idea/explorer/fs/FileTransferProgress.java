@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.explorer.fs;
 
+import com.android.annotations.concurrency.UiThread;
+import com.android.annotations.concurrency.WorkerThread;
+
 public interface FileTransferProgress {
   /**
    * Reports progress of a long file transfer operation, including the
@@ -22,6 +25,7 @@ public interface FileTransferProgress {
    * is unknown, the value of <code>totalBytes</code> is
    * <code>-1</code>.
    */
+  @UiThread
   void progress(long currentBytes, long totalBytes);
 
   /**
@@ -34,5 +38,6 @@ public interface FileTransferProgress {
    * field in a thread and returning the field value as the implementation
    * of this method.
    */
+  @WorkerThread
   boolean isCancelled();
 }
