@@ -35,16 +35,6 @@ class AddBenchmarkModuleTest {
   @JvmField
   val guiTest = GuiTestRule()
 
-  @Before
-  fun setUp() {
-    StudioFlags.NPW_BENCHMARK_TEMPLATE_MODULE.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NPW_BENCHMARK_TEMPLATE_MODULE.clearOverride()
-  }
-
   /**
    * Verifies that user is able to add a Benchmark Module through the
    * new module wizard.
