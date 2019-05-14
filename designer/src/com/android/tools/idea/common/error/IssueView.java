@@ -80,7 +80,6 @@ public class IssueView extends JPanel {
     myContainerIssuePanel = container;
     myDisplayPriority = getDisplayPriority(issue);
     mySelectedBorder.setColor(UIUtil.getTreeSelectionBorderColor());
-//    myErrorDescription.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
     setupHeader(issue);
     setupDescriptionPanel(issue);
     setupFixPanel(issue);
@@ -98,7 +97,6 @@ public class IssueView extends JPanel {
       mySelectedBorder.setColor(UIUtil.getTreeSelectionBorderColor());
       myUnselectedBorder = JBUI.Borders.empty(BORDER_THICKNESS);
       myErrorDescription.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-//      myErrorDescription.setFont(UIUtil.getLabelFont().deriveFont(26f));
       myErrorTitle.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
       mySuggestedFixLabel.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
     }
