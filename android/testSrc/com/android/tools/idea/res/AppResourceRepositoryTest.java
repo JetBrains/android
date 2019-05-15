@@ -41,7 +41,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.ui.UIUtil;
-import java.io.File;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -112,7 +112,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertTrue(moduleRepository.hasResources(RES_AUTO, ResourceType.STRING, "title_card_flip"));
     assertFalse(moduleRepository.hasResources(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
-    AarSourceResourceRepository aar1 = AarSourceResourceRepository.create(VfsUtilCore.virtualToIoFile(res3), "aar1");
+    AarSourceResourceRepository aar1 = AarSourceResourceRepository.create(VfsUtilCore.virtualToIoFile(res3).toPath(), "aar1");
     appResources.updateRoots(ImmutableList.of(projectResources), ImmutableList.of(aar1));
 
     assertTrue(appResources.hasResources(RES_AUTO, ResourceType.STRING, "another_unique_string"));
@@ -229,7 +229,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     VirtualFile aarLibResDir = myFixture.copyFileToProject(VALUES_OVERLAY2, "aarLib/res/values/values.xml").getParent().getParent();
     ResourceNamespace aarLibNamespace = ResourceNamespace.fromPackageName("com.aarLib");
     AarSourceResourceRepository aarLib =
-        AarSourceResourceRepository.createForTest(new File(aarLibResDir.getPath()), aarLibNamespace, "aarlib");
+        AarSourceResourceRepository.createForTest(Paths.get(aarLibResDir.getPath()), aarLibNamespace, "aarlib");
 
     AppResourceRepository appResources =
         AppResourceRepository.createForTest(myFacet, ImmutableList.of(projectResources), ImmutableList.of(aarLib));
