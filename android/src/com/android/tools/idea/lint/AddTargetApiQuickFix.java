@@ -33,6 +33,7 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION;
@@ -42,11 +43,13 @@ public class AddTargetApiQuickFix implements AndroidLintQuickFix {
   private final boolean myRequiresApi;
   private int myApi;
   private PsiElement myElement;
+  private Class<? extends PsiModifierListOwner> myFilter;
 
-  public AddTargetApiQuickFix(int api, boolean requiresApi, PsiElement element) {
+  public AddTargetApiQuickFix(int api, boolean requiresApi, PsiElement element, @Nullable Class<? extends PsiModifierListOwner> filter) {
     myApi = api;
     myRequiresApi = requiresApi;
     myElement = element;
+    myFilter = filter;
   }
 
   private String getAnnotationValue(boolean fullyQualified) {
@@ -87,7 +90,12 @@ public class AddTargetApiQuickFix implements AndroidLintQuickFix {
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     // Find nearest method or class; can't add @TargetApi on modifier list owners like variable declarations
     @SuppressWarnings("unchecked")
-    PsiModifierListOwner container = PsiTreeUtil.getParentOfType(startElement, PsiMethod.class, PsiClass.class);
+    PsiModifierListOwner container;
+    if (myFilter != null) {
+      container = PsiTreeUtil.getParentOfType(startElement, myFilter);
+    } else {
+      container = PsiTreeUtil.getParentOfType(startElement, PsiMethod.class, PsiClass.class);
+    }
 
     if (container == null) {
       // XML file? Set attribute
