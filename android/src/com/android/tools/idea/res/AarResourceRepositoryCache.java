@@ -26,7 +26,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -63,7 +62,7 @@ public final class AarResourceRepositoryCache {
       throw new IllegalArgumentException("No resource for " + libraryName);
     }
 
-    File resourceDirectory = resFolder.getRoot().toFile();
+    Path resourceDirectory = resFolder.getRoot().toPath();
     if (resourceDirectory == null) {
       throw new IllegalArgumentException("Cannot find resource directory " + resFolder.getRoot() + " for " + libraryName);
     }
