@@ -753,6 +753,7 @@ enum class TestFileName(val path: String) {
   REPOSITORIES_MODEL_PARSE_MULTIPLE_REPOSITORIES("repositoriesModel/parseMultipleRepositories"),
   REPOSITORIES_MODEL_PARSE_GOOGLE_DEFAULT_REPOSITORY("repositoriesModel/parseGoogleDefaultRepository"),
   REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL("repositoriesModel/addGoogleRepositoryByMethodCall"),
+  REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_WITH_WITH("repositoriesModel/addGoogleRepositoryWithWith"),
   REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EMPTY("repositoriesModel/addGoogleRepositoryByMethodCallEmpty"),
   REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT("repositoriesModel/addGoogleRepositoryToEmptyBuildscript"),
   REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_PRESENT("repositoriesModel/addGoogleRepositoryByMethodCallPresent"),
