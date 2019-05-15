@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.AutoHide;
 import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
@@ -56,6 +57,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.ui.JBColor;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -376,6 +378,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
       }, 16, 500L);
     }
 
+    myAnimationToolbar.setBackground(StudioColorsKt.getPrimaryPanelBackground());
+    myAnimationToolbar.setOpaque(true);
     myContentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
   }
 
