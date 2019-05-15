@@ -37,10 +37,10 @@ public abstract class AndroidInspectionTestCase extends LightInspectionTestCase 
   @Override
   protected void tearDown() throws Exception {
     try {
-      AndroidFacet instance = AndroidFacet.getInstance(myModule);
+      AndroidFacet instance = AndroidFacet.getInstance(getModule());
       if (instance != null) {
         WriteAction.run(() -> {
-          ModifiableFacetModel model = FacetManager.getInstance(myModule).createModifiableModel();
+          ModifiableFacetModel model = FacetManager.getInstance(getModule()).createModifiableModel();
           model.removeFacet(instance);
           model.commit();
         });
