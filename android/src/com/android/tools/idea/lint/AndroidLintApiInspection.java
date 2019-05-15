@@ -18,6 +18,7 @@ package com.android.tools.idea.lint;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
+import com.intellij.psi.PsiModifierListOwner;
 import org.jetbrains.android.intentions.OverrideResourceAction;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.detector.api.Issue;
@@ -69,15 +70,25 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
         }
       }
 
-      list.add(new AddTargetVersionCheckQuickFix(api));
-      list.add(new AddTargetApiQuickFix(api, false, startElement));
+      // Is the API fix limited to applying to (for example) just classes?
+      @SuppressWarnings("unchecked")
+      Class<? extends PsiModifierListOwner> filter = LintFix.getData(fixData, Class.class);
+
+      if (filter == null) {
+        list.add(new AddTargetVersionCheckQuickFix(api));
+      }
+
       ApplicationManager.getApplication().assertReadAccessAllowed();
       Project project = startElement.getProject();
       if (!isXml && (JavaPsiFacade.getInstance(project).findClass(REQUIRES_API_ANNOTATION.oldName(),
                                                                   GlobalSearchScope.allScope(project)) != null ||
                      JavaPsiFacade.getInstance(project).findClass(REQUIRES_API_ANNOTATION.newName(),
                                                                   GlobalSearchScope.allScope(project)) != null)) {
-        list.add(new AddTargetApiQuickFix(api, true, startElement));
+        list.add(new AddTargetApiQuickFix(api, true, startElement, filter));
+      } else {
+        // Discourage use of @TargetApi if @RequiresApi is available; see for example
+        // https://android-review.googlesource.com/c/platform/frameworks/support/+/843915/
+        list.add(new AddTargetApiQuickFix(api, false, startElement, filter));
       }
 
       return list.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
