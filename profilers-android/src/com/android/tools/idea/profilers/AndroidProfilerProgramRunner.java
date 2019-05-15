@@ -51,14 +51,17 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
   protected RunContentDescriptor doExecute(@NotNull RunProfileState state, @NotNull ExecutionEnvironment env)
     throws ExecutionException {
     RunContentDescriptor descriptor = super.doExecute(state, env);
+    createProfilerToolWindow(env.getProject(), descriptor);
+    return descriptor;
+  }
 
+  public static void createProfilerToolWindow(@NotNull Project project, @Nullable RunContentDescriptor descriptor) {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     if (descriptor != null) {
       descriptor.setActivateToolWindowWhenAdded(false);
     }
 
-    Project project = env.getProject();
     ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
     if (!window.isVisible()) {
       // First unset the last run app info, showing the tool window can trigger the profiler to start profiling using the stale info.
@@ -81,9 +84,7 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
       // 3. Starts profiling the new process
       profilerToolWindow.getProfilers().getSessionsManager().endCurrentSession();
     }
-    StudioFeatureTracker featureTracker = new StudioFeatureTracker(env.getProject());
+    StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
     featureTracker.trackRunWithProfiling();
-
-    return descriptor;
   }
 }
