@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.stats.RunStats;
 import com.intellij.execution.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,4 +36,6 @@ public interface LaunchTasksProvider {
 
   /** Returns whether the process handler should monitor the remote process and terminate itself when the process dies. */
   boolean monitorRemoteProcess();
+
+  default void fillStats(RunStats stats) {}
 }
