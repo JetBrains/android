@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -73,14 +74,14 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertEquals(expectedArguments, runnerArguments);
   }
 
-  public void testRunnerComponentsEmptyForGradleProjects() throws Exception {
+  public void testRunnerComponentsShouldBeObtainedFromGradleProjects() throws Exception {
     loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
 
     AndroidTestRunConfiguration androidTestRunConfiguration =
       createAndroidTestConfigurationFromClass(getProject(), "google.testapplication.ApplicationTest");
     assertNotNull(androidTestRunConfiguration);
 
-    assertEmpty(androidTestRunConfiguration.INSTRUMENTATION_RUNNER_CLASS);
+    assertThat(androidTestRunConfiguration.INSTRUMENTATION_RUNNER_CLASS).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
   }
 
   public void testRunnerAtoNotUsed() throws Exception {
