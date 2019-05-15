@@ -24,6 +24,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.annotations.Async
 import java.awt.Image
+import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
@@ -74,11 +75,17 @@ class ImageCache(cacheExpirationTime: Long = 5,
 
   private val objectToImage: Cache<DesignAsset, Image> = CacheBuilder.newBuilder()
     .expireAfterAccess(cacheExpirationTime, timeUnit)
+    .softValues()
     .weigher<DesignAsset, Image> { _, image -> imageWeigher(image) }
     .maximumWeight(MAXIMUM_CACHE_WEIGHT_BYTES)
     .build<DesignAsset, Image>()
 
-  private fun imageWeigher(image: Image) = image.getWidth(null) * image.getHeight(null)
+  private fun imageWeigher(image: Image): Int {
+    if (image is BufferedImage) {
+      return image.raster.dataBuffer.size * Integer.BYTES
+    }
+    return image.getWidth(null) * image.getHeight(null) * Integer.BYTES
+  }
 
   /**
    * Return the value identified by [key] in the cache if it exists, otherwise returns the [placeholder] image
