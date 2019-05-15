@@ -144,7 +144,8 @@ public class GroovyDslParser implements GradleDslParser {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     try {
       return GroovyDslUtil.createLiteral(myDslFile, literal);
-    } catch (IncorrectOperationException e) {
+    }
+    catch (IncorrectOperationException e) {
       myDslFile.getContext().getNotificationForType(myDslFile, INVALID_EXPRESSION).addError(e);
       return null;
     }
@@ -305,6 +306,13 @@ public class GroovyDslParser implements GradleDslParser {
     GrReferenceExpression referenceExpression = findChildOfType(expression, GrReferenceExpression.class);
     if (referenceExpression == null) {
       return false;
+    }
+
+    // If the reference has multiple parts i.e google().with then strip the end as these kind of calls are not supported.
+    if (expression.getChildren().length > 1 &&
+        referenceExpression.getChildren().length == 1 &&
+        referenceExpression.getChildren()[0] instanceof GrMethodCallExpression) {
+      return parse((GrMethodCallExpression)referenceExpression.getChildren()[0], dslElement);
     }
 
     GradleNameElement name = GradleNameElement.from(referenceExpression);
@@ -636,7 +644,8 @@ public class GroovyDslParser implements GradleDslParser {
       if (expressionElement instanceof GradleDslClosure) {
         // Only the last closure will count.
         parentElement.setParsedClosureElement((GradleDslClosure)expressionElement);
-      } else {
+      }
+      else {
         expressionList.addParsedExpression(expressionElement);
       }
     }
