@@ -99,8 +99,9 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
    *
    * @param resFolderOrJar the folder or a jar file containing resources of the Android framework
    * @param withLocaleResources whether to include locale-specific resources or not
-   * @param usePersistentCache whether the repository should attempt loading from
-   *     a persistent cache and create the cache if it does not exist
+   * @param usePersistentCache whether the repository should attempt loading from a persistent
+   *     cache and create the cache if it does not exist; ignored when loading from a jar file
+   * @param cacheCreationExecutor the executor to be used for cache creation
    * @return the created resource repository
    */
   @NotNull
@@ -109,14 +110,16 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     MyLoader loader = new MyLoader(resFolderOrJar, withLocaleResources);
     FrameworkResourceRepository repository = new FrameworkResourceRepository(loader);
 
-    // Try to load from file cache first. Loading from cache is significantly faster than reading resource files.
-    if (usePersistentCache && repository.loadFromPersistentCache()) {
+    // If not loading from a jar file, try to load from a cache file first. A separate cache file is not used
+    // when loading from framework_res.jar since it already contains data in the cache format. Loading from
+    // framework_res.jar or a cache file is significantly faster than reading individual resource files.
+    if (!loader.myLoadFromJar && usePersistentCache && repository.loadFromPersistentCache()) {
       return repository;
     }
 
     loader.loadRepositoryContents(repository);
 
-    if (usePersistentCache && cacheCreationExecutor != null) {
+    if (!loader.myLoadFromJar && usePersistentCache && cacheCreationExecutor != null) {
       cacheCreationExecutor.execute(() -> repository.createPersistentCache());
     }
     return repository;
