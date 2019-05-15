@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.assistant
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.TOOLS_PREFIX
+import com.android.SdkConstants.TOOLS_SAMPLE_PREFIX
+import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
@@ -28,11 +31,9 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.uibuilder.property.assistant.AssistantPopupPanel
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import java.awt.Component
 import java.awt.GridLayout
 import javax.swing.JComponent
@@ -86,8 +87,6 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
     addContent(mainPanel)
 
     myOriginalTextValue = myComponent.getAttribute(TOOLS_URI, ATTR_TEXT)
-
-    context.onClose = { cancelled: Boolean -> this.onClosed(cancelled) }
   }
 
   private fun DefaultCommonComboBoxModel<ResourceUrl?>.findIndexForExistingUrl(
@@ -107,34 +106,11 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
 
   private fun onElementSelected(selectedItem: String?) {
     val attributeValue = if (selectedItem.isNullOrEmpty()) null else selectedItem
-    WriteCommandAction.runWriteCommandAction(myProject, {
-      myComponent.setAttribute(TOOLS_URI, ATTR_TEXT, attributeValue)
-    })
-    context.doClose(false)
-  }
-
-  /**
-   * Method called if the user has closed the popup
-   */
-  private fun onClosed(cancelled: Boolean) {
-    if (!cancelled) {
-      return
-    }
-
-    val facet = myComponent.model.facet
-    val project = facet.module.project
-    // onClosed is invoked when the dialog is closed so we run the clean-up it later when the dialog has effectively closed
-    ApplicationManager.getApplication().invokeLater {
-      WriteCommandAction.runWriteCommandAction(project) {
-        myComponent.setAttribute(TOOLS_URI, ATTR_TEXT, myOriginalTextValue)
-
-        val affectedFile: VirtualFile? = myComponent.backend.getAffectedFile()
-        if (affectedFile != null) {
-          CommandProcessor.getInstance().addAffectedFiles(project, affectedFile)
-        }
+    CommandProcessor.getInstance().runUndoTransparentAction {
+      WriteCommandAction.runWriteCommandAction(myProject) {
+        myComponent.setAttribute(TOOLS_URI, ATTR_TEXT, attributeValue)
       }
     }
-    return
   }
 
   companion object {
