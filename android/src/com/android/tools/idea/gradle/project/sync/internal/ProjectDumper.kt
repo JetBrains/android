@@ -165,6 +165,10 @@ private fun ProjectDumper.dump(module: Module) {
   val moduleFile = module.moduleFilePath.toPrintablePath()
   head("MODULE") { module.name }
   nest {
+    val groups = ModuleManager.getInstance(module.project).getModuleGroupPath(module)
+    groups?.forEach { group ->
+      prop("- ModuleGroupPath") { group }
+    }
     val externalPropertyManager = ExternalSystemModulePropertyManager.getInstance(module)
     prop("ExternalModuleGroup") { externalPropertyManager.getExternalModuleGroup() }
     prop("ExternalModuleType") { externalPropertyManager.getExternalModuleType() }
