@@ -133,7 +133,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
       createStatement(CpuTable.CpuStatements.FIND_TRACE_DATA,
                       "SELECT Data, ProfilerType, ProfilerMode from Cpu_Trace WHERE Session = ? AND TraceId = ?");
       createStatement(CpuTable.CpuStatements.INSERT_TRACE_DATA,
-                      "INSERT OR REPLACE INTO Cpu_Trace (Session, TraceId, ProfilerType, ProfilerMode, Data) values (?, ?, ?, ?, ?)");
+                      "INSERT INTO Cpu_Trace (Session, TraceId, ProfilerType, ProfilerMode, Data) values (?, ?, ?, ?, ?)");
       createStatement(CpuTable.CpuStatements.INSERT_TRACE_INFO,
                       "INSERT OR REPLACE INTO Cpu_Trace_Info (Session, StartTime, EndTime, TraceInfo) values (?, ?, ?, ?)");
       createStatement(CpuTable.CpuStatements.INSERT_THREAD_ACTIVITY,
