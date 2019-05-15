@@ -139,10 +139,6 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   @Override
   public void saveTraceInfo(SaveTraceInfoRequest request, StreamObserver<EmptyCpuReply> responseObserver) {
     myCpuTable.insertTraceInfo(request.getSession(), request.getTraceInfo());
-    if (!request.getPreprocessedTrace().isEmpty()) {
-      myCpuTable.insertTrace(request.getSession(), request.getTraceInfo().getTraceId(), request.getTraceInfo().getTraceType(),
-                             request.getTraceInfo().getTraceMode(), request.getPreprocessedTrace());
-    }
     responseObserver.onNext(EmptyCpuReply.getDefaultInstance());
     responseObserver.onCompleted();
   }
