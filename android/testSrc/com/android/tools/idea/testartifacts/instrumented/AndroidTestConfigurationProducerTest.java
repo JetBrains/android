@@ -17,18 +17,22 @@ package com.android.tools.idea.testartifacts.instrumented;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.io.Files;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 
+import com.intellij.psi.PsiMethod;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createConfigurationFromPsiElement;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromDirectory;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Test for {@link AndroidTestConfigurationProducer}
@@ -65,22 +69,76 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertNull(createAndroidTestConfigurationFromDirectory(getProject(), "app/src/test/java"));
   }
 
-  public void testCannotCreateAndroidTestConfigurationFromJUnitTestClassWithKotlin() throws Exception {
+  public void testConfigIsNotCreatedFromJUnitTestClassKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    assertNull(createAndroidTestConfigurationFromClass(
+      getProject(), "com.example.android.kotlin.ExampleUnitTest"));
+  }
+
+  public void testConfigIsNotCreatedFromJUnitTestFileKotlin() throws Exception {
     loadProject(TEST_ARTIFACTS_KOTLIN);
     assertNull(createAndroidTestConfigurationFromFile(
       getProject(), "app/src/test/java/com/example/android/kotlin/ExampleUnitTest.kt"));
   }
 
-  public void testCanCreateAndroidTestConfigurationFromAndroidTestDirectoryWithKotlin() throws Exception {
-    loadProject(TEST_ARTIFACTS_KOTLIN);
-    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromDirectory(getProject(), "app/src/androidTest/java");
-    assertNotNull(runConfig);
-    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
-  }
-
-  public void testCannotCreateAndroidTestConfigurationFromJUnitTestDirectoryWithKotlin() throws Exception {
+  public void testConfigIsNotCreatedFromJUnitTestDirectoryKotlin() throws Exception {
     loadProject(TEST_ARTIFACTS_KOTLIN);
     assertNull(createAndroidTestConfigurationFromDirectory(getProject(), "app/src/test/java"));
+  }
+
+  public void testMethodTestIsCreatedKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    PsiMethod[] methods = myFixture.findClass("com.example.android.kotlin.ExampleInstrumentedTest")
+      .findMethodsByName("useAppContext", false);
+    assertThat(methods).hasLength(1);
+    RunConfiguration runConfig = createConfigurationFromPsiElement(getProject(), methods[0]);
+    assertThat(runConfig).isInstanceOf(AndroidTestRunConfiguration.class);
+    AndroidTestRunConfiguration androidRunConfig = (AndroidTestRunConfiguration) runConfig;
+    assertEmpty(androidRunConfig.checkConfiguration(myAndroidFacet));
+    assertThat(androidRunConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_METHOD);
+    assertThat(androidRunConfig.INSTRUMENTATION_RUNNER_CLASS).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
+    assertThat(androidRunConfig.PACKAGE_NAME).isEmpty();
+    assertThat(androidRunConfig.CLASS_NAME).isEqualTo("com.example.android.kotlin.ExampleInstrumentedTest");
+    assertThat(androidRunConfig.METHOD_NAME).isEqualTo("useAppContext");
+  }
+
+  public void testClassTestIsCreatedKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(
+      getProject(), "com.example.android.kotlin.ExampleInstrumentedTest");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+    assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_CLASS);
+    assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
+    assertThat(runConfig.PACKAGE_NAME).isEmpty();
+    assertThat(runConfig.CLASS_NAME).isEqualTo("com.example.android.kotlin.ExampleInstrumentedTest");
+    assertThat(runConfig.METHOD_NAME).isEmpty();
+  }
+
+  public void testAllInPackageTestIsCreatedKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromDirectory(
+      getProject(), "app/src/androidTest/java/com/example/android/kotlin");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+    assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE);
+    assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
+    assertThat(runConfig.PACKAGE_NAME).isEqualTo("com.example.android.kotlin");
+    assertThat(runConfig.CLASS_NAME).isEmpty();
+    assertThat(runConfig.METHOD_NAME).isEmpty();
+  }
+
+  public void testAllInModuleTestIsCreatedKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromDirectory(
+      getProject(), "app/src/androidTest/java");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+    assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_ALL_IN_MODULE);
+    assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
+    assertThat(runConfig.PACKAGE_NAME).isEmpty();
+    assertThat(runConfig.CLASS_NAME).isEmpty();
+    assertThat(runConfig.METHOD_NAME).isEmpty();
   }
 
   public void testCanCreateAndroidTestConfigurationFromFromTestOnlyModule() throws Exception {
@@ -117,6 +175,6 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     LocalFileSystem.getInstance().refreshAndFindFileByIoFile(newTestFile);
 
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.SomeTest.InnerClassTest");
-    assertEquals(runConfig.CLASS_NAME, "google.simpleapplication.SomeTest$InnerClassTest");
+    assertEquals("google.simpleapplication.SomeTest$InnerClassTest", runConfig.CLASS_NAME);
   }
 }
