@@ -27,7 +27,7 @@ abstract class RoomLightTestCase : LightCodeInsightFixtureTestCase() {
     super.setUp()
 
     // A misconfigured SDK manifests itself in strange ways, let's fail early if there's something wrong.
-    assertThat(ModuleRootManager.getInstance(myModule).sdk).named("module SDK").isNotNull()
+    assertThat(ModuleRootManager.getInstance(module).sdk).named("module SDK").isNotNull()
 
     myFixture.addClass(
         """
