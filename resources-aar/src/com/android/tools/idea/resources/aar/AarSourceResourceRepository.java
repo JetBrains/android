@@ -71,7 +71,6 @@ import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.resources.aar.Base128InputStream.StreamFormatException;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -113,6 +112,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -177,7 +177,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
    * @return the created resource repository
    */
   @NotNull
-  public static AarSourceResourceRepository create(@NotNull File resourceDirectory, @NotNull String libraryName) {
+  public static AarSourceResourceRepository create(@NotNull Path resourceDirectory, @NotNull String libraryName) {
     return create(resourceDirectory, null, ResourceNamespace.RES_AUTO, libraryName);
   }
 
@@ -193,17 +193,17 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
    */
   @NotNull
   public static AarSourceResourceRepository create(@NotNull ResourceFolder resourceFolder, @NotNull String libraryName) {
-    File resDir = resourceFolder.getRoot().toFile();
+    Path resDir = resourceFolder.getRoot().toPath();
     Preconditions.checkArgument(resDir != null);
     return create(resDir, resourceFolder.getResources(), ResourceNamespace.RES_AUTO, libraryName);
   }
 
   @NotNull
-  private static AarSourceResourceRepository create(@NotNull File resourceDirectory,
+  private static AarSourceResourceRepository create(@NotNull Path resourceDirectory,
                                                     @Nullable Collection<PathString> resourceFilesAndFolders,
                                                     @NotNull ResourceNamespace namespace,
                                                     @NotNull String libraryName) {
-    Loader loader = new Loader(resourceDirectory.toPath(), resourceFilesAndFolders, namespace, libraryName);
+    Loader loader = new Loader(resourceDirectory, resourceFilesAndFolders, namespace, libraryName);
     AarSourceResourceRepository repository = new AarSourceResourceRepository(loader);
     loader.loadRepositoryContents(repository);
     return repository;
@@ -215,9 +215,9 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     return myResourceDirectoryOrFile;
   }
 
-  @VisibleForTesting
+  @TestOnly
   @NotNull
-  public static AarSourceResourceRepository createForTest(@NotNull File resourceDirectory,
+  public static AarSourceResourceRepository createForTest(@NotNull Path resourceDirectory,
                                                           @NotNull ResourceNamespace namespace,
                                                           @NotNull String libraryName) {
     return create(resourceDirectory, null, namespace, libraryName);
@@ -471,7 +471,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
   }
 
-  @VisibleForTesting
+  @TestOnly
   boolean isLoadedFromCache() {
     return myLoadedFromCache;
   }
