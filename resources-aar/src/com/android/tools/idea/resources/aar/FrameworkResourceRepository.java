@@ -195,11 +195,20 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   @NotNull
   private String getResourcesVersion() {
     try {
-      return new String(Files.readAllBytes(myResourceDirectoryOrFile.resolve("version")), StandardCharsets.UTF_8).trim();
+      if (isJarFile(myResourceDirectoryOrFile)) {
+        return Files.getLastModifiedTime(myResourceDirectoryOrFile).toString();
+      }
+      else {
+        return new String(Files.readAllBytes(myResourceDirectoryOrFile.resolve("version")), StandardCharsets.UTF_8).trim();
+      }
     }
     catch (IOException e) {
       return "";
     }
+  }
+
+  private static boolean isJarFile(@NotNull Path resourceDirectoryOrFile) {
+    return SdkUtils.endsWithIgnoreCase(resourceDirectoryOrFile.getFileName().toString(), DOT_JAR);
   }
 
   private static class MyLoader extends Loader {
@@ -208,7 +217,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
     MyLoader(@NotNull Path resourceDirectoryOrFile, boolean withLocaleResources) {
       super(resourceDirectoryOrFile, null, ANDROID_NAMESPACE, null);
-      myLoadFromJar = SdkUtils.endsWithIgnoreCase(resourceDirectoryOrFile.getFileName().toString(), DOT_JAR);
+      myLoadFromJar = isJarFile(resourceDirectoryOrFile);
       myWithLocaleResources = withLocaleResources;
     }
 
