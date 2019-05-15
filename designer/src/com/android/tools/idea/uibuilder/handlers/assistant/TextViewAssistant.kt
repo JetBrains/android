@@ -51,7 +51,8 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
 
   init {
     val mainPanel = JPanel(GridLayout(0, 1)).apply {
-      isOpaque = false
+      isOpaque = true
+      background = this@TextViewAssistant.background
       add(assistantLabel("Text"))
 
       val elements = listOf(null) + myAppResources.getResources(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).values()
@@ -72,10 +73,11 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
 
       val model = DefaultCommonComboBoxModel("", elements)
       val combo = CommonComboBox<ResourceUrl?, CommonComboBoxModel<ResourceUrl?>>(model).apply {
-        isOpaque = false
         isEditable = false
         selectedIndex = model.findIndexForExistingUrl(existingToolsText)
         renderer = TextViewAssistantListRenderer()
+        background = this@TextViewAssistant.background
+        isOpaque = true
       }
 
       combo.addActionListener {
