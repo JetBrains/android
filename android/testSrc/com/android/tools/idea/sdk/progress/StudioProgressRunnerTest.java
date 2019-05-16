@@ -16,6 +16,9 @@
 package com.android.tools.idea.sdk.progress;
 
 import static com.intellij.testFramework.EdtTestUtil.runInEdtAndWait;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.android.repository.api.ProgressRunner;
 import com.android.tools.idea.util.FutureUtils;
