@@ -72,9 +72,9 @@ import java.io.File
  *       update multiple snapshots used in one test.
  *
  *       Or with bazel:
- *       bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sharding_strategy=disabled  \
- *             --test_filter="GradleSyncProjectComparisonTest" --nocache_test_results --strategy=TestRunner=standalone \
- *             --jvmopt='-DUPDATE_SYNC_TEST_SNAPSHOTS' --test_output=streamed --runs_per_test=3
+         bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sharding_strategy=disabled  \
+               --test_filter="GradleSyncProjectComparisonTest" --nocache_test_results --strategy=TestRunner=standalone \
+               --jvmopt='-DUPDATE_SYNC_TEST_SNAPSHOTS' --test_output=streamed --runs_per_test=3
  */
 abstract class GradleSyncProjectComparisonTest(
     private val useNewSync: Boolean,

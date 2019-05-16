@@ -13,13 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.sqlite;
+package com.android.tools.idea.sqlite.ui;
 
-import javax.swing.*;
+import com.intellij.ui.treeStructure.Tree;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
-public class SqliteEditorPanel {
-  public JPanel mainPanel;
-  public JTextField localPathText;
-  public JTextField deviceIdText;
-  public JTextField devicePathText;
+public class SqliteSchemaPanel {
+  private JPanel myComponent;
+  private Tree myTree;
+
+  @NotNull
+  public JComponent getComponent() {
+    return myComponent;
+  }
+
+  @NotNull
+  public Tree getTree() {
+    return myTree;
+  }
 }

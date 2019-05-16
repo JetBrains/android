@@ -26,6 +26,7 @@ import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.intellij.debugger.NoDataException;
 import com.intellij.debugger.SourcePosition;
@@ -33,7 +34,9 @@ import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.PositionManagerImpl;
 import com.intellij.debugger.requests.ClassPrepareRequestor;
 import com.intellij.debugger.settings.DebuggerSettings;
+import com.intellij.ide.highlighter.JavaClassFileType;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -46,14 +49,24 @@ import com.intellij.xdebugger.XDebuggerManager;
 import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.request.ClassPrepareRequest;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-
+/**
+ * AndroidPositionManager provides android java specific position manager augmentations on top of
+ * {@link PositionManagerImpl} such as:
+ * <ul>
+ * <li>Providing synthesized classes during android build.</li>
+ * <li>Locating SDK sources that match the user's current target device.</li>
+ * </ul>
+ * Unlike {@link PositionManagerImpl}, {@link AndroidPositionManager} is not a cover-all position
+ * manager and should fallback to other position managers if it encounters a situation it cannot
+ * handle.
+ */
 public class AndroidPositionManager extends PositionManagerImpl {
   private static Logger LOG = Logger.getInstance(AndroidPositionManager.class);
 
@@ -68,23 +81,53 @@ public class AndroidPositionManager extends PositionManagerImpl {
   @NotNull
   @Override
   public List<ReferenceType> getAllClasses(@NotNull SourcePosition position) throws NoDataException {
-    List<ReferenceType> referenceTypes = super.getAllClasses(position);
     // For desugaring, we also need to add the extra synthesized classes that may contain the source position.
-    return DesugarUtils.addExtraClassesIfNeeded(myDebugProcess, position, referenceTypes, this);
+    List<ReferenceType> referenceTypes =
+      DesugarUtils.addExtraClassesIfNeeded(myDebugProcess, position, super.getAllClasses(position), this);
+    if (referenceTypes.isEmpty()) {
+      throw NoDataException.INSTANCE;
+    }
+    return referenceTypes;
   }
 
   @NotNull
   @Override
   public List<ClassPrepareRequest> createPrepareRequests(@NotNull ClassPrepareRequestor requestor,
                                                          @NotNull SourcePosition position) throws NoDataException {
-    final List<ClassPrepareRequest> requests = new ArrayList<>(super.createPrepareRequests(requestor, position));
     // For desugaring, we also need to add prepare requests for the extra synthesized classes that may contain the source position.
-    return DesugarUtils.addExtraPrepareRequestsIfNeeded(myDebugProcess, requestor, position, requests);
+    List<ClassPrepareRequest> requests =
+      DesugarUtils.addExtraPrepareRequestsIfNeeded(myDebugProcess, requestor, position, super.createPrepareRequests(requestor, position));
+    if (requests.isEmpty()) {
+      throw NoDataException.INSTANCE;
+    }
+    return requests;
+  }
+
+  @Nullable
+  @Override
+  public Set<? extends FileType> getAcceptedFileTypes() {
+    return ImmutableSet.of(JavaClassFileType.INSTANCE);
+  }
+
+  @Override
+  @Nullable
+  public SourcePosition getSourcePosition(final Location location) throws NoDataException {
+    SourcePosition position = super.getSourcePosition(location);
+    // throw NoDataException instead of returning null like PositionManagerImpl does because
+    // doing this allows correct fallback behaviour.  This prevents this position manager
+    // from completely overshadowing other ones registered after it.
+    if (position == null) {
+      throw NoDataException.INSTANCE;
+    }
+    return position;
   }
 
   /**
-   * Returns the PSI file corresponding to the given JDI location.
-   * This method is overridden so that we may provide an API specific version of the sources for platform (android.jar) classes.
+   * Returns the PSI file corresponding to the JDI location in the android SDK, or null if the location does
+   * not point to a file in the android SDK.
+   * This is called by {@link PositionManagerImpl#getSourcePosition(Location)} as an intermediate step in
+   * obtaining files for possible source locations. This method is overridden so that we may provide an API
+   * specific version of the sources for platform (android.jar) classes.
    */
   @Nullable
   @Override
@@ -95,17 +138,16 @@ public class AndroidPositionManager extends PositionManagerImpl {
     }
 
     if (!DebuggerSettings.getInstance().SHOW_ALTERNATIVE_SOURCE) {
-      return file;
+      return null;
     }
 
     AndroidVersion version = getAndroidVersionFromDebugSession(project);
     if (version == null) {
       LOG.debug("getPsiFileByLocation returned null because cannot determine version from device.");
-      return file;
+      return null;
     }
 
-    PsiFile source = getApiSpecificPsi(project, file, version);
-    return source == null ? file : source;
+    return getApiSpecificPsi(project, file, version);
   }
 
   @Nullable

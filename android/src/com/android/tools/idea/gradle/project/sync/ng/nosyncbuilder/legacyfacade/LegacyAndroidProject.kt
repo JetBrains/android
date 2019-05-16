@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade
 
 import com.android.builder.model.*
+import com.android.ide.common.gradle.model.IdeLintOptions
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.ide.common.gradle.model.UnusedModelMethodException
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
@@ -24,7 +25,6 @@ import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.an
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.Variant
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.BuildTypeContainerStub
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.BuildTypeStub
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.LintOptionsStub
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.ProductFlavorContainerStub
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.*
 import java.io.File
@@ -48,17 +48,11 @@ open class LegacyAndroidProject(private val androidProject: AndroidProject, priv
   override fun getDynamicFeatures(): Collection<String> = androidProject.dynamicFeatures
   override fun getVariants(): Collection<com.android.builder.model.Variant> = listOf(LegacyVariant(variant))
 
-  @Deprecated("use project type", ReplaceWith("getProjectType()"))
-  override fun isLibrary(): Boolean = androidProject.projectType == AndroidProject.ProjectType.LIBRARY
-
-  override fun getNativeToolchains(): Collection<NativeToolchain> = TODO("native model support")
-
   override fun getBuildTypes(): Collection<BuildTypeContainer> = throw UnusedModelMethodException("getBuildTypes")
   override fun getProductFlavors(): Collection<ProductFlavorContainer> = throw UnusedModelMethodException("getProductFlavors")
   override fun getDefaultConfig(): ProductFlavorContainer = throw UnusedModelMethodException("getDefaultConfig")
-  override fun getLintOptions(): LintOptions = throw UnusedModelMethodException("getLintOptions") // will be replaced with a separate model
+  override fun getLintOptions(): IdeLintOptions = throw UnusedModelMethodException("getLintOptions") // will be replaced with a separate model
   override fun getFlavorDimensions(): Collection<String> = throw UnusedModelMethodException("getFlavorDimensions")
-  override fun getPluginGeneration(): Int = throw UnusedModelMethodException("getPluginGeneration")
   override fun getResourcePrefix(): String? = throw UnusedModelMethodException("getResourcePrefix") // use namespacing instead
   override fun getBuildToolsVersion(): String = throw UnusedModelMethodException("getBuildToolsVersion")
   @Deprecated("use sync issues", ReplaceWith("getSyncIssues()"))
@@ -97,7 +91,7 @@ class LegacyAndroidProjectStub(
 ) : LegacyAndroidProject(androidProject, variant) {
   override fun getAaptOptions(): OldAaptOptions = LegacyAaptOptionsStub(androidProject.aaptOptions)
   override fun getSigningConfigs(): Collection<OldSigningConfig> = androidProject.signingConfigs.map { LegacySigningConfigStub(it) }
-  override fun getLintOptions(): LintOptions = LintOptionsStub()
+  override fun getLintOptions(): IdeLintOptions = IdeLintOptions()
   override fun getVariants(): Collection<com.android.builder.model.Variant> = listOf(LegacyVariantStub(variant))
 
   override fun getDefaultConfig(): ProductFlavorContainer = ProductFlavorContainerStub(
@@ -117,9 +111,7 @@ class LegacyAndroidProjectStub(
   override fun getProductFlavors(): Collection<ProductFlavorContainer> = listOf()
   override fun getBuildToolsVersion(): String = "buildToolsVersion" // TODO(qumeric) Get actual value instead
   override fun getFlavorDimensions(): Collection<String> = listOf()
-  override fun getNativeToolchains(): Collection<NativeToolchain> = listOf() // TODO(qumeric): remove when native libraries are supported
   override fun getResourcePrefix(): String? = null
-  override fun getPluginGeneration(): Int = com.android.builder.model.AndroidProject.GENERATION_ORIGINAL
   @Deprecated("use sync issues instead", ReplaceWith("getSyncIssues()"))
   override fun getUnresolvedDependencies(): Collection<String> = listOf()
 }

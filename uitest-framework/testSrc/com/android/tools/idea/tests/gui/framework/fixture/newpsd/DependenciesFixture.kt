@@ -22,10 +22,10 @@ import com.intellij.ui.table.TableView
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.fixture.JTableFixture
-import org.fest.swing.fixture.JTextComponentFixture
+import org.fest.swing.timing.Wait
 import java.awt.Container
+import java.awt.event.KeyEvent.VK_ENTER
 import javax.swing.JComboBox
-import javax.swing.JTextField
 
 class DependenciesFixture(
   override val ideFrameFixture: IdeFrameFixture,
@@ -42,13 +42,23 @@ class DependenciesFixture(
         waitForIdle()
         return this
       }
+
       override fun replaceText(text: String): JComboBoxFixture {
         super.replaceText(text)
         waitForIdle()
         return this
       }
+
       override fun pressAndReleaseKeys(vararg keyCodes: Int): JComboBoxFixture {
+        val enterIndex = keyCodes.indexOfFirst { it == VK_ENTER }
+        assert(enterIndex == -1 || enterIndex == keyCodes.lastIndex)
+        val psd = ProjectStructureDialogFixture.find(ideFrameFixture)
         super.pressAndReleaseKeys(*keyCodes)
+        if (enterIndex != -1) {
+          Wait.seconds(10).expecting("dialog to disappear").until { !psd.target().isShowing }
+          waitForIdle()
+          ideFrameFixture.waitForGradleProjectSyncToFinish()
+        }
         waitForIdle()
         return this
       }

@@ -17,9 +17,11 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
+import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL;
 import static com.android.tools.idea.gradle.util.GradleUtil.getLastKnownAndroidGradlePluginVersion;
 import static com.android.tools.idea.gradle.util.GradleUtil.getLastSuccessfulAndroidGradlePluginVersion;
 import static com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes;
+import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
@@ -45,6 +47,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
@@ -82,6 +85,7 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -105,7 +109,6 @@ public class GradleSyncState {
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final MessageBus myMessageBus;
   @NotNull private final StateChangeNotification myChangeNotification;
-  @NotNull private final GradleFiles myGradleFiles;
   @NotNull private final ProjectStructure myProjectStructure;
 
   // TODO: Look at removing this, this information should belong to the Gradle Facet
@@ -160,17 +163,15 @@ public class GradleSyncState {
   public GradleSyncState(@NotNull Project project,
                          @NotNull AndroidProjectInfo androidProjectInfo,
                          @NotNull GradleProjectInfo gradleProjectInfo,
-                         @NotNull GradleFiles gradleFiles,
                          @NotNull MessageBus messageBus,
                          @NotNull ProjectStructure projectStructure) {
-    this(project, androidProjectInfo, gradleProjectInfo, gradleFiles, messageBus, projectStructure, new StateChangeNotification(project));
+    this(project, androidProjectInfo, gradleProjectInfo, messageBus, projectStructure, new StateChangeNotification(project));
   }
 
   @VisibleForTesting
   GradleSyncState(@NotNull Project project,
                   @NotNull AndroidProjectInfo androidProjectInfo,
                   @NotNull GradleProjectInfo gradleProjectInfo,
-                  @NotNull GradleFiles gradleFiles,
                   @NotNull MessageBus messageBus,
                   @NotNull ProjectStructure projectStructure,
                   @NotNull StateChangeNotification changeNotification) {
@@ -179,7 +180,6 @@ public class GradleSyncState {
     myGradleProjectInfo = gradleProjectInfo;
     myMessageBus = messageBus;
     myChangeNotification = changeNotification;
-    myGradleFiles = gradleFiles;
     myProjectStructure = projectStructure;
 
     // Call in to make sure IndexingSuspender instance is constructed.
@@ -459,7 +459,15 @@ public class GradleSyncState {
     if (ideSdks.isUsingJavaHomeJdk()) {
       return;
     }
+    String javaHome = getJdkFromJavaHome();
+    if (javaHome == null) {
+      return;
+    }
+    if (ideSdks.validateJdkPath(new File(javaHome)) == null) {
+      return;
+    }
     List<NotificationHyperlink> quickFixes = new ArrayList<>();
+    quickFixes.add(new OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info..."));
     UseJavaHomeAsJdkHyperlink useJavaHomeHyperlink = UseJavaHomeAsJdkHyperlink.create();
     if (useJavaHomeHyperlink != null) {
       quickFixes.add(useJavaHomeHyperlink);
@@ -468,7 +476,7 @@ public class GradleSyncState {
     String msg = "Android Studio is using this JDK location:\n" +
                  ideSdks.getJdkPath() + "\n" +
                  "which is different to what Gradle uses by default:\n" +
-                 IdeSdks.getJdkFromJavaHome() + "\n" +
+                 javaHome + "\n" +
                  "Using different locations may spawn multiple Gradle daemons if\n" +
                  "Gradle tasks are run from command line while using Android Studio.\n";
     addWarningToJdkEventLog(msg, quickFixes);
@@ -536,7 +544,7 @@ public class GradleSyncState {
    */
   @NotNull
   public ThreeState isSyncNeeded() {
-    return myGradleFiles.areGradleFilesModified() ? ThreeState.YES : ThreeState.NO;
+    return GradleFiles.getInstance(myProject).areGradleFilesModified() ? ThreeState.YES : ThreeState.NO;
   }
 
   /**

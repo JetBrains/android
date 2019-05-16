@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.run.util.SwapInfo;
+import com.android.tools.idea.stats.RunStats;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -165,18 +166,30 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       // Set the appropriate action based on which deployment we're doing.
       if (shouldApplyChanges()) {
 
-        tasks.add(new ApplyChangesTask(myProject, packages.build(),
-                                       DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN));
+        tasks.add(new ApplyChangesTask(myProject, packages.build(), isApplyChangesFallbackToRun()));
       }
       else if (shouldApplyCodeChanges()) {
-        tasks.add(new ApplyCodeChangesTask(myProject, packages.build(),
-                                           DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN));
+        tasks.add(new ApplyCodeChangesTask(myProject, packages.build(), isApplyCodeChangesFallbackToRun()));
       }
       else {
         tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions()));
       }
     }
     return ImmutableList.copyOf(tasks);
+  }
+
+  private boolean isApplyCodeChangesFallbackToRun() {
+    return DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN;
+  }
+
+  private boolean isApplyChangesFallbackToRun() {
+    return DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN;
+  }
+
+  @Override
+  public void fillStats(RunStats stats) {
+    stats.setApplyChangesFallbackToRun(isApplyChangesFallbackToRun());
+    stats.setApplyCodeChangesFallbackToRun(isApplyCodeChangesFallbackToRun());
   }
 
   @NotNull

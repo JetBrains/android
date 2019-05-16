@@ -929,6 +929,27 @@ public final class StudioProfilersTest {
   }
 
   @Test
+  public void testUnsupportedDeviceShowsNullStage() {
+    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myIdeProfilerServices, myTimer);
+    String deviceName = "UnsupportedDevice";
+    String unsupportedReason = "Unsupported device";
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId(deviceName.hashCode())
+      .setFeatureLevel(AndroidVersion.VersionCodes.KITKAT)
+      .setModel(deviceName)
+      .setState(Common.Device.State.ONLINE)
+      .setUnsupportedReason(unsupportedReason)
+      .build();
+    myTransportService.addDevice(device);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    profilers.setPreferredProcess(deviceName, "FakeProcess", null);
+    assertThat(profilers.getDevice()).isEqualTo(device);
+    assertThat(profilers.getProcess()).isNull();
+    assertThat(profilers.getStageClass()).isEqualTo(NullMonitorStage.class);
+    assertThat(((NullMonitorStage)profilers.getStage()).getUnsupportedReason()).isEqualTo(unsupportedReason);
+  }
+
+  @Test
   public void testProfilingStopsWithLiveAllocationEnabled() {
     // Enable live allocation tracker
     myIdeProfilerServices.enableLiveAllocationTracking(true);

@@ -51,10 +51,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import kotlin.properties.Delegates
 
-private const val MODULE_PREFIX = "Module: "
-
 /**
- * View model for the [com.android.tools.idea.ui.resourcemanager.view.ResourceExplorerToolbar].
+ * View model for the [com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbar].
  * @param facetUpdaterCallback callback to call when a new facet is selected.
  */
 class ResourceExplorerToolbarViewModel(
@@ -64,19 +62,25 @@ class ResourceExplorerToolbarViewModel(
   private val facetUpdaterCallback: (AndroidFacet) -> Unit)
   : DataProvider, IdeView {
 
+  /**
+   * Callback added by the view to be called when data of this
+   * view model changes.
+   */
+  var updateUICallback = {}
+
   var facet: AndroidFacet = facet
     set(newFacet) {
       if (field != newFacet) {
         field = newFacet
+        updateUICallback()
       }
     }
 
   /**
    * Name of the module currently selected
    */
-  var currentModuleName: String = facet.name
+  val currentModuleName
     get() = facet.module.name
-    private set
 
   val addActions
     get() = DefaultActionGroup().apply {
@@ -164,19 +168,19 @@ class ResourceExplorerToolbarViewModel(
    * Return the [AnAction]s to switch to another module.
    * This method only returns Android modules.
    */
-  fun getSelectModuleActions(): List<AnAction> = ModuleManager.getInstance(facet.module.project)
+  fun getAvailableModules(): List<String> = ModuleManager.getInstance(facet.module.project)
     .modules
     .mapNotNull { it.androidFacet }
-    .sortedBy { it.name }
-    .map { androidFacet ->
-      object : DumbAwareAction("$MODULE_PREFIX${androidFacet.module.name}") {
-        override fun actionPerformed(e: AnActionEvent) {
-          facetUpdaterCallback(androidFacet)
-        }
-      }
-    }
+    .map { it.module.name }
+    .sorted()
 
-  fun getSelectedModuleText() = "$MODULE_PREFIX${currentModuleName}"
+  fun onModuleSelected(moduleName: String?) {
+    ModuleManager.getInstance(facet.module.project)
+      .modules
+      .firstOrNull { it.name == moduleName }
+      ?.let { it.androidFacet }
+      ?.run(facetUpdaterCallback)
+  }
 
   inner class ImportResourceAction : AnAction("Import Drawables", "Import drawable files from disk", AllIcons.Actions.Upload), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {

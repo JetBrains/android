@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.roomSql.resolution
 
 import com.android.tools.idea.lang.roomSql.psi.RoomSelectStatement
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.psi.PsiElement
 import com.intellij.util.Processor
 
 /**
@@ -28,7 +29,7 @@ class SubqueryTable(private val selectStmt: RoomSelectStatement) : SqlTable {
   override val definingElement get() = selectStmt
   override val isView: Boolean get() = true
 
-  override fun processColumns(processor: Processor<SqlColumn>): Boolean {
+  override fun processColumns(processor: Processor<SqlColumn>, sqlTablesInProcess: MutableSet<PsiElement>): Boolean {
     // We need to process only first selectCore because the column names of the first query determine the column names of the combined result set.
     val selectCore = selectStmt.selectCoreList.firstOrNull()
     ProgressManager.checkCanceled()
@@ -37,14 +38,16 @@ class SubqueryTable(private val selectStmt: RoomSelectStatement) : SqlTable {
     columns@ for (resultColumn in resultColumns) {
       when {
         resultColumn.expression != null -> { // Try to process by [RoomExpression] e.g. "SELECT id FROM ..."; "SELECT id * 2 FROM ...".
-          if (!processor.process(resultColumn.column)) return false
+          val column = computeSqlColumn(resultColumn, sqlTablesInProcess)
+          // Column can be null. Sometimes we cannot resolve column because we have invalid query (e.g recursive query)
+          if (column != null && !processor.process(column)) return false
         }
         resultColumn.selectedTableName != null -> { // "SELECT user.* FROM ..."
           val sqlTable = resultColumn.selectedTableName?.reference?.resolveSqlTable() ?: continue@columns
-          if (!sqlTable.processColumns(processor)) return false
+          if (!sqlTable.processColumns(processor, sqlTablesInProcess)) return false
         }
         else -> { // "SELECT * FROM ..."
-          if (!processSelectedSqlTables(resultColumn, AllColumnsProcessor(processor))) return false
+          if (!processSelectedSqlTables(resultColumn, AllColumnsProcessor(processor, sqlTablesInProcess))) return false
         }
       }
     }

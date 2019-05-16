@@ -39,7 +39,10 @@ interface SqlDefinition {
 }
 
 interface SqlTable : SqlDefinition {
-  fun processColumns(processor: Processor<SqlColumn>): Boolean
+  /**
+   * @see [RoomColumnPsiReference.resolveColumn] for [sqlTablesInProcess]
+   */
+  fun processColumns(processor: Processor<SqlColumn>, sqlTablesInProcess: MutableSet<PsiElement>): Boolean
   val isView: Boolean
 }
 

@@ -42,6 +42,10 @@ public class RealWorldExamples {
     "--sysroot=/usr/local/google/home/jomof/Android/Sdk/ndk/19.2.5345600/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include"
   };
 
+  public final static String[] NDK_R19_0_SXS_EXAMPLE = {
+    "--sysroot=/usr/local/google/home/jomof/Android/Sdk/ndk/19.0.5345600/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include"
+  };
+
   public final static String[] NDK_SPECIAL_PACKAGES_EXAMPLE =
     {"-I{ndkPath}/sources/android/cpufeatures", "-I{ndkPath}/sources/android/native_app_glue", "-I{ndkPath}/sources/android/ndk_helper",
       "-I{ndkPath}/sources/cxx-stl/stlport/stlport", "-I{ndkPath}/sources/cxx-stl//gabi++/include", "-I{ndkPath}/samples/Teapot/jni",

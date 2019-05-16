@@ -16,6 +16,11 @@
 package com.android.tools.idea.model;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.utils.concurrency.AsyncSupplier;
+import com.google.common.base.Function;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.concurrency.SameThreadExecutor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -99,14 +104,29 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     return MergedManifestManager.getSnapshot(facet).getApplicationId();
   }
 
+  @NotNull
+  private static <T> ListenableFuture<T> getFromMergedManifest(@NotNull AndroidFacet facet, @NotNull Function<MergedManifestSnapshot, T> getter) {
+    AsyncSupplier<MergedManifestSnapshot> manifestSupplier = MergedManifestManager.getMergedManifestSupplier(facet.getModule());
+    MergedManifestSnapshot cachedManifest = manifestSupplier.getNow();
+    if (cachedManifest != null) {
+      return Futures.immediateFuture(getter.apply(cachedManifest));
+    }
+    return Futures.transform(manifestSupplier.get(), getter, SameThreadExecutor.INSTANCE);
+  }
+
   /**
    * Returns the minSdkVersion that we pass to the runtime. This is normally the same as
    * {@link #getMinSdkVersion()}, but with preview platforms the minSdkVersion, targetSdkVersion
    * and compileSdkVersion are all coerced to the same preview platform value. This method
    * should be used by launch code for example or packaging code.
+   *
+   * @deprecated To avoid blocking on merged manifest computations (especially on the EDT since
+   * this freezes the UI), add a callback to the future returned by {@link #getRuntimeMinSdkVersion()}
+   * instead.
    */
+  @Deprecated
   @NotNull
-  public AndroidVersion getRuntimeMinSdkVersion() {
+  public AndroidVersion getRuntimeMinSdkVersionSynchronously() {
     AndroidFacet facet = getFacet();
     AndroidModel androidModel = facet.getConfiguration().getModel();
     if (androidModel != null) {
@@ -116,9 +136,29 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       }
       // Else: not specified in gradle files; fall back to manifest
     }
-
     return MergedManifestManager.getSnapshot(facet).getMinSdkVersion();
   }
+
+  /**
+   * Returns the minSdkVersion that we pass to the runtime. This is normally the same as
+   * {@link #getMinSdkVersion()}, but with preview platforms the minSdkVersion, targetSdkVersion
+   * and compileSdkVersion are all coerced to the same preview platform value. This method
+   * should be used by launch code for example or packaging code.
+   */
+  @NotNull
+  public ListenableFuture<AndroidVersion> getRuntimeMinSdkVersion() {
+    AndroidFacet facet = getFacet();
+    AndroidModel androidModel = facet.getConfiguration().getModel();
+    if (androidModel != null) {
+      AndroidVersion minSdkVersion = androidModel.getRuntimeMinSdkVersion();
+      if (minSdkVersion != null) {
+        return Futures.immediateFuture(minSdkVersion);
+      }
+      // Else: not specified in gradle files; fall back to manifest
+    }
+    return getFromMergedManifest(facet, MergedManifestSnapshot::getMinSdkVersion);
+  }
+
 
   @NotNull
   public AndroidVersion getMinSdkVersion() {

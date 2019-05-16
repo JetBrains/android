@@ -18,9 +18,9 @@ package com.android.tools.idea.ui.resourcechooser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.PredefinedSampleDataResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.SampleDataResourceItem;
-import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.truth.Truth;
 import com.intellij.mock.MockPsiFile;
@@ -59,7 +59,7 @@ public class SampleDataItemTest {
 
     ResourceItem predefinedItem = ResourceRepositoryManager
       .getAppResources(rule.module)
-      .getResources(SampleDataResourceRepository.PREDEFINED_SAMPLES_NS, ResourceType.SAMPLE_DATA, "lorem")
+      .getResources(PredefinedSampleDataResourceRepository.NAMESPACE, ResourceType.SAMPLE_DATA, "lorem")
       .get(0);
     ResourceChooserItem.SampleDataItem dataItem = new ResourceChooserItem.SampleDataItem((SampleDataResourceItem)predefinedItem);
     Truth.assertThat(dataItem.getResourceUrl()).isEqualTo("@tools:sample/lorem");

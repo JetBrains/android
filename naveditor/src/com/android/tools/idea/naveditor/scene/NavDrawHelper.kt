@@ -19,9 +19,12 @@ import com.google.common.annotations.VisibleForTesting
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.model.NavCoordinate
+import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
+import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.Font
@@ -120,4 +123,13 @@ fun growRectangle(rectangle: RoundRectangle2D.Float, growX: Float, growY: Float)
   rectangle.y -= growY
   rectangle.width += 2 * growX
   rectangle.height += 2 * growY
+}
+
+fun createDrawImageCommand(rectangle: Rectangle2D.Float, image: RefinableImage?): DrawCommand {
+  return if (image == null) {
+    DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, rectangle)
+  }
+  else {
+    DrawNavScreen(rectangle, image)
+  }
 }

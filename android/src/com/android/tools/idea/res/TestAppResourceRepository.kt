@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.android.tools.idea.util.androidFacet
+import com.google.common.collect.ImmutableList
 import org.jetbrains.android.facet.AndroidFacet
 
 class TestAppResourceRepository private constructor(
@@ -32,7 +33,7 @@ class TestAppResourceRepository private constructor(
 ) : MultiResourceRepository(facet.module.name) {
 
   init {
-    setChildren(localResources, libraryResources)
+    setChildren(localResources, libraryResources, ImmutableList.of())
   }
 
   companion object {

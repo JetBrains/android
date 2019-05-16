@@ -34,6 +34,7 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
   private val actionButtonModel
     get() = model.property.browseButton
   private val actionButton = ButtonWithCustomTooltip(actionButtonModel?.action)
+  private var initialized = false
 
   init {
     add(editor, BorderLayout.CENTER)
@@ -41,6 +42,7 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
     updateFromModel()
 
     model.addListener(ValueChangedListener { updateFromModel() })
+    initialized = true
   }
 
   override fun requestFocus() {
@@ -57,6 +59,14 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
       return model.property
     }
     return null
+  }
+
+  override fun updateUI() {
+    super.updateUI()
+    if (initialized) {
+      // We allow the action icon to change during a LaF change:
+      actionButton.icon = actionButtonModel?.actionIcon
+    }
   }
 
   private inner class ButtonWithCustomTooltip(action: AnAction?) : IconWithFocusBorder({ action }) {
