@@ -32,6 +32,6 @@ class ViewNodeTest {
     }
 
     UsefulTestCase.assertSameElements(model.root.flatten().map { it.drawId }, ROOT, VIEW1, VIEW3, VIEW2)
-    UsefulTestCase.assertSameElements(model.root.children[VIEW1]!!.flatten().map { it.drawId }, VIEW1, VIEW3)
+    UsefulTestCase.assertSameElements(model.root.children[0].flatten().map { it.drawId }, VIEW1, VIEW3)
   }
 }
