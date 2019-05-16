@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.flags.StudioFlags
@@ -123,6 +124,56 @@ class ConstraintPlaceholderTest : SceneTest() {
     }
   }
 
+  fun testDraggingConstraintGuideline() {
+    val root = myScreen.get("@id/constraint").sceneComponent!!
+    val guideline = myScreen.get("@id/guideline").sceneComponent!!
+    val placeholder = ConstraintPlaceholder(root)
+    val nlComponent = guideline.authoritativeNlComponent
+
+    run {
+      // Test dragging with begin attribute.
+      val transaction = nlComponent.startAttributeTransaction()
+      placeholder.updateLiveAttribute(guideline, transaction, root.drawX + 300, root.centerY)
+      NlWriteCommandActionUtil.run(nlComponent, "") { transaction.commit() }
+
+      assertEquals("300dp", nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN))
+      assertNull(nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END))
+      assertNull(nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT))
+    }
+
+    run {
+      // Test dragging with end attribute
+      NlWriteCommandActionUtil.run(nlComponent, "") {
+        nlComponent.removeAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN)
+        nlComponent.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, "50dp")
+      }
+
+      val transaction = nlComponent.startAttributeTransaction()
+      placeholder.updateLiveAttribute(guideline, transaction, root.drawX + 400, root.centerY)
+      NlWriteCommandActionUtil.run(nlComponent, "") { transaction.commit() }
+
+      assertNull(nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN))
+      assertEquals("100dp", nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END))
+      assertNull(nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT))
+    }
+
+    run {
+      // Test dragging with percent attribute
+      NlWriteCommandActionUtil.run(nlComponent, "") {
+        nlComponent.removeAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END)
+        nlComponent.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, "0.2")
+      }
+
+      val transaction = nlComponent.startAttributeTransaction()
+      placeholder.updateLiveAttribute(guideline, transaction, root.drawX + 350, root.centerY)
+      NlWriteCommandActionUtil.run(nlComponent, "") { transaction.commit() }
+
+      assertNull(nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN))
+      assertNull(nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END))
+      assertEquals("0.7", nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT))
+    }
+  }
+
   override fun createModel(): ModelBuilder {
     return model("constraint.xml",
                  component(SdkConstants.CONSTRAINT_LAYOUT.newName())
@@ -151,7 +202,14 @@ class ConstraintPlaceholderTest : SceneTest() {
                        .width("400dp")
                        .height("400dp")
                        .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "100dp")
-                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "100dp")
+                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "100dp"),
+                     component(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.newName())
+                       .withBounds(100, 0, 100, 1000)
+                       .id("@id/guideline")
+                       .wrapContentHeight()
+                       .wrapContentWidth()
+                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ORIENTATION, SdkConstants.VALUE_VERTICAL)
+                       .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "400dp")
                    )
     )
   }
