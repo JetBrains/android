@@ -28,6 +28,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ThreeState;
@@ -53,8 +54,9 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     MessageBus messageBus = mock(MessageBus.class);
 
+    new IdeComponents(myProject).replaceProjectService(GradleFiles.class, myGradleFiles);
     mySyncState = new GradleSyncState(myProject, AndroidProjectInfo.getInstance(myProject), GradleProjectInfo.getInstance(myProject),
-                                      myGradleFiles, messageBus, myProjectStructure, myChangeNotification);
+                                      messageBus, myProjectStructure, myChangeNotification);
 
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
   }

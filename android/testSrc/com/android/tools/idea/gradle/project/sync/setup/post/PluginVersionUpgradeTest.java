@@ -27,7 +27,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
-import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -65,7 +64,7 @@ public class PluginVersionUpgradeTest extends IdeaTestCase {
 
   public void testCheckAndPerformUpgradeWhenUpgradeIsPerformed() {
     Module module = getModule();
-    simulateAndroidModule(module, GENERATION_ORIGINAL);
+    simulateAndroidModule(module);
 
 
     AndroidPluginInfo pluginInfo = new AndroidPluginInfo(module, null, null);
@@ -88,7 +87,7 @@ public class PluginVersionUpgradeTest extends IdeaTestCase {
 
   public void testCheckAndPerformUpgradeWhenUpgradeIsNotPerformed() {
     Module module = getModule();
-    simulateAndroidModule(module, GENERATION_ORIGINAL);
+    simulateAndroidModule(module);
 
     AndroidPluginInfo pluginInfo = new AndroidPluginInfo(module, null, null);
     Project project = getProject();
@@ -106,9 +105,8 @@ public class PluginVersionUpgradeTest extends IdeaTestCase {
     verify(myUpgradeStep3, times(1)).checkUpgradable(project, pluginInfo);
   }
 
-  private static void simulateAndroidModule(@NotNull Module module, int pluginGeneration) {
+  private static void simulateAndroidModule(@NotNull Module module) {
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
-    when(androidProject.getPluginGeneration()).thenReturn(pluginGeneration);
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getAndroidProject()).thenReturn(androidProject);

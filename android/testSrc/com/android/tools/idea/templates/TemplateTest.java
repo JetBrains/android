@@ -414,21 +414,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testNewThingsPeripheralActivity() throws Exception {
-    checkCreateTemplate("activities", "AndroidThingsPeripheralActivity", false);
-  }
-
-  @TemplateCheck
-  public void testNewProjectWithThingsPeripheralActivity() throws Exception {
-    checkCreateTemplate("activities", "AndroidThingsPeripheralActivity", true);
-  }
-
-  @TemplateCheck
-  public void testNewProjectWithThingsPeripheralActivityWithKotlin() throws Exception {
-    checkCreateTemplate("activities", "AndroidThingsPeripheralActivity", true, withKotlin);
-  }
-
-  @TemplateCheck
   public void testNewEmptyActivity() throws Exception {
     checkCreateTemplate("activities", "EmptyActivity", false);
   }

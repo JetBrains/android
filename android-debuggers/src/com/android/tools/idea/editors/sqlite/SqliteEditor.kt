@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.editors.sqlite
 
-import com.android.tools.idea.device.fs.DeviceFileId
+import com.android.tools.idea.concurrent.EdtExecutor
+import com.android.tools.idea.sqlite.SqliteController
+import com.android.tools.idea.sqlite.jdbc.SqliteJdbcService
+import com.android.tools.idea.sqlite.model.SqliteModel
+import com.android.tools.idea.sqlite.ui.SqliteViewImpl
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
@@ -23,62 +27,47 @@ import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolderBase
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
-
-import javax.swing.*
+import org.jetbrains.ide.PooledThreadExecutor
 import java.beans.PropertyChangeListener
+import javax.swing.JComponent
 
+/**
+ * Implementation of [FileEditor] for Sqlite files. The custom editor is GUI based, i.e. shows the list of tables, allows querying
+ * the database, etc.
+ *
+ * @see SqliteEditorProvider
+ */
 class SqliteEditor(private val project: Project, private val sqliteFile: VirtualFile) : UserDataHolderBase(), FileEditor {
-  private val panel: SqliteEditorPanel = SqliteEditorPanel()
+  private val model: SqliteModel = SqliteModel(sqliteFile)
+  private val view: SqliteViewImpl = SqliteViewImpl(project, model, this)
+  private val controller: SqliteController
 
   init {
-    refreshPanel()
-  }
-
-  private fun refreshPanel() {
-    val deviceEntry = sqliteFile.getUserData(DeviceFileId.KEY)
-    panel.localPathText.text = FileUtil.toSystemDependentName(sqliteFile.path)
-    panel.deviceIdText.text = deviceEntry?.deviceId ?: "N/A"
-    panel.devicePathText.text = deviceEntry?.devicePath ?: "N/A"
+    val service = SqliteJdbcService(sqliteFile, this, PooledThreadExecutor.INSTANCE)
+    controller = SqliteController(this, model, view, service, EdtExecutor.INSTANCE, PooledThreadExecutor.INSTANCE)
+    controller.start()
   }
 
   override fun dispose() {}
 
-  override fun getComponent(): JComponent {
-    return panel.mainPanel
-  }
+  override fun getComponent(): JComponent = view.component
 
-  override fun getPreferredFocusedComponent(): JComponent? {
-    return null
-  }
+  override fun getPreferredFocusedComponent(): JComponent? = null
 
-  override fun getName(): String {
-    return sqliteFile.name
-  }
+  override fun getName(): String = sqliteFile.name
 
   override fun setState(state: FileEditorState) {
     if (state is SqliteEditorState) {
-      sqliteFile.putUserData(DeviceFileId.KEY, state.deviceFileId)
-      refreshPanel()
+      model.sqliteFileId = state.deviceFileId
     }
   }
 
-  override fun getState(level: FileEditorStateLevel): FileEditorState {
-    var fileId = sqliteFile.getUserData(DeviceFileId.KEY)
-    if (fileId == null) {
-      fileId = DeviceFileId.UNKNOWN
-    }
-    return SqliteEditorState(fileId)
-  }
+  override fun getState(level: FileEditorStateLevel): FileEditorState = SqliteEditorState(model.sqliteFileId)
 
-  override fun isModified(): Boolean {
-    return false
-  }
+  override fun isModified(): Boolean = false
 
-  override fun isValid(): Boolean {
-    return sqliteFile.isValid && !project.isDisposed
-  }
+  override fun isValid(): Boolean = sqliteFile.isValid && !project.isDisposed
 
   override fun selectNotify() {}
 
@@ -88,11 +77,7 @@ class SqliteEditor(private val project: Project, private val sqliteFile: Virtual
 
   override fun removePropertyChangeListener(listener: PropertyChangeListener) {}
 
-  override fun getBackgroundHighlighter(): BackgroundEditorHighlighter? {
-    return null
-  }
+  override fun getBackgroundHighlighter(): BackgroundEditorHighlighter? = null
 
-  override fun getCurrentLocation(): FileEditorLocation? {
-    return null
-  }
+  override fun getCurrentLocation(): FileEditorLocation? = null
 }

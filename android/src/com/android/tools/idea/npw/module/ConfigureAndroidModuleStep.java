@@ -76,8 +76,6 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   @NotNull private final FormFactor myFormFactor;
 
   private final int myMinSdkLevel;
-  private final boolean myIsLibrary;
-  private final boolean myIsInstantApp;
 
   private AndroidApiLevelComboBox myApiLevelCombo;
   private JComboBox<Language> myLanguageCombo;
@@ -89,13 +87,11 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   @NotNull private RenderTemplateModel myRenderModel;
 
   public ConfigureAndroidModuleStep(@NotNull NewModuleModel model, @NotNull FormFactor formFactor, int minSdkLevel, String basePackage,
-                                    boolean isLibrary, boolean isInstantApp, @NotNull String title) {
+                                    @NotNull String title) {
     super(model, title, formFactor.getIcon());
 
     myFormFactor = formFactor;
     myMinSdkLevel = minSdkLevel;
-    myIsLibrary = isLibrary;
-    myIsInstantApp = isInstantApp;
 
     TextProperty packageNameText = new TextProperty(myPackageName);
     TextProperty moduleNameText = new TextProperty(myModuleName);
@@ -167,7 +163,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
     ChooseActivityTypeStep chooseActivityStep = new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor, Lists.newArrayList());
-    chooseActivityStep.setShouldShow(!myIsLibrary || myIsInstantApp);
+    chooseActivityStep.setShouldShow(!getModel().isLibrary().get() || getModel().instantApp().get());
 
     LicenseAgreementStep licenseAgreementStep =
       new LicenseAgreementStep(new LicenseAgreementModel(AndroidVersionsInfo.getSdkManagerLocalPath()), myInstallLicenseRequests);
@@ -203,7 +199,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     Project project = moduleModel.getProject().getValue();
     myRenderModel.getTemplate().set(createDefaultTemplateAt(project.getBasePath(), moduleModel.moduleName().get()));
 
-    if (myIsLibrary) {
+    if (moduleModel.isLibrary().get()) {
       moduleModel.setDefaultRenderTemplateValues(myRenderModel, project);
 
       new TemplateValueInjector(moduleModel.getTemplateValues())

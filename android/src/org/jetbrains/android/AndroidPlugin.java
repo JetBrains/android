@@ -1,13 +1,17 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
+import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.BaseComponent;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.startup.Actions.moveAction;
 
@@ -44,6 +48,8 @@ public class AndroidPlugin implements BaseComponent {
     // Move the "Sync Project with Gradle Files" toolbar button to a less prominent place.
     moveAction("Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
                new Constraints(Anchor.LAST, null));
+    AnalyticsSettings.disable();
+    UsageTracker.disable();
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
   }
 
@@ -56,7 +62,13 @@ public class AndroidPlugin implements BaseComponent {
       if (parentGroup instanceof DefaultActionGroup) {
         // Create new "Build Bundle(s) / APK(s)" group
         final String groupId = "Android.BuildApkOrBundle";
-        DefaultActionGroup group = new DefaultActionGroup("Build Bundle(s) / APK(s)", true);
+        DefaultActionGroup group = new DefaultActionGroup("Build Bundle(s) / APK(s)", true) {
+          @Override
+          public void update(@NotNull AnActionEvent e) {
+            Project project = e.getProject();
+            e.getPresentation().setEnabledAndVisible(project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel());
+          }
+        };
         actionManager.registerAction(groupId, group);
         ((DefaultActionGroup)parentGroup).add(group, new Constraints(Anchor.BEFORE, "Android.GenerateSignedApk"));
 

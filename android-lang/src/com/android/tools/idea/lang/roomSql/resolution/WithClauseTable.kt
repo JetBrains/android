@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.roomSql.resolution
 
 import com.android.tools.idea.lang.roomSql.psi.RoomWithClauseTable
+import com.intellij.psi.PsiElement
 import com.intellij.util.Processor
 
 class WithClauseTable(withClauseTable: RoomWithClauseTable) : SqlTable {
@@ -24,7 +25,7 @@ class WithClauseTable(withClauseTable: RoomWithClauseTable) : SqlTable {
   override val definingElement get() = tableDefinition.tableDefinitionName
   override val isView: Boolean get() = true
 
-  override fun processColumns(processor: Processor<SqlColumn>): Boolean {
+  override fun processColumns(processor: Processor<SqlColumn>, sqlTablesInProcess: MutableSet<PsiElement>): Boolean {
     for (columnDefinition in tableDefinition.columnDefinitionNameList) {
       if (!processor.process(DefinedColumn(columnDefinition))) return false
     }

@@ -22,5 +22,6 @@
   -->
   <name>Android Debugger Tests</name>
   <id>com.android.tools.idea.android.debuggers.tests</id>
+  <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-debuggers.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

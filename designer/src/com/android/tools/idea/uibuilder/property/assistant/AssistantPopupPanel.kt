@@ -27,7 +27,7 @@ import javax.swing.SwingConstants
 
 
 private const val SIDE_PADDING = 12
-private val CONTENT_BORDER = JBUI.Borders.empty(6, SIDE_PADDING, 7, SIDE_PADDING)
+private val CONTENT_BORDER = JBUI.Borders.empty(6, SIDE_PADDING, 12, SIDE_PADDING)
 
 /**
  * Base panel for Assistant that applies the correct margin the the provided [content]

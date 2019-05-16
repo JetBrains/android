@@ -16,6 +16,7 @@
 package com.android.tools.idea.whatsnew.assistant;
 
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WhatsNewAssistantEvent;
@@ -51,7 +52,8 @@ import org.jetbrains.annotations.Nullable;
 public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
   @Override
   public void runActivity(@NotNull Project project) {
-    if (!(WhatsNewAssistantBundleCreator.shouldShowWhatsNew() && StudioFlags.WHATS_NEW_ASSISTANT_AUTO_SHOW.get())) {
+    WhatsNewAssistantBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewAssistantBundleCreator.class);
+    if (bundleCreator == null || !(bundleCreator.shouldShowWhatsNew() && StudioFlags.WHATS_NEW_ASSISTANT_AUTO_SHOW.get())) {
       return;
     }
 
@@ -70,7 +72,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
       return;
     }
 
-    Revision applicationRevision = Revision.parseRevision(ApplicationInfo.getInstance().getStrictVersion());
+    Revision applicationRevision = Revision.safeParseRevision(ApplicationInfo.getInstance().getStrictVersion());
 
     // If the Android Studio version is new, then always show on startup
     if (isNewStudioVersion(data, applicationRevision)) {
@@ -95,7 +97,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
    * @param project
    */
   @VisibleForTesting
-  static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project, @Nullable FutureCallback<Boolean> callback) {
+  static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project, @Nullable FutureCallback<? super Boolean> callback) {
     boolean showTipsOnStartup = GeneralSettings.getInstance().isShowTipsOnStartup();
     if (showTipsOnStartup)
       GeneralSettings.getInstance().setShowTipsOnStartup(false);
@@ -138,15 +140,13 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
     String seenRevisionStr = data.myRevision;
     Revision seenRevision = null;
     if (seenRevisionStr != null) {
-      try {
-        seenRevision = Revision.parseRevision(seenRevisionStr);
-      }
-      catch (NumberFormatException exception) {
-        // Bad previous revision, treat as null.
-      }
+      seenRevision = Revision.safeParseRevision(seenRevisionStr);
     }
 
-    if (seenRevision == null || applicationRevision.compareTo(seenRevision, Revision.PreviewComparison.ASCENDING) > 0) {
+    if (seenRevision == null
+        || seenRevision.equals(Revision.NOT_SPECIFIED)
+        || applicationRevision.equals(Revision.NOT_SPECIFIED)
+        || applicationRevision.compareTo(seenRevision, Revision.PreviewComparison.ASCENDING) > 0) {
       data.myRevision = applicationRevision.toString();
       return true;
     }

@@ -83,14 +83,21 @@ interface PTable {
                context: Any? = null,
                rendererProvider: PTableCellRendererProvider = DefaultPTableCellRendererProvider(),
                editorProvider: PTableCellEditorProvider = DefaultPTableCellEditorProvider(),
-               customToolTipHook: (MouseEvent) -> String? = { null }): PTable {
-      return PTableImpl(tableModel, context, rendererProvider, editorProvider, customToolTipHook)
+               customToolTipHook: (MouseEvent) -> String? = { null },
+               updatingUI: () -> Unit = { }): PTable {
+      return PTableImpl(tableModel, context, rendererProvider, editorProvider, customToolTipHook, updatingUI)
     }
   }
 }
 
 /** A provider for [PTableCellRenderer] which should be used for a certain cell in the table */
-interface PTableCellRendererProvider : (PTable, PTableItem, PTableColumn) -> PTableCellRenderer
+interface PTableCellRendererProvider : (PTable, PTableItem, PTableColumn) -> PTableCellRenderer {
+  /** Called when the Look and Feel has changed. */
+  fun updateUI() {}
+}
 
 /** A provider for [PTableCellEditor] which should be used for a certain cell in the table */
-interface PTableCellEditorProvider : (PTable, PTableItem, PTableColumn) -> PTableCellEditor
+interface PTableCellEditorProvider : (PTable, PTableItem, PTableColumn) -> PTableCellEditor {
+  /** Called when the Look and Feel has changed. */
+  fun updateUI() {}
+}

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.memorysettings;
 
+import static com.android.utils.FileUtils.join;
+
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.util.io.FileUtil;
@@ -53,8 +55,7 @@ public class DaemonMemorySettingsTest extends IdeaTestCase {
     super.tearDown();
   }
 
-  private void checkXmxWithUserProperties(int expectedGradleXmx, int expectedKotlinXmx,
-                                          String... propertiesContent) throws Exception {
+  private DaemonMemorySettings getDaemonMemorySettings(String... propertiesContent) throws Exception {
     assertTrue(propertiesContent.length >= 3);
     System.clearProperty("gradle.user.home");
     System.clearProperty("user.home");
@@ -77,15 +78,11 @@ public class DaemonMemorySettingsTest extends IdeaTestCase {
     File tempProjectDir = createTempDir("project");
     File projectPropertiesFile = createFile(tempProjectDir, "gradle.properties", propertiesContent[2]);
 
-    DaemonMemorySettings daemonMemorySettings =
-      new DaemonMemorySettings(new GradleProperties(projectPropertiesFile));
-
-    assertEquals(expectedGradleXmx, daemonMemorySettings.getProjectGradleDaemonXmx());
-    assertEquals(expectedKotlinXmx, daemonMemorySettings.getProjectKotlinDaemonXmx());
+    return new DaemonMemorySettings(new GradleProperties(projectPropertiesFile));
   }
 
   private File createFile(File parentDir, String name, String content) throws Exception {
-    File file = FileUtils.join(parentDir, name);
+    File file = join(parentDir, name);
     if (!file.exists() && !file.createNewFile()) {
       throw new IOException("Can't create " + file);
     }
@@ -93,6 +90,13 @@ public class DaemonMemorySettingsTest extends IdeaTestCase {
       FileUtil.writeToFile(file, content);
     }
     return file;
+  }
+
+  private void checkXmxWithUserProperties(int expectedGradleXmx, int expectedKotlinXmx,
+                                          String... propertiesContent) throws Exception {
+    DaemonMemorySettings daemonMemorySettings = getDaemonMemorySettings(propertiesContent);
+    assertEquals(expectedGradleXmx, daemonMemorySettings.getProjectGradleDaemonXmx());
+    assertEquals(expectedKotlinXmx, daemonMemorySettings.getProjectKotlinDaemonXmx());
   }
 
   public void testUserProperties() throws Exception {
@@ -155,5 +159,46 @@ public class DaemonMemorySettingsTest extends IdeaTestCase {
                                "org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx1G\"",
                                "org.gradle.jvmargs=-Xmx2G",
                                "org.gradle.jvmargs=-Xmx3G -Dkotlin.daemon.jvm.options=\"-Xmx4G\"");
+  }
+
+  private void checkUserPropertiesPath(boolean expectedHashUserPropertiesPath, String... gradlePropertiesContent) throws Exception {
+    DaemonMemorySettings daemonMemorySettings = getDaemonMemorySettings(gradlePropertiesContent);
+    assertEquals(expectedHashUserPropertiesPath, daemonMemorySettings.hasUserPropertiesPath());
+    if (expectedHashUserPropertiesPath) {
+      String expectedUserPropertiesPath =
+        gradlePropertiesContent[0] != null ? getGradleUserHomePropertiesFilePath() : getUserHomePropertiesFilePath();
+      assertEquals(expectedUserPropertiesPath, daemonMemorySettings.getUserPropertiesPath());
+    }
+  }
+
+  private String getGradleUserHomePropertiesFilePath() {
+    return join(System.getProperty("gradle.user.home"), "gradle.properties");
+  }
+
+  private String getUserHomePropertiesFilePath() {
+    return join(System.getProperty("user.home"), ".gradle", "gradle.properties");
+  }
+
+  public void testUserPropertiesPath() throws Exception {
+    checkUserPropertiesPath(false, "", "", "");
+
+    checkUserPropertiesPath(false, "kotlin.code.style=official", "", "");
+
+    checkUserPropertiesPath(false, "", "kotlin.code.style=official", "");
+
+    checkUserPropertiesPath(true,
+                            "org.gradle.jvmargs=-Xmx1G", null, "");
+
+    checkUserPropertiesPath(true,
+                            null, "org.gradle.jvmargs=-Xmx1G", "");
+
+    checkUserPropertiesPath(true,
+                            "org.gradle.jvmargs=-Xms1G", null, "");
+
+    checkUserPropertiesPath(true,
+                            null, "org.gradle.jvmargs=-Xms1G", "");
+
+    checkUserPropertiesPath(true,
+                            "org.gradle.jvmargs=-Xms1G", "org.gradle.jvmargs=-Xmx2G", "");
   }
 }

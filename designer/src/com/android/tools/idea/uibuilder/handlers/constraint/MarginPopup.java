@@ -28,8 +28,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
@@ -72,7 +71,6 @@ public class MarginPopup extends JPanel {
 
   private static final float DEFAULT_FONT_SIZE = 12f;
   private static final String DEFAULT_RES_DISPLAY = "@ ...";
-  private final JBTextField myDefaultMargin = new JBTextField("Default Margin : ");
   private final JBTextField myTextField = new JBTextField();
   private final JButton[] myHistoryButtons = new JButton[3];
   private final JButton myResourcePickerButton = new JButton();
@@ -83,18 +81,16 @@ public class MarginPopup extends JPanel {
   private JBPopup myPopup;
   private final MarginValue myValue = new MarginValue();
 
-  public MarginValue getMargin() {
-    return myValue;
-  }
-
-  public void setPopup(@Nullable JBPopup popup) {
-    for (Component component : getComponents()) {
-      updateFontsForPresentationMode(component);
+  @SuppressWarnings("FieldCanBeLocal")
+  private ActionListener myTextListener = new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      saveNewValue(e);
+      SwingUtilities.getWindowAncestor(MarginPopup.this).setVisible(false);
     }
+  };
 
-    myPopup = popup;
-  }
-
+  @SuppressWarnings("FieldCanBeLocal")
   private ActionListener myDefaultListener = new ActionListener() {
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -110,34 +106,38 @@ public class MarginPopup extends JPanel {
       if (myListener != null) {
         myListener.actionPerformed(e);
       }
-      if (myPopup != null) {
-        myPopup.cancel();
-      }
+      cancel();
     }
   };
+
+  public MarginValue getMargin() {
+    return myValue;
+  }
+
+  public void setPopup(@Nullable JBPopup popup) {
+    for (Component component : getComponents()) {
+      updateFontsForPresentationMode(component);
+    }
+
+    myPopup = popup;
+  }
+
+  public void cancel() {
+    if (myPopup != null) {
+      myPopup.cancel();
+    }
+    myPopup = null;
+  }
 
   public void updateText() {
     myTextField.setText(String.valueOf(myValue.getValue()));
   }
 
   private boolean isADefault(int value) {
-    for (int i = 0; i < myDefaultValues.length; i++) {
-      if (myDefaultValues[i] == value) {
-        return true;
-      }
-    }
-    return false;
+    return Arrays.stream(myDefaultValues).anyMatch(defaultValue -> defaultValue == value);
   }
 
-  private ActionListener mTextListener = new ActionListener() {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      saveNewValue(e);
-      SwingUtilities.getWindowAncestor(MarginPopup.this).setVisible(false);
-    }
-  };
-
-  public void setActionListener(ActionListener actionListener) {
+  public void setActionListener(@Nullable ActionListener actionListener) {
     myListener = actionListener;
   }
 
@@ -158,6 +158,7 @@ public class MarginPopup extends JPanel {
       }
     }
     catch (NumberFormatException e1) {
+      //noinspection CallToPrintStackTrace
       e1.printStackTrace();
     }
     if (myListener != null) {
@@ -165,22 +166,34 @@ public class MarginPopup extends JPanel {
     }
   }
 
-  public MarginPopup(final ActionListener resourcePickerActionListener) {
+  public MarginPopup() {
     super(new GridBagLayout());
+
+    // Bug: b/132078844
+    // The following 3 lines will enable the user to navigate to all the buttons with the <tab> key.
+    // The reason these lines are necessary is because AbstractPopup installs a FocusTraversalPolicy
+    // in the popup Window which only can navigate to one control: the preferred control.
+    // This workaround can be removed if that problem is fixed.
+    setFocusTraversalPolicyProvider(true);
+    setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
+    setFocusCycleRoot(true);
+
     setBackground(JBColor.background());
 
     GridBagConstraints gc = new GridBagConstraints();
-    myDefaultMargin.setEditable(false);
-    myDefaultMargin.setFocusable(false);
-    myDefaultMargin.setBorder(BorderFactory.createEmptyBorder());
+    JBTextField defaultMargin = new JBTextField("Default Margin : ");
+    defaultMargin.setEditable(false);
+    defaultMargin.setFocusable(false);
+    defaultMargin.setBorder(BorderFactory.createEmptyBorder());
+    defaultMargin.setBackground(JBColor.background());
 
     gc.gridx = 0;
     gc.gridy = 0;
     gc.gridwidth = 2;
     gc.insets = JBUI.insets(10, 5, 5, 0);
     gc.fill = GridBagConstraints.BOTH;
-    myDefaultMargin.setHorizontalAlignment(SwingConstants.RIGHT);
-    add(myDefaultMargin, gc);
+    defaultMargin.setHorizontalAlignment(SwingConstants.RIGHT);
+    add(defaultMargin, gc);
 
     gc.gridx = 2;
     gc.gridy = 0;
@@ -218,12 +231,13 @@ public class MarginPopup extends JPanel {
       }
     });
     gc.fill = GridBagConstraints.HORIZONTAL;
-    myTextField.addActionListener(mTextListener);
-    Insets margin = JBUI.insets(0, 0, 0, 0);
+    myTextField.addActionListener(myTextListener);
+    Insets margin = JBUI.emptyInsets();
     for (int i = 0; i < 4; i++) {
-      JButton b = new JButton("" + myDefaultValues[i]);
+      JButton b = new JButton(String.valueOf(myDefaultValues[i]));
       b.setMargin(margin);
       b.addActionListener(myDefaultListener);
+      b.setBackground(JBColor.background());
       gc.gridx = i;
       gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);
       gc.insets.right = JBUI.scale((i == 3) ? 5 : 0);
@@ -234,6 +248,7 @@ public class MarginPopup extends JPanel {
     for (int i = 0; i < myHistoryButtons.length; i++) {
       myHistoryButtons[i] = new JButton("XXX");
       myHistoryButtons[i].setMargin(margin);
+      myHistoryButtons[i].setBackground(JBColor.background());
       if (myHistoryValues[i] > 0) {
         myHistoryButtons[i].setText(Integer.toString(myHistoryValues[i]));
       }
@@ -244,12 +259,11 @@ public class MarginPopup extends JPanel {
 
       gc.gridx = i;
       gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);
-      gc.insets.right = JBUI.scale((i == 3) ? 5 : 0);
+      gc.insets.right = JBUI.scale((i == myHistoryButtons.length - 1) ? 5 : 0);
       add(myHistoryButtons[i], gc);
     }
     myResourcePickerButton.setMargin(margin);
     myResourcePickerButton.setText("@ ...");
-    myResourcePickerButton.addActionListener(resourcePickerActionListener);
     gc.gridx = 3;
     gc.insets.left = JBUI.scale(0);
     gc.insets.right = JBUI.scale(5);
@@ -271,8 +285,16 @@ public class MarginPopup extends JPanel {
     return myTextField;
   }
 
-  private void updateFontsForPresentationMode(Component component) {
+  private static void updateFontsForPresentationMode(Component component) {
     Font font = component.getFont();
-    component.setFont(font.deriveFont((float) JBUI.scaleFontSize(DEFAULT_FONT_SIZE)));
+    component.setFont(font.deriveFont((float)JBUI.scaleFontSize(DEFAULT_FONT_SIZE)));
+  }
+
+  public void addResourcePickerActionListener(@NotNull ActionListener listener) {
+    myResourcePickerButton.addActionListener(listener);
+  }
+
+  public void removeResourcePickerActionListener(@NotNull ActionListener listener) {
+    myResourcePickerButton.removeActionListener(listener);
   }
 }
