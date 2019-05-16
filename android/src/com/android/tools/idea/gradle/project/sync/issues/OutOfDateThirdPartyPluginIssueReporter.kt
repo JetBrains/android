@@ -37,7 +37,10 @@ class OutOfDateThirdPartyPluginIssueReporter : SimpleDeduplicatingSyncIssueRepor
       GradlePluginInfo(it.name, it.group) to it.minimumVersion
     }
 
-    return if (pluginToVersionMap.isEmpty()) emptyList() else listOf(UpdatePluginHyperlink(pluginToVersionMap))
+    return if (pluginToVersionMap.isEmpty() || affectedModulesContainKts(affectedModules, buildFileMap))
+      emptyList()
+    else
+      listOf(UpdatePluginHyperlink(pluginToVersionMap))
   }
 
   override fun setupNotificationData(

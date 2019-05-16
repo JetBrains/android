@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import java.util.Arrays;
@@ -56,7 +57,10 @@ public final class NdkToolchainMissingABIHandler extends BaseSyncErrorHandler {
   @Override
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     if (!isArtifactVersionOver3dot0(getAndroidPluginArtifactModel(project))) {
-      return Collections.singletonList(new FixAndroidGradlePluginVersionHyperlink());
+      //TODO(b/130224064): need to remove check when kts fully supported
+      if (!GradleUtil.hasKtsBuildFiles(project)) {
+        return Collections.singletonList(new FixAndroidGradlePluginVersionHyperlink());
+      }
     }
     return super.getQuickFixHyperlinks(project, text);
   }
