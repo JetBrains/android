@@ -40,7 +40,7 @@ import org.mockito.Mock;
  */
 public class GradleSyncStateTest extends IdeaTestCase {
   @Mock private GradleSyncListener myGradleSyncListener;
-  @Mock private GradleSyncState.StateChangeNotification myChangeNotification;
+  @Mock private StateChangeNotification myChangeNotification;
   @Mock private GradleFiles myGradleFiles;
   @Mock private ProjectStructure myProjectStructure;
   @Mock private ExternalSystemTaskId myTaskId;
@@ -126,7 +126,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
   public void testSyncEnded() {
     mySyncState.setSyncStartedTimeStamp(0, TRIGGER_TEST_REQUESTED);
-    mySyncState.syncEnded();
+    mySyncState.syncSucceeded();
 
     assertThat(mySyncState.getLastSyncFinishedTimeStamp()).isNotEqualTo(-1L);
     verify(myChangeNotification, times(1)).notifyStateChanged();
@@ -135,7 +135,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
   public void testSyncEndedWithoutSyncStarted() {
     mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_TEST_REQUESTED);
-    mySyncState.syncEnded();
+    mySyncState.syncSucceeded();
     verify(myGradleSyncListener, never()).syncSucceeded(myProject);
   }
 
@@ -239,15 +239,6 @@ public class GradleSyncStateTest extends IdeaTestCase {
     assertEquals("IDE time should be -1 (not started)", -1L, mySyncState.getSyncIdeTimeMs());
   }
 
-  public void testGetFormattedSyncDuration() {
-    mySyncState.setSyncStartedTimeStamp(0, TRIGGER_TEST_REQUESTED);
-    assertEquals("10 s", mySyncState.getFormattedSyncDuration(10000));
-    assertEquals("2 m", mySyncState.getFormattedSyncDuration(120000));
-    assertEquals("2 m 10 s", mySyncState.getFormattedSyncDuration(130000));
-    assertEquals("2 m 10 s 100 ms", mySyncState.getFormattedSyncDuration(130100));
-    assertEquals("1 h 2 m 10 s 100 ms", mySyncState.getFormattedSyncDuration(3730100));
-  }
-
   public void testIsSyncNeeded_IfNeverSynced() {
     when(myGradleFiles.areGradleFilesModified()).thenAnswer((invocation) -> true);
     assertThat(mySyncState.isSyncNeeded()).isSameAs(ThreeState.YES);
@@ -265,7 +256,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
     mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
     mySyncState.setExternalSystemTaskId(myTaskId);
     assertEquals(myTaskId, mySyncState.getExternalSystemTaskId());
-    mySyncState.syncEnded();
+    mySyncState.syncSucceeded();
     assertNull(mySyncState.getExternalSystemTaskId());
   }
 
