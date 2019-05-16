@@ -15,13 +15,7 @@
  */
 package com.android.tools.idea.assistant;
 
-import com.android.tools.idea.assistant.datamodel.ActionData;
-import com.android.tools.idea.assistant.datamodel.FeatureData;
-import com.android.tools.idea.assistant.datamodel.StepData;
-import com.android.tools.idea.assistant.datamodel.StepElementData;
-import com.android.tools.idea.assistant.datamodel.StepElementType;
-import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
-import com.android.tools.idea.assistant.datamodel.TutorialData;
+import com.android.tools.idea.assistant.datamodel.*;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
@@ -31,23 +25,20 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.IconLoader;
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Locale;
-import javax.swing.Icon;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElements;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlValue;
-import javax.xml.transform.stream.StreamSource;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
+
+import javax.swing.*;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.*;
+import javax.xml.transform.stream.StreamSource;
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * JAXB enabled POJO representing "assistant" content organized into features and tutorials.
@@ -558,7 +549,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
       if (myCodeType == null) {
         return null;
       }
-      String type = myCodeType.trim().toUpperCase(Locale.ENGLISH);
+      String type = StringUtil.toUpperCase(myCodeType.trim());
 
       // If the list grows much, consider using a static map.
       if (type.equals("JAVA")) {

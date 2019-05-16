@@ -461,7 +461,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           sb.newline();
           continue;
         }
-        sb.add(StringUtil.capitalize(String.valueOf(actionType).toLowerCase(Locale.US)));
+        sb.add(StringUtil.capitalize(StringUtil.toLowerCase(String.valueOf(actionType))));
         sb.add(" from the ");
         sb.addHtml(getHtml(myFacet, location));
 
@@ -882,7 +882,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   @NotNull
   static String getHtml(@NotNull MergingReport.Record.Severity severity) {
-    String severityString = StringUtil.capitalize(severity.toString().toLowerCase(Locale.US));
+    String severityString = StringUtil.capitalize(StringUtil.toLowerCase(severity.toString()));
     if (severity == MergingReport.Record.Severity.ERROR) {
       return new HtmlBuilder().addHtml("<font color=\"#" + ColorUtil.toHex(JBColor.RED) + "\">")
         .addBold(severityString).addHtml("</font>:").getHtml();

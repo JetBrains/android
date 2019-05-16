@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.network.details;
 
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
-
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
@@ -27,23 +25,22 @@ import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.JBEmptyBorder;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.border.Border;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
 /**
  * A factory which wraps a target {@link HttpData} and can create useful, shared UI components
@@ -227,9 +224,9 @@ final class HttpDataComponentFactory {
     boolean showSubType = typeAndSubType.length > 1 && (typeAndSubType[0].equals("text") || typeAndSubType[0].equals("application"));
     String name = showSubType ? typeAndSubType[1] : typeAndSubType[0];
     if (name.isEmpty() || showSubType) {
-      return name.toUpperCase();
+      return StringUtil.toUpperCase(name);
     }
-    return name.substring(0, 1).toUpperCase() + name.substring(1);
+    return StringUtil.toUpperCase(name.substring(0, 1)) + name.substring(1);
   }
 
 
