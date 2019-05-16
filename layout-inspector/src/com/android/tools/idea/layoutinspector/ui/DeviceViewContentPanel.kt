@@ -19,6 +19,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.ui.JBColor
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.AlphaComposite
 import java.awt.BasicStroke
@@ -28,12 +29,10 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.RenderingHints
-import java.awt.Shape
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.geom.AffineTransform
 import javax.swing.JPanel
 
 private const val MARGIN = 50
@@ -116,28 +115,23 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
 
     // ViewNode.imageBottom are images that the parents draw on before their
     // children. Therefore draw them in the given order (parent first).
-    model.hitRects.forEach { (rect, transform, view) ->
-      drawView(g2d, view, view.imageBottom, rect, transform)
-    }
+    model.hitRects.forEach { drawView(g2d, it, it.node.imageBottom) }
 
     // ViewNode.imageTop are images that the parents draw on top of their
     // children. Therefore draw them in the reverse order (children first).
-    model.hitRects.asReversed().forEach { (rect, transform, view) ->
-      drawView(g2d, view, view.imageTop, rect, transform)
-    }
+    model.hitRects.asReversed().forEach { drawView(g2d, it, it.node.imageTop) }
   }
 
-  override fun getPreferredSize() = Dimension((model.maxWidth * viewSettings.scaleFraction + MARGIN).toInt(),
-                                              (model.maxHeight * viewSettings.scaleFraction + MARGIN).toInt())
+  override fun getPreferredSize() = Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt(),
+                                              (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt())
 
   private fun drawView(g: Graphics,
-                       view: ViewNode,
-                       image: Image?,
-                       rect: Shape,
-                       transform: AffineTransform) {
+                       drawInfo: ViewDrawInfo,
+                       image: Image?) {
     val g2 = g.create() as Graphics2D
     g2.setRenderingHints(HQ_RENDERING_HINTS)
     val selection = inspectorModel.selection
+    val view = drawInfo.node
     if (viewSettings.drawBorders) {
       if (view == selection) {
         g2.color = JBColor.RED
@@ -147,16 +141,17 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
         g2.color = JBColor.BLUE
         g2.stroke = BasicStroke(1f)
       }
-      g2.draw(rect)
+      g2.draw(drawInfo.bounds)
     }
 
-    g2.transform = g2.transform.apply { concatenate(transform) }
+    g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
 
     if (image != null) {
       val composite = g2.composite
       if (selection != null && view != selection) {
         g2.composite = AlphaComposite.SrcOver.derive(0.6f)
       }
+      g2.clip(drawInfo.clip)
       UIUtil.drawImage(g2, image, view.x, view.y, null)
       g2.composite = composite
     }

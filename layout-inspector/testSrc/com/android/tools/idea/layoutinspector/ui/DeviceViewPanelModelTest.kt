@@ -74,11 +74,11 @@ class DeviceViewPanelModelTest {
     val panelModel = DeviceViewPanelModel(model)
     panelModel.rotate(0.1, 0.2)
     assertEquals(ComparingTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
-                 panelModel.hitRects[0].second)
+                 panelModel.hitRects[0].transform)
 
     panelModel.resetRotation()
     assertEquals(ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-                 panelModel.hitRects[0].second)
+                 panelModel.hitRects[0].transform)
   }
 
   private fun checkRects(expectedTransforms: MutableList<ComparingTransform>, xOff: Double, yOff: Double) {
@@ -100,11 +100,11 @@ class DeviceViewPanelModelTest {
     val panelModel = DeviceViewPanelModel(model)
     panelModel.rotate(xOff, yOff)
 
-    val actualTransforms = panelModel.hitRects.map { it.second }
+    val actualTransforms = panelModel.hitRects.map { it.transform }
     assertEquals(expectedTransforms, actualTransforms)
 
     val transformedRects = rects.zip(actualTransforms) { rect, transform -> transform.createTransformedShape(rect) }
-    transformedRects.zip(panelModel.hitRects.map { it.first }).forEach { (expected, actual) -> assertPathEqual(expected, actual) }
+    transformedRects.zip(panelModel.hitRects.map { it.bounds }).forEach { (expected, actual) -> assertPathEqual(expected, actual) }
   }
 
   private fun assertPathEqual(expected: Shape, actual: Shape) {
