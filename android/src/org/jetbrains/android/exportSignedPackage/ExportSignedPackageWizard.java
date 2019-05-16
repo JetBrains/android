@@ -261,7 +261,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         }
         gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties);
 
-        getLog().info("Export " + myTargetType.toUpperCase() + " command: " +
+        getLog().info("Export " + StringUtil.toUpperCase(myTargetType) + " command: " +
                       Joiner.on(',').join(gradleTasks) +
                       ", destination: " +
                       createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));

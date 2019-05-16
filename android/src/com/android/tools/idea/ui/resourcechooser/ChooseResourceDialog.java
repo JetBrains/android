@@ -99,8 +99,8 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static com.android.SdkConstants.*;
@@ -1967,7 +1967,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           if (validator.doesResourceExist(enteredName)) {
             ResourceType type = getSelectedPanel().getType();
             overwriteResource = String.format("Saving this %1$s will override existing resource %2$s.",
-                                              type.getDisplayName().toLowerCase(Locale.US), enteredName);
+                                              StringUtil.toLowerCase(type.getDisplayName()), enteredName);
           }
           else {
             String errorText = validator.getErrorText(enteredName);

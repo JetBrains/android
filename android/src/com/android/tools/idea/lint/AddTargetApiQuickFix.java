@@ -22,6 +22,7 @@ import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
@@ -31,8 +32,6 @@ import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Locale;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION;
@@ -100,7 +99,7 @@ public class AddTargetApiQuickFix implements AndroidLintQuickFix {
           if (codeName == null) {
             codeName = Integer.toString(myApi);
           } else {
-            codeName = codeName.toLowerCase(Locale.US);
+            codeName = StringUtil.toLowerCase(codeName);
           }
           element.setAttribute(ATTR_TARGET_API, TOOLS_URI, codeName);
         }
@@ -108,7 +107,7 @@ public class AddTargetApiQuickFix implements AndroidLintQuickFix {
       return;
     }
 
-    while (container != null && container instanceof PsiAnonymousClass) {
+    while (container instanceof PsiAnonymousClass) {
       container = PsiTreeUtil.getParentOfType(container, PsiMethod.class, true, PsiClass.class);
     }
     if (container == null) {

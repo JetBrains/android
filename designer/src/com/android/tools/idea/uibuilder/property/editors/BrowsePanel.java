@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.ptable.PTable;
@@ -34,10 +35,10 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import icons.StudioIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +47,6 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.Locale;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
@@ -298,7 +298,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
    */
   @Nullable
   private static ResourceType getDefaultResourceType(@NotNull String propertyName) {
-    String lowerCaseProperty = propertyName.toLowerCase(Locale.ENGLISH);
+    String lowerCaseProperty = StringUtil.toLowerCase(propertyName);
     if (lowerCaseProperty.contains("color")
         || lowerCaseProperty.contains("tint")) {
       return ResourceType.COLOR;
