@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHy
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -143,7 +144,8 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
         }
       }
 
-      if (IdeInfo.getInstance().isAndroidStudio()) {
+      //TODO(b/130224064): PSD is empty for projects with KTS at this moment. Need to remove kts check when fixed
+      if (IdeInfo.getInstance().isAndroidStudio() && buildFileMap.values().stream().noneMatch(GradleUtil::isKtsFile)) {
         if (coordinate != null) {
           quickFixes.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
         }

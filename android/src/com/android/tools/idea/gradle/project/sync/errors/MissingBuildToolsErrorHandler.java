@@ -20,13 +20,14 @@ import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBui
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.MISSING_BUILD_TOOLS;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
@@ -66,17 +67,22 @@ public class MissingBuildToolsErrorHandler extends BaseSyncErrorHandler {
         currentAGPVersion = result.getPluginVersion();
       }
       GradleVersion recommendedAGPVersion = tryParseAndroidGradlePluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get());
-      return getQuickFixHyperlinks(version, currentAGPVersion, recommendedAGPVersion);
+      return getQuickFixHyperlinks(version, currentAGPVersion, recommendedAGPVersion, GradleUtil.hasKtsBuildFiles(project));
     }
     return Collections.emptyList();
   }
 
   @VisibleForTesting
   static List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull String version,
-                                                    @Nullable GradleVersion currentAGPVersion,
-                                                    @Nullable GradleVersion recommendedAGPVersion) {
+                                                           @Nullable GradleVersion currentAGPVersion,
+                                                           @Nullable GradleVersion recommendedAGPVersion,
+                                                           boolean hasKTSBuildFiles) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     hyperlinks.add(new InstallBuildToolsHyperlink(version));
+    //TODO(b/130224064): need to remove check when kts fully supported
+    if (hasKTSBuildFiles) {
+      return hyperlinks;
+    }
     if (currentAGPVersion == null || recommendedAGPVersion == null || currentAGPVersion.compareTo(recommendedAGPVersion) < 0) {
       hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink());
     }
