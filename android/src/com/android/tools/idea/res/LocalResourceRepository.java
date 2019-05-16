@@ -19,13 +19,11 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_FORMAT;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_NAME;
-import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.resources.ResourceType.ATTR;
 import static com.android.resources.ResourceType.STYLEABLE;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -36,7 +34,6 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -146,7 +143,7 @@ import org.jetbrains.annotations.Nullable;
  * </p>
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
-public abstract class LocalResourceRepository extends AbstractResourceRepositoryWithLocking implements Disposable, ModificationTracker {
+public abstract class LocalResourceRepository extends AbstractResourceRepositoryWithLocking implements ModificationTracker {
   protected static final Logger LOG = Logger.getInstance(LocalResourceRepository.class);
 
   protected static final AtomicLong ourModificationCounter = new AtomicLong();
@@ -176,9 +173,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   public String getLibraryName() {
     return null;
   }
-
-  @Override
-  public void dispose() {}
 
   public void addParent(@NotNull MultiResourceRepository parent) {
     synchronized (ITEM_MAP_LOCK) {
@@ -402,7 +396,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
    * Do not call outside of {@link MultiResourceRepository}.
    */
   @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
-  @NonNull
+  @NotNull
   ListMultimap<String, ResourceItem> getOrCreateMapPackageAccessible(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     return getOrCreateMap(namespace, type);
   }
@@ -411,7 +405,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
    * Package accessible version of {@link #getFullTable()}. Do not call outside of {@link MultiResourceRepository}.
    */
   @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
-  @NonNull
+  @NotNull
   ResourceTable getFullTablePackageAccessible() {
     return getFullTable();
   }

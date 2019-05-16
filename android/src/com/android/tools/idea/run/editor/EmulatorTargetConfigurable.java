@@ -176,7 +176,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
         return null;
       }
 
-      AndroidVersion minSdk = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
+      AndroidVersion minSdk = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersionSynchronously();
       LaunchCompatibility compatibility = LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), avd.getSystemImage());
       if (compatibility.isCompatible() == ThreeState.NO) {
         // todo: provide info about current module configuration

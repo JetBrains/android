@@ -50,7 +50,7 @@ private const val FONT_NAME = "Default"
  * [DrawCommand] that draws a screen in the navigation editor.
  */
 class DrawNavScreen(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2D.Float,
-                    private val image: RefinableImage) : DrawCommandBase() {
+                    @VisibleForTesting val image: RefinableImage) : DrawCommandBase() {
 
   private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), RefinableImage())
 

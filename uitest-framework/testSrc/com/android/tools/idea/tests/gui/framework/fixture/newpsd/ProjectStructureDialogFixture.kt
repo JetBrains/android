@@ -26,7 +26,6 @@ import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
 import java.awt.Container
-import java.util.Arrays
 import javax.swing.JDialog
 
 class ProjectStructureDialogFixture(

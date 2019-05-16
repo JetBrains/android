@@ -16,19 +16,20 @@
 package com.android.tools.idea.lang.roomSql.resolution
 
 import com.android.tools.idea.lang.roomSql.psi.HasWithClause
+import com.android.tools.idea.lang.roomSql.psi.RoomColumnAliasName
+import com.android.tools.idea.lang.roomSql.psi.RoomColumnRefExpression
 import com.android.tools.idea.lang.roomSql.psi.RoomDeleteStatement
 import com.android.tools.idea.lang.roomSql.psi.RoomExpression
 import com.android.tools.idea.lang.roomSql.psi.RoomFromClause
 import com.android.tools.idea.lang.roomSql.psi.RoomInsertStatement
 import com.android.tools.idea.lang.roomSql.psi.RoomJoinConstraint
+import com.android.tools.idea.lang.roomSql.psi.RoomResultColumn
 import com.android.tools.idea.lang.roomSql.psi.RoomSelectCoreSelect
 import com.android.tools.idea.lang.roomSql.psi.RoomSelectStatement
 import com.android.tools.idea.lang.roomSql.psi.RoomSqlFile
 import com.android.tools.idea.lang.roomSql.psi.RoomUpdateStatement
-import com.android.tools.idea.lang.roomSql.psi.RoomWithClauseTable
 import com.android.tools.idea.lang.roomSql.psi.SqlTableElement
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.Processor
 import com.intellij.util.containers.Stack
 
@@ -38,24 +39,14 @@ import com.intellij.util.containers.Stack
  * This includes tables in the schema (handled by [RoomSqlFile.processTables]) as well as views using a `WITH` clause.
  */
 fun processDefinedSqlTables(start: PsiElement, processor: Processor<SqlTable>): Boolean {
-  var previous = start
   var current = start.parent
   while (current != null) {
     when (current) {
       is HasWithClause -> {
-        // We need to watch out if we started from within a WITH table definition: we need to be careful to avoid infinite recursion when
-        // processing ourselves. For now we just don't expose the table in the scope of its own definition or any tables to the left of it.
-        // BUG: 69240105.
-        // TODO: support for WITH RECURSIVE
-        // TODO: support for forward references like this: WITH t1 AS (SELECT * FROM t2), t2 AS (SELECT 1) SELECT * from t1;
-        val withClause = current.withClause
-        val startSubtree =
-          if (previous != withClause) null else PsiTreeUtil.findPrevParent(withClause, start) as? RoomWithClauseTable
 
-        val tables = withClause?.withClauseTableList
+        val tables = current.withClause?.withClauseTableList
         if (tables != null) {
           for (table in tables) {
-            if (table == startSubtree) break
             if (!processor.process(table.tableDefinition)) return false
           }
         }
@@ -63,7 +54,6 @@ fun processDefinedSqlTables(start: PsiElement, processor: Processor<SqlTable>): 
       is RoomSqlFile -> return current.processTables(processor)
     }
 
-    previous = current
     current = current.parent
   }
 
@@ -175,3 +165,42 @@ private fun pushNextElements(
   }
 }
 
+/**
+ * Returns corresponding [SqlColumn] if column is defined by [RoomExpression] otherwise (SELECT *, tablename.* FROM ...) returns null.
+ *
+ * We use this function within some of [SqlTable.processColumns] implementations, when we process column from [RoomResultColumn] section of query.
+ *
+ * In order to avoid infinite resolving process we keep track of tables that we already started the resolution process for in [sqlTablesInProcess].
+ * In can happen because we invoke [RoomColumnPsiReference.resolveColumn] in this function.
+ * @see RoomColumnPsiReference.resolveColumn
+ */
+fun computeSqlColumn(resultColumn: RoomResultColumn, sqlTablesInProcess: MutableSet<PsiElement>): SqlColumn? {
+
+  fun wrapInAlias(column: SqlColumn, alias: RoomColumnAliasName?): SqlColumn {
+    if (alias == null) return column
+    return AliasedColumn(column, alias.nameAsString, alias)
+  }
+
+  if (resultColumn.expression != null) {
+    if (resultColumn.expression is RoomColumnRefExpression) { // "SELECT id FROM ..."
+      val columnRefExpr = resultColumn.expression as RoomColumnRefExpression
+      val referencedColumn = columnRefExpr.columnName.reference.resolveColumn(sqlTablesInProcess)
+      val sqlColumn = when {
+        referencedColumn != null -> referencedColumn
+        resultColumn.columnAliasName != null -> {
+          // We have an invalid reference which is given a name, we can still define a named column so that errors don't propagate.
+          ExprColumn(columnRefExpr.columnName)
+        }
+        else -> return null
+      }
+
+      return wrapInAlias(sqlColumn, resultColumn.columnAliasName)
+    }
+
+    // "SELECT id * 2 FROM ..."
+    return wrapInAlias(ExprColumn(resultColumn.expression!!), resultColumn.columnAliasName)
+  }
+
+  // "SELECT * FROM ..."; "SELECT tablename.* FROM ..."
+  return null
+}

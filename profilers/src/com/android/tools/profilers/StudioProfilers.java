@@ -401,8 +401,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
               }
               processList.add(process);
             }
-            newProcesses.put(device, processList);
           }
+          newProcesses.put(device, processList);
         }
       }
       else {
@@ -511,6 +511,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // 2. The update loop has found the preferred device, in which case it will stay selected until the user selects something else.
       // All of these cases mean that we can unset the preferred device.
       myPreferredDeviceName = null;
+      // If the device is unsupported (e.g. pre-Lolipop), switch to the null stage with the unsupported reason.
+      if (!device.getUnsupportedReason().isEmpty()) {
+        setStage(new NullMonitorStage(this, device.getUnsupportedReason()));
+      }
     }
 
     if (!Objects.equals(device, myDevice)) {

@@ -135,7 +135,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     Disposer.register(parentDisposable, this);
     myProject = project;
     myDependencyManager = dependencyManager;
-    myDataModel = new DataModel(myDependencyManager);
+    myDataModel = new DataModel(this, myDependencyManager);
     myDependencyManager.addDependencyChangeListener(() -> repaint());
     myCopyProvider = new CopyProviderImpl();
     Disposer.register(this, dependencyManager);

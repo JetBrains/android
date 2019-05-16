@@ -17,7 +17,6 @@ package com.android.tools.idea.common.surface;
 
 import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -47,6 +46,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -170,8 +170,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myProject = project;
 
     setOpaque(true);
-    setFocusable(true);
-    setRequestFocusEnabled(true);
+    setFocusable(false);
 
     mySelectionModel = selectionModel;
     mySelectionModel.addListener(mySelectionListener);
@@ -506,16 +505,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
      if (!myRepaintTimer.isRunning()) {
       myRepaintTimer.setRepeats(false);
       myRepaintTimer.start();
-    }
-  }
-
-  @Override
-  protected void paintChildren(Graphics graphics) {
-    super.paintChildren(graphics);
-
-    if (isFocusOwner()) {
-      graphics.setColor(UIUtil.getFocusedBoundsColor());
-      graphics.drawRect(getX(), getY(), getWidth() - 1, getHeight() - 1);
     }
   }
 

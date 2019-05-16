@@ -402,7 +402,7 @@ public final class ResourceRepositoryManager implements Disposable {
             return new EmptyRepository(getNamespace());
           }
           myModuleResources = ModuleResourceRepository.forMainResources(myFacet, getNamespace());
-          Disposer.register(this, myModuleResources);
+          registerIfDisposable(this, myModuleResources);
         }
         return myModuleResources;
       }
@@ -435,7 +435,7 @@ public final class ResourceRepositoryManager implements Disposable {
             return new EmptyRepository(getTestNamespace());
           }
           myTestAppResources = computeTestAppResources();
-          Disposer.register(this, myTestAppResources);
+          registerIfDisposable(this, myTestAppResources);
         }
         return myTestAppResources;
       }
@@ -460,7 +460,7 @@ public final class ResourceRepositoryManager implements Disposable {
     }
 
     TestAppResourceRepository testAppRepo = TestAppResourceRepository.create(myFacet, moduleTestResources, model);
-    Disposer.register(testAppRepo, moduleTestResources);
+    registerIfDisposable(testAppRepo, moduleTestResources);
     return testAppRepo;
   }
 
@@ -516,7 +516,7 @@ public final class ResourceRepositoryManager implements Disposable {
 
     synchronized (MODULE_RESOURCES_LOCK) {
       if (myModuleResources != null) {
-        Disposer.dispose(myModuleResources);
+        disposeIfDisposable(myModuleResources);
         myModuleResources = null;
       }
     }
@@ -537,9 +537,21 @@ public final class ResourceRepositoryManager implements Disposable {
 
     synchronized (TEST_APP_RESOURCES_LOCK) {
       if (myTestAppResources != null) {
-        Disposer.dispose(myTestAppResources);
+        disposeIfDisposable(myTestAppResources);
         myTestAppResources = null;
       }
+    }
+  }
+
+  private static void disposeIfDisposable(@NotNull Object object) {
+    if (object instanceof Disposable) {
+      Disposer.dispose((Disposable)object);
+    }
+  }
+
+  private static void registerIfDisposable(@NotNull Disposable parent, @NotNull Object object) {
+    if (object instanceof Disposable) {
+      Disposer.register(parent, (Disposable)object);
     }
   }
 

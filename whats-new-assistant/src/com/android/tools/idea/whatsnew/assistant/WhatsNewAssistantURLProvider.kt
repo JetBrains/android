@@ -17,7 +17,6 @@ package com.android.tools.idea.whatsnew.assistant
 
 import com.intellij.openapi.application.PathManager
 import com.intellij.util.PathUtil
-import java.io.File
 import java.io.InputStream
 import java.net.MalformedURLException
 import java.net.URL
@@ -49,7 +48,7 @@ open class WhatsNewAssistantURLProvider {
   }
 
   open fun getResourceFileAsStream(bundleCreator: WhatsNewAssistantBundleCreator?, version: String): InputStream? {
-    return bundleCreator?.javaClass?.getResourceAsStream("/$version.xml")
+    return bundleCreator?.javaClass?.getResourceAsStream("/whats-new-assistant.xml")
   }
 
   /**

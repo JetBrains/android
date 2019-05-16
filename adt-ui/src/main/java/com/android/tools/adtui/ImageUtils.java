@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,16 @@ import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
 import static java.awt.RenderingHints.VALUE_RENDER_SPEED;
 
+import com.android.annotations.concurrency.Slow;
 import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -40,6 +41,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ImageObserver;
 import java.awt.image.WritableRaster;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Iterator;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,9 +58,13 @@ import org.jetbrains.annotations.Nullable;
 public class ImageUtils {
   public static final double EPSILON = 1e-5;
 
-  /** Default scale used by RetinaImage. */
+  /**
+   * Default scale used by RetinaImage.
+   */
   public static final int RETINA_SCALE = 2;
-  /** Filter that checks pixels for being completely transparent. */
+  /**
+   * Filter that checks pixels for being completely transparent.
+   */
   public static final CropFilter TRANSPARENCY_FILTER = (bufferedImage, x, y) -> {
     int rgb = bufferedImage.getRGB(x, y);
     return (rgb & 0xFF000000) == 0;
@@ -60,7 +72,8 @@ public class ImageUtils {
 
   /**
    * Rotates given image by given degrees which should be a multiple of 90
-   * @param source image to be rotated
+   *
+   * @param source  image to be rotated
    * @param degrees the angle by which to rotate, should be a multiple of 90
    * @return the rotated image
    */
@@ -157,7 +170,8 @@ public class ImageUtils {
       }
 
       return (BufferedImage)retina;
-    } catch (Throwable ignored) {
+    }
+    catch (Throwable ignored) {
       // Can't always create Retina images (see issue 65609); fall through to non-Retina code path
       ourRetinaCapable = false;
       return null;
@@ -189,12 +203,15 @@ public class ImageUtils {
       newG.drawImage(img, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, observer);
       newG.scale(1, 1);
       newG.dispose();
-    } else {
+    }
+    else {
       g.drawImage(image, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, observer);
     }
   }
 
-  /** Returns a new image that is the source image surrounded by a transparent margin of given size. */
+  /**
+   * Returns a new image that is the source image surrounded by a transparent margin of given size.
+   */
   public static BufferedImage addMargin(BufferedImage source, int marginSize) {
     int destWidth = source.getWidth() + 2 * marginSize;
     int destHeight = source.getHeight() + 2 * marginSize;
@@ -244,7 +261,7 @@ public class ImageUtils {
    * @param source the image to be scaled
    * @param xScale x scale
    * @param yScale y scale
-   * @param clip an optional clip rectangle to use
+   * @param clip   an optional clip rectangle to use
    * @return the scaled image
    */
   @NotNull
@@ -255,10 +272,10 @@ public class ImageUtils {
   /**
    * Resize the given image
    *
-   * @param source the image to be scaled
-   * @param xScale x scale
-   * @param yScale y scale
-   * @param rightMargin extra margin to add on the right
+   * @param source       the image to be scaled
+   * @param xScale       x scale
+   * @param yScale       y scale
+   * @param rightMargin  extra margin to add on the right
    * @param bottomMargin extra margin to add on the bottom
    * @return the scaled image
    */
@@ -271,12 +288,12 @@ public class ImageUtils {
   /**
    * Resize the given image
    *
-   * @param source the image to be scaled
-   * @param xScale x scale
-   * @param yScale y scale
-   * @param rightMargin extra margin to add on the right
+   * @param source       the image to be scaled
+   * @param xScale       x scale
+   * @param yScale       y scale
+   * @param rightMargin  extra margin to add on the right
    * @param bottomMargin extra margin to add on the bottom
-   * @param clip an optional clip rectangle to use
+   * @param clip         an optional clip rectangle to use
    * @return the scaled image
    */
   @NotNull
@@ -284,8 +301,8 @@ public class ImageUtils {
                                     int rightMargin, int bottomMargin, @Nullable Shape clip) {
     int sourceWidth = source.getWidth();
     int sourceHeight = source.getHeight();
-    int destWidth = Math.max(1, (int) (xScale * sourceWidth));
-    int destHeight = Math.max(1, (int) (yScale * sourceHeight));
+    int destWidth = Math.max(1, (int)(xScale * sourceWidth));
+    int destHeight = Math.max(1, (int)(yScale * sourceHeight));
     int imageType = source.getType();
     if (imageType == BufferedImage.TYPE_CUSTOM
         || imageType == BufferedImage.TYPE_BYTE_INDEXED
@@ -305,7 +322,8 @@ public class ImageUtils {
       }
       if (xScale == 1 && yScale == 1) {
         g2.drawImage(source, 0, 0, null);
-      } else {
+      }
+      else {
         g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
         g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
         g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
@@ -314,7 +332,8 @@ public class ImageUtils {
       }
       g2.dispose();
       return scaled;
-    } else {
+    }
+    else {
       // When creating a thumbnail, using the above code doesn't work very well;
       // you get some visible artifacts, especially for text. Instead use the
       // technique of repeatedly scaling the image into half; this will cause
@@ -381,11 +400,12 @@ public class ImageUtils {
           if (clip != null) {
             g2.setClip(clip);
           }
-        } else {
+        }
+        else {
           scaled = new BufferedImage(halfWidth, halfHeight, imageType);
           g2 = scaled.createGraphics();
         }
-        g2.setRenderingHint(KEY_INTERPOLATION,VALUE_INTERPOLATION_BILINEAR);
+        g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
         g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
         g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
         g2.drawImage(source, 0, 0,
@@ -419,12 +439,12 @@ public class ImageUtils {
   /**
    * Do a fast, low-quality, scaling of the given image
    *
-   * @param source the image to be scaled
-   * @param xScale x scale
-   * @param yScale y scale
-   * @param rightMargin extra margin to add on the right
+   * @param source       the image to be scaled
+   * @param xScale       x scale
+   * @param yScale       y scale
+   * @param rightMargin  extra margin to add on the right
    * @param bottomMargin extra margin to add on the bottom
-   * @param clip an optional clip rectangle to use
+   * @param clip         an optional clip rectangle to use
    * @return the scaled image
    */
   @NotNull
@@ -432,8 +452,8 @@ public class ImageUtils {
                                                   int rightMargin, int bottomMargin, @Nullable Shape clip) {
     int sourceWidth = source.getWidth();
     int sourceHeight = source.getHeight();
-    int destWidth = Math.max(1, (int) (xScale * sourceWidth));
-    int destHeight = Math.max(1, (int) (yScale * sourceHeight));
+    int destWidth = Math.max(1, (int)(xScale * sourceWidth));
+    int destHeight = Math.max(1, (int)(yScale * sourceHeight));
     int imageType = source.getType();
     if (imageType == BufferedImage.TYPE_CUSTOM) {
       imageType = BufferedImage.TYPE_INT_ARGB;
@@ -461,6 +481,74 @@ public class ImageUtils {
   }
 
   /**
+   * Creates a {@link BufferedImage} from the provided inputStream and scale it to fit
+   * into the provided dimension while keeping the original aspect ratio.
+   * <p>
+   * The particularity of this method is that if the original image is more than twice
+   * the size of the target dimensions, it doesn't load the full image in memory
+   * but only reads enough pixels to have quality good enough for the target size.
+   * <p>
+   * For example, if an image measures 100x100 pixels, and the target dimension
+   * is 10x10 (10 times smaller), only the pixels at x and y coordinates
+   * 0, 9, 19,..., 99 will be read.
+   * <p>
+   * See {@link ImageReadParam#setSourceSubsampling(int, int, int, int)} for more details.
+   *
+   * @param dimension   The dimension in which the image will be rendered.
+   *                    The image will keep its original aspect ratio and will
+   *                    be fitted inside these dimension.
+   * @param inputStream the input
+   * @return the image file as a {@link BufferedImage}
+   * @throws IOException
+   * @see ImageReadParam#setSourceSubsampling(int, int, int, int)
+   */
+  @Nullable
+  @Slow
+  public static BufferedImage readImageAtScale(InputStream inputStream, Dimension dimension) throws IOException {
+    ImageInputStream imageStream = ImageIO.createImageInputStream(inputStream);
+
+    // Find all image readers that recognize the image format
+    Iterator<ImageReader> readerIterator = ImageIO.getImageReaders(imageStream);
+    if (!readerIterator.hasNext()) {
+      return null;
+    }
+
+    ImageReader reader = readerIterator.next();
+    reader.setInput(imageStream);
+    ImageReadParam readParams = reader.getDefaultReadParam();
+
+    double srcW = (double)reader.getWidth(0);
+    double srcH = (double)reader.getHeight(0);
+    double scale = srcW > srcH
+                   ? dimension.width / srcW
+                   : dimension.height / srcH;
+
+
+    // If the target size is at least twice as small as the origin, we do the subsampling.
+    // otherwise we just scale
+    if (scale < 0.5) {
+      // Because subsampling actually skip pixels, the end result quality is lower
+      // than a downscaling (which average neighbouring pixels). To minimize the loss
+      // of quality, we double the initial scale value so the subsampling is reduced and
+      // replaced by a downscaling step.
+      scale *= 2;
+      double xStep = Math.floor(1 / scale);
+      double yStep = Math.floor(1 / scale);
+
+      readParams.setSourceSubsampling((int)xStep, (int)yStep, 0, 0);
+    }
+
+    // Read the image, with the optional downsampling.
+    BufferedImage intermediateImage = reader.read(0, readParams);
+
+    // Do a final scale to be sure that the image fits in the provided dimension
+    double finalScale = srcW > srcH
+                        ? dimension.width / (double)intermediateImage.getWidth()
+                        : dimension.height / (double)intermediateImage.getHeight();
+    return scale(intermediateImage, finalScale, finalScale);
+  }
+
+  /**
    * Crops blank pixels from the edges of the image and returns the cropped result. We
    * crop off pixels that are blank (meaning they have an alpha value = 0). Note that
    * this is not the same as pixels that aren't opaque (an alpha value other than 255).
@@ -470,7 +558,7 @@ public class ImageUtils {
    *                    crop to continue. This can be used to crop an image where you already
    *                    know about margins in the image
    * @return a cropped version of the source image, or null if the whole image was blank
-   *         and cropping completely removed everything
+   * and cropping completely removed everything
    */
   @Nullable
   public static BufferedImage cropBlank(@NotNull BufferedImage image, @Nullable Rectangle initialCrop) {
@@ -488,7 +576,7 @@ public class ImageUtils {
    *                    know about margins in the image
    * @param imageType   the type of {@link BufferedImage} to create
    * @return a cropped version of the source image, or null if the whole image was blank
-   *         and cropping completely removed everything
+   * and cropping completely removed everything
    */
   @Nullable
   public static BufferedImage cropBlank(@Nullable BufferedImage image, @Nullable Rectangle initialCrop, int imageType) {
@@ -504,7 +592,7 @@ public class ImageUtils {
    *                    crop to continue. This can be used to crop an image where you already
    *                    know about margins in the image
    * @return the bounds of the crop in the given image, or null if the whole image was blank
-   *         and cropping completely removed everything
+   * and cropping completely removed everything
    */
   @Nullable
   public static Rectangle getCropBounds(@Nullable BufferedImage image, @NotNull CropFilter filter, @Nullable Rectangle initialCrop) {
@@ -605,7 +693,7 @@ public class ImageUtils {
    *                    know about margins in the image
    * @param imageType   the type of {@link BufferedImage} to create, or -1 if unknown
    * @return a cropped version of the source image, or null if the whole image was blank
-   *         and cropping completely removed everything
+   * and cropping completely removed everything
    */
   @Nullable
   public static BufferedImage crop(@Nullable BufferedImage image, @NotNull CropFilter filter, @Nullable Rectangle initialCrop,
@@ -665,14 +753,14 @@ public class ImageUtils {
    * Calculate the zoomFactor for the imageEditor that would allow the Image to be completely visible
    * within the viewport.
    *
-   * @param viewHeight height of the containing view
-   * @param viewWidth width of the containing view
+   * @param viewHeight  height of the containing view
+   * @param viewWidth   width of the containing view
    * @param imageHeight height of the image
-   * @param imageWidth width of the image
+   * @param imageWidth  width of the image
    * @return the zoom factor that would allow the viewport to fully display the image.
    */
   public static double calcFullyDisplayZoomFactor(double viewHeight, double viewWidth, double imageHeight, double imageWidth) {
-    assert(imageHeight != 0 && imageWidth != 0);
+    assert (imageHeight != 0 && imageWidth != 0);
     return Math.min((viewHeight / imageHeight / 1.1), (viewWidth / imageWidth / 1.1));
   }
 

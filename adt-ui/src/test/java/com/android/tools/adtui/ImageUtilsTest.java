@@ -15,17 +15,22 @@
  */
 package com.android.tools.adtui;
 
-import com.android.testutils.TestResources;
-import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
+import static com.google.common.truth.Truth.assertThat;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
+import com.android.testutils.TestResources;
+import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-
-import static com.google.common.truth.Truth.assertThat;
+import javax.imageio.ImageIO;
+import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class ImageUtilsTest extends TestCase {
   public void testScaleImage() throws Exception {
@@ -237,13 +242,13 @@ public class ImageUtilsTest extends TestCase {
    * such that the resulting image is transparent except for a minimum bounding
    * rectangle of the selected elements.
    *
-   * @param image the source image
-   * @param rectangles the set of rectangles to copy
+   * @param image       the source image
+   * @param rectangles  the set of rectangles to copy
    * @param boundingBox the bounding rectangle of the set of rectangles to copy, can be
-   *            computed by {@link ImageUtils#getBoundingRectangle}
-   * @param scale a scale factor to apply to the result, e.g. 0.5 to shrink the
-   *            destination down 50%, 1.0 to leave it alone and 2.0 to zoom in by
-   *            doubling the image size
+   *                    computed by {@link ImageUtils#getBoundingRectangle}
+   * @param scale       a scale factor to apply to the result, e.g. 0.5 to shrink the
+   *                    destination down 50%, 1.0 to leave it alone and 2.0 to zoom in by
+   *                    doubling the image size
    * @return a rendered image, or null
    */
   public static BufferedImage drawRectangles(BufferedImage image,
@@ -272,8 +277,8 @@ public class ImageUtilsTest extends TestCase {
       return null;
     }
 
-    int destWidth = (int) (scale * boundingBox.width);
-    int destHeight = (int) (scale * boundingBox.height);
+    int destWidth = (int)(scale * boundingBox.width);
+    int destHeight = (int)(scale * boundingBox.height);
     BufferedImage dest = new BufferedImage(destWidth, destHeight, image.getType());
 
     Graphics2D g = dest.createGraphics();
@@ -322,5 +327,23 @@ public class ImageUtilsTest extends TestCase {
     assertThat(ImageUtils.calcFullyDisplayZoomFactor(100, 100, 160, 160)).isLessThan(100 / 160.0);
     assertThat(ImageUtils.calcFullyDisplayZoomFactor(100, 100, 100, 160)).isLessThan(100 / 160.0);
     assertThat(ImageUtils.calcFullyDisplayZoomFactor(160, 160, 100, 100)).isLessThan(160 / 100.0);
+  }
+
+  public void testReadImageAtScale() throws IOException {
+    File imageFile = TestResources.getFile(ImageUtilsTest.class, "/imageutils/star.png");
+    BufferedImage golden = readImage("/imageutils/star_golden.png");
+    BufferedImage image = ImageUtils.readImageAtScale(new FileInputStream(imageFile), new Dimension(40, 40));
+    ImageDiffUtil.assertImageSimilar("star_scale_down.png", golden, image, 0.0);
+  }
+
+  /**
+   * Check that when requesting an image with the same size as the original, we indeed
+   * get the same image as the original
+   */
+  public void testReadImageAtScaleNoScale() throws IOException {
+    File imageFile = TestResources.getFile(ImageUtilsTest.class, "/imageutils/star.png");
+    BufferedImage golden = readImage("/imageutils/star.png");
+    BufferedImage image = ImageUtils.readImageAtScale(new FileInputStream(imageFile), new Dimension(252, 200));
+    ImageDiffUtil.assertImageSimilar("star_scale_down.png", golden, image, 0.0);
   }
 }

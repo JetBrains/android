@@ -16,7 +16,6 @@
 package com.android.tools.idea.res;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.android.ide.common.rendering.api.ResourceNamespace.TOOLS;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -55,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
  * Test for {@link SampleDataResourceRepository}.
  */
 public class SampleDataResourceRepositoryTest extends AndroidTestCase {
-  AndroidModuleSystem myModuleSystem;
+  private AndroidModuleSystem myModuleSystem;
 
   @Override
   protected void setUp() throws Exception {
@@ -73,13 +72,13 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
   }
 
   @NotNull
-  private static Collection<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo) {
-    return repo.getMap(RES_AUTO, ResourceType.SAMPLE_DATA, true).values();
+  private static Collection<ResourceItem> getResources(@NotNull SampleDataResourceRepository repo) {
+    return repo.getResources(RES_AUTO, ResourceType.SAMPLE_DATA).values();
   }
 
-  @Nullable
-  private static List<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo, @NotNull String resName) {
-    return repo.getMap(RES_AUTO, ResourceType.SAMPLE_DATA, true).get(resName);
+  @NotNull
+  private static List<ResourceItem> getResources(@NotNull SampleDataResourceRepository repo, @NotNull String resName) {
+    return repo.getResources(RES_AUTO, ResourceType.SAMPLE_DATA, resName);
   }
 
   public void testGetInstance() {
@@ -106,9 +105,9 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
                                "Insert image here 3\n");
     SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
-    assertEquals(2, onlyProjectSources(repo).size());
-    assertEquals(1, onlyProjectSources(repo, "strings").size());
-    assertEquals(1, onlyProjectSources(repo, "images").size());
+    assertEquals(2, getResources(repo).size());
+    assertEquals(1, getResources(repo, "strings").size());
+    assertEquals(1, getResources(repo, "images").size());
   }
 
   public void testResolver() {
@@ -135,6 +134,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
                                "@string/test1\n" +
                                "@string/invalid\n");
     myFixture.addFileToProject("sampledata/users.json",
+                               // language="JSON"
                                "{\n" +
                                "  \"users\": [\n" +
                                "    {\n" +
@@ -203,17 +203,17 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
   public void testSampleDataFileInvalidation_addAndDeleteFile() throws IOException {
     SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
-    assertTrue(onlyProjectSources(repo).isEmpty());
+    assertTrue(getResources(repo).isEmpty());
 
     PsiFile strings = myFixture.addFileToProject("sampledata/strings",
                                "string1\n" +
                                "string2\n" +
                                "string3\n");
-    assertEquals(1, onlyProjectSources(repo).size());
-    assertEquals(1, onlyProjectSources(repo, "strings").size());
+    assertEquals(1, getResources(repo).size());
+    assertEquals(1, getResources(repo, "strings").size());
 
     WriteAction.runAndWait(() -> strings.getVirtualFile().delete(null));
-    assertTrue(onlyProjectSources(repo).isEmpty());
+    assertTrue(getResources(repo).isEmpty());
   }
 
   public void testSampleDataFileInvalidation_deleteSampleDataDirectory() throws IOException {
@@ -221,10 +221,10 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
     myFixture.addFileToProject("sampledata/strings", "string1\n");
     VirtualFile sampleDir = toVirtualFile(myModuleSystem.getSampleDataDirectory());
-    assertEquals(1, onlyProjectSources(repo).size());
+    assertEquals(1, getResources(repo).size());
 
     WriteAction.runAndWait(() -> sampleDir.delete(null));
-    assertTrue(onlyProjectSources(repo).isEmpty());
+    assertTrue(getResources(repo).isEmpty());
   }
 
   public void testSampleDataFileInvalidation_moveFiles() throws IOException {
@@ -237,12 +237,12 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
     // move strings into sample data directory
     WriteAction.runAndWait(() -> stringsOutside.getVirtualFile().move(null, sampleDir));
-    assertEquals(1, onlyProjectSources(repo).size());
+    assertEquals(1, getResources(repo).size());
 
     // move strings out of sample data directory
     VirtualFile stringsInside = sampleDir.findChild(stringsOutside.getName());
     WriteAction.runAndWait(() -> stringsInside.move(null, sampleDir.getParent()));
-    assertTrue(onlyProjectSources(repo).isEmpty());
+    assertTrue(getResources(repo).isEmpty());
   }
 
   public void testSampleDataFileInvalidation_moveSampleDataDirectory() throws IOException {
@@ -252,13 +252,13 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
       WriteAction.computeAndWait(() -> myModuleSystem.getOrCreateSampleDataDirectory())
     );
     myFixture.addFileToProject("sampledata/strings", "string1\n");
-    assertEquals(1, onlyProjectSources(repo).size());
+    assertEquals(1, getResources(repo).size());
 
     WriteAction.runAndWait(() -> {
       VirtualFile newParent = sampleDir.getParent().createChildDirectory(null, "somewhere_else");
       sampleDir.move(null, newParent);
     });
-    assertTrue(onlyProjectSources(repo).isEmpty());
+    assertTrue(getResources(repo).isEmpty());
   }
 
   public void testJsonSampleData() {
@@ -290,8 +290,8 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
-    assertEquals(3, onlyProjectSources(repo).size());
-    assertEquals(1, onlyProjectSources(repo,"users.json/users/name").size());
+    assertEquals(3, getResources(repo).size());
+    assertEquals(1, getResources(repo, "users.json/users/name").size());
   }
 
   public void testCsvSampleData() {
@@ -303,8 +303,8 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
-    assertEquals(3, onlyProjectSources(repo).size());
-    assertEquals(1, onlyProjectSources(repo,"users.csv/name").size());
+    assertEquals(3, getResources(repo).size());
+    assertEquals(1, getResources(repo, "users.csv/name").size());
   }
 
   public void testResolverCacheInvalidation() {
@@ -380,16 +380,5 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
       SampleDataResourceRepository.SampleDataRepositoryManager.getInstance(myFacet);
 
     ResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
-  }
-
-  public void testPredefinedSources() {
-    // No project sources defined so only predefined sources should be available
-    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
-
-    assertFalse(repo.getMap(TOOLS, ResourceType.SAMPLE_DATA, false).isEmpty());
-
-    // Check that none of the items are empty or fail
-    assertFalse(repo.getMap(TOOLS, ResourceType.SAMPLE_DATA, false).values().stream()
-        .anyMatch(item -> item.getResourceValue().getValue().isEmpty()));
   }
 }

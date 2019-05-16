@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbarViewModel
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.LangDataKeys

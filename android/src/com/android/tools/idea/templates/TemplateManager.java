@@ -34,9 +34,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.utils.XmlUtils;
-import com.google.common.base.Charsets;
 import com.google.common.collect.*;
-import com.google.common.io.Files;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.NonEmptyActionGroup;
 import com.intellij.openapi.actionSystem.*;
@@ -448,7 +446,9 @@ public class TemplateManager {
       myTopGroup.addSeparator();
       ActionManager am = ActionManager.getInstance();
 
-      for (final String category : getCategoryTable(true, project).rowKeySet()) {
+      reloadCategoryTable(project); // Force reload
+
+      for (final String category : getCategoryTable().rowKeySet()) {
         if (EXCLUDED_CATEGORIES.contains(category)) {
           continue;
         }
@@ -567,47 +567,47 @@ public class TemplateManager {
 
   @GuardedBy("CATEGORY_TABLE_LOCK")
   private Table<String, String, File> getCategoryTable() {
-    return getCategoryTable(false, null);
+    if (myCategoryTable == null) {
+      reloadCategoryTable(null);
+    }
+
+    return myCategoryTable;
   }
 
   @Slow
   @GuardedBy("CATEGORY_TABLE_LOCK")
-  private Table<String, String, File> getCategoryTable(boolean forceReload, @Nullable Project project) {
-    if (myCategoryTable == null || forceReload) {
-      if (myTemplateMap != null) {
-        myTemplateMap.clear();
+  private void reloadCategoryTable(@Nullable Project project) {
+    if (myTemplateMap != null) {
+      myTemplateMap.clear();
+    }
+    myCategoryTable = TreeBasedTable.create();
+    for (File categoryDirectory : listFiles(getTemplateRootFolder())) {
+      for (File newTemplate : listFiles(categoryDirectory)) {
+        addTemplateToTable(newTemplate, false);
       }
-      myCategoryTable = TreeBasedTable.create();
-      for (File categoryDirectory : listFiles(getTemplateRootFolder())) {
+    }
+
+    for (File rootDirectory : getUserDefinedTemplateRootFolders()) {
+      for (File categoryDirectory : listFiles(rootDirectory)) {
         for (File newTemplate : listFiles(categoryDirectory)) {
-          addTemplateToTable(newTemplate, false);
+          addTemplateToTable(newTemplate, true);
         }
       }
+    }
 
-      for (File rootDirectory : getUserDefinedTemplateRootFolders()) {
-        for (File categoryDirectory : listFiles(rootDirectory)) {
-          for (File newTemplate : listFiles(categoryDirectory)) {
-            addTemplateToTable(newTemplate, true);
-          }
-        }
-      }
-
-      for (File rootDirectory : getAuxTemplateRootFolders()) {
-        for (File categoryDirectory : listFiles(rootDirectory)) {
-          for (File newTemplate : listFiles(categoryDirectory)) {
-            addTemplateToTable(newTemplate, false);
-          }
-        }
-      }
-
-      for (File aarDirectory : getTemplateDirectoriesFromAars(project)) {
-        for (File newTemplate : listFiles(aarDirectory)) {
+    for (File rootDirectory : getAuxTemplateRootFolders()) {
+      for (File categoryDirectory : listFiles(rootDirectory)) {
+        for (File newTemplate : listFiles(categoryDirectory)) {
           addTemplateToTable(newTemplate, false);
         }
       }
     }
 
-    return myCategoryTable;
+    for (File aarDirectory : getTemplateDirectoriesFromAars(project)) {
+      for (File newTemplate : listFiles(aarDirectory)) {
+        addTemplateToTable(newTemplate, false);
+      }
+    }
   }
 
   @GuardedBy("CATEGORY_TABLE_LOCK")

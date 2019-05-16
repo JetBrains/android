@@ -168,6 +168,14 @@ public class RunStats {
     myEvent.getRunEventBuilder().setDeployFailureId(id);
   }
 
+  public void setApplyChangesFallbackToRun(boolean fallback) {
+    myEvent.getRunEventBuilder().setApplyChangesFallbackToRun(fallback);
+  }
+
+  public void setApplyCodeChangesFallbackToRun(boolean fallback) {
+    myEvent.getRunEventBuilder().setApplyCodeChangesFallbackToRun(fallback);
+  }
+
   public static RunStats from(ExecutionEnvironment env) {
     RunStats data = env.getUserData(KEY);
     if (data == null) {

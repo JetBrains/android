@@ -19,6 +19,9 @@ import com.android.tools.idea.editors.sqlite.SqliteFileType
 import com.intellij.openapi.fileTypes.FileTypeConsumer
 import com.intellij.openapi.fileTypes.FileTypeFactory
 
+/**
+ * Implementation of the [FileTypeFactory] extension point for [SqliteFileType].
+ */
 class SqliteFileTypeFactory : FileTypeFactory() {
   override fun createFileTypes(consumer: FileTypeConsumer) {
     consumer.consume(SqliteFileType)

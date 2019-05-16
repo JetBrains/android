@@ -53,7 +53,7 @@ public class DeploymentService {
     service = Executors.newFixedThreadPool(5);
     runner = new TaskRunner(service);
     Path path = Paths.get(PathManager.getSystemPath(), ".deploy.db");
-    dexDatabase  = new SqlApkFileDatabase(new File(path.toString()));
+    dexDatabase  = new SqlApkFileDatabase(new File(path.toString()), PathManager.getTempPath());
   }
 
   public TaskRunner getTaskRunner() {

@@ -50,9 +50,8 @@ interface ConfigurationDependencyDetails extends DependencyDetails {
         }
         ui.removeAllItems();
         String configuration = dependency.getJoinedConfigurationNames();
-        ui.addItem(configuration);
         for (String c : dependency.getParent().getConfigurations(importantFor)) {
-          if (c != configuration) ui.addItem(c);
+          ui.addItem(c);
         }
         ui.setSelectedItem(configuration);
       } finally {
@@ -66,7 +65,7 @@ interface ConfigurationDependencyDetails extends DependencyDetails {
   default void modifyConfiguration() {
     PsDeclaredDependency dependency = (PsDeclaredDependency) getModel();
     String configuration = (String) getConfigurationUI().getEditor().getItem();
-    if (dependency != null && configuration != null) {
+    if (dependency != null && configuration != null && !configuration.equals(dependency.getConfigurationName())) {
         PsModule module = dependency.getParent();
         module.modifyDependencyConfiguration(dependency, configuration);
     }
