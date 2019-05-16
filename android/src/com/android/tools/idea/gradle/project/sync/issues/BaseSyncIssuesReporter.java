@@ -21,11 +21,13 @@ import static com.android.tools.idea.project.messages.MessageType.WARNING;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.messages.MessageType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,6 +73,11 @@ abstract class BaseSyncIssuesReporter {
     for (SyncIssue issue : syncIssues) {
       report(issue, moduleMap.get(issue), buildFileMap.get(moduleMap.get(issue)), usageReporter);
     }
+  }
+
+  //TODO(b/130224064): need to remove when kts fully supported
+  static boolean affectedModulesContainKts(List<Module> modules, Map<Module, VirtualFile> buildFileMap) {
+    return modules.stream().map(module -> buildFileMap.get(module)).filter(Objects::nonNull).anyMatch(GradleUtil::isKtsFile);
   }
 
   @NotNull
