@@ -22,9 +22,6 @@ import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget
 import java.awt.Point
 
-/**
- * TODO: support auto-connection.
- */
 class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
 
   private val delegator = ViewGroupPlaceholder(host)
