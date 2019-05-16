@@ -731,6 +731,9 @@ public class ChooseResourceDialog extends DialogWrapper {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         ResourcePanel panel = getSelectedPanel();
+        if (panel.myReferencePanel == null) {
+          panel.showEditorPanel();
+        }
         panel.showNewResource(panel.myReferencePanel);
       }
     };
