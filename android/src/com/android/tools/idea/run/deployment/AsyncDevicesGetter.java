@@ -66,8 +66,8 @@ public class AsyncDevicesGetter {
     myProject = project;
     myMap = map;
 
-    myVirtualDevicesWorker = new Worker<>();
-    myConnectedDevicesWorker = new Worker<>();
+    myVirtualDevicesWorker = new Worker<>(() -> new VirtualDevicesWorkerDelegate(myChecker));
+    myConnectedDevicesWorker = new Worker<>(() -> new ConnectedDevicesWorkerDelegate(project, myChecker));
     myDevicePropertiesFetcher = new DeviceNamePropertiesFetcher(new DefaultCallback<>(), project);
   }
 
@@ -82,18 +82,7 @@ public class AsyncDevicesGetter {
     }
 
     initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
-
-    return getImpl(getVirtualDevices(), getConnectedDevices());
-  }
-
-  @NotNull
-  private Collection<VirtualDevice> getVirtualDevices() {
-    return myVirtualDevicesWorker.get(() -> new VirtualDevicesWorkerDelegate(myChecker), Collections.emptyList());
-  }
-
-  @NotNull
-  private Collection<ConnectedDevice> getConnectedDevices() {
-    return myConnectedDevicesWorker.get(() -> new ConnectedDevicesWorkerDelegate(myProject, myChecker), Collections.emptyList());
+    return getImpl(myVirtualDevicesWorker.get(), myConnectedDevicesWorker.get());
   }
 
   /**
