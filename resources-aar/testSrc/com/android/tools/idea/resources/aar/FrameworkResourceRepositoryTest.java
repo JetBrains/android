@@ -200,21 +200,11 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     List<ResourceItem> expectedItems = new ArrayList<>(expected.getAllResources());
     List<ResourceItem> actualItems = new ArrayList<>(actual.getAllResources());
 
-    Comparator<ResourceItem> comparator = (item1, item2) -> {
-      int comp = item1.getType().compareTo(item2.getType());
-      if (comp != 0) {
-        return comp;
-      }
-      comp = item1.getNamespace().compareTo(item2.getNamespace());
-      if (comp != 0) {
-        return comp;
-      }
-      comp = item1.getName().compareTo(item2.getName());
-      if (comp != 0) {
-        return comp;
-      }
-      return item1.getSource().compareTo(item2.getSource());
-    };
+    Comparator<ResourceItem> comparator = Comparator
+        .comparing(ResourceItem::getType)
+        .thenComparing(ResourceItem::getNamespace)
+        .thenComparing(ResourceItem::getName)
+        .thenComparing(ResourceItem::getSource);
     expectedItems.sort(comparator);
     actualItems.sort(comparator);
     TestCase.assertEquals(expectedItems.size(), actualItems.size());
