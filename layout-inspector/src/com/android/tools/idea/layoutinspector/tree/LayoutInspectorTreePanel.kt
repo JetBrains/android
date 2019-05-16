@@ -161,7 +161,10 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
       val x = view.x + (parent?.x ?: 0)
       val y = view.y + (parent?.y ?: 0)
       val node = ViewNode(view.drawId, qualifiedName, layout, x, y, view.width, view.height, viewId, textValue)
-      view.subViewList.map { loadView(it, node) }.forEach { node.children[it.drawId] = it }
+      view.subViewList.map { loadView(it, node) }.forEach {
+        node.children.add(it)
+        it.parent = node
+      }
       return node
     }
   }
@@ -191,7 +194,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   }
 
   private class MyTreeNode(val root: ViewNode, val _parent: MyTreeNode?) : TreeNode {
-    private val _children = root.children.values.map { MyTreeNode(it, this) }
+    private val _children = root.children.map { MyTreeNode(it, this) }
 
     override fun children(): Enumeration<*> {
       return _children.toEnumeration()
