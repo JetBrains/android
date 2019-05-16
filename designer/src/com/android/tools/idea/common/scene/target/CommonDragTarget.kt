@@ -400,8 +400,8 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       component.isDragging = false
       // Rollback the transaction. Some attributes may be changed due to live rendering.
       val nlComponent = component.authoritativeNlComponent
-      if (liveRendered && nlComponent.parent?.viewHandler is ConstraintLayoutHandler) {
-        nlComponent.startAttributeTransaction().rollback()
+      if (nlComponent.startAttributeTransaction().rollback()) {
+        // Has pending value means it has live change, fire live change event since it is changed back.
         nlComponent.fireLiveChangeEvent()
       }
     }
