@@ -31,6 +31,8 @@ import kotlin.math.sqrt
 
 private const val LAYER_SPACING = 150
 
+data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: ViewNode, val clip: Rectangle)
+
 class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
   internal var xOff = 0.0
@@ -47,7 +49,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootDimension.height.toFloat()).toInt()
 
   @VisibleForTesting
-  internal var hitRects = listOf<Triple<Shape, AffineTransform, ViewNode>>()
+  internal var hitRects = listOf<ViewDrawInfo>()
 
   init {
     refresh()
@@ -55,8 +57,8 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
 
   fun findTopRect(x: Double, y: Double): ViewNode? {
     return hitRects.findLast {
-      it.first.contains(x, y)
-    }?.third
+      it.bounds.contains(x, y)
+    }?.node
   }
 
   fun rotate(xRotation: Double, yRotation: Double) {
@@ -67,18 +69,20 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
 
   @VisibleForTesting
   fun refresh() {
-    rootDimension = Dimension(model.root.width, model.root.height)
-    val newHitRects = mutableListOf<Triple<Shape, AffineTransform, ViewNode>>()
+    val root = model.root
+    rootDimension = Dimension(root.width, root.height)
+    val newHitRects = mutableListOf<ViewDrawInfo>()
     val transform = AffineTransform()
-    transform.translate(-model.root.width / 2.0, -model.root.height / 2.0)
+    transform.translate(-root.width / 2.0, -root.height / 2.0)
 
     val magnitude = min(1.0, hypot(xOff, yOff))
     val angle = if (abs(xOff) < 0.00001) PI / 2.0 else atan(yOff / xOff)
 
     transform.translate(rootDimension.width / 2.0, rootDimension.height / 2.0)
     transform.rotate(angle)
-    maxDepth = findMaxDepth(model.root)
-    rebuildOneRect(transform, magnitude, 0, angle, model.root, newHitRects)
+    maxDepth = findMaxDepth(root)
+    val rootBounds = Rectangle(root.x, root.y, root.width, root.height)
+    rebuildOneRect(transform, magnitude, 0, angle, root, rootBounds, newHitRects)
     hitRects = newHitRects.toList()
   }
 
@@ -91,7 +95,8 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
                              depth: Int,
                              angle: Double,
                              view: ViewNode,
-                             newHitRects: MutableList<Triple<Shape, AffineTransform, ViewNode>>) {
+                             parentClip: Rectangle,
+                             newHitRects: MutableList<ViewDrawInfo>) {
     val viewTransform = AffineTransform(transform)
 
     val sign = if (xOff < 0) -1 else 1
@@ -101,8 +106,9 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     viewTransform.translate(-rootDimension.width / 2.0, -rootDimension.height / 2.0)
 
     val rect = viewTransform.createTransformedShape(Rectangle(view.x, view.y, view.width, view.height))
-    newHitRects.add(Triple(rect, viewTransform, view))
-    view.children.values.forEach { rebuildOneRect(transform, magnitude, depth + 1, angle, it, newHitRects) }
+    val clip = parentClip.intersection(Rectangle(view.x, view.y, view.width, view.height))
+    newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip))
+    view.children.values.forEach { rebuildOneRect(transform, magnitude, depth + 1, angle, it, clip, newHitRects) }
   }
 
   fun resetRotation() {
