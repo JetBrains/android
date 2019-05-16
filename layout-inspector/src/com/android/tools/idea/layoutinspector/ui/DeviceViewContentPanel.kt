@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import java.awt.AlphaComposite
 import java.awt.BasicStroke
@@ -140,11 +141,11 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Dou
     val selection = inspectorModel.selection
     if (drawBorders) {
       if (view == selection) {
-        g2.color = Color.RED
+        g2.color = JBColor.RED
         g2.stroke = BasicStroke(3f)
       }
       else {
-        g2.color = Color.BLUE
+        g2.color = JBColor.BLUE
         g2.stroke = BasicStroke(1f)
       }
       g2.draw(rect)
