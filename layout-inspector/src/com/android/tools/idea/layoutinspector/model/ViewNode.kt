@@ -62,6 +62,9 @@ class ViewNode(val drawId: Long,
       tagPointer = value?.let { SmartPointerManager.getInstance(value.project).createSmartPsiElementPointer(value) }
     }
 
+  val unqualifiedName: String
+    get() = qualifiedName.substringAfterLast('.')
+
   fun flatten(): Collection<ViewNode> {
     return children.flatMap { it.flatten() }.plus(this)
   }

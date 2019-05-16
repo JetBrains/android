@@ -23,7 +23,9 @@ class InspectorModel(val project: Project, initialRoot: ViewNode) {
   val modificationListeners = mutableListOf<(ViewNode?, ViewNode?, Boolean) -> Unit>()
 
   var selection: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
-    selectionListeners.forEach { it(old, new) }
+    if (new != old) {
+      selectionListeners.forEach { it(old, new) }
+    }
   }
 
   var root: ViewNode by Delegates.observable(initialRoot) { _, old, new ->
