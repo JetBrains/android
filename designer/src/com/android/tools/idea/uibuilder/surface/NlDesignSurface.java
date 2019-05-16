@@ -765,7 +765,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @SwingCoordinate int targetSwingY = (int) areaToCenter.getCenterY();
     // Center to position.
     setScrollPosition(targetSwingX - swingViewportSize.width / 2, targetSwingY - swingViewportSize.height / 2);
-    double fitScale = getFitScale(areaToCenter.getSize(), true);
+    double fitScale = getFitScale(areaToCenter.getSize(), false);
 
     if (getScale() > fitScale) {
       // Scale down to fit selection.

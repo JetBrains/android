@@ -48,7 +48,7 @@ class TableEditor(val lineModel: TableLineModelImpl,
                   rendererProvider: PTableCellRendererProvider,
                   editorProvider: PTableCellEditorProvider) {
 
-  private val table = PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider) { getToolTipText(it) }
+  private val table = PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider, { getToolTipText(it) }, ::updateUI)
   val component = table.component as JTable
 
   init {
@@ -75,6 +75,11 @@ class TableEditor(val lineModel: TableLineModelImpl,
     // Ignore the events and allow the scrollPane created in PropertiesPage to handle the events.
     component.registerActionKey({}, KeyStrokes.PAGE_UP, "pageUp", { false })
     component.registerActionKey({}, KeyStrokes.PAGE_DOWN, "pageDown", { false })
+  }
+
+  private fun updateUI() {
+    // The font height may change on a LaF change: recompute and set the row height.
+    component.rowHeight = computeRowHeight()
   }
 
   private fun handleValueChanged() {
@@ -117,7 +122,7 @@ class TableEditor(val lineModel: TableLineModelImpl,
   // TODO(b/123090421): Move this to TableLineModelImpl
   private fun findRowOf(itemToEdit: PTableItem?): Int {
     val count = table.itemCount
-    for (i in 0..(count-1)) {
+    for (i in 0 until count) {
       val item = table.item(i)
       if (item == itemToEdit) {
         return i
@@ -136,7 +141,7 @@ class TableEditor(val lineModel: TableLineModelImpl,
     val count = table.itemCount
     var best: PTableItem? = null
     var bestRow = -1
-    for (row in 0..(count-1)) {
+    for (row in 0 until count) {
       val item = table.item(row)
       if (isMatch(matcher, item) && isBetter(item, best)) {
         best = item

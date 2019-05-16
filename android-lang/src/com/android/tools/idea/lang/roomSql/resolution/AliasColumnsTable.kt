@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.roomSql.resolution
 
 import com.android.tools.idea.lang.roomSql.psi.RoomResultColumns
+import com.intellij.psi.PsiElement
 import com.intellij.util.Processor
 
 /**
@@ -29,12 +30,12 @@ class AliasColumnsTable(private val resultColumns: RoomResultColumns) : SqlTable
   override val definingElement get() = resultColumns
   override val isView: Boolean get() = true
 
-  override fun processColumns(processor: Processor<SqlColumn>): Boolean {
+  override fun processColumns(processor: Processor<SqlColumn>, sqlTablesInProcess: MutableSet<PsiElement>): Boolean {
     val resultColumns = resultColumns.resultColumnList
 
     for (resultColumn in resultColumns) {
       if (resultColumn.columnAliasName != null) {
-        val sqlColumn = resultColumn.column
+        val sqlColumn = computeSqlColumn(resultColumn, sqlTablesInProcess)
         if (sqlColumn != null && !processor.process(sqlColumn)) return false
       }
     }

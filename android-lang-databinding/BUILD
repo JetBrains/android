@@ -46,7 +46,7 @@ iml_module(
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.lang.databinding.LangDataBindingTestSuite",
-    test_coverage = True,
+    test_coverage = False,  # flaky timeout in coverage runs
     test_data = [
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",

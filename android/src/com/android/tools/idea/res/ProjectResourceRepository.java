@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,7 +34,7 @@ final class ProjectResourceRepository extends MultiResourceRepository {
   private ProjectResourceRepository(@NotNull AndroidFacet facet, @NotNull List<LocalResourceRepository> localResources) {
     super(facet.getModule().getName() + " with modules");
     myFacet = facet;
-    setChildren(localResources, Collections.emptyList());
+    setChildren(localResources, ImmutableList.of(), ImmutableList.of());
   }
 
   @NotNull
@@ -64,7 +65,7 @@ final class ProjectResourceRepository extends MultiResourceRepository {
   void updateRoots() {
     List<LocalResourceRepository> repositories = computeRepositories(myFacet);
     invalidateResourceDirs();
-    setChildren(repositories, Collections.emptyList());
+    setChildren(repositories, ImmutableList.of(), ImmutableList.of());
   }
 
   @VisibleForTesting

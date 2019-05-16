@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.AspectsAgentLogger
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.impl.GuiTestStarter
 import org.apache.log4j.Level
@@ -229,9 +230,10 @@ object GuiTestLauncher {
 
   private fun buildClasspathJar() {
     val files = getTestClasspath()
+    val prefix = if (SystemInfo.isWindows) "file:/" else "file:"
     val classpath = StringBuilder().apply {
       for (file in files) {
-        append("file:" + file.absolutePath.replace(" ", "%20") + if (file.isDirectory) "/ " else " ")
+        append(prefix + file.absolutePath.replace(" ", "%20").replace("\\", "/") + if (file.isDirectory) "/ " else " ")
       }
     }
 

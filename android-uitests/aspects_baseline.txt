@@ -21,7 +21,6 @@ com.android.tools.idea.configurations.ConfigurationManager.create|com.android.to
 com.android.tools.idea.configurations.ConfigurationManager.getConfiguration|com.android.tools.idea.configurations.ConfigurationAction.tryUpdateConfiguration
 com.android.tools.idea.configurations.ConfigurationManager.getConfiguration|com.android.tools.idea.editors.theme.ThemeEditorUtils.getConfigurationForModule
 com.android.tools.idea.configurations.ConfigurationManager.getConfiguration|com.android.tools.idea.rendering.GutterIconFactory.createXmlIcon
-com.android.tools.idea.configurations.ConfigurationManager.getConfiguration|com.android.tools.idea.templates.FmGetApplicationThemeMethod.exec
 com.android.tools.idea.configurations.ConfigurationManager.getDevices|com.android.tools.idea.configurations.ConfigurationManager.getDefaultDevice
 com.android.tools.idea.configurations.ConfigurationManager.getDevices|com.android.tools.idea.configurations.ConfigurationManager.getDeviceById
 com.android.tools.idea.configurations.ConfigurationManager.getDevices|com.android.tools.idea.configurations.ConfigurationMatcher.findAndSetCompatibleConfig
@@ -37,9 +36,8 @@ com.android.tools.idea.model.MergedManifestManager.getFreshSnapshot|com.android.
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.editors.AndroidImportFilter.getApplicationPackage
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.editors.manifest.ManifestEditor.reload
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.model.AndroidModuleInfo.getPackage
-com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.model.AndroidModuleInfo.getRuntimeMinSdkVersion
+com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.model.AndroidModuleInfo.getRuntimeMinSdkVersionSynchronously
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.model.MergedManifestManager.getSnapshot
-com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.npw.template.TemplateValueInjector.setFacet
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerKt.createResourceResolver
 com.android.tools.idea.model.MergedManifestManager.readSnapshotFromDisk|com.android.tools.idea.model.MergedManifestManager.getFreshSnapshot
 com.android.tools.idea.model.MergedManifestManager.readSnapshotFromDisk|com.android.tools.idea.model.MergedManifestManager.getSnapshot
@@ -75,10 +73,8 @@ com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.andr
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.configurations.ConfigurationManager.getLocales
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.fonts.ProjectFonts.getFonts
-com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.npw.ThemeHelper.<init>
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.AppResourceRepository.computeLocalRepositories
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceNotificationManager$ModuleEventObserver.registerListeners
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog$ResourcePanel.allowEditing
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|org.jetbrains.android.AndroidResourceRenameResourceProcessor.findExistingNameConflicts
-com.android.tools.idea.templates.TemplateManager.getCategoryTable|com.android.tools.idea.templates.TemplateManager.getCategoryTable

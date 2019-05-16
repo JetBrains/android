@@ -461,9 +461,7 @@ table_alias_name ::= name {
 result_column ::=
   '*'
   | selected_table_name '.' '*'
-  | expression ( ( AS )? column_alias_name )? {
-  methods=[getColumn]
-}
+  | expression ( ( AS )? column_alias_name )?
 
 column_alias_name ::= name {
   implements="com.intellij.psi.PsiNamedElement"

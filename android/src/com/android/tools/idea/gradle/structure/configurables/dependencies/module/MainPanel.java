@@ -64,10 +64,12 @@ public class MainPanel extends AbstractMainDependenciesPanel {
     myDeclaredDependenciesPanel.add(new SelectionChangeListener<PsBaseDependency>() {
       @Override
       public void selectionChanged(@Nullable PsBaseDependency newSelection) {
-        myQueuedSelectionCounter++;
-        myResolvedDependenciesPanel
-          .setSelection(newSelection != null ? ImmutableList.of(newSelection) : null)
-          .doWhenProcessed(() -> myQueuedSelectionCounter--);
+        if (myQueuedSelectionCounter == 0) {
+          myQueuedSelectionCounter++;
+          myResolvedDependenciesPanel
+            .setSelection(null)
+            .doWhenProcessed(() -> myQueuedSelectionCounter--);
+        }
       }
     });
 
@@ -78,11 +80,12 @@ public class MainPanel extends AbstractMainDependenciesPanel {
           PsResolvedDependency resolvedDependency = (PsResolvedDependency)newSelection;
           final List<PsDeclaredDependency> declaredDependencies = resolvedDependency.getDeclaredDependencies();
           if (myQueuedSelectionCounter == 0) {
+            myQueuedSelectionCounter++;
             if (!declaredDependencies.isEmpty()) {
-              myDeclaredDependenciesPanel.setSelection(declaredDependencies);
+              myDeclaredDependenciesPanel.setSelection(declaredDependencies).doWhenProcessed(() -> myQueuedSelectionCounter--);
             }
             else {
-              myDeclaredDependenciesPanel.selectDependency(null);
+              myDeclaredDependenciesPanel.setSelection(null).doWhenProcessed(() -> myQueuedSelectionCounter--);
             }
           }
         }

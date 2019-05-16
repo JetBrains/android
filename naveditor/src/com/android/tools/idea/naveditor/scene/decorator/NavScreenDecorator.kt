@@ -52,28 +52,16 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
     }
   }
 
-  protected fun drawScreen(list: DisplayList,
-                           sceneContext: SceneContext,
+  protected fun buildImage(sceneContext: SceneContext,
                            component: SceneComponent,
-                           @SwingCoordinate rectangle: Rectangle2D.Float) {
+                           @SwingCoordinate rectangle: Rectangle2D.Float): RefinableImage? {
     val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT)
     val className = component.nlComponent.className
 
-    list.add(
-      if (layout == null && className == null) {
-        DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, rectangle)
-      }
-      else {
-        val image = buildImage(sceneContext, component, layout, Dimension(rectangle.width.toInt(), rectangle.height.toInt()))
-        DrawNavScreen(rectangle, image)
-      }
-    )
-  }
+    if (layout == null && className == null) {
+      return null
+    }
 
-  private fun buildImage(sceneContext: SceneContext,
-                         component: SceneComponent,
-                         layout: String?,
-                         dimensions: Dimension): RefinableImage {
     val empty = RefinableImage()
     if (layout == null) {
       return empty
@@ -99,6 +87,6 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
 
     val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return empty
     val manager = ThumbnailManager.getInstance(facet)
-    return manager.getThumbnail(psiFile, configuration, dimensions)
+    return manager.getThumbnail(psiFile, configuration, Dimension(rectangle.width.toInt(), rectangle.height.toInt()))
   }
 }

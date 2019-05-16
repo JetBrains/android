@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -52,20 +53,22 @@ import org.jetbrains.annotations.Nullable;
  * <p>In the resource repository hierarchy, MultiResourceRepository is an internal node, never a leaf.
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
-public abstract class MultiResourceRepository extends LocalResourceRepository {
+public abstract class MultiResourceRepository extends LocalResourceRepository implements Disposable {
   @GuardedBy("ITEM_MAP_LOCK")
-  private ImmutableList<LocalResourceRepository> myLocalResources;
+  @NotNull private ImmutableList<LocalResourceRepository> myLocalResources = ImmutableList.of();
   @GuardedBy("ITEM_MAP_LOCK")
-  private ImmutableList<AarResourceRepository> myLibraryResources;
+  @NotNull private ImmutableList<AarResourceRepository> myLibraryResources = ImmutableList.of();
   /** A concatenation of {@link #myLocalResources} and {@link #myLibraryResources}. */
   @GuardedBy("ITEM_MAP_LOCK")
-  private ImmutableList<ResourceRepository> myChildren;
+  @NotNull private ImmutableList<ResourceRepository> myChildren = ImmutableList.of();
   /** Leaf resource repositories keyed by namespace. */
   @GuardedBy("ITEM_MAP_LOCK")
-  private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myLeafsByNamespace;
+  @NotNull private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myLeafsByNamespace =
+      ImmutableListMultimap.of();
   /** Contained single-namespace resource repositories keyed by namespace. */
   @GuardedBy("ITEM_MAP_LOCK")
-  private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myRepositoriesByNamespace;
+  @NotNull private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myRepositoriesByNamespace =
+      ImmutableListMultimap.of();
 
   @GuardedBy("ITEM_MAP_LOCK")
   private long[] myModificationCounts;
@@ -87,17 +90,18 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   protected void setChildren(@NotNull List<? extends LocalResourceRepository> localResources,
-                             @NotNull Collection<? extends AarResourceRepository> libraryResources) {
+                             @NotNull Collection<? extends AarResourceRepository> libraryResources,
+                             @NotNull Collection<? extends ResourceRepository> otherResources) {
     synchronized (ITEM_MAP_LOCK) {
-      if (myLocalResources != null) {
-        for (LocalResourceRepository child : myLocalResources) {
-          child.removeParent(this);
-        }
+      for (LocalResourceRepository child : myLocalResources) {
+        child.removeParent(this);
       }
       setModificationCount(ourModificationCounter.incrementAndGet());
       myLocalResources = ImmutableList.copyOf(localResources);
       myLibraryResources = ImmutableList.copyOf(libraryResources);
-      myChildren = ImmutableList.<ResourceRepository>builder().addAll(myLocalResources).addAll(myLibraryResources).build();
+      int size = myLocalResources.size() + myLibraryResources.size() + otherResources.size();
+      myChildren = ImmutableList.<ResourceRepository>builderWithExpectedSize(size)
+          .addAll(myLocalResources).addAll(myLibraryResources).addAll(otherResources).build();
 
       ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> mapBuilder = ImmutableListMultimap.builder();
       computeLeafs(this, mapBuilder);

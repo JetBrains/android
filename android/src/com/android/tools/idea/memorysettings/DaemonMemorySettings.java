@@ -66,8 +66,8 @@ public class DaemonMemorySettings {
     return SystemInfo.is32Bit ? LOW_GRADLE_DAEMON_XMX_IN_MB : HIGH_GRADLE_DAEMON_XMX_IN_MB;
   }
 
-  boolean hasUserGradleDaemonXmx() {
-    return userProperties.getGradleXmx() > 0;
+  boolean hasUserPropertiesPath() {
+    return userProperties.getPropertiesPath() != null;
   }
 
   String getUserPropertiesPath() {
@@ -76,7 +76,7 @@ public class DaemonMemorySettings {
   }
 
   int getProjectGradleDaemonXmx() {
-    return userProperties.getPropertiesPath() != null ? userProperties.getGradleXmx() : getGradleDaemonXmx(projectProperties);
+    return hasUserPropertiesPath() ? userProperties.getGradleXmx() : getGradleDaemonXmx(projectProperties);
   }
 
   int getDefaultKotlinDaemonXmx() {
@@ -84,12 +84,8 @@ public class DaemonMemorySettings {
     return getProjectGradleDaemonXmx();
   }
 
-  boolean hasUserKotlinDaemonXmx() {
-    return userProperties.getKotlinXmx() > 0;
-  }
-
   int getProjectKotlinDaemonXmx() {
-    if (userProperties.getPropertiesPath() != null) {
+    if (hasUserPropertiesPath()) {
       return userProperties.getKotlinXmx();
     }
     int xmx = getKotlinDaemonXmx(projectProperties);

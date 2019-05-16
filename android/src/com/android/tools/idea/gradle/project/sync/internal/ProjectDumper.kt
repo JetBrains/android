@@ -19,17 +19,16 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfigurati
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.ExcludeFolder
 import com.intellij.openapi.roots.InheritedJdkOrderEntry
@@ -79,7 +78,9 @@ class ProjectDumper(
   private var currentNestingPrefix: String = ""
 
   private val gradleHashStub = "x".repeat(32)
+  private val gradleLongHashStub = "x".repeat(40)
   private val gradleHashPattern = Regex("[0-9a-f]{${gradleHashStub.length}}")
+  private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length}}")
 
   /**
    * Replaces well-known instable parts of a path/url string with stubs and adds [-] to the end if the file does not exist.
@@ -111,6 +112,7 @@ class ProjectDumper(
           .replace(gradleCache.absolutePath, "<GRADLE>", ignoreCase = false)
           .replace(androidSdk.absolutePath, "<ANDROID_SDK>", ignoreCase = false)
           .replace(devBuildHome.absolutePath, "<DEV>", ignoreCase = false)
+          .replace(gradleLongHashPattern, gradleLongHashStub)
           .replace(gradleHashPattern, gradleHashStub)
           .removeAndroidVersionsFromPath()
 
@@ -163,6 +165,20 @@ private fun ProjectDumper.dump(module: Module) {
   val moduleFile = module.moduleFilePath.toPrintablePath()
   head("MODULE") { module.name }
   nest {
+    val groups = ModuleManager.getInstance(module.project).getModuleGroupPath(module)
+    groups?.forEach { group ->
+      prop("- ModuleGroupPath") { group }
+    }
+    val externalPropertyManager = ExternalSystemModulePropertyManager.getInstance(module)
+    prop("ExternalModuleGroup") { externalPropertyManager.getExternalModuleGroup() }
+    prop("ExternalModuleType") { externalPropertyManager.getExternalModuleType() }
+    prop("ExternalModuleVersion") { externalPropertyManager.getExternalModuleVersion() }
+    prop("ExternalSystemId") { externalPropertyManager.getExternalSystemId()?.takeUnless { it == "GRADLE" } }
+    prop("LinkedProjectId") { externalPropertyManager.getLinkedProjectId() }
+    prop("LinkedProjectPath") { externalPropertyManager.getLinkedProjectPath()?.toPrintablePath() }
+    prop("RootProjectPath") { externalPropertyManager.getRootProjectPath()?.toPrintablePath() }
+    prop("IsMavenized") { externalPropertyManager.isMavenized().takeIf { it }?.toString() }
+
     prop("ModuleFile") { moduleFile }
     prop("ModuleTypeName") { module.moduleTypeName }
     FacetManager.getInstance(module).allFacets.sortedBy { it.name }.forEach { dump(it) }
@@ -179,23 +195,23 @@ private fun ProjectDumper.dump(module: Module) {
 }
 
 private fun ProjectDumper.dump(orderEntry: OrderEntry) {
-  nest {
-    when (orderEntry) {
-      is JdkOrderEntry -> dumpJdk(orderEntry)
-      is LibraryOrderEntry -> dumpLibrary(orderEntry)
-      else -> head("ORDER_ENTRY") { orderEntry.presentableName.removeAndroidVersionsFromDependencyNames() }
-    }
+  when (orderEntry) {
+    is JdkOrderEntry -> dumpJdk(orderEntry)
+    is LibraryOrderEntry -> dumpLibrary(orderEntry)
+    else -> head("ORDER_ENTRY") { orderEntry.presentableName.removeAndroidVersionsFromDependencyNames() }
   }
 }
 
 private fun ProjectDumper.dumpJdk(jdkOrderEntry: JdkOrderEntry) {
-  head("JDK") { "<NAME_CUT> ${jdkOrderEntry.jdk.sdkType.name}" }
-  prop("*isInherited") { (jdkOrderEntry is InheritedJdkOrderEntry).toString() }
-  if (jdkOrderEntry !is InheritedJdkOrderEntry) {
-    nest {
-      prop("SdkType") { jdkOrderEntry.jdk.sdkType.name }
-      prop("HomePath") { jdkOrderEntry.jdk.homePath?.toPrintablePath() }
-      prop("VersionString") { jdkOrderEntry.jdk.versionString?.replaceJdkVersion() }
+  jdkOrderEntry.jdk?.let { jdk ->
+    head("JDK") { "<NAME_CUT> ${jdk.sdkType.name}" }
+    prop("*isInherited") { (jdkOrderEntry is InheritedJdkOrderEntry).toString() }
+    if (jdkOrderEntry !is InheritedJdkOrderEntry) {
+      nest {
+        prop("SdkType") { jdk.sdkType.name }
+        prop("HomePath") { jdk.homePath?.toPrintablePath() }
+        prop("VersionString") { jdk.versionString?.replaceJdkVersion() }
+      }
     }
   }
 }
@@ -212,6 +228,7 @@ private fun ProjectDumper.dumpLibrary(library: LibraryOrderEntry) {
 }
 
 private fun ProjectDumper.dump(library: Library, matchingName: String) {
+  val androidVersion = library.name?.getAndroidVersionFromDependencyName()
   prop("Name") { library.name?.markMatching(matchingName)?.removeAndroidVersionsFromDependencyNames()?.replaceKnownPaths() }
   val orderRootTypes = OrderRootType.getAllPersistentTypes().toList() + OrderRootType.DOCUMENTATION
   orderRootTypes.forEach { type ->
@@ -225,7 +242,7 @@ private fun ProjectDumper.dump(library: Library, matchingName: String) {
         }
         .forEach { file ->
           // TODO(b/124659827): Include source and JavaDocs artifacts when available.
-          prop("*" + type.name()) { file.toPrintablePath() }
+          prop("*" + type.name()) { file.toPrintablePath().replaceMatchingVersion(androidVersion) }
         }
   }
 }
@@ -422,12 +439,16 @@ private fun String.removeSuffix(suffix: String) =
 /**
  * Replaces artifact version in string containing artifact idslike com.android.group:artifact:28.7.8@aar with <VERSION>.
  */
-private val androidLibraryPattern = Regex("(?:(?:com\\.android\\.)|(?:android\\.arch\\.))(?:(?:\\w|-)+:(?:\\w|-)+:)(.*)(?:@aar|@jar)")
+private val androidLibraryPattern =
+  Regex("(?:(?:com\\.android\\.)|(?:android\\.arch\\.))(?:(?:\\w|-)+(?:\\.(?:(?:\\w|-)+))*:(?:\\w|-)+:)(.*)(?:@aar|@jar)")
 
 private fun String.removeAndroidVersionsFromDependencyNames(): String =
     androidLibraryPattern.find(this)?.groups?.get(1)?.let {
       this.replaceRange(it.range, "<VERSION>")
     } ?: this
+
+private fun String.getAndroidVersionFromDependencyName(): String? =
+    androidLibraryPattern.find(this)?.groups?.get(1)?.value
 
 /**
  * Replaces artifact version in string containing artifact ids like com.android.group.artifact.artifact-28.3.4.jar with <VERSION>.
@@ -440,6 +461,8 @@ private fun String.removeAndroidVersionsFromPath(): String =
     } ?: this
 
 private fun String.replaceJdkVersion(): String? = replace(Regex("1\\.8\\.0_[0-9]+"), "<JDK_VERSION>")
+private fun String.replaceMatchingVersion(version: String?): String =
+  if (version != null) this.replace("-$version", "-<VERSION>") else this
 
 
 private fun String.smartPad() = this.padEnd(max(20, 10 + this.length / 10 * 10))

@@ -18,9 +18,12 @@ package com.android.tools.idea.gradle.project.sync.precheck;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
@@ -34,6 +37,7 @@ import static org.mockito.Mockito.when;
  */
 public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
   private IdeSdks myMockIdeSdks;
+  private Jdks myMockJdks;
 
   private JdkPreSyncCheck myJdkPreSyncCheck;
   private GradleSyncMessagesStub mySyncMessagesStub;
@@ -45,6 +49,7 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     loadSimpleApplication();
 
     myMockIdeSdks = new IdeComponents(getProject()).mockApplicationService(IdeSdks.class);
+    myMockJdks = new IdeComponents(getProject()).mockApplicationService(Jdks.class);
     assertSame(myMockIdeSdks, IdeSdks.getInstance());
 
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
@@ -52,29 +57,58 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     myJdkPreSyncCheck = new JdkPreSyncCheck();
   }
 
-  public void testDoCheckCanSyncWithNullJdk() throws Exception {
+  public void testDoCheckCanSyncWithNullJdk() {
     when(myMockIdeSdks.getJdk()).thenReturn(null);
 
     PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
-    verifyCheckFailure(result);
+    verifyCheckFailure(result, "Jdk location is not set");
   }
 
-  public void testDoCheckWithJdkWithoutHomePath() throws Exception {
+  public void testDoCheckWithJdkWithoutHomePath() {
     Sdk jdk = mock(Sdk.class);
 
     when(myMockIdeSdks.getJdk()).thenReturn(jdk);
     when(jdk.getHomePath()).thenReturn(null);
 
     PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
-    verifyCheckFailure(result);
+    verifyCheckFailure(result, "Could not find valid Jdk home from the selected Jdk location");
   }
 
-  private void verifyCheckFailure(@NotNull PreSyncCheckResult result) {
+  public void testDoCheckWithJdkWithIncompatibleVersion() {
+    Sdk jdk = mock(Sdk.class);
+    String pathToJdk10 = "/path/to/jdk10";
+
+    when(myMockIdeSdks.getJdk()).thenReturn(jdk);
+    when(jdk.getHomePath()).thenReturn(pathToJdk10);
+    when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
+    when(myMockJdks.findVersion(new File(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
+
+    PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
+    verifyCheckFailure(result,
+                       "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk 8 directory.\n" +
+                       "Selected Jdk location is /path/to/jdk10.");
+  }
+
+  public void testDoCheckWithJdkWithInvalidJdkInstallation() {
+    Sdk jdk = mock(Sdk.class);
+    String pathToJdk8 = "/path/to/jdk8";
+
+    when(myMockIdeSdks.getJdk()).thenReturn(jdk);
+    when(jdk.getHomePath()).thenReturn(pathToJdk8);
+    when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
+    when(myMockJdks.findVersion(new File(pathToJdk8))).thenReturn(JavaSdkVersion.JDK_1_8);
+    when(myMockIdeSdks.getJdk()).thenReturn(jdk);
+    when(jdk.getHomePath()).thenReturn("/path/to/jdk8");
+
+    PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
+    verifyCheckFailure(result, "The Jdk installation is invalid.\n" +
+                               "Selected Jdk location is /path/to/jdk8.");
+  }
+
+  private void verifyCheckFailure(@NotNull PreSyncCheckResult result, @NotNull String expectedText) {
     assertFalse(result.isSuccess());
 
-    String expectedText = "Could not run JVM from the selected JDK.\n" +
-                          "Please ensure JDK installation is valid and compatible with the current OS ";
-    assertThat(result.getFailureCause()).startsWith(expectedText);
+    assertThat(result.getFailureCause()).startsWith("Invalid Jdk");
 
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);

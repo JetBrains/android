@@ -187,58 +187,91 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
         myDaemonMemorySettings = new DaemonMemorySettings(myProject);
         myCurrentGradleXmx = myDaemonMemorySettings.getProjectGradleDaemonXmx();
         mySelectedGradleXmx = myCurrentGradleXmx;
-        setXmxBox(myGradleDaemonXmxBox, myCurrentGradleXmx, -1,
-                  myDaemonMemorySettings.getDefaultGradleDaemonXmx(),
-                  DaemonMemorySettings.MAX_GRADLE_DAEMON_XMX_IN_MB,
-                  SIZE_INCREMENT / 2,
-                  new ItemListener() {
-                    @Override
-                    public void itemStateChanged(ItemEvent event) {
-                      if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
-                        mySelectedGradleXmx = (int)event.getItem();
-                      }
-                    }
-                  });
-
         myCurrentKotlinXmx = myDaemonMemorySettings.getProjectKotlinDaemonXmx();
         mySelectedKotlinXmx = myCurrentKotlinXmx;
-        setXmxBox(myKotlinDaemonXmxBox, myCurrentKotlinXmx, -1,
-                  myDaemonMemorySettings.getDefaultKotlinDaemonXmx(),
-                  DaemonMemorySettings.MAX_KOTLIN_DAEMON_XMX_IN_MB,
-                  SIZE_INCREMENT / 2,
-                  new ItemListener() {
-                    @Override
-                    public void itemStateChanged(ItemEvent event) {
-                      if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
-                        mySelectedKotlinXmx = (int)event.getItem();
-                      }
-                    }
-                  });
 
-        myDaemonInfoLabel.setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.panel.daemon.info")));
-        myShowDaemonsLabel.setHyperlinkText(AndroidBundle.message("memory.settings.panel.show.daemons.info"));
-        myShowDaemonsLabel.addHyperlinkListener(
-          new HyperlinkAdapter() {
-            DaemonsUi myUi;
-
-            @Override
-            protected void hyperlinkActivated(HyperlinkEvent e) {
-              myUi = new DaemonsUi(myProject) {
-                @Override
-                public void dispose() {
-                  myUi = null;
-                }
-              };
-              List<DaemonState> daemonsStatus = GradleDaemonServices.getDaemonsStatus();
-              myUi.show(daemonsStatus);
-            }
-          });
+        if (myDaemonMemorySettings.hasUserPropertiesPath()) {
+          setXmxBoxWithOnlyCurrentValue(myGradleDaemonXmxBox, myCurrentGradleXmx);
+          setXmxBoxWithOnlyCurrentValue(myKotlinDaemonXmxBox, myCurrentKotlinXmx);
+          myDaemonInfoLabel
+            .setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.has.user.properties",
+                                                                    myDaemonMemorySettings.getUserPropertiesPath())));
+          myShowDaemonsLabel.setVisible(false);
+        }
+        else {
+          setDaemonPanelWhenNoUserGradleProperties();
+        }
       }
       else {
         myDaemonPanel.setVisible(false);
         myDaemonInfoLabel.setVisible(false);
         myShowDaemonsLabel.setVisible(false);
       }
+    }
+
+    private void setDaemonPanelWhenNoUserGradleProperties() {
+      setXmxBox(myGradleDaemonXmxBox, myCurrentGradleXmx, -1,
+                myDaemonMemorySettings.getDefaultGradleDaemonXmx(),
+                DaemonMemorySettings.MAX_GRADLE_DAEMON_XMX_IN_MB,
+                SIZE_INCREMENT / 2,
+                new ItemListener() {
+                  @Override
+                  public void itemStateChanged(ItemEvent event) {
+                    if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
+                      mySelectedGradleXmx = (int)event.getItem();
+                    }
+                  }
+                });
+
+      setXmxBox(myKotlinDaemonXmxBox, myCurrentKotlinXmx, -1,
+                myDaemonMemorySettings.getDefaultKotlinDaemonXmx(),
+                DaemonMemorySettings.MAX_KOTLIN_DAEMON_XMX_IN_MB,
+                SIZE_INCREMENT / 2,
+                new ItemListener() {
+                  @Override
+                  public void itemStateChanged(ItemEvent event) {
+                    if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
+                      mySelectedKotlinXmx = (int)event.getItem();
+                    }
+                  }
+                });
+
+      myDaemonInfoLabel.setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.panel.daemon.info")));
+      myShowDaemonsLabel.setHyperlinkText(AndroidBundle.message("memory.settings.panel.show.daemons.info"));
+      myShowDaemonsLabel.addHyperlinkListener(
+        new HyperlinkAdapter() {
+          DaemonsUi myUi;
+
+          @Override
+          protected void hyperlinkActivated(HyperlinkEvent e) {
+            myUi = new DaemonsUi(myProject) {
+              @Override
+              public void dispose() {
+                myUi = null;
+              }
+            };
+            List<DaemonState> daemonsStatus = GradleDaemonServices.getDaemonsStatus();
+            myUi.show(daemonsStatus);
+          }
+        });
+    }
+
+    private void setXmxBoxWithOnlyCurrentValue(JComboBox box, int current) {
+      box.setEditable(false);
+      box.removeAllItems();
+      box.addItem(current);
+      box.setSelectedItem(current);
+      box.setRenderer(new ColoredListCellRenderer<Integer>() {
+        @Override
+        protected void customizeCellRenderer(@NotNull JList<? extends Integer> list,
+                                             Integer value,
+                                             int index,
+                                             boolean selected,
+                                             boolean hasFocus) {
+          append(String.format(Locale.US, "%s - current", memSizeText(current)),
+                 SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
+        }
+      });
     }
 
     private void setXmxBox(JComboBox box, int current, int recommended,
@@ -332,10 +365,6 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       boolean isGradleXmxModified = isGradleDaemonXmxModified();
       boolean isKotlinXmxModified = isKotlinDaemonXmxModified();
       if (isGradleXmxModified || isKotlinXmxModified) {
-        if (isGradleXmxModified && myDaemonMemorySettings.hasUserGradleDaemonXmx() ||
-            isKotlinXmxModified && myDaemonMemorySettings.hasUserKotlinDaemonXmx()) {
-          showWarning(myDaemonMemorySettings.getUserPropertiesPath());
-        } else {
           if (isGradleXmxModified) {
             myCurrentGradleXmx = mySelectedGradleXmx;
           }
@@ -344,7 +373,6 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
           }
           myDaemonMemorySettings.saveProjectDaemonXmx(myCurrentGradleXmx, myCurrentKotlinXmx);
           changed = true;
-        }
       }
 
       if (isIdeXmxModified()) {
@@ -361,12 +389,6 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
         // repaint
         setUI();
       }
-    }
-
-    private void showWarning(String propertiesPath) {
-      Messages.showWarningDialog(myProject,
-                                 AndroidBundle.message("memory.settings.has.user.properties", propertiesPath),
-                                 "User gradle properties exist");
     }
 
     // Cap for Xmx: MAX_PERCENT_OF_AVAILABLE_RAM of machineMem, and a hard cap (4GB or 8GB)

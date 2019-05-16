@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.whatsnew.assistant
 
+import com.android.repository.Revision
 import com.android.testutils.TestUtils
 import com.android.tools.idea.assistant.AssistSidePanel
 import com.android.tools.idea.assistant.AssistantBundleCreator
@@ -33,13 +34,17 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.stubbing.Answer
 import java.io.File
+import java.io.InputStream
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
 class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
   private val TIMEOUT_MILLISECONDS: Long = 30000
   private lateinit var mockUrlProvider: WhatsNewAssistantURLProvider
+
+  private val studioRevision = Revision.parseRevision("3.3.0")
 
   override fun setUp() {
     super.setUp()
@@ -54,7 +59,9 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
 
     val resourceFile = File(myFixture.testDataPath).resolve("whatsnewassistant/defaultresource-3.3.0.xml")
     Mockito.`when`(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
-      .thenReturn(URL("file:" + resourceFile.path).openStream())
+      .thenAnswer(Answer<InputStream> {
+        URL("file:" + resourceFile.path).openStream()
+      })
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
     val localPath = tmpDir.toPath().resolve("local-3.3.0.xml")
@@ -75,6 +82,7 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
     val bundleCreator: WhatsNewAssistantBundleCreator? = AssistantBundleCreator.EP_NAME
       .findExtension(WhatsNewAssistantBundleCreator::class.java)
     bundleCreator!!.setURLProvider(mockUrlProvider)
+    bundleCreator.setStudioRevision(studioRevision)
 
     val completeFuture = SettableFuture.create<String>()
     val callback = object: FutureCallback<String> {

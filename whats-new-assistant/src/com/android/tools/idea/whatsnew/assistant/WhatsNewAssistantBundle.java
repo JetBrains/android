@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
+import com.android.repository.Revision;
 import com.android.tools.idea.assistant.DefaultTutorialBundle;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import javax.xml.bind.annotation.XmlAttribute;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * What's New Assistant needs a custom bundle for the special version field,
@@ -25,13 +28,31 @@ import javax.xml.bind.annotation.XmlAttribute;
  * version is the same but WNA config is higher version
  */
 public class WhatsNewAssistantBundle extends DefaultTutorialBundle {
-
-  // Default version number should be 0, representing the "first" version,
-  // while -1 means no config at all.
+  // Version is represented as major.minor.configVersion, where configVersion starts at 0
+  // and should be incremented when TW team wants the panel to auto-show.
   @XmlAttribute(name = "version")
-  private int myVersion = 0;
+  @NotNull
+  private String version = "";
 
-  public int getVersion() {
-      return myVersion;
+  @NotNull
+  public Revision getVersion() {
+    return getVersion(version);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static Revision getVersion(@NotNull String versionString) {
+    // Backwards compatibility for before periods were added
+    if (!versionString.contains(".")) {
+      // Pad front with zeroes to ensure at least 4 digits, otherwise parser doesn't like it
+      versionString = Strings.padStart(versionString, 4, '0');
+
+      // Assume that the first digit is major and that the last 2 digits are configVersion
+      versionString = versionString.substring(0, 1) + '.'
+                      + versionString.substring(1, versionString.length() - 2) + '.'
+                      + versionString.substring(versionString.length() - 2);
+    }
+
+    return Revision.safeParseRevision(versionString);
   }
 }

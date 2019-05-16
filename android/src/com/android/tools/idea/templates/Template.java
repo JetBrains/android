@@ -66,6 +66,7 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
@@ -418,23 +419,23 @@ public class Template {
         // there are files that are overwritten during project creation by the Glass activity templates.
         return true;
       }
-      // @formatter:off
-      int result = Messages.showOkCancelDialog(
-        context.getProject(),
-        formatWarningMessage(context),
-        String.format("%1$s %2$s", context.getCommandName(), StringUtil.pluralize("Warning")),
-        "Proceed Anyway", "Cancel", Messages.getWarningIcon());
-      // @formatter:on
-      return result == Messages.OK;
+      AtomicBoolean result = new AtomicBoolean();
+      ApplicationManager.getApplication().invokeAndWait(() -> {
+        int userReply = Messages.showOkCancelDialog(
+          context.getProject(),
+          formatWarningMessage(context),
+          String.format("%1$s %2$s", context.getCommandName(), StringUtil.pluralize("Warning")),
+          "Proceed Anyway", "Cancel", Messages.getWarningIcon());
+        result.set(userReply == Messages.OK);
+      });
+      return result.get();
     }
     catch (TemplateUserVisibleException e) {
       if (context.showErrors()) {
-        // @formatter:off
-        Messages.showErrorDialog(
+        ApplicationManager.getApplication().invokeAndWait(() -> Messages.showErrorDialog(
           context.getProject(),
           formatErrorMessage(context, e),
-          String.format("%1$s Failed", context.getCommandName()));
-        // @formatter:on
+          String.format("%1$s Failed", context.getCommandName())));
       }
       else {
         throw new RuntimeException(e);

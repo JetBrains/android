@@ -501,6 +501,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                       !myProfiler.getSessionsManager().isSessionAlive();
     Common.AgentData agentData = myProfiler.getAgentData();
     loading |= (agentData.getStatus() == Common.AgentData.Status.UNSPECIFIED && myProfiler.getSessionsManager().isSessionAlive());
+
+    // Show the loading screen only if the device is supported.
+    loading &= (myProfiler.getDevice() != null && myProfiler.getDevice().getUnsupportedReason().isEmpty());
+
     if (loading) {
       myStageLoadingPanel.startLoading();
       myStageCenterCardLayout.show(myStageCenterComponent, LOADING_VIEW_CARD);
