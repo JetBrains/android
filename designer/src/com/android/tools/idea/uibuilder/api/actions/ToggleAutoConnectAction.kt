@@ -26,8 +26,8 @@ private const val PREFERENCE_KEY_PREFIX = "LayoutEditorPreference"
 private const val AUTO_CONNECT_PREF_KEY = PREFERENCE_KEY_PREFIX + "AutoConnect"
 private const val DEFAULT_AUTO_CONNECT_VALUE = false
 
-private const val AUTO_CONNECTION_ON_TOOLTIP = "Turn On Autoconnect"
-private const val AUTO_CONNECTION_OFF_TOOLTIP = "Turn Off Autoconnect"
+private const val AUTO_CONNECTION_ON_TOOLTIP = "Enable Autoconnection to Parent"
+private const val AUTO_CONNECTION_OFF_TOOLTIP = "Disable Autoconnection to Parent"
 
 class ToggleAutoConnectAction : ToggleViewAction(StudioIcons.LayoutEditor.Toolbar.AUTO_CORRECT_OFF,
                                                  StudioIcons.LayoutEditor.Toolbar.AUTO_CONNECT,
