@@ -60,10 +60,11 @@ class DeviceViewContentPanelTest {
       }
     }
     val inspector = LayoutInspector(model)
-    val panel = DeviceViewContentPanel(inspector, 0.3, DeviceViewPanel.ViewMode.X_ONLY)
+    val settings = DeviceViewSettings(scalePercent = 30, viewMode = ViewMode.X_ONLY)
+    val panel = DeviceViewContentPanel(inspector, settings)
     assertEquals(Dimension(188, 197), panel.preferredSize)
 
-    panel.scale = 1.0
+    settings.scalePercent = 100
     assertEquals(Dimension(510, 542), panel.preferredSize)
 
     model.root = model {
@@ -87,19 +88,20 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val inspector = LayoutInspector(model)
-    val panel = DeviceViewContentPanel(inspector, 1.0, DeviceViewPanel.ViewMode.X_ONLY)
+    val settings = DeviceViewSettings(scalePercent = 100, viewMode = ViewMode.X_ONLY)
+    val panel = DeviceViewContentPanel(inspector, settings)
     panel.setSize(200, 300)
 
     panel.paint(graphics)
 
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint.png"), generatedImage, 0.1)
 
-    panel.scale = 0.5
+    settings.scalePercent = 50
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
 
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_scaled.png"), generatedImage, 0.1)
-    panel.scale = 1.0
+    settings.scalePercent = 100
 
     panel.model.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
@@ -117,7 +119,8 @@ class DeviceViewContentPanelTest {
     }
 
     val inspector = LayoutInspector(model)
-    val panel = DeviceViewContentPanel(inspector, 1.0, DeviceViewPanel.ViewMode.X_ONLY)
+    val settings = DeviceViewSettings(scalePercent = 100, viewMode = ViewMode.X_ONLY)
+    val panel = DeviceViewContentPanel(inspector, settings)
     panel.setSize(200, 300)
     val fakeUi = FakeUi(panel)
     fakeUi.mouse.drag(10, 10, 10, 10)
@@ -125,12 +128,12 @@ class DeviceViewContentPanelTest {
     assertEquals(0.0, panel.model.yOff)
     panel.model.resetRotation()
 
-    panel.viewMode = DeviceViewPanel.ViewMode.XY
+    settings.viewMode = ViewMode.XY
     fakeUi.mouse.drag(10, 10, 10, 10)
     assertEquals(0.01, panel.model.xOff)
     assertEquals(0.01, panel.model.yOff)
 
-    panel.viewMode = DeviceViewPanel.ViewMode.FIXED
+    settings.viewMode = ViewMode.FIXED
     fakeUi.mouse.drag(10, 10, 10, 10)
     assertEquals(0.0, panel.model.xOff)
     assertEquals(0.0, panel.model.yOff)

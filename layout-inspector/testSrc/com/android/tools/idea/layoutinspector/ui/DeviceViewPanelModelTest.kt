@@ -65,6 +65,22 @@ class DeviceViewPanelModelTest {
     checkRects(expectedTransforms, 0.1, 0.2)
   }
 
+  @Test
+  fun testResetRotation() {
+    val model = model {
+      view(ROOT, Rectangle(0, 0, 100, 200))
+    }
+
+    val panelModel = DeviceViewPanelModel(model)
+    panelModel.rotate(0.1, 0.2)
+    assertEquals(ComparingTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
+                 panelModel.hitRects[0].second)
+
+    panelModel.resetRotation()
+    assertEquals(ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
+                 panelModel.hitRects[0].second)
+  }
+
   private fun checkRects(expectedTransforms: MutableList<ComparingTransform>, xOff: Double, yOff: Double) {
     val rects = listOf(
       Rectangle(0, 0, 100, 200),
@@ -83,7 +99,6 @@ class DeviceViewPanelModelTest {
 
     val panelModel = DeviceViewPanelModel(model)
     panelModel.rotate(xOff, yOff)
-    panelModel.refresh()
 
     val actualTransforms = panelModel.hitRects.map { it.second }
     assertEquals(expectedTransforms, actualTransforms)

@@ -35,23 +35,13 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
 import javax.swing.JPanel
-import kotlin.properties.Delegates
 
-class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Double, initialMode: DeviceViewPanel.ViewMode) : JPanel() {
+private const val MARGIN = 50
+
+class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings: DeviceViewSettings) : JPanel() {
 
   private val inspectorModel = layoutInspector.layoutInspectorModel
   internal var model = DeviceViewPanelModel(inspectorModel)
-
-  internal var scale by Delegates.observable(initialScale) { _, _, _ -> repaint() }
-
-  internal var viewMode by Delegates.observable(initialMode) { _, _, newMode ->
-    if (newMode == DeviceViewPanel.ViewMode.FIXED) {
-      model.resetRotation()
-      repaint()
-    }
-  }
-
-  private var drawBorders by Delegates.observable(true) { _, _, _ -> repaint() }
 
   private val HQ_RENDERING_HINTS = mapOf(
     RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
@@ -66,8 +56,8 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Dou
     inspectorModel.selectionListeners.add(::selectionChanged)
     val mouseListener = object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
-        inspectorModel.selection = model.findTopRect((e.x - size.width / 2.0) / scale,
-                                                     (e.y - size.height / 2.0) / scale)
+        inspectorModel.selection = model.findTopRect((e.x - size.width / 2.0) / viewSettings.scaleFraction,
+                                                     (e.y - size.height / 2.0) / viewSettings.scaleFraction)
         repaint()
       }
     }
@@ -90,11 +80,11 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Dou
       override fun mouseDragged(e: MouseEvent) {
         var xRotation = 0.0
         var yRotation = 0.0
-        if (viewMode != DeviceViewPanel.ViewMode.FIXED) {
+        if (viewSettings.viewMode != ViewMode.FIXED) {
           xRotation = (e.x - x) * 0.001
           x = e.x
         }
-        if (viewMode == DeviceViewPanel.ViewMode.XY) {
+        if (viewSettings.viewMode == ViewMode.XY) {
           yRotation = (e.y - y) * 0.001
           y = e.y
         }
@@ -106,6 +96,14 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Dou
     }
     addMouseListener(listener)
     addMouseMotionListener(listener)
+
+    viewSettings.modificationListeners.add {
+      if (viewSettings.viewMode == ViewMode.FIXED) {
+        model.resetRotation()
+      }
+      // no need to handle X_ONLY since we can only get there starting at FIXED, so rotation will already be 0
+      repaint()
+    }
   }
 
   override fun paint(g: Graphics) {
@@ -114,7 +112,7 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Dou
     g2d.fillRect(0, 0, width, height)
     g2d.setRenderingHints(HQ_RENDERING_HINTS)
     g2d.translate(size.width / 2.0, size.height / 2.0)
-    g2d.scale(scale, scale)
+    g2d.scale(viewSettings.scaleFraction, viewSettings.scaleFraction)
 
     // ViewNode.imageBottom are images that the parents draw on before their
     // children. Therefore draw them in the given order (parent first).
@@ -129,7 +127,8 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Dou
     }
   }
 
-  override fun getPreferredSize() = Dimension((model.maxWidth * scale + 50).toInt(), (model.maxHeight * scale + 50).toInt())
+  override fun getPreferredSize() = Dimension((model.maxWidth * viewSettings.scaleFraction + MARGIN).toInt(),
+                                              (model.maxHeight * viewSettings.scaleFraction + MARGIN).toInt())
 
   private fun drawView(g: Graphics,
                        view: ViewNode,
@@ -139,7 +138,7 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Dou
     val g2 = g.create() as Graphics2D
     g2.setRenderingHints(HQ_RENDERING_HINTS)
     val selection = inspectorModel.selection
-    if (drawBorders) {
+    if (viewSettings.drawBorders) {
       if (view == selection) {
         g2.color = JBColor.RED
         g2.stroke = BasicStroke(3f)
@@ -161,7 +160,7 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Dou
       UIUtil.drawImage(g2, image, view.x, view.y, null)
       g2.composite = composite
     }
-    if (drawBorders && view == selection) {
+    if (viewSettings.drawBorders && view == selection) {
       g2.color = Color.BLACK
       g2.font = g2.font.deriveFont(20f)
       g2.drawString(view.qualifiedName.substringAfterLast('.'), view.x + 5, view.y + 25)
