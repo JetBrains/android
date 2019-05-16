@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
@@ -112,10 +113,13 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
 
     String newMsg = text + "\nPossible causes:\n";
     if (!gradleModelIsRecent(project)) {
-      newMsg = newMsg +
-               String.format("The project '%1$s' may be using a version of the Android Gradle plug-in that does" +
-                             " not contain the method (e.g. 'testCompile' was added in 1.1.0).\n", project.getName()) +
-               upgradeAndroidPluginHyperlink.toHtml() + "\n\n";
+      newMsg += String.format("The project '%1$s' may be using a version of the Android Gradle plug-in that does" +
+                              " not contain the method (e.g. 'testCompile' was added in 1.1.0).\n", project.getName());
+      //TODO(b/130224064): need to remove check when kts fully supported
+      if (!GradleUtil.hasKtsBuildFiles(project)) {
+        newMsg += upgradeAndroidPluginHyperlink.toHtml() + "\n";
+      }
+      newMsg += "\n";
     }
     newMsg = newMsg +
              String.format("The project '%1$s' may be using a version of Gradle that does not contain the method.\n",
