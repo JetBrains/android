@@ -130,6 +130,15 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   fun getResourceModuleDependencies(): List<Module>
 
   /**
+   * Returns the Android modules that directly depend on this module for resources.
+   * As Android modules, each module in the returned list will have an associated AndroidFacet.
+   *
+   * TODO(b/118317486): Remove this API once resource module dependencies can accurately
+   * be determined from order entries for all supported build systems.
+   */
+  fun getDirectResourceModuleDependents(): List<Module>
+
+  /**
    * Determines whether or not the underlying build system is capable of generating a PNG
    * from vector graphics.
    */
