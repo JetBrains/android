@@ -400,7 +400,7 @@ public class PostSyncProjectSetup {
         mySyncState.syncFailed("", null, null);
       }
       else {
-        mySyncState.syncEnded();
+        mySyncState.syncSucceeded();
       }
       ProjectBuildFileChecksums.saveToDisk(myProject);
     }
