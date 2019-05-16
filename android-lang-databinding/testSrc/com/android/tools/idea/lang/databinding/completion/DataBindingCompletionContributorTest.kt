@@ -1219,4 +1219,38 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     // presentation.tailText represents string for parameters, which should contain "String" instead of "T".
     assertThat(presentation.tailText).contains("String")
   }
+
+  @Test
+  fun testDataBindingCompletion_genericType() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="list" type="java.util.List&lt;java.lang.String>" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:onClick="@{list::clea<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.completeBasic()
+
+    fixture.checkResult("""
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="list" type="java.util.List&lt;java.lang.String>" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:onClick="@{list::clear}"/>
+      </layout>
+    """.trimIndent())
+  }
 }
