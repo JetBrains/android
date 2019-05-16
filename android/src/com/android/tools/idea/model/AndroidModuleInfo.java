@@ -20,7 +20,7 @@ import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.concurrency.SameThreadExecutor;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.android.facet.AndroidFacet;

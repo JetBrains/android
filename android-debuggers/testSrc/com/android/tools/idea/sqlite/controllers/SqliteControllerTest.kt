@@ -27,7 +27,7 @@ import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.util.concurrent.Futures
-import com.intellij.concurrency.SameThreadExecutor
+import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
