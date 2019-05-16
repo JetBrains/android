@@ -139,7 +139,7 @@ public class AndroidPluginVersionUpdater {
     else if (result.isPluginVersionUpdated() || result.isGradleVersionUpdated()) {
       // Update successful. Sync project.
       if (!mySyncState.lastSyncFailed()) {
-        mySyncState.syncEnded();
+        mySyncState.syncSucceeded();
       }
 
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED);

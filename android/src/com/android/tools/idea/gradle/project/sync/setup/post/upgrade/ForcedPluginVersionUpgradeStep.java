@@ -68,7 +68,7 @@ public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep 
     GradleVersion recommended = GradleVersion.parse(latestKnownPluginVersionProvider.get());
 
     GradleSyncState syncState = GradleSyncState.getInstance(project);
-    syncState.syncEnded(); // Update the sync state before starting a new one.
+    syncState.syncSucceeded(); // Update the sync state before starting a new one.
 
     final Ref<Boolean> result = Ref.create();
 

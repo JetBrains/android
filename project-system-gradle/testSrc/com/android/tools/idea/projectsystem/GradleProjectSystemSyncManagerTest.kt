@@ -75,7 +75,7 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
         gradleSyncState.syncStarted(false, request, null)
 
         if (syncSuccessful) {
-          gradleSyncState.syncEnded()
+          gradleSyncState.syncSucceeded()
         }
         else {
           gradleSyncState.syncFailed("", null, null)

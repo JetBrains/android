@@ -175,7 +175,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
 
     verify(mySyncState, times(1)).syncFailed(any(), any(), any());
-    verify(mySyncState, never()).syncEnded();
+    verify(mySyncState, never()).syncSucceeded();
   }
 
   public void testWithExceptionDuringProjectSetup() {
@@ -195,7 +195,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     }
 
     verify(mySyncState, times(1)).syncFailed(any(), any(), any());
-    verify(mySyncState, never()).syncEnded();
+    verify(mySyncState, never()).syncSucceeded();
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
@@ -219,7 +219,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     verify(myModuleValidator, times(1)).fixAndReportFoundIssues();
     verify(myProjectSetup, times(1)).setUpProject(myProgressIndicator, true);
     verify(mySyncState, times(1)).syncFailed(any(), any(), any());
-    verify(mySyncState, never()).syncEnded();
+    verify(mySyncState, never()).syncSucceeded();
 
     // Source generation should not be invoked if sync failed.
     verify(myProjectBuilder, never()).cleanAndGenerateSources();
