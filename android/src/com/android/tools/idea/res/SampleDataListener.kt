@@ -22,14 +22,15 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager
+import com.android.tools.idea.util.LazyVirtualFileListenerSubscriber
+import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.*
-import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
+import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.util.containers.ContainerUtil
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Project-wide listener which invalidates the [SampleDataResourceRepository] corresponding to
@@ -42,16 +43,16 @@ import java.util.concurrent.atomic.AtomicBoolean
  * When a [SampleDataResourceRepository] is created, it calls [ensureSubscribed] to make sure that
  * the project's [SampleDataListener] is tracking VFS and PSI events.
  */
-internal class SampleDataListener(val project: Project) : PsiTreeChangeAdapter(), VirtualFileListener {
+internal class SampleDataListener(project: Project) : PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener {
   private val reposToInvalidate = ContainerUtil.createWeakValueMap<PathString, SampleDataResourceRepository>()
-  private var subscribed = AtomicBoolean(false)
 
   companion object {
     private val LOG = Logger.getInstance(SampleDataListener::class.java)
 
-    @JvmStatic fun getInstance(project: Project) = ServiceManager.getService(project, SampleDataListener::class.java)!!
-
-    @JvmStatic fun ensureSubscribed(project: Project) = getInstance(project).ensureSubscribed()
+    @JvmStatic
+    fun ensureSubscribed(project: Project) {
+      ServiceManager.getService(project, SampleDataListener.Subscriber::class.java)!!.ensureSubscribed()
+    }
 
     @JvmStatic
     private fun SampleDataResourceRepository.invalidateBecauseOf(modifiedPath: PathString) {
@@ -60,13 +61,13 @@ internal class SampleDataListener(val project: Project) : PsiTreeChangeAdapter()
     }
   }
 
-  /**
-   * Ensures that this [SampleDataListener] is listening for VFS changes and PSI changes.
-   */
-  fun ensureSubscribed() {
-    if (subscribed.compareAndSet(false, true)) {
-      VirtualFileManager.getInstance().addVirtualFileListener(this, project)
-      PsiProjectListener.getInstance(project).setSampleDataListener(this)
+  /** Project service responsible for subscribing a new [SampleDataListener] to listen for both VFS and PSI changes. */
+  private class Subscriber(val project: Project) :
+    LazyVirtualFileListenerSubscriber<SampleDataListener>(SampleDataListener(project), project) {
+
+    override fun subscribe() {
+      super.subscribe()
+      PsiProjectListener.getInstance(project).setSampleDataListener(listener)
     }
   }
 
@@ -77,88 +78,42 @@ internal class SampleDataListener(val project: Project) : PsiTreeChangeAdapter()
    *   2. The file is actually in the module's sample data directory (as opposed
    *      to just having FD_SAMPLE_DATA in its path somewhere).
    */
-  private fun isRelevant(file: VirtualFile, facet: AndroidFacet) =
+  override fun isRelevant(file: VirtualFile, facet: AndroidFacet) =
     !facet.isDisposed && SampleDataRepositoryManager.getInstance(facet).hasRepository() && facet.module.isSampleDataFile(file)
 
   /**
-   * Used to fail fast when we can quickly tell that a file has nothing to do with sample data.
+   * Java and XML files have nothing to do with sample data.
    */
-  private fun isPossiblyRelevant(file: VirtualFile) = file.extension.let { it != "java" && it != "xml" }
+  override fun isPossiblyRelevant(file: VirtualFile) = file.extension.let { it != "java" && it != "xml" }
 
-  /**
-   * If a modification of the given [file] means that a [SampleDataResourceRepository] should
-   * be invalidated, this function returns that repository. Otherwise, it returns null.
-   */
-  private fun findRepoToInvalidate(file: VirtualFile): SampleDataResourceRepository? {
-    if (!isPossiblyRelevant(file)) return null
-    val facet = AndroidFacet.getInstance(file, project) ?: return null
-
-    return if (isRelevant(file, facet)) {
-      SampleDataResourceRepository.getInstance(facet)
-    } else {
-      null
-    }
+  override fun fileChanged(file: VirtualFile, facet: AndroidFacet) {
+    SampleDataResourceRepository.getInstance(facet).invalidateBecauseOf(file.toPathString())
   }
 
-  /**
-   * Used to handle virtual file changes *after* they've already taken place.
-   */
-  private fun fileChanged(file: VirtualFile) {
-    findRepoToInvalidate(file)?.invalidateBecauseOf(file.toPathString())
+  override fun fileChangePending(path: PathString, facet: AndroidFacet) {
+    reposToInvalidate[path] = SampleDataResourceRepository.getInstance(facet)
   }
 
-  private fun psiFileChanged(event: PsiTreeChangeEvent) {
-    event.file?.virtualFile?.let { fileChanged(it) }
-  }
-
-  /**
-   * To be called *before* a virtual file changes. If the pending change would
-   * mean that a [SampleDataResourceRepository] should be invalidated, then this
-   * function marks that repository for invalidation. Once the file change actually
-   * happens, callers should then call [pendingFileChangeComplete] to ensure that
-   * the repository is invalidated.
-   *
-   * This function is useful for situations where it would be difficult to determine
-   * the relevance of a virtual file event after it's already taken place. For example,
-   * a virtual file will no longer be associated with an [AndroidFacet] after it's been
-   * deleted, making it difficult to obtain the corresponding [SampleDataResourceRepository]
-   * after the fact.
-   */
-  private fun fileChangePending(file: VirtualFile) {
-    findRepoToInvalidate(file)?.let { repo ->
-      reposToInvalidate[file.toPathString()] = repo
-    }
-  }
-
-  /**
-   * To be called *after* a virtual file change whose relevance was determined beforehand
-   * with a call to [fileChangePending]. If the virtual file change was deemed relevant,
-   * this function will invalidate the appropriate repository.
-   */
-  private fun pendingFileChangeComplete(path: PathString) {
+  override fun pendingFileChangeComplete(path: PathString) {
     reposToInvalidate.remove(path)?.invalidateBecauseOf(path)
   }
 
-  override fun beforeFileMovement(event: VirtualFileMoveEvent) = fileChangePending(event.file)
-
-  override fun fileMoved(event: VirtualFileMoveEvent) {
-    // In case the file was moved *out* of the sample data directory
-    pendingFileChangeComplete(event.oldParent.toPathString().resolve(event.fileName))
-    // In case the file was moved *into* the sample data directory
-    fileChanged(event.file)
+  private fun psiFileChanged(event: PsiTreeChangeEvent) {
+    event.file?.virtualFile?.let { possiblyIrrelevantFileChanged(it) }
   }
 
-  override fun beforeFileDeletion(event: VirtualFileEvent) = fileChangePending(event.file)
-
-  override fun fileDeleted(event: VirtualFileEvent) = pendingFileChangeComplete(event.file.toPathString())
-
-  override fun propertyChanged(event: VirtualFilePropertyEvent) = fileChanged(event.file)
-  override fun fileCreated(event: VirtualFileEvent) = fileChanged(event.file)
   override fun childAdded(event: PsiTreeChangeEvent) = psiFileChanged(event)
   override fun childMoved(event: PsiTreeChangeEvent) = psiFileChanged(event)
   override fun childRemoved(event: PsiTreeChangeEvent) = psiFileChanged(event)
   override fun childReplaced(event: PsiTreeChangeEvent) = psiFileChanged(event)
   override fun childrenChanged(event: PsiTreeChangeEvent) = psiFileChanged(event)
+  override fun beforeChildAddition(event: PsiTreeChangeEvent) {}
+  override fun beforeChildRemoval(event: PsiTreeChangeEvent) {}
+  override fun beforeChildReplacement(event: PsiTreeChangeEvent) {}
+  override fun beforeChildMovement(event: PsiTreeChangeEvent) {}
+  override fun beforeChildrenChange(event: PsiTreeChangeEvent) {}
+  override fun beforePropertyChange(event: PsiTreeChangeEvent) {}
+  override fun propertyChanged(event: PsiTreeChangeEvent) {}
 }
 
 /**
