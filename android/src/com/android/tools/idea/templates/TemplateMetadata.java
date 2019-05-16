@@ -15,17 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import static com.android.tools.idea.templates.Template.ATTR_DESCRIPTION;
-import static com.android.tools.idea.templates.Template.ATTR_FORMAT;
-import static com.android.tools.idea.templates.Template.ATTR_NAME;
-import static com.android.tools.idea.templates.Template.ATTR_TYPE;
-import static com.android.tools.idea.templates.Template.ATTR_VALUE;
-import static com.android.tools.idea.templates.Template.CURRENT_FORMAT;
-import static com.android.tools.idea.templates.Template.RELATIVE_FILES_FORMAT;
-import static com.android.tools.idea.templates.Template.TAG_ICONS;
-import static com.android.tools.idea.templates.Template.TAG_PARAMETER;
-import static com.android.tools.idea.templates.Template.TAG_THUMB;
-
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -33,18 +22,16 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
+
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static com.android.tools.idea.templates.Template.*;
 
 /**
  * An ADT template along with metadata
@@ -170,7 +157,7 @@ public class TemplateMetadata {
     if (icons.getLength() > 0) {
       Element element = (Element)icons.item(0);
       if (element.hasAttribute(ATTR_TYPE)) {
-        String iconTypeName = element.getAttribute(ATTR_TYPE).toUpperCase(Locale.US);
+        String iconTypeName = StringUtil.toUpperCase(element.getAttribute(ATTR_TYPE));
         myIconType = AndroidIconType.valueOf(iconTypeName);
       }
       else {

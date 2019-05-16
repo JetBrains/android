@@ -17,10 +17,9 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.deploy.swapper.DexArchiveDatabase;
 import com.android.tools.deploy.swapper.SQLiteDexArchiveDatabase;
 import com.android.tools.deployer.AdbClient;
-import com.android.tools.deploy.swapper.DexArchiveDatabase;
-import com.android.tools.deploy.swapper.InMemoryDexArchiveDatabase;
 import com.android.tools.deployer.ApkDiffer;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.Installer;
@@ -28,12 +27,13 @@ import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.application.PathManager;
-import java.nio.file.Paths;
-import org.jetbrains.annotations.NotNull;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -139,7 +139,7 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
         for (Map.Entry<String, ApkDiffer.ApkEntryStatus> statusEntry : analysis.diffs.entrySet()) {
           System.err.println("  " + statusEntry.getKey() +
-                             " [" + statusEntry.getValue().toString().toLowerCase() + "]");
+                             " [" + StringUtil.toLowerCase(statusEntry.getValue().toString()) + "]");
         }
       }
     }
