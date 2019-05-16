@@ -45,7 +45,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -931,7 +930,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Sets the file editor to which actions like undo/redo will be delegated. This is only needed if this DesignSurface is not a child
-   * of a {@link FileEditor} like in the case of {@link NlPreviewForm}.
+   * of a {@link FileEditor}.
    * <p>
    * The surface will only keep a {@link WeakReference} to the editor.
    */
