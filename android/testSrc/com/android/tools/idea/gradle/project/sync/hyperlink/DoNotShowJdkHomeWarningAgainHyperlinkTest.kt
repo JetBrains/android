@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncState.JDK_LOCATION_WARNING_NOTIFICATION_GROUP
+import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP
 import com.intellij.notification.NotificationsConfiguration
 import com.intellij.notification.impl.NotificationSettings
 import com.intellij.notification.impl.NotificationsConfigurationImpl
