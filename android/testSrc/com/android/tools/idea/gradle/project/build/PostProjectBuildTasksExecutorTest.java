@@ -22,7 +22,7 @@ import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +31,7 @@ import static org.easymock.EasyMock.*;
 /**
  * Tests for {@link PostProjectBuildTasksExecutor}.
  */
-public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
+public class PostProjectBuildTasksExecutorTest extends JavaProjectTestCase {
   private AndroidModuleModel myAndroidModel1;
   private AndroidModuleModel myAndroidModel2;
 

@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -33,7 +33,7 @@ import static java.util.Collections.emptyList;
 /**
  * Tests for {@link GradleUtil}.
  */
-public class GradleUtilIdeaTest extends IdeaTestCase {
+public class GradleUtilIdeaTest extends JavaProjectTestCase {
   private File myModuleRootDir;
   private File myBuildFile;
 

@@ -16,10 +16,10 @@
 package org.jetbrains.android.exportSignedPackage
 
 import com.android.tools.idea.testing.IdeComponents
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.JavaProjectTestCase
 import org.mockito.Mockito
 
-class ChooseBundleOrApkStepTest : IdeaTestCase() {
+class ChooseBundleOrApkStepTest : JavaProjectTestCase() {
   private lateinit var ideComponents: IdeComponents
 
   override fun setUp() {

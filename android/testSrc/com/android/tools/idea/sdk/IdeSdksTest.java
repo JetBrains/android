@@ -26,7 +26,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -49,7 +49,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link IdeSdks}.
  */
-public class IdeSdksTest extends IdeaTestCase {
+public class IdeSdksTest extends JavaProjectTestCase {
   @Mock private IdeInfo myIdeInfo;
 
   private File myAndroidSdkPath;

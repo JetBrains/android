@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.JavaProjectTestCase
 import junit.framework.AssertionFailedError
 import org.jetbrains.android.AndroidTestBase
 import org.mockito.Mockito
@@ -38,7 +38,7 @@ import java.io.File
  * Because of this tests for getAvailableDependency with matching platform support libs reside in [GradleModuleSystemIntegrationTest].
  * Once we truly move dependency versioning logic into GradleDependencyManager the tests can be implemented there.
  */
-class GradleModuleSystemTest : IdeaTestCase() {
+class GradleModuleSystemTest : JavaProjectTestCase() {
   private lateinit var gradleDependencyManager: GradleDependencyManager
   private lateinit var gradleModuleSystem: GradleModuleSystem
 
@@ -64,7 +64,7 @@ class GradleModuleSystemTest : IdeaTestCase() {
   }
 
   fun testNoAndroidModuleModel() {
-    // The AndroidModuleModel shouldn't be created when running from an IdeaTestCase.
+    // The AndroidModuleModel shouldn't be created when running from an JavaProjectTestCase.
     assertThat(AndroidModuleModel.get(myModule)).isNull()
     assertThat(gradleModuleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))).isNull()
   }

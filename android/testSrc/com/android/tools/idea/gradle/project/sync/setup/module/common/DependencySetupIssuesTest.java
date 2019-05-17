@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -36,7 +36,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link DependencySetupIssues}.
  */
-public class DependencySetupIssuesTest extends IdeaTestCase {
+public class DependencySetupIssuesTest extends JavaProjectTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private GradleSyncSummary mySyncSummary;
 

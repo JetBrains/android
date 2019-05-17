@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -36,7 +36,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link RecommendedPluginVersionUpgradeStep}.
  */
-public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTestCase {
+public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProjectTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private AndroidPluginGeneration myPluginGeneration;
   @Mock private RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;

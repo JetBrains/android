@@ -24,7 +24,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.mockito.Mock;
@@ -40,7 +40,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleProjectImporter}.
  */
-public class GradleProjectImporterTest extends IdeaTestCase {
+public class GradleProjectImporterTest extends JavaProjectTestCase {
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private NewProjectSetup myProjectSetup;
   @Mock private ProjectFolder myProjectFolder;

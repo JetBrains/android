@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +41,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link CompositeBuildDataSetup}.
  */
-public class CompositeBuildDataSetupTest extends IdeaTestCase {
+public class CompositeBuildDataSetupTest extends JavaProjectTestCase {
   @Mock private CachedProjectModels myCachedProjectModels;
   @Mock private SyncProjectModels mySyncProjectModels;
 

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.idea;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.SyncIssue;
-import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
@@ -36,7 +35,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.plugins.gradle.model.ProjectImportAction;
 import org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension;
@@ -47,7 +46,6 @@ import org.mockito.Mock;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,7 +63,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidGradleProjectResolver}.
  */
-public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
+public class AndroidGradleProjectResolverIdeaTest extends JavaProjectTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
   @Mock private ProjectImportErrorHandler myErrorHandler;
   @Mock private ProjectFinder myProjectFinder;

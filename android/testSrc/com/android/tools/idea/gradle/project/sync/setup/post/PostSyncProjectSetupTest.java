@@ -40,7 +40,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -54,7 +54,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link PostSyncProjectSetup}.
  */
-public class PostSyncProjectSetupTest extends IdeaTestCase {
+public class PostSyncProjectSetupTest extends JavaProjectTestCase {
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleSyncInvoker mySyncInvoker;
