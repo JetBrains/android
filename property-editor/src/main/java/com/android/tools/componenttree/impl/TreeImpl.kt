@@ -15,6 +15,7 @@
  */
 package com.android.tools.componenttree.impl
 
+import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ContextPopupHandler
 import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.ui.PopupHandler
@@ -22,6 +23,12 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.Component
 import java.awt.event.ComponentEvent
+import java.awt.event.InputEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.BUTTON1
+import javax.swing.JComponent
+import javax.swing.SwingUtilities
 import javax.swing.ToolTipManager
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.TreePath
@@ -33,7 +40,8 @@ import javax.swing.tree.TreePath
  */
 class TreeImpl(
   componentTreeModel: ComponentTreeModelImpl,
-  private val contextPopup: ContextPopupHandler
+  private val contextPopup: ContextPopupHandler,
+  private val badges: List<BadgeItem>
 ) : Tree(componentTreeModel) {
 
   private var initialized = false
@@ -50,6 +58,11 @@ class TreeImpl(
         invokePopup(x, y)
       }
     })
+    addMouseListener(object: MouseAdapter() {
+      override fun mouseClicked(event: MouseEvent) {
+        this@TreeImpl.mouseClicked(event)
+      }
+    })
     initialized = true
 
     // JTree.updateUI() is called before setModel in JTree, which causes some model listeners not to be installed.
@@ -64,7 +77,7 @@ class TreeImpl(
     if (initialized) {
       // Recreate all renderers since fonts and colors may be cached in the renderers.
       model!!.clearRendererCache()
-      setCellRenderer(TreeCellRendererImpl(this, model!!))
+      setCellRenderer(TreeCellRendererImpl(this, badges, model!!))
     }
   }
 
@@ -105,8 +118,55 @@ class TreeImpl(
     return expandableItemsHandler.expandedItems.contains(row) && hasFocus()
   }
 
-  private fun invokePopup(x: Int, y: Int) {
-    // The selected items is supplied via DataContext.getData(TREE_SELECTION)
-    contextPopup.invoke(this, x, y)
+  private fun mouseClicked(event: MouseEvent) {
+    if (!event.isPopupTrigger &&
+        event.button == BUTTON1 &&
+        event.clickCount == 1 &&
+        (event.modifiers.and(InputEvent.SHIFT_MASK.or(InputEvent.CTRL_MASK))) == 0) {
+      val (component, item) = lookupRenderComponentAt(event.x, event.y) ?: return
+      val badge = component.getClientProperty(BADGE_ITEM) as? BadgeItem
+      badge?.performAction(item)
+    }
   }
+
+  private fun invokePopup(x: Int, y: Int) {
+    val (component, item) = lookupRenderComponentAt(x, y) ?: return
+    val badge = component.getClientProperty(BADGE_ITEM) as? BadgeItem
+    if (badge != null) {
+      badge.showPopup(item, this, x, y)
+    }
+    else {
+      contextPopup.invoke(this, x, y)
+    }
+  }
+
+  // region Support for Badges
+
+  override fun getToolTipText(event: MouseEvent): String? {
+    val (component, _) = lookupRenderComponentAt(event.x, event.y) ?: return toolTipText
+    return component.toolTipText ?: toolTipText
+  }
+
+  /**
+   * Find the render component at a position in the tree.
+   *
+   * The components that make up the content of the tree only exists when painting.
+   * There are other cases where it would be nice to have access to these components.
+   * Examples: tooltips, context menus, mouse clicks etc.
+   */
+  private fun lookupRenderComponentAt(x: Int, y: Int): Pair<JComponent, Any>? {
+    val row = getRowForLocation(x, y)
+    val renderer = getCellRenderer() ?: return null
+    val path = getPathForRow(row) ?: return null
+    val item = path.lastPathComponent
+    val renderComponent = renderer.getTreeCellRendererComponent(
+      this, item, isRowSelected(row), isExpanded(row), model!!.isLeaf(item), row, true) as? JComponent ?: return null
+    val bounds = getPathBounds(path) ?: return null
+    renderComponent.bounds = bounds
+    renderComponent.doLayout()
+    val component = SwingUtilities.getDeepestComponentAt(renderComponent, x - bounds.x, y - bounds.y) as JComponent? ?: return null
+    return Pair(component, item)
+  }
+
+  // endregion
 }
