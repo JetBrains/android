@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
@@ -48,15 +47,11 @@ import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfig
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
 
 public final class AndroidGradleProjectComponent implements ProjectComponent {
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
-  @NotNull private final GradleSyncInvoker myGradleSyncInvoker;
-  @NotNull private final SupportedModuleChecker mySupportedModuleChecker;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final LegacyAndroidProjects myLegacyAndroidProjects;
 
@@ -80,25 +75,21 @@ public final class AndroidGradleProjectComponent implements ProjectComponent {
                                        @NotNull CompilerManager compilerManager,
                                        @NotNull SupportedModuleChecker supportedModuleChecker,
                                        @NotNull IdeInfo ideInfo) {
-    this(project, gradleProjectInfo, androidProjectInfo, gradleSyncInvoker, gradleBuildInvoker, compilerManager,
-         supportedModuleChecker, ideInfo, new LegacyAndroidProjects(project));
+    this(project, gradleProjectInfo, androidProjectInfo, gradleBuildInvoker, compilerManager,
+         ideInfo, new LegacyAndroidProjects(project));
   }
 
   @VisibleForTesting
   public AndroidGradleProjectComponent(@NotNull Project project,
                                        @NotNull GradleProjectInfo gradleProjectInfo,
                                        @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull GradleSyncInvoker gradleSyncInvoker,
                                        @NotNull GradleBuildInvoker gradleBuildInvoker,
                                        @NotNull CompilerManager compilerManager,
-                                       @NotNull SupportedModuleChecker supportedModuleChecker,
                                        @NotNull IdeInfo ideInfo,
                                        @NotNull LegacyAndroidProjects legacyAndroidProjects) {
     myProject = project;
     myGradleProjectInfo = gradleProjectInfo;
     myAndroidProjectInfo = androidProjectInfo;
-    myGradleSyncInvoker = gradleSyncInvoker;
-    mySupportedModuleChecker = supportedModuleChecker;
     myIdeInfo = ideInfo;
     myLegacyAndroidProjects = legacyAndroidProjects;
 
@@ -150,39 +141,12 @@ public final class AndroidGradleProjectComponent implements ProjectComponent {
    */
   @Override
   public void projectOpened() {
-    boolean checkSupported = true;
-    GradleSyncState syncState = GradleSyncState.getInstance(myProject);
-    if (syncState.isSyncInProgress()) {
-      // when opening a new project, the UI was not updated when sync started. Updating UI ("Build Variants" tool window, "Sync" toolbar
-      // button and editor notifications.
-      syncState.notifyStateChanged();
-    }
-
     if (myIdeInfo.isAndroidStudio() && myAndroidProjectInfo.isLegacyIdeaAndroidProject() && !myAndroidProjectInfo.isApkProject()) {
       myLegacyAndroidProjects.trackProject();
       if (!myGradleProjectInfo.isBuildWithGradle()) {
         // Suggest that Android Studio users use Gradle instead of IDEA project builder.
         myLegacyAndroidProjects.showMigrateToGradleWarning();
-        return;
       }
-    }
-
-    if (myGradleProjectInfo.isBuildWithGradle()) {
-      configureGradleProject();
-      if (myAndroidProjectInfo.isLegacyIdeaAndroidProject() ||
-          (!myGradleProjectInfo.hasGradleFacets() && !myGradleProjectInfo.getAndroidModules().isEmpty())) {
-        // Request sync since it was not done when importing
-        myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED);
-        checkSupported = false;
-      }
-    }
-    else if (myIdeInfo.isAndroidStudio() && myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
-      myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED);
-      checkSupported = false;
-    }
-    // Do not check for supported modules if sync was requested, this will be done once sync is successful
-    if (checkSupported) {
-      mySupportedModuleChecker.checkForSupportedModules(myProject);
     }
   }
 
