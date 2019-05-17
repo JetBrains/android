@@ -15,15 +15,23 @@
  */
 package com.android.tools.componenttree.impl
 
+import com.android.tools.adtui.common.ColoredIconGenerator
+import com.android.tools.componenttree.api.BadgeItem
+import com.intellij.openapi.util.Key
+import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
+import javax.swing.BoxLayout
 import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.TreeCellRenderer
+
+val BADGE_ITEM = Key<BadgeItem>("BADGE_ITEM")
 
 /**
  * [TreeCellRenderer] for a [TreeImpl].
@@ -33,10 +41,11 @@ import javax.swing.tree.TreeCellRenderer
  */
 class TreeCellRendererImpl(
   tree: TreeImpl,
+  badges: List<BadgeItem>,
   private val model: ComponentTreeModelImpl
 ) : TreeCellRenderer {
 
-  private val panel = PanelRenderer(tree)
+  private val panel = PanelRenderer(tree, badges)
 
   override fun getTreeCellRendererComponent(tree: JTree?,
                                             value: Any?,
@@ -49,15 +58,45 @@ class TreeCellRendererImpl(
     val component = renderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus)
     panel.add(component, BorderLayout.CENTER)
     panel.currentRow = row
+    panel.updateBadges(value, tree?.hasFocus() ?: false && selected)
     return panel
   }
 
-  private class PanelRenderer(val tree: TreeImpl) : JPanel(BorderLayout()) {
+  private class PanelRenderer(
+    private val tree: TreeImpl,
+    private val badges: List<BadgeItem>
+  ) : JPanel(BorderLayout()) {
+    private val emptyIcon = EmptyIcon.ICON_16
+    private val badgePanel = JPanel()
+
     var currentRow: Int = 0
 
     init {
       border = JBUI.Borders.empty()
       background = UIUtil.TRANSPARENT_COLOR
+      if (badges.isNotEmpty()) {
+        val layout = BoxLayout(badgePanel, BoxLayout.LINE_AXIS)
+        badgePanel.layout = layout
+        badgePanel.border = JBUI.Borders.empty()
+        badgePanel.background = UIUtil.TRANSPARENT_COLOR
+        badges.forEach {
+          val label = JBLabel()
+          label.putClientProperty(BADGE_ITEM, it)
+          label.alignmentY = Component.CENTER_ALIGNMENT
+          badgePanel.add(label)
+        }
+        add(badgePanel, BorderLayout.EAST)
+      }
+    }
+
+    fun updateBadges(value: Any?, hasFocus: Boolean) {
+      for ((i, badge) in badges.withIndex()) {
+        val label = badgePanel.getComponent(i) as JBLabel
+        val icon = value?.let { badge.getIcon(it) }
+        val badgeIcon = icon?.let { if (hasFocus) ColoredIconGenerator.generateWhiteIcon(it) else it }
+        label.icon = badgeIcon ?: emptyIcon
+        label.toolTipText = value?.let { badge.getTooltipText(it) }
+      }
     }
 
     /**
