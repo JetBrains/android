@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.mockito.Mock;
 
 import java.io.IOException;
@@ -37,7 +37,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GeneratedFileNotificationProvider}.
  */
-public class GeneratedFileNotificationProviderTest extends IdeaTestCase {
+public class GeneratedFileNotificationProviderTest extends JavaProjectTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private AndroidModuleModel myAndroidModuleModel;
   @Mock private IdeAndroidProject myAndroidProject;

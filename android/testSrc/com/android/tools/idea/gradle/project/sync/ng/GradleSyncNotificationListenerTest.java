@@ -24,7 +24,7 @@ import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemProgre
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemProgressEventUnsupportedImpl;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemTaskExecutionEvent;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -38,7 +38,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleSyncNotificationListener}.
  */
-public class GradleSyncNotificationListenerTest extends IdeaTestCase {
+public class GradleSyncNotificationListenerTest extends JavaProjectTestCase {
   @Mock private ProgressIndicator myIndicator;
   @Mock private ExternalSystemTaskId myTaskId;
   @Mock private BuildEventDispatcher myBuildEventDispatcher;

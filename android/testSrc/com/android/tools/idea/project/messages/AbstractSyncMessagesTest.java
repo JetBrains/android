@@ -18,7 +18,7 @@ package com.android.tools.idea.project.messages;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.openapi.externalSystem.model.ProjectSystemId.IDE;
@@ -29,7 +29,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AbstractSyncMessages}.
  */
-public class AbstractSyncMessagesTest extends IdeaTestCase {
+public class AbstractSyncMessagesTest extends JavaProjectTestCase {
   private static final String TEST_GROUP = "Test";
   private SyncMessages mySyncMessages;
 
