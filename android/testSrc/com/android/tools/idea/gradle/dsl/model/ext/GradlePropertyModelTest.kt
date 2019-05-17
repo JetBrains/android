@@ -58,6 +58,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_NO_CYCLE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_NO_CYCLE4_DEPTH
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_TWICE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DUPLICATE_MAP_KEY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ESCAPE_SET_STRINGS
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_GET_DECLARED_PROPERTIES
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_GET_FILE
@@ -3323,6 +3324,16 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     val thirdProperty = buildModel.ext().findProperty("newProp")
     verifyPropertyModel(thirdProperty, INTEGER_TYPE, 3, INTEGER, REGULAR, 0)
 
+  }
+
+  @Test
+  fun testDuplicateMapKey() {
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DUPLICATE_MAP_KEY)
+
+    val buildModel = gradleBuildModel
+    val map = buildModel.ext().findProperty("versions").toMap()!!
+    assertSize(1, map.keys)
+    assertThat(map["firebasePlugins"]!!.forceString(), equalTo("2.1.5"))
   }
 
   fun assertSize(expectedSize: Int, list: MutableList<*>?) {

@@ -96,52 +96,53 @@ public class SingleWidgetView extends JPanel {
   /**
    * size of the empty square in between the constraint controls
    */
-  private static final int MIDDLE_SPACE = JBUI.scale(6);
+  private static final int MIDDLE_SPACE = 6;
 
   /**
    * Length of a constraint symbol
    */
-  private static final int CONSTRAINT_LENGTH = JBUI.scale(9);
+  private static final int CONSTRAINT_LENGTH = 9;
 
   /**
    * Width of a constraint symbol
    */
-  private static final int CONSTRAINT_WIDTH = JBUI.scale(4);
+  private static final int CONSTRAINT_WIDTH = 4;
 
   /**
-   * Size of the JComponent painting horizontal constraint symbols
+   * Size of the JComponent painting constraint symbols
    */
-  private static final JBDimension H_CONSTRAINT_SIZE = JBUI.size(200, 30);
+  private static final int CONSTRAINT_COMPONENT_WIDTH = 200;
 
-  /**
-   * Size of the JComponent painting vertical constraint symbols
-   */
-  @SuppressWarnings("SuspiciousNameCombination")
-  private static final Dimension V_CONSTRAINT_SIZE = new Dimension(H_CONSTRAINT_SIZE.height, H_CONSTRAINT_SIZE.width);
+  private static final int CONSTRAINT_COMPONENT_HEIGHT = 30;
 
   /**
    * Radius for round controls like the connect button
    */
-  private static final int CIRCLE_CONTROL_RADIUS = JBUI.scale(5);
+  private static final int CIRCLE_CONTROL_RADIUS = 5;
+
+  /**
+   * Radius for kill button
+   */
+  private static final int KILL_BUTTON_SIZE = 5;
 
   /**
    * Size of a repeating pattern for wrap and spring constraint
    */
-  private static final int CONSTRAINT_PATTERN_SIZE = JBUI.scale(2);
+  private static final int CONSTRAINT_PATTERN_SIZE = 2;
 
-  private static final int DROP_DOWN_WIDTH = JBUI.scale(60);
+  private static final int DROP_DOWN_WIDTH = 60;
 
-  private static final int DROP_DOWN_HEIGHT = JBUI.scale(25);
+  private static final int DROP_DOWN_HEIGHT = 25;
 
   /**
    * Offset between a dropdown and the box
    */
-  private static final int DROPDOWN_OFFSET = JBUI.scale(12);
+  private static final int DROPDOWN_OFFSET = 12;
 
   /**
    * Size of the square representing the widget
    */
-  public static final int BOX_SIZE = JBUI.scale(60);
+  public static final int BOX_SIZE = 60;
 
   /* Constants for the different states for a constraint */
   public final static int MATCH_CONSTRAINT = 1;
@@ -188,18 +189,19 @@ public class SingleWidgetView extends JPanel {
   private JLabel mAspectLabel;
   private JTextField mAspectText;
   private WidgetConstraintModel myWidgetModel;
+  private boolean myInitialized;
 
   private final String[] statusString = {"Fixed", "Match Constraints", "Wrap Content"};
 
   /**
    * Radius of the connect button
    */
-  private final static int CONNECT_BUTTON_RADIUS = JBUI.scale(7);
+  private final static int CONNECT_BUTTON_RADIUS = 7;
 
   /**
    * Margins between the Box and the bar representing the type of constraint
    */
-  public static final int BAR_OUTSIDE_MARGINS = CONNECT_BUTTON_RADIUS + JBUI.scale(2);
+  public static final int BAR_OUTSIDE_MARGINS = CONNECT_BUTTON_RADIUS + 2;
 
   public SingleWidgetView(@NotNull ColorSet colorSet, @NotNull WidgetConstraintModel widgetModel) {
     super(null);
@@ -305,16 +307,22 @@ public class SingleWidgetView extends JPanel {
     mVbar2.addPropertyChangeListener(TriStateControl.STATE, e -> setVerticalState(mVbar2));
 
     mGraphicList.add(mWidgetRender);
+    myInitialized = true;
+  }
+
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    if (myInitialized) {  // updateUI() will be called from the JPanel constructor
+      // Make sure we adapt the size and position after a LaF change:
+      resize();
+    }
   }
 
   @Override
   public Dimension getPreferredSize() {
-    Dimension dimension = new Dimension();
-    dimension.height = (DROP_DOWN_HEIGHT + DROPDOWN_OFFSET) * 2
-                       + BOX_SIZE;
-    dimension.width = (DROP_DOWN_WIDTH + DROPDOWN_OFFSET) * 2
-                      + BOX_SIZE;
-    return dimension;
+    return new JBDimension((DROP_DOWN_WIDTH + DROPDOWN_OFFSET) * 2 + BOX_SIZE,
+                           (DROP_DOWN_HEIGHT + DROPDOWN_OFFSET) * 2 + BOX_SIZE);
   }
 
   private void setAspectString() {
@@ -464,10 +472,9 @@ public class SingleWidgetView extends JPanel {
   }
 
   private void resize() {
-
     mWidth = getWidth();
     mHeight = getHeight();
-    int mBoxSize = BOX_SIZE;
+    int mBoxSize = JBUI.scale(BOX_SIZE);
 
     int boxLeft = (mWidth - mBoxSize) / 2;
     int boxTop = (mHeight - mBoxSize) / 2;
@@ -475,11 +482,14 @@ public class SingleWidgetView extends JPanel {
 
     mWidgetRender.build(boxLeft, boxTop, mBoxSize);
 
-    mTopMargin.setBounds(mWidth / 2 - DROP_DOWN_WIDTH / 2, boxTop - DROPDOWN_OFFSET - DROP_DOWN_HEIGHT, DROP_DOWN_WIDTH, DROP_DOWN_HEIGHT);
-    mLeftMargin.setBounds(boxLeft - DROPDOWN_OFFSET - DROP_DOWN_WIDTH, (mHeight - DROP_DOWN_HEIGHT) / 2, DROP_DOWN_WIDTH, DROP_DOWN_HEIGHT);
-    mRightMargin.setBounds(boxRight + DROPDOWN_OFFSET, (mHeight - DROP_DOWN_HEIGHT) / 2, DROP_DOWN_WIDTH, DROP_DOWN_HEIGHT);
-    mBottomMargin.setBounds(mWidth / 2 - DROP_DOWN_WIDTH / 2, boxTop + mBoxSize + DROPDOWN_OFFSET, DROP_DOWN_WIDTH, DROP_DOWN_HEIGHT);
-    int rad = KillButton.KILL_BUTTON_SIZE;
+    int dropDownWidth = JBUI.scale(DROP_DOWN_WIDTH);
+    int dropDownHeight = JBUI.scale(DROP_DOWN_HEIGHT);
+    int dropDownOffset = JBUI.scale(DROPDOWN_OFFSET);
+    mTopMargin.setBounds(mWidth / 2 - dropDownWidth / 2, boxTop - dropDownOffset - dropDownHeight, dropDownWidth, dropDownHeight);
+    mLeftMargin.setBounds(boxLeft - dropDownOffset - dropDownWidth, (mHeight - dropDownHeight) / 2, dropDownWidth, dropDownHeight);
+    mRightMargin.setBounds(boxRight + dropDownOffset, (mHeight - dropDownHeight) / 2, dropDownWidth, dropDownHeight);
+    mBottomMargin.setBounds(mWidth / 2 - dropDownWidth / 2, boxTop + mBoxSize + dropDownOffset, dropDownWidth, dropDownHeight);
+    int rad = JBUI.scale(KILL_BUTTON_SIZE);
     int size = rad * 2;
     int boxCenter = (int)(mBoxSize / 2f + 0.5);
     int centerX = boxLeft + boxCenter;
@@ -492,37 +502,38 @@ public class SingleWidgetView extends JPanel {
 
     mTopConnect.setLocation(
       centerX - Math.round(mTopConnect.getPreferredSize().width / 2f),
-      boxTop - mTopConnect.getPreferredSize().height - DROPDOWN_OFFSET);
+      boxTop - mTopConnect.getPreferredSize().height - dropDownOffset);
     mLeftConnect.setLocation(
-      boxLeft - mLeftConnect.getPreferredSize().width - DROPDOWN_OFFSET,
+      boxLeft - mLeftConnect.getPreferredSize().width - dropDownOffset,
       centerY - Math.round(mLeftConnect.getPreferredSize().height / 2f));
     mRightConnect.setLocation(
-      boxRight + DROPDOWN_OFFSET,
+      boxRight + dropDownOffset,
       centerY - Math.round(mRightConnect.getPreferredSize().height / 2f));
     mBottomConnect.setLocation(
       centerX - Math.round(mTopConnect.getPreferredSize().width / 2f),
-      boxTop + mBoxSize + DROPDOWN_OFFSET);
+      boxTop + mBoxSize + dropDownOffset);
     mAspectButton.setBounds(boxLeft, boxTop, mBoxSize / ASPECT_BUTTON_BOX_SIZE_RATIO, mBoxSize / ASPECT_BUTTON_BOX_SIZE_RATIO);
 
-    mAspectText.setBounds(mRightMargin.getX(), mBottomConnect.getY(), DROP_DOWN_WIDTH, DROP_DOWN_HEIGHT);
+    mAspectText.setBounds(mRightMargin.getX(), mBottomConnect.getY(), dropDownWidth, dropDownHeight);
     Dimension labelSize = mAspectLabel.getPreferredSize();
-    mAspectLabel.setBounds(boxRight + DROPDOWN_OFFSET, mAspectText.getY() - labelSize.height, labelSize.width, labelSize.height);
+    mAspectLabel.setBounds(boxRight + dropDownOffset, mAspectText.getY() - labelSize.height, labelSize.width, labelSize.height);
 
-    int barMargin = BAR_OUTSIDE_MARGINS;
-    int barLong = mBoxSize / 2 - barMargin - MIDDLE_SPACE;
+    int barMargin = JBUI.scale(BAR_OUTSIDE_MARGINS);
+    int barLong = mBoxSize / 2 - barMargin - JBUI.scale(MIDDLE_SPACE);
 
-    centerY = boxTop + (mBoxSize - CONSTRAINT_LENGTH) / 2;
-    centerX = boxLeft + (mBoxSize - CONSTRAINT_LENGTH) / 2;
-    mHbar1.setBounds(boxLeft + barMargin, centerY, barLong, CONSTRAINT_LENGTH);
-    mHbar2.setBounds(boxRight - barLong - barMargin, centerY, barLong, CONSTRAINT_LENGTH);
-    mVbar1.setBounds(centerX, boxTop + barMargin, CONSTRAINT_LENGTH, barLong);
+    int scaledConstraintLength = JBUI.scale(CONSTRAINT_LENGTH);
+    centerY = boxTop + (mBoxSize - scaledConstraintLength) / 2;
+    centerX = boxLeft + (mBoxSize - scaledConstraintLength) / 2;
+    mHbar1.setBounds(boxLeft + barMargin, centerY, barLong, scaledConstraintLength);
+    mHbar2.setBounds(boxRight - barLong - barMargin, centerY, barLong, scaledConstraintLength);
+    mVbar1.setBounds(centerX, boxTop + barMargin, scaledConstraintLength, barLong);
     if (mCacheBaseline) {
-      int top = boxTop + mBoxSize / 2 + CONSTRAINT_LENGTH;
+      int top = boxTop + mBoxSize / 2 + scaledConstraintLength;
       int height = boxTop + baselinePos(mBoxSize) - top - 2;
-      mVbar2.setBounds(centerX, top, CONSTRAINT_LENGTH + 1, height);
+      mVbar2.setBounds(centerX, top, scaledConstraintLength + 1, height);
     }
     else {
-      mVbar2.setBounds(centerX, boxTop + mBoxSize - barMargin - barLong, CONSTRAINT_LENGTH, barLong);
+      mVbar2.setBounds(centerX, boxTop + mBoxSize - barMargin - barLong, scaledConstraintLength, barLong);
     }
   }
 
@@ -543,12 +554,11 @@ public class SingleWidgetView extends JPanel {
    * Buttons that can kill the constraint
    */
   static class AspectButton extends JComponent {
-    boolean mMouseIn;
-    final ColorSet mColorSet;
-    final Color mColor;
-    final int[] mXPoints = new int[3];
-    final int[] mYPoints = new int[3];
-
+    private boolean mMouseIn;
+    private final ColorSet mColorSet;
+    private final Color mColor;
+    private final int[] mXPoints = new int[3];
+    private final int[] mYPoints = new int[3];
 
     private ActionListener mListener;
 
@@ -563,8 +573,6 @@ public class SingleWidgetView extends JPanel {
       mColorSet = colorSet;
       //noinspection UseJBColor
       mColor = new Color(mColorSet.getInspectorFillColor().getRGB() & 0x88FFFFFF, true);
-      setPreferredSize(size);
-      setSize(size);
       setOpaque(false);
 
       addMouseListener(new MouseAdapter() {
@@ -587,7 +595,14 @@ public class SingleWidgetView extends JPanel {
       });
     }
 
-    static final Dimension size = new Dimension(CIRCLE_CONTROL_RADIUS * 2, CIRCLE_CONTROL_RADIUS * 2);
+    @Override
+    public void updateUI() {
+      super.updateUI();
+      Dimension size = new JBDimension(CIRCLE_CONTROL_RADIUS * 2, CIRCLE_CONTROL_RADIUS * 2);
+      setPreferredSize(size);
+      setSize(size);
+    }
+
     final Icon icon = new Icon() {
 
       @Override
@@ -632,13 +647,9 @@ public class SingleWidgetView extends JPanel {
       mListener = listener;
     }
 
-    static final Dimension size = new Dimension(ICON.getIconWidth(), ICON.getIconHeight());
-
     private ActionListener mListener;
 
     private ConnectButton() {
-      setPreferredSize(size);
-      setSize(size);
       setOpaque(false);
 
       addMouseListener(new MouseAdapter() {
@@ -660,6 +671,15 @@ public class SingleWidgetView extends JPanel {
     }
 
     @Override
+    public void updateUI() {
+      super.updateUI();
+      // The ICON size may change during a LaF change:
+      Dimension size = new Dimension(ICON.getIconWidth(), ICON.getIconHeight());
+      setPreferredSize(size);
+      setSize(size);
+    }
+
+    @Override
     public void paint(Graphics g) {
       ICON.paintIcon(this, g, 0, 0);
     }
@@ -673,10 +693,8 @@ public class SingleWidgetView extends JPanel {
     boolean mMouseIn;
     final ColorSet mColorSet;
 
-    private static final int KILL_BUTTON_SIZE = JBUI.scale(5);
-    private static final Dimension size = JBUI.size(KILL_BUTTON_SIZE * 2);
     private ActionListener mListener;
-    private static final int CROSS_BAR_SIZE = size.width - JBUI.scale(1);
+    private static final int CROSS_BAR_SIZE = KILL_BUTTON_SIZE * 2 - 1;
 
     @Override
     public void paint(Graphics g) {
@@ -687,8 +705,6 @@ public class SingleWidgetView extends JPanel {
 
     public KillButton(ColorSet colorSet) {
       mColorSet = colorSet;
-      setPreferredSize(size);
-      setSize(size);
       setOpaque(false);
 
       addMouseListener(new MouseAdapter() {
@@ -711,6 +727,12 @@ public class SingleWidgetView extends JPanel {
       });
     }
 
+    @Override
+    public void updateUI() {
+      super.updateUI();
+      // The ICON size may change during a LaF change:
+      setPreferredSize(JBUI.size(KILL_BUTTON_SIZE * 2));
+    }
 
     final Icon icon = new Icon() {
 
@@ -720,7 +742,7 @@ public class SingleWidgetView extends JPanel {
       public void paintIcon(Component c, Graphics g, int x, int y) {
         g.setColor(JBColor.BLUE);
         if (mMouseIn) {
-          drawCircle((Graphics2D)g, x + KILL_BUTTON_SIZE, y + KILL_BUTTON_SIZE);
+          drawCircle((Graphics2D)g, x + JBUI.scale(KILL_BUTTON_SIZE), y + JBUI.scale(KILL_BUTTON_SIZE));
         }
       }
 
@@ -732,7 +754,7 @@ public class SingleWidgetView extends JPanel {
        */
       private void drawCircle(Graphics2D g, int x, int y) {
         g.setColor(mColorSet.getInspectorConstraintColor());
-        int radius = KILL_BUTTON_SIZE;
+        int radius = JBUI.scale(KILL_BUTTON_SIZE);
         int size = radius * 2;
         g.drawRoundRect(x - radius, y - radius,
                         size, size, size, size);
@@ -743,18 +765,19 @@ public class SingleWidgetView extends JPanel {
         g.setColor(mColorSet.getInspectorBackgroundColor());
         g.setStroke(myStroke);
 
-        g.drawLine(x - CROSS_BAR_SIZE, y - CROSS_BAR_SIZE, x + CROSS_BAR_SIZE, y + CROSS_BAR_SIZE);
-        g.drawLine(x - CROSS_BAR_SIZE, y + CROSS_BAR_SIZE, x + CROSS_BAR_SIZE, y - CROSS_BAR_SIZE);
+        int crossBarSize = JBUI.scale(CROSS_BAR_SIZE);
+        g.drawLine(x - crossBarSize, y - crossBarSize, x + crossBarSize, y + crossBarSize);
+        g.drawLine(x - crossBarSize, y + crossBarSize, x + crossBarSize, y - crossBarSize);
       }
 
       @Override
       public int getIconWidth() {
-        return KILL_BUTTON_SIZE * 2 + 2;
+        return JBUI.scale(KILL_BUTTON_SIZE * 2 + 2);
       }
 
       @Override
       public int getIconHeight() {
-        return KILL_BUTTON_SIZE * 2;
+        return JBUI.scale(KILL_BUTTON_SIZE * 2);
       }
     };
 
@@ -1076,18 +1099,11 @@ public class SingleWidgetView extends JPanel {
 
 
   static class Line implements Graphic {
-    final int mX1;
-    final int mY1;
-    final int mX2;
-    final int mY2;
+    private final int mX1;
+    private final int mY1;
+    private final int mX2;
+    private final int mY2;
     private final boolean mDisplay;
-    private static final float[] dash1 = {JBUI.scale(2.0f), JBUI.scale(2.0f)};
-    private static final float STROKE_WIDTH = JBUI.scale(2f);
-    private static final Stroke FULL_STROKE = new BasicStroke(STROKE_WIDTH);
-    private static final Stroke DASH_STROKE = new BasicStroke(STROKE_WIDTH,
-                                                              BasicStroke.CAP_BUTT,
-                                                              BasicStroke.JOIN_MITER,
-                                                              JBUI.scale(2.0f), dash1, 0.0f);
 
     Line(int x1, int y1, int x2, int y2, boolean display) {
       mX1 = x1;
@@ -1102,10 +1118,14 @@ public class SingleWidgetView extends JPanel {
       Stroke stroke = g.getStroke();
       if (mDisplay) {
         drawCircle(g, mX1, mY1);
-        g.setStroke(FULL_STROKE);
+        g.setStroke(new BasicStroke(JBUI.scale(2f)));
       }
       else {
-        g.setStroke(DASH_STROKE);
+        Stroke dash = new BasicStroke(JBUI.scale(2f),
+                                      BasicStroke.CAP_BUTT,
+                                      BasicStroke.JOIN_MITER,
+                                      JBUI.scale(2.0f), new float[]{JBUI.scale(2.0f), JBUI.scale(2.0f)}, 0.0f);
+        g.setStroke(dash);
       }
       Object antialiazing = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
@@ -1116,12 +1136,12 @@ public class SingleWidgetView extends JPanel {
   }
 
   private static void drawCircle(Graphics2D g, int x, int y) {
-    int diameter = CIRCLE_CONTROL_RADIUS * 2;
-    g.fillRoundRect(x - CIRCLE_CONTROL_RADIUS, y - CIRCLE_CONTROL_RADIUS, diameter, diameter, diameter, diameter);
+    int radius = JBUI.scale(CIRCLE_CONTROL_RADIUS);
+    int diameter = radius * 2;
+    g.fillRoundRect(x - radius, y - radius, diameter, diameter, diameter, diameter);
   }
 
   private static class LineArrow implements Graphic {
-    private static final int LINE_TIP_SPACING = JBUI.scale(2);
     final int mX1;
     final int mY1;
     final int mX2;
@@ -1147,7 +1167,8 @@ public class SingleWidgetView extends JPanel {
     @Override
     public void paint(Graphics2D g, ColorSet colorSet) {
       if (mDisplay) {
-        g.drawLine(mX1, mY1, mX2, mY2 - LINE_TIP_SPACING);
+        int lineTipSpacing = JBUI.scale(2);
+        g.drawLine(mX1, mY1, mX2, mY2 - lineTipSpacing);
         g.fillPolygon(mXArrow, mYArrow, 3);
         drawCircle(g, mX1, mY1);
       }
@@ -1190,10 +1211,11 @@ public class SingleWidgetView extends JPanel {
 
       int centerY = (int)(boxTop + boxSize / 2.0 + 0.5);
       int centerX = (int)(boxLeft + boxSize / 2.0 + 0.5);
-      mTopArrow = new Line(centerX, boxTop, centerX, boxTop - DROPDOWN_OFFSET, (mMarginTop >= 0));
-      mLeftArrow = new Line(boxLeft, centerY, boxLeft - DROPDOWN_OFFSET, centerY, (mMarginLeft >= 0));
-      mRightArrow = new Line(boxLeft + boxSize, centerY, boxLeft + boxSize + DROPDOWN_OFFSET, centerY, (mMarginRight >= 0));
-      mBottomArrow = new Line(centerX, boxTop + boxSize, centerX, boxTop + boxSize + DROPDOWN_OFFSET, (mMarginBottom >= 0));
+      int dropDownOffset = JBUI.scale(DROPDOWN_OFFSET);
+      mTopArrow = new Line(centerX, boxTop, centerX, boxTop - dropDownOffset, (mMarginTop >= 0));
+      mLeftArrow = new Line(boxLeft, centerY, boxLeft - dropDownOffset, centerY, (mMarginLeft >= 0));
+      mRightArrow = new Line(boxLeft + boxSize, centerY, boxLeft + boxSize + dropDownOffset, centerY, (mMarginRight >= 0));
+      mBottomArrow = new Line(centerX, boxTop + boxSize, centerX, boxTop + boxSize + dropDownOffset, (mMarginBottom >= 0));
 
       updateTriangle();
     }
@@ -1203,7 +1225,7 @@ public class SingleWidgetView extends JPanel {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
       g.setColor(mColorSet.getInspectorBackgroundColor());
-      g.fillRect(0, 0, BOX_SIZE, BOX_SIZE);
+      g.fillRect(0, 0, JBUI.scale(BOX_SIZE), JBUI.scale(BOX_SIZE));
       g.setColor(mColorSet.getInspectorStrokeColor());
       mWidgetCenter.paint(g, colorSet);
       mAspectLock.paint(g, colorSet);
@@ -1232,8 +1254,6 @@ public class SingleWidgetView extends JPanel {
       mBackground = colorSet.getInspectorFillColor();
       mLineColor = colorSet.getInspectorStrokeColor();
       mMouseOverColor = colorSet.getInspectorConstraintColor();
-
-      setPreferredSize(H_CONSTRAINT_SIZE);
 
       addMouseListener(new MouseAdapter() {
         @Override
@@ -1264,6 +1284,12 @@ public class SingleWidgetView extends JPanel {
           repaint();
         }
       });
+    }
+
+    @Override
+    public void updateUI() {
+      super.updateUI();
+      setPreferredSize(new JBDimension(CONSTRAINT_COMPONENT_WIDTH, CONSTRAINT_COMPONENT_HEIGHT));
     }
 
     public void setSister(TriStateControl sister) {
@@ -1304,7 +1330,6 @@ public class SingleWidgetView extends JPanel {
     HConstraintDisplay(ColorSet colorSet, boolean direction) {
       super(colorSet);
       mDirection = direction;
-      setPreferredSize(H_CONSTRAINT_SIZE);
     }
 
     @Override
@@ -1334,8 +1359,8 @@ public class SingleWidgetView extends JPanel {
      */
 
     private static void drawSpringHorizontalConstraint(Graphics g, int left, int top, int right) {
-      int width = CONSTRAINT_WIDTH;
-      int spacing = CONSTRAINT_PATTERN_SIZE;
+      int width = JBUI.scale(CONSTRAINT_WIDTH);
+      int spacing = JBUI.scale(CONSTRAINT_PATTERN_SIZE);
       int length = (right - left);
       int ni = (length / (2 * spacing)) - 1;
       int margin = (length - (ni * 2 * spacing)) / 2;
@@ -1362,8 +1387,8 @@ public class SingleWidgetView extends JPanel {
      */
     private static void drawWrapHorizontalConstraint(Graphics g, int left, int y, int right,
                                                      boolean directionLeftToRight) {
-      int width = CONSTRAINT_WIDTH;
-      int spacing = width + CONSTRAINT_PATTERN_SIZE;
+      int width = JBUI.scale(CONSTRAINT_WIDTH);
+      int spacing = width + JBUI.scale(CONSTRAINT_PATTERN_SIZE);
       Graphics2D g2 = (Graphics2D)g;
 
       if (directionLeftToRight) {
@@ -1389,9 +1414,10 @@ public class SingleWidgetView extends JPanel {
      * @param right right end
      */
     private static void drawFixedHorizontalConstraint(Graphics g, int left, int y, int right) {
-      g.drawLine(left, y - CONSTRAINT_WIDTH, left, y + CONSTRAINT_WIDTH);
+      int scaledConstraintWidth = JBUI.scale(CONSTRAINT_WIDTH);
+      g.drawLine(left, y - scaledConstraintWidth, left, y + scaledConstraintWidth);
       g.drawLine(left, y, right, y);
-      g.drawLine(right, y - CONSTRAINT_WIDTH, right, y + CONSTRAINT_WIDTH);
+      g.drawLine(right, y - scaledConstraintWidth, right, y + scaledConstraintWidth);
     }
   }
 
@@ -1405,7 +1431,14 @@ public class SingleWidgetView extends JPanel {
     VConstraintDisplay(ColorSet colorSet, boolean direction) {
       super(colorSet);
       mDirection = direction;
-      setPreferredSize(V_CONSTRAINT_SIZE);
+    }
+
+    @Override
+    public void updateUI() {
+      super.updateUI();
+      // The vertical have the parameters swapped on purpose:
+      //noinspection SuspiciousNameCombination
+      setPreferredSize(new JBDimension(CONSTRAINT_COMPONENT_HEIGHT, CONSTRAINT_COMPONENT_WIDTH));
     }
 
     @Override
@@ -1434,8 +1467,8 @@ public class SingleWidgetView extends JPanel {
      * @param bottom bottom end
      */
     private static void drawSpringVerticalConstraint(Graphics g, int top, int x, int bottom) {
-      int width = CONSTRAINT_WIDTH;
-      int spacing = CONSTRAINT_PATTERN_SIZE;
+      int width = JBUI.scale(CONSTRAINT_WIDTH);
+      int spacing = JBUI.scale(CONSTRAINT_PATTERN_SIZE);
       int h = (bottom - top);
       int ni = (h / (2 * spacing)) - 1;
       int margin = (h - (ni * 2 * spacing)) / 2;
@@ -1460,7 +1493,7 @@ public class SingleWidgetView extends JPanel {
      * @param bottom bottom end
      */
     private static void drawFixedVerticalConstraint(Graphics g, int top, int x, int bottom) {
-      int width = CONSTRAINT_WIDTH;
+      int width = JBUI.scale(CONSTRAINT_WIDTH);
       g.drawLine(x - width, top, x + width, top);
       g.drawLine(x, top, x, bottom);
       g.drawLine(x - width, bottom, x + width, bottom);
@@ -1477,8 +1510,8 @@ public class SingleWidgetView extends JPanel {
      */
     private static void drawWrapVerticalConstraint(Graphics g, int top, int x, int bottom,
                                                    boolean topToBottom) {
-      int width = CONSTRAINT_WIDTH;
-      int spacing = width + CONSTRAINT_PATTERN_SIZE;
+      int width = JBUI.scale(CONSTRAINT_WIDTH);
+      int spacing = width + JBUI.scale(CONSTRAINT_PATTERN_SIZE);
 
       if (topToBottom) {
         for (int y = top; y <= bottom - width; y += spacing) {

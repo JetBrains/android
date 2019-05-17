@@ -32,8 +32,10 @@ import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
@@ -52,7 +54,7 @@ import org.jetbrains.annotations.NotNull;
  * This model is responsible for loading data for the wanted palette
  * and generating updates to 2 list models: category list and item list.
  */
-public class DataModel {
+public class DataModel implements Disposable {
   public static final Palette.Group COMMON = new Palette.Group("Common");
   @VisibleForTesting
   public static final Palette.Group RESULTS = new Palette.Group("All Results");
@@ -65,6 +67,7 @@ public class DataModel {
   private final PatternFilter myFilterPattern;
   private final DependencyManager myDependencyManager;
   private final List<String> myFavoriteItems;
+  private final NlPaletteModel.UpdateListener myUpdateListener;
   private NlPaletteModel myPaletteModel;
   private LayoutEditorFileType myLayoutType;
   private final ReentrantReadWriteLock myPaletteLock = new ReentrantReadWriteLock();
@@ -72,13 +75,15 @@ public class DataModel {
   private Palette myPalette;
   private Palette.Group myCurrentSelectedGroup;
 
-  public DataModel(@NotNull DependencyManager dependencyManager) {
+  public DataModel(@NotNull Disposable parent, @NotNull DependencyManager dependencyManager) {
+    Disposer.register(parent, this);
     myListModel = new CategoryListModel();
     myItemModel = new ItemListModel();
     myFavoriteItems = readFavoriteItems();
     myDependencyManager = dependencyManager;
     myPalette = Palette.EMPTY;
     myCurrentSelectedGroup = COMMON;
+    myUpdateListener = this::update;
     myDependencyManager.addDependencyChangeListener(() -> onDependenciesChanged());
 
     myFilterPattern = new PatternFilter();
@@ -120,11 +125,11 @@ public class DataModel {
     }
 
     if (myPaletteModel != null) {
-      myPaletteModel.setUpdateListener(null);
+      myPaletteModel.removeUpdateListener(myUpdateListener);
     }
     myLayoutType = layoutType;
     myPaletteModel = paletteModel;
-    myPaletteModel.setUpdateListener(this::update);
+    myPaletteModel.addUpdateListener(myUpdateListener);
 
     return CompletableFuture.supplyAsync(() -> paletteModel.getPalette(layoutType), AppExecutorUtil.getAppExecutorService())
       .thenAccept(palette -> {
@@ -137,6 +142,13 @@ public class DataModel {
         }
       })
       .thenCompose(palette -> update());
+  }
+
+  @Override
+  public void dispose() {
+    if (myPaletteModel != null) {
+      myPaletteModel.removeUpdateListener(myUpdateListener);
+    }
   }
 
   public void setFilterPattern(@NotNull String pattern) {
@@ -205,12 +217,19 @@ public class DataModel {
 
   private void update(@NotNull NlPaletteModel paletteModel, @NotNull DesignerEditorFileType layoutType) {
     if (myPaletteModel == paletteModel && layoutType == myLayoutType) {
+      myPaletteLock.writeLock().lock();
+      try {
+        myPalette = paletteModel.getPalette(myLayoutType);
+        myDependencyManager.setPalette(myPalette, paletteModel.getModule());
+      } finally {
+        myPaletteLock.writeLock().unlock();
+      }
       update();
     }
   }
 
   @NotNull
-  private CompletableFuture<Void>  update() {
+  private CompletableFuture<Void> update() {
     assert myLayoutType != null;
     boolean isUserSearch = myFilterPattern.hasPattern();
     List<Palette.Group> groups = new ArrayList<>();
@@ -263,9 +282,7 @@ public class DataModel {
 
   @NotNull
   private CompletableFuture<Void> updateCategoryModel(@NotNull List<Palette.Group> groups, @NotNull List<Integer> matchCounts) {
-    return CompletableFuture.runAsync(() -> {
-      myListModel.update(groups, matchCounts);
-    }, EdtExecutor.INSTANCE);
+    return CompletableFuture.runAsync(() -> myListModel.update(groups, matchCounts), EdtExecutor.INSTANCE);
   }
 
   private void createFilteredItems(@NotNull Palette.Group selectedGroup) {

@@ -48,7 +48,7 @@ public class AndroidVectorDrawableToolTest {
    *   3. Right click the default app module (or any manually created module) and select New > Vector Asset (Verify 1)
    *   4. Click on "Choose Icon"
    *   5. Select an Icon and click OK
-   *   6. Check the check box of “Override default size …” and modify the size to be something like 48 x 24 (Verify 2)
+   *   6. Modify the width to be something like 48 (Verify 2)
    *   7. Modify the Opacity slider to a small value, like 50. (Verify 3)
    *   8. Check the checkbox of “Enable auto mirroring… " and click Next (Verify 4)
    *   9. Hit “Finish” button
@@ -73,8 +73,7 @@ public class AndroidVectorDrawableToolTest {
       .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
       .chooseIcon()
       .clickOk()
-      .enableOverrideDefaultSize()
-      .setSize(48, 24)
+      .setWidth(48)
       .setOpacity(50)
       .enableAutoMirror()
       .clickNext()
@@ -83,7 +82,7 @@ public class AndroidVectorDrawableToolTest {
       .open("app/src/main/res/drawable/ic_android_black_24dp.xml")
       .getCurrentFileContents();
     assertThat(contents).contains("android:width=\"48dp\"");
-    assertThat(contents).contains("android:height=\"24dp\"");
+    assertThat(contents).contains("android:height=\"48dp\"");
     assertThat(contents).contains("xmlns:android=\"http://schemas.android.com/apk/res/android\"");
   }
 }

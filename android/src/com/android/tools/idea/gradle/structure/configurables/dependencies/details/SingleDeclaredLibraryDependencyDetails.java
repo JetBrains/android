@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor;
 import com.android.tools.idea.gradle.structure.model.*;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.components.JBLabel;
 import kotlin.Unit;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -27,13 +26,13 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails {
+public class SingleDeclaredLibraryDependencyDetails implements ConfigurationDependencyDetails {
   private JPanel myMainPanel;
 
   private JXLabel myGroupIdLabel;
   private JXLabel myArtifactNameLabel;
-  private JXLabel myScopeLabel;
   private JPanel myRequestedVersion;
+  private JComboBox<String> myScope;
 
   @NotNull private final PsContext myContext;
   @Nullable private PsDeclaredLibraryDependency myDependency;
@@ -52,29 +51,38 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
 
   @Override
   public void display(@NotNull PsBaseDependency dependency) {
-    myDependency = (PsDeclaredLibraryDependency)dependency;
-    PsArtifactDependencySpec spec = myDependency.getSpec();
+    PsDeclaredLibraryDependency d = (PsDeclaredLibraryDependency) dependency;
 
-    myGroupIdLabel.setText(spec.getGroup());
-    myArtifactNameLabel.setText(spec.getName());
-
-    if (myVersionPropertyEditor != null) {
-      if (myEditorComponent != null) {
-        myRequestedVersion.remove(myEditorComponent);
-      }
-      Disposer.dispose(myVersionPropertyEditor);
+    displayVersion(d);
+    displayConfiguration(d, PsModule.ImportantFor.LIBRARY);
+    if (myDependency != dependency) {
+      PsArtifactDependencySpec spec = d.getSpec();
+      myGroupIdLabel.setText(spec.getGroup());
+      myArtifactNameLabel.setText(spec.getName());
     }
-    myVersionPropertyEditor =
-      DeclaredLibraryDependencyUiProperties.INSTANCE.makeVersionUiProperty(myDependency)
-                                                    .createEditor(myContext,
-                                                                  myDependency.getParent().getParent(),
-                                                                  myDependency.getParent(),
-                                                                  Unit.INSTANCE,
-                                                                  null);
-    myEditorComponent = myVersionPropertyEditor.getComponent();
-    myRequestedVersion.add(myEditorComponent);
 
-    myScopeLabel.setText(dependency.getJoinedConfigurationNames());
+    myDependency = d;
+  }
+
+  private void displayVersion(@NotNull PsDeclaredLibraryDependency dependency) {
+    if (myVersionPropertyEditor != null) {
+      if (dependency == myDependency) {
+        myVersionPropertyEditor.reloadIfNotChanged();
+      } else {
+        if (myEditorComponent != null) {
+          myRequestedVersion.remove(myEditorComponent);
+        }
+        Disposer.dispose(myVersionPropertyEditor);
+        myVersionPropertyEditor = null; // remake the editor below
+      }
+    }
+    if (myVersionPropertyEditor == null) {
+      myVersionPropertyEditor =
+        DeclaredLibraryDependencyUiProperties.INSTANCE.makeVersionUiProperty(dependency)
+          .createEditor(myContext, dependency.getParent().getParent(), dependency.getParent(), Unit.INSTANCE, null);
+      myEditorComponent = myVersionPropertyEditor.getComponent();
+      myRequestedVersion.add(myEditorComponent);
+    }
   }
 
   @Override
@@ -85,7 +93,16 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
 
   @Override
   @Nullable
-  public PsLibraryDependency getModel() {
+  public PsDeclaredLibraryDependency getModel() {
     return myDependency;
+  }
+
+  @Override
+  public JComboBox<String> getConfigurationUI() {
+    return myScope;
+  }
+
+  private void createUIComponents() {
+    myScope = createConfigurationUI();
   }
 }

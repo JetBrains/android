@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -82,6 +83,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
   @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
   @Mock private ModuleSetupContext myModuleSetupContext;
   @Mock private BuildVariantView.BuildVariantSelectionChangeListener myVariantSelectionChangeListener;
+  @Mock private GradleFiles myGradleFiles;
 
   private BuildVariantUpdater myVariantUpdater;
   private List<Library> myModuleDependencies = Lists.newArrayList();
@@ -110,7 +112,10 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     when(myAndroidProject.getDynamicFeatures()).thenReturn(Collections.emptyList());
     when(myIdeDependencies.getModuleDependencies()).thenReturn(myModuleDependencies);
 
-    new IdeComponents(project).replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
+    IdeComponents ideComponents = new IdeComponents(project);
+    ideComponents.replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
+    // Replace the GradleFiles service so no hashes are updated as this can cause a NPE since the mocked models don't return anything
+    ideComponents.replaceProjectService(GradleFiles.class, myGradleFiles);
 
     myVariantUpdater = new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory,
                                                new AndroidVariantChangeModuleSetup(mySetupStepToInvoke, mySetupStepToIgnore),

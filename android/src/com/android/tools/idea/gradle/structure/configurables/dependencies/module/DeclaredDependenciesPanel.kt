@@ -97,7 +97,10 @@ internal class DeclaredDependenciesPanel(
       }
     }
 
-    dependenciesTable.selectionModel.addListSelectionListener { updateDetailsAndIssues() }
+    dependenciesTable.selectionModel.addListSelectionListener {
+      updateDetailsAndIssues()
+      notifySelectionChanged()
+    }
     dependenciesTable.selectFirstRow()
 
     val scrollPane = createScrollPane(dependenciesTable)
@@ -139,7 +142,6 @@ internal class DeclaredDependenciesPanel(
 
   fun add(listener: SelectionChangeListener<PsBaseDependency>) {
     eventDispatcher.addListener(listener, this)
-    notifySelectionChanged()
   }
 
   override fun getSelection(): PsBaseDependency? = dependenciesTable.selectionIfSingle

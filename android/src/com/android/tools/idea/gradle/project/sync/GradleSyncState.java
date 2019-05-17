@@ -17,9 +17,11 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
+import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL;
 import static com.android.tools.idea.gradle.util.GradleUtil.getLastKnownAndroidGradlePluginVersion;
 import static com.android.tools.idea.gradle.util.GradleUtil.getLastSuccessfulAndroidGradlePluginVersion;
 import static com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes;
+import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
@@ -46,6 +48,7 @@ import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher;
@@ -82,6 +85,7 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -106,7 +110,6 @@ public class GradleSyncState {
   @NotNull private final MessageBus myMessageBus;
   @NotNull private final StateChangeNotification myChangeNotification;
   @NotNull private final GradleSyncSummary mySummary;
-  @NotNull private final GradleFiles myGradleFiles;
   @NotNull private final ProjectStructure myProjectStructure;
 
   @NotNull private final Object myLock = new Object();
@@ -127,6 +130,7 @@ public class GradleSyncState {
   private long mySourceGenerationEndedTimeStamp = -1L;
   private long mySyncFailedTimeStamp = -1L;
   private GradleSyncStats.Trigger myTrigger = TRIGGER_UNKNOWN;
+  private boolean myShouldRemoveModelsOnFailure = false;
 
   @GuardedBy("myLock")
   @Nullable private ExternalSystemTaskId myExternalSystemTaskId;
@@ -153,10 +157,9 @@ public class GradleSyncState {
   public GradleSyncState(@NotNull Project project,
                          @NotNull AndroidProjectInfo androidProjectInfo,
                          @NotNull GradleProjectInfo gradleProjectInfo,
-                         @NotNull GradleFiles gradleFiles,
                          @NotNull MessageBus messageBus,
                          @NotNull ProjectStructure projectStructure) {
-    this(project, androidProjectInfo, gradleProjectInfo, gradleFiles, messageBus, projectStructure, new StateChangeNotification(project),
+    this(project, androidProjectInfo, gradleProjectInfo, messageBus, projectStructure, new StateChangeNotification(project),
          new GradleSyncSummary(project));
   }
 
@@ -164,7 +167,6 @@ public class GradleSyncState {
   GradleSyncState(@NotNull Project project,
                   @NotNull AndroidProjectInfo androidProjectInfo,
                   @NotNull GradleProjectInfo gradleProjectInfo,
-                  @NotNull GradleFiles gradleFiles,
                   @NotNull MessageBus messageBus,
                   @NotNull ProjectStructure projectStructure,
                   @NotNull StateChangeNotification changeNotification,
@@ -175,7 +177,6 @@ public class GradleSyncState {
     myMessageBus = messageBus;
     myChangeNotification = changeNotification;
     mySummary = summary;
-    myGradleFiles = gradleFiles;
     myProjectStructure = projectStructure;
 
     // Call in to make sure IndexingSuspender instance is constructed.
@@ -232,6 +233,7 @@ public class GradleSyncState {
       mySyncSkipped = syncSkipped;
       mySyncInProgress = true;
     }
+    myShouldRemoveModelsOnFailure = request.variantOnlySyncOptions == null;
 
     String syncType = NewGradleSync.isSingleVariantSync(myProject) ? "single-variant" : "IDEA";
     LOG.info(String.format("Started %1$s sync with Gradle for project '%2$s'.", syncType, myProject.getName()));
@@ -326,6 +328,9 @@ public class GradleSyncState {
     if (mySyncStartedTimestamp == -1L) {
       syncFinished(syncEndTimestamp);
       return;
+    }
+    if (myShouldRemoveModelsOnFailure) {
+      removeAndroidModels(myProject);
     }
     setSyncFailedTimeStamp(syncEndTimestamp);
     String msg = "Gradle sync failed";
@@ -433,7 +438,15 @@ public class GradleSyncState {
     if (ideSdks.isUsingJavaHomeJdk()) {
       return;
     }
+    String javaHome = getJdkFromJavaHome();
+    if (javaHome == null) {
+      return;
+    }
+    if (ideSdks.validateJdkPath(new File(javaHome)) == null) {
+      return;
+    }
     List<NotificationHyperlink> quickFixes = new ArrayList<>();
+    quickFixes.add(new OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info..."));
     UseJavaHomeAsJdkHyperlink useJavaHomeHyperlink = UseJavaHomeAsJdkHyperlink.create();
     if (useJavaHomeHyperlink != null) {
       quickFixes.add(useJavaHomeHyperlink);
@@ -442,7 +455,7 @@ public class GradleSyncState {
     String msg = "Android Studio is using this JDK location:\n" +
                  ideSdks.getJdkPath() + "\n" +
                  "which is different to what Gradle uses by default:\n" +
-                 IdeSdks.getJdkFromJavaHome() + "\n" +
+                 javaHome + "\n" +
                  "Using different locations may spawn multiple Gradle daemons if\n" +
                  "Gradle tasks are run from command line while using Android Studio.\n";
     addWarningToJdkEventLog(msg, quickFixes);
@@ -523,7 +536,7 @@ public class GradleSyncState {
    */
   @NotNull
   public ThreeState isSyncNeeded() {
-    return myGradleFiles.areGradleFilesModified() ? ThreeState.YES : ThreeState.NO;
+    return GradleFiles.getInstance(myProject).areGradleFilesModified() ? ThreeState.YES : ThreeState.NO;
   }
 
   /**
@@ -756,5 +769,18 @@ public class GradleSyncState {
     }
     // Gradle part has not been done
     return -1;
+  }
+
+  // See issue: https://code.google.com/p/android/issues/detail?id=64508
+  private static void removeAndroidModels(@NotNull Project project) {
+    // Remove all Android models from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
+    // failure.
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        facet.getConfiguration().setModel(null);
+      }
+    }
   }
 }

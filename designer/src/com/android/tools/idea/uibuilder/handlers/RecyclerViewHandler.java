@@ -15,31 +15,59 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
+import static com.android.SdkConstants.ATTR_BACKGROUND;
+import static com.android.SdkConstants.ATTR_CLIP_CHILDREN;
+import static com.android.SdkConstants.ATTR_CLIP_TO_PADDING;
+import static com.android.SdkConstants.ATTR_ITEM_COUNT;
+import static com.android.SdkConstants.ATTR_LISTITEM;
+import static com.android.SdkConstants.ATTR_SCROLLBARS;
+import static com.android.SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT;
+import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
+
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.actions.PickSampleListDataViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
+import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
 import java.util.Collections;
+import java.util.List;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
 
 /**
  * Handler for the {@code <RecyclerView>} layout
  */
 public class RecyclerViewHandler extends ViewGroupHandler {
+  @Override
+  @NotNull
+  @Language("XML")
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    switch (xmlType) {
+      case DRAG_PREVIEW:
+        return new XmlBuilder()
+          .startTag(tagName)
+          .wrapContent()
+          .endTag(tagName)
+          .toString();
+      case PREVIEW_ON_PALETTE:
+      default:
+        return super.getXml(tagName, xmlType);
+    }
+  }
+
   @Override
   @NotNull
   public List<String> getInspectorProperties() {

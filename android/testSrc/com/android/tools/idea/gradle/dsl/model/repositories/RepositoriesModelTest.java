@@ -41,20 +41,24 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_WITH_WITH;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_NAME;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_METHOD_NAME;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.parser.java.ParserTestUtilKt;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
+import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -617,5 +621,18 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals(RepositoryModel.RepositoryType.MAVEN, thirdModel.getType());
     assertThat(thirdModel).isInstanceOf(MavenRepositoryModelImpl.class);
     assertEquals("file:/some/repo", ((MavenRepositoryModelImpl)thirdModel).url().toString());
+  }
+
+  @Test
+  public void testMultipleGoogleRepos() throws IOException {
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_WITH_WITH);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.buildscript().repositories();
+
+    repositoriesModel.addGoogleMavenRepository(GradleVersion.tryParse("4.10.1"));
+    applyChangesAndReparse(buildModel);
+
+    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_WITH_WITH);
   }
 }

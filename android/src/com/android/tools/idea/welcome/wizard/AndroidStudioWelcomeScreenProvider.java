@@ -59,6 +59,10 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
       return FirstRunWizardMode.NEW_INSTALL;
     }
 
+    if (StudioFlags.NPW_FIRST_RUN_SHOW.get()) {
+      return FirstRunWizardMode.NEW_INSTALL;
+    }
+
     AndroidFirstRunPersistentData persistentData = AndroidFirstRunPersistentData.getInstance();
     if (isHandoff(persistentData)) {
       return FirstRunWizardMode.INSTALL_HANDOFF;

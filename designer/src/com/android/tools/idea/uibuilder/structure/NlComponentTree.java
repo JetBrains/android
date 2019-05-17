@@ -64,7 +64,6 @@ import com.intellij.util.ui.update.Update;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
@@ -93,9 +92,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
                                                      DataProvider {
-  private static final Insets INSETS = new JBInsets(0, 6, 0, 6);
-  private static final Color LINE_COLOR = ColorUtil.brighter(UIUtil.getTreeSelectionBackground(), 10);
-
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
   private final NlTreeBadgeHandler myBadgeHandler;
@@ -104,9 +100,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private boolean mySkipWait;
   private int myInsertAfterRow = -1;
   private int myRelativeDepthToInsertionRow = 0;
+  private Color lineColor = ColorUtil.brighter(UIUtil.getTreeSelectionBackground(true), 10);
   @Nullable private Rectangle myInsertionRowBounds;
   @Nullable private Rectangle myInsertionReceiverBounds;
   @Nullable private NlDesignSurface mySurface;
+
 
   public NlComponentTree(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
     mySelectionIsUpdating = new AtomicBoolean(false);
@@ -115,7 +113,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     myBadgeHandler = new NlTreeBadgeHandler();
     setUI(new MyUI());
     setModel(new NlComponentTreeModel());
-    setBorder(new EmptyBorder(INSETS));
     setDesignSurface(designSurface);
     setName("componentTree");
     setRootVisible(true);
@@ -257,6 +254,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Override
   public void updateUI() {
     setUI(new MyUI());
+    setBorder(new EmptyBorder(new JBInsets(0, 6, 0, 6)));
+    lineColor = ColorUtil.brighter(UIUtil.getTreeSelectionBackground(true), 10);
+    if (myBadgeHandler != null) {
+      setCellRenderer(new NlTreeCellRenderer(myBadgeHandler));
+    }
   }
 
   private void invalidateUI() {
@@ -357,7 +359,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     RenderingHints savedHints = g2D.getRenderingHints();
     Color savedColor = g2D.getColor();
     try {
-      g2D.setColor(LINE_COLOR);
+      g2D.setColor(lineColor);
       g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
       paintInsertionRectangle(g2D,
