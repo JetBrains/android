@@ -275,7 +275,7 @@ public class GradleFiles {
 
     List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(myProject).getModules());
     JobLauncher jobLauncher = JobLauncher.getInstance();
-    jobLauncher.invokeConcurrentlyUnderProgress(modules, null, (module) -> {
+    jobLauncher.invokeConcurrentlyUnderProgress(modules, null, false, false, (module) -> {
       VirtualFile buildFile = getGradleBuildFile(module);
       if (buildFile != null) {
         File path = VfsUtilCore.virtualToIoFile(buildFile);
