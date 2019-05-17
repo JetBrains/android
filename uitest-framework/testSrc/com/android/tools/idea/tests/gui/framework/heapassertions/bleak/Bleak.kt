@@ -17,8 +17,6 @@
 
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
-import java.io.File
-import java.io.PrintStream
 import java.util.IdentityHashMap
 
 /**
@@ -76,17 +74,6 @@ fun Signature.isTroublesome(): Boolean =
   size == 4 && lastLabel() in listOf("_set", "_values") && first() == "com.intellij.openapi.util.Disposer#ourTree" ||  // this accounts for both myObject2NodeMap and myRootObjects
   entry(-3) == "com.intellij.openapi.application.impl.ReadMostlyRWLock#readers"
 
-private var currentLogPrinter: PrintStream? = null
-var currentLogFile: File? = null
-  set(f) {
-    currentLogPrinter = if (f != null) PrintStream(f) else null
-  }
-
-private fun log(s: String) {
-  println(s)
-  currentLogPrinter?.println(s)
-}
-
 fun runWithBleak(scenario: Runnable) {
   runWithBleak { scenario.run() }
 }
@@ -111,81 +98,79 @@ fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
   scenario()  // warm up
   if (System.getProperty("enable.bleak") != "true") return  // if BLeak isn't enabled, the test will run normally.
 
-  currentLogPrinter?.use {
-    var g1 = HeapGraph { isRootNode || obj.javaClass.isArray }.expandWholeGraph()
+  var g1 = HeapGraph { isRootNode || obj.javaClass.isArray }.expandWholeGraph()
+  scenario()
+  var g2 = HeapGraph().expandWholeGraph()
+  g1.propagateGrowing(g2)
+  for (i in 0 until runs - 1) {
     scenario()
-    var g2 = HeapGraph().expandWholeGraph()
-    g1.propagateGrowing(g2)
-    for (i in 0 until runs - 1) {
-      scenario()
-      if (USE_INCREMENTAL_PROPAGATION) {
-        g1 = HeapGraph()
-        g2.propagateGrowingIncremental(g1)
+    if (USE_INCREMENTAL_PROPAGATION) {
+      g1 = HeapGraph()
+      g2.propagateGrowingIncremental(g1)
+    }
+    else {
+      g1 = HeapGraph().expandWholeGraph()
+      g2.propagateGrowing(g1)
+    }
+    g2 = g1
+  }
+  scenario()
+  val finalGraph = HeapGraph().expandWholeGraph()
+  g2.propagateGrowing(finalGraph)
+
+  println("Found ${finalGraph.leakRoots.size} leak roots")
+  val errorMessage = buildString {
+    for ((leakRoot, leakShare) in finalGraph.rankLeakRoots().filterNot { it.first.getPath().signature().isWhitelisted() }) {
+      appendln("Root with leakShare $leakShare:")
+      appendln(leakRoot.getPath().verboseSignature().joinToString(separator = "\n  ", prefix = "  "))
+      val prevLeakRoot = g2.getNodeForPath(leakRoot.getPath()) ?: g2.leakRoots.find { it.obj === leakRoot.obj }
+      if (prevLeakRoot != null) {
+        val prevChildrenObjects = IdentityHashMap<Any, Any>(prevLeakRoot.degree)
+        val newChildrenObjects = IdentityHashMap<Any, Any>(leakRoot.degree)
+        prevChildrenObjects.putAll(prevLeakRoot.children.map { it.obj to it.obj })  // use map as a set
+        newChildrenObjects.putAll(leakRoot.children.map { it.obj to it.obj })  // use map as a set
+        val addedChildren = leakRoot.children.filterNot { prevChildrenObjects.containsKey(it.obj) }
+
+        // print information about the newly added objects
+        appendln(" ${leakRoot.degree} children (+${leakRoot.degree - prevLeakRoot.degree}) [${newChildrenObjects.size} distinct (+${newChildrenObjects.size- prevChildrenObjects.size})]. New children: ${addedChildren.size}")
+        addedChildren.take(20).forEach {
+          try {
+            appendln("    Added object: ${it.type.name}: ${it.obj.toString().take(80)}")
+          }
+          catch (e: NullPointerException) {
+            appendln("    Added object: ${it.type.name} [NPE in toString]")
+          }
+        }
+        // if many objects are added, print summary information about their most common classes
+        if (addedChildren.size > 20) {
+          appendln("    ...")
+          appendln("  Most common classes of added objects: ")
+          mostCommonClassesOf(addedChildren.map{it.obj}, 5).forEach {
+            appendln("    ${it.second} ${it.first.name}")
+          }
+        }
+
+        // print information about objects retained by the added children:
+        append("\nRetained by new children: ")
+        appendRetainedObjectSummary(finalGraph, addedChildren.toSet())
+
+        // print information about objects retained by all of the children. Sometimes severity is considerably underestimated by
+        // just looking at the children added in the last iteration, since often the same heavy data structures (Projects, etc.) are held
+        // by all of the leaked objects (and so are not retained by the last-iteration children alone, but are retained by all of the children
+        // in aggregate). However, this may also overestimate the severity, since there can be many other objects in the array unrelated to the
+        // actual leak in question.
+        append("\nRetained by all children: ")
+        appendRetainedObjectSummary(finalGraph, leakRoot.children.toSet())
+
       }
       else {
-        g1 = HeapGraph().expandWholeGraph()
-        g2.propagateGrowing(g1)
+        appendln("Warning: path and object have both changed between penultimate and final snapshots for this root")
       }
-      g2 = g1
+      appendln("--------------------------------")
     }
-    scenario()
-    val finalGraph = HeapGraph().expandWholeGraph()
-    g2.propagateGrowing(finalGraph)
-
-    log("Found ${finalGraph.leakRoots.size} leak roots")
-    val errorMessage = buildString {
-      for ((leakRoot, leakShare) in finalGraph.rankLeakRoots().filterNot { it.first.getPath().signature().isWhitelisted() }) {
-        appendln("Root with leakShare $leakShare:")
-        appendln(leakRoot.getPath().verboseSignature().joinToString(separator = "\n  ", prefix = "  "))
-        val prevLeakRoot = g2.getNodeForPath(leakRoot.getPath()) ?: g2.leakRoots.find { it.obj === leakRoot.obj }
-        if (prevLeakRoot != null) {
-          val prevChildrenObjects = IdentityHashMap<Any, Any>(prevLeakRoot.degree)
-          val newChildrenObjects = IdentityHashMap<Any, Any>(leakRoot.degree)
-          prevChildrenObjects.putAll(prevLeakRoot.children.map { it.obj to it.obj })  // use map as a set
-          newChildrenObjects.putAll(leakRoot.children.map { it.obj to it.obj })  // use map as a set
-          val addedChildren = leakRoot.children.filterNot { prevChildrenObjects.containsKey(it.obj) }
-
-          // print information about the newly added objects
-          appendln(" ${leakRoot.degree} children (+${leakRoot.degree - prevLeakRoot.degree}) [${newChildrenObjects.size} distinct (+${newChildrenObjects.size- prevChildrenObjects.size})]. New children: ${addedChildren.size}")
-          addedChildren.take(20).forEach {
-            try {
-              appendln("    Added object: ${it.type.name}: ${it.obj.toString().take(80)}")
-            }
-            catch (e: NullPointerException) {
-              appendln("    Added object: ${it.type.name} [NPE in toString]")
-            }
-          }
-          // if many objects are added, print summary information about their most common classes
-          if (addedChildren.size > 20) {
-            appendln("    ...")
-            appendln("  Most common classes of added objects: ")
-            mostCommonClassesOf(addedChildren.map{it.obj}, 5).forEach {
-              appendln("    ${it.second} ${it.first.name}")
-            }
-          }
-
-          // print information about objects retained by the added children:
-          append("\nRetained by new children: ")
-          appendRetainedObjectSummary(finalGraph, addedChildren.toSet())
-
-          // print information about objects retained by all of the children. Sometimes severity is considerably underestimated by
-          // just looking at the children added in the last iteration, since often the same heavy data structures (Projects, etc.) are held
-          // by all of the leaked objects (and so are not retained by the last-iteration children alone, but are retained by all of the children
-          // in aggregate). However, this may also overestimate the severity, since there can be many other objects in the array unrelated to the
-          // actual leak in question.
-          append("\nRetained by all children: ")
-          appendRetainedObjectSummary(finalGraph, leakRoot.children.toSet())
-
-        }
-        else {
-          appendln("Warning: path and object have both changed between penultimate and final snapshots for this root")
-        }
-        appendln("--------------------------------")
-      }
-    }
-    if (errorMessage.isNotEmpty()) {
-      throw MemoryLeakDetectedError(mangleSunReflect(errorMessage))
-    }
+  }
+  if (errorMessage.isNotEmpty()) {
+    throw MemoryLeakDetectedError(mangleSunReflect(errorMessage))
   }
 }
 
