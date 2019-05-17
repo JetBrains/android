@@ -35,18 +35,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public final class AsyncDevicesGetterTest {
+public final class WorkerAsyncDevicesGetterTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
-  private AsyncDevicesGetter myGetter;
+  private WorkerAsyncDevicesGetter myGetter;
 
   @Before
   public void setUp() {
     Clock clock = Mockito.mock(Clock.class);
     Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
 
-    myGetter = new AsyncDevicesGetter(myRule.getProject(), new KeyToConnectionTimeMap(clock));
+    myGetter = new WorkerAsyncDevicesGetter(myRule.getProject(), new KeyToConnectionTimeMap(clock));
   }
 
   @Test
@@ -125,7 +125,7 @@ public final class AsyncDevicesGetterTest {
     RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
     Mockito.when(configurationAndSettings.getConfiguration()).thenReturn(configuration);
 
-    myGetter.initChecker(configurationAndSettings, AsyncDevicesGetterTest::newAndroidFacet);
+    myGetter.initChecker(configurationAndSettings, WorkerAsyncDevicesGetterTest::newAndroidFacet);
     assertNull(myGetter.getChecker());
   }
 
