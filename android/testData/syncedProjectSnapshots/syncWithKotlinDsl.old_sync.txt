@@ -1,5 +1,7 @@
 PROJECT             : testSyncWithKotlinDsl
     MODULE              : app
+        - ModuleGroupPath   : testSyncWithKotlinDsl
+        - ModuleGroupPath   : app
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -403,6 +405,8 @@ PROJECT             : testSyncWithKotlinDsl
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : lib
     MODULE              : lib
+        - ModuleGroupPath   : testSyncWithKotlinDsl
+        - ModuleGroupPath   : lib
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
@@ -547,6 +551,7 @@ PROJECT             : testSyncWithKotlinDsl
             Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     MODULE              : testSyncWithKotlinDsl
+        - ModuleGroupPath   : testSyncWithKotlinDsl
         LinkedProjectId     : testSyncWithKotlinDsl
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
