@@ -74,6 +74,7 @@ public class DataModel implements Disposable {
   @GuardedBy("myPaletteLock")
   private Palette myPalette;
   private Palette.Group myCurrentSelectedGroup;
+  private boolean myDisposed;
 
   public DataModel(@NotNull Disposable parent, @NotNull DependencyManager dependencyManager) {
     Disposer.register(parent, this);
@@ -149,6 +150,7 @@ public class DataModel implements Disposable {
     if (myPaletteModel != null) {
       myPaletteModel.removeUpdateListener(myUpdateListener);
     }
+    myDisposed = true;
   }
 
   public void setFilterPattern(@NotNull String pattern) {
@@ -216,16 +218,17 @@ public class DataModel implements Disposable {
   }
 
   private void update(@NotNull NlPaletteModel paletteModel, @NotNull DesignerEditorFileType layoutType) {
-    if (myPaletteModel == paletteModel && layoutType == myLayoutType) {
-      myPaletteLock.writeLock().lock();
-      try {
-        myPalette = paletteModel.getPalette(myLayoutType);
-        myDependencyManager.setPalette(myPalette, paletteModel.getModule());
-      } finally {
-        myPaletteLock.writeLock().unlock();
-      }
-      update();
+    if (myPaletteModel != paletteModel || layoutType != myLayoutType || myDisposed) {
+      return;
     }
+    myPaletteLock.writeLock().lock();
+    try {
+      myPalette = paletteModel.getPalette(myLayoutType);
+      myDependencyManager.setPalette(myPalette, paletteModel.getModule());
+    } finally {
+      myPaletteLock.writeLock().unlock();
+    }
+    update();
   }
 
   @NotNull
