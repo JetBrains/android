@@ -579,6 +579,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       .setTraceType(myProfilerConfigModel.getProfilingConfiguration().getTraceType())
       .setTraceMode(myProfilerConfigModel.getProfilingConfiguration().getMode())
       .setSession(mySession)
+      // This is needed to stop an ongoing trace and should be handled via an explicit stop-trace command in the new pipeline.
+      // In the new pipeline, we can potentially pass the same info down via EndSession.
+      .setAppName(getStudioProfilers().getProcess() != null ? getStudioProfilers().getProcess().getName() : "")
       .build();
     setCaptureState(CaptureState.STOPPING);
     CompletableFuture.supplyAsync(
