@@ -1,5 +1,7 @@
 PROJECT             : testSyncKotlinProject
     MODULE              : app
+        - ModuleGroupPath   : testSyncKotlinProject
+        - ModuleGroupPath   : app
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -520,6 +522,8 @@ PROJECT             : testSyncKotlinProject
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : contentLib
     MODULE              : awesomeandroidlibrary
+        - ModuleGroupPath   : testSyncKotlinProject
+        - ModuleGroupPath   : awesomeandroidlibrary
         LinkedProjectId     : :awesomeandroidlibrary
         LinkedProjectPath   : <PROJECT>/awesomeandroidlibrary
         RootProjectPath     : <PROJECT>
@@ -1009,6 +1013,8 @@ PROJECT             : testSyncKotlinProject
             Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     MODULE              : contentLib
+        - ModuleGroupPath   : testSyncKotlinProject
+        - ModuleGroupPath   : contentLib
         LinkedProjectId     : :contentLib
         LinkedProjectPath   : <PROJECT>/contentLib
         RootProjectPath     : <PROJECT>
@@ -1104,6 +1110,7 @@ PROJECT             : testSyncKotlinProject
             Name                : Gradle: kotlin-stdlib-jdk8-1.3.31 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.31/kotlin-stdlib-jdk8-1.3.31.jar!/
     MODULE              : testSyncKotlinProject
+        - ModuleGroupPath   : testSyncKotlinProject
         LinkedProjectId     : testSyncKotlinProject
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

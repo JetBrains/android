@@ -94,6 +94,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.PathsList;
 import java.io.File;
 import java.io.IOException;
@@ -185,6 +186,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
   }
 
+  // A copy from BaseGradleProjectResolverExtension.
+  @NotNull
+  private static String[] getIdeModuleGroup(String moduleName, IdeaModule gradleModule) {
+    String[] moduleGroup;
+    final String gradlePath = gradleModule.getGradleProject().getPath();
+    final String rootName = gradleModule.getProject().getName();
+    final boolean isRootModule = StringUtil.isEmpty(gradlePath) || ":".equals(gradlePath);
+    moduleGroup = isRootModule
+                  ? new String[]{ moduleName }
+                  : (rootName + gradlePath).split(":");
+    return moduleGroup;
+  }
+
   @NotNull
   private DataNode<ModuleData> doCreateModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
     String moduleName = gradleModule.getName();
@@ -201,7 +215,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     String typeId = StdModuleTypes.JAVA.getId();
 
     ModuleData moduleData = new ModuleData(moduleId, owner, typeId, moduleName, moduleConfigPath, moduleConfigPath);
-
+    moduleData.setIdeModuleGroup(getIdeModuleGroup(moduleName, gradleModule));
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
     if (externalProject != null) {
       moduleData.setDescription(externalProject.getDescription());
