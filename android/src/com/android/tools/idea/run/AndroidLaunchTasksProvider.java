@@ -43,7 +43,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Function;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
@@ -202,35 +201,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     } else {
       return ImmutableList.of(apkInfo.getFile());
     }
-  }
-
-  /**
-   * Returns a list of launch tasks, both single apk or split apk, required to deploy the given list of apks.
-   * Note: Since single apk launch task can handle more than one apk, single apk tasks are merged in batches.
-   */
-  @NotNull
-  private static List<LaunchTask> createDeployTasks(@NotNull Collection<ApkInfo> apks,
-                                                    @NotNull Function<List<ApkInfo>, LaunchTask> singleApkTaskFactory,
-                                                    @NotNull Function<ApkInfo, LaunchTask> splitApkTaskFactory) {
-    List<LaunchTask> result = new ArrayList<>();
-    List<ApkInfo> singleApkTasks = new ArrayList<>();
-    for (ApkInfo apkInfo : apks) {
-      if (apkInfo.getFiles().size() > 1) {
-        if (!singleApkTasks.isEmpty()) {
-          result.add(singleApkTaskFactory.apply(ImmutableList.copyOf(singleApkTasks)));
-          singleApkTasks.clear();
-        }
-        result.add(splitApkTaskFactory.apply(apkInfo));
-      }
-      else {
-        singleApkTasks.add(apkInfo);
-      }
-    }
-
-    if (!singleApkTasks.isEmpty()) {
-      result.add(singleApkTaskFactory.apply(singleApkTasks));
-    }
-    return result;
   }
 
   @Nullable
