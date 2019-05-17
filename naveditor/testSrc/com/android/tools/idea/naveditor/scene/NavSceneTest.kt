@@ -26,6 +26,7 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNavEditor
+import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
@@ -985,6 +986,31 @@ class NavSceneTest : NavTestCase() {
     assertEquals(SceneComponent.DrawState.NORMAL, fragment1.drawState)
     assertEquals(SceneComponent.DrawState.NORMAL, fragment2.drawState)
     assertTrue(version < scene.displayListVersion)
+  }
+
+  fun testHoverGlobalAction() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        action("a1", destination = "fragment1")
+        fragment("fragment1")
+      }
+    }
+
+    val scene = model.surface.scene!!
+    val view = model.surface.currentSceneView!!
+    `when`(view.scale).thenReturn(1.0)
+    val transform = SceneContext.get(view)!!
+    val action1 = scene.getSceneComponent("a1")!!
+
+    scene.mouseHover(transform, -8, 125)
+    assertEquals(SceneComponent.DrawState.NORMAL, action1.drawState)
+
+    WriteCommandAction.runWriteCommandAction(project) {
+      action1.nlComponent.popUpTo = "fragment1"
+    }
+
+    scene.mouseHover(transform, -8, 125)
+    assertEquals(SceneComponent.DrawState.HOVER, action1.drawState)
   }
 
   fun testRegularActions() {
