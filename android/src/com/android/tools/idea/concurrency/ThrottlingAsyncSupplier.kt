@@ -26,6 +26,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD
 import com.intellij.util.AlarmFactory
+import org.jetbrains.annotations.TestOnly
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
 
@@ -52,7 +53,16 @@ class ThrottlingAsyncSupplier<V : Any>(
   private val scheduledComputation = AtomicReference<Computation<V>?>(null)
   private val lastComputation = AtomicReference<Computation<V>?>(null)
 
-  override fun dispose() {}
+  private var updateCallback: Runnable? = null
+
+  @TestOnly
+  fun setUpdateCallback(callback: Runnable?) {
+    updateCallback = callback
+  }
+
+  override fun dispose() {
+    updateCallback = null
+  }
 
   override fun getModificationCount() = lastComputation.get()?.let { it.modificationCountWhenScheduled + 1 } ?: -1L
 
@@ -96,6 +106,7 @@ class ThrottlingAsyncSupplier<V : Any>(
     computation.complete(compute())
     lastComputation.set(computation)
     computation.broadcastResult()
+    updateCallback?.run()
   }
 
   private fun determineDelay(lastComputation: Computation<V>?): Long {
