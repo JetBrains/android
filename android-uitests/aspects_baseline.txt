@@ -52,6 +52,7 @@ com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.ui.resourcechooser.preview.ResourceDrawablePanel.getResolutionChain
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.actions.CreateXmlResourceDialog.lambda$new$0
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.AndroidResourceRenameResourceProcessor.findExistingNameConflicts
+com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.AndroidXmlSchemaProvider.getResourceNamespaces
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.resourceManagers.LocalResourceManager.getResourceRepository
 com.android.tools.idea.res.ResourceRepositoryManager.getFrameworkResources|com.android.tools.idea.res.ResourceHelper.isAccessible
 com.android.tools.idea.res.ResourceRepositoryManager.getLibraryResources|com.android.tools.idea.res.ResourceRepositoryManager.getAppResources
