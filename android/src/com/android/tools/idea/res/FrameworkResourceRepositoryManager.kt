@@ -15,13 +15,21 @@
  */
 package com.android.tools.idea.res
 
+import com.android.SdkConstants.DOT_JAR
+import com.android.tools.idea.concurrency.AndroidIoManager
+import com.android.tools.idea.resources.aar.CachingData
 import com.android.tools.idea.resources.aar.FrameworkResourceRepository
+import com.android.tools.idea.resources.aar.RESOURCE_CACHE_DIRECTORY
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
+import com.google.common.hash.Hashing
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
-import org.jetbrains.ide.PooledThreadExecutor
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Application service for caching and reusing instances of [FrameworkResourceRepository].
@@ -36,7 +44,9 @@ class FrameworkResourceRepositoryManager {
   private val cache: LoadingCache<Key, FrameworkResourceRepository> = CacheBuilder.newBuilder()
     .softValues()
     .build(CacheLoader.from { key ->
-      FrameworkResourceRepository.create(key!!.resFolderOrJar.toPath(), key.needLocales, true, PooledThreadExecutor.INSTANCE)
+      val resFolderOrJar = key!!.resFolderOrJar
+      val withLocales = key.needLocales
+      FrameworkResourceRepository.create(resFolderOrJar.toPath(), key.needLocales, createCachingData(resFolderOrJar.toPath(), withLocales))
     })
 
   /**
@@ -50,5 +60,24 @@ class FrameworkResourceRepositoryManager {
     } else {
       cache.getIfPresent(Key(resFolderOrJar, true)) ?: cache.get(Key(resFolderOrJar, false))
     }
+  }
+
+  private fun createCachingData(resFolderOrJar: Path, withLocaleResources: Boolean): CachingData? {
+    if (resFolderOrJar.fileName.toString().endsWith(DOT_JAR, ignoreCase = true)) {
+      return null // Caching data is not used when loading framework resources from a JAR.
+    }
+    val codeVersion = getAndroidPluginVersion() ?: return null
+    val contentVersion = try {
+      Files.getLastModifiedTime(resFolderOrJar.resolve("../../package.xml")).toString()
+    }
+    catch (e: NoSuchFileException) {
+      ""
+    }
+
+    val pathHash = Hashing.farmHashFingerprint64().hashUnencodedChars(resFolderOrJar.toString()).toString()
+    val prefix = resFolderOrJar.parent?.parent?.fileName.toString() ?: "framework"
+    val filename = String.format("%s_%s_%s.bin", prefix, if (withLocaleResources) "full" else "light", pathHash)
+    val cacheFile = Paths.get(PathManager.getSystemPath(), RESOURCE_CACHE_DIRECTORY, filename)
+    return CachingData(cacheFile, contentVersion, codeVersion, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor())
   }
 }

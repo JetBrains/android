@@ -33,7 +33,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
@@ -152,7 +151,6 @@ public class ResourceResolverCache {
       }
 
       resolver = ResourceResolver.create(allResources, theme);
-      resolver.setProjectIdChecker(ResourceIdManager.get(myManager.getModule())::isIdDefinedInRTxt);
 
       if (target instanceof CompatibilityRenderTarget) {
         int apiLevel = target.getVersion().getFeatureLevel();
