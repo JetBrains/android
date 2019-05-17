@@ -16,6 +16,14 @@
 
 package com.android.tools.idea;
 
+import static com.android.SdkConstants.ANDROID_PKG;
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.R_CLASS;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.res.ResourceHelper.getFolderType;
+import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
+import static kotlin.sequences.SequencesKt.generateSequence;
+
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifestManager;
@@ -27,11 +35,20 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassOwner;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import kotlin.sequences.Sequence;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,10 +56,6 @@ import org.jetbrains.uast.UElement;
 import org.jetbrains.uast.UElementKt;
 import org.jetbrains.uast.UastContext;
 import org.jetbrains.uast.UastUtils;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.res.ResourceHelper.getFolderType;
-import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
 
 public class AndroidPsiUtils {
   /**
@@ -210,6 +223,24 @@ public class AndroidPsiUtils {
       }
     }
     return null;
+  }
+
+
+  /**
+   * Returns a lazy {@link Sequence} of parent elements of the given type, using the UAST tree as a fallback mechanism.
+   *
+   * <p>This is similar to {@link com.intellij.psi.util.PsiTreeUtilKt#parentsOfType(PsiElement, Class)} but uses
+   * {@link #getPsiParentOfType(PsiElement, Class, boolean)} from this class, which means it uses UAST where necessary.
+   *
+   * @see #getPsiParentOfType(PsiElement, Class, boolean)
+   * @see com.intellij.psi.util.PsiTreeUtilKt#parentsOfType(com.intellij.psi.PsiElement, java.lang.Class<? extends T>)
+   */
+  @NotNull
+  public static <T extends PsiElement> Sequence<T> getPsiParentsOfType(@NotNull PsiElement element,
+                                                                       @NotNull Class<T> parentClass,
+                                                                       boolean strict) {
+    return generateSequence(getPsiParentOfType(element, parentClass, strict),
+                            e -> getPsiParentOfType(e, parentClass, true));
   }
 
   /**
