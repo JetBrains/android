@@ -17,17 +17,21 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.detai
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
+import com.android.tools.idea.gradle.structure.model.PsDeclaredJarDependency
 import com.android.tools.idea.gradle.structure.model.PsJarDependency
+import com.android.tools.idea.gradle.structure.model.PsModule
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import javax.swing.JPanel
 
 class JarDependencyDetails(
   private val myContext: PsContext,
-  private val showScope: Boolean
-) : JarDependencyDetailsForm(), DependencyDetails {
+  showScope: Boolean
+) : JarDependencyDetailsForm() {
 
   init {
     myScopeLabel.isVisible = showScope
-    myScopeText.isVisible = showScope
+    myScope.isVisible = showScope
   }
 
   private var myDependency: PsJarDependency? = null
@@ -37,11 +41,16 @@ class JarDependencyDetails(
   }
 
   override fun display(dependency: PsBaseDependency) {
-    myDependency = dependency as PsJarDependency
-    myNameText.text = myDependency!!.name
-    myIncludesText.text = myDependency!!.includes.toString()
-    myExcludesText.text = myDependency!!.excludes.toString()
-    myScopeText.text = myDependency!!.joinedConfigurationNames
+    val d = dependency as PsJarDependency
+    if (myScope.isVisible) {
+      displayConfiguration(d as PsDeclaredJarDependency, PsModule.ImportantFor.LIBRARY)
+    }
+    if (d != myDependency) {
+      myNameText.text = dependency.name
+      myIncludesText.text = dependency.includes.toString()
+      myExcludesText.text = dependency.excludes.toString()
+    }
+    myDependency = d
   }
 
   override fun getSupportedModelType(): Class<PsJarDependency> {

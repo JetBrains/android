@@ -22,6 +22,9 @@ import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.ImageIcon
 
+/**
+ * A lazy empty icon generator at the same size of the resource picker icon.
+ */
 object EmptyBrowseActionIconButton : ActionIconButton {
   private var emptyIcon: Icon? = null
 
@@ -30,11 +33,16 @@ object EmptyBrowseActionIconButton : ActionIconButton {
 
   override val actionIcon: Icon
     get() {
-      if (emptyIcon == null) {
-        val icon = StudioIcons.Common.PROPERTY_BOUND
-        emptyIcon = ImageIcon(BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB))
+      val boundIcon = StudioIcons.Common.PROPERTY_BOUND
+      var icon = emptyIcon
+
+      // Generate the empty icon lazily and update the icon if the size of boundIcon has changed.
+      // The size of boundIcon can change with a LaF change e.g. setting the system font to a bigger/smaller size.
+      if (icon == null || icon.iconHeight != boundIcon.iconHeight || icon.iconWidth != boundIcon.iconWidth) {
+        icon = ImageIcon(BufferedImage(boundIcon.iconWidth, boundIcon.iconHeight, BufferedImage.TYPE_INT_ARGB))
+        emptyIcon = icon
       }
-      return emptyIcon!!
+      return icon
     }
 
   override val action: AnAction?

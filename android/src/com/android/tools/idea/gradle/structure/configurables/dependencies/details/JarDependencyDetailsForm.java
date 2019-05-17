@@ -15,19 +15,28 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.details;
 
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import org.jdesktop.swingx.JXLabel;
 
-public class JarDependencyDetailsForm {
+public abstract class JarDependencyDetailsForm implements ConfigurationDependencyDetails {
   protected JPanel myMainPanel;
   protected JXLabel myNameText;
   protected JXLabel myIncludesText;
   protected JBLabel myExcludesLabel;
   protected JXLabel myExcludesText;
-  protected JXLabel myScopeText;
   protected JBLabel myNameLabel;
   protected JBLabel myIncludesLabel;
   protected JBLabel myScopeLabel;
+  protected JComboBox<String> myScope;
+
+  private void createUIComponents() {
+    myScope = createConfigurationUI();
+  }
+
+  @Override
+  public JComboBox<String> getConfigurationUI() {
+    return myScope;
+  }
 }

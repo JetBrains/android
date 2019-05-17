@@ -33,6 +33,7 @@ import com.google.common.collect.Lists;
 import com.intellij.concurrency.JobLauncher;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
@@ -44,6 +45,7 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -129,10 +131,10 @@ public class GradleFiles {
     GradleSyncState.subscribe(myProject, mySyncListener);
     // Populate build file hashes on creation.
     if (myProject.isInitialized()) {
-      updateFileHashes();
+      scheduleUpdateFileHashes();
     }
     else {
-      StartupManager.getInstance(myProject).registerPostStartupActivity(this::updateFileHashes);
+      StartupManager.getInstance(myProject).registerPostStartupActivity(this::scheduleUpdateFileHashes);
     }
   }
 
@@ -270,70 +272,79 @@ public class GradleFiles {
   }
 
   /**
-   * Updates the currently stored hashes for each of the gradle build files.
+   * Schedules an update to the currently stored hashes for each of the gradle build files.
    */
-  private void updateFileHashes() {
-    // Local map to minimize time holding myLock
-    Map<VirtualFile, Integer> fileHashes = new HashMap<>();
-    GradleWrapper gradleWrapper = GradleWrapper.find(myProject);
-    if (gradleWrapper != null) {
-      File propertiesFilePath = gradleWrapper.getPropertiesFilePath();
-      if (propertiesFilePath.isFile()) {
-        VirtualFile propertiesFile = gradleWrapper.getPropertiesFile();
-        if (propertiesFile != null) {
-          putHashForFile(fileHashes, propertiesFile);
+  private void scheduleUpdateFileHashes() {
+    TransactionGuard.getInstance().submitTransactionLater(myProject, () -> {
+      // We need to ensure that all of the pending PSI element actions have been processed before computing and storing
+      // the hashes for the files. Otherwise it is possible to have syncStarted clear the hashes and then a pending PSI
+      // event immediately run the GradleFileChangeListener and be marked as changed again.
+      // Note: This does not completely ensure that the hashes here are exactly the ones used by Gradle, it is still possible
+      //       for the files to be changed after these computations and before Gradle reads them, this just makes that window smaller.
+      PsiDocumentManager.getInstance(myProject).commitAllDocuments();
+
+      // Local map to minimize time holding myLock
+      Map<VirtualFile, Integer> fileHashes = new HashMap<>();
+      GradleWrapper gradleWrapper = GradleWrapper.find(myProject);
+      if (gradleWrapper != null) {
+        File propertiesFilePath = gradleWrapper.getPropertiesFilePath();
+        if (propertiesFilePath.isFile()) {
+          VirtualFile propertiesFile = gradleWrapper.getPropertiesFile();
+          if (propertiesFile != null) {
+            putHashForFile(fileHashes, propertiesFile);
+          }
         }
       }
-    }
 
-    // Clean external build files before they are repopulated.
-    removeExternalBuildFiles();
-    List<VirtualFile> externalBuildFiles = new ArrayList<>();
+      // Clean external build files before they are repopulated.
+      removeExternalBuildFiles();
+      List<VirtualFile> externalBuildFiles = new ArrayList<>();
 
-    List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(myProject).getModules());
-    JobLauncher jobLauncher = JobLauncher.getInstance();
-    jobLauncher.invokeConcurrentlyUnderProgress(modules, null, (module) -> {
-      VirtualFile buildFile = getGradleBuildFile(module);
-      if (buildFile != null) {
-        File path = VfsUtilCore.virtualToIoFile(buildFile);
-        if (path.isFile()) {
-          putHashForFile(fileHashes, buildFile);
+      List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(myProject).getModules());
+      JobLauncher jobLauncher = JobLauncher.getInstance();
+      jobLauncher.invokeConcurrentlyUnderProgress(modules, null, (module) -> {
+        VirtualFile buildFile = getGradleBuildFile(module);
+        if (buildFile != null) {
+          File path = VfsUtilCore.virtualToIoFile(buildFile);
+          if (path.isFile()) {
+            putHashForFile(fileHashes, buildFile);
+          }
         }
-      }
-      NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-      if (ndkModuleModel != null) {
-        for (File externalBuildFile : ndkModuleModel.getAndroidProject().getBuildFiles()) {
-          if (externalBuildFile.isFile()) {
-            // TODO find a better way to find a VirtualFile without refreshing the file systerm. It is expensive.
-            VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
-            externalBuildFiles.add(virtualFile);
-            if (virtualFile != null) {
+        NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+        if (ndkModuleModel != null) {
+          for (File externalBuildFile : ndkModuleModel.getAndroidProject().getBuildFiles()) {
+            if (externalBuildFile.isFile()) {
+              // TODO find a better way to find a VirtualFile without refreshing the file systerm. It is expensive.
+              VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
+              externalBuildFiles.add(virtualFile);
+              if (virtualFile != null) {
+                putHashForFile(fileHashes, virtualFile);
+              }
+            }
+          }
+        }
+        return true;
+      });
+
+      storeExternalBuildFiles(externalBuildFiles);
+
+      String[] fileNames = {FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_GRADLE_PROPERTIES};
+      File rootFolderPath = getBaseDirPath(myProject);
+      VirtualFile rootFolder = ProjectUtil.guessProjectDir(myProject);
+      if (rootFolder != null) {
+        for (String fileName : fileNames) {
+          File filePath = new File(rootFolderPath, fileName);
+          if (filePath.isFile()) {
+            VirtualFile virtualFile = rootFolder.findChild(fileName);
+            if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
               putHashForFile(fileHashes, virtualFile);
             }
           }
         }
       }
-      return true;
+
+      storeHashesForFiles(fileHashes);
     });
-
-    storeExternalBuildFiles(externalBuildFiles);
-
-    String[] fileNames = {FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_GRADLE_PROPERTIES};
-    File rootFolderPath = getBaseDirPath(myProject);
-    VirtualFile rootFolder = ProjectUtil.guessProjectDir(myProject);
-    if (rootFolder != null) {
-      for (String fileName : fileNames) {
-        File filePath = new File(rootFolderPath, fileName);
-        if (filePath.isFile()) {
-          VirtualFile virtualFile = rootFolder.findChild(fileName);
-          if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
-            putHashForFile(fileHashes, virtualFile);
-          }
-        }
-      }
-    }
-
-    storeHashesForFiles(fileHashes);
   }
 
   /**
@@ -405,16 +416,8 @@ public class GradleFiles {
         return;
       }
 
-      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
-        updateFileHashes();
-        removeChangedFiles();
-      }
-      else {
-        ApplicationManager.getApplication().runReadAction(() -> {
-          updateFileHashes();
-          removeChangedFiles();
-        });
-      }
+      scheduleUpdateFileHashes();
+      removeChangedFiles();
     }
   }
 

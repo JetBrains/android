@@ -74,6 +74,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
 
   private var previousComponent: NlComponent? = null
   private var selectedData: ConstraintCellData? = null
+  private var initialized = false
 
   init {
     layout = BorderLayout()
@@ -150,6 +151,17 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     val hasConstraintSelection = updateConstraintSelection()
     // Force expand the list if there is constraint selection
     setExpand(if (hasConstraintSelection) true else expanded)
+    initialized = true
+  }
+
+  override fun updateUI() {
+    super.updateUI()
+    if (initialized) {
+      list.border = JBUI.Borders.empty(0, 4)
+      list.cellRenderer = ConstraintItemRenderer()
+      warningPanel.border = JBUI.Borders.empty(0, 4)
+
+    }
   }
 
   private fun setExpand(expanded: Boolean) {
@@ -271,6 +283,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     }
 
     private val constraintNumberText = JLabel()
+    private var initialized = false
 
     init {
       preferredSize = JBUI.size(PREFERRED_WIDTH, COMPONENT_HEIGHT)
@@ -293,6 +306,17 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
       add(title, BorderLayout.WEST)
       add(constraintNumberText, BorderLayout.CENTER)
       constraintNumberText.foreground = ERROR_TEXT_COLOR
+      initialized = true
+    }
+
+    override fun updateUI() {
+      super.updateUI()
+      if (initialized) {
+        preferredSize = JBUI.size(PREFERRED_WIDTH, COMPONENT_HEIGHT)
+        border = JBUI.Borders.empty(0, 4)
+        icon.icon = if (expanded) UIUtil.getTreeExpandedIcon() else UIUtil.getTreeCollapsedIcon()
+        icon.border = JBUI.Borders.empty(4)
+      }
     }
 
     fun updateTitle() {
@@ -314,6 +338,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     private val horizontalWarning = JLabel()
     private val verticalWarning = JLabel()
     private val overConstrainedWarning = JLabel()
+    private var initialized = false
 
     private val mouseListener = object: MouseAdapter() {
       override fun mouseClicked(e: MouseEvent?) {
@@ -349,6 +374,19 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
       add(horizontalWarning, BorderLayout.NORTH)
       add(verticalWarning, BorderLayout.CENTER)
       add(overConstrainedWarning, BorderLayout.SOUTH)
+      initialized = true
+    }
+
+    override fun updateUI() {
+      super.updateUI()
+      if (initialized) {
+        horizontalWarning.preferredSize = JBDimension(PREFERRED_WIDTH, COMPONENT_HEIGHT)
+        horizontalWarning.border = JBUI.Borders.empty(2)
+        verticalWarning.preferredSize = JBDimension(PREFERRED_WIDTH, COMPONENT_HEIGHT)
+        verticalWarning.border = JBUI.Borders.empty(2)
+        overConstrainedWarning.preferredSize = JBDimension(PREFERRED_WIDTH, COMPONENT_HEIGHT)
+        overConstrainedWarning.border = JBUI.Borders.empty(2)
+      }
     }
 
     fun updateWarningMessage() {

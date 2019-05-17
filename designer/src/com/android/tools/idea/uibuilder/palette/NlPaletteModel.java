@@ -49,6 +49,7 @@ import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.util.EmptyQuery;
 import com.intellij.util.Query;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.containers.ContainerUtil;
 import icons.StudioIcons;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -69,6 +70,7 @@ import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class NlPaletteModel implements Disposable {
   @VisibleForTesting
@@ -124,11 +126,17 @@ public class NlPaletteModel implements Disposable {
 
   private final Map<LayoutEditorFileType, Palette> myTypeToPalette;
   private final Module myModule;
-  private UpdateListener myListener;
+  private final List<UpdateListener> myListeners = ContainerUtil.createConcurrentList();
 
   @Override
   public void dispose() {
-    myListener = null;
+    myListeners.clear();
+    myTypeToPalette.clear();
+  }
+
+  @TestOnly
+  public List<UpdateListener> getUpdateListeners() {
+    return myListeners;
   }
 
   public interface UpdateListener {
@@ -146,20 +154,20 @@ public class NlPaletteModel implements Disposable {
   }
 
   @NotNull
+  public Module getModule() {
+    return myModule;
+  }
+
+  @NotNull
   public Palette getPalette(@NotNull LayoutEditorFileType type) {
     Palette palette = myTypeToPalette.get(type);
 
     if (palette == null) {
       palette = loadPalette(type);
-      saveInPaletteMap(type, palette);
+      myTypeToPalette.put(type, palette);
       registerAdditionalComponents(type);
     }
     return palette;
-  }
-
-  private void saveInPaletteMap(@NotNull LayoutEditorFileType type, @NotNull Palette palette) {
-    myTypeToPalette.put(type, palette);
-    notifyUpdateListener(type);
   }
 
   // Load 3rd party components asynchronously now and whenever a build finishes.
@@ -171,14 +179,17 @@ public class NlPaletteModel implements Disposable {
       .subscribe(myModule.getProject(), this, context -> loadAdditionalComponents(type, VIEW_CLASSES_QUERY));
   }
 
-  public void setUpdateListener(@Nullable UpdateListener updateListener) {
-    myListener = updateListener;
+  public void addUpdateListener(@Nullable UpdateListener updateListener) {
+    myListeners.add(updateListener);
+  }
+
+  public void removeUpdateListener(@Nullable UpdateListener updateListener) {
+    myListeners.remove(updateListener);
   }
 
   private void notifyUpdateListener(@NotNull LayoutEditorFileType layoutType) {
-    UpdateListener listener = myListener;
-    if (listener != null) {
-      ApplicationManager.getApplication().invokeLater(() -> listener.update(this, layoutType));
+    if (!myListeners.isEmpty()) {
+      myListeners.forEach(listener -> ApplicationManager.getApplication().invokeLater(() -> listener.update(this, layoutType)));
     }
   }
 
@@ -204,7 +215,7 @@ public class NlPaletteModel implements Disposable {
    */
   @VisibleForTesting
   void loadAdditionalComponents(@NotNull LayoutEditorFileType type,
-                                @NotNull Function<Project, Query<PsiClass>> viewClasses) {
+                                              @NotNull Function<Project, Query<PsiClass>> viewClasses) {
     Application application = ApplicationManager.getApplication();
     Project project = myModule.getProject();
     ReadAction
@@ -230,7 +241,8 @@ public class NlPaletteModel implements Disposable {
                              null, Collections.emptyList(), Collections.emptyList())
     );
 
-    saveInPaletteMap(type, palette);
+    myTypeToPalette.put(type, palette);
+    notifyUpdateListener(type);
   }
 
   /**
@@ -256,44 +268,17 @@ public class NlPaletteModel implements Disposable {
       return false;
     }
 
-    ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
-    ViewHandler handler = manager.createBuiltInHandler(tagName);
-
+    ViewHandler handler = findOrCreateCustomHandler(tagName, icon16, className, xml, previewXml, libraryCoordinate,
+                                                    preferredProperty, properties, layoutProperties);
     // For now only support layouts
     if (type != LayoutFileType.INSTANCE ||
+        handler == null ||
         handler instanceof PreferenceHandler ||
         handler instanceof PreferenceCategoryHandler ||
         handler instanceof MenuHandler ||
         handler instanceof ActionMenuViewHandler) {
       return false;
     }
-
-    if (handler == null) { // no built in handler, let's create a delegate
-      handler = manager.getHandlerOrDefault(tagName);
-
-      if (handler instanceof ConstraintHelperHandler) {
-        return false; // temporary hack
-      }
-
-      if (handler instanceof CustomViewGroupHandler && ((CustomViewGroupHandler)handler).getTagName().equals(tagName)) {
-        return true;
-      }
-
-      if (handler instanceof CustomViewHandler && ((CustomViewHandler)handler).getTagName().equals(tagName)) {
-        return true;
-      }
-
-      if (handler instanceof ViewGroupHandler) {
-        handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, tagName, className, xml, previewXml,
-                                             libraryCoordinate, preferredProperty, properties, layoutProperties);
-      }
-      else {
-        handler = new CustomViewHandler(handler, icon16, tagName, className, xml, previewXml,
-                                        libraryCoordinate, preferredProperty, properties);
-      }
-    }
-
-    manager.registerHandler(tagName, handler);
 
     List<Palette.BaseItem> groups = palette.getItems();
     Palette.Group group = groups.stream()
@@ -306,11 +291,54 @@ public class NlPaletteModel implements Disposable {
       group = new Palette.Group(groupName);
       groups.add(group);
     }
+    ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
     Palette.Item item = new Palette.Item(tagName, handler);
     group.getItems().add(item);
     item.setUp(palette, manager);
     item.setParent(group);
     return true;
+  }
+
+  @Nullable
+  private ViewHandler findOrCreateCustomHandler(@NotNull String tagName,
+                                                @Nullable Icon icon16,
+                                                @NotNull String className,
+                                                @Nullable @Language("XML") String xml,
+                                                @Nullable @Language("XML") String previewXml,
+                                                @NotNull String libraryCoordinate,
+                                                @Nullable String preferredProperty,
+                                                @NotNull List<String> properties,
+                                                @NotNull List<String> layoutProperties) {
+    ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
+    ViewHandler handler = manager.createBuiltInHandler(tagName);
+    if (handler != null) {
+      return handler;
+    }
+
+    handler = manager.getHandlerOrDefault(tagName);
+
+    if (handler instanceof ConstraintHelperHandler) {
+      return null; // temporary hack
+    }
+
+    if (handler instanceof CustomViewGroupHandler && ((CustomViewGroupHandler)handler).getTagName().equals(tagName)) {
+      return handler;
+    }
+
+    if (handler instanceof CustomViewHandler && ((CustomViewHandler)handler).getTagName().equals(tagName)) {
+      return handler;
+    }
+
+    if (handler instanceof ViewGroupHandler) {
+      handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, tagName, className, xml, previewXml,
+                                           libraryCoordinate, preferredProperty, properties, layoutProperties);
+    }
+    else {
+      handler = new CustomViewHandler(handler, icon16, tagName, className, xml, previewXml,
+                                      libraryCoordinate, preferredProperty, properties);
+    }
+    manager.registerHandler(tagName, handler);
+    return handler;
   }
 
   private static Logger getLogger() {

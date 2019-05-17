@@ -54,9 +54,9 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT
 import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CREATE_CONSTRAINTS;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN;
+import static icons.StudioIcons.LayoutEditor.Toolbar.GUIDELINE_VERTICAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED;
 import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
-import static icons.StudioIcons.LayoutEditor.Toolbar.GUIDELINE_VERTICAL;
 
 import com.android.ide.common.rendering.api.AttrResourceValueImpl;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -120,6 +120,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -127,6 +129,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
 import icons.AndroidIcons;
 import icons.StudioIcons;
@@ -137,10 +140,12 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -153,7 +158,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.Icon;
+import javax.swing.LookAndFeel;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -877,6 +884,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               NlComponent barrier = null;
               for (NlComponent child : selectedChildren) {
                 if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
+                  barrier = child;
                   break;
                 }
               }
@@ -938,6 +946,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               NlComponent barrier = null;
               for (NlComponent child : selectedChildren) {
                 if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
+                  barrier = child;
                   break;
                 }
               }
@@ -1152,7 +1161,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   private static class MarginSelector extends DirectViewAction {
+
     private static final String PICK_A_DIMENSION = "Pick a Dimension";
+    private static final float DEFAULT_ICON_FONT_SIZE = 12f;
+    private static final int DEFAULT_ICON_WIDTH = 36;
+    private static final int DEFAULT_ICON_HEIGHT = 16;
 
     private final ActionListener myResourcePickerIconClickListener = new ActionListener() {
       @Override
@@ -1171,6 +1184,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           .build();
         dialog.setTitle(PICK_A_DIMENSION);
 
+        if (myMarginPopup != null) {
+          myMarginPopup.cancel();
+        }
         if (dialog.showAndGet()) {
           resolveResValue(dialog);
         }
@@ -1204,6 +1220,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
 
       private void setMargin(@Nullable String resName, int value) {
+        myMarginPopup = createIfNeeded();
         myMarginPopup.getMargin().setValue(value, resName);
         myMarginPopup.updateText();
         updateIcon();
@@ -1233,21 +1250,19 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       return toReturn;
     }
 
-    MarginPopup myMarginPopup = new MarginPopup(myResourcePickerIconClickListener);
+    private MarginPopup myMarginPopup;
+    private LookAndFeel myLookAndFeel;
     private String myPreviousDisplay;
     private Icon myMarginIcon;
     @Nullable private NlComponent myComponent;
+    @Nullable private ActionButton myActionButton;
 
     public MarginSelector() {
       super(null, "Default Margins"); // tooltip
-      myMarginPopup.setActionListener((e) -> setMargin());
-    }
-
-    public void setMargin() {
-      Scout.setMargin(myMarginPopup.getMargin().getValue());
     }
 
     private void updateIcon() {
+      myMarginPopup = createIfNeeded();
       String previousDisplay = myMarginPopup.getMargin().getDisplayValue();
       if (!previousDisplay.equals(myPreviousDisplay)) {
         myPreviousDisplay = previousDisplay;
@@ -1255,7 +1270,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           @Override
           public void paintIcon(Component c, Graphics g, int x, int y) {
             g.setColor(JBColor.foreground());
-            g.setFont(g.getFont().deriveFont(Font.PLAIN, 12));
+            g.setFont(g.getFont().deriveFont(Font.PLAIN, JBUI.scaleFontSize(DEFAULT_ICON_FONT_SIZE)));
             String m = previousDisplay;
             FontMetrics metrics = g.getFontMetrics();
             int strWidth = metrics.stringWidth(m);
@@ -1271,12 +1286,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
           @Override
           public int getIconWidth() {
-            return 36;
+            return JBUI.scale(DEFAULT_ICON_WIDTH);
           }
 
           @Override
           public int getIconHeight() {
-            return 16;
+            return JBUI.scale(DEFAULT_ICON_HEIGHT);
           }
         };
       }
@@ -1289,15 +1304,92 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
       myComponent = component;
+      myMarginPopup = createIfNeeded();
       DesignSurface surface = editor.getScene().getDesignSurface();
       NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
         .setRequestFocus(true)
+        .setCancelOnMouseOutCallback((event) -> !withinComponent(event))
+        .setCancelOnClickOutside(true)
+        .setCancelOnOtherWindowOpen(true)
+        .setCancelCallback(() -> { myMarginPopup.cancel(); return Boolean.TRUE; })
         .createPopup();
       myMarginPopup.setPopup(popup);
-      Disposer.register(popup, () -> myMarginPopup.setPopup(null));
+      Disposer.register(popup, this::popupClosed);
       popup.show(relativePoint);
+    }
+
+    // Bug: b/131855036
+    // The MarginPopup component was created under a certain LookAndFeel.
+    // If the LookAndFeel has changed we will have to recreate the UI since the update logic in LafManager is complicated.
+    @NotNull
+    private MarginPopup createIfNeeded() {
+      if (myMarginPopup != null && UIManager.getLookAndFeel() == myLookAndFeel) {
+        return myMarginPopup;
+      }
+      if (myMarginPopup != null) {
+        myMarginPopup.removeResourcePickerActionListener(myResourcePickerIconClickListener);
+        myMarginPopup.setActionListener(null);
+      }
+      myMarginPopup = new MarginPopup();
+      myLookAndFeel = UIManager.getLookAndFeel();
+      myMarginPopup.setActionListener((e) -> Scout.setMargin(myMarginPopup.getMargin().getValue()));
+      myMarginPopup.addResourcePickerActionListener(myResourcePickerIconClickListener);
+      return myMarginPopup;
+    }
+
+    private void popupClosed() {
+      if (myMarginPopup != null) {
+        myMarginPopup.setPopup(null);
+      }
+      myActionButton = null;
+    }
+
+    // Bugs: b/131775093 & b/123071296
+    // This popup must be closed when the mouse is moved outside the area of the popup itself
+    // and the ActionButton used to open the popup.
+    // If a second popup is opened while this popup is visible we risk the appearance of ghost
+    // popups on the screen.
+    public boolean withinComponent(@NotNull MouseEvent event) {
+      if (myMarginPopup == null || !myMarginPopup.isShowing()) {
+        return false;
+      }
+
+      // First check if the mouse is hovering over the popup itself:
+      Point eventLocation = event.getLocationOnScreen();
+      Rectangle popupScreenBounds = new Rectangle(myMarginPopup.getLocationOnScreen(), myMarginPopup.getSize());
+      if (popupScreenBounds.contains(eventLocation)) {
+        return true;
+      }
+
+      // Next check if the mouse is hovering over the action button for this MarginSelector.
+      // Hack: We don't have the ActionButton passed to this layer. Current workaround is to:
+      // Find the ActionButton from the MouseEvent in case the mouse event came from there.
+      if (myActionButton == null) {
+        myActionButton = checkIfMouseEventCameFromOurActionButton(event.getSource());
+        if (myActionButton == null) {
+          return false;
+        }
+      }
+
+      // Extend the height of the button to the bottom on the popup in case there is a gap
+      // between the button and the popup. Note that the popup could be above the button
+      // if the toolbar is at the bottom of the screen.
+      Rectangle buttonScreenBounds = new Rectangle(myActionButton.getLocationOnScreen(), myActionButton.getSize());
+      int extendedHeight = popupScreenBounds.y + popupScreenBounds.height - buttonScreenBounds.y;
+      buttonScreenBounds.height = Math.max(buttonScreenBounds.height, extendedHeight);
+      return buttonScreenBounds.contains(eventLocation);
+    }
+
+    @Nullable
+    private ActionButton checkIfMouseEventCameFromOurActionButton(@Nullable Object source) {
+      if (!(source instanceof ActionButton)) {
+        return null;
+      }
+      ActionButton button = (ActionButton)source;
+      Presentation presentation = button.getAction().getTemplatePresentation();
+      return getLabel().equals(presentation.getText()) && Objects.equals(getIcon(), presentation.getIcon()) ? button : null;
     }
 
     @Override
