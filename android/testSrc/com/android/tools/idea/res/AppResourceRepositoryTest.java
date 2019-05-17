@@ -183,16 +183,11 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     LocalResourceRepository moduleRepository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1), RES_AUTO, null);
     LocalResourceRepository projectResources = ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(moduleRepository));
 
-    AarSourceResourceRepository aar = ResourcesTestsUtil.getTestAarRepository();
+    AarSourceResourceRepository aar = ResourcesTestsUtil.getTestAarRepositoryFromExplodedAar();
     AppResourceRepository appResources =
         AppResourceRepository.createForTest(myFacet, ImmutableList.of(projectResources), ImmutableList.of(aar));
 
     Collection<String> idResources = appResources.getResources(RES_AUTO, ResourceType.ID).keySet();
-    Set<String> aarIds = aar.getIdsFromRTxt();
-    assertNotNull(aarIds);
-    assertFalse(aarIds.isEmpty());
-    assertContainsElements(idResources, aarIds);
-    assertFalse(aarIds.contains("btn_title_refresh"));
     assertContainsElements(idResources, "btn_title_refresh");
   }
 
