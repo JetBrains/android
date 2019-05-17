@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.DataBindingUtil.stripPrefixFromMethod
-import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
@@ -30,25 +29,21 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 /**
  * Reference that refers to a [PsiMethod]
  */
-internal class PsiMethodReference(element: PsiElement, resolveTo: PsiElement, textRange: TextRange)
-  : DbExprReference(element, resolveTo, textRange) {
+internal class PsiMethodReference(element: PsiElement, method: PsiModelMethod, textRange: TextRange)
+  : DbExprReference(element, method.psiMethod, textRange) {
 
-  constructor(expr: PsiDbCallExpr, method: PsiMethod) :
-    this(expr, method, expr.refExpr.id.textRange.shiftLeft(expr.textOffset))
+  constructor(expr: PsiDbCallExpr, method: PsiModelMethod)
+    : this(expr, method, expr.refExpr.id.textRange.shiftLeft(expr.textOffset))
 
-  constructor(expr: PsiDbRefExpr, method: PsiMethod)
+  constructor(expr: PsiDbRefExpr, method: PsiModelMethod)
     : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset))
 
-  constructor(expr: PsiDbFunctionRefExpr, method: PsiMethod)
+  constructor(expr: PsiDbFunctionRefExpr, method: PsiModelMethod)
     : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset))
 
-  override val resolvedType: PsiModelClass?
-    get() = (resolve() as? PsiMethod)?.returnType?.let {
-      PsiModelClass(it, DataBindingMode.fromPsiElement(element))
-    }
+  override val resolvedType = method.returnType
 
-  override val isStatic: Boolean
-    get() = false
+  override val isStatic = false
 
   override fun handleElementRename(newElementName: String): PsiElement? {
     val identifier = element.findElementAt(rangeInElement.startOffset) as? LeafPsiElement ?: return null

@@ -21,6 +21,7 @@ import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType
 import com.android.tools.idea.lang.databinding.model.PsiCallable
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.lang.databinding.model.PsiModelField
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
@@ -113,13 +114,13 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         PsiCallable.Type.METHOD -> {
           val methodsByName = psiClass.findMethodsByName(getterOrField.name, true)
           if (methodsByName.isNotEmpty()) {
-            return arrayOf(PsiMethodReference(refExpr, methodsByName[0]))
+            return arrayOf(PsiMethodReference(refExpr, PsiModelMethod(psiModelClass, methodsByName[0])))
           }
         }
         PsiCallable.Type.FIELD -> {
           val fieldsByName = psiClass.findFieldByName(getterOrField.name, true)
           if (fieldsByName != null) {
-            return arrayOf(PsiFieldReference(refExpr, fieldsByName))
+            return arrayOf(PsiFieldReference(refExpr, PsiModelField(psiModelClass, fieldsByName)))
           }
         }
       }
@@ -203,13 +204,13 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         val methodArgs = methodArgs.requireNoNulls()
         val method = psiModelClass.getMethod(callExpr.refExpr.id.text, methodArgs, staticOnly = false, allowProtected = false)
         if (method is PsiModelMethod) {
-          return arrayOf(PsiMethodReference(callExpr, method.psiMethod))
+          return arrayOf(PsiMethodReference(callExpr, method))
         }
       }
 
       // As a fallback, see if we can find a method by just its name
       return psiModelClass.findMethods(callExpr.refExpr.id.text, staticOnly = false)
-        .map { modelMethod -> PsiMethodReference(callExpr, modelMethod.psiMethod) }
+        .map { modelMethod -> PsiMethodReference(callExpr, modelMethod) }
         .toTypedArray()
     }
   }
@@ -235,7 +236,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       val psiModelClass = classExpr.toModelClassResolvable()?.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
 
       return psiModelClass.findMethods(methodExpr.text, staticOnly = false)
-        .map { modelMethod -> PsiMethodReference(element, modelMethod.psiMethod) }
+        .map { modelMethod -> PsiMethodReference(element, modelMethod) }
         .toTypedArray()
     }
   }
