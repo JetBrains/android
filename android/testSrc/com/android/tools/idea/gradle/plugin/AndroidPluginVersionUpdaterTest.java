@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.plugin;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.TextSearch;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 import org.mockito.verification.VerificationMode;
@@ -30,7 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidPluginVersionUpdater}.
  */
-public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
+public class AndroidPluginVersionUpdaterTest extends JavaProjectTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private TextSearch myTextSearch;

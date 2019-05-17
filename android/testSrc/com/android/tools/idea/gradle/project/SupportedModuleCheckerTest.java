@@ -19,7 +19,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -34,7 +34,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SupportedModuleChecker}.
  */
-public class SupportedModuleCheckerTest extends IdeaTestCase {
+public class SupportedModuleCheckerTest extends JavaProjectTestCase {
   @Mock private GradleProjectInfo myGradleProjectInfo;
   private SupportedModuleChecker myModuleChecker;
 

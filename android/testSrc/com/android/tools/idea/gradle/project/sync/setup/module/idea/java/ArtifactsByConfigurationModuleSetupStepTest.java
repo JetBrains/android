@@ -26,7 +26,7 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -49,7 +49,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ArtifactsByConfigurationModuleSetupStep}.
  */
-public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
+public class ArtifactsByConfigurationModuleSetupStepTest extends JavaProjectTestCase {
 
   private ArtifactsByConfigurationModuleSetupStep mySetupStep;
 

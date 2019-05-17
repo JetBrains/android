@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidModelFactory}.
  */
-public class AndroidModelFactoryTest extends IdeaTestCase {
+public class AndroidModelFactoryTest extends JavaProjectTestCase {
   @Mock private VariantSelector myVariantSelector;
   @Mock private IdeDependenciesFactory myDependenciesFactory;
   @Mock private GradleModuleModels myModuleModels;

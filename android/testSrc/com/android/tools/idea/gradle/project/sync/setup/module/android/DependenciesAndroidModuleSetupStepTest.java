@@ -33,7 +33,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -56,7 +56,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link DependenciesAndroidModuleSetupStep}.
  */
-public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
+public class DependenciesAndroidModuleSetupStepTest extends JavaProjectTestCase {
   @Mock private DependenciesExtractor myDependenciesExtractor;
   @Mock private AndroidModuleDependenciesSetup myDependenciesSetup;
 

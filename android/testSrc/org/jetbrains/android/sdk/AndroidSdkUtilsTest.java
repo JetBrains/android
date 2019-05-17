@@ -27,7 +27,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * Tests for {@link AndroidSdkUtils}.
  */
-public class AndroidSdkUtilsTest extends IdeaTestCase {
+public class AndroidSdkUtilsTest extends JavaProjectTestCase {
   private File mySdkPath;
 
   @Override

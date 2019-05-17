@@ -40,7 +40,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.InOrder;
@@ -53,7 +53,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link VariantOnlyProjectModelsSetup}.
  */
-public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
+public class VariantOnlyProjectModelsSetupTest extends JavaProjectTestCase {
   @Mock private IdeModifiableModelsProvider myModelsProvider;
   @Mock private CachedProjectModels myCachedProjectModels;
   @Mock private ModuleSetupContext.Factory myContextFactory;
