@@ -13,24 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.componenttree.util
+package com.android.tools.componenttree.api
 
 import javax.swing.Icon
+import javax.swing.JComponent
 
-class Item(
-  val tagName: String,
-  val id: String? = null,
-  val textValue: String? = null,
-  var treeIcon: Icon? = null,
-  var parent: Item? = null
-) {
-  val children = mutableListOf<Any>()
-  var badge1: Icon? = null
-  var badge2: Icon? = null
+/**
+ * A badge is an optional icon that can be shown to the right of a tree item.
+ */
+interface BadgeItem {
 
-  init {
-    parent?.children?.add(this)
-  }
+  /**
+   * Return the icon for the specified [item].
+   */
+  fun getIcon(item: Any): Icon?
 
-  override fun toString() = "$tagName ${id.orEmpty()}"
+  /**
+   * Return the tooltip text for the icon of the specified [item].
+   */
+  fun getTooltipText(item: Any?): String
+
+  /**
+   * Perform this action when the icon is clicked on.
+   */
+  fun performAction(item: Any)
+
+  /**
+   * Show an (optional) popup after a right click on the icon.
+   */
+  fun showPopup(item: Any, component: JComponent, x: Int, y: Int)
 }

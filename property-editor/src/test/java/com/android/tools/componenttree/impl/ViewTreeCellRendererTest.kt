@@ -76,7 +76,7 @@ class ViewTreeCellRendererTest {
     appRule.testApplication.registerServiceInstance(ExpandableItemsHandlerFactory::class.java, TestExpandableItemsHandlerFactory())
     doAnswer { focusOwner }.`when`<KeyboardFocusManager>(focusManager!!).focusOwner
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
-    tree = TreeImpl(model, contextPopupHandler)
+    tree = TreeImpl(model, contextPopupHandler, emptyList())
   }
 
   @After
