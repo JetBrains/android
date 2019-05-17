@@ -26,7 +26,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 public class GradleDslFileCache {
   @NotNull private Project myProject;
   @NotNull private Map<String, GradleDslFile> myParsedBuildFiles = new HashMap<>();
+  @NotNull private Deque<VirtualFile> myParsingStack = new ArrayDeque<>();
 
   public GradleDslFileCache(@NotNull Project project) {
     myProject = project;
@@ -58,7 +61,9 @@ public class GradleDslFileCache {
                                               boolean isApplied) {
     GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
     if (dslFile == null) {
+      myParsingStack.push(file);
       dslFile = GradleBuildModelImpl.parseBuildFile(file, myProject, name, context, isApplied);
+      myParsingStack.pop();
       myParsedBuildFiles.put(file.getUrl(), dslFile);
     }
     else if (!(dslFile instanceof GradleBuildFile)) {
@@ -70,6 +75,14 @@ public class GradleDslFileCache {
 
   public void putBuildFile(@NotNull String name, @NotNull GradleDslFile buildFile) {
     myParsedBuildFiles.put(name, buildFile);
+  }
+
+  /**
+   * @return the first original file that was being parsed, this is used to resolve relative paths.
+   */
+  @Nullable
+  public VirtualFile getCurrentParsingRoot() {
+    return myParsingStack.isEmpty() ? null : myParsingStack.getLast();
   }
 
   @Nullable
