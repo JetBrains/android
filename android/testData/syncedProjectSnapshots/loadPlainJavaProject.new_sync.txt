@@ -1,5 +1,6 @@
 PROJECT             : testLoadPlainJavaProject
     MODULE              : testLoadPlainJavaProject
+        - ModuleGroupPath   : testLoadPlainJavaProject
         LinkedProjectId     : testLoadPlainJavaProject
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

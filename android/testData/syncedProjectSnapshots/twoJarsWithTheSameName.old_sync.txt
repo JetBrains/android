@@ -1,5 +1,6 @@
 PROJECT             : My Application
     MODULE              : My Application
+        - ModuleGroupPath   : My Application
         LinkedProjectId     : My Application
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
@@ -116,6 +117,8 @@ PROJECT             : My Application
             *CLASSES            : jar://<PROJECT>/lib2/liba.jar!/
         ORDER_ENTRY         : lib
     MODULE              : lib
+        - ModuleGroupPath   : My Application
+        - ModuleGroupPath   : lib
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>

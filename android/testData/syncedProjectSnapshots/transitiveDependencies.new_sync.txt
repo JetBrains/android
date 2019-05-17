@@ -1,5 +1,7 @@
 PROJECT             : testTransitiveDependencies
     MODULE              : app
+        - ModuleGroupPath   : testTransitiveDependencies
+        - ModuleGroupPath   : app
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -404,6 +406,8 @@ PROJECT             : testTransitiveDependencies
         ORDER_ENTRY         : library1
         ORDER_ENTRY         : library2
     MODULE              : javalib1
+        - ModuleGroupPath   : testTransitiveDependencies
+        - ModuleGroupPath   : javalib1
         LinkedProjectId     : :javalib1
         LinkedProjectPath   : <PROJECT>/javalib1
         RootProjectPath     : <PROJECT>
@@ -462,6 +466,8 @@ PROJECT             : testTransitiveDependencies
             *CLASSES            : jar://<M2>/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar!/
         ORDER_ENTRY         : javalib2
     MODULE              : javalib2
+        - ModuleGroupPath   : testTransitiveDependencies
+        - ModuleGroupPath   : javalib2
         LinkedProjectId     : :javalib2
         LinkedProjectPath   : <PROJECT>/javalib2
         RootProjectPath     : <PROJECT>
@@ -484,6 +490,8 @@ PROJECT             : testTransitiveDependencies
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
     MODULE              : library1
+        - ModuleGroupPath   : testTransitiveDependencies
+        - ModuleGroupPath   : library1
         LinkedProjectId     : :library1
         LinkedProjectPath   : <PROJECT>/library1
         RootProjectPath     : <PROJECT>
@@ -923,6 +931,8 @@ PROJECT             : testTransitiveDependencies
             Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
     MODULE              : library2
+        - ModuleGroupPath   : testTransitiveDependencies
+        - ModuleGroupPath   : library2
         LinkedProjectId     : :library2
         LinkedProjectPath   : <PROJECT>/library2
         RootProjectPath     : <PROJECT>
@@ -1303,6 +1313,7 @@ PROJECT             : testTransitiveDependencies
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
         ORDER_ENTRY         : library1
     MODULE              : testTransitiveDependencies
+        - ModuleGroupPath   : testTransitiveDependencies
         LinkedProjectId     : testTransitiveDependencies
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

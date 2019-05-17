@@ -1,5 +1,7 @@
 PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : app
+        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
+        - ModuleGroupPath   : app
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -387,6 +389,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
         ORDER_ENTRY         : mainModule
     MODULE              : jModuleK
+        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
+        - ModuleGroupPath   : jModuleK
         LinkedProjectId     : :jModuleK
         LinkedProjectPath   : <PROJECT>/jModuleK
         RootProjectPath     : <PROJECT>
@@ -459,6 +463,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         ORDER_ENTRY         : jModuleL
     MODULE              : jModuleL
+        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
+        - ModuleGroupPath   : jModuleL
         LinkedProjectId     : :jModuleL
         LinkedProjectPath   : <PROJECT>/jModuleL
         RootProjectPath     : <PROJECT>
@@ -495,6 +501,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             Name                : Gradle: lib4-1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
     MODULE              : jModuleM
+        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
+        - ModuleGroupPath   : jModuleM
         LinkedProjectId     : :jModuleM
         LinkedProjectPath   : <PROJECT>/jModuleM
         RootProjectPath     : <PROJECT>
@@ -531,6 +539,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             Name                : Gradle: lib4-0.9.1 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
     MODULE              : jModuleZ
+        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
+        - ModuleGroupPath   : jModuleZ
         LinkedProjectId     : :jModuleZ
         LinkedProjectPath   : <PROJECT>/jModuleZ
         RootProjectPath     : <PROJECT>
@@ -619,6 +629,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         ORDER_ENTRY         : jModuleL
         ORDER_ENTRY         : nestedZ
     MODULE              : mainModule
+        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
+        - ModuleGroupPath   : mainModule
         LinkedProjectId     : :mainModule
         LinkedProjectPath   : <PROJECT>/mainModule
         RootProjectPath     : <PROJECT>
@@ -1035,6 +1047,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/res
     MODULE              : moduleA
+        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
+        - ModuleGroupPath   : moduleA
         LinkedProjectId     : :moduleA
         LinkedProjectPath   : <PROJECT>/moduleA
         RootProjectPath     : <PROJECT>
@@ -1391,6 +1405,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
     MODULE              : moduleB
+        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
+        - ModuleGroupPath   : moduleB
         LinkedProjectId     : :moduleB
         LinkedProjectPath   : <PROJECT>/moduleB
         RootProjectPath     : <PROJECT>
@@ -1741,6 +1757,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
         ORDER_ENTRY         : jModuleL
     MODULE              : moduleC
+        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
+        - ModuleGroupPath   : moduleC
         LinkedProjectId     : :moduleC
         LinkedProjectPath   : <PROJECT>/moduleC
         RootProjectPath     : <PROJECT>
@@ -2083,6 +2101,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
     MODULE              : modulePlus
+        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
+        - ModuleGroupPath   : modulePlus
         LinkedProjectId     : :modulePlus
         LinkedProjectPath   : <PROJECT>/modulePlus
         RootProjectPath     : <PROJECT>
@@ -2456,6 +2476,9 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/res
         ORDER_ENTRY         : jModuleK
     MODULE              : nestedZ
+        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
+        - ModuleGroupPath   : jModuleZ
+        - ModuleGroupPath   : nestedZ
         LinkedProjectId     : :jModuleZ:nestedZ
         LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath     : <PROJECT>
@@ -2485,6 +2508,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             Name                : Gradle: lib4-0.6 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
     MODULE              : testPsdDependencyAndroidToJavaModuleAndBack
+        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

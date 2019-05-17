@@ -1,5 +1,7 @@
 PROJECT             : testPsdSampleRenamingModule
     MODULE              : app
+        - ModuleGroupPath   : testPsdSampleRenamingModule
+        - ModuleGroupPath   : app
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -428,6 +430,8 @@ PROJECT             : testPsdSampleRenamingModule
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
     MODULE              : container1
+        - ModuleGroupPath   : testPsdSampleRenamingModule
+        - ModuleGroupPath   : container1
         LinkedProjectId     : :container1
         LinkedProjectPath   : <PROJECT>/container1
         RootProjectPath     : <PROJECT>
@@ -527,6 +531,9 @@ PROJECT             : testPsdSampleRenamingModule
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
     MODULE              : container1-deep
+        - ModuleGroupPath   : testPsdSampleRenamingModule
+        - ModuleGroupPath   : container1
+        - ModuleGroupPath   : deep
         LinkedProjectId     : :container1:deep
         LinkedProjectPath   : <PROJECT>/container1/deep
         RootProjectPath     : <PROJECT>
@@ -626,6 +633,10 @@ PROJECT             : testPsdSampleRenamingModule
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
     MODULE              : deep2
+        - ModuleGroupPath   : testPsdSampleRenamingModule
+        - ModuleGroupPath   : nested2
+        - ModuleGroupPath   : trans
+        - ModuleGroupPath   : deep2
         LinkedProjectId     : :nested2:trans:deep2
         LinkedProjectPath   : <PROJECT>/nested2/trans/deep2
         RootProjectPath     : <PROJECT>
@@ -725,6 +736,8 @@ PROJECT             : testPsdSampleRenamingModule
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
     MODULE              : dyn_feature
+        - ModuleGroupPath   : testPsdSampleRenamingModule
+        - ModuleGroupPath   : dyn_feature
         LinkedProjectId     : :dyn_feature
         LinkedProjectPath   : <PROJECT>/dyn_feature
         RootProjectPath     : <PROJECT>
@@ -824,6 +837,8 @@ PROJECT             : testPsdSampleRenamingModule
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
     MODULE              : jav
+        - ModuleGroupPath   : testPsdSampleRenamingModule
+        - ModuleGroupPath   : jav
         LinkedProjectId     : :jav
         LinkedProjectPath   : <PROJECT>/jav
         RootProjectPath     : <PROJECT>
@@ -847,6 +862,8 @@ PROJECT             : testPsdSampleRenamingModule
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
     MODULE              : lib
+        - ModuleGroupPath   : testPsdSampleRenamingModule
+        - ModuleGroupPath   : lib
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
@@ -1189,6 +1206,8 @@ PROJECT             : testPsdSampleRenamingModule
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
     MODULE              : nested2
+        - ModuleGroupPath   : testPsdSampleRenamingModule
+        - ModuleGroupPath   : nested2
         LinkedProjectId     : :nested2
         LinkedProjectPath   : <PROJECT>/nested2
         RootProjectPath     : <PROJECT>
@@ -1330,6 +1349,9 @@ PROJECT             : testPsdSampleRenamingModule
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
     MODULE              : nested2-deep
+        - ModuleGroupPath   : testPsdSampleRenamingModule
+        - ModuleGroupPath   : nested2
+        - ModuleGroupPath   : deep
         LinkedProjectId     : :nested2:deep
         LinkedProjectPath   : <PROJECT>/nested2/deep
         RootProjectPath     : <PROJECT>
@@ -1429,6 +1451,7 @@ PROJECT             : testPsdSampleRenamingModule
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
     MODULE              : testPsdSampleRenamingModule
+        - ModuleGroupPath   : testPsdSampleRenamingModule
         LinkedProjectId     : testPsdSampleRenamingModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
@@ -1444,6 +1467,9 @@ PROJECT             : testPsdSampleRenamingModule
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
     MODULE              : trans
+        - ModuleGroupPath   : testPsdSampleRenamingModule
+        - ModuleGroupPath   : nested2
+        - ModuleGroupPath   : trans
         LinkedProjectId     : :nested2:trans
         LinkedProjectPath   : <PROJECT>/nested2/trans
         RootProjectPath     : <PROJECT>

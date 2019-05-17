@@ -1,5 +1,7 @@
 PROJECT             : testSimpleApplication
     MODULE              : app
+        - ModuleGroupPath   : testSimpleApplication
+        - ModuleGroupPath   : app
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -461,6 +463,7 @@ PROJECT             : testSimpleApplication
             Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
     MODULE              : testSimpleApplication
+        - ModuleGroupPath   : testSimpleApplication
         LinkedProjectId     : testSimpleApplication
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
