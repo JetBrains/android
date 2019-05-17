@@ -25,7 +25,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -40,7 +40,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ModuleDisposer}.
  */
-public class ModuleDisposerTest extends IdeaTestCase {
+public class ModuleDisposerTest extends JavaProjectTestCase {
   @Mock private IdeInfo myIdeInfo;
   @Mock private DisposedModules myDisposedModules;
   @Mock private GradleSyncState mySyncState;

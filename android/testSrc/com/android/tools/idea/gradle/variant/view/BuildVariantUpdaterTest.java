@@ -39,7 +39,7 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifia
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
@@ -59,7 +59,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link BuildVariantUpdater}.
  */
-public class BuildVariantUpdaterTest extends IdeaTestCase {
+public class BuildVariantUpdaterTest extends JavaProjectTestCase {
   @Mock private IdeModifiableModelsProvider myModifiableModelsProvider;
   @Mock private IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @Mock private AndroidModuleSetupStep mySetupStepToInvoke;

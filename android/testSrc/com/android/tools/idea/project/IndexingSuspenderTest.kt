@@ -32,12 +32,12 @@ import com.intellij.ide.file.BatchFileChangeListener
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.impl.stores.BatchUpdateListener
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.JavaProjectTestCase
 import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
 
-class IndexingSuspenderTest : IdeaTestCase() {
+class IndexingSuspenderTest : JavaProjectTestCase() {
   private lateinit var batchUpdateConnection: MessageBusConnection
   private var expectedBatchUpdateCount = 0
   private var actualBatchUpdateCount = 0

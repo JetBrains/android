@@ -28,8 +28,7 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -58,7 +57,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidSdks}.
  */
-public class AndroidSdksTest extends IdeaTestCase {
+public class AndroidSdksTest extends JavaProjectTestCase {
   @Mock IdeInfo myIdeInfo;
 
   private Sdk myJdk;

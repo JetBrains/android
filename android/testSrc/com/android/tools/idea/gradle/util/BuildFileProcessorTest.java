@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -30,7 +30,7 @@ import static com.android.tools.idea.gradle.util.BuildFileProcessor.getComposite
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class BuildFileProcessorTest extends IdeaTestCase {
+public class BuildFileProcessorTest extends JavaProjectTestCase {
   private GradleProjectSettings myProjectSettings;
 
   @Override

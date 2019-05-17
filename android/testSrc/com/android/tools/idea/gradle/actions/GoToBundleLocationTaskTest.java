@@ -22,7 +22,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.gradle.tooling.BuildCancelledException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.verify;
 /**
  * Tests for {@link GoToBundleLocationTask}.
  */
-public class GoToBundleLocationTaskTest extends IdeaTestCase {
+public class GoToBundleLocationTaskTest extends JavaProjectTestCase {
   private static final String NOTIFICATION_TITLE = "Build Bundle(s)";
 
   @Mock private AndroidNotification myMockNotification;

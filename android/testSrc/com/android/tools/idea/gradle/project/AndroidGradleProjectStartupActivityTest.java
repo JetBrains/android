@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.mock.MockModule;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 
 import java.util.Collections;
 
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link AndroidGradleProjectStartupActivity}.
  */
-public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
+public class AndroidGradleProjectStartupActivityTest extends JavaProjectTestCase {
   private GradleProjectInfo myGradleProjectInfo;
   private AndroidGradleProjectStartupActivity myStartupActivity;
   private GradleSyncInvoker mySyncInvoker;

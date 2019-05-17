@@ -22,6 +22,7 @@ public class AndroidStudioGradleSettingsControlProvider extends GradleSettingsCo
       .dropCustomizableWrapperButton()
       .dropUseBundledDistributionButton()
       .dropGradleJdkComponents()
+      .dropCreateEmptyContentRootDirectoriesBox()
       .dropUseAutoImportBox()
       .dropResolveModulePerSourceSetCheckBox()
       .dropDelegateBuildCombobox()
