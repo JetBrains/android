@@ -18,6 +18,7 @@ package com.android.tools.componenttree
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
@@ -30,6 +31,7 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JLabel
@@ -67,22 +69,27 @@ private class ComponentTreeTest {
   init {
     setLAF(IntelliJLaf())
     frame = JFrame("Demo")
-    popup = createPopup()
+    popup = createPopup("tree")
+
+    val badge1 = Badge("badge1")
+    val badge2 = Badge("badge2")
 
     val result = ComponentTreeBuilder()
       .withNodeType(ItemNodeType())
       .withMultipleSelection()
       .withContextMenu(::showPopup)
       .withoutTreeSearch()
+      .withBadgeSupport(badge1)
+      .withBadgeSupport(badge2)
       .build()
     tree = result.first
     model = result.second
     selectionModel = result.third
 
     val panel = JPanel(BorderLayout())
-    panel.add(JLabel("Hello World"), BorderLayout.NORTH)
+    panel.add(JLabel("Start of panel"), BorderLayout.NORTH)
     panel.add(tree, BorderLayout.CENTER)
-    panel.add(JLabel("End of the World"), BorderLayout.SOUTH)
+    panel.add(JLabel("End of panel"), BorderLayout.SOUTH)
     frame.contentPane.add(panel)
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
     frame.preferredSize = Dimension(800, 400)
@@ -97,32 +104,35 @@ private class ComponentTreeTest {
   private fun getSelectedItem() = selectionModel.selection.singleOrNull() as? Item
 
   private fun showPopup(component: JComponent, x: Int, y: Int) {
+    displayPopup(popup, component, x, y)
+  }
+
+  private fun displayPopup(popup: JPopupMenu, component: JComponent, x: Int, y: Int) {
     popup.show(component, x, y)
   }
 
-  private fun createPopup(): JPopupMenu {
+  private fun createPopup(context: String): JPopupMenu {
     val popup = JPopupMenu()
-    popup.add(createGotoDeclarationMenu())
-    popup.add(createHelpMenu())
+    popup.add(createGotoDeclarationMenu(context))
+    popup.add(createHelpMenu(context))
     return popup
   }
 
-  private fun createGotoDeclarationMenu(): JMenuItem {
+  private fun createGotoDeclarationMenu(context: String): JMenuItem {
     val menuItem = JMenuItem("Goto Declaration")
     menuItem.addActionListener {
-      val item = getSelectedItem()
-      val className = item?.tagName ?: "unknown"
-      JOptionPane.showMessageDialog(frame, "Goto Declaration activated: $className", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
+      val item = getSelectedItem() ?: "unknown"
+      JOptionPane.showMessageDialog(frame, "Goto Declaration activated: $item from $context", "Tree Action",
+                                    JOptionPane.INFORMATION_MESSAGE)
     }
     return menuItem
   }
 
-  private fun createHelpMenu(): JMenuItem {
+  private fun createHelpMenu(context: String): JMenuItem {
     val menuItem = JMenuItem("Help")
     menuItem.addActionListener {
-      val item = getSelectedItem()
-      val className = item?.tagName ?: "unknown"
-      JOptionPane.showMessageDialog(frame, "Help activated: $className", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
+      val item = getSelectedItem() ?: "unknown"
+      JOptionPane.showMessageDialog(frame, "Help activated: $item from $context", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
     }
     return menuItem
   }
@@ -142,6 +152,10 @@ private class ComponentTreeTest {
     val textView3 = Item(TEXT_VIEW, "@+id/textView3", "Hello London calling we are here", textIcon, layout3)
     val layout4 = Item(LINEAR_LAYOUT, null, null, layoutIcon, layout3)
     val button3 = Item(BUTTON, "@+id/button1", "PressMe", buttonIcon, layout3)
+    textView1.badge1 = StudioIcons.Common.ERROR_INLINE
+    textView1.badge2 = StudioIcons.Common.CLOSE
+    textView2.badge2 = StudioIcons.Common.DELETE
+    button1.badge1 = StudioIcons.Common.WARNING_INLINE
     return layout1
   }
 
@@ -152,6 +166,25 @@ private class ComponentTreeTest {
     }
     catch (ex: Exception) {
       ex.printStackTrace()
+    }
+  }
+
+  private inner class Badge(val context: String): BadgeItem {
+    val popup = createPopup(context)
+
+    override fun getIcon(item: Any): Icon? {
+      val itemValue = item as? Item
+      return if (context == "badge1") itemValue?.badge1 else itemValue?.badge2
+    }
+
+    override fun getTooltipText(item: Any?) = "Tooltip for $item"
+
+    override fun performAction(item: Any) {
+      JOptionPane.showMessageDialog(frame, "Badge: $context for $item", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
+    }
+
+    override fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {
+      displayPopup(popup, component, x, y) // item will always be the selected item as well...
     }
   }
 }

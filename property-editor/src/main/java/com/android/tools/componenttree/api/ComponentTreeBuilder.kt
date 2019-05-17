@@ -41,6 +41,7 @@ typealias ContextPopupHandler = (component: JComponent, x: Int, y: Int) -> Unit
 class ComponentTreeBuilder {
   private val nodeTypeMap = mutableMapOf<Class<*>, NodeType<*>>()
   private var contextPopup: ContextPopupHandler = { _, _, _ -> }
+  private val badges = mutableListOf<BadgeItem>()
   private var selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
   private var invokeLater: (Runnable) -> Unit = SwingUtilities::invokeLater
   private var installTreeSearch = true
@@ -71,12 +72,17 @@ class ComponentTreeBuilder {
   fun withoutTreeSearch() = apply { installTreeSearch = false }
 
   /**
+   * Add a badge icon to go to the right of a tree node item.
+   */
+  fun withBadgeSupport(badge: BadgeItem) = apply { badges.add(badge) }
+
+  /**
    * Build the tree component and return it with the tree model.
    */
   fun build(): Triple<JComponent, ComponentTreeModel, ComponentTreeSelectionModel> {
     val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
     val selectionModel = ComponentTreeSelectionModelImpl(model)
-    val tree = TreeImpl(model, contextPopup)
+    val tree = TreeImpl(model, contextPopup, badges)
     if (installTreeSearch) {
       TreeSpeedSearch(tree) { model.toSearchString(it.lastPathComponent) }
     }
