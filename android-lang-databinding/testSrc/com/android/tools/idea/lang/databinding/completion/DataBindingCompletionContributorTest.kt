@@ -1253,4 +1253,42 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       </layout>
     """.trimIndent())
   }
+
+  @Test
+  @RunsInEdt
+  fun testDataBindingCompletion_classWithBaseSubstitutor() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      class Data<X> {
+        public X getData() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Data"/>
+          <variable name="model" type="Data<Data<java.lang.String>>" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{model.data.<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.completeBasic()
+    val getDataLookupElement = fixture.lookupElements!!.first { it.lookupString == "data" }
+    val presentation = LookupElementPresentation()
+    getDataLookupElement.renderElement(presentation)
+    // presentation.typeText represents string for the return type, which should contain "String" instead of "X" or "Data<X>".
+    assertThat(presentation.typeText).contains("String")
+  }
 }
