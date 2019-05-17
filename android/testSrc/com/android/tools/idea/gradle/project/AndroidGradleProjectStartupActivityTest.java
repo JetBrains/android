@@ -60,7 +60,7 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    verify(mySyncInvoker, never()).requestProjectSync(same(project), any());
+    verify(mySyncInvoker, times(1)).requestProjectSync(same(project), any());
   }
 
   public void testRunActivityWithExistingGradleProject() {
