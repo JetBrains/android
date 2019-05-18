@@ -31,5 +31,6 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.junit" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.execution.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core.tests" scope="RUNTIME" />
   </component>
 </module>
