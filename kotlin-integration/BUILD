@@ -51,6 +51,7 @@ iml_module(
         "//tools/idea/platform/configuration-store-impl:intellij.platform.configurationStore.impl",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/adt/idea/android:intellij.android.core.tests",
     ],
     # do not sort: must match IML order
     deps = [
