@@ -271,7 +271,6 @@ open class GradleSyncState(
   open fun setupStarted() {
     syncSetupStartedTimeStamp = System.currentTimeMillis()
 
-    addToEventLog(SYNC_NOTIFICATION_GROUP, "Project setup started", MessageType.INFO, null)
     LOG.info("Started setup of project '${project.name}'.")
 
     syncPublisher { setupStarted(project) }
