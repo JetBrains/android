@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
+import com.android.tools.idea.testing.TestProjectPaths.SCRIPTED_DIMENSIONS
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -69,6 +70,30 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val flavorDimensions = getFlavorDimensions(appModule)
     assertThat(flavorDimensions)
       .containsExactly("foo", "bar").inOrder()
+  }
+
+  fun testScriptedFlavorDimensions() {
+    loadProject(SCRIPTED_DIMENSIONS)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    run {
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assertNotNull(appModule);
+
+      val flavorDimensions = getFlavorDimensions(appModule)
+      assertThat(flavorDimensions).isEmpty()
+    }
+
+    run {
+      val appModule = moduleWithSyncedModel(project, "app")
+      assertNotNull(appModule);
+
+      val flavorDimensions = getFlavorDimensions(appModule)
+      assertThat(flavorDimensions)
+        .containsExactly("dimScripted").inOrder()
+    }
   }
 
   fun testValidateFlavorDimensionName() {
