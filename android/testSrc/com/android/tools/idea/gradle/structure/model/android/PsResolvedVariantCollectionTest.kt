@@ -22,7 +22,7 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
 
-class PsVariantCollectionTest : AndroidGradleTestCase() {
+class PsResolvedVariantCollectionTest : AndroidGradleTestCase() {
 
   fun testVariants() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
@@ -31,7 +31,7 @@ class PsVariantCollectionTest : AndroidGradleTestCase() {
 
     val appModule = project.findModuleByGradlePath(":app") as PsAndroidModule
 
-    assertThat(appModule.variants.map { it.key }.toSet(), equalTo(setOf(
+    assertThat(appModule.resolvedVariants.map { it.key }.toSet(), equalTo(setOf(
       PsVariantKey("debug", listOf("paid", "bar")),
       PsVariantKey("release", listOf("paid", "bar")),
       PsVariantKey("specialRelease", listOf("paid", "bar")),

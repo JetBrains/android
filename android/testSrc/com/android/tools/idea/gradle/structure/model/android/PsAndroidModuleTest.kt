@@ -508,7 +508,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
-    val variants = appModule.variants
+    val variants = appModule.resolvedVariants
     assertThat(variants).hasSize(4)
 
     val paidDebug = appModule.findVariant("paidDebug")
@@ -700,7 +700,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
       assertThat(signingConfig.resolvedModel).isNull()
     }
     // TODO(b/110194207): Populate variant collection when unsynced.
-    assertThat(appModule.variants).isEmpty()
+    assertThat(appModule.resolvedVariants).isEmpty()
   }
 
   fun testApplyChangesAndSyncReloadsResolvedValues() {
@@ -1246,7 +1246,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     productFlavors.onChange(testRootDisposable) { productFlavorsChanged++ }
     flavorDimensions.onChange(testRootDisposable) { flavorDimensionsChanged++ }
     signingConfigs.onChange(testRootDisposable) { signingConfigsChanged++ }
-    variants.onChange(testRootDisposable) { variantsChanged++ }
+    resolvedVariants.onChange(testRootDisposable) { variantsChanged++ }
   }
 }
 
