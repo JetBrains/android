@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.TEST;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.util.text.StringUtil.trimLeading;
+
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
@@ -27,12 +33,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.DependencyScope.TEST;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 
 /**
  * Creates {@link DependencySet} from variant or artifact.
@@ -143,20 +143,15 @@ public class DependenciesExtractor {
     GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(artifactAddress);
     if (coordinates != null) {
       String name = coordinates.getArtifactId();
-      if (name == null) {
-        name = "?";
-      }
 
       // For something like android.arch.lifecycle:runtime, instead of just showing "runtime",
       // we show "lifecycle:runtime"
       if (!name.contains("-")) {
         String groupId = coordinates.getGroupId();
-        if (groupId != null) {
-          int index = groupId.lastIndexOf('.'); // okay if it doesn't exist
-          String groupSuffix = groupId.substring(index + 1);
-          if (!groupSuffix.equals(name)) { // e.g. for com.google.guava:guava we'd end up with "guava:guava"
-            name = groupSuffix + ":" + name;
-          }
+        int index = groupId.lastIndexOf('.'); // okay if it doesn't exist
+        String groupSuffix = groupId.substring(index + 1);
+        if (!groupSuffix.equals(name)) { // e.g. for com.google.guava:guava we'd end up with "guava:guava"
+          name = groupSuffix + ":" + name;
         }
       }
 
