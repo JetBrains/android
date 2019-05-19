@@ -43,4 +43,4 @@ abstract class DependencyTestCase : AndroidGradleTestCase() {
 internal fun <T> PsDependencyCollection<*, *, *, T>.findModuleDependency(gradlePath: String)
   where T: PsModuleDependency = findModuleDependencies(gradlePath).singleOrNull()
 
-internal fun PsAndroidModule.findVariant(name: String): PsVariant? = variants.singleOrNull { it.name == name }
+internal fun PsAndroidModule.findVariant(name: String): PsVariant? = resolvedVariants.singleOrNull { it.name == name }
