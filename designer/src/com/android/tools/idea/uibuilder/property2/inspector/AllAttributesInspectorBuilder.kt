@@ -31,8 +31,6 @@ import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.TableUIProvider
 
-private const val ALL_ATTRIBUTES_TITLE = "All Attributes"
-
 class AllAttributesInspectorBuilder(
   private val model: NelePropertiesModel,
   controlTypeProvider: NeleControlTypeProvider,
@@ -43,12 +41,12 @@ class AllAttributesInspectorBuilder(
     NelePropertyItem::class.java, controlTypeProvider, editorProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    if (properties.isEmpty) {
+    if (properties.isEmpty || !InspectorSection.ALL.visible) {
       return
     }
 
     val allTableModel = FilteredPTableModel.create(model, { true }, alphabeticalSortOrder, createGroups(properties))
-    val titleModel = inspector.addExpandableTitle(ALL_ATTRIBUTES_TITLE, false)
+    val titleModel = inspector.addExpandableTitle(InspectorSection.ALL.title, false)
     inspector.addTable(allTableModel, true, allTableUIProvider, titleModel)
   }
 

@@ -41,6 +41,9 @@ import com.android.tools.property.panel.impl.support.PropertiesTableImpl
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.google.common.truth.Truth
+import com.intellij.openapi.actionSystem.AnActionEvent
+import org.mockito.Mockito
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -76,6 +79,7 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
     for (propertyItem in provider.getProperties(model, null, components).values) {
       _properties.put(propertyItem.namespace, propertyItem.name, propertyItem)
     }
+    model.setPropertiesInTest(properties)
   }
 
   fun checkTitle(line: Int, title: String) {
@@ -103,6 +107,16 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
     Truth.assertThat(line).isLessThan(inspector.lines.size)
     Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.TABLE)
     return inspector.lines[line] as FakeTableLineModel
+  }
+
+  fun performAction(line: Int, action: Int, icon: Icon) {
+    Truth.assertThat(line).isLessThan(inspector.lines.size)
+    Truth.assertThat(action).isLessThan(inspector.lines[line].actions.size)
+    val anAction = inspector.lines[line].actions[action]
+    Truth.assertThat(anAction.templatePresentation.icon).isEqualTo(icon)
+
+    val event = Mockito.mock(AnActionEvent::class.java)
+    anAction.actionPerformed(event)
   }
 }
 
