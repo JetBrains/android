@@ -167,7 +167,9 @@ public class IssuesViewer {
     title.setIcon(severity.getIcon());
     title.append(severity.getText(), REGULAR_ATTRIBUTES);
     int issueCount = issues.size();
-    title.append(" (" + issueCount + (issueCount == 1 ? " item)" : " items)"), GRAY_ATTRIBUTES);
+    if (issueCount != 1) {
+      title.append(" (" + issueCount + " items)", GRAY_ATTRIBUTES);
+    }
   }
 
   @NotNull
