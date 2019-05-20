@@ -80,7 +80,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   private final ResourceTable myCachedMaps = new ResourceTable();
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private Map<String, DataBindingLayoutInfo> myDataBindingResourceFiles = new HashMap<>();
+  private Map<String, BindingLayoutInfo> myDataBindingResourceFiles = new HashMap<>();
 
   @GuardedBy("ITEM_MAP_LOCK")
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
@@ -223,10 +223,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @Override
   @Nullable
-  public DataBindingLayoutInfo getDataBindingLayoutInfo(String layoutName) {
+  public BindingLayoutInfo getBindingLayoutInfo(String layoutName) {
     synchronized (ITEM_MAP_LOCK) {
       for (LocalResourceRepository child : myLocalResources) {
-        DataBindingLayoutInfo info = child.getDataBindingLayoutInfo(layoutName);
+        BindingLayoutInfo info = child.getBindingLayoutInfo(layoutName);
         if (info != null) {
           return info;
         }
@@ -237,15 +237,15 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @Override
   @NotNull
-  public Map<String, DataBindingLayoutInfo> getDataBindingResourceFiles() {
+  public Map<String, BindingLayoutInfo> getDataBindingResourceFiles() {
     synchronized (ITEM_MAP_LOCK) {
       long modificationCount = getModificationCount();
       if (myDataBindingResourceFilesModificationCount == modificationCount) {
         return myDataBindingResourceFiles;
       }
-      Map<String, DataBindingLayoutInfo> selected = new HashMap<>();
+      Map<String, BindingLayoutInfo> selected = new HashMap<>();
       for (LocalResourceRepository child : myLocalResources) {
-        Map<String, DataBindingLayoutInfo> childFiles = child.getDataBindingResourceFiles();
+        Map<String, BindingLayoutInfo> childFiles = child.getDataBindingResourceFiles();
         if (childFiles != null) {
           selected.putAll(childFiles);
         }

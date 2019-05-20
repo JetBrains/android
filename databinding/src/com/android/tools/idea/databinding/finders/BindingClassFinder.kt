@@ -16,34 +16,36 @@
 package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.databinding.DataBindingProjectComponent
+import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.isViewBindingEnabled
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 
 /**
- * Finder for classes generated from data binding layout xml files.
+ * Finder for classes generated from data binding or view binding layout xml files.
  *
  * For example, for a module with an "activity_main.xml" file in it that uses data binding, this
  * class would find the generated "ActivityMainBinding" class.
  *
  * See [LightBindingClass]
  */
-class LayoutBindingClassFinder(private val dataBindingComponent: DataBindingProjectComponent) : PsiElementFinder() {
+class BindingClassFinder(private val dataBindingComponent: DataBindingProjectComponent) : PsiElementFinder() {
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
-    for (facet in dataBindingComponent.getDataBindingEnabledFacets()) {
-      val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
-      val info = moduleResources.dataBindingResourceFiles?.get(qualifiedName) ?: continue
-      val file = info.psiFile.virtualFile
-      if (file != null && scope.accept(file)) {
-        return DataBindingClassFactory.getOrCreatePsiClass(info)
-      }
-    }
-    return null
+    return ModuleManager.getInstance(dataBindingComponent.project).modules
+      .mapNotNull { it.androidFacet }
+      .filter { it.isViewBindingEnabled() || DataBindingUtil.isDataBindingEnabled(it) }
+      .mapNotNull { ResourceRepositoryManager.getModuleResources(it).dataBindingResourceFiles?.get(qualifiedName) }
+      .filter { it.psiFile.virtualFile != null && scope.accept(it.psiFile.virtualFile) }
+      .map { DataBindingClassFactory.getOrCreatePsiClass(it) }
+      .firstOrNull()
   }
 
   override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> {
@@ -56,13 +58,12 @@ class LayoutBindingClassFinder(private val dataBindingComponent: DataBindingProj
       return PsiClass.EMPTY_ARRAY
     }
 
-    return dataBindingComponent.getDataBindingEnabledFacets()
-      .flatMap { facet ->
-        ResourceRepositoryManager.getModuleResources(facet).dataBindingResourceFiles?.values?.asIterable() ?: emptyList()
-      }.filter { info ->
-        info.psiFile != null && scope.accept(info.psiFile.virtualFile)
-        && psiPackage.qualifiedName == info.packageName
-      }.map { info -> DataBindingClassFactory.getOrCreatePsiClass(info) }
+    return ModuleManager.getInstance(dataBindingComponent.project).modules
+      .mapNotNull { it.androidFacet }
+      .filter { it.isViewBindingEnabled() || DataBindingUtil.isDataBindingEnabled(it) }
+      .flatMap { ResourceRepositoryManager.getModuleResources(it).dataBindingResourceFiles?.values?.asIterable() ?: emptyList() }
+      .filter { it.psiFile.virtualFile != null && scope.accept(it.psiFile.virtualFile) && psiPackage.qualifiedName == it.packageName }
+      .map { DataBindingClassFactory.getOrCreatePsiClass(it) }
       .toTypedArray()
   }
 

@@ -28,4 +28,5 @@ public final class TestDataPaths {
   public static final String PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB = "projects/projectWithDataBindingAndSimpleLib";
   public static final String PROJECT_WITH_COMPILE_ERRORS = "projects/projectWithCompileErrors";
   public static final String PROJECT_FOR_TRACKING = "projects/projectForTracking";
+  public static final String PROJECT_FOR_VIEWBINDING = "projects/projectForViewBinding";
 }

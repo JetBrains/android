@@ -44,6 +44,7 @@ import static com.android.resources.ResourceFolderType.RAW;
 import static com.android.resources.ResourceFolderType.VALUES;
 import static com.android.resources.ResourceFolderType.getFolderType;
 import static com.android.resources.ResourceFolderType.getTypeByName;
+import static com.android.tools.idea.databinding.ViewBindingUtil.isViewBindingEnabled;
 import static com.android.tools.idea.res.PsiProjectListener.isRelevantFile;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
@@ -175,7 +176,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   private final Map<VirtualFile, ResourceItemSource<? extends ResourceItem>> sources = new HashMap<>();
   // qualifiedName -> PsiResourceFile
-  private Map<String, DataBindingLayoutInfo> myDataBindingResourceFiles = new HashMap<>();
+  private Map<String, BindingLayoutInfo> myDataBindingResourceFiles = new HashMap<>();
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
   private final Object SCAN_LOCK = new Object();
   private Set<PsiFile> myPendingScans;
@@ -631,7 +632,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       addIds(result, items, file);
 
       PsiResourceFile resourceFile = new PsiResourceFile(file, items, folderType, folderConfiguration);
-      scanDataBinding(resourceFile, getModificationCount());
+      scanBindingLayout(resourceFile, getModificationCount());
       sources.put(file.getVirtualFile(), resourceFile);
     } else {
       PsiResourceFile resourceFile = new PsiResourceFile(file, Collections.singletonList(item), folderType, folderConfiguration);
@@ -651,6 +652,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (idGenerating) {
       if (sources.containsKey(file)) {
         myInitialScanState.countCacheHit();
+        return;
+      } else if (isViewBindingEnabled(myFacet) && folderType == LAYOUT && type == ResourceType.LAYOUT) {
+        // Layout XML files are queued to be scanned separately in scanQueuedPsiResources
+        myInitialScanState.queuePsiFileResourceScan(
+          new PsiFileResourceQueueEntry(file, qualifiers, folderType, folderConfiguration));
         return;
       }
       try {
@@ -697,7 +703,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @Override
   @Nullable
-  public DataBindingLayoutInfo getDataBindingLayoutInfo(String layoutName) {
+  public BindingLayoutInfo getBindingLayoutInfo(String layoutName) {
     List<ResourceItem> resourceItems = getResources(myNamespace, ResourceType.LAYOUT, layoutName);
     for (ResourceItem item : resourceItems) {
       if (item instanceof PsiResourceItem) {
@@ -712,48 +718,36 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @Override
   @NotNull
-  public Map<String, DataBindingLayoutInfo> getDataBindingResourceFiles() {
+  public Map<String, BindingLayoutInfo> getDataBindingResourceFiles() {
     long modificationCount = getModificationCount();
     if (myDataBindingResourceFilesModificationCount == modificationCount) {
       return myDataBindingResourceFiles;
     }
     myDataBindingResourceFilesModificationCount = modificationCount;
-    Map<String, List<DefaultDataBindingLayoutInfo>> infoFilesByConfiguration = sources.values().stream()
+    Map<String, List<DefaultBindingLayoutInfo>> infoFilesByConfiguration = sources.values().stream()
       .map(resourceFile -> resourceFile instanceof PsiResourceFile ? (((PsiResourceFile)resourceFile).getDataBindingLayoutInfo()) : null)
       .filter(Objects::nonNull)
-      .collect(Collectors.groupingBy(DefaultDataBindingLayoutInfo::getFileName));
+      .collect(Collectors.groupingBy(DefaultBindingLayoutInfo::getFileName));
 
-    Map<String, DataBindingLayoutInfo> selected = infoFilesByConfiguration.entrySet().stream().flatMap(entry -> {
+    Map<String, BindingLayoutInfo> selected = infoFilesByConfiguration.entrySet().stream().flatMap(entry -> {
       if (entry.getValue().size() == 1) {
-        DefaultDataBindingLayoutInfo info = entry.getValue().get(0);
+        DefaultBindingLayoutInfo info = entry.getValue().get(0);
         info.setMergedInfo(null);
         return entry.getValue().stream();
       } else {
-        MergedDataBindingLayoutInfo mergedDataBindingLayoutInfo = new MergedDataBindingLayoutInfo(entry.getValue());
+        MergedBindingLayoutInfo mergedDataBindingLayoutInfo = new MergedBindingLayoutInfo(entry.getValue());
         entry.getValue().forEach(info -> info.setMergedInfo(mergedDataBindingLayoutInfo));
-        ArrayList<DataBindingLayoutInfo> list = new ArrayList<>(1 + entry.getValue().size());
+        ArrayList<BindingLayoutInfo> list = new ArrayList<>(1 + entry.getValue().size());
         list.add(mergedDataBindingLayoutInfo);
         list.addAll(entry.getValue());
         return list.stream();
       }
     }).collect(Collectors.toMap(
-      DataBindingLayoutInfo::getQualifiedName,
-      (DataBindingLayoutInfo kls) -> kls
+      BindingLayoutInfo::getQualifiedName,
+      (BindingLayoutInfo kls) -> kls
     ));
     myDataBindingResourceFiles = Collections.unmodifiableMap(selected);
     return myDataBindingResourceFiles;
-  }
-
-  @Nullable
-  private static XmlTag getLayoutTag(PsiElement element) {
-    if (!(element instanceof XmlFile)) {
-      return null;
-    }
-    XmlTag rootTag = ((XmlFile) element).getRootTag();
-    if (rootTag != null && TAG_LAYOUT.equals(rootTag.getName())) {
-      return rootTag;
-    }
-    return null;
   }
 
   @Nullable
@@ -762,7 +756,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private static void scanDataBindingDataTag(PsiResourceFile resourceFile, @Nullable XmlTag dataTag, long modificationCount) {
-    DefaultDataBindingLayoutInfo info = resourceFile.getDataBindingLayoutInfo();
+    DefaultBindingLayoutInfo info = resourceFile.getDataBindingLayoutInfo();
     assert info != null;
     List<PsiDataBindingResourceItem> items = new ArrayList<>();
     if (dataTag == null) {
@@ -809,17 +803,28 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     info.replaceItems(items, modificationCount);
   }
 
-  private void scanDataBinding(PsiResourceFile resourceFile, long modificationCount) {
-    if (resourceFile.getFolderType() != LAYOUT) {
-      resourceFile.setDataBindingLayoutInfo(null);
+  private Boolean isBindingLayoutFile(@NotNull PsiResourceFile resourceFile) {
+    if (resourceFile.getFolderType() != LAYOUT ||
+        !(resourceFile.getPsiFile() instanceof XmlFile)) {
+      return false;
+    }
+    XmlTag layoutTag = ((XmlFile)resourceFile.getPsiFile()).getRootTag();
+    if (layoutTag == null) {
+      return false;
+    }
+    if (TAG_LAYOUT.equals(layoutTag.getName()) || isViewBindingEnabled(myFacet)) {
+      return true;
+    }
+    return false;
+  }
+
+  private void scanBindingLayout(PsiResourceFile resourceFile, long modificationCount) {
+    if (!isBindingLayoutFile(resourceFile)) {
       return;
     }
-    XmlTag layout = getLayoutTag(resourceFile.getPsiFile());
-    if (layout == null) {
-      resourceFile.setDataBindingLayoutInfo(null);
-      return;
-    }
-    XmlTag dataTag = getDataTag(layout);
+    XmlFile layoutFile = (XmlFile) resourceFile.getPsiFile();
+    XmlTag layoutTag = layoutFile.getRootTag();
+    XmlTag dataTag = getDataTag(layoutTag);
     String className;
     String classPackage;
     String modulePackage = MergedManifestManager.getSnapshot(myFacet).getPackage();
@@ -854,7 +859,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
     if (resourceFile.getDataBindingLayoutInfo() == null) {
       resourceFile
-        .setDataBindingLayoutInfo(new DefaultDataBindingLayoutInfo(myFacet, resourceFile, className, classPackage, hasClassNameAttr));
+        .setDataBindingLayoutInfo(new DefaultBindingLayoutInfo(myFacet, resourceFile, className, classPackage, hasClassNameAttr));
     } else {
       resourceFile.getDataBindingLayoutInfo().update(className, classPackage, hasClassNameAttr, modificationCount);
     }
@@ -2270,7 +2275,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
 
       setModificationCount(ourModificationCounter.incrementAndGet());
-      scanDataBinding(resourceFile, getModificationCount());
+      scanBindingLayout(resourceFile, getModificationCount());
     }
   }
 
