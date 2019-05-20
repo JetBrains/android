@@ -62,12 +62,16 @@ fun defaultConfigPropertiesModel(isLibrary: Boolean) =
       else null,
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       if (!isLibrary) uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix, ::simplePropertyEditor, null) else null,
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionCode, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_VERSION_CODE),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionName, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_VERSION_NAME),
+      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionNameSuffix, ::simplePropertyEditor, null),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_TARGET_SDK_VERSION),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.minSdkVersion, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_MIN_SDK_VERSION),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_MAX_SDK_VERSION),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.signingConfig, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_SIGNING_CONFIG),
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
@@ -89,10 +93,4 @@ fun defaultConfigPropertiesModel(isLibrary: Boolean) =
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling, ::simplePropertyEditor, null),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.testApplicationId, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_TEST_APPLICATION_ID),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionCode, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_VERSION_CODE),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionName, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_VERSION_NAME),
-      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionNameSuffix, ::simplePropertyEditor, null)))
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_TEST_APPLICATION_ID)))

@@ -37,6 +37,11 @@ class BuildTypeConfigurable(
 fun buildTypePropertiesModel(isLibrary: Boolean) =
   PropertiesUiModel(
     listOfNotNull(
+      if (!isLibrary) uiProperty(PsBuildType.BuildTypeDescriptors.applicationIdSuffix, ::simplePropertyEditor,
+                                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_BUILDTYPES_APPLICATIOND_ID_SUFFIX)
+      else null,
+      uiProperty(PsBuildType.BuildTypeDescriptors.versionNameSuffix, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_BUILDTYPES_VERSION_NAME_SUFFIX),
       uiProperty(PsBuildType.BuildTypeDescriptors.debuggable, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_BUILDTYPES_DEBUGGABLE),
 // TODO(b/70501607): Decide on PsBuildType.BuildTypeDescriptors.embedMicroApp,
@@ -50,23 +55,16 @@ fun buildTypePropertiesModel(isLibrary: Boolean) =
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_BUILDTYPES_SIGNING_CONFIG),
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       if (isLibrary) uiProperty(PsBuildType.BuildTypeDescriptors.consumerProGuardFiles, ::listPropertyEditor, null) else null,
+      uiProperty(PsBuildType.BuildTypeDescriptors.minifyEnabled, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_BUILDTYPES_MINIFY_ENABLED),
       uiProperty(PsBuildType.BuildTypeDescriptors.proGuardFiles, ::listPropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_BUILDTYPES_PROGUARD_FILES),
       uiProperty(PsBuildType.BuildTypeDescriptors.manifestPlaceholders, ::mapPropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_BUILDTYPES_MANIFEST_PLACEHOLDERS),
-      uiProperty(PsBuildType.BuildTypeDescriptors.minifyEnabled, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_BUILDTYPES_MINIFY_ENABLED),
       uiProperty(PsBuildType.BuildTypeDescriptors.multiDexEnabled, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_BUILDTYPES_MULTI_DEX_ENABLED),
 // TODO(b/70501607): Decide on PsBuildType.BuildTypeDescriptors.pseudoLocalesEnabled,
 // TODO(b/70501607): Decide on PsBuildType.BuildTypeDescriptors.testCoverageEnabled,
-      if (!isLibrary) uiProperty(PsBuildType.BuildTypeDescriptors.applicationIdSuffix, ::simplePropertyEditor,
-                                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_BUILDTYPES_APPLICATIOND_ID_SUFFIX)
-      else null,
-      uiProperty(PsBuildType.BuildTypeDescriptors.versionNameSuffix, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_BUILDTYPES_VERSION_NAME_SUFFIX),
-      uiProperty(PsBuildType.BuildTypeDescriptors.zipAlignEnabled, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_BUILDTYPES_ZIP_ALIGN_ENABLED),
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       uiProperty(PsBuildType.BuildTypeDescriptors.matchingFallbacks, ::listPropertyEditor, null)
     ))
