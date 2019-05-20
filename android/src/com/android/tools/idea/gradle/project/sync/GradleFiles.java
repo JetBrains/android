@@ -30,7 +30,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -74,6 +74,14 @@ public class GradleFiles {
 
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
+  public static class UpdateHashesStartupActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      // Populate build file hashes on project startup.
+      getInstance(project).updateFileHashes();
+    }
+  }
+
   @NotNull
   public static GradleFiles getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleFiles.class);
@@ -111,13 +119,6 @@ public class GradleFiles {
 
 
     GradleSyncState.subscribe(myProject, mySyncListener);
-    // Populate build file hashes on creation.
-    if (myProject.isInitialized()) {
-      updateFileHashes();
-    }
-    else {
-      StartupManager.getInstance(myProject).registerPostStartupActivity(this::updateFileHashes);
-    }
   }
 
   @NotNull

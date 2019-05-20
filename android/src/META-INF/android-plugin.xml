@@ -993,6 +993,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFiles$UpdateHashesStartupActivity"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleBuildState"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.project.IndexingSuspender"/>
