@@ -75,17 +75,21 @@ fun productFlavorPropertiesModel(isLibrary: Boolean) =
     listOfNotNull(
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.dimension, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_DIMENSION),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.minSdkVersion, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_MIN_SDK_VERSION),
       if (!isLibrary) uiProperty(PsProductFlavor.ProductFlavorDescriptors.applicationId, ::simplePropertyEditor,
                                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_APPLICATION_ID)
       else null,
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       if (!isLibrary) uiProperty(PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix, ::simplePropertyEditor, null) else null,
+      uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionCode, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_VERSION_CODE),
+      uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionName, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_VERSION_NAME),
+      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
+      uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionNameSuffix, ::simplePropertyEditor, null),
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_TARGET_SDK_VERSION),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_MAX_SDK_VERSION),
+      uiProperty(PsProductFlavor.ProductFlavorDescriptors.minSdkVersion, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_MIN_SDK_VERSION),
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.signingConfig, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_SIGNING_CONFIG),
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
@@ -108,12 +112,6 @@ fun productFlavorPropertiesModel(isLibrary: Boolean) =
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling, ::simplePropertyEditor, null),
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.testApplicationId, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_TEST_APPLICATION_ID),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionCode, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_VERSION_CODE),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionName, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_VERSION_NAME),
-      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionNameSuffix, ::simplePropertyEditor, null),
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks, ::listPropertyEditor, null)))
 
