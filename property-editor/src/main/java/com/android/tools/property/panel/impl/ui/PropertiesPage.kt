@@ -35,13 +35,13 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
+import com.intellij.ui.components.JBScrollBar
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Font
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
@@ -96,7 +96,15 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
       component,
       ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
-    scrollPane.border = BorderFactory.createEmptyBorder()
+    scrollPane.verticalScrollBar = object: JBScrollBar() {
+      override fun setOpaque(isOpaque: Boolean) {
+        // This disables the "Show scroll bars when scrolling" option on Mac.
+        // The problem is that the icons on the right of the properties panel
+        // would be covered by the scroll bar when it was visible.
+        super.setOpaque(isOpaque || SystemInfo.isMac)
+      }
+    }
+    scrollPane.border = JBUI.Borders.empty()
     scrollPane.addComponentListener(object : ComponentAdapter() {
       override fun componentResized(event: ComponentEvent?) {
         // unitIncrement affects the scroll wheel speed
