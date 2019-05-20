@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ADJUST_VIEW_BOUNDS
 import com.android.SdkConstants.ATTR_ALPHA
@@ -41,6 +40,9 @@ import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.SdkConstants.ATTR_TEXT_STYLE
 import com.android.SdkConstants.ATTR_TYPEFACE
+import com.android.SdkConstants.IMAGE_VIEW
+import com.android.SdkConstants.PROGRESS_BAR
+import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
@@ -53,7 +55,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class BasicAttributesInspectorBuilderTest {
+class CommonAttributesInspectorBuilderTest {
 
   @JvmField @Rule
   val projectRule = AndroidProjectRule.withSdk()
@@ -68,11 +70,11 @@ class BasicAttributesInspectorBuilderTest {
 
   @Test
   fun testTextView() {
-    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW)
-    val builder = BasicAttributesInspectorBuilder(projectRule.project, util.editorProvider)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val builder = CommonAttributesInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    util.checkTitle(0, "Common Attributes")
+    util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, ANDROID_URI, ATTR_TEXT)
     util.checkEditor(2, TOOLS_URI, ATTR_TEXT)
     util.checkEditor(3, ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
@@ -90,11 +92,11 @@ class BasicAttributesInspectorBuilderTest {
 
   @Test
   fun testProgressBar() {
-    val util = InspectorTestUtil(projectRule, SdkConstants.PROGRESS_BAR)
-    val builder = BasicAttributesInspectorBuilder(projectRule.project, util.editorProvider)
+    val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
+    val builder = CommonAttributesInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    util.checkTitle(0, "Common Attributes")
+    util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
     util.checkEditor(2, ANDROID_URI, ATTR_PROGRESS_DRAWABLE)
     util.checkEditor(3, ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE)
@@ -109,8 +111,8 @@ class BasicAttributesInspectorBuilderTest {
 
   @Test
   fun testImageView() {
-    val util = InspectorTestUtil(projectRule, SdkConstants.IMAGE_VIEW)
-    val builder = BasicAttributesInspectorBuilder(projectRule.project, util.editorProvider)
+    val util = InspectorTestUtil(projectRule, IMAGE_VIEW)
+    val builder = CommonAttributesInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
     util.checkTitle(0, "Common Attributes")

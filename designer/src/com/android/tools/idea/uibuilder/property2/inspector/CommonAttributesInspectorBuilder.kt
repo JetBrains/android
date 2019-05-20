@@ -26,9 +26,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 
-private const val BASIC_TITLE = "Common Attributes"
-
-class BasicAttributesInspectorBuilder(
+class CommonAttributesInspectorBuilder(
   project: Project,
   private val editorProvider: EditorProvider<NelePropertyItem>
 ) : InspectorBuilder<NelePropertyItem> {
@@ -42,6 +40,9 @@ class BasicAttributesInspectorBuilder(
   }
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+    if (!InspectorSection.COMMON.visible) {
+      return
+    }
     val generator = TitleGenerator(inspector)
     viewInspector.attachToInspector(inspector, properties) { generator.title }
     textInspector.attachToInspector(inspector, properties) { generator.title }
@@ -58,7 +59,7 @@ class BasicAttributesInspectorBuilder(
 
     val title: InspectorLineModel
       get() {
-        val line = titleHolder ?: inspector.addExpandableTitle(BASIC_TITLE)
+        val line = titleHolder ?: inspector.addExpandableTitle(InspectorSection.COMMON.title)
         titleHolder = line
         titleAdded = true
         return line

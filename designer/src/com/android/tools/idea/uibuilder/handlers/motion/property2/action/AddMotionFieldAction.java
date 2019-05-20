@@ -36,7 +36,7 @@ public class AddMotionFieldAction extends AnAction {
                               @NotNull PropertiesTable<NelePropertyItem> properties) {
     super(null, "Add Property", AllIcons.General.Add);
     myTableModel = tableModel;
-    myNewProperty = new NeleNewPropertyItem(model, properties);
+    myNewProperty = new NeleNewPropertyItem(model, properties, (item) -> item.getRawValue() == null, (delegate) -> null);
   }
 
   public void setLineModel(@NotNull TableLineModel lineModel) {
