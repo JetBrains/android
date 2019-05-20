@@ -28,7 +28,7 @@ open class ProductFlavorsFixture constructor(
   fun clickAddFlavorDimension(): InputNameDialogFixture {
     clickToolButton("Add")
     val listFixture = JListFixture(robot(), getList())
-    listFixture.clickItem("Add Dimension")
+    listFixture.clickItem("Add Flavor Dimension")
     return InputNameDialogFixture.find(ideFrameFixture, "Create New Flavor Dimension") {
       Thread.sleep(500) // MasterDetailsComponent has up to 500ms delay before acting on selection change.
       waitForIdle()
