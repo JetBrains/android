@@ -151,6 +151,13 @@ open class NelePropertyItem(
   open val delegate: NelePropertyItem?
     get() = this
 
+  // TODO: Change the namespace property above to be of type ResourceReference
+  val asReference: ResourceReference?
+    get() {
+      val ns = ResourceNamespace.fromNamespaceUri(namespace) ?: return null
+      return ResourceReference.attr(ns, name)
+    }
+
   // TODO: Use the namespace resolver in ResourceHelper when it no longer returns [ResourceNamespace.Resolver.TOOLS_ONLY].
   // We need to find the prefix even when namespacing is turned off.
   // This property can be accessed from a non UI thread.
