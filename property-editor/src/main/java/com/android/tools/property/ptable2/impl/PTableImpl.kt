@@ -81,7 +81,7 @@ class PTableImpl(
 ) : JBTable(PTableModelImpl(tableModel)), PTable {
 
   private val nameRowSorter = TableRowSorter<TableModel>()
-  private val nameRowFilter = NameRowFilter()
+  private val nameRowFilter = NameRowFilter(model)
   private val tableCellRenderer = PTableCellRendererWrapper()
   private val tableCellEditor = PTableCellEditorWrapper()
   private var initialized = false
@@ -693,7 +693,7 @@ class PTableImpl(
   }
 }
 
-private class NameRowFilter : RowFilter<TableModel, Int>() {
+private class NameRowFilter(private val model: PTableModelImpl) : RowFilter<TableModel, Int>() {
   private val comparator = SpeedSearchComparator(false)
   var pattern = ""
 
@@ -701,6 +701,13 @@ private class NameRowFilter : RowFilter<TableModel, Int>() {
     val item = entry.getValue(0) as PTableItem
     if (isMatch(item.name)) {
       return true
+    }
+    var parent = model.parentOf(item)
+    while (parent != null) {
+      if (isMatch(parent.name)) {
+        return true
+      }
+      parent = model.parentOf(parent)
     }
     if (item !is PTableGroupItem) {
       return false
