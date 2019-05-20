@@ -70,6 +70,10 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     return tableModel.isCellEditable(items[rowIndex], PTableColumn.fromColumn(columnIndex))
   }
 
+  fun parentOf(item: PTableItem): PTableGroupItem? {
+    return parentItems[item]
+  }
+
   fun isGroupItem(item: PTableItem): Boolean {
     // This allows an implementation to mutate an item from/to an item that is considered a group.
     // It is currently used in fabricated new items where the state is unknown up front.
