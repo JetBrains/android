@@ -27,6 +27,7 @@ import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.validation.Validator;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.openapi.Disposable;
@@ -38,10 +39,13 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectAttachProcessor;
+import java.io.File;
 import java.util.List;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +82,15 @@ public class AndroidOpenFileAction extends DumbAwareAction {
       descriptor.putUserData(PathChooserDialog.PREFER_LAST_OVER_EXPLICIT, showFiles);
       Disposer.register(disposable, descriptor);
 
-      VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : getUserHomeDir();
+      VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : null;
+      if (explicitPreferredDirectory == null) {
+        if (StringUtil.isNotEmpty(GeneralSettings.getInstance().getDefaultProjectDirectory())) {
+          explicitPreferredDirectory = VfsUtil.findFileByIoFile(new File(GeneralSettings.getInstance().getDefaultProjectDirectory()), true);
+        }
+        else {
+          explicitPreferredDirectory = getUserHomeDir();
+        }
+      }
 
       // The chooseFiles method shows a FileChooserDialog and it doesn't return control until
       // a user closes the dialog.
