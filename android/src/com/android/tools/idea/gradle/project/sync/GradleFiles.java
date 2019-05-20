@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.intellij.concurrency.JobLauncher;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
@@ -280,7 +281,7 @@ public class GradleFiles {
       if (buildFile != null) {
         File path = VfsUtilCore.virtualToIoFile(buildFile);
         if (path.isFile()) {
-          putHashForFile(fileHashes, buildFile);
+          ReadAction.run(() -> putHashForFile(fileHashes, buildFile));
         }
       }
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
@@ -291,7 +292,7 @@ public class GradleFiles {
             VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
             externalBuildFiles.add(virtualFile);
             if (virtualFile != null) {
-              putHashForFile(fileHashes, virtualFile);
+              ReadAction.run(() -> putHashForFile(fileHashes, virtualFile));
             }
           }
         }
