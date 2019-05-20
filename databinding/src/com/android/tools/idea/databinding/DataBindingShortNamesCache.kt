@@ -19,7 +19,7 @@ import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvid
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.res.DataBindingLayoutInfo
+import com.android.tools.idea.res.BindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -45,7 +45,7 @@ import org.jetbrains.android.facet.AndroidFacet
  *  Move back to: cache.LayoutBindingShortNamesCache
  */
 class DataBindingShortNamesCache(private val component: DataBindingProjectComponent) : PsiShortNamesCache() {
-  private val layoutInfoCache: CachedValue<Map<String, List<DataBindingLayoutInfo>>>
+  private val layoutInfoCache: CachedValue<Map<String, List<BindingLayoutInfo>>>
   private val methodsByNameCache: CachedValue<Map<String, List<PsiMethod>>>
   private val fieldsByNameCache: CachedValue<Map<String, List<PsiField>>>
 
@@ -164,31 +164,31 @@ class DataBindingShortNamesCache(private val component: DataBindingProjectCompon
     element.containingFile != null && scope.accept(element.containingFile.virtualFile)
 
   // Helper function for getting PsiClasses out of layoutInfoCache
-  private fun Collection<List<DataBindingLayoutInfo>>.toPsiClasses(): List<PsiClass> {
+  private fun Collection<List<BindingLayoutInfo>>.toPsiClasses(): List<PsiClass> {
     return this
-      .flatten() // Convert list of List<DataBindingLayoutInfo> into a single list
+      .flatten() // Convert list of List<BindingLayoutInfo> into a single list
       .map { info -> DataBindingClassFactory.getOrCreatePsiClass(info) }
   }
 
   private class LayoutInfoCacheProvider(component: DataBindingProjectComponent)
-    : ProjectResourceCachedValueProvider.MergedMapValueProvider<String, DataBindingLayoutInfo>(component) {
+    : ProjectResourceCachedValueProvider.MergedMapValueProvider<String, BindingLayoutInfo>(component) {
 
-    override fun createCacheProvider(facet: AndroidFacet): ResourceCacheValueProvider<Map<String, List<DataBindingLayoutInfo>>> {
+    override fun createCacheProvider(facet: AndroidFacet): ResourceCacheValueProvider<Map<String, List<BindingLayoutInfo>>> {
       return DelegateLayoutInfoCacheProvider(facet)
     }
   }
 
   private class DelegateLayoutInfoCacheProvider(facet: AndroidFacet)
-    : ResourceCacheValueProvider<Map<String, List<DataBindingLayoutInfo>>>(facet, null) {
+    : ResourceCacheValueProvider<Map<String, List<BindingLayoutInfo>>>(facet, null) {
 
-    override fun doCompute(): Map<String, List<DataBindingLayoutInfo>> {
+    override fun doCompute(): Map<String, List<BindingLayoutInfo>> {
       val moduleResources = ResourceRepositoryManager.getInstance(facet).existingModuleResources ?: return defaultValue()
       val resourceFiles = moduleResources.dataBindingResourceFiles ?: return defaultValue()
       // Convert "List<Info>" to a map of "Info.className to List<Info>"
       return resourceFiles.values.groupBy { info -> info.className }
     }
 
-    override fun defaultValue(): Map<String, List<DataBindingLayoutInfo>> {
+    override fun defaultValue(): Map<String, List<BindingLayoutInfo>> {
       return mapOf()
     }
   }

@@ -24,18 +24,24 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-
 /**
- * Data Binding info merged from multiple DataBindingLayoutInfo instances from different configurations.
+ * Binding info merged from multiple BindingLayoutInfo instances from different configurations.
  */
-class MergedDataBindingLayoutInfo implements DataBindingLayoutInfo {
-  @NotNull private final List<DefaultDataBindingLayoutInfo> myInfoList;
-  @NotNull private final DefaultDataBindingLayoutInfo myBaseInfo;
+class MergedBindingLayoutInfo implements BindingLayoutInfo {
+  @NotNull private final List<DefaultBindingLayoutInfo> myInfoList;
+  @NotNull private final DefaultBindingLayoutInfo myBaseInfo;
 
   private PsiClass myPsiClass;
 
@@ -43,7 +49,7 @@ class MergedDataBindingLayoutInfo implements DataBindingLayoutInfo {
 
   @NotNull private final CachedValue<Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>>> myResourceItemCache;
 
-  public MergedDataBindingLayoutInfo(@NotNull List<DefaultDataBindingLayoutInfo> infoList) {
+  public MergedBindingLayoutInfo(@NotNull List<DefaultBindingLayoutInfo> infoList) {
     myInfoList = infoList;
     myBaseInfo = selectBaseInfo();
     CachedValuesManager cacheManager = CachedValuesManager.getManager(myBaseInfo.getProject());
@@ -51,7 +57,7 @@ class MergedDataBindingLayoutInfo implements DataBindingLayoutInfo {
     myViewWithIdsCache = cacheManager.createCachedValue(() -> {
       Set<String> used = new HashSet<>();
       List<ViewWithId> result = new ArrayList<>();
-      for (DataBindingLayoutInfo info : myInfoList) {
+      for (BindingLayoutInfo info : myInfoList) {
         info.getViewsWithIds().forEach(viewWithId -> {
           if (used.add(viewWithId.name)) {
             result.add(viewWithId);
@@ -63,7 +69,7 @@ class MergedDataBindingLayoutInfo implements DataBindingLayoutInfo {
 
     myResourceItemCache = cacheManager.createCachedValue(() -> {
       Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>> result = new EnumMap<>(DataBindingResourceType.class);
-      for (DataBindingLayoutInfo info : myInfoList) {
+      for (BindingLayoutInfo info : myInfoList) {
         for (DataBindingResourceType type : DataBindingResourceType.values()) {
           Set<String> used = new HashSet<>();
           Map<String, PsiDataBindingResourceItem> itemsByName = info.getItems(type);
@@ -80,9 +86,9 @@ class MergedDataBindingLayoutInfo implements DataBindingLayoutInfo {
   }
 
   @SuppressWarnings("ConstantConditions")
-  public DefaultDataBindingLayoutInfo selectBaseInfo() {
-    DefaultDataBindingLayoutInfo best = null;
-    for (DefaultDataBindingLayoutInfo info : myInfoList) {
+  public DefaultBindingLayoutInfo selectBaseInfo() {
+    DefaultBindingLayoutInfo best = null;
+    for (DefaultBindingLayoutInfo info : myInfoList) {
       if (best == null ||
           best.getConfigurationName().length() > info.getConfigurationName().length()) {
         best = info;
@@ -158,10 +164,16 @@ class MergedDataBindingLayoutInfo implements DataBindingLayoutInfo {
   @Override
   public long getModificationCount() {
     int total = myInfoList.size();
-    for (DataBindingLayoutInfo info : myInfoList) {
+    for (BindingLayoutInfo info : myInfoList) {
       total += info.getModificationCount();
     }
     return total;
+  }
+
+  @NotNull
+  @Override
+  public LayoutType getLayoutType() {
+    return myBaseInfo.getLayoutType();
   }
 
   @Override
@@ -171,7 +183,7 @@ class MergedDataBindingLayoutInfo implements DataBindingLayoutInfo {
 
   @Override
   @Nullable
-  public DataBindingLayoutInfo getMergedInfo() {
+  public BindingLayoutInfo getMergedInfo() {
     return null;
   }
 }

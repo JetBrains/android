@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.SdkConstants.TAG_LAYOUT;
+
 import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
@@ -27,6 +29,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -35,11 +38,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 /**
- * Data Binding info for a single, target layout XML file.
+ * Binding info for a single, target layout XML file.
  *
- * See also: {@link MergedDataBindingLayoutInfo}
+ * See also: {@link MergedBindingLayoutInfo}
  */
-public class DefaultDataBindingLayoutInfo implements DataBindingLayoutInfo {
+public class DefaultBindingLayoutInfo implements BindingLayoutInfo {
   @NotNull private final Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>> myItems =
       new EnumMap<>(DataBindingResourceType.class);
 
@@ -53,10 +56,10 @@ public class DefaultDataBindingLayoutInfo implements DataBindingLayoutInfo {
   private boolean myClassNameSpecifiedByUser;
   private final AndroidFacet myFacet;
   @NotNull private final String myConfigurationName;
-  private MergedDataBindingLayoutInfo myMergedInfo;
+  private MergedBindingLayoutInfo myMergedInfo;
 
-  public DefaultDataBindingLayoutInfo(@NotNull AndroidFacet facet, @NotNull PsiResourceFile psiResourceFile, @NotNull String className,
-                                      @NotNull String packageName, boolean classNameSpecifiedByUser) {
+  public DefaultBindingLayoutInfo(@NotNull AndroidFacet facet, @NotNull PsiResourceFile psiResourceFile, @NotNull String className,
+                                  @NotNull String packageName, boolean classNameSpecifiedByUser) {
     myFacet = facet;
     myNonConfigurationClassName = className;
     myClassName = className;
@@ -102,7 +105,7 @@ public class DefaultDataBindingLayoutInfo implements DataBindingLayoutInfo {
     }
   }
 
-  public void setMergedInfo(MergedDataBindingLayoutInfo mergedInfo) {
+  public void setMergedInfo(MergedBindingLayoutInfo mergedInfo) {
     if (myMergedInfo == mergedInfo) {
       return;
     }
@@ -161,7 +164,7 @@ public class DefaultDataBindingLayoutInfo implements DataBindingLayoutInfo {
 
   @Override
   public PsiElement getNavigationElement() {
-    return new DataBindingLayoutInfoFile(this);
+    return new BindingLayoutInfoFile(this);
   }
 
   @Override
@@ -222,6 +225,16 @@ public class DefaultDataBindingLayoutInfo implements DataBindingLayoutInfo {
     return myLayoutModificationCount + myBindingModificationCount;
   }
 
+  @NotNull
+  @Override
+  public LayoutType getLayoutType() {
+    if (TAG_LAYOUT.equals(((XmlFile) myPsiResourceFile.getPsiFile()).getRootTag().getName())) {
+      return LayoutType.DATA_BINDING_LAYOUT;
+    } else {
+      return LayoutType.VIEW_BINDING_LAYOUT;
+    }
+  }
+
   @Override
   public boolean isMerged() {
     return false;
@@ -229,7 +242,7 @@ public class DefaultDataBindingLayoutInfo implements DataBindingLayoutInfo {
 
   @Nullable
   @Override
-  public DataBindingLayoutInfo getMergedInfo() {
+  public BindingLayoutInfo getMergedInfo() {
     return myMergedInfo;
   }
 
