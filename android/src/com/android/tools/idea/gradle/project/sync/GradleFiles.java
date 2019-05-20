@@ -35,6 +35,7 @@ import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -315,7 +316,7 @@ public class GradleFiles {
           ProgressManager.checkCanceled();
           File path = VfsUtilCore.virtualToIoFile(buildFile);
           if (path.isFile()) {
-            putHashForFile(fileHashes, buildFile);
+            ReadAction.run(() -> putHashForFile(fileHashes, buildFile));
           }
         }
         NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
