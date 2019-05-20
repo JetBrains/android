@@ -1141,6 +1141,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         case PROJECT_BUILD:
         case VARIANT_CHANGED:
         case SDK_CHANGED:
+          RefreshRenderAction.clearCache(getConfiguration());
           notifyModified(ChangeType.BUILD);
           break;
         case CONFIGURATION_CHANGED:
