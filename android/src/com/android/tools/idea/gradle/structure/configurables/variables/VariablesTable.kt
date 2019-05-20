@@ -356,6 +356,17 @@ class VariablesTable private constructor(
     maybeScheduleNameRepaint(rowBeingEdited, columnBeingEdited)
   }
 
+  override fun editingStopped(e: ChangeEvent?) {
+    val rowBeingEdited = editingRow
+    val columnBeingEdited = editingColumn
+    super.editingStopped(e)
+    val nodeBeingEdited = tree.getPathForRow(rowBeingEdited)?.lastPathComponent
+    if (nodeBeingEdited is EmptyVariableNode) {
+      nodeBeingEdited.type = null
+    }
+    maybeScheduleNameRepaint(rowBeingEdited, columnBeingEdited)
+  }
+
   private fun maybeScheduleNameRepaint(row: Int, column: Int) {
     if (column == UNRESOLVED_VALUE) {
       tree.getPathForRow(row)?.lastPathComponent?.safeAs<TreeNode>()?.let { treeNode ->
