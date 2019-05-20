@@ -48,7 +48,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
-import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -102,6 +102,14 @@ public class GradleFiles {
 
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
+  public static class UpdateHashesStartupActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      // Populate build file hashes on project startup.
+      getInstance(project).scheduleUpdateFileHashes();
+    }
+  }
+
   @NotNull
   public static GradleFiles getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleFiles.class);
@@ -125,28 +133,6 @@ public class GradleFiles {
 
 
     GradleSyncState.subscribe(myProject, mySyncListener);
-
-    // Populate build file hashes on creation.
-    if (myProject.isInitialized()) {
-      scheduleUpdateFileHashes();
-      checkAndAddInitialFileChangeListener(fileChangeListener);
-    }
-    else {
-      StartupManager.getInstance(myProject).registerPostStartupActivity(this::scheduleUpdateFileHashes);
-      StartupManager.getInstance(myProject).registerPostStartupActivity(() -> checkAndAddInitialFileChangeListener(fileChangeListener));
-    }
-  }
-
-  // Make sure if we already have a file open when this object is constructed we also attach the listener.
-  private void checkAndAddInitialFileChangeListener(@NotNull PsiTreeChangeListener fileChangeListener) {
-    ApplicationManager.getApplication().runReadAction(() -> {
-      FileEditor editor = FileEditorManager.getInstance(myProject).getSelectedEditor();
-      VirtualFile openFile = null;
-      if (editor != null) {
-        openFile = editor.getFile();
-      }
-      maybeAddOrRemovePsiTreeListener(openFile, fileChangeListener);
-    });
   }
 
   private void maybeAddOrRemovePsiTreeListener(@Nullable VirtualFile file, @NotNull PsiTreeChangeListener fileChangeListener) {

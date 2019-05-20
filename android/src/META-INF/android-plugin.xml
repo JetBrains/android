@@ -609,6 +609,7 @@
     <projectService serviceInterface="com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter"
                     serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporterImpl"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFiles$UpdateHashesStartupActivity"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleBuildState"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidKtsSupportNotification"/>
