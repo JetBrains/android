@@ -150,12 +150,13 @@ class NeleNewPropertyItemTest {
   fun testAssignedAttributesAreNotInCompletions() {
     val properties = createTable()
     val model = properties.first!!.model
-    val property = NeleNewPropertyItem(model, properties)
+    val property = NeleNewPropertyItem(model, properties, { it.rawValue == null })
     properties[ANDROID_URI, ATTR_TEXT].value = "Hello"
     properties[ANDROID_URI, ATTR_TEXT_COLOR].value = "#445566"
     val values = property.nameEditingSupport.completion()
     assertThat(values).containsExactly("style", "android:textSize", "android:gravity", "app:srcCompat",
-                                       "tools:text", "tools:textSize", "tools:textColor", "tools:gravity", "tools:srcCompat")                   }
+                                       "tools:text", "tools:textSize", "tools:textColor", "tools:gravity", "tools:srcCompat")
+  }
 
   @Test
   fun testValidationErrors() {

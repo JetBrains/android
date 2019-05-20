@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_LAYOUT
 import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValue
@@ -174,7 +174,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
       NlWriteCommandActionUtil.run(property.components, "Set $componentName.${property.name} to $newValue") {
         property.components.forEach { it.setAttribute(property.namespace, property.name, newValue) }
         logPropertyValueChanged(property)
-        if (property.namespace == SdkConstants.TOOLS_URI) {
+        if (property.namespace == TOOLS_URI) {
           if (newValue != null) {
             // A tools property may not be in the current set of possible properties. So add it now:
             if (properties.isEmpty) {
@@ -183,7 +183,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
             properties.put(property)
           }
 
-          if (property.name == SdkConstants.ATTR_PARENT_TAG) {
+          if (property.name == ATTR_PARENT_TAG) {
             // When the "parentTag" attribute is set on a <merge> tag,
             // we may have a different set of available properties available,
             // since the attributes of the "parentTag" are included if set.
@@ -341,12 +341,10 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     }
   }
 
-  @VisibleForTesting
   fun firePropertiesGenerated() {
     listeners.toTypedArray().forEach { it.propertiesGenerated(this) }
   }
 
-  @VisibleForTesting
   fun firePropertyValueChangeIfNeeded() {
     val components = activeSurface?.selectionModel?.selection ?: return
     if (components.isEmpty() || components != liveComponents) {
