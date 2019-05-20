@@ -19,7 +19,7 @@ import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.lang.databinding.config.DbFile
-import com.android.tools.idea.lang.databinding.getDataBindingLayoutInfo
+import com.android.tools.idea.lang.databinding.getBindingLayoutInfo
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
@@ -151,10 +151,10 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   private fun autoCompleteVariablesAndUnqualifiedFunctions(file: DbFile, result: CompletionResultSet) {
     autoCompleteUnqualifiedFunctions(result)
 
-    val dataBindingLayoutInfo = getDataBindingLayoutInfo(file) ?: return
+    val bindingLayoutInfo = getBindingLayoutInfo(file) ?: return
     result.addAllElements(
-      (dataBindingLayoutInfo.getItems(DataBindingResourceType.VARIABLE).values
-       + dataBindingLayoutInfo.getItems(DataBindingResourceType.IMPORT).values)
+      (bindingLayoutInfo.getItems(DataBindingResourceType.VARIABLE).values
+       + bindingLayoutInfo.getItems(DataBindingResourceType.IMPORT).values)
         .map { (name, _, xmlTag) ->
           LookupElementBuilder.create(xmlTag, DataBindingUtil.convertToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
         }

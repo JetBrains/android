@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbId
 import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
-import com.android.tools.idea.res.DataBindingLayoutInfo
+import com.android.tools.idea.res.BindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
@@ -286,7 +286,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
    * Return the parent XML layout info for the target [element], or `null` if that isn't possible
    * (e.g. databinding isn't enabled for this module)
    */
-  private fun getParentLayoutInfo(module: Module, element: PsiElement): DataBindingLayoutInfo? {
+  private fun getParentLayoutInfo(module: Module, element: PsiElement): BindingLayoutInfo? {
     val facet = AndroidFacet.getInstance(module)?.takeIf { facet -> DataBindingUtil.isDataBindingEnabled(facet) }
                 ?: return null
     val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
@@ -299,7 +299,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     }
 
     val fileNameWithoutExtension = topLevelFile.name.substringBeforeLast('.')
-    return moduleResources.getDataBindingLayoutInfo(fileNameWithoutExtension)
+    return moduleResources.getBindingLayoutInfo(fileNameWithoutExtension)
   }
 
   /**

@@ -21,15 +21,15 @@ import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
 
 /**
- * This class represents an XML file that hosts data binding logic - in other words, in addition
- * to being a regular XML file, it is also aware that it owns a data binding class.
+ * This class represents an XML file that hosts binding logic - in other words, in addition
+ * to being a regular XML file, it is also aware that it owns a binding class.
  *
  * Additional notes:
  *
- * We create a custom [PsiFile] implementation for [DataBindingLayoutInfo] files, to work around
- * the fact that data binding otherwise causes the IntelliJ code coverage runner to crash.
+ * We create a custom [PsiFile] implementation for [BindingLayoutInfo] files, to work around
+ * the fact that binding otherwise causes the IntelliJ code coverage runner to crash.
  *
- * The reason this happens is that data binding code is somewhat special, since binding classes are
+ * The reason this happens is that binding code is somewhat special, since binding classes are
  * generated from an XML file (e.g. `activity_main.xml` generates `ActivityMainBinding`). These
  * generated binding classes point back at the XML as its parent file.
  *
@@ -43,7 +43,7 @@ import com.intellij.util.IncorrectOperationException
  *
  * For even more context, see also https://issuetracker.google.com/120561619
  */
-class DataBindingLayoutInfoFile(private val info: DataBindingLayoutInfo) : PsiFile by info.psiFile, PsiClassOwner {
+class BindingLayoutInfoFile(private val info: BindingLayoutInfo) : PsiFile by info.psiFile, PsiClassOwner {
   override fun getContainingFile(): PsiFile {
     // Return ourselves instead of delegating to the target XML file, since we're the containing
     // file that also implements PsiClassOwner
@@ -57,6 +57,6 @@ class DataBindingLayoutInfoFile(private val info: DataBindingLayoutInfo) : PsiFi
   }
 
   override fun setPackageName(packageName: String?) {
-    throw IncorrectOperationException("Cannot set package name for generated data binding classes")
+    throw IncorrectOperationException("Cannot set package name for generated binding classes")
   }
 }

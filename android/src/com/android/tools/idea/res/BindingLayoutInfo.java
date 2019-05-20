@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * An interface for data binding related information that can be extracted from a layout xml file.
+ * An interface for binding related information that can be extracted from a layout xml file.
  */
-public interface DataBindingLayoutInfo extends ModificationTracker {
+public interface BindingLayoutInfo extends ModificationTracker {
   AndroidFacet getFacet();
 
   String getClassName();
@@ -63,7 +63,7 @@ public interface DataBindingLayoutInfo extends ModificationTracker {
    * resolutions or orientations).
    */
   @Nullable
-  DataBindingLayoutInfo getMergedInfo();
+  BindingLayoutInfo getMergedInfo();
 
   @NotNull
   Map<String, PsiDataBindingResourceItem> getItems(@NotNull DataBindingResourceType type);
@@ -82,6 +82,25 @@ public interface DataBindingLayoutInfo extends ModificationTracker {
     Map<String, PsiDataBindingResourceItem> imports = getItems(DataBindingResourceType.IMPORT);
     PsiDataBindingResourceItem importItem = imports.get(nameOrAlias);
     return importItem == null ? null : importItem.getTypeDeclaration();
+  }
+
+  @NotNull
+  LayoutType getLayoutType();
+
+  /**
+   * The different android layouts that we create {@link BindingLayoutInfo} for, depending on whether data binding or view binding is
+   * switched on.
+   *
+   * {@link VIEW_BINDING_LAYOUT} bindings are generated for legacy views - those that are not data binding views.
+   *
+   * {@link DATA_BINDING_LAYOUT} bindings are generated for views using data binding. They start with {@code <layout>} and {@code <data>}
+   * tags.
+   *
+   * When both are enabled, data binding layouts will be of type {@link DATA_BINDING_LAYOUT}, the rest will be {@link VIEW_BINDING_LAYOUT}.
+   */
+  enum LayoutType {
+    VIEW_BINDING_LAYOUT,
+    DATA_BINDING_LAYOUT
   }
 
   class ViewWithId {
