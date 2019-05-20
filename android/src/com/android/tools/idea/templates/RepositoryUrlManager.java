@@ -43,6 +43,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,6 +80,7 @@ public class RepositoryUrlManager {
   private static final Ordering<GradleCoordinate> GRADLE_COORDINATE_ORDERING = Ordering.from(COMPARE_PLUS_LOWER);
 
   private final boolean myForceRepositoryChecksInTests;
+  private final Set<String> myPendingNetworkRequests = ConcurrentHashMap.newKeySet();
   private GoogleMavenRepository myGoogleMavenRepository;
   private GoogleMavenRepository myCachedGoogleMavenRepository;
 
@@ -137,15 +139,12 @@ public class RepositoryUrlManager {
                                    @NotNull FileOp fileOp) {
     // First check the Google maven repository, which has most versions.
     GradleVersion version;
-
-    // This is a workaround for b/122113652. When callers invoke this method in the UI thread, it could block. For now, we avoid that
-    // by checking and using the local cached version when called from the dispatch thread.
     if (!ApplicationManager.getApplication().isDispatchThread()) {
       version = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews);
     }
     else {
-      LOG.warn("RepositoryUrlManager#getLibraryRevision called from the UI thread. Using local cache to avoid network requests");
       version = myCachedGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews);
+      refreshCacheInBackground(groupId, artifactId);
     }
 
     if (version != null) {
@@ -576,6 +575,22 @@ public class RepositoryUrlManager {
     }
     String prefix = raw.substring(0, raw.length() - 1);
     return version -> version.toString().startsWith(prefix);
+  }
+
+  private void refreshCacheInBackground(@NotNull String groupId, @NotNull String artifactId) {
+    String searchKey = String.format("%s:%s", groupId, artifactId);
+    if (myPendingNetworkRequests.add(searchKey)) {
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        try {
+          // We don't care about the result, just the side effect of updating the cache.
+          // This will only make a network request if there is no cache or it has expired.
+          myGoogleMavenRepository.findVersion(groupId, artifactId, (Predicate<GradleVersion>)null, true);
+        }
+        finally {
+          myPendingNetworkRequests.remove(searchKey);
+        }
+      });
+    }
   }
 
   @Nullable
