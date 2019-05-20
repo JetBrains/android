@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants.DOT_GRADLE
 import com.android.SdkConstants.DOT_KTS
-import com.android.annotations.concurrency.GuardedBy
+import com.android.annotations.concurrency.UiThread
 import com.android.builder.model.level2.Library
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
@@ -176,7 +176,7 @@ open class GradleSyncState(
 
   private val lock = ReentrantLock()
 
-  var areSyncNotificationsEnabled = false
+  private var areSyncNotificationsEnabled = false
     get() = lock.withLock { return field }
     private set(value) = lock.withLock { field = value }
   open var isSyncSkipped = false
@@ -253,6 +253,7 @@ open class GradleSyncState(
 
     // If this is the first Gradle sync for this project this session, make sure that GradleSyncResultPublisher
     // has been initialized so that it will begin broadcasting sync results on PROJECT_SYSTEM_SYNC_TOPIC.
+    // TODO(b/133154939): Move this out of GradleSyncState, possibly to AndroidProjectComponent.
     if (lastSyncFinishedTimeStamp < 0) GradleSyncResultPublisher.getInstance(project)
 
     listener?.syncStarted(project, request.generateSourcesOnSuccess)
@@ -281,6 +282,7 @@ open class GradleSyncState(
    * Triggered at the end of a successful sync, once the models have been fetched.
    *
    * TODO: This should be called after (rather than before) project setup
+   * TODO: Add SyncListener to params and call it in the method.
    */
   open fun syncSucceeded() {
     // syncFailed should be called if there're any sync issues.
@@ -290,6 +292,7 @@ open class GradleSyncState(
 
     // If mySyncStartedTimestamp is -1, that means sync has not started or syncSucceeded has been called for this invocation.
     // Reset sync state and don't log the events or notify listener again.
+    // TODO: Replace with exception once sync event calls are corrected to ensure this doesn't over trigger.
     if (syncStartedTimeStamp == -1L) {
       syncFinished(syncEndTimeStamp)
       return
@@ -498,23 +501,25 @@ open class GradleSyncState(
    * Common code to (re)set state once the sync has completed, all successful/failed/skipped syncs should run through this method.
    */
   private fun syncFinished(timeStamp: Long, skipped: Boolean = false) {
+    syncStartedTimeStamp = -1L
+    lastSyncFinishedTimeStamp = timeStamp
+
     lock.withLock {
       isSyncInProgress = false
       isSyncSkipped = false
       externalSystemTaskId = null
 
-      syncStartedTimeStamp = -1L
-      lastSyncFinishedTimeStamp = timeStamp
-
       areSyncNotificationsEnabled = true
     }
 
+    // TODO: Move out of GradleSyncState
     if (!skipped) {
       changeNotification.notifyStateChanged()
       ApplicationManager.getApplication().invokeAndWait { warnIfNotJdkHome() }
     }
   }
 
+  @UiThread
   private fun warnIfNotJdkHome() {
     if (!IdeInfo.getInstance().isAndroidStudio) return
     if (!NotificationsConfigurationImpl.getSettings(JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId).isShouldLog) return
