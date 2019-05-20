@@ -38,6 +38,19 @@ class PTableModelImplTest {
   }
 
   @Test
+  fun testParentOf() {
+    val model = createModel(Item("weight"), Group("weiss", Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff")))))
+    val impl = PTableModelImpl(model)
+    assertThat(impl.parentOf(model.find("weight")!!)).isNull()
+    assertThat(impl.parentOf(model.find("weiss")!!)).isNull()
+    assertThat(impl.parentOf(model.find("siphon")!!)).isEqualTo(model.find("weiss")!!)
+    assertThat(impl.parentOf(model.find("extra")!!)).isEqualTo(model.find("weiss")!!)
+    assertThat(impl.parentOf(model.find("some")!!)).isEqualTo(model.find("extra")!!)
+    assertThat(impl.parentOf(model.find("more")!!)).isEqualTo(model.find("extra")!!)
+    assertThat(impl.parentOf(model.find("stuff")!!)).isEqualTo(model.find("more")!!)
+  }
+
+  @Test
   fun testRestoreExpandedGroups() {
     val model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible"), Group("weiss", Item("siphon"), Item("extra")))
     val groupBefore = model.items[4] as PTableGroupItem
