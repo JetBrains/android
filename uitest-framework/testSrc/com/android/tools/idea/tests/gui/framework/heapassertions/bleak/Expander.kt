@@ -310,7 +310,7 @@ class RootExpander(g: HeapGraph): Expander(g) {
   override fun expand(n: Node) {
     val classes = (n.obj as BleakHelper).allLoadedClasses() as List<Class<*>>
     val classLoaders = classes.map{ it.classLoader }.filterNotNull().toSet() // the bootstrap class loader is represented by null
-    classLoaders.forEach {
+    classLoaders.filterNot { it.javaClass.name == "sun.reflect.DelegatingClassLoader" }.forEach {
       n.addEdgeTo(it, ObjectLabel(it))
     }
     n.addEdgeTo(BootstrapClassloaderPlaceholder, ObjectLabel(BootstrapClassloaderPlaceholder))
