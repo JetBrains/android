@@ -96,7 +96,7 @@ class ProductFlavorsPanel(
 
   override fun getCreateActions(): List<AnAction> {
     return listOf(
-        object : DumbAwareAction("Add Dimension", "", IconUtil.getAddIcon()) {
+        object : DumbAwareAction("Add Flavor Dimension", "", IconUtil.getAddIcon()) {
           override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(
