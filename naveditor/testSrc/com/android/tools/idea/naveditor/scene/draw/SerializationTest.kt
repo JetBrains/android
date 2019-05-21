@@ -59,8 +59,7 @@ class SerializationTest : TestCase() {
   fun testDrawAction() {
     val factory = { s: String -> DrawAction(s) }
 
-    testSerialization("DrawAction,REGULAR,10.0x20.0x30.0x40.0,50.0x60.0x70.0x80.0,ffffffff", DrawAction(
-      ActionType.REGULAR,
+    testSerialization("DrawAction,10.0x20.0x30.0x40.0,50.0x60.0x70.0x80.0,ffffffff", DrawAction(
       Rectangle2D.Float(10f, 20f, 30f, 40f),
       Rectangle2D.Float(50f, 60f, 70f, 80f),
       JBColor.WHITE), factory)
