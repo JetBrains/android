@@ -42,7 +42,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_R
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_COMPANY_DOMAIN;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DEBUG_KEYSTORE_SHA1;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_EXPLICIT_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION;
@@ -342,9 +341,6 @@ public final class TemplateValueInjector {
     addKotlinVersion();
 
     myTemplateValues.put(ATTR_IS_GRADLE, true);
-
-    // TODO: Check this one with Joe. It seems to be used by the old code on Import module, but can't find it on new code
-    myTemplateValues.put(ATTR_CREATE_ACTIVITY, false);
 
     // TODO: This seems project stuff
     if (project != null) {
