@@ -27,5 +27,6 @@
     <orderEntry type="module" module-name="android.sdktools.sdklib" scope="TEST" />
     <orderEntry type="library" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
     <orderEntry type="library" name="com.android.tools:ninepatch" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.util.ui" />
   </component>
 </module>
