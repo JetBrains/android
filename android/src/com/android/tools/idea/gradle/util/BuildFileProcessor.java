@@ -15,30 +15,26 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.utils.FileUtils.toSystemDependentPath;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings.CompositeBuild;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.utils.FileUtils.toSystemDependentPath;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtil.processFileRecursivelyWithoutIgnored;
 
 public class BuildFileProcessor {
   @NotNull
@@ -47,23 +43,12 @@ public class BuildFileProcessor {
   }
 
   public void processRecursively(@NotNull Project project,
-                                 @NotNull Processor<? super GradleBuildModel> processor,
-                                 boolean processCompositeBuilds) {
+                                 @NotNull Processor<? super GradleBuildModel> processor) {
     ApplicationManager.getApplication().runReadAction(() -> {
-      VirtualFile projectRootFolder = project.getBaseDir();
+      VirtualFile projectRootFolder = ProjectUtil.guessProjectDir(project);
       if (projectRootFolder == null) {
         // Unlikely to happen: this is default project.
         return;
-      }
-
-      List<VirtualFile> projectRootFolders = new ArrayList<>();
-      projectRootFolders.add(projectRootFolder);
-      if (processCompositeBuilds) {
-        List<File> compositeBuildFolders = getCompositeBuildFolderPaths(project);
-        projectRootFolders.addAll(compositeBuildFolders.stream()
-                                    .map(file -> findFileByIoFile(file, true /* refresh if needed */))
-                                    .filter(Objects::nonNull)
-                                    .collect(Collectors.toList()));
       }
 
       ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
@@ -71,14 +56,17 @@ public class BuildFileProcessor {
         return;
       }
 
-      for (VirtualFile rootFolder : projectRootFolders) {
-        processFileRecursivelyWithoutIgnored(rootFolder, virtualFile -> {
-          if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-            GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(virtualFile);
-            return processor.process(buildModel);
-          }
-          return true;
-        });
+      GradleSettingsModel settings = projectBuildModel.getProjectSettingsModel();
+      if (settings == null) {
+        return;
+      }
+
+      for (String path : settings.modulePaths()) {
+        GradleBuildModel buildModel = settings.moduleModel(path);
+        boolean continueProcessing = processor.process(buildModel);
+        if (!continueProcessing) {
+          return;
+        }
       }
     });
   }
