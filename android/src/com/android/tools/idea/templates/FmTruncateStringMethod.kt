@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates;
+package com.android.tools.idea.templates
 
-import freemarker.template.*;
+import freemarker.template.SimpleScalar
+import freemarker.template.TemplateMethodModelEx
+import freemarker.template.TemplateModel
+import freemarker.template.TemplateModelException
+import freemarker.template.TemplateNumberModel
 
-import java.util.List;
-
-public class FmTruncateStringMethod implements TemplateMethodModelEx {
-  @Override
-  public TemplateModel exec(List args) throws TemplateModelException {
-    if (args.size() != 2) {
-      throw new TemplateModelException("Wrong arguments");
+class FmTruncateStringMethod : TemplateMethodModelEx {
+  override fun exec(args: List<*>): TemplateModel {
+    if (args.size != 2) {
+      throw TemplateModelException("Wrong arguments")
     }
-    String s = ((TemplateScalarModel)args.get(0)).getAsString();
-    int max = ((TemplateNumberModel)args.get(1)).getAsNumber().intValue();
-    return new SimpleScalar(s.substring(0, Math.min(s.length(), max)));
+    val s = args[0].toString()
+    val max = (args[1] as TemplateNumberModel).asNumber.toInt()
+    return SimpleScalar(s.substring(0, Math.min(s.length, max)))
   }
 }

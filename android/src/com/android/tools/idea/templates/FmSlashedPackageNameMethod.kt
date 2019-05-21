@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates;
+package com.android.tools.idea.templates
 
-import com.android.utils.XmlUtils;
-
-import freemarker.template.*;
-
-import java.util.List;
+import freemarker.template.SimpleScalar
+import freemarker.template.TemplateMethodModelEx
+import freemarker.template.TemplateModel
+import freemarker.template.TemplateModelException
 
 /**
- * Method invoked by FreeMarker to escape a string such that it can be used
- * as XML text (escaping < and &, but not ' and " etc).
+ * Method invoked by FreeMarker to convert a package name (foo.bar) into
+ * a slashed path (foo/bar)
  */
-public class FmEscapeXmlTextMethod implements TemplateMethodModelEx {
-  @Override
-  public TemplateModel exec(List args) throws TemplateModelException {
-    if (args.size() != 1) {
-      throw new TemplateModelException("Wrong arguments");
+class FmSlashedPackageNameMethod : TemplateMethodModelEx {
+  override fun exec(args: List<*>): TemplateModel {
+    if (args.size != 1) {
+      throw TemplateModelException("Wrong arguments")
     }
-    String string = ((TemplateScalarModel)args.get(0)).getAsString();
-    return new SimpleScalar(XmlUtils.toXmlTextValue(string));
+
+    return SimpleScalar(args[0].toString().replace('.', '/'))
   }
 }

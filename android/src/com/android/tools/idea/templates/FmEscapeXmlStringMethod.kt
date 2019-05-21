@@ -13,27 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates;
+package com.android.tools.idea.templates
 
-import com.android.ide.common.resources.ValueXmlHelper;
-import freemarker.template.*;
-
-import java.util.List;
+import com.android.ide.common.resources.ValueXmlHelper
+import freemarker.template.SimpleScalar
+import freemarker.template.TemplateMethodModelEx
+import freemarker.template.TemplateModel
+import freemarker.template.TemplateModelException
 
 /**
  * Method invoked by FreeMarker to escape a string such that it can be placed
  * as text in a string resource file.
- * This is similar to {@link FmEscapeXmlTextMethod}, but in addition to escaping
+ * This is similar to [FmEscapeXmlTextMethod], but in addition to escaping
  * &lt; and &amp; it also escapes characters such as quotes necessary for Android
- *{@code <string>} elements.
+ * `<string>` elements.
  */
-public class FmEscapeXmlStringMethod implements TemplateMethodModelEx {
-    @Override
-    public TemplateModel exec(List args) throws TemplateModelException {
-        if (args.size() != 1) {
-            throw new TemplateModelException("Wrong arguments");
-        }
-        String string = ((TemplateScalarModel)args.get(0)).getAsString();
-        return new SimpleScalar(ValueXmlHelper.escapeResourceString(string));
+class FmEscapeXmlStringMethod : TemplateMethodModelEx {
+  override fun exec(args: List<*>): TemplateModel {
+    if (args.size != 1) {
+      throw TemplateModelException("Wrong arguments")
     }
+    return SimpleScalar(ValueXmlHelper.escapeResourceString(args[0].toString()))
+  }
 }
