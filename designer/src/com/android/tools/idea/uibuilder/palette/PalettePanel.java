@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.palette;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
@@ -101,6 +102,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * Top level Palette UI.
  */
+@UiThread
 public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
   private static final int DOWNLOAD_WIDTH = 16;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
