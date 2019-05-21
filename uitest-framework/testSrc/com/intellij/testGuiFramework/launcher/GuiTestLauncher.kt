@@ -17,8 +17,8 @@ package com.intellij.testGuiFramework.launcher
 
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.tools.idea.tests.gui.framework.AspectsAgentLogger
 import com.android.tools.idea.tests.gui.framework.GuiTests
+import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogUtil
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
@@ -85,11 +85,19 @@ object GuiTestLauncher {
     vmOptionsFile?.let {
       processBuilder.environment()["STUDIO_VM_OPTIONS"] = it.canonicalPath
     }
-    val aspectsAgentLogPath = AspectsAgentLogger.getAspectsAgentLog()?.absolutePath
+    setAspectsAgentEnv(processBuilder)
+    process = processBuilder.start()
+  }
+
+  private fun setAspectsAgentEnv(processBuilder: ProcessBuilder) {
+    val aspectsAgentLogPath = AspectsAgentLogUtil.getAspectsAgentLog()?.absolutePath
     if (aspectsAgentLogPath != null) {
       processBuilder.environment()["ASPECTS_AGENT_LOG"] = aspectsAgentLogPath
     }
-    process = processBuilder.start()
+    val activeStackTracesLog = AspectsAgentLogUtil.getAspectsActiveStackTracesLog()?.absolutePath
+    if (activeStackTracesLog != null) {
+      processBuilder.environment()["ASPECTS_BASELINE_HITS"] = activeStackTracesLog
+    }
   }
 
   /**
