@@ -125,6 +125,7 @@ class ResourceExplorerToolbar(
 
     border = JBUI.Borders.merge(JBUI.Borders.empty(4, 2), JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), true)
     toolbarViewModel.updateUICallback = this::update
+    update() // Update current module right away.
   }
 
   private fun update() {
