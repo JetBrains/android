@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import com.android.testutils.TestUtils;
-import com.android.tools.idea.npw.model.JavaToKotlinHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -26,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogF
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -49,6 +46,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
+import static com.android.tools.idea.npw.model.HelpersKt.getKotlinVersion;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
@@ -181,7 +179,7 @@ public class AddKotlinTest {
 
     String newBuildGradleContents = buildGradleContents.replaceAll(
       "ext\\.kotlin_version.*=.*",
-      "ext.kotlin_version = '" + JavaToKotlinHandler.getJavaToKotlinConversionProvider().getKotlinVersion() + '\'')
+      "ext.kotlin_version = '" + getKotlinVersion() + '\'')
       .replaceAll(
         "mavenCentral\\(\\)",
         ""

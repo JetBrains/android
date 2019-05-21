@@ -13,27 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.template;
+package com.android.tools.idea.npw.template
 
-import com.android.annotations.NonNull;
-import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiJavaFile;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
+import com.intellij.openapi.extensions.ExtensionPointName
 
 /**
  * Extension point for transforming java files into kotlin as well as providing the necessary configuration for kotlin
  */
-public interface ConvertJavaToKotlinProvider {
-  ExtensionPointName<ConvertJavaToKotlinProvider> EP_NAME =
-    new ExtensionPointName<>("com.android.tools.idea.npw.template.convertJavaToKotlinProvider");
+interface ConvertJavaToKotlinProvider {
+  val kotlinVersion: String
 
-  @NonNull String getKotlinVersion();
-
-  List<PsiFile> convertToKotlin(@NotNull Project project, @NotNull List<PsiJavaFile> files);
-
-  void configureKotlin(@NotNull Project project);
+  companion object {
+    @JvmStatic
+    val EP_NAME = ExtensionPointName<ConvertJavaToKotlinProvider>("com.android.tools.idea.npw.template.convertJavaToKotlinProvider")
+  }
 }
