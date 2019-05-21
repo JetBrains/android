@@ -93,7 +93,6 @@ public class TemplateMetadata {
   public static final String ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName";
   public static final String ATTR_MODULE_NAME = "projectName";
   public static final String ATTR_MODULE_SIMPLE_NAME = "projectSimpleName"; // Same as ATTR_MODULE_NAME but no spaces or other symbols
-  public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_IS_LOW_MEMORY = "isLowMemory";
   public static final String ATTR_NUM_ENABLED_FORM_FACTORS = "NumberOfEnabledFormFactors";
