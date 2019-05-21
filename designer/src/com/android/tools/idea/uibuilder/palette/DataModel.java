@@ -26,6 +26,7 @@ import static com.android.SdkConstants.SWITCH;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
@@ -33,6 +34,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
 import com.intellij.openapi.util.Disposer;
@@ -54,6 +56,7 @@ import org.jetbrains.annotations.NotNull;
  * This model is responsible for loading data for the wanted palette
  * and generating updates to 2 list models: category list and item list.
  */
+@UiThread
 public class DataModel implements Disposable {
   public static final Palette.Group COMMON = new Palette.Group("Common");
   @VisibleForTesting
@@ -132,17 +135,18 @@ public class DataModel implements Disposable {
     myPaletteModel = paletteModel;
     myPaletteModel.addUpdateListener(myUpdateListener);
 
-    return CompletableFuture.supplyAsync(() -> paletteModel.getPalette(layoutType), AppExecutorUtil.getAppExecutorService())
-      .thenAccept(palette -> {
-        myPaletteLock.writeLock().lock();
-        try {
-          myPalette = palette;
-          myDependencyManager.setPalette(myPalette, facet.getModule());
-        } finally {
-          myPaletteLock.writeLock().unlock();
-        }
-      })
-      .thenCompose(palette -> update());
+    return CompletableFuture.runAsync(() -> {
+      Palette palette = paletteModel.getPalette(layoutType);
+      myPaletteLock.writeLock().lock();
+      try {
+        myPalette = palette;
+        myDependencyManager.setPalette(myPalette, facet.getModule());
+      }
+      finally {
+        myPaletteLock.writeLock().unlock();
+      }
+    }, AppExecutorUtil.getAppExecutorService())
+    .thenRunAsync(this::update, EdtExecutorService.getInstance());
   }
 
   @Override
@@ -231,8 +235,9 @@ public class DataModel implements Disposable {
     update();
   }
 
-  @NotNull
-  private CompletableFuture<Void> update() {
+  private void update() {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
     assert myLayoutType != null;
     boolean isUserSearch = myFilterPattern.hasPattern();
     List<Palette.Group> groups = new ArrayList<>();
@@ -272,7 +277,8 @@ public class DataModel implements Disposable {
         }
       }
     });
-    return updateCategoryModel(groups, matchCounts);
+
+    myListModel.update(groups, matchCounts);
   }
 
   /**
@@ -281,11 +287,6 @@ public class DataModel implements Disposable {
   private void onDependenciesChanged() {
     update();
     categorySelectionChanged(myCurrentSelectedGroup);
-  }
-
-  @NotNull
-  private CompletableFuture<Void> updateCategoryModel(@NotNull List<Palette.Group> groups, @NotNull List<Integer> matchCounts) {
-    return CompletableFuture.runAsync(() -> myListModel.update(groups, matchCounts), EdtExecutor.INSTANCE);
   }
 
   private void createFilteredItems(@NotNull Palette.Group selectedGroup) {
