@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.ClassReader;
@@ -49,6 +50,8 @@ import org.jetbrains.org.objectweb.asm.Type;
 public class ClassConverter {
   private static final String ORIGINAL_SUFFIX = "_Original";
   private static final String ERROR_METHOD_DESCRIPTION;
+
+  private static final int ourCurrentJdkClassVersion = jdkToClassVersion(SystemInfo.JAVA_VERSION);
 
   static {
     String desc;
@@ -181,22 +184,20 @@ public class ClassConverter {
 
   /** Converts a JDK string like 1.6.0_65 to the corresponding class file version number, e.g. 50 */
   public static int jdkToClassVersion(@NotNull String version) { // e.g. 1.6.0_b52
+    version = StringUtil.trimStart(version, "1.");
+
     int dot = version.indexOf('.');
     if (dot != -1) {
-      dot++;
-      int end = version.length();
-      for (int i = dot; i < end; i++) {
-        if (!Character.isDigit(version.charAt(i))) {
-          end = i;
-          break;
-        }
+      version = version.substring(0, dot);
+    }
+
+    try {
+      int major = Integer.valueOf(version.trim());
+      if (major > 0) {
+        return major + 44; // 1.3 => 47, ... 1.6 => 50, 1.7 => 51, ...
       }
-      if (end > dot) {
-        int major = Integer.valueOf(version.substring(dot, end));
-        if (major > 0) {
-          return major + 44; // 1.3 => 47, ... 1.6 => 50, 1.7 => 51, ...
-        }
-      }
+    }
+    catch (NumberFormatException ignored) {
     }
 
     return -1;
@@ -233,7 +234,7 @@ public class ClassConverter {
 
   /** Return the classfile version of the current JDK */
   public static int getCurrentClassVersion() {
-    return jdkToClassVersion(SystemInfo.JAVA_VERSION);
+    return ourCurrentJdkClassVersion;
   }
 
   /** Returns true if the given class file data represents a valid class */
