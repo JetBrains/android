@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates;
+package com.android.tools.idea.templates
 
-import freemarker.template.*;
-
-import java.util.List;
+import freemarker.template.SimpleScalar
+import freemarker.template.TemplateMethodModelEx
+import freemarker.template.TemplateModel
+import freemarker.template.TemplateModelException
 
 /**
- * Method invoked by FreeMarker to convert an underscore name into a CamelCase name.
+ * Method invoked by FreeMarker to convert a underscore_names word into CamelCase.
  */
-public class FmCamelCaseToUnderscoreMethod implements TemplateMethodModelEx {
-  @Override
-  public TemplateModel exec(List args) throws TemplateModelException {
-    if (args.size() != 1) {
-      throw new TemplateModelException("Wrong arguments");
+class FmUnderscoreToCamelCaseMethod : TemplateMethodModelEx {
+  override fun exec(args: List<*>): TemplateModel {
+    if (args.size != 1) {
+      throw TemplateModelException("Wrong arguments")
     }
-
-    String argString = ((TemplateScalarModel)args.get(0)).getAsString();
-    return new SimpleScalar(TemplateUtils.camelCaseToUnderlines(argString));
+    val argString = args[0].toString()
+    return SimpleScalar(TemplateUtils.underlinesToCamelCase(argString))
   }
 }

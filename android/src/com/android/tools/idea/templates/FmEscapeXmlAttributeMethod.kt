@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates;
+package com.android.tools.idea.templates
 
-import com.android.utils.XmlUtils;
-
-import freemarker.template.*;
-
-import java.util.List;
+import com.android.utils.XmlUtils
+import freemarker.template.SimpleScalar
+import freemarker.template.TemplateMethodModelEx
+import freemarker.template.TemplateModel
+import freemarker.template.TemplateModelException
 
 /**
  * Method invoked by FreeMarker to escape a string such that it can be used
  * as an XML attribute (escaping ', ", & and <).
  */
-public class FmEscapeXmlAttributeMethod implements TemplateMethodModelEx {
-  @Override
-  public TemplateModel exec(List args) throws TemplateModelException {
-    if (args.size() != 1) {
-      throw new TemplateModelException("Wrong arguments");
+class FmEscapeXmlAttributeMethod : TemplateMethodModelEx {
+  override fun exec(args: List<*>): TemplateModel {
+    if (args.size != 1) {
+      throw TemplateModelException("Wrong arguments")
     }
-    String string = ((TemplateScalarModel)args.get(0)).getAsString();
-    return new SimpleScalar(XmlUtils.toXmlAttributeValue(string));
+    return SimpleScalar(XmlUtils.toXmlAttributeValue(args[0].toString()))
   }
 }

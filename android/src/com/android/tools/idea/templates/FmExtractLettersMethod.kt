@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates;
+package com.android.tools.idea.templates
 
-import freemarker.template.*;
-
-import java.util.List;
+import freemarker.template.SimpleScalar
+import freemarker.template.TemplateMethodModelEx
+import freemarker.template.TemplateModel
+import freemarker.template.TemplateModelException
 
 /**
- * Method invoked by FreeMarker to convert a package name (foo.bar) into
- * a slashed path (foo/bar)
+ * Method invoked by FreeMarker to extract letters from a string; this will remove
+ * any whitespace, punctuation and digits.
  */
-public class FmSlashedPackageNameMethod implements TemplateMethodModelEx {
-
-    @Override
-    public TemplateModel exec(List args) throws TemplateModelException {
-        if (args.size() != 1) {
-            throw new TemplateModelException("Wrong arguments");
-        }
-
-        String argString = ((TemplateScalarModel)args.get(0)).getAsString();
-        return new SimpleScalar(argString.replace('.', '/'));
+class FmExtractLettersMethod : TemplateMethodModelEx {
+  override fun exec(args: List<*>): TemplateModel {
+    if (args.size != 1) {
+      throw TemplateModelException("Wrong arguments")
     }
+
+    return SimpleScalar(args[0].toString().filter(Character::isLetter))
+  }
 }
