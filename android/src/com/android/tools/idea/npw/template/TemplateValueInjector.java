@@ -50,7 +50,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICA
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INSTANT_APP_API_MIN_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_BASE_FEATURE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_FEATURE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_GRADLE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_INSTANT_APP;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LOW_MEMORY;
@@ -339,8 +338,6 @@ public final class TemplateValueInjector {
 
     addGradleVersions(project);
     addKotlinVersion();
-
-    myTemplateValues.put(ATTR_IS_GRADLE, true);
 
     // TODO: This seems project stuff
     if (project != null) {
