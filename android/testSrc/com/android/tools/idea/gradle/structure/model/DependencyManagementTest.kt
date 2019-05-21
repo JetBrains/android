@@ -942,6 +942,19 @@ class DependencyManagementTest : DependencyTestCase() {
       assertThat(resolvedDependencies?.findJarDependencies(lib2JarPath)?.singleOrNull()?.declaredDependencies?.size, equalTo(1))
     }
   }
+
+  fun testFlavorConfigurationWorkaround() {
+    var appModule = project.findModuleByName("app") as PsAndroidModule
+    val mainModule = appModule.dependencies.findModuleDependency(":mainModule")
+    appModule.modifyDependencyConfiguration(mainModule!!, "paidReleaseImplementation")
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule.dependencies.findModuleDependency(":mainModule")?.configurationName, equalTo("paidReleaseImplementation"))
+  }
 }
 
 private fun <T> PsDeclaredDependencyCollection<*, T, *, *>.findLibraryDependency(
