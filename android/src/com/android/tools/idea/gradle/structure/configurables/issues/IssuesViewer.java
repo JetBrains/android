@@ -23,6 +23,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.components.JBLabel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,6 +66,7 @@ public class IssuesViewer {
   }
 
   public void display(@NotNull Collection<PsIssue> issues, @Nullable PsPath scope) {
+    // TODO(xof): all of this is horrible: rewrite so that it is less horrible
     if (issues.isEmpty()) {
       if (myShowEmptyText) {
         myEmptyIssuesLabel.setVisible(true);
@@ -82,6 +85,11 @@ public class IssuesViewer {
       myIssuesPanel3.setVisible(true);
       myIssuesPanel4.setVisible(true);
     }
+
+    removeListeners((CollapsiblePanel) myIssuesPanel1);
+    removeListeners((CollapsiblePanel) myIssuesPanel2);
+    removeListeners((CollapsiblePanel) myIssuesPanel3);
+    removeListeners((CollapsiblePanel) myIssuesPanel4);
 
     Map<PsIssue.Severity, List<PsIssue>> issuesBySeverity = Maps.newHashMap();
     for (PsIssue issue : issues) {
@@ -102,10 +110,16 @@ public class IssuesViewer {
 
     // Start displaying from last to first
     int currentIssueIndex = typeCount - 1;
-    PsIssue.Severity severity = severities.get(currentIssueIndex);
-    List<PsIssue> group = issuesBySeverity.get(severity);
-    updateTitle(((CollapsiblePanel)myIssuesPanel4), severity, group);
-    renderIssues(group, scope, myIssuesView4);
+    PsIssue.Severity severity4 = severities.get(currentIssueIndex);
+    List<PsIssue> group4 = issuesBySeverity.get(severity4);
+    myIssuesPanel4.addPropertyChangeListener("expanded", new PropertyChangeListener() {
+      @Override
+      public void propertyChange(PropertyChangeEvent evt) {
+        updateTitle((CollapsiblePanel) myIssuesPanel4, severity4, group4);
+      }
+    });
+    updateTitle(((CollapsiblePanel)myIssuesPanel4), severity4, group4);
+    renderIssues(group4, scope, myIssuesView4);
 
     currentIssueIndex--;
     if (currentIssueIndex < 0) {
@@ -116,10 +130,16 @@ public class IssuesViewer {
       return;
     }
 
-    severity = severities.get(currentIssueIndex);
-    group = issuesBySeverity.get(severity);
-    updateTitle(((CollapsiblePanel)myIssuesPanel3), severity, group);
-    renderIssues(group, scope, myIssuesView3);
+    PsIssue.Severity severity3 = severities.get(currentIssueIndex);
+    List<PsIssue> group3 = issuesBySeverity.get(severity3);
+    myIssuesPanel3.addPropertyChangeListener("expanded", new PropertyChangeListener() {
+      @Override
+      public void propertyChange(PropertyChangeEvent evt) {
+        updateTitle((CollapsiblePanel) myIssuesPanel3, severity3, group3);
+      }
+    });
+    updateTitle(((CollapsiblePanel)myIssuesPanel3), severity3, group3);
+    renderIssues(group3, scope, myIssuesView3);
 
     currentIssueIndex--;
     if (currentIssueIndex < 0) {
@@ -129,10 +149,16 @@ public class IssuesViewer {
       return;
     }
 
-    severity = severities.get(currentIssueIndex);
-    group = issuesBySeverity.get(severity);
-    updateTitle(((CollapsiblePanel)myIssuesPanel2), severity, group);
-    renderIssues(group, scope, myIssuesView2);
+    PsIssue.Severity severity2 = severities.get(currentIssueIndex);
+    List<PsIssue> group2 = issuesBySeverity.get(severity2);
+    myIssuesPanel2.addPropertyChangeListener("expanded", new PropertyChangeListener() {
+      @Override
+      public void propertyChange(PropertyChangeEvent evt) {
+        updateTitle((CollapsiblePanel) myIssuesPanel2, severity2, group2);
+      }
+    });
+    updateTitle(((CollapsiblePanel)myIssuesPanel2), severity2, group2);
+    renderIssues(group2, scope, myIssuesView2);
 
     currentIssueIndex--;
     if (currentIssueIndex < 0) {
@@ -141,10 +167,16 @@ public class IssuesViewer {
       return;
     }
 
-    severity = severities.get(currentIssueIndex);
-    group = issuesBySeverity.get(severity);
-    updateTitle(((CollapsiblePanel)myIssuesPanel1), severity, group);
-    renderIssues(group, scope, myIssuesView1);
+    PsIssue.Severity severity1 = severities.get(currentIssueIndex);
+    List<PsIssue> group1 = issuesBySeverity.get(severity1);
+    myIssuesPanel1.addPropertyChangeListener("expanded", new PropertyChangeListener() {
+      @Override
+      public void propertyChange(PropertyChangeEvent evt) {
+        updateTitle((CollapsiblePanel) myIssuesPanel1, severity1, group1);
+      }
+    });
+    updateTitle(((CollapsiblePanel)myIssuesPanel1), severity1, group1);
+    renderIssues(group1, scope, myIssuesView1);
 
     revalidateAndRepaintPanels();
   }
@@ -161,14 +193,20 @@ public class IssuesViewer {
     revalidateAndRepaint(myMainPanel);
   }
 
+  private static void removeListeners(@NotNull CollapsiblePanel panel) {
+    for (PropertyChangeListener l : panel.getPropertyChangeListeners("expanded")) {
+      panel.removePropertyChangeListener("expanded", l);
+    }
+  }
+
   private static void updateTitle(@NotNull CollapsiblePanel panel, @NotNull PsIssue.Severity severity, @NotNull List<PsIssue> issues) {
     SimpleColoredComponent title = panel.getTitleComponent();
     title.clear();
     title.setIcon(severity.getIcon());
     title.append(severity.getText(), REGULAR_ATTRIBUTES);
     int issueCount = issues.size();
-    if (issueCount != 1) {
-      title.append(" (" + issueCount + " items)", GRAY_ATTRIBUTES);
+    if (!panel.isExpanded()) {
+      title.append(" (" + issueCount + " item" + (issueCount == 1 ? "" : "s") + ")", GRAY_ATTRIBUTES);
     }
   }
 
