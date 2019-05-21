@@ -69,7 +69,6 @@ public class TemplateMetadata {
   public static final String ATTR_APP_TITLE = "appTitle";
   public static final String ATTR_IS_NEW_PROJECT = "isNewProject";
   public static final String ATTR_THEME_EXISTS = "themeExists";
-  public static final String ATTR_IS_GRADLE = "isGradle";
   public static final String ATTR_TOP_OUT = "topOut";
   public static final String ATTR_PROJECT_OUT = "projectOut"; // Module (Project in gradle language) location
   public static final String ATTR_SRC_OUT = "srcOut";
