@@ -27,7 +27,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_S
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICONS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_INSTANT_APP;
@@ -245,6 +244,9 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static boolean ourValidatedTemplateManager;
 
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
+
+  // TODO: this is used only in TemplateTest. We should pass this value without changing template values.
+  static String ATTR_CREATE_ACTIVITY = "createActivity";
 
   public TemplateTest() {
   }
