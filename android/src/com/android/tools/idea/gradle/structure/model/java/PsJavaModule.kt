@@ -94,6 +94,9 @@ class PsJavaModule(
     myResolvedDependencyCollection = null
   }
 
+  override fun maybeAddConfiguration(configurationName: String) = Unit
+  override fun maybeRemoveConfiguration(configurationName: String) = Unit
+
   object JavaModuleDescriptors: ModelDescriptor<PsJavaModule, Nothing, Nothing> {
     override fun getResolved(model: PsJavaModule): Nothing? = null
     override fun getParsed(model: PsJavaModule): Nothing? = null
