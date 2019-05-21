@@ -124,7 +124,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="batik" level="project" />
     <orderEntry type="library" name="xml-apis-ext" level="project" />
     <orderEntry type="module-library">
       <library name="pepk">
@@ -239,5 +238,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="com.android.tools.apkparser:binary-resources" level="project" />
+    <orderEntry type="library" name="batik-transcoder" level="project" />
   </component>
 </module>
