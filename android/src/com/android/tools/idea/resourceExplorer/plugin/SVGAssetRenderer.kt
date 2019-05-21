@@ -78,7 +78,7 @@ class SVGAssetRenderer : DesignAssetRenderer {
       ).createDocument(null, inputStream)
     )
 
-    private inner class MyTranscoder : ImageTranscoder() {
+    private inner class MyTranscoder : org.apache.batik.transcoder.image.ImageTranscoder() {
       override fun createImage(w: Int, h: Int): BufferedImage {
         return UIUtil.createImage(w, h, BufferedImage.TYPE_INT_ARGB)
       }
