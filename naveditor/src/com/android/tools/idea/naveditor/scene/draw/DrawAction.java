@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.scene.draw;
 
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.ACTION_STROKE;
-import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.DASHED_ACTION_STROKE;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getArrowPoint;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getCurvePoints;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getDestinationDirection;
@@ -49,53 +48,49 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DrawAction extends DrawCommandBase {
   private static final GeneralPath PATH = new GeneralPath();
-  private final ActionType myActionType;
   @SwingCoordinate private final Rectangle2D.Float mySource = new Rectangle2D.Float();
   @SwingCoordinate private final Rectangle2D.Float myDest = new Rectangle2D.Float();
 
   private final Color myColor;
 
   public DrawAction(@NotNull String serialized) {
-    this(DrawCommandSerializationHelperKt.parse(serialized, 4));
+    this(DrawCommandSerializationHelperKt.parse(serialized, 3));
   }
 
   @Override
   public String serialize() {
     return DrawCommandSerializationHelperKt
-      .buildString(getClass().getSimpleName(), myActionType, DrawCommandSerializationHelperKt.rect2DToString(mySource),
+      .buildString(getClass().getSimpleName(), DrawCommandSerializationHelperKt.rect2DToString(mySource),
                    DrawCommandSerializationHelperKt.rect2DToString(myDest), DrawCommandSerializationHelperKt.colorToString(myColor));
   }
 
   @Override
   protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
     setRenderingHints(g);
-    draw(g, myColor, myActionType, mySource, myDest, sceneContext);
+    draw(g, myColor, mySource, myDest, sceneContext);
   }
 
-  public DrawAction(@NotNull ActionType actionType,
-                    @SwingCoordinate Rectangle2D.Float source,
+  public DrawAction(@SwingCoordinate Rectangle2D.Float source,
                     @SwingCoordinate Rectangle2D.Float dest,
                     @NotNull Color color) {
     mySource.setRect(source);
     myDest.setRect(dest);
-    myActionType = actionType;
     myColor = color;
   }
 
   private DrawAction(@NotNull String[] s) {
-    this(ActionType.valueOf(s[0]), DrawCommandSerializationHelperKt.stringToRect2D(s[1]),
-         DrawCommandSerializationHelperKt.stringToRect2D(s[2]), DrawCommandSerializationHelperKt.stringToColor(s[3]));
+    this(DrawCommandSerializationHelperKt.stringToRect2D(s[0]),
+         DrawCommandSerializationHelperKt.stringToRect2D(s[1]), DrawCommandSerializationHelperKt.stringToColor(s[2]));
   }
 
   public static void buildDisplayList(@NotNull DisplayList list,
                                       @NotNull SceneView sceneView,
-                                      @NotNull ActionType connectionType,
                                       boolean isPopAction,
                                       @SwingCoordinate Rectangle2D.Float source,
                                       @SwingCoordinate Rectangle2D.Float dest,
                                       @NotNull Color color) {
     SceneContext sceneContext = SceneContext.get(sceneView);
-    list.add(new DrawAction(connectionType, source, dest, color));
+    list.add(new DrawAction(source, dest, color));
     ConnectionDirection direction = getDestinationDirection(source, dest);
     Point2D.Float arrowPoint = getArrowPoint(sceneContext, dest, direction);
 
@@ -113,7 +108,6 @@ public class DrawAction extends DrawCommandBase {
 
   private static void draw(@NotNull Graphics2D g,
                            @NotNull Color color,
-                           @NotNull ActionType connectionType,
                            @SwingCoordinate Rectangle2D.Float source,
                            @SwingCoordinate Rectangle2D.Float dest,
                            @NotNull SceneContext sceneContext) {
@@ -123,11 +117,7 @@ public class DrawAction extends DrawCommandBase {
     PATH.moveTo(points.p1.x, points.p1.y);
     PATH.curveTo(points.p2.x, points.p2.y, points.p3.x, points.p3.y, points.p4.x, points.p4.y);
 
-    BasicStroke actionStroke = (connectionType == ActionType.EXIT_DESTINATION)
-                               ? DASHED_ACTION_STROKE
-                               : ACTION_STROKE;
-
-    g.setStroke(actionStroke);
+    g.setStroke(ACTION_STROKE);
     g.setColor(color);
     g.draw(PATH);
   }
