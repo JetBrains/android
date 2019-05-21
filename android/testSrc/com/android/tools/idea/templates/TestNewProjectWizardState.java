@@ -50,7 +50,7 @@ public class TestNewProjectWizardState {
     myModuleState.put(ATTR_THEME_EXISTS, true);
     myModuleState.put(ATTR_CREATE_ACTIVITY, true);
     myModuleState.put(ATTR_IS_LIBRARY_MODULE, false);
-    myModuleState.put(ATTR_PROJECT_LOCATION, WizardUtils.getProjectLocationParent().getPath());
+    myModuleState.put(ATTR_TOP_OUT, WizardUtils.getProjectLocationParent().getPath());
 
     final int DEFAULT_MIN = SdkVersionInfo.LOWEST_ACTIVE_API;
     myModuleState.put(ATTR_MIN_API_LEVEL, DEFAULT_MIN);
