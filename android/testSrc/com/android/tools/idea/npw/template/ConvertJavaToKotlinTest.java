@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.npw.template;
 
+import static com.android.tools.idea.npw.model.HelpersKt.getKotlinVersion;
 import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.npw.model.JavaToKotlinHandler;
 import com.intellij.testFramework.PlatformTestCase;
 
 public class ConvertJavaToKotlinTest extends PlatformTestCase {
@@ -27,7 +27,7 @@ public class ConvertJavaToKotlinTest extends PlatformTestCase {
     // Conversion code should get its Kotlin version from the Kotlin IDE plugin, while most tests (including gradle integration tests) read
     // the version from the compiler prebuilt. These two should be in sync, so we know we tested everything against the right version.
     assertWithMessage("Kotlin version used for testing is not the same as the one used by the IDE.")
-      .that(JavaToKotlinHandler.getJavaToKotlinConversionProvider().getKotlinVersion())
+      .that(getKotlinVersion())
       .isEqualTo(TestUtils.getKotlinVersionForTests());
   }
 }
