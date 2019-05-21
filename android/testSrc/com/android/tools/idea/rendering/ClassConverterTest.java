@@ -52,6 +52,7 @@ public class ClassConverterTest extends TestCase {
     assertEquals(50, jdkToClassVersion("1.6.1"));
     assertEquals(51, jdkToClassVersion("1.7.0"));
     assertEquals(45, jdkToClassVersion("1.1"));
+    assertEquals(55, jdkToClassVersion("11.0.2+9-b159.56"));
   }
 
   public void testFindHighestMajorVersion() {
