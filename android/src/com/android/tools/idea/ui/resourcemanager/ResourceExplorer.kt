@@ -25,11 +25,13 @@ import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarg
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import kotlin.properties.Delegates
 
+// TODO: Support receiving a list of ResourceType to display.
 internal val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR,
                                            ResourceType.LAYOUT, ResourceType.MIPMAP)
 internal val RESOURCE_DEBUG = System.getProperty("res.manag.debug", "false")?.toBoolean() ?: false
@@ -58,12 +60,22 @@ class ResourceExplorer private constructor(facet: AndroidFacet)
     projectResourcesBrowserViewModel, resourceImportDragTarget)
 
   companion object {
+    private val DIALOG_PREFERRED_SIZE = JBUI.size(850, 620)
 
     /**
      * Create a new instance of [ResourceExplorer] optimized to be used in a [com.intellij.openapi.wm.ToolWindow]
      */
     @JvmStatic
     fun createForToolWindow(facet: AndroidFacet): ResourceExplorer = ResourceExplorer(facet)
+
+    /**
+     * Create a new instance of [ResourceExplorer] to be used as resource picker.
+     */
+    fun createResourcePicker(facet: AndroidFacet): ResourceExplorer {
+      val explorer = ResourceExplorer(facet)
+      explorer.preferredSize = DIALOG_PREFERRED_SIZE
+      return explorer
+    }
   }
 
   init {

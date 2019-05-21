@@ -414,6 +414,10 @@ public final class StudioFlags {
     RESOURCES_MANAGEMENT, "enabled", "Enable the new resources management tools",
     "If enabled, the new resource management tools are enabled. Subflags will also need to be enabled to enable all available new tools",
     true);
+  public static final Flag<Boolean> RESOURCE_EXPLORER_PICKER = Flag.create(
+    RESOURCES_MANAGEMENT, "picker", "Enable the resource explorer as picker",
+    "If enabled, the new resource management tools are used for the resource picker in the property panel.",
+    false);
 
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(

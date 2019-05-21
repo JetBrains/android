@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
@@ -26,6 +27,8 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
+import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog
+import com.android.tools.idea.ui.resourcemanager.ResourceExplorerDialog
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.intellij.openapi.actionSystem.AnAction
@@ -33,6 +36,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.ui.DialogWrapper
 import icons.StudioIcons
 import java.awt.Color
 import java.awt.Component
@@ -91,15 +95,18 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
     val isImageViewDrawable = hasImageTag.isPresent &&
                               (SdkConstants.ATTR_SRC_COMPAT == propertyName || SdkConstants.ATTR_SRC == propertyName)
     val showSampleData = SdkConstants.TOOLS_URI == property.namespace
-    val dialog = ChooseResourceDialog.builder()
-      .setModule(module)
-      .setTypes(property.type.resourceTypes)
-      .setCurrentValue(property.rawValue)
-      .setTag(tag)
-      .setDefaultType(defaultResourceType)
-      .setFilterColorStateLists(isImageViewDrawable)
-      .setShowSampleDataPicker(showSampleData)
-      .build()
+    val dialog: ResourcePickerDialog =
+      if (StudioFlags.RESOURCE_EXPLORER_PICKER.get())
+        ResourceExplorerDialog(property.model.facet)
+      else ChooseResourceDialog.builder()
+        .setModule(module)
+        .setTypes(property.type.resourceTypes)
+        .setCurrentValue(property.rawValue)
+        .setTag(tag)
+        .setDefaultType(defaultResourceType)
+        .setFilterColorStateLists(isImageViewDrawable)
+        .setShowSampleDataPicker(showSampleData)
+        .build()
     dialog.title = PICK_A_RESOURCE
     return if (dialog.showAndGet()) dialog.resourceName else null
   }
