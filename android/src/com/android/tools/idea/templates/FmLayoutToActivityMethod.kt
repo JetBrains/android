@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates;
+package com.android.tools.idea.templates
 
-import com.android.tools.idea.templates.AssetNameConverter.Type;
-import freemarker.template.*;
-
-import java.util.List;
+import com.android.tools.idea.templates.AssetNameConverter.Type
+import freemarker.template.SimpleScalar
+import freemarker.template.TemplateMethodModelEx
+import freemarker.template.TemplateModel
+import freemarker.template.TemplateModelException
 
 /**
  * Method invoked by FreeMarker to convert a layout name into an appropriate
  * Activity class.
  */
-public class FmLayoutToActivityMethod implements TemplateMethodModelEx {
-  @Override
-  public TemplateModel exec(List args) throws TemplateModelException {
-    if (args.size() != 1) {
-      throw new TemplateModelException("Wrong arguments");
+class FmLayoutToActivityMethod : TemplateMethodModelEx {
+  override fun exec(args: List<*>): TemplateModel {
+    if (args.size != 1) {
+      throw TemplateModelException("Wrong arguments")
     }
 
-    String name = ((TemplateScalarModel)args.get(0)).getAsString();
-    return new SimpleScalar(new AssetNameConverter(Type.LAYOUT, name).getValue(Type.ACTIVITY));
+    val name = args[0].toString()
+    return SimpleScalar(AssetNameConverter(Type.LAYOUT, name).getValue(Type.ACTIVITY))
   }
 }
