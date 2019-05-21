@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,21 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
-import freemarker.template.TemplateBooleanModel
+import com.android.tools.idea.templates.TemplateUtils.camelCaseToUnderlines
+import freemarker.template.SimpleScalar
 import freemarker.template.TemplateMethodModelEx
 import freemarker.template.TemplateModel
 import freemarker.template.TemplateModelException
 
 /**
- * Method invoked by FreeMarker to check if AndroidX mapping should be enabled. It has no parameters.
+ * Method invoked by FreeMarker to convert an underscore name into a CamelCase name.
  */
-class FmIsAndroidxEnabledMethod(private val paramMap: Map<String, Any>) : TemplateMethodModelEx {
+class FmCamelCaseToUnderscoreMethod : TemplateMethodModelEx {
   override fun exec(args: List<*>): TemplateModel {
-    val useAndroidx = paramMap[ATTR_ANDROIDX_SUPPORT] as? Boolean == true
-    return if (useAndroidx) TemplateBooleanModel.TRUE else TemplateBooleanModel.FALSE
+    if (args.size != 1) {
+      throw TemplateModelException("Wrong arguments")
+    }
+
+    return SimpleScalar(camelCaseToUnderlines(args[0].toString()))
   }
 }
