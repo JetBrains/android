@@ -149,7 +149,7 @@ public class AndroidPluginInfo {
         }
       }
       return keepSearchingForAppModule || keepSearchingForPluginVersion;
-    }, false /* do not process composite builds */);
+    });
 
     return result;
   }
