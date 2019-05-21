@@ -72,7 +72,6 @@ public class TemplateMetadata {
   public static final String ATTR_IS_GRADLE = "isGradle";
   public static final String ATTR_TOP_OUT = "topOut";
   public static final String ATTR_PROJECT_OUT = "projectOut"; // Module (Project in gradle language) location
-  public static final String ATTR_PROJECT_LOCATION = "projectLocation"; // "Master" Project root
   public static final String ATTR_SRC_OUT = "srcOut";
   public static final String ATTR_RES_OUT = "resOut";
   public static final String ATTR_MANIFEST_OUT = "manifestOut";
