@@ -148,7 +148,7 @@ public class PaletteTest extends AndroidTestCase {
     checkComponent(component, String.format("%1$s", tag), STANDARD_TEXT.getIcon(tag));
 
     when(component.getAttribute(ANDROID_URI, ATTR_TEXT)).thenReturn("My value for " + tag);
-    checkComponent(component, String.format("%1$s - \"My value for %1$s\"", tag), STANDARD_TEXT.getIcon(tag));
+    checkComponent(component, String.format("%1$s \"My value for %1$s\"", tag), STANDARD_TEXT.getIcon(tag));
   }
 
   private static void checkParents(@Nullable Palette.Group parent, @NotNull List<Palette.BaseItem> items) {

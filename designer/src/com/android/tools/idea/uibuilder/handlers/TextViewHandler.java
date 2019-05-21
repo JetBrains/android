@@ -53,7 +53,7 @@ public class TextViewHandler extends ViewHandler {
     String text = component.getAttribute(ANDROID_URI, ATTR_TEXT);
     if (!StringUtil.isEmpty(text)) {
       // Display the android:text attribute if this component has such an attribute.
-      return String.format("- \"%1$s\"", text);
+      return String.format("\"%1$s\"", text);
     }
     return super.getTitleAttributes(component);
   }
