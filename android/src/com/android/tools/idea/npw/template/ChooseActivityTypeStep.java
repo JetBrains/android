@@ -247,7 +247,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   private void validateTemplate() {
     TemplateHandle template = myRenderModel.getTemplateHandle();
     TemplateMetadata templateData = (template == null) ? null : template.getMetadata();
-    AndroidVersionsInfo.VersionItem androidSdkInfo = myRenderModel.androidSdkInfo().getValueOrNull();
+    AndroidVersionsInfo.VersionItem androidSdkInfo = myRenderModel.getAndroidSdkInfo().getValueOrNull();
     AndroidFacet facet = myRenderModel.getAndroidFacet();
 
     // Start by assuming API levels are great enough for the Template
