@@ -91,25 +91,11 @@ public class CpuServiceProxy extends ServiceProxy {
     responseObserver.onCompleted();
   }
 
-  private void checkAppProfilingState(ProfilingStateRequest request,
-                                      StreamObserver<ProfilingStateResponse> responseObserver) {
-    ProfilingStateResponse response;
-    if (myUseLegacyTracing) {
-      response = myLegacyProfiler.checkAppProfilingState(request);
-    }
-    else {
-      // Post-O tracing - goes straight to perfd.
-      response = myServiceStub.checkAppProfilingState(request);
-    }
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
-  }
-
   private void getTraceInfo(GetTraceInfoRequest request,
                             StreamObserver<GetTraceInfoResponse> responseObserver) {
     if (myUseLegacyTracing) {
-      List<Cpu.CpuTraceInfo> traceInfos = myLegacyProfiler.getTraceInfo(request);
-      responseObserver.onNext(GetTraceInfoResponse.newBuilder().addAllTraceInfo(traceInfos).build());
+      List<Cpu.CpuTraceInfo> traceInfoList = myLegacyProfiler.getTraceInfo(request);
+      responseObserver.onNext(GetTraceInfoResponse.newBuilder().addAllTraceInfo(traceInfoList).build());
     }
     else {
       // Post-O tracing - goes straight to daemon.
@@ -128,10 +114,6 @@ public class CpuServiceProxy extends ServiceProxy {
     overrides.put(CpuServiceGrpc.METHOD_STOP_PROFILING_APP,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     stopProfilingApp((CpuProfilingAppStopRequest)request, (StreamObserver)observer);
-                  }));
-    overrides.put(CpuServiceGrpc.METHOD_CHECK_APP_PROFILING_STATE,
-                  ServerCalls.asyncUnaryCall((request, observer) -> {
-                    checkAppProfilingState((ProfilingStateRequest)request, (StreamObserver)observer);
                   }));
     overrides.put(CpuServiceGrpc.METHOD_GET_TRACE_INFO,
                   ServerCalls.asyncUnaryCall((request, observer) -> {

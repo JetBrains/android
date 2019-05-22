@@ -29,8 +29,6 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
-import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
-import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
@@ -70,7 +68,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
   @GuardedBy("myLegacyProfilingLock")
   @NotNull private final Map<Integer, LegacyProfilingRecord> myLegacyProfilingRecord = new HashMap<>();
 
-  @NotNull private final Map<Integer, List<Cpu.CpuTraceInfo.Builder>> myTraceInfos = new HashMap<>();
+  @NotNull private final Map<Integer, List<Cpu.CpuTraceInfo.Builder>> myTraceInfoMap = new HashMap<>();
 
   public StudioLegacyCpuTraceProfiler(@NotNull IDevice device,
                                       @NotNull CpuServiceGrpc.CpuServiceBlockingStub cpuStub,
@@ -139,12 +137,10 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
           // Create a corresponding CpuTraceInfo for the trace start event.
           Cpu.CpuTraceInfo.Builder infoBuilder = Cpu.CpuTraceInfo.newBuilder()
             .setTraceId(timeResponse.getTimestampNs())
-            .setTraceType(userOptions.getTraceType())
-            .setTraceMode(userOptions.getTraceMode())
-            .setInitiationType(request.getConfiguration().getInitiationType())
+            .setConfiguration(request.getConfiguration())
             .setFromTimestamp(timeResponse.getTimestampNs())
             .setToTimestamp(-1);
-          List<Cpu.CpuTraceInfo.Builder> builders = myTraceInfos.computeIfAbsent(pid, ArrayList::new);
+          List<Cpu.CpuTraceInfo.Builder> builders = myTraceInfoMap.computeIfAbsent(pid, ArrayList::new);
           builders.add(infoBuilder);
         }
       }
@@ -203,7 +199,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       }
 
       // Update the ongoing trace info sample if there is one.
-      List<Cpu.CpuTraceInfo.Builder> builders = myTraceInfos.get(pid);
+      List<Cpu.CpuTraceInfo.Builder> builders = myTraceInfoMap.get(pid);
       if (builders != null && !builders.isEmpty()) {
         Cpu.CpuTraceInfo.Builder builder = builders.get(builders.size() - 1);
         if (builder.getToTimestamp() == -1) {
@@ -216,52 +212,21 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
   }
 
   @Override
-  public ProfilingStateResponse checkAppProfilingState(ProfilingStateRequest request) {
-    synchronized (myLegacyProfilingLock) {
-      int pid = request.getSession().getPid();
-      LegacyProfilingRecord record = myLegacyProfilingRecord.get(pid);
-      if (record == null) {
-        // No records here. Try routing to Daemon.
-        return myServiceStub.checkAppProfilingState(request);
-      }
-
-      Transport.TimeResponse timeResponse = myTransportServiceStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance());
-      ProfilingStateResponse.Builder responseBuilder = ProfilingStateResponse.newBuilder().setCheckTimestamp(timeResponse.getTimestampNs());
-      String appPkgName = myDevice.getClientName(pid);
-      Client client = appPkgName != null ? myDevice.getClient(appPkgName) : null;
-      if (client == null) {
-        return responseBuilder.setBeingProfiled(false).build();
-      }
-
-      if (isMethodProfilingStatusOff(record, client)) {
-        return responseBuilder.setBeingProfiled(false).build();
-      }
-      else {
-        return responseBuilder
-          .setBeingProfiled(true)
-          .setConfiguration(record.myStartRequest.getConfiguration())
-          .setStartTimestamp(record.myStartRequestTimestamp)
-          .build();
-      }
-    }
-  }
-
-  @Override
   public List<Cpu.CpuTraceInfo> getTraceInfo(CpuProfiler.GetTraceInfoRequest request) {
     // Query the daemon for any ATrace data.
-    List<Cpu.CpuTraceInfo> matchedInfos = new ArrayList<>(myServiceStub.getTraceInfo(request).getTraceInfoList());
+    List<Cpu.CpuTraceInfo> matchedInfoList = new ArrayList<>(myServiceStub.getTraceInfo(request).getTraceInfoList());
     synchronized (myLegacyProfilingLock) {
-      if (myTraceInfos.containsKey(request.getSession().getPid())) {
-        for (Cpu.CpuTraceInfo.Builder builder : myTraceInfos.get(request.getSession().getPid())) {
+      if (myTraceInfoMap.containsKey(request.getSession().getPid())) {
+        for (Cpu.CpuTraceInfo.Builder builder : myTraceInfoMap.get(request.getSession().getPid())) {
           if (builder.getFromTimestamp() <= request.getToTimestamp() &&
               (builder.getToTimestamp() > request.getFromTimestamp() || builder.getToTimestamp() == -1)) {
-            matchedInfos.add(builder.build());
+            matchedInfoList.add(builder.build());
           }
         }
       }
     }
 
-    return matchedInfos;
+    return matchedInfoList;
   }
 
   /**

@@ -155,8 +155,10 @@ class CpuProfilerStageViewTest {
   @Test
   fun importTraceModeShouldShowSelectedProcessName() {
     // Generates a capture
-    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, 0, Cpu.CpuTraceType.ATRACE,
-                                             CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+    myStage.profilerConfigModel.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
+    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService,
+                                             CpuProfilerTestUtils.traceFileToByteString(
+                                               TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
 
     // Enable import trace flag which is required for import-trace-mode.
     myIdeServices.enableImportTrace(true)
@@ -189,13 +191,13 @@ class CpuProfilerStageViewTest {
   @Test
   fun recordButtonDisabledInDeadSessions() {
     // Create a valid capture and end the current session afterwards.
+    myStage.profilerConfigModel.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
     CpuProfilerTestUtils.captureSuccessfully(
       myStage,
       myCpuService,
       myTransportService,
-      FakeCpuService.FAKE_TRACE_ID,
-      Cpu.CpuTraceType.ATRACE,
       CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+    val captureId = myStage.capture!!.traceId
     myStage.studioProfilers.sessionsManager.endCurrentSession()
 
     // Re-create the stage so that the capture is not cached
@@ -208,20 +210,11 @@ class CpuProfilerStageViewTest {
     // When creating the stage view, the record button should be disabled as the current session is dead.
     assertThat(recordButton.isEnabled).isFalse()
 
-    var aspectFired = false
-    // Listen to CAPTURE_PARSING aspect to make sure that parsing happens.
-    val observer = AspectObserver()
-    myStage.captureParser.aspect.addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_PARSING) {
-      assertThat(myStage.captureParser.isParsing).isTrue()
-      aspectFired = true
-    }
-
     // Set and select a capture, which will trigger capture parsing.
-    myStage.setAndSelectCapture(FakeCpuService.FAKE_TRACE_ID)
-
-    assertThat(aspectFired).isTrue() // Sanity check to verify we actually fired the CAPTURE_PARSING state.
-    // Parsing should be over when the capture is set.
-    assertThat(myStage.captureParser.isParsing).isFalse()
+    val observer = AspectObserver()
+    val parsingLatch = CpuProfilerTestUtils.waitForParsingStartFinish(myStage, observer)
+    myStage.setAndSelectCapture(captureId)
+    parsingLatch.await()
 
     // Even after parsing the capture, the record button should remain disabled.
     assertThat(recordButton.isEnabled).isFalse()

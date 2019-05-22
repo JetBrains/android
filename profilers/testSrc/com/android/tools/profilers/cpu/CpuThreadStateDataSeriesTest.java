@@ -119,8 +119,7 @@ public class CpuThreadStateDataSeriesTest {
     Assume.assumeFalse(myIsUnifiedPipeline);
 
     // Generate and select a capture in the stage
-    CpuProfilerTestUtils
-      .captureSuccessfully(myProfilerStage, myService, myTransportService, 1, Cpu.CpuTraceType.ART, CpuProfilerTestUtils.readValidTrace());
+    CpuProfilerTestUtils.captureSuccessfully(myProfilerStage, myService, myTransportService, CpuProfilerTestUtils.readValidTrace());
     CpuCapture capture = myProfilerStage.getCapture();
     assertNotNull(capture);
     int tid = capture.getMainThreadId();
@@ -152,8 +151,7 @@ public class CpuThreadStateDataSeriesTest {
     Assume.assumeFalse(myIsUnifiedPipeline);
 
     // Generate and select a capture in the stage
-    CpuProfilerTestUtils
-      .captureSuccessfully(myProfilerStage, myService, myTransportService, 1, Cpu.CpuTraceType.ART, CpuProfilerTestUtils.readValidTrace());
+    CpuProfilerTestUtils.captureSuccessfully(myProfilerStage, myService, myTransportService, CpuProfilerTestUtils.readValidTrace());
     CpuCapture capture = myProfilerStage.getCapture();
     assertNotNull(capture);
     int tid = capture.getMainThreadId();
