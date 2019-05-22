@@ -20,14 +20,10 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.Placeholder;
-import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.google.common.collect.ImmutableList;
 import icons.StudioIcons;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,10 +72,5 @@ public final class SearchItemHandler extends MenuHandler {
   @Override
   public Icon getIcon(@NotNull NlComponent component) {
     return StudioIcons.LayoutEditor.Menu.SEARCH;
-  }
-
-  @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
-    return ImmutableList.of(new ItemPlaceholder(component));
   }
 }

@@ -16,16 +16,12 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.common.scene.Placeholder;
-import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.xml.XmlBuilder;
-import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -72,10 +68,5 @@ public final class SwitchItemHandler extends MenuHandler {
     }
 
     return true;
-  }
-
-  @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
-    return ImmutableList.of();
   }
 }

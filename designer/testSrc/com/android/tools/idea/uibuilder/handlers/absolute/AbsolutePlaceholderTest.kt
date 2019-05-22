@@ -47,7 +47,7 @@ class AbsolutePlaceholderTest : SceneTest() {
     val bottom = absoluteLayout.drawY - 10
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom, SdkConstants.TEXT_VIEW), p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom), p)
     assertFalse(snappedResult)
     assertEquals(-1, p.x)
     assertEquals(-1, p.y)
@@ -64,7 +64,7 @@ class AbsolutePlaceholderTest : SceneTest() {
     val bottom = absoluteLayout.drawY + 30
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom, SdkConstants.VIEW_TAG), p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom), p)
     assertTrue(snappedResult)
     assertEquals(absoluteLayout.drawX - 10, p.x)
     assertEquals(absoluteLayout.drawY - 10, p.y)
@@ -80,7 +80,7 @@ class AbsolutePlaceholderTest : SceneTest() {
     val right = absoluteLayout.drawX + 10
     val bottom = absoluteLayout.drawY + 10
 
-    assertFalse(placeholder.snap(SnappingInfo(left, top, right, bottom, SdkConstants.VIEW_TAG), Point(-1, -1)))
+    assertFalse(placeholder.snap(SnappingInfo(left, top, right, bottom), Point(-1, -1)))
   }
 
   fun testSnapSucceed() {
@@ -95,7 +95,7 @@ class AbsolutePlaceholderTest : SceneTest() {
     val bottom = absoluteLayout.drawY + textView.drawHeight
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom, SdkConstants.VIEW_TAG), p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom), p)
     assertTrue(snappedResult)
     assertEquals(left, p.x)
     assertEquals(top, p.y)

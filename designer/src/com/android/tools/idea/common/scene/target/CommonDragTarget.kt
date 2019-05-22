@@ -282,7 +282,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
           continue
         }
 
-        if (ph.snap(SnappingInfo(left, top, right, bottom, myComponent.authoritativeNlComponent.tagName), retPoint)) {
+        if (ph.snap(SnappingInfo(left, top, right, bottom), retPoint)) {
           val distance = retPoint.distance(xDouble, yDouble)
           if (distance < currentDistance || ph.region.level > currentPlaceholderLevel) {
             targetPlaceholder = ph
