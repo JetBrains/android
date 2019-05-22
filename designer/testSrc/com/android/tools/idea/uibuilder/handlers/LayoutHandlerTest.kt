@@ -54,6 +54,36 @@ class LayoutHandlerTest : SceneTest() {
     assertFalse(ph.snap(SnappingInfo(600, 600, 700, 700), p))
   }
 
+  fun testNotSnappableWithAnyRootView() {
+    val model = model("layout.xml",
+                      component(SdkConstants.TAG_LAYOUT)
+                        .withBounds(0, 0, 1000, 1000)
+                        .children(
+                          component(SdkConstants.LINEAR_LAYOUT)
+                            .withBounds(0, 0, 1000, 1000)
+                            .width("500dp")
+                            .height("500dp")
+                        )).build()
+
+    val component = model.surface.scene?.root!!
+    val ph = LayoutPlaceholder(component)
+    assertFalse(ph.snap(SnappingInfo(50, 60, 150, 160), Point()))
+  }
+
+  fun testSnappableWithOnlyDataTag() {
+    val model = model("layout.xml",
+          component(SdkConstants.TAG_LAYOUT)
+            .withBounds(0, 0, 1000, 1000)
+            .children(
+              component(SdkConstants.TAG_DATA)
+                .withBounds(0, 0, 0, 0)
+            )).build()
+
+    val component = model.surface.scene?.root!!
+    val ph = LayoutPlaceholder(component)
+    assertTrue(ph.snap(SnappingInfo(50, 60, 150, 160), Point()))
+  }
+
   override fun createModel(): ModelBuilder = model("layout.xml",
                                                    component(SdkConstants.TAG_LAYOUT)
                                                      .withBounds(0, 0, 1000, 1000))
