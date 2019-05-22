@@ -29,6 +29,7 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
+import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
@@ -323,6 +324,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
       // This is a Java lib module.
       createJavaProject(gradleModule, ideModule, syncIssues, androidProjectWithoutVariants);
+      // Populate ContentRootDataNode for buildSrc module. This DataNode is required to setup classpath buildscript.
+      if(BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName())){
+        nextResolver.populateModuleContentRoots(gradleModule, ideModule);
+      }
     }
   }
 
