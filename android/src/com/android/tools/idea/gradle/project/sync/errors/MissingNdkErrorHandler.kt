@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.repository.Revision
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixNdkVersionHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
@@ -25,10 +26,15 @@ import com.intellij.openapi.project.Project
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.FAILED_TO_INSTALL_NDK_BUNDLE
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.NDK_NOT_CONFIGURED
 import com.intellij.openapi.module.ModuleManager
+import java.lang.RuntimeException
 
 class MissingNdkErrorHandler : BaseSyncErrorHandler() {
   override fun findErrorMessage(rootCause: Throwable, project: Project): String? {
     return when {
+      tryExtractPreferredNdkDownloadVersion(rootCause.message!!) != null -> {
+        SyncErrorHandler.updateUsageTracker(project, NDK_NOT_CONFIGURED)
+        rootCause.message!!
+      }
       matchesNdkNotConfigured(rootCause.message!!) -> {
         SyncErrorHandler.updateUsageTracker(project, NDK_NOT_CONFIGURED)
         "NDK not configured."
@@ -42,6 +48,20 @@ class MissingNdkErrorHandler : BaseSyncErrorHandler() {
         rootCause.message!!
       }
       else -> null
+    }
+  }
+
+  private val PREFERRED_VERSION_PATTERN = "NDK not configured. Download it with SDK manager. Preferred NDK version is '(?<version>.*)'.*".toRegex()
+
+  /**
+   * Try to recover preferred NDK version from the error message
+   */
+  private fun tryExtractPreferredNdkDownloadVersion(text : String) : Revision? {
+    val result = PREFERRED_VERSION_PATTERN.matchEntire(text)
+    if (result != null) {
+      return Revision.parseRevision(result.groups["version"]!!.value)
+    } else {
+      return null
     }
   }
 
@@ -77,13 +97,27 @@ class MissingNdkErrorHandler : BaseSyncErrorHandler() {
 
   override fun getQuickFixHyperlinks(project: Project, text: String): List<NotificationHyperlink> {
     val hyperlinks = mutableListOf<NotificationHyperlink>()
-    val highestLocalNdk = IdeSdks.getInstance().highestLocalNdkPackage
     val gradleBuildFiles = ModuleManager.getInstance(project).modules.map { getGradleBuildFile(it)!! }
-    if (highestLocalNdk != null) {
-        hyperlinks += FixNdkVersionHyperlink(highestLocalNdk.version.toString(), gradleBuildFiles)
+    val preferredVersion = tryExtractPreferredNdkDownloadVersion(text)
+    if (preferredVersion != null) {
+      val localNdk = IdeSdks.getInstance().getSpecificLocalPackage(preferredVersion)
+      if (localNdk != null) {
+        hyperlinks += FixNdkVersionHyperlink(localNdk.version.toString(), gradleBuildFiles)
+      }
+      else {
+        hyperlinks += InstallNdkHyperlink(preferredVersion.toString(), gradleBuildFiles)
+      }
     } else {
-        hyperlinks += InstallNdkHyperlink(gradleBuildFiles)
+      val highestLocalNdk = IdeSdks.getInstance().highestLocalNdkPackage
+      if (highestLocalNdk != null) {
+        hyperlinks += FixNdkVersionHyperlink(highestLocalNdk.version.toString(), gradleBuildFiles)
+      }
+      else {
+        hyperlinks += InstallNdkHyperlink(null, gradleBuildFiles)
+      }
     }
     return hyperlinks
   }
 }
+
+

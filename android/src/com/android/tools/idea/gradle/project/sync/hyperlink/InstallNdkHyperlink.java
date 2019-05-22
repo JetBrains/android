@@ -57,10 +57,16 @@ import org.jetbrains.annotations.Nullable;
 public class InstallNdkHyperlink extends NotificationHyperlink {
   private static final String ERROR_TITLE = "Gradle Sync Error";
   private final List<VirtualFile> buildFiles;
+  private final String searchPrefix;
 
-  public InstallNdkHyperlink(List<VirtualFile> buildFiles) {
-    super("install.ndk", "Install latest NDK and sync project");
+  public InstallNdkHyperlink(@Nullable String preferredVersion, @NotNull List<VirtualFile> buildFiles) {
+    super("install.ndk", preferredVersion == null
+                         ? "Install latest NDK and sync project"
+                         : String.format("Install NDK '%s' and sync project", preferredVersion));
     this.buildFiles = buildFiles;
+    this.searchPrefix = preferredVersion == null
+                        ? FD_NDK_SIDE_BY_SIDE
+                        : FD_NDK_SIDE_BY_SIDE + ";" + preferredVersion;
   }
 
   @Override
@@ -92,7 +98,7 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
         // go/ndk-sxs
         if (StudioFlags.NDK_SIDE_BY_SIDE_ENABLED.get()) {
           Collection<RemotePackage> ndkPackages =
-            packages.getRemotePackagesForPrefix(FD_NDK_SIDE_BY_SIDE);
+            packages.getRemotePackagesForPrefix(searchPrefix);
           for (RemotePackage ndkPackage : ndkPackages) {
             if (ndkRevision == null || ndkRevision.compareTo(ndkPackage.getVersion()) < 0) {
               ndkRevision = ndkPackage.getVersion();
