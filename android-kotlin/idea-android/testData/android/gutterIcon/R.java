@@ -3,6 +3,7 @@ package com.myapp;
 public final class R {
     public static final class drawable {
         public static final int test_icon=0x7f02005d;
+        public static final int is=0x7f02005d;
     }
     public static final class mipmap {
         public static final int test_icon=0x7f04005d;
