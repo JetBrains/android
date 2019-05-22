@@ -51,19 +51,7 @@ class MissingNdkErrorHandler : BaseSyncErrorHandler() {
     }
   }
 
-  private val PREFERRED_VERSION_PATTERN = "NDK not configured. Download it with SDK manager. Preferred NDK version is '(?<version>.*)'.*".toRegex()
 
-  /**
-   * Try to recover preferred NDK version from the error message
-   */
-  private fun tryExtractPreferredNdkDownloadVersion(text : String) : Revision? {
-    val result = PREFERRED_VERSION_PATTERN.matchEntire(text)
-    if (result != null) {
-      return Revision.parseRevision(result.groups["version"]!!.value)
-    } else {
-      return null
-    }
-  }
 
   /**
    * @param errorMessage first line of the error message
@@ -108,16 +96,40 @@ class MissingNdkErrorHandler : BaseSyncErrorHandler() {
         hyperlinks += InstallNdkHyperlink(preferredVersion.toString(), gradleBuildFiles)
       }
     } else {
-      val highestLocalNdk = IdeSdks.getInstance().highestLocalNdkPackage
-      if (highestLocalNdk != null) {
-        hyperlinks += FixNdkVersionHyperlink(highestLocalNdk.version.toString(), gradleBuildFiles)
+      val highestLocalNonPreviewNdk =
+        IdeSdks.getInstance().getHighestLocalNdkPackage(false)
+      if (highestLocalNonPreviewNdk != null) {
+        hyperlinks += FixNdkVersionHyperlink(highestLocalNonPreviewNdk.version.toString(), gradleBuildFiles)
       }
       else {
-        hyperlinks += InstallNdkHyperlink(null, gradleBuildFiles)
+        val highestLocalNdkIncludingPreviews =
+          IdeSdks.getInstance().getHighestLocalNdkPackage(true)
+        if (highestLocalNdkIncludingPreviews != null) {
+          hyperlinks += FixNdkVersionHyperlink(highestLocalNdkIncludingPreviews.version.toString(), gradleBuildFiles)
+        } else {
+          hyperlinks += InstallNdkHyperlink(null, gradleBuildFiles)
+        }
       }
     }
     return hyperlinks
   }
+}
+
+private const val VERSION_PATTERN = "(?<version>([0-9]+)(?:\\.([0-9]+)(?:\\.([0-9]+))?)?([\\s-]*)?(?:(rc|alpha|beta|\\.)([0-9]+))?)"
+private val PREFERRED_VERSION_PATTERNS = listOf(
+  "NDK not configured. Download it with SDK manager. Preferred NDK version is '$VERSION_PATTERN'.*".toRegex(),
+  "No version of NDK matched the requested version $VERSION_PATTERN.*".toRegex())
+
+/**
+ * Try to recover preferred NDK version from the error message
+ */
+fun tryExtractPreferredNdkDownloadVersion(text : String) : Revision? {
+  for(pattern in PREFERRED_VERSION_PATTERNS) {
+    val result = pattern.matchEntire(text) ?: continue
+    val version = result.groups["version"]!!.value
+    return Revision.parseRevision(version)
+  }
+  return null
 }
 
 
