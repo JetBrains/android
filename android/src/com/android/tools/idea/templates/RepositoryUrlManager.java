@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.templates;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.android.ide.common.repository.*;
+import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
+
+import com.android.ide.common.repository.GoogleMavenRepository;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleCoordinate.ArtifactType;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.MavenRepositories;
+import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
@@ -35,49 +40,34 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.LintClient;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Ordering;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.commons.io.IOUtils;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
-import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.function.Predicate;
-
-import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
-import static com.android.tools.idea.projectsystem.GoogleMavenArtifactId.PLAY_SERVICES;
 
 /**
  * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
  */
 public class RepositoryUrlManager {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.RepositoryUrlManager");
-
-  /**
-   * The tag used by the maven metadata file to describe versions.
-   */
-  private static final String TAG_VERSION = "version";
-
   /**
    * Constant full revision for "anything available"
    */
   public static final String REVISION_ANY = "+";
 
-  private static final Ordering<GradleCoordinate> GRADLE_COORDINATE_ORDERING = Ordering.from(COMPARE_PLUS_LOWER);
 
   private final boolean myForceRepositoryChecksInTests;
   private final Set<String> myPendingNetworkRequests = ConcurrentHashMap.newKeySet();
@@ -216,80 +206,6 @@ public class RepositoryUrlManager {
     }
 
     return null;
-  }
-
-  /**
-   * Parses a Maven metadata file and returns a string of the highest found version
-   *
-   * @param metadataFile    the files to parse
-   * @param includePreviews if false, preview versions of the library will not be returned
-   * @return the string representing the highest version found in the file or "0.0.0" if no versions exist in the file
-   */
-  @Nullable
-  private static String getLatestVersionFromMavenMetadata(@NotNull File metadataFile,
-                                                          @Nullable Predicate<GradleVersion> filter,
-                                                          boolean includePreviews,
-                                                          @NotNull FileOp fileOp) throws IOException {
-    String xml = fileOp.toString(metadataFile, StandardCharsets.UTF_8);
-
-    List<GradleCoordinate> versions = new ArrayList<>();
-    try {
-      SAXParserFactory.newInstance().newSAXParser().parse(IOUtils.toInputStream(xml), new DefaultHandler() {
-        boolean inVersionTag = false;
-
-        @Override
-        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-          if (qName.equals(TAG_VERSION)) {
-            inVersionTag = true;
-          }
-        }
-
-        @Override
-        public void characters(char[] ch, int start, int length) throws SAXException {
-          // Get the version and compare it to the current known max version
-          if (inVersionTag) {
-            inVersionTag = false;
-            String revision = new String(ch, start, length);
-            //noinspection StatementWithEmptyBody
-            if (!includePreviews &&
-                "5.2.08".equals(revision) &&
-                metadataFile.getPath().contains(PLAY_SERVICES.getMavenArtifactId())) {
-              // This version (despite not having -rcN in its version name is actually a preview
-              // (See https://code.google.com/p/android/issues/detail?id=75292).
-              // Ignore it.
-            }
-            else if (applyVersionPredicate(revision, filter)) {
-              versions.add(GradleCoordinate.parseVersionOnly(revision));
-            }
-          }
-        }
-      });
-    }
-    catch (Exception e) {
-      LOG.warn(e);
-    }
-
-    if (versions.isEmpty()) {
-      return REVISION_ANY;
-    }
-    else if (includePreviews) {
-      return GRADLE_COORDINATE_ORDERING.max(versions).getRevision();
-    }
-    else {
-      return versions.stream()
-        .filter(v -> !v.isPreview())
-        .max(GRADLE_COORDINATE_ORDERING)
-        .map(GradleCoordinate::getRevision)
-        .orElse(null);
-    }
-  }
-
-  private static boolean applyVersionPredicate(@NotNull String revision, @Nullable Predicate<GradleVersion> predicate) {
-    if (predicate == null) {
-      return true;
-    }
-    GradleVersion version = GradleVersion.tryParse(revision);
-    return version != null && predicate.test(version);
   }
 
   @Nullable
