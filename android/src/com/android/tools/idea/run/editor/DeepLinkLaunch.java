@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ValidationError;
