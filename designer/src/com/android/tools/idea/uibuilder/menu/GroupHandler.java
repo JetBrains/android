@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.menu;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -45,10 +44,5 @@ public final class GroupHandler extends MenuHandler {
       ATTR_CHECKABLE_BEHAVIOR,
       ATTR_VISIBLE,
       ATTR_ENABLED);
-  }
-
-  @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
-    return ImmutableList.of();
   }
 }

@@ -61,7 +61,7 @@ class LinearPlaceholderTest : SceneTest() {
     val bottom = top + textView1.drawHeight
 
     val p = Point()
-    placeholder.snap(SnappingInfo(left, top, right, bottom, SdkConstants.VIEW_TAG), p)
+    placeholder.snap(SnappingInfo(left, top, right, bottom), p)
     val distance = p.distance(left.toDouble(), top.toDouble())
     assertEquals(left + 5, p.x)
     assertEquals(top, p.y)
@@ -171,9 +171,7 @@ class LinearPlaceholderTest : SceneTest() {
     val top = 50
 
     val p = Point()
-    val snappedPlaceholders = placeholders.filter {
-      it.snap(SnappingInfo(left, top, left + 50, top + 50, SdkConstants.VIEW_TAG), p)
-    }.toList()
+    val snappedPlaceholders = placeholders.filter { it.snap(SnappingInfo(left, top, left + 50, top + 50), p) }.toList()
 
     assertSize(1, snappedPlaceholders)
     assertInstanceOf(snappedPlaceholders[0], ViewGroupPlaceholder::class.java)
