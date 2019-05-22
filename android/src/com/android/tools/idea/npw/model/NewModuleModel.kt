@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.instantapp.InstantApps
-import com.android.tools.idea.npw.model.RenderTemplateModel.getInitialSourceLanguage
+import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.AbstractProperty
@@ -145,7 +145,7 @@ class NewModuleModel : WizardModel {
   fun setDefaultRenderTemplateValues(renderModel: RenderTemplateModel, project: Project?) {
     val renderTemplateValues = mutableMapOf<String, Any>()
     TemplateValueInjector(renderTemplateValues)
-      .setBuildVersion(renderModel.androidSdkInfo().value, project)
+      .setBuildVersion(renderModel.androidSdkInfo.value, project)
       .setModuleRoots(renderModel.template.get().paths, project!!.basePath!!, moduleName().get(), packageName().get())
 
     this.renderTemplateValues.value = renderTemplateValues
