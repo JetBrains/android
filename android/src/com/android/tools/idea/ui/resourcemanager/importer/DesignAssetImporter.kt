@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.ui.resourcemanager.importer
 
+import com.android.SdkConstants
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
 import com.intellij.openapi.command.WriteCommandAction
@@ -44,7 +46,7 @@ class DesignAssetImporter {
 
   fun importDesignAssets(assetSets: Collection<DesignAssetSet>,
                          androidFacet: AndroidFacet,
-                         resFolder: File = getDefaultResDirectory(androidFacet)) {
+                         resFolder: File = getOrCreateDefaultResDirectory(androidFacet)) {
 
     // Flatten all the design assets and then regroup them by folder name
     // so assets with the same folder name are imported together.
@@ -102,11 +104,20 @@ class DesignAssetImporter {
 }
 
 /**
- * Returns the first res/ directory of the main source provider of the [androidFacet]
+ * Returns the first res/ directory of the main source provider of the [androidFacet].
+ * If the facet has no res/ directory, it will try to create one.
  */
-private fun getDefaultResDirectory(androidFacet: AndroidFacet): File {
-  return androidFacet.mainSourceProvider.resDirectories.let { resDirs ->
-    resDirs.firstOrNull { it.exists() }
-    ?: resDirs.first().also { it.createNewFile() }
+fun getOrCreateDefaultResDirectory(androidFacet: AndroidFacet): File {
+  val resDirectories = androidFacet.mainSourceProvider.resDirectories
+  if (resDirectories.isEmpty()) {
+    val projectPath = androidFacet.module.project.basePath
+    if (projectPath != null) {
+      return GradleAndroidModuleTemplate.createDefaultTemplateAt(projectPath, androidFacet.module.name).paths.resDirectories.first()
+    }
+    else {
+      return File(SdkConstants.RES_FOLDER)
+    }
   }
+  return resDirectories.firstOrNull { it.exists() }
+         ?: resDirectories.first().also { it.createNewFile() }
 }
