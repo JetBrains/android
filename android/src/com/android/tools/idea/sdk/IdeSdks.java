@@ -139,6 +139,16 @@ public class IdeSdks {
   }
 
   @Nullable
+  public LocalPackage getSpecificLocalPackage(@NotNull Revision version) {
+    AndroidSdkHandler sdkHandler = myAndroidSdks.tryToChooseSdkHandler();
+    return sdkHandler.getLatestLocalPackageForPrefix(
+      version.toString(),
+      null,
+      true, // All specific version to be preview
+      new StudioLoggerProgressIndicator(IdeSdks.class));
+  }
+
+  @Nullable
   public LocalPackage getHighestLocalNdkPackage() {
     AndroidSdkHandler sdkHandler = myAndroidSdks.tryToChooseSdkHandler();
     // Look first at NDK side-by-side locations.
@@ -146,7 +156,7 @@ public class IdeSdks {
     LocalPackage ndk = sdkHandler.getLatestLocalPackageForPrefix(
       SdkConstants.FD_NDK_SIDE_BY_SIDE,
       null,
-      true,
+      false, // Don't allow preview versions of NDK
       new StudioLoggerProgressIndicator(IdeSdks.class));
     if (ndk != null) {
       return ndk;
