@@ -16,6 +16,7 @@
 package com.android.tools.idea.model
 
 import com.android.builder.model.AndroidLibrary
+import com.android.resources.ResourceFolderType
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -25,7 +26,6 @@ import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.util.AndroidUtils
 import java.io.File
-import java.util.regex.Pattern
 
 /**
  * Immutable data object responsible for determining all the files that contribute to
@@ -107,8 +107,6 @@ private fun addAarManifests(lib: AndroidLibrary, result: MutableSet<File>, modul
   }
 }
 
-private val NAV_DIR_PATTERN = Pattern.compile("^navigation(-.*)?$")
-
 /**
  * Returns all navigation files for the facet's module, ordered from higher precedence to lower precedence.
  * TODO(b/70815924): Change implementation to use resource repository API
@@ -119,7 +117,7 @@ private fun AndroidFacet.getNavigationFiles(): List<VirtualFile> {
     .asSequence()
     .flatMapWithoutNulls { provider -> provider.resDirectories.asSequence() }
     .flatMapWithoutNulls { resDir -> resDir.children?.asSequence() }
-    .filter { resDirFolder -> NAV_DIR_PATTERN.matcher(resDirFolder.name).matches() }
+    .filter { resDirFolder -> ResourceFolderType.getFolderType(resDirFolder.name) == ResourceFolderType.NAVIGATION }
     .flatMapWithoutNulls { navDir -> navDir.children?.asSequence() }
     .filter { potentialNavFile -> !potentialNavFile.isDirectory }
     .toList()
