@@ -15,6 +15,19 @@
  */
 package com.android.tools.idea.npw.model;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
+import static com.android.tools.idea.npw.platform.Language.JAVA;
+import static com.android.tools.idea.npw.platform.Language.KOTLIN;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_OFFLINE_REPO_PATH;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_USE_OFFLINE_REPO;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.repository.io.FileOpUtils;
@@ -24,12 +37,15 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
-import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.DomainToPackageExpression;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
@@ -41,7 +57,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.JavaSdk;
@@ -55,28 +70,19 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.pom.java.LanguageLevel;
-import java.util.Optional;
-import org.apache.commons.io.FilenameUtils;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
-import static com.android.tools.idea.npw.platform.Language.JAVA;
-import static com.android.tools.idea.npw.platform.Language.KOTLIN;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static org.jetbrains.android.util.AndroidBundle.message;
+import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
 
 public class NewProjectModel extends WizardModel {
   static final String PROPERTIES_ANDROID_PACKAGE_KEY = "SAVED_ANDROID_PACKAGE";
@@ -248,25 +254,12 @@ public class NewProjectModel extends WizardModel {
   }
 
   /**
-   * Tries to get a valid package suggestion for the specifies Project. For instant apps, the base feature module package is used, for
-   * other modules, the saved user domain is used.
+   * Tries to get a valid package suggestion for the specifies Project using the saved user domain.
    */
   @NotNull
-  public static String getSuggestedProjectPackage(@NotNull Project project, boolean isInstantApp) {
-    String basePackage = null;
-    if (isInstantApp) {
-      Module baseFeatureModule = InstantApps.findBaseFeature(project);
-      AndroidFacet androidFacet = baseFeatureModule == null ? null : AndroidFacet.getInstance(baseFeatureModule);
-      if (androidFacet != null && androidFacet.getConfiguration().getModel() != null) {
-        basePackage = AndroidPackageUtils.getPackageForApplication(androidFacet);
-      }
-    }
-
-    if (basePackage == null) {
-      StringProperty companyDomain = new StringValueProperty(getInitialDomain(false));
-      basePackage = new DomainToPackageExpression(companyDomain, new StringValueProperty("")).get();
-    }
-    return basePackage;
+  public static String getSuggestedProjectPackage() {
+    StringProperty companyDomain = new StringValueProperty(getInitialDomain(false));
+    return new DomainToPackageExpression(companyDomain, new StringValueProperty("")).get();
   }
 
   /**

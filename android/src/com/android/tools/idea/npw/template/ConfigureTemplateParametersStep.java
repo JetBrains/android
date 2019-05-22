@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.template;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CLASS_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
@@ -412,11 +411,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     try {
       int projectType = getModel().getAndroidFacet() == null ? -1 : getModel().getAndroidFacet().getConfiguration().getProjectType();
-      boolean isInstantApp = projectType == PROJECT_TYPE_FEATURE || getModel().getInstantApp().get();
-
       Map<String, Object> additionalValues = Maps.newHashMap();
-      new TemplateValueInjector(additionalValues)
-        .addTemplateAdditionalValues(getModel().getPackageName().get(), isInstantApp, getModel().getTemplate());
+      new TemplateValueInjector(additionalValues) .addTemplateAdditionalValues(getModel().getPackageName().get(), getModel().getTemplate());
 
       Map<String, Object> allValues = Maps.newHashMap(additionalValues);
 

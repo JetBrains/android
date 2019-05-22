@@ -118,11 +118,6 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
       return myIsLibrary;
     }
 
-    @Override
-    public boolean isInstantApp() {
-      return false;
-    }
-
     @Nullable
     @Override
     public Icon getIcon() {
@@ -149,7 +144,7 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      String basePackage = getSuggestedProjectPackage(model.getProject().getValue(), false);
+      String basePackage = getSuggestedProjectPackage();
       return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, basePackage, myName);
     }
   }
