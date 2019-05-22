@@ -16,17 +16,20 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
+import static com.android.tools.idea.gradle.project.sync.errors.MissingNdkErrorHandlerKt.tryExtractPreferredNdkDownloadVersion;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.FAILED_TO_INSTALL_NDK_BUNDLE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.NDK_NOT_CONFIGURED;
 
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixNdkVersionHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
+import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import java.util.Collection;
 import java.util.List;
@@ -44,6 +47,25 @@ public class MissingNdkErrorHandlerTest extends AndroidGradleTestCase {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
+  }
+
+  public void testPatterns() {
+    assertThat(
+      tryExtractPreferredNdkDownloadVersion(
+        "No version of NDK matched the requested version 19.2.5345600. Versions available locally: 20.0.5471264-rc3").toString())
+      .isEqualTo("19.2.5345600");
+    assertThat(
+      tryExtractPreferredNdkDownloadVersion(
+        "No version of NDK matched the requested version 19.2.5345600").toString())
+      .isEqualTo("19.2.5345600");
+    assertThat(
+      tryExtractPreferredNdkDownloadVersion(
+        "NDK not configured. Download it with SDK manager. Preferred NDK version is '19.2.5345600'").toString())
+      .isEqualTo("19.2.5345600");
+    assertThat(
+      tryExtractPreferredNdkDownloadVersion(
+        "No version of NDK matched the requested version 19.2").toString())
+      .isEqualTo("19.2");
   }
 
   public void testHandleErrorWithNdkLicenceMissing() throws Exception {
