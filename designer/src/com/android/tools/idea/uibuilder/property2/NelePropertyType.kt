@@ -47,6 +47,7 @@ enum class NelePropertyType {
   LAYOUT,
   LIST,
   MENU,
+  NAVIGATION,
   READONLY_STRING,
   STRING,
   STRING_ARRAY,
@@ -74,6 +75,7 @@ enum class NelePropertyType {
       LAYOUT -> EnumSet.of(ResourceType.LAYOUT)
       LIST -> EnumSet.noneOf(ResourceType.ID.javaClass)
       MENU -> EnumSet.of(ResourceType.MENU)
+      NAVIGATION -> EnumSet.of(ResourceType.NAVIGATION)
       READONLY_STRING -> EnumSet.noneOf(ResourceType.ID.javaClass)
       STRING -> EnumSet.of(ResourceType.STRING)
       STRING_ARRAY -> EnumSet.of(ResourceType.ARRAY)
