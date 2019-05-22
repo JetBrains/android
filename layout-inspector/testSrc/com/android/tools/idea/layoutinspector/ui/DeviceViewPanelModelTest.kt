@@ -16,10 +16,12 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
+import com.android.tools.idea.layoutinspector.model.VIEW4
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -29,6 +31,7 @@ import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 class DeviceViewPanelModelTest {
   @Test
@@ -48,8 +51,8 @@ class DeviceViewPanelModelTest {
     val expectedTransforms = mutableListOf(
       ComparingTransform(0.995, 0.0, 0.0, 1.0, -64.749, -100.0),
       ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0),
-      ComparingTransform(0.995, 0.0, 0.0, 1.0, -34.749, -100.0),
-      ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0))
+      ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0),
+      ComparingTransform(0.995, 0.0, 0.0, 1.0, -34.749, -100.0))
 
     checkRects(expectedTransforms, 0.1, 0.0)
   }
@@ -59,10 +62,40 @@ class DeviceViewPanelModelTest {
     val expectedTransforms = mutableListOf(
       ComparingTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468),
       ComparingTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
-      ComparingTransform(0.995, -0.010, -0.010, 0.980, -33.734, -67.468),
-      ComparingTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468))
+      ComparingTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
+      ComparingTransform(0.995, -0.010, -0.010, 0.980, -33.734, -67.468))
 
     checkRects(expectedTransforms, 0.1, 0.2)
+  }
+
+  @Test
+  fun testOverlappingRects() {
+    val rects = listOf(
+      Rectangle(0, 0, 100, 200),
+      Rectangle(0, 0, 50, 60),
+      Rectangle(0, 70, 10, 10),
+      Rectangle(0, 10, 50, 60),
+      Rectangle(10, 20, 30, 40))
+
+    val model = model {
+      view(ROOT, rects[0]) {
+        view(VIEW1, rects[1]) {
+          view(VIEW4, rects[4])
+        }
+        view(VIEW2, rects[3])
+        view(VIEW3, rects[2])
+      }
+    }
+
+    val expectedTransforms = mutableListOf(
+      ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -100.0),
+      ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -100.0),
+      ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -100.0),
+      ComparingTransform(0.866, 0.0, 0.0, 1.0, -5.801, -100.0),
+      ComparingTransform(0.866, 0.0, 0.0, 1.0, 31.698, -100.0)
+    )
+
+    checkModel(model, 0.5, 0.0, expectedTransforms, rects)
   }
 
   @Test
@@ -85,18 +118,26 @@ class DeviceViewPanelModelTest {
     val rects = listOf(
       Rectangle(0, 0, 100, 200),
       Rectangle(0, 0, 50, 60),
-      Rectangle(10, 20, 30, 40),
-      Rectangle(60, 70, 10, 10))
+      Rectangle(60, 70, 10, 10),
+      Rectangle(10, 20, 30, 40))
 
     val model = model {
       view(ROOT, rects[0]) {
         view(VIEW1, rects[1]) {
-          view(VIEW3, rects[2])
+          view(VIEW3, rects[3])
         }
-        view(VIEW2, rects[3])
+        view(VIEW2, rects[2])
       }
     }
 
+    checkModel(model, xOff, yOff, expectedTransforms, rects)
+  }
+
+  private fun checkModel(model: InspectorModel,
+                         xOff: Double,
+                         yOff: Double,
+                         expectedTransforms: MutableList<ComparingTransform>,
+                         rects: List<Rectangle>) {
     val panelModel = DeviceViewPanelModel(model)
     panelModel.rotate(xOff, yOff)
 
@@ -104,7 +145,8 @@ class DeviceViewPanelModelTest {
     assertEquals(expectedTransforms, actualTransforms)
 
     val transformedRects = rects.zip(actualTransforms) { rect, transform -> transform.createTransformedShape(rect) }
-    transformedRects.zip(panelModel.hitRects.map { it.bounds }).forEach { (expected, actual) -> assertPathEqual(expected, actual) }
+    val zip = transformedRects.zip(panelModel.hitRects.map { it.bounds })
+    zip.forEach { (expected, actual) -> assertPathEqual(expected, actual) }
   }
 
   private fun assertPathEqual(expected: Shape, actual: Shape) {
@@ -137,10 +179,5 @@ private class ComparingTransform(m00: Double, m10: Double,
            abs(other.shearY - shearY) < EPSILON &&
            abs(other.scaleX - scaleX) < EPSILON &&
            abs(other.scaleY - scaleY) < EPSILON
-  }
-
-  override fun hashCode(): Int {
-    fail() // should be unused
-    return 0
   }
 }

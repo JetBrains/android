@@ -20,6 +20,7 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
 import java.awt.Image
+import java.awt.Rectangle
 
 /**
  * A view node represents a view in the view hierarchy as seen on the device.
@@ -40,6 +41,10 @@ class ViewNode(val drawId: Long,
                var height: Int,
                var viewId: ResourceReference?,
                var textValue: String) {
+
+  val bounds: Rectangle
+    get() = Rectangle(x, y, width, height)
+
   private var tagPointer: SmartPsiElementPointer<XmlTag>? = null
 
   // Map of drawId to child node
