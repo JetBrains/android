@@ -47,6 +47,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox mySkipSourceGenOnSyncCheckbox;
   private JCheckBox myUseL2DependenciesCheckBox;
   private JCheckBox myUseSingleVariantSyncCheckbox;
+  private JCheckBox mySkipSourcesAndJavadocDownload;
   private JSlider myLayoutEditorQualitySlider;
   private JCheckBox myNewPsdCheckbox;
   private TitledSeparator myNewPsdSeparator;
@@ -113,6 +114,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     if (mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
         mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
         mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
+        mySettings.SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC != skipSourcesAndJavadocDownload() ||
         (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
         mySettings.USE_NEW_PSD != isUseNewPsd()) {
       return true;
@@ -130,7 +132,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = isSkipSourceGenOnSync();
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
     mySettings.USE_SINGLE_VARIANT_SYNC = isUseSingleVariantSync();
-
+    mySettings.SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC = skipSourcesAndJavadocDownload();
 
     Integer value = getMaxModuleCountForSourceGen();
     if (value != null) {
@@ -177,6 +179,10 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     return myUseSingleVariantSyncCheckbox.isSelected();
   }
 
+  boolean skipSourcesAndJavadocDownload() {
+    return mySkipSourcesAndJavadocDownload.isSelected();
+  }
+
   @TestOnly
   void setUseSingleVariantSync(boolean value) {
     myUseSingleVariantSyncCheckbox.setSelected(value);
@@ -197,6 +203,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
+    mySkipSourcesAndJavadocDownload.setSelected(mySettings.SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myNewPsdCheckbox.setSelected(mySettings.USE_NEW_PSD);
   }
