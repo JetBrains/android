@@ -71,8 +71,8 @@ public class RepositoryUrlManager {
 
   private final boolean myForceRepositoryChecksInTests;
   private final Set<String> myPendingNetworkRequests = ConcurrentHashMap.newKeySet();
-  private GoogleMavenRepository myGoogleMavenRepository;
-  private GoogleMavenRepository myCachedGoogleMavenRepository;
+  private final GoogleMavenRepository myGoogleMavenRepository;
+  private final GoogleMavenRepository myCachedGoogleMavenRepository;
 
   public static RepositoryUrlManager get() {
     return ServiceManager.getService(RepositoryUrlManager.class);
@@ -171,14 +171,10 @@ public class RepositoryUrlManager {
   public File getArchiveForCoordinate(@NotNull GradleCoordinate gradleCoordinate,
                                       @NotNull File sdkLocation,
                                       @NotNull FileOp fileOp) {
-    if (gradleCoordinate.getGroupId() == null || gradleCoordinate.getArtifactId() == null) {
-      return null;
-    }
 
-    SdkMavenRepository repository = SdkMavenRepository.find(sdkLocation,
-                                                            gradleCoordinate.getGroupId(),
-                                                            gradleCoordinate.getArtifactId(),
-                                                            fileOp);
+    String groupId = gradleCoordinate.getGroupId();
+    String artifactId = gradleCoordinate.getArtifactId();
+    SdkMavenRepository repository = SdkMavenRepository.find(sdkLocation, groupId, artifactId, fileOp);
     if (repository == null) {
       return null;
     }
@@ -195,10 +191,7 @@ public class RepositoryUrlManager {
 
     for (ArtifactType artifactType : ImmutableList.of(ArtifactType.JAR, ArtifactType.AAR)) {
       File archive = new File(artifactDirectory,
-                              String.format("%s-%s.%s",
-                                            gradleCoordinate.getArtifactId(),
-                                            gradleCoordinate.getRevision(),
-                                            artifactType.toString()));
+                              String.format("%s-%s.%s", artifactId, gradleCoordinate.getRevision(), artifactType.toString()));
 
       if (fileOp.isFile(archive)) {
         return archive;
@@ -237,7 +230,7 @@ public class RepositoryUrlManager {
                                                    @Nullable Project project,
                                                    @NotNull AndroidSdkHandler sdkHandler) {
     String version = resolveDynamicCoordinateVersion(coordinate, project, sdkHandler);
-    if (version != null && coordinate.getGroupId() != null && coordinate.getArtifactId() != null) {
+    if (version != null) {
       List<GradleCoordinate.RevisionComponent> revisions = GradleCoordinate.parseRevisionNumber(version);
       if (!revisions.isEmpty()) {
         return new GradleCoordinate(coordinate.getGroupId(), coordinate.getArtifactId(), revisions, coordinate.getArtifactType());
@@ -262,7 +255,7 @@ public class RepositoryUrlManager {
    * there is no local cache and the network query is not successful.
    *
    * @param coordinate the coordinate whose version we want to resolve
-   * @param project    the current project, if known. This is equired if you want to
+   * @param project    the current project, if known. This is required if you want to
    *                   perform a network lookup of the current best version if we can't
    *                   find a locally cached version of the library
    * @return the string version number, or null if not successful
@@ -277,19 +270,16 @@ public class RepositoryUrlManager {
   String resolveDynamicCoordinateVersion(@NotNull GradleCoordinate coordinate,
                                          @Nullable Project project,
                                          @NotNull AndroidSdkHandler sdkHandler) {
-    String groupId = coordinate.getGroupId();
-    String artifactId = coordinate.getArtifactId();
-    if (groupId == null || artifactId == null) {
-      return null;
-    }
-
     String revision = coordinate.getRevision();
     if (!revision.endsWith("+")) {
       // Already resolved. That was easy.
       return revision;
     }
+
     String versionPrefix = revision.substring(0, revision.length() - 1);
     Predicate<GradleVersion> filter = version -> version.toString().startsWith(versionPrefix);
+    String groupId = coordinate.getGroupId();
+    String artifactId = coordinate.getArtifactId();
 
     // First check the Google maven repository, which has most versions
     GradleVersion stable = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, false);
@@ -367,9 +357,6 @@ public class RepositoryUrlManager {
 
     for (String key : dependencies.keySet()) {
       GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
-      if (highest.getGroupId() == null || highest.getArtifactId() == null) {
-        return null;
-      }
 
       // For test consistency, don't depend on installed SDK state while testing
       if (myForceRepositoryChecksInTests || !ApplicationManager.getApplication().isUnitTestMode()) {
@@ -444,7 +431,7 @@ public class RepositoryUrlManager {
       if (compileSdkVersion == null) {
         return null;
       }
-      String prefix = String.valueOf(compileSdkVersion.getApiLevel()) + ".";
+      String prefix = compileSdkVersion.getApiLevel() + ".";
       return version -> version.toString().startsWith(prefix);
     }
     GradleVersion found = highest;
