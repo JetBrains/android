@@ -35,7 +35,10 @@ private const val IMPORT_COMMAND_NAME = "Import resources"
  * It is used to do the transition from [DesignAssetSet] to resource file in the res/ directory because
  * [DesignAssetSet] are grouped by name while Android resources are grouped by qualifiers.
  */
-private data class ImportingAsset(val name: String, val sourceFile: VirtualFile, var targetFolder: String)
+data class ImportingAsset(val name: String, val sourceFile: VirtualFile, var targetFolder: String) {
+  val targetPath get() = targetFolder + File.separatorChar + targetFileName
+  val targetFileName get() = "$name.${sourceFile.extension}"
+}
 
 /**
  * Manage importing a batch of resources into the project.
@@ -50,22 +53,28 @@ class DesignAssetImporter {
 
     // Flatten all the design assets and then regroup them by folder name
     // so assets with the same folder name are imported together.
-    val groupedAssets = assetSets
-      .flatMap(this::toImportingAsset)
+    val groupedAssets = toImportingAssets(assetSets)
       .groupBy(ImportingAsset::targetFolder)
 
     LocalFileSystem.getInstance().refreshIoFiles(listOf(resFolder))
 
     WriteCommandAction.runWriteCommandAction(androidFacet.module.project, IMPORT_COMMAND_NAME, null, {
       groupedAssets
-        .forEach { folderName, importingAsset ->
+        .forEach { (folderName, importingAsset) ->
           copyAssetsInFolder(folderName, importingAsset, resFolder)
         }
     }, emptyArray())
   }
 
   /**
-   * Transform the [DesignAsset] of the [assetSet] into a list of [ImportingAsset].
+   * Use the data available in the provided [DesignAssetSet] to generate the [ImportingAsset]
+   * containing data about the target path of the [DesignAsset]s.
+   */
+  fun toImportingAssets(assetSets: Collection<DesignAssetSet>): List<ImportingAsset> = assetSets
+    .flatMap(this::toImportingAsset)
+
+  /**
+   * Transforms the [DesignAsset] of the [assetSet] into a list of [ImportingAsset].
    */
   private fun toImportingAsset(assetSet: DesignAssetSet) =
     assetSet.designAssets.map { ImportingAsset(assetSet.name, it.file, getFolderName(it)) }
@@ -79,7 +88,7 @@ class DesignAssetImporter {
     val folder = VfsUtil.findFileByIoFile(resFolder, true)
     val directory = VfsUtil.createDirectoryIfMissing(folder, folderName)
     designAssets.forEach {
-      val resourceName = """${it.name}.${it.sourceFile.extension}"""
+      val resourceName = it.targetFileName
       if (it.sourceFile.fileSystem.protocol != LocalFileSystem.getInstance().protocol) {
         directory.findChild(resourceName)?.delete(this)
         val projectFile = directory.createChildData(this, resourceName)
