@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,33 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.template.components;
+package com.android.tools.idea.npw.template.components
 
-import com.android.tools.idea.observable.AbstractProperty;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import com.android.tools.idea.observable.AbstractProperty
+import javax.swing.JComponent
 
 /**
- * An interface for providing a Swing component and an {@link AbstractProperty} that controls it.
- *
- * To use this class, simply call {@link #createComponent()} and
- * {@link #createProperty(JComponent)} with the component it returns.
+ * An interface for providing a Swing component and an [AbstractProperty] that controls it.
+ * To use this class, simply call [createComponent] and [createProperty] with the component it returns.
  */
-public abstract class ComponentProvider<T extends JComponent> {
-  @NotNull
-  public abstract T createComponent();
+abstract class ComponentProvider<T : JComponent> {
+  abstract fun createComponent(): T
 
-  @Nullable
-  public AbstractProperty<?> createProperty(@NotNull T component) {
-    return null;
-  }
+  open fun createProperty(component: T): AbstractProperty<*>? = null
 
   /**
    * Gives subclasses a chance to handle the user accepting the current value. Most components
    * won't do anything but some may save their values into a Recents database, for example.
    */
-  public void accept(@NotNull T component) {
-  }
+  open fun accept(component: T) {}
 }
