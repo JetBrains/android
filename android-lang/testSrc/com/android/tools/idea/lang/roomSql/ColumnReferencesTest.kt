@@ -1338,6 +1338,25 @@ class ColumnReferencesTest : RoomLightTestCase() {
     assertThat(myFixture.referenceAtCaret.resolve()).isNull()
   }
 
+  // Regression test for b/133004192.
+  fun testNotResolveNotExistingColumnFromSubquery() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT not_e<caret>xisting_column FROM (SELECT not_existing_column FROM User)") List<String> getNames();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.referenceAtCaret.resolve()).isNull()
+  }
+
   fun testTableAliasWithColumnAlias() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
     //language=JAVA
