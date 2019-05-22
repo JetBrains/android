@@ -70,8 +70,7 @@ class DesignAssetImporter {
    * Use the data available in the provided [DesignAssetSet] to generate the [ImportingAsset]
    * containing data about the target path of the [DesignAsset]s.
    */
-  fun toImportingAssets(assetSets: Collection<DesignAssetSet>): List<ImportingAsset> = assetSets
-    .flatMap(this::toImportingAsset)
+  fun toImportingAssets(assetSets: Collection<DesignAssetSet>) = assetSets.flatMap(this::toImportingAsset)
 
   /**
    * Transforms the [DesignAsset] of the [assetSet] into a list of [ImportingAsset].
