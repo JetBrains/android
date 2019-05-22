@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>This class is a workaround solution for the issue b/37099520. Once the issue is addressed in
  * the upstream (IntelliJ open API), this class can be removed.
  */
-class OpenProjectFileChooserDescriptorWithAsyncIcon extends OpenProjectFileChooserDescriptor
+public class OpenProjectFileChooserDescriptorWithAsyncIcon extends OpenProjectFileChooserDescriptor
   implements Disposable {
   private final Map<VirtualFile, Icon> myIconCache = Maps.newConcurrentMap();
 
