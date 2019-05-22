@@ -70,11 +70,6 @@ public class CpuServiceProxyTest {
     }
 
     @Override
-    public ProfilingStateResponse checkAppProfilingState(ProfilingStateRequest request) {
-      return ProfilingStateResponse.newBuilder().build();
-    }
-
-    @Override
     public List<Cpu.CpuTraceInfo> getTraceInfo(GetTraceInfoRequest request) {
       return Collections.emptyList();
     }

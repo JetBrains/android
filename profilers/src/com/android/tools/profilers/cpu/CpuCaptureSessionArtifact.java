@@ -15,11 +15,10 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
-import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import java.io.OutputStream;
@@ -77,7 +76,8 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
   @Override
   @NotNull
   public String getName() {
-    return ProfilingTechnology.fromTypeAndMode(myInfo.getTraceType(), myInfo.getTraceMode()).getName();
+    Cpu.CpuTraceConfiguration.UserOptions options = myInfo.getConfiguration().getUserOptions();
+    return ProfilingTechnology.fromTypeAndMode(options.getTraceType(), options.getTraceMode()).getName();
   }
 
   public String getSubtitle() {
@@ -161,18 +161,21 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
   public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,
                                                           @NotNull Common.Session session,
                                                           @NotNull Common.SessionMetaData sessionMetaData) {
-    GetTraceInfoResponse response = profilers.getClient().getCpuClient().getTraceInfo(
-      GetTraceInfoRequest.newBuilder()
-        .setSession(session)
-        // We need to list imported traces and their timestamps might not be within the session range, so we search for max range.
-        .setFromTimestamp(
-          sessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL ? session.getStartTimestamp() : Long.MIN_VALUE)
-        .setToTimestamp(sessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL ? session.getEndTimestamp() : Long.MAX_VALUE)
-        .build());
+
+    Range requestRange = new Range();
+    if (sessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL) {
+      requestRange
+        .set(TimeUnit.NANOSECONDS.toMicros(session.getStartTimestamp()), TimeUnit.NANOSECONDS.toMicros(session.getEndTimestamp()));
+    }
+    else {
+      // We need to list imported traces and their timestamps might not be within the session range, so we search for max range.
+      requestRange.set(Long.MIN_VALUE, Long.MAX_VALUE);
+    }
 
     // TODO b/133324501 handle the case where a CpuTraceInfo is still ongoing after a session has ended.
+    List<Cpu.CpuTraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromRange(profilers.getClient(), session, requestRange);
     List<SessionArtifact> artifacts = new ArrayList<>();
-    for (Cpu.CpuTraceInfo info : response.getTraceInfoList()) {
+    for (Cpu.CpuTraceInfo info : traceInfoList) {
       artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, info));
     }
 

@@ -22,18 +22,14 @@ import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
-import com.android.tools.profilers.cpu.atrace.AtraceProducer;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
+import com.android.tools.profilers.cpu.atrace.AtraceProducer;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.atrace.PerfettoProducer;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,6 +37,9 @@ import java.nio.BufferUnderflowException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Manages the parsing of traces into {@link CpuCapture} objects and provide a way to retrieve them.
@@ -115,8 +114,8 @@ public class CpuCaptureParser {
   /**
    * Next time a capture associated with the traceId is parsed, record and send the parsing metadata.
    *
-   * @param traceId   the trace id of the capture to track
-   * @param metadata  the initial set of metadata unrelated to parsing (e.g. configuration, record duration, etc_
+   * @param traceId  the trace id of the capture to track
+   * @param metadata the initial set of metadata unrelated to parsing (e.g. configuration, record duration, etc_
    */
   void trackCaptureMetadata(long traceId, @NotNull CpuCaptureMetadata metadata) {
     myCaptureMetadataMap.put(traceId, metadata);
@@ -145,12 +144,18 @@ public class CpuCaptureParser {
   /**
    * Updates {@link #myIsParsing} to false once the given {@link CompletableFuture<CpuCapture>} is done.
    */
-  private void updateParsingStateWhenDone(CompletableFuture<CpuCapture> future) {
-    future.handleAsync((capture, exception) -> {
+  @Nullable
+  private void updateParsingStateWhenDone(@Nullable CompletableFuture<CpuCapture> future) {
+    if (future != null) {
+      future.whenCompleteAsync((capture, exception) -> {
+        myIsParsing = false;
+        myAspect.changed(CpuProfilerAspect.CAPTURE_PARSING);
+      }, myServices.getMainExecutor());
+    }
+    else {
       myIsParsing = false;
       myAspect.changed(CpuProfilerAspect.CAPTURE_PARSING);
-      return capture;
-    }, myServices.getMainExecutor());
+    }
   }
 
   /**
@@ -178,6 +183,7 @@ public class CpuCaptureParser {
       return null;
     }
 
+    updateParsingStateWhenStarting();
     long fileLength = traceFile.length();
     if (fileLength > MAX_SUPPORTED_TRACE_SIZE) {
       // Trace is too big. Ask the user if they want to proceed with parsing.
@@ -200,13 +206,14 @@ public class CpuCaptureParser {
       // Trace file is not too big to be parsed. Parse it normally.
       myCaptures.put(IMPORTED_TRACE_ID, createCaptureFuture(traceFile));
     }
+
+    updateParsingStateWhenDone(myCaptures.get(IMPORTED_TRACE_ID));
     return myCaptures.get(IMPORTED_TRACE_ID);
   }
 
   private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull File traceFile) {
     CompletableFuture<CpuCapture> future =
       CompletableFuture.supplyAsync(() -> tryParsingFileWithDifferentParsers(traceFile), myServices.getPoolExecutor());
-    updateParsingStateWhenDone(future);
     return future;
   }
 
@@ -277,6 +284,7 @@ public class CpuCaptureParser {
                                              long traceId,
                                              @NotNull ByteString traceData,
                                              CpuTraceType profilerType) {
+    updateParsingStateWhenStarting();
     CpuCaptureMetadata metadata = myCaptureMetadataMap.containsKey(traceId) ?
                                   myCaptureMetadataMap.get(traceId) : new CpuCaptureMetadata(new ProfilingConfiguration());
 
@@ -306,7 +314,7 @@ public class CpuCaptureParser {
 
     CompletableFuture<CpuCapture> future = myCaptures.get(traceId);
     if (future != null) {
-      future.handleAsync((capture, exception) -> {
+      future.whenCompleteAsync((capture, exception) -> {
         if (capture != null) {
           // Update capture metadata
           metadata.setStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
@@ -332,8 +340,6 @@ public class CpuCaptureParser {
           myServices.getFeatureTracker().trackCaptureTrace(metadata);
           myCaptureMetadataMap.remove(traceId);
         }
-
-        return capture;
       }, myServices.getMainExecutor());
     }
     else {
@@ -350,7 +356,8 @@ public class CpuCaptureParser {
       }
     }
 
-    return myCaptures.get(traceId);
+    updateParsingStateWhenDone(future);
+    return future;
   }
 
   /**
@@ -393,7 +400,6 @@ public class CpuCaptureParser {
           }
           return capture;
         }, myServices.getMainExecutor());
-    updateParsingStateWhenDone(future);
 
     return future;
   }

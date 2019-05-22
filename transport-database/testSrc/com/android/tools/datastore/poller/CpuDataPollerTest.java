@@ -44,8 +44,6 @@ import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
-import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
-import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
 import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
@@ -389,36 +387,6 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     return BASE_TIME_NS + TimeUnit.SECONDS.toNanos(seconds);
   }
 
-  @Test
-  public void stopMonitoringShouldSetBeingProfiledToFalse() {
-    myFakeCpuService.setBeingProfiled(true);
-    // Poll once more to make sure our service is going to know we're profiling.
-    getPollTicker().run();
-
-    // myLastCheckBeingProfiledTimestamp starts at 1 and is incremented each time checkAppProfilingState is called.
-    // We called it once when startMonitoringApp and another time when calling getPollTicker().run().
-    int expectedTimestamp = 2;
-    ProfilingStateResponse expectedResponse = ProfilingStateResponse
-      .newBuilder().setCheckTimestamp(expectedTimestamp).setBeingProfiled(true).build();
-
-    ProfilingStateRequest request = ProfilingStateRequest.newBuilder().setSession(SESSION).build();
-    StreamObserver<ProfilingStateResponse> observer = mock(StreamObserver.class);
-    myCpuService.checkAppProfilingState(request, observer);
-    validateResponse(observer, expectedResponse);
-
-    // Stop monitoring (end session) while we're still "being profiled"
-    stopMonitoringApp();
-
-    // A response with max timestamp and being_profiled = false should be returned, as the session is ended.
-    expectedResponse = ProfilingStateResponse.newBuilder().setCheckTimestamp(Long.MAX_VALUE).build();
-    // Sanity check that getBeingProfiled is false. We do that because false is the default value and validateResponse fails if we
-    // specify default values in the expected response.
-    assertFalse(expectedResponse.getBeingProfiled());
-    StreamObserver<ProfilingStateResponse> observer2 = mock(StreamObserver.class);
-    myCpuService.checkAppProfilingState(request, observer2);
-    validateResponse(observer2, expectedResponse);
-  }
-
   private static class FakeTransportService extends TransportServiceGrpc.TransportServiceImplBase {
 
     @Override
@@ -437,19 +405,6 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     private int myLastCheckBeingProfiledTimestamp = 1;
 
     private List<CpuTraceInfo> myTraceInfoResponses = new ArrayList<>();
-
-    public void addTraceInfo(CpuTraceInfo info) {
-      myTraceInfoResponses.add(info);
-    }
-
-    @Override
-    public void checkAppProfilingState(ProfilingStateRequest request,
-                                       StreamObserver<ProfilingStateResponse> responseObserver) {
-      ProfilingStateResponse response = ProfilingStateResponse
-        .newBuilder().setCheckTimestamp(myLastCheckBeingProfiledTimestamp++).setBeingProfiled(myIsBeingProfiled).build();
-      responseObserver.onNext(response);
-      responseObserver.onCompleted();
-    }
 
     @Override
     public void getData(CpuDataRequest request, StreamObserver<CpuDataResponse> responseObserver) {

@@ -14,7 +14,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="132"/>
+            line="134"/>
     </issue>
 
     <issue
@@ -22,7 +22,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="185"/>
+            line="196"/>
     </issue>
 
     <issue
@@ -30,7 +30,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="192"/>
+            line="203"/>
     </issue>
 
     <issue
@@ -38,7 +38,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="291"/>
+            line="304"/>
     </issue>
 
     <issue
@@ -46,7 +46,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="299"/>
+            line="312"/>
     </issue>
 
     <issue
@@ -54,7 +54,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="405"/>
+            line="421"/>
     </issue>
 
     <issue
@@ -62,7 +62,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuProfiler.java"
-            line="184"/>
+            line="195"/>
     </issue>
 
     <issue
@@ -70,7 +70,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuProfilerStage.java"
-            line="526"/>
+            line="454"/>
     </issue>
 
     <issue
@@ -78,7 +78,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/energy/EnergyDuration.java"
-            line="162"/>
+            line="166"/>
     </issue>
 
     <issue
@@ -287,22 +287,6 @@
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureSessionArtifact.java"
             line="85"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/profilers/cpu/CpuProfilerStage.java"
-            line="675"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/profilers/cpu/CpuProfilerStage.java"
-            line="1081"/>
     </issue>
 
     <issue

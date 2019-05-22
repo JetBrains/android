@@ -117,16 +117,11 @@ class StudioLegacyCpuTraceProfilerTest {
       .build()
     val startRequest = CpuProfiler.CpuProfilingAppStartRequest.newBuilder().setSession(session).setConfiguration(configuration).build()
     val stopRequest = CpuProfiler.CpuProfilingAppStopRequest.newBuilder().setSession(session).setTraceType(Cpu.CpuTraceType.ATRACE).build()
-    val statusRequest = CpuProfiler.ProfilingStateRequest.newBuilder().setSession(session).build()
     val traceInfoRequest = CpuProfiler.GetTraceInfoRequest.newBuilder()
       .setSession(session)
       .setFromTimestamp(Long.MIN_VALUE)
       .setToTimestamp(Long.MAX_VALUE)
       .build()
-
-    // Validate initial state is not set to recorded
-    var checkStatusResponse = profiler.checkAppProfilingState(statusRequest)
-    assertThat(checkStatusResponse.beingProfiled).isFalse()
     assertThat(profiler.getTraceInfo(traceInfoRequest)).isEmpty()
 
     myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)
@@ -137,10 +132,6 @@ class StudioLegacyCpuTraceProfilerTest {
 
     // Check the state of the StudioLegacyCpuTraceProfiler
     myTimer.currentTimeNs = 150L
-    checkStatusResponse = profiler.checkAppProfilingState(statusRequest)
-    assertThat(checkStatusResponse.beingProfiled).isTrue()
-    assertThat(checkStatusResponse.configuration.userOptions.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
-
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)
     val stopResponse = profiler.stopProfilingApp(stopRequest)
     assertThat(stopResponse.traceId).isEqualTo(FakeCpuService.FAKE_TRACE_ID)

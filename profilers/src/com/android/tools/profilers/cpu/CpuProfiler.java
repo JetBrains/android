@@ -15,12 +15,16 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
 import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfiler;
@@ -32,7 +36,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -43,8 +46,10 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -186,7 +191,7 @@ public class CpuProfiler extends StudioProfiler {
       // to handle converting the format to a format that Systrace can support. The reason for the multi-part file
       // is because Atrace dumps a compressed data file every X interval and this file represents the concatenation of all
       // the individual dumps.
-      if (info.getTraceType() == CpuTraceType.ATRACE) {
+      if (info.getConfiguration().getUserOptions().getTraceType() == CpuTraceType.ATRACE) {
         File trace = FileUtil.createTempFile(String.format("cpu_trace_%d", info.getTraceId()), ".trace", true);
         try (FileOutputStream out = new FileOutputStream(trace)) {
           out.write(traceResponse.getContents().toByteArray());
@@ -211,5 +216,34 @@ public class CpuProfiler extends StudioProfiler {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
     traceName.append(LocalDateTime.now().format(formatter));
     return traceName.toString();
+  }
+
+  /**
+   * Returns the list of {@link CpuTraceInfo} that intersect with the given range.
+   *
+   * @param rangeUs note that this is a microsecond range. If the range min/max value is Long.MINVALUE/Long.MAXVALUE
+   *                respectively, the MIN/MAX values will be used for the query. Otherwise conversion to nanoseconds result
+   *                in overflows.
+   */
+  @NotNull
+  public static List<CpuTraceInfo> getTraceInfoFromRange(@NotNull ProfilerClient client,
+                                                         @NotNull Common.Session session,
+                                                         @NotNull Range rangeUs) {
+    // Converts the range to nanoseconds before calling the service.
+    long rangeMinNs = rangeUs.getMin() == Long.MIN_VALUE ? Long.MIN_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
+    long rangeMaxNs = rangeUs.getMax() == Long.MAX_VALUE ? Long.MAX_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
+
+    GetTraceInfoResponse response = client.getCpuClient().getTraceInfo(GetTraceInfoRequest.newBuilder().
+      setSession(session).
+      setFromTimestamp(rangeMinNs).setToTimestamp(rangeMaxNs).build());
+    return response.getTraceInfoList().stream().collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the list of all {@link CpuTraceInfo} for a given session.
+   */
+  @NotNull
+  public static List<CpuTraceInfo> getTraceInfoFromSession(@NotNull ProfilerClient client, @NotNull Common.Session session) {
+    return getTraceInfoFromRange(client, session, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
   }
 }

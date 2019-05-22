@@ -25,6 +25,5 @@ import java.util.List;
 public interface LegacyCpuTraceProfiler {
   CpuProfilingAppStartResponse startProfilingApp(CpuProfilingAppStartRequest request);
   CpuProfilingAppStopResponse stopProfilingApp(CpuProfilingAppStopRequest request);
-  ProfilingStateResponse checkAppProfilingState(ProfilingStateRequest request);
   List<Cpu.CpuTraceInfo> getTraceInfo(GetTraceInfoRequest request);
 }
