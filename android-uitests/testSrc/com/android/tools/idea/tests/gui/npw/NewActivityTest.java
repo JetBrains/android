@@ -83,7 +83,7 @@ public class NewActivityTest {
     myEditor.open(PROVIDED_MANIFEST);
 
     String text = myEditor.getCurrentFileContents();
-    assertEquals(getOccurrenceCount(text, "android.intent.category.LAUNCHER"), 2);
+    assertEquals(2, getOccurrenceCount(text, "android.intent.category.LAUNCHER"));
   }
 
   @Test
@@ -97,25 +97,6 @@ public class NewActivityTest {
       "app/src/main/java/google/simpleapplication/MainActivity.java",
       "app/src/main/res/layout/fragment_main.xml"
     );
-  }
-
-  @Test
-  public void createActivityWithHierarchicalParent() throws Exception{
-    myConfigActivity.enterTextFieldValue(ActivityTextField.HIERARCHICAL_PARENT, "google.simpleapplication.MyActivity");
-    myDialog.clickFinish();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
-
-    String text = myEditor.open(PROVIDED_MANIFEST).getCurrentFileContents();
-    assertThat(getOccurrenceCount(text, "android:name=\".MainActivity\"")).isEqualTo(1);
-    assertThat(getOccurrenceCount(text, "android:parentActivityName=\".MyActivity\"")).isEqualTo(1);
-  }
-
-  @Test
-  public void createActivityWithInvalidHierarchicalParent() throws Exception {
-    myConfigActivity.enterTextFieldValue(ActivityTextField.HIERARCHICAL_PARENT, "google.simpleapplication.MyActivityWrong");
-    assertThat(myConfigActivity.getValidationText()).isEqualTo("Hierarchical Parent must already exist");
-    myDialog.clickCancel();
   }
 
   @Test
