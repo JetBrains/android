@@ -63,7 +63,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     val bottom = top + textView.drawHeight
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom, SdkConstants.VIEW_TAG), p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom), p)
     assertTrue(snappedResult)
     assertEquals(frameLayout.drawX + SIZE / 2 - textView.drawWidth / 2, p.x)
     assertEquals(frameLayout.drawY + SIZE / 2 - textView.drawHeight / 2, p.y)
@@ -118,9 +118,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     val top = 120
 
     val p = Point()
-    val snappedPlaceholders = placeholders.filter {
-      it.snap(SnappingInfo(left, top, left + 50, top + 50, SdkConstants.VIEW_TAG), p)
-    }.toList()
+    val snappedPlaceholders = placeholders.filter { it.snap(SnappingInfo(left, top, left + 50, top + 50), p) }.toList()
 
     assertSize(1, snappedPlaceholders)
     UsefulTestCase.assertInstanceOf(snappedPlaceholders[0], ViewGroupPlaceholder::class.java)
