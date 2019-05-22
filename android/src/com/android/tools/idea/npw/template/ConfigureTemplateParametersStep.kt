@@ -23,7 +23,6 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils
-import com.android.tools.idea.npw.template.components.ActivityComboProvider
 import com.android.tools.idea.npw.template.components.CheckboxProvider
 import com.android.tools.idea.npw.template.components.ComponentProvider
 import com.android.tools.idea.npw.template.components.EnumComboProvider
@@ -56,7 +55,6 @@ import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_CLASS_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep
@@ -75,7 +73,6 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.RecentsManager
-import com.intellij.ui.ReferenceEditorComboWithBrowseButton
 import com.intellij.ui.components.JBLabel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER
@@ -311,11 +308,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       return rowEntry
     }
 
-    if (ATTR_PARENT_ACTIVITY_CLASS == parameter.id && module != null) {
-      val provider = ActivityComboProvider(module, parameter, getRecentsKeyForParameter(parameter))
-      return RowEntry<ReferenceEditorComboWithBrowseButton>(name, provider)
-    }
-
     return when (parameter.type) {
       Parameter.Type.STRING -> RowEntry(name, TextFieldProvider(parameter))
       Parameter.Type.BOOLEAN -> RowEntry(CheckboxProvider(parameter), false)
@@ -340,7 +332,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
   /** If we are creating a new module, there are some fields that we need to hide. */
   private fun isParameterVisible(parameter: Parameter): Boolean =
-    !isNewModule || ATTR_PACKAGE_NAME != parameter.id && ATTR_IS_LAUNCHER != parameter.id && ATTR_PARENT_ACTIVITY_CLASS != parameter.id
+    !isNewModule || ATTR_PACKAGE_NAME != parameter.id && ATTR_IS_LAUNCHER != parameter.id
 
   /**
    * Run through all parameters for our current template and update their values,
