@@ -323,7 +323,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       RowEntry<?> rowEntry;
       if (module != null) {
         rowEntry = new RowEntry<>(parameter.name,
-                                  new PackageComboProvider(module.getProject(), parameter, getModel().packageName().get(),
+                                  new PackageComboProvider(module.getProject(), parameter, getModel().getPackageName().get(),
                                                            getRecentsKeyForParameter(parameter)));
       }
       else {
@@ -334,9 +334,9 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       //noinspection unchecked
       StringProperty packageName = (StringProperty)rowEntry.getProperty();
       assert packageName != null;
-      myBindings.bindTwoWay(packageName, getModel().packageName());
+      myBindings.bindTwoWay(packageName, getModel().getPackageName());
       // Model.packageName is used for parameter evaluation, but updated asynchronously. Do new evaluation when value changes.
-      myListeners.listen(getModel().packageName(), () -> enqueueEvaluateParameters());
+      myListeners.listen(getModel().getPackageName(), () -> enqueueEvaluateParameters());
       return rowEntry;
     }
 
@@ -412,11 +412,11 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     try {
       int projectType = getModel().getAndroidFacet() == null ? -1 : getModel().getAndroidFacet().getConfiguration().getProjectType();
-      boolean isInstantApp = projectType == PROJECT_TYPE_FEATURE || getModel().instantApp().get();
+      boolean isInstantApp = projectType == PROJECT_TYPE_FEATURE || getModel().getInstantApp().get();
 
       Map<String, Object> additionalValues = Maps.newHashMap();
       new TemplateValueInjector(additionalValues)
-        .addTemplateAdditionalValues(getModel().packageName().get(), isInstantApp, getModel().getTemplate());
+        .addTemplateAdditionalValues(getModel().getPackageName().get(), isInstantApp, getModel().getTemplate());
 
       Map<String, Object> allValues = Maps.newHashMap(additionalValues);
 
@@ -505,7 +505,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
 
       Set<Object> relatedValues = getRelatedValues(parameter);
-      message = parameter.validate(project, module, sourceProvider, getModel().packageName().get(), property.get(), relatedValues);
+      message = parameter.validate(project, module, sourceProvider, getModel().getPackageName().get(), property.get(), relatedValues);
 
       if (message != null) {
         break;
@@ -725,7 +725,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       Project project = getModel().getProject().getValueOrNull();
       Set<Object> relatedValues = getRelatedValues(parameter);
       SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(getModel().getTemplate().get());
-      while (!parameter.uniquenessSatisfied(project, module, sourceProvider, getModel().packageName().get(), suggested, relatedValues)) {
+      while (!parameter.uniquenessSatisfied(project, module, sourceProvider, getModel().getPackageName().get(), suggested, relatedValues)) {
         suggested = filenameJoiner.join(namePart + suffix, extPart);
         suffix++;
       }

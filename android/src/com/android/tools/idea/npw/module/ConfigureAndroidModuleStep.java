@@ -137,10 +137,11 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
     NamedModuleTemplate dummyTemplate = GradleAndroidModuleTemplate.createDummyTemplate();
 
-    myRenderModel = new RenderTemplateModel(moduleModel, null, dummyTemplate, message("android.wizard.activity.add", myFormFactor.id));
+    myRenderModel =
+      RenderTemplateModel.fromModuleModel(moduleModel, null, dummyTemplate, message("android.wizard.activity.add", myFormFactor.id));
 
-    myBindings.bind(myRenderModel.androidSdkInfo(), new SelectedItemProperty<>(myApiLevelCombo));
-    myValidatorPanel.registerValidator(myRenderModel.androidSdkInfo(), value -> {
+    myBindings.bind(myRenderModel.getAndroidSdkInfo(), new SelectedItemProperty<>(myApiLevelCombo));
+    myValidatorPanel.registerValidator(myRenderModel.getAndroidSdkInfo(), value -> {
       if (!value.isPresent()) {
         return new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text"));
       }
@@ -209,7 +210,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     myInstallRequests.clear();
     myInstallLicenseRequests.clear();
 
-    List<AndroidVersionsInfo.VersionItem> installItems = Collections.singletonList(myRenderModel.androidSdkInfo().getValue());
+    List<AndroidVersionsInfo.VersionItem> installItems = Collections.singletonList(myRenderModel.getAndroidSdkInfo().getValue());
     myInstallRequests.addAll(myAndroidVersionsInfo.loadInstallPackageList(installItems));
     myInstallLicenseRequests.addAll(myInstallRequests.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList()));
   }
