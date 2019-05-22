@@ -362,8 +362,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackCpuStartupProfiling(@NotNull ProfilingConfiguration configuration) {
-    newTracker(AndroidProfilerEvent.Type.CPU_STARTUP_PROFILING).setDevice(myActiveDevice).setCpuStartupProfilingConfiguration(configuration)
+  public void trackCpuStartupProfiling(@NotNull Common.Device device, @NotNull ProfilingConfiguration configuration) {
+    newTracker(AndroidProfilerEvent.Type.CPU_STARTUP_PROFILING).setDevice(device).setCpuStartupProfilingConfiguration(configuration)
       .track();
   }
 

@@ -36,15 +36,14 @@ import java.util.concurrent.TimeUnit
  */
 class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketransport.FakeGrpcChannel,
                       val transportService: FakeTransportService,
-                      val cpuService: FakeCpuService) : ExternalResource() {
+                      val cpuService: FakeCpuService,
+                      val timer: FakeTimer) : ExternalResource() {
 
   lateinit var ideServices: FakeIdeProfilerServices
   lateinit var stage: CpuProfilerStage
-  private lateinit var timer: FakeTimer
 
   override fun before() {
     ideServices = FakeIdeProfilerServices()
-    timer = FakeTimer()
 
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), ideServices, timer)
     // One second must be enough for new devices (and processes) to be picked up
@@ -77,7 +76,9 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
         true -> {
           cpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
                                     .setTraceId(traceId)
-                                    .setTraceType(traceType)
+                                    .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                                                        .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+                                                                          .setTraceType(traceType)))
                                     .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(fromUs))
                                     .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(toUs))
                                     .build())
@@ -94,17 +95,13 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
 
   /**
    * Simulates capturing a trace.
-   *
-   * @param id ID of the trace
-   * @param traceType the profiler type of the trace
    */
-  fun captureTrace(id: Long = 0,
-                   traceType: CpuTraceType = CpuTraceType.ART,
+  fun captureTrace(traceType: CpuTraceType = CpuTraceType.ART,
                    traceContent: ByteString = CpuProfilerTestUtils.readValidTrace()) {
 
     // Change the selected configuration, so that startCapturing() will use the correct one.
     selectConfig(traceType)
-    CpuProfilerTestUtils.captureSuccessfully(stage, cpuService, transportService, id, traceType, traceContent)
+    CpuProfilerTestUtils.captureSuccessfully(stage, cpuService, transportService, traceContent)
   }
 
   /**
