@@ -478,6 +478,11 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     List<ResourceItem> items = repository.getResources(ResourceNamespace.ANDROID, ResourceType.ID, "mode_normal");
     items = items.stream().filter(item -> item.getConfiguration().isDefault()).collect(Collectors.toList());
     assertThat(items).hasSize(1);
+
+    // Check that ID resources defined using @+id syntax in layout XML files are present in the repository.
+    // The following ID resource is defined by android:id="@+id/radio_power" in layout/power_dialog.xml.
+    items = repository.getResources(ResourceNamespace.ANDROID, ResourceType.ID, "radio_power");
+    assertThat(items).hasSize(1);
   }
 
   private static void checkPublicResourcesCount(@NotNull ResourceRepository repository) {
