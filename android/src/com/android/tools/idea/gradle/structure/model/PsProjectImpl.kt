@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
@@ -58,7 +57,7 @@ class PsProjectImpl(
   override var gradleVersion by PsProjectDescriptors.gradleVersion
 
   private var gradleVersionModified = false
-  private var newGradleVewrsion: String? = null
+  private var newGradleVersion: String? = null
 
   init {
     // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.
@@ -100,7 +99,7 @@ class PsProjectImpl(
         override fun run(result: Result<Nothing>) {
           parsedModel.applyChanges()
           if (gradleVersionModified) {
-            GradleWrapper.find(ideProject)?.updateDistributionUrlAndDisplayFailure(newGradleVewrsion!!)
+            GradleWrapper.find(ideProject)?.updateDistributionUrlAndDisplayFailure(newGradleVersion!!)
           }
           isModified = false
         }
@@ -143,13 +142,13 @@ class PsProjectImpl(
   }
 
   override fun getGradleVersionValue(notApplied: Boolean): String? =
-    if (notApplied && gradleVersionModified) newGradleVewrsion
+    if (notApplied && gradleVersionModified) newGradleVersion
     else GradleWrapper.find(ideProject)?.gradleFullVersion
 
   override fun setGradleVersionValue(value: String) {
     if (value == getGradleVersionValue(notApplied = true).orEmpty()) return
     isModified = true
     gradleVersionModified = true
-    newGradleVewrsion = value
+    newGradleVersion = value
   }
 }
