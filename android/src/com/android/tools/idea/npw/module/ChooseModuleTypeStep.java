@@ -100,7 +100,6 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
       if (moduleGalleryEntry instanceof ModuleTemplateGalleryEntry) {
         ModuleTemplateGalleryEntry templateEntry =  (ModuleTemplateGalleryEntry) moduleGalleryEntry;
         model.isLibrary().set(templateEntry.isLibrary());
-        model.isInstantApp().set(templateEntry.isInstantApp());
         model.getTemplateFile().setValue(templateEntry.getTemplateFile());
       }
 
@@ -116,7 +115,7 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
   private JComponent createGallery() {
     myFormFactorGallery = new WizardGallery<>(
       getTitle(),
-      galEntry -> galEntry.getIcon() == null ? null : galEntry.getIcon(),
+      galEntry -> galEntry == null ? null : galEntry.getIcon(),
       galEntry -> galEntry == null ? message("android.wizard.gallery.item.none") : galEntry.getName()
     );
 
@@ -158,8 +157,7 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
       message("android.wizard.module.new.mobile"), message("android.wizard.module.new.library"),
       message("android.wizard.module.new.dynamic.module"),
       message("android.wizard.module.new.dynamic.module.instant"),
-      message("android.wizard.module.new.instant.app"),
-      message("android.wizard.module.new.feature.module"), ANDROID_AUTOMOTIVE_MODULE_NAME,
+     ANDROID_AUTOMOTIVE_MODULE_NAME,
       ANDROID_WEAR_MODULE_NAME, ANDROID_TV_MODULE_NAME,
       ANDROID_THINGS_MODULE_NAME, message("android.wizard.module.import.gradle.title"),
       message("android.wizard.module.import.eclipse.title"), message("android.wizard.module.import.title"),

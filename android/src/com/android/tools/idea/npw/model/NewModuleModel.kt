@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.instantapp.InstantApps
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateValueInjector
@@ -32,9 +31,6 @@ import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.observable.expressions.string.StringExpression
 import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_INSTANT_APP_WRAPPER
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_MONOLITHIC_APP_WRAPPER
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_INSTANT_APP_PACKAGE_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.RenderingContext
@@ -67,7 +63,6 @@ class NewModuleModel : WizardModel {
   val projectLocation: StringProperty
   val packageName = StringValueProperty()
   private val projectPackageName: StringProperty
-  val isInstantApp = BoolValueProperty()
   val enableCppSupport: BoolProperty
   val language: OptionalValueProperty<Language>
   private val createInExistingProject: Boolean
@@ -89,7 +84,6 @@ class NewModuleModel : WizardModel {
     applicationName.addConstraint(AbstractProperty.Constraint(String::trim))
     projectLocation = StringValueProperty(project.basePath!!)
     isLibrary.addListener { updateApplicationName() }
-    isInstantApp.addListener { updateApplicationName() }
     multiTemplateRenderer = MultiTemplateRenderer(project, projectSyncInvoker)
   }
 
@@ -106,17 +100,13 @@ class NewModuleModel : WizardModel {
     multiTemplateRenderer.incrementRenders()
     language = OptionalValueProperty()
 
-    bindings.bind(packageName, projectPackageName, isInstantApp.not())
+    bindings.bind(packageName, projectPackageName)
   }
 
   override fun dispose() {
     super.dispose()
     bindings.releaseAll()
   }
-
-  fun computedFeatureModulePackageName(): ObservableString = object : StringExpression(projectPackageName, splitName) {
-      override fun get(): String = projectPackageName.get() + "." + splitName.get()
-    }
 
   /**
    * This method should be called if there is no "Activity Render Template" step (For example when creating a Library, or the activity
@@ -159,19 +149,6 @@ class NewModuleModel : WizardModel {
       myTemplateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary.get()
 
       val project = project.value
-      if (isInstantApp.get()) {
-        myTemplateValues[ATTR_INSTANT_APP_PACKAGE_NAME] = projectPackageName.get()
-
-        if (renderTemplateValues != null) {
-          TemplateValueInjector(renderTemplateValues).setInstantAppSupport(createInExistingProject, project, moduleName.get())
-        }
-
-        if (createInExistingProject) {
-          val hasInstantAppWrapper = isInstantApp.get() && InstantApps.findBaseFeature(project) == null
-          myTemplateValues[ATTR_HAS_MONOLITHIC_APP_WRAPPER] = false
-          myTemplateValues[ATTR_HAS_INSTANT_APP_WRAPPER] = hasInstantAppWrapper
-        }
-      }
 
       if (renderTemplateValues != null) {
         if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
@@ -226,10 +203,6 @@ class NewModuleModel : WizardModel {
 
   private fun updateApplicationName() {
     val msgId: String = when {
-      isInstantApp.get() -> {
-        val isNewBaseFeature = project.get().isPresent && InstantApps.findBaseFeature(project.value) == null
-        if (isNewBaseFeature) "android.wizard.module.config.new.base.feature" else "android.wizard.module.config.new.feature"
-      }
       isLibrary.get() -> "android.wizard.module.config.new.library"
       else -> "android.wizard.module.config.new.application"
     }

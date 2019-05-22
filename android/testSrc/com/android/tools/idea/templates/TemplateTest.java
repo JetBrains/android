@@ -28,7 +28,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_INSTANT_APP;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
@@ -1233,7 +1232,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     moduleState.put(ATTR_TARGET_API_STRING, Integer.toString(targetSdk));
     moduleState.put(ATTR_BUILD_API, target.getVersion().getApiLevel());
     moduleState.put(ATTR_BUILD_API_STRING, getBuildApiString(target.getVersion()));
-    moduleState.put(ATTR_IS_INSTANT_APP, false);
 
     // Next check all other parameters, cycling through booleans and enums.
     Template templateHandler = templateState.getTemplate();
