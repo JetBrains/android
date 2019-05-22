@@ -65,7 +65,7 @@ class CpuCaptureViewTest {
                                   transportService, FakeProfilerService(timer),
                                   FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
-    cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, transportService = transportService, cpuService = cpuService)
+    cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, transportService = transportService, cpuService = cpuService, timer = timer)
   }
 
   private lateinit var captureView: CpuCaptureView
@@ -262,11 +262,12 @@ class CpuCaptureViewTest {
       assertThat(filterComponent.searchField.text).isEqualTo("ABC")
     }
 
-    // Simulate selecting a new capture (without clearing captures in between). The filter should
-    // be preserved
+    // Simulate selecting a new capture (without clearing captures in between). The filter should be preserved
     run {
       val prevCapture = stage.capture
-      cpuProfiler.captureTrace(id = 101, traceContent = CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))
+      // trace ids are generated based on current time in the fake service, so update the timer to ensure we get a new trace info message.
+      timer.currentTimeNs = 101
+      cpuProfiler.captureTrace(traceContent = CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))
       assertThat(stage.capture).isNotEqualTo(prevCapture)
     }
 

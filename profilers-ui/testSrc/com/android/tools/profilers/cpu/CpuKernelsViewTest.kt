@@ -108,12 +108,11 @@ class CpuKernelsViewTest {
     val kernelsView = CpuKernelsView(stage)
 
     stage.studioProfilers.stage = stage
+    stage.profilerConfigModel.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
     CpuProfilerTestUtils.captureSuccessfully(
       stage,
       cpuService,
       transportService,
-      0,
-      Cpu.CpuTraceType.ATRACE,
       CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
     stage.studioProfilers.timeline.viewRange.set(stage.capture!!.range)
 

@@ -42,7 +42,7 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
     assert !getArtifact().isOngoing();
     getSessionsView().getIdeProfilerComponents().createExportDialog().open(
       () -> "Export As",
-      () -> CpuProfiler.generateCaptureFileName(getArtifact().getArtifactProto().getTraceType()),
+      () -> CpuProfiler.generateCaptureFileName(getArtifact().getArtifactProto().getConfiguration().getUserOptions().getTraceType()),
       () -> "trace",
       file -> getArtifact().getProfilers().getIdeServices().saveFile(file, outputStream -> getArtifact().export(outputStream), null));
   }

@@ -522,8 +522,10 @@ public final class StudioProfilersTest {
 
     myTransportService.addDevice(device);
     myTransportService.addProcess(device, process);
-    myCpuService
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder().setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP).build());
+    myCpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
+                                .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                                                    .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP))
+                                .build());
 
     // To make sure that StudioProfilers#update is called, which in a consequence polls devices and processes,
     // and starts a new session with the preferred process name.

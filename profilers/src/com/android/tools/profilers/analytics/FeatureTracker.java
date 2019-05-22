@@ -187,9 +187,9 @@ public interface FeatureTracker {
   void trackImportTrace(@NotNull Cpu.CpuTraceType traceType, boolean success);
 
   /**
-   * Track the startup CPU profiling that was started with the given {@param configuration}.
+   * Track the startup CPU profiling that was started with the given {@param device} and {@param configuration}.
    */
-  void trackCpuStartupProfiling(@NotNull ProfilingConfiguration configuration);
+  void trackCpuStartupProfiling(@NotNull Common.Device device, @NotNull ProfilingConfiguration configuration);
 
   /**
    * @param sampling     True if using sampling; false if using instrumentation.
