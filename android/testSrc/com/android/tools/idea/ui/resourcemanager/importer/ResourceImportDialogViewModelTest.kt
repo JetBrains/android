@@ -87,7 +87,8 @@ class ResourceImportDialogViewModelTest {
       assertThat(newAsset).isNotSameAs(designAssetSet)
       assertThat(newAsset.name).isEqualTo("newName")
     }
-    viewModel.doImport()
+    viewModel.commit()
+    viewModel.summaryScreenViewModel.doImport()
     assertThat(File(first, "drawable/newName.png").exists()).isTrue()
   }
 
