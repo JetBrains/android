@@ -40,7 +40,7 @@ const val MAX_IMPORT_FILES = 400
  */
 class ResourceImportDialogViewModel(val facet: AndroidFacet,
                                     assets: Sequence<DesignAsset>,
-                                    private val designAssetImporter: DesignAssetImporter = DesignAssetImporter(),
+                                    designAssetImporter: DesignAssetImporter = DesignAssetImporter(),
                                     private val importersProvider: ImportersProvider = ImportersProvider()
 ) {
 
@@ -59,7 +59,16 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
   val assetSets get() = assetSetsToImport
 
   private val rendererManager = DesignAssetRendererManager.getInstance()
+
+  /**
+   * The [SummaryScreenViewModel] that will be updated [DesignAsset] are added and [commit] is called.
+   *
+   * This is supposed to be passed to [SummaryStep].
+   */
+  val summaryScreenViewModel = SummaryScreenViewModel(designAssetImporter, rendererManager, facet)
+
   val fileCount: Int get() = assetSets.sumBy { it.designAssets.size }
+
   var updateCallback: () -> Unit = {}
 
   private val fileViewModels = mutableMapOf<DesignAsset, FileImportRowViewModel>()
@@ -77,10 +86,6 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
    * This validator only check for the name
    */
   private val resourceNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE, null)
-
-  fun doImport() {
-    designAssetImporter.importDesignAssets(assetSetsToImport, facet)
-  }
 
   fun getAssetPreview(asset: DesignAsset): CompletableFuture<out Image?> {
     return rendererManager
@@ -124,6 +129,15 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
         .forEach {
           addAssetSet(assetByName, it, assetAddedCallback)
         }
+    }
+  }
+
+  /**
+   * Same as [importMoreAssets] but only if the list of asset to be imported is currently empty.
+   */
+  fun importMoreAssetIfEmpty(assetAddedCallback: (DesignAssetSet, List<DesignAsset>) -> Unit) {
+    if (assetSets.isEmpty()) {
+      importMoreAssets(assetAddedCallback)
     }
   }
 
@@ -236,4 +250,12 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
       ValidationInfo("${asset.name}: ${error.message}")
     }
     .firstOrNull()
+
+  /**
+   * Passes the [assetSetsToImport] to the [SummaryScreenViewModel].
+   * @see summaryScreenViewModel
+   */
+  fun commit() {
+    summaryScreenViewModel.assetSetsToImport = assetSetsToImport
+  }
 }
