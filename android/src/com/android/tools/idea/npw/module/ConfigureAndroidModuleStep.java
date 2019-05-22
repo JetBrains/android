@@ -164,7 +164,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
     ChooseActivityTypeStep chooseActivityStep = new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor, Lists.newArrayList());
-    chooseActivityStep.setShouldShow(!getModel().isLibrary().get() || getModel().isInstantApp().get());
+    chooseActivityStep.setShouldShow(!getModel().isLibrary().get());
 
     LicenseAgreementStep licenseAgreementStep =
       new LicenseAgreementStep(new LicenseAgreementModel(AndroidVersionsInfo.getSdkManagerLocalPath()), myInstallLicenseRequests);

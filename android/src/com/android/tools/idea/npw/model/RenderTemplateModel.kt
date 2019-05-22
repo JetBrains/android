@@ -65,7 +65,6 @@ class RenderTemplateModel private constructor(
   val androidFacet: AndroidFacet?,
   var templateHandle: TemplateHandle? = null,
   val template: ObjectProperty<NamedModuleTemplate>,
-  val instantApp: BoolProperty,
   private val projectLocation: StringProperty,
   private val moduleName: StringProperty,
   /** The package name affects which paths the template's output will be rendered into. */
@@ -214,7 +213,6 @@ class RenderTemplateModel private constructor(
                           facet,
                           templateHandle,
                           ObjectValueProperty(template),
-                          BoolValueProperty(false),
                           StringValueProperty(facet.module.project.basePath!!),
                           StringValueProperty(facet.module.name),
                           StringValueProperty(initialPackageSuggestion),
@@ -228,7 +226,6 @@ class RenderTemplateModel private constructor(
                           null,
                           templateHandle,
                           ObjectValueProperty(template),
-                          moduleModel.isInstantApp,
                           moduleModel.projectLocation,
                           moduleModel.moduleName,
                           moduleModel.packageName,

@@ -63,11 +63,6 @@ public final class NewProjectModuleModel extends WizardModel {
   }
 
   @NotNull
-  public BoolProperty instantApp() {
-    return myNewModuleModel.isInstantApp();
-  }
-
-  @NotNull
   public BoolProperty dynamicInstantApp() {
     return myDynamicInstantApp;
   }
@@ -162,10 +157,6 @@ public final class NewProjectModuleModel extends WizardModel {
     if (myHasCompanionApp.get()) {
       moduleName = getModuleName(myFormFactor.get());
     }
-    else if (myNewModuleModel.isInstantApp().get()) {
-      moduleName = myNewModuleModel.getSplitName().get();
-      myNewModuleModel.getPackageName().set(myNewModuleModel.computedFeatureModulePackageName().get());
-    }
     else {
       moduleName = SdkConstants.APP_PREFIX;
     }
@@ -243,9 +234,7 @@ public final class NewProjectModuleModel extends WizardModel {
     Map<String, Object>  additionalValues = Maps.newHashMap();
 
     String packageName = renderTemplateModel.getPackageName().get();
-    boolean isInstantApp = renderTemplateModel.getInstantApp().get();
-    new TemplateValueInjector(additionalValues)
-      .addTemplateAdditionalValues(packageName, isInstantApp, renderTemplateModel.getTemplate());
+    new TemplateValueInjector(additionalValues).addTemplateAdditionalValues(packageName, renderTemplateModel.getTemplate());
     additionalValues.put(ATTR_PACKAGE_NAME, renderTemplateModel.getPackageName().get());
 
     try {
