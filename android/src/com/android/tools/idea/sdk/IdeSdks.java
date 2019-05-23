@@ -149,14 +149,14 @@ public class IdeSdks {
   }
 
   @Nullable
-  public LocalPackage getHighestLocalNdkPackage() {
+  public LocalPackage getHighestLocalNdkPackage(boolean allowPreview) {
     AndroidSdkHandler sdkHandler = myAndroidSdks.tryToChooseSdkHandler();
     // Look first at NDK side-by-side locations.
     // See go/ndk-sxs
     LocalPackage ndk = sdkHandler.getLatestLocalPackageForPrefix(
       SdkConstants.FD_NDK_SIDE_BY_SIDE,
       null,
-      false, // Don't allow preview versions of NDK
+      allowPreview,
       new StudioLoggerProgressIndicator(IdeSdks.class));
     if (ndk != null) {
       return ndk;
@@ -166,7 +166,7 @@ public class IdeSdks {
 
   @Nullable
   public File getAndroidNdkPath() {
-    LocalPackage ndk = getHighestLocalNdkPackage();
+    LocalPackage ndk = getHighestLocalNdkPackage(false);
     if (ndk != null) {
       return ndk.getLocation();
     }
