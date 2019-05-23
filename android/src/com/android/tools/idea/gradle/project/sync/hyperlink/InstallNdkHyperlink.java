@@ -115,7 +115,7 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
         if (ndkPath != null) {
           ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(ndkPath), true);
           if (dialog != null && dialog.showAndGet()) {
-            LocalPackage highestLocalNdk = IdeSdks.getInstance().getHighestLocalNdkPackage();
+            LocalPackage highestLocalNdk = IdeSdks.getInstance().getHighestLocalNdkPackage(false);
             if (highestLocalNdk != null) {
               new FixNdkVersionProcessor(project, buildFiles, highestLocalNdk.getVersion().toString()).run();
             } else {
