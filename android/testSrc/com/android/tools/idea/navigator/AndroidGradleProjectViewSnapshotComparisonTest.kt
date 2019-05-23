@@ -34,6 +34,11 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
+  fun testNestedProjects() {
+    val text = importSyncAndDumpProject(TestProjectPaths.PSD_SAMPLE)
+    assertIsEqualToSnapshot(text)
+  }
+
   private fun importSyncAndDumpProject(projectDir: String, patch: ((projectRootPath: File) -> Unit)? = null): String {
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
