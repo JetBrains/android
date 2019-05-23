@@ -388,12 +388,6 @@ open class GradleSyncState(
     val sourceGenerationEndTimeStamp = System.currentTimeMillis()
     sourceGenerationEndedTimeStamp = sourceGenerationEndTimeStamp
 
-    addToEventLog(
-      SYNC_NOTIFICATION_GROUP,
-      "Source generation ended in ${formatDuration(sourceGenerationEndTimeStamp - syncSetupStartedTimeStamp)}",
-      MessageType.INFO,
-      null
-    )
     LOG.info("Finished source generation of project '${project.name}'.")
     syncPublisher { sourceGenerationFinished(project) }
     // TODO: add metric to UsageTracker
