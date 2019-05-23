@@ -16,21 +16,10 @@
 
 package com.android.tools.idea.stats;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.IdeInfo;
 import com.intellij.internal.statistic.connect.StatisticsConnectionService;
 import com.intellij.internal.statistic.connect.StatisticsResult;
 import com.intellij.internal.statistic.connect.StatisticsService;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.application.ApplicationNamesInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Android Statistics Service.
@@ -39,25 +28,6 @@ import java.util.Map;
  */
 @SuppressWarnings("MethodMayBeStatic")
 public class AndroidStatisticsService implements StatisticsService {
-
-  @NonNull
-  @Override
-  public Notification createNotification(@NotNull final String groupDisplayId,
-                                         @Nullable NotificationListener listener) {
-    final String fullProductName = ApplicationNamesInfo.getInstance().getFullProductName();
-    final String companyName = ApplicationInfo.getInstance().getCompanyName();
-
-    String text =
-      "<html>Please click <a href='allow'>I agree</a> if you want to help make " + fullProductName +
-      " better or <a href='decline'>I don't agree</a> otherwise. <a href='settings'>more...</a></html>";
-
-    String title = "Help improve " + fullProductName + " by sending usage statistics to " + companyName;
-
-    return new Notification(groupDisplayId, title,
-                            text,
-                            NotificationType.INFORMATION,
-                            listener);
-  }
 
   @SuppressWarnings("ConstantConditions")
   @Override
