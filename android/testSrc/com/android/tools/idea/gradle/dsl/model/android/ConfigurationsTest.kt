@@ -15,13 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_ADD_NEW_CONFIG
-import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_ADD_NEW_CONFIG_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_ADD_NEW_CONFIG_FROM_EMPTY
-import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_ADD_NEW_CONFIG_FROM_EMPTY_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_PARSE_CONFIGS
-import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_PARSE_QUALIFIED_CONFIGS
-import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_REMOVE_CONFIG
+import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.TestFileName.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
@@ -185,5 +180,64 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     assertSize(0, buildModel.configurations().all())
     val expected = ""
     verifyFileContents(myBuildFile, expected)
+  }
+
+  private fun checkParseNonEmptyConfiguration(testFileName: TestFileName) {
+    writeToBuildFile(testFileName)
+    val buildModel = gradleBuildModel
+
+    run {
+      val configModel = buildModel.configurations()
+      val configs = configModel.all()
+      assertNotEmpty(configs)
+      configs.forEach { config ->
+        assertNotEmpty(config.declaredProperties)
+      }
+    }
+  }
+
+  @Test
+  fun testParseGradleManualExample315() {
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE315)
+  }
+
+  @Test
+  fun testParseGradleManualExample319() {
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE319)
+  }
+
+  @Test
+  fun testParseGradleManualExample321() {
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE321)
+  }
+
+  @Test
+  fun testParseGradleManualExample345() {
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE345)
+  }
+
+  @Test
+  fun testParseGradleManualExample364() {
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE364)
+  }
+
+  @Test
+  fun testParseGradleManualExample369() {
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE369)
+  }
+
+  @Test
+  fun testParseGradleManualExample377() {
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE377)
+  }
+
+  @Test
+  fun testParseGradleManualExample378() {
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE378)
+  }
+
+  @Test
+  fun testParseGradleFailOnVersionConflict() {
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_FAIL_ON_VERSION_CONFLICT)
   }
 }
