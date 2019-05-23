@@ -81,6 +81,7 @@ import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDsl
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
@@ -220,6 +221,9 @@ fun GradleDslFile.getBlockElement(
         else -> return null
       }
       is ConfigurationsDslElement -> ConfigurationDslElement(resultElement, elementName)
+      // we're not going to be clever about the contents of a ConfigurationDslElement: but we do need
+      // to record whether there's anything there or not.
+      is ConfigurationDslElement -> GradleDslClosure(resultElement, null, elementName)
       else -> return null
     }
 
