@@ -1,0 +1,98 @@
+testNestedProjects
+    app (Android)
+        manifests
+            AndroidManifest.xml (main)
+        java
+            app (main)
+                dummy.kt
+                MainActivity
+                NavigationDrawerFragment
+        res
+            drawable
+                drawer_shadow.9 (4)
+                    drawer_shadow.9.png (hdpi)
+                    drawer_shadow.9.png (mdpi)
+                    drawer_shadow.9.png (xhdpi)
+                    drawer_shadow.9.png (xxhdpi)
+                ic_drawer (4)
+                    ic_drawer.png (hdpi)
+                    ic_drawer.png (mdpi)
+                    ic_drawer.png (xhdpi)
+                    ic_drawer.png (xxhdpi)
+                ic_launcher (4)
+                    ic_launcher.png (hdpi)
+                    ic_launcher.png (mdpi)
+                    ic_launcher.png (xhdpi)
+                    ic_launcher.png (xxhdpi)
+            layout
+                activity_main.xml
+                fragment_main.xml
+                fragment_navigation_drawer.xml
+            menu
+                global.xml
+                main.xml
+            values
+                dimens (2)
+                    dimens.xml
+                    dimens.xml (w820dp)
+                refs.xml
+                strings.xml
+                styles.xml
+    deep2 (Android)
+        manifests
+            AndroidManifest.xml (main)
+    dyn_feature (Android)
+        manifests
+            AndroidManifest.xml (main)
+    jav (non-Android)
+    lib (Android)
+        manifests
+            AndroidManifest.xml (main)
+        java
+            lib (main)
+                LoginActivity
+                PlusBaseActivity
+        res
+            drawable
+                ic_launcher (4)
+                    ic_launcher.png (hdpi)
+                    ic_launcher.png (mdpi)
+                    ic_launcher.png (xhdpi)
+                    ic_launcher.png (xxhdpi)
+            layout
+                activity_login.xml
+            values
+                dimens.xml
+                strings.xml
+                strings_activity_login.xml
+    nested1 (Android)
+        manifests
+            AndroidManifest.xml (main)
+    nested1-deep (Android)
+        manifests
+            AndroidManifest.xml (main)
+    nested2 (Android)
+        manifests
+            AndroidManifest.xml (main)
+    nested2-deep (Android)
+        manifests
+            AndroidManifest.xml (main)
+    Gradle Scripts
+        build.gradle (Project: trans)
+        build.gradle (Module: app)
+        build.gradle (Module: deep2)
+        build.gradle (Module: dyn_feature)
+        build.gradle (Module: jav)
+        build.gradle (Module: lib)
+        build.gradle (Module: nested1)
+        build.gradle (Module: nested1-deep)
+        build.gradle (Module: nested2)
+        build.gradle (Module: nested2-deep)
+        gradle-wrapper.properties (Gradle Version)
+        other.pro (ProGuard Rules for app)
+        proguard-rules.txt (ProGuard Rules for app)
+        other.pro (ProGuard Rules for lib)
+        proguard-rules.txt (ProGuard Rules for lib)
+        gradle.properties (Project Properties)
+        settings.gradle (Project Settings)
+        local.properties (SDK Location)
