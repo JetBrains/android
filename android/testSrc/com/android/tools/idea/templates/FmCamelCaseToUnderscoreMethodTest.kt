@@ -15,23 +15,40 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.tools.idea.templates.TemplateUtils.camelCaseToUnderlines
 import freemarker.template.SimpleScalar
-import freemarker.template.TemplateMethodModelEx
-import freemarker.template.TemplateModel
 import freemarker.template.TemplateModelException
 
-// TODO(qumeric): this should be removed in favor of TemplateUtils method
+import junit.framework.TestCase
 
-/**
- * Method invoked by FreeMarker to convert an underscore name into a CamelCase name.
- */
-class FmCamelCaseToUnderscoreMethod : TemplateMethodModelEx {
-  override fun exec(args: List<*>): TemplateModel {
-    if (args.size != 1) {
-      throw TemplateModelException("Wrong arguments")
-    }
+class FmCamelCaseToUnderscoreMethodTest : TestCase() {
+  @Throws(TemplateModelException::class)
+  private fun check(s: String, expected: String) {
+    val method = FmCamelCaseToUnderscoreMethod()
+    val list = listOf(SimpleScalar(s))
+    assertEquals(expected, method.exec(list).toString())
+  }
 
-    return SimpleScalar(camelCaseToUnderlines(args[0].toString()))
+  fun test1() {
+    check("", "")
+  }
+
+  fun test2() {
+    check("foo", "foo")
+  }
+
+  fun test3() {
+    check("Foo", "foo")
+  }
+
+  fun test4() {
+    check("FooBar", "foo_bar")
+  }
+
+  fun test5() {
+    check("testXML", "test_x_m_l")
+  }
+
+  fun test6() {
+    check("testFoo", "test_foo")
   }
 }

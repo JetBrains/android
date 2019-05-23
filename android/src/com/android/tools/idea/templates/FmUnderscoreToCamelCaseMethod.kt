@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.tools.idea.templates.TemplateUtils.underlinesToCamelCase
 import freemarker.template.SimpleScalar
 import freemarker.template.TemplateMethodModelEx
 import freemarker.template.TemplateModel
 import freemarker.template.TemplateModelException
+
+// TODO(qumeric): this should be removed in favor of TemplateUtils method
 
 /**
  * Method invoked by FreeMarker to convert a underscore_names word into CamelCase.
@@ -28,7 +31,6 @@ class FmUnderscoreToCamelCaseMethod : TemplateMethodModelEx {
     if (args.size != 1) {
       throw TemplateModelException("Wrong arguments")
     }
-    val argString = args[0].toString()
-    return SimpleScalar(TemplateUtils.underlinesToCamelCase(argString))
+    return SimpleScalar(underlinesToCamelCase(args[0].toString()))
   }
 }

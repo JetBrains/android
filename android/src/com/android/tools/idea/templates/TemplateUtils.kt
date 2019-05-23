@@ -16,11 +16,13 @@
 package com.android.tools.idea.templates
 
 import com.android.SdkConstants.EXT_GRADLE
-import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.utils.SparseArray
+import com.android.utils.usLocaleCapitalize
+import com.google.common.base.CaseFormat
 import com.google.common.base.Charsets
+import com.google.common.base.Strings.emptyToNull
 import com.google.common.io.Files
 import com.intellij.ide.impl.ProjectViewSelectInPaneTarget
 import com.intellij.ide.projectView.ProjectView
@@ -43,15 +45,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine
-import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.io.File
 import java.io.IOException
-import java.util.ArrayList
-import java.util.Locale
 import java.util.regex.Pattern
+import kotlin.math.max
 
 /**
  * Utility methods pertaining to templates for projects, modules, and activities.
@@ -62,93 +62,30 @@ object TemplateUtils {
 
   /**
    * Returns a list of known API names
-   *
-   * @return a list of string API names, starting from 1 and up through the
-   * maximum known versions (with no gaps)
-   */
-  val knownVersions: Array<String>
+
+   * @return a list of string API names, starting from 1 and up through the maximum known versions (with no gaps) */
+  val knownVersions: List<String>
     @JvmStatic get() {
       val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()!!
-      var max = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-      val targets = sdkData.targets
-      var apiTargets: SparseArray<IAndroidTarget>? = null
-      for (target in targets) {
-        if (!target.isPlatform) {
-          continue
-        }
+      val targets = sdkData.targets.filter { it.isPlatform && !it.version.isPreview }
 
-        val version = target.version
-        if (version.isPreview) {
-          continue
-        }
+      val targetLevels = targets.map {it.version.apiLevel}
+      val maxApi = max(HIGHEST_KNOWN_STABLE_API, targetLevels.max() ?: 0)
 
-        val apiLevel = version.apiLevel
-        max = kotlin.math.max(max, apiLevel)
-        if (apiLevel <= SdkVersionInfo.HIGHEST_KNOWN_API) {
-          continue
-        }
-        apiTargets = apiTargets ?: SparseArray()
-        apiTargets.put(apiLevel, target)
-      }
-
-      val versions = arrayOfNulls<String>(max)
-      for (api in 1..max) {
-        var name: String? = SdkVersionInfo.getAndroidName(api)
-        if (name == null) {
-          if (apiTargets != null) {
-            val target = apiTargets.get(api)
-            if (target != null) {
-              name = AndroidSdkUtils.getTargetLabel(target)
-            }
-          }
-          if (name == null) {
-            name = String.format(Locale.US, "API %1\$d", api)
-          }
-        }
-        versions[api - 1] = name
-      }
-
-      @Suppress("UNCHECKED_CAST")
-      return versions as Array<String>
+      return (1..maxApi).map { SdkVersionInfo.getAndroidName(it) }
     }
 
   /**
-   * Creates a Java class name out of the given string, if possible. For
-   * example, "My Project" becomes "MyProject", "hello" becomes "Hello",
-   * "Java's" becomes "Java", and so on.
+   * Creates a Java class name out of the given string, if possible.
+   * For example, "My Project" becomes "MyProject", "hello" becomes "Hello", "Java's" becomes "Javas", and so on.
    *
    * @param string the string to be massaged into a Java class
    * @return the string as a Java class, or null if a class name could not be extracted
    */
   @JvmStatic
   fun extractClassName(string: String): String? {
-    val sb = StringBuilder(string.length)
-    val n = string.length
-
-    var i = 0
-    while (i < n) {
-      val c = Character.toUpperCase(string[i])
-      if (Character.isJavaIdentifierStart(c)) {
-        sb.append(c)
-        i++
-        break
-      }
-      i++
-    }
-
-    if (sb.isEmpty()) {
-      return null
-    }
-
-    while (i < n) {
-      val c = string[i]
-      if (Character.isJavaIdentifierPart(c)) {
-        sb.append(c)
-      }
-      i++
-    }
-
-    return sb.toString()
+    val javaIdentifier = string.dropWhile { !Character.isJavaIdentifierStart(it.toUpperCase()) }.filter(Character::isJavaIdentifierPart)
+    return emptyToNull(javaIdentifier.usLocaleCapitalize())
   }
 
   /**
@@ -161,10 +98,8 @@ object TemplateUtils {
   @JvmStatic
   fun stripSuffix(file: File, suffix: String): File {
     if (file.name.endsWith(suffix)) {
-      var name = file.name
-      name = name.substring(0, name.length - suffix.length)
-      val parent = file.parentFile
-      return parent?.let { File(it, name) } ?: File(name)
+      val name = file.name.removeSuffix(suffix)
+      return file.parentFile?.let { File(it, name) } ?: File(name)
     }
 
     return file
@@ -177,27 +112,7 @@ object TemplateUtils {
    * @return the underlined version of the word
    */
   @JvmStatic
-  fun camelCaseToUnderlines(string: String): String {
-    if (string.isEmpty()) {
-      return string
-    }
-
-    val sb = StringBuilder(2 * string.length)
-    val n = string.length
-    var lastWasUpperCase = Character.isUpperCase(string[0])
-    for (i in 0 until n) {
-      var c = string[i]
-      val isUpperCase = Character.isUpperCase(c)
-      if (isUpperCase && !lastWasUpperCase) {
-        sb.append('_')
-      }
-      lastWasUpperCase = isUpperCase
-      c = Character.toLowerCase(c)
-      sb.append(c)
-    }
-
-    return sb.toString()
-  }
+  fun camelCaseToUnderlines(string: String): String = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, string)
 
   /**
    * Converts an underlined_word into a CamelCase word
@@ -206,23 +121,7 @@ object TemplateUtils {
    * @return the CamelCase version of the word
    */
   @JvmStatic
-  fun underlinesToCamelCase(string: String): String {
-    val sb = StringBuilder(string.length)
-
-    var upcaseNext = true
-    for (c in string) {
-      if (c == '_') {
-        upcaseNext = true
-        continue
-      }
-
-      sb.append(if (upcaseNext) Character.toUpperCase(c) else c)
-
-      upcaseNext = false
-    }
-
-    return sb.toString()
-  }
+  fun underlinesToCamelCase(string: String): String = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, string)
 
   /**
    * Returns the element children of the given element
@@ -234,33 +133,18 @@ object TemplateUtils {
   fun getChildren(element: Element): List<Element> {
     // Convenience to avoid lots of ugly DOM access casting
     val children = element.childNodes
-    // An iterator would have been more natural (to directly drive the child list
-    // iteration) but iterators can't be used in enhanced for loops...
-    val result = ArrayList<Element>(children.length)
-    var i = 0
-    while (i < children.length) {
-      val node = children.item(i)
-      if (node.nodeType == Node.ELEMENT_NODE) {
-        result.add(node as Element)
-      }
-      i++
-    }
 
-    return result
+    return (0 until children.length).mapNotNull {
+      val node = children.item(it)
+      if (node.nodeType == Node.ELEMENT_NODE) node as Element else null
+    }
   }
 
   @JvmStatic
   fun reformatAndRearrange(project: Project, files: Iterable<File>) {
     WriteCommandAction.runWriteCommandAction(project) {
-      val localFileSystem = LocalFileSystem.getInstance()
-
-      for (file in files) {
-        if (!file.isFile) {
-          continue
-        }
-
-        val virtualFile = localFileSystem.findFileByIoFile(file)!!
-
+      files.filter { it.isFile }.forEach {
+        val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(it)!!
         reformatAndRearrange(project, virtualFile)
       }
     }
@@ -273,18 +157,11 @@ object TemplateUtils {
    * @param psiElement The element to be reformated and rearranged
    */
   @JvmStatic
-  fun reformatAndRearrange(project: Project, psiElement: PsiElement) {
+  fun reformatAndRearrange(project: Project, psiElement: PsiElement) =
     reformatAndRearrange(project, psiElement.containingFile.virtualFile, psiElement, true)
-  }
-
-  /** Reformats and rearranges the entire file */
-  @JvmStatic
-  fun reformatAndRearrange(project: Project, virtualFile: VirtualFile) {
-    reformatAndRearrange(project, virtualFile, null, false)
-  }
 
   /**
-   * Reformats and rearranges the file (entirely or part of it)
+   * Reformats and rearranges the file. By default reformats entire file, but may reformat part of it
    *
    * Note: reformatting the PSI file requires that this be wrapped in a write command.
    *
@@ -294,10 +171,11 @@ object TemplateUtils {
    * @param keepDocumentLocked True if the document will still be modified in the same write action
    */
   @JvmStatic
-  private fun reformatAndRearrange(project: Project,
+  @JvmOverloads
+  fun reformatAndRearrange(project: Project,
                                    virtualFile: VirtualFile,
-                                   psiElement: PsiElement?,
-                                   keepDocumentLocked: Boolean) {
+                                   psiElement: PsiElement? = null,
+                                   keepDocumentLocked: Boolean = false) {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
 
     if (virtualFile.extension == EXT_GRADLE) {
@@ -307,8 +185,7 @@ object TemplateUtils {
     }
 
     val document = FileDocumentManager.getInstance().getDocument(virtualFile)
-                   ?: // The file could be a binary file with no editing support...
-                   return
+                   ?: return // The file could be a binary file with no editing support...
 
     val psiDocumentManager = PsiDocumentManager.getInstance(project)
     psiDocumentManager.commitDocument(document)
@@ -338,31 +215,22 @@ object TemplateUtils {
    */
   @JvmStatic
   fun openEditors(project: Project, files: Collection<File>, select: Boolean): Boolean {
-    if (!files.isEmpty()) {
-      var result = true
-      var last: VirtualFile? = null
-      for (file in files) {
-        if (!file.exists()) {
-          continue
-        }
-        val vFile = VfsUtil.findFileByIoFile(file, true)
-        if (vFile != null) {
-          result = result and openEditor(project, vFile)
-          last = vFile
-        }
-        else {
-          result = false
-        }
+    if (files.isEmpty()) {
+      return false
+    }
+    var last: VirtualFile? = null
+    val result = files.filter(File::exists).any {
+      val vFile = VfsUtil.findFileByIoFile(it, true) ?: return@any false
+      return !openEditor(project, vFile).also {
+        last = vFile
       }
-
-      if (select && last != null) {
-        selectEditor(project, last)
-      }
-
-      return result
     }
 
-    return false
+    if (select && last != null) {
+      selectEditor(project, last!!)
+    }
+
+    return result
   }
 
   /**
@@ -373,13 +241,13 @@ object TemplateUtils {
    */
   @JvmStatic
   fun openEditor(project: Project, vFile: VirtualFile): Boolean {
-    val descriptor: OpenFileDescriptor
-    if (vFile.fileType === StdFileTypes.XML && AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) {
-      descriptor = OpenFileDescriptor(project, vFile, 0)
-    }
-    else {
-      descriptor = OpenFileDescriptor(project, vFile)
-    }
+    val descriptor: OpenFileDescriptor =
+      if (vFile.fileType === StdFileTypes.XML && AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) {
+        OpenFileDescriptor(project, vFile, 0)
+      }
+      else {
+        OpenFileDescriptor(project, vFile)
+      }
     return FileEditorManager.getInstance(project).openEditor(descriptor, true).isNotEmpty()
   }
 
@@ -410,14 +278,14 @@ object TemplateUtils {
   @JvmStatic
   fun readTextFromDisk(file: File, warnIfNotExists: Boolean = true): String? {
     assert(file.isAbsolute)
-    try {
-      return Files.asCharSource(file, Charsets.UTF_8).read()
+    return try {
+      Files.asCharSource(file, Charsets.UTF_8).read()
     }
     catch (e: IOException) {
       if (warnIfNotExists) {
         LOG.warn(e)
       }
-      return null
+      null
     }
   }
 
@@ -487,11 +355,10 @@ object TemplateUtils {
    */
   @Throws(IOException::class)
   @JvmStatic
-  fun checkedCreateDirectoryIfMissing(directory: File): VirtualFile {
-    return WriteCommandAction.runWriteCommandAction(null, ThrowableComputable<VirtualFile, IOException> {
+  fun checkedCreateDirectoryIfMissing(directory: File): VirtualFile =
+    WriteCommandAction.runWriteCommandAction(null, ThrowableComputable<VirtualFile, IOException> {
       VfsUtil.createDirectoryIfMissing(directory.absolutePath) ?: throw IOException("Unable to create " + directory.absolutePath)
     })
-  }
 
   /**
    * Find the first parent directory that exists and check if this directory is writeable.
@@ -514,8 +381,6 @@ object TemplateUtils {
    * Returns true iff the given file has the given extension (with or without .)
    */
   @JvmStatic
-  fun hasExtension(file: File, extension: String): Boolean {
-    val noDotExtension = if (extension.startsWith(".")) extension.substring(1) else extension
-    return Files.getFileExtension(file.name).equals(noDotExtension, ignoreCase = true)
-  }
+  fun hasExtension(file: File, extension: String): Boolean =
+    Files.getFileExtension(file.name).equals(extension.trimStart { it == '.' }, ignoreCase = true)
 }
