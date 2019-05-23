@@ -23,7 +23,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ui.CheckboxTree;
-import com.intellij.ui.CheckboxTreeAdapter;
+import com.intellij.ui.CheckboxTreeListener;
 import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBScrollPane;
@@ -83,7 +83,7 @@ class ModuleDependenciesForm {
     });
 
     myPossibleDependenciesTree = new CheckboxTree(cellRenderer, root);
-    myPossibleDependenciesTree.addCheckboxTreeListener(new CheckboxTreeAdapter() {
+    myPossibleDependenciesTree.addCheckboxTreeListener(new CheckboxTreeListener() {
       @Override
       public void nodeStateChanged(@NotNull CheckedTreeNode node) {
         Object data = node.getUserObject();
