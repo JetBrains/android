@@ -333,7 +333,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   }
 
   private static boolean hasTrafficUsage(RangedContinuousSeries series, Range range) {
-    List<SeriesData<Long>> list = series.getDataSeries().getDataForXRange(range);
+    List<SeriesData<Long>> list = series.getSeriesForRange(range);
     if (list.stream().anyMatch(data -> data.x >= range.getMin() && data.x <= range.getMax() && data.value > 0)) {
       return true;
     }
