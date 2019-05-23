@@ -267,7 +267,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     // Use plugin 1.5.0 and Gradle 2.4.0
     prepareProjectForImport(PROJECT_WITH1_DOT5);
     File projectFolderPath = getProjectFolderPath();
-    createGradleWrapper(projectFolderPath, "2.4");
+    createGradleWrapper(projectFolderPath, "2.6");
 
     File topBuildFilePath = new File(projectFolderPath, "build.gradle");
     String contents = Files.asCharSource(topBuildFilePath, Charsets.UTF_8).read();
