@@ -34,7 +34,6 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.UsesSdk;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -137,6 +136,9 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
                                                        @NotNull List<Module> affectedModules,
                                                        @NotNull Map<Module, VirtualFile> buildFileMap) {
     if (affectedModules.isEmpty()) {
+      return ImmutableList.of();
+    }
+    else if (affectedModulesContainKts(affectedModules, buildFileMap)) {
       return ImmutableList.of();
     }
     else {

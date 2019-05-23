@@ -22,7 +22,10 @@ class PsFlavorDimensionCollection internal constructor(parent: PsAndroidModule)
   }
 
   override fun getKeys(from: PsAndroidModule): Set<String> =
-    from.parsedModel?.android()?.flavorDimensions()?.toList()?.map { it.toString() }.orEmpty().toSet()
+    (
+      from.resolvedModel?.androidProject?.flavorDimensions?.map { it }.orEmpty() +
+      from.parsedModel?.android()?.flavorDimensions()?.toList()?.map { it.toString() }.orEmpty()
+    ).toSet()
 
   override fun create(key: String): PsFlavorDimension = PsFlavorDimension(parent)
 

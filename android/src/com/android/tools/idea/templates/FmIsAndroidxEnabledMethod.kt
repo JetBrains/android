@@ -25,7 +25,6 @@ import freemarker.template.TemplateModelException
  * Method invoked by FreeMarker to check if AndroidX mapping should be enabled. It has no parameters.
  */
 class FmIsAndroidxEnabledMethod(private val paramMap: Map<String, Any>) : TemplateMethodModelEx {
-  @Throws(TemplateModelException::class)
   override fun exec(args: List<*>): TemplateModel {
     val useAndroidx = paramMap[ATTR_ANDROIDX_SUPPORT] as? Boolean == true
     return if (useAndroidx) TemplateBooleanModel.TRUE else TemplateBooleanModel.FALSE

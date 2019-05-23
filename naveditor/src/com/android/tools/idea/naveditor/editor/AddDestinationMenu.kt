@@ -16,11 +16,11 @@ package com.android.tools.idea.naveditor.editor
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.className
-import com.android.tools.idea.naveditor.model.extendsNavHostFragment
 import com.android.tools.idea.naveditor.model.includeFile
 import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.schema
@@ -40,7 +40,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -50,8 +49,6 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.CollectionListModel
@@ -66,8 +63,8 @@ import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import java.awt.BorderLayout
 import java.awt.event.HierarchyEvent
@@ -107,56 +104,27 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   val destinations: List<Destination>
     get() {
       val model = surface.model!!
-      val classToDestination = LinkedHashMap<PsiClass, Destination>()
       val module = model.module
-      val schema = model.schema
-      val parent = surface.currentNavigation
-
-      val existingClasses = parent.children.mapNotNull { it.className }
-
-      for (tag in schema.allTags) {
-        for (psiClass in schema.getDestinationClassesForTag(tag)) {
-          if (ModuleUtilCore.findModuleForPsiElement(psiClass) != null) {
-            val destination = Destination.RegularDestination(parent, tag, null, psiClass)
-            classToDestination[psiClass] = destination
-          }
-
-          val query = ClassInheritorsSearch.search(psiClass, GlobalSearchScope.moduleWithDependenciesScope(module), true, true, false)
-          for (child in query) {
-            if (extendsNavHostFragment(child) || classToDestination.containsKey(child) || existingClasses.contains(child.qualifiedName)) {
-              continue
-            }
-
-            val inProject = ModuleUtilCore.findModuleForPsiElement(child) != null
-            val destination = Destination.RegularDestination(parent, tag, null, child, inProject = inProject)
-            classToDestination[child] = destination
-          }
-        }
-      }
-
       val resourceManager = LocalResourceManager.getInstance(module) ?: return listOf()
 
-      val hosts = findReferences(model.file, module).map { it.containingFile }
-      for (resourceFile in
-          resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>()) {
-        // TODO: refactor AndroidGotoRelatedProvider so this can be done more cleanly
-        val itemComputable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(resourceFile, model.facet)
-        for (item in itemComputable?.compute() ?: continue) {
-          val element = item.element as? PsiClass ?: continue
-          if (existingClasses.contains(element.qualifiedName)) {
-            continue
-          }
+      val layoutFiles = resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
+        .filterIsInstance<XmlFile>()
+        .associateBy { AndroidPsiUtils.getContextClass(module, it) }
 
-          val tags = schema.getTagsForDestinationClass(element) ?: continue
-          if (tags.size == 1) {
-            if (resourceFile in hosts) {
-              // This will remove the class entry that was added earlier
-              classToDestination.remove(element)
-            }
-            else {
-              val destination = Destination.RegularDestination(parent, tags.first(), null, element, layoutFile = resourceFile)
-              classToDestination[element] = destination
-            }
+      val classToDestination = mutableMapOf<PsiClass, Destination>()
+      val schema = model.schema
+      val parent = surface.currentNavigation
+      val existingClasses = parent.children.mapNotNull { it.className }.toSortedSet()
+      val hosts = findReferences(model.file, module).map { it.containingFile }
+
+      for (tag in schema.allTags) {
+        for (psiClass in schema.getProjectClassesForTag(tag).filter { !existingClasses.contains(it.qualifiedName) }) {
+          val layoutFile = layoutFiles[psiClass]
+          if (layoutFile !in hosts) {
+            val inProject = psiClass.isInProject()
+            val destination = Destination.RegularDestination(
+              parent, tag, destinationClass = psiClass, inProject = inProject, layoutFile = layoutFile)
+            classToDestination[psiClass] = destination
           }
         }
       }

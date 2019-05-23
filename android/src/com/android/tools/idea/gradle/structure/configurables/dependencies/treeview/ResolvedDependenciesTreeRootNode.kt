@@ -29,7 +29,7 @@ class ResolvedDependenciesTreeRootNode(val module: PsModule, uiSettings: PsUISet
   override fun createChildren(): List<AbstractPsModelNode<*>> =
     when (module) {
       is PsAndroidModule -> {
-        createChildren(module.variants.associateBy { it.name })
+        createChildren(module.resolvedVariants.associateBy { it.name })
       }
       is PsJavaModule -> {
         listOf(AndroidArtifactNode(this, module))

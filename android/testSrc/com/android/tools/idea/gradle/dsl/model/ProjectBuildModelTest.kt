@@ -29,6 +29,10 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PROJECT_BUILD_MODEL_MULTIP
 import com.android.tools.idea.gradle.dsl.TestFileName.PROJECT_BUILD_MODEL_PROJECT_MODELS_SAVES_FILES
 import com.android.tools.idea.gradle.dsl.TestFileName.PROJECT_BUILD_MODEL_PROJECT_MODELS_SAVES_FILES_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PROJECT_BUILD_MODEL_PROJECT_MODELS_SAVES_FILES_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName.PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE
+import com.android.tools.idea.gradle.dsl.TestFileName.PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileName.PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_APPLIED_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName.PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_SUB
 import com.android.tools.idea.gradle.dsl.TestFileName.PROJECT_BUILD_MODEL_SETTINGS_FILE_UPDATES_CORRECTLY
 import com.android.tools.idea.gradle.dsl.TestFileName.PROJECT_BUILD_MODEL_SETTINGS_FILE_UPDATES_CORRECTLY_OTHER_SUB
 import com.android.tools.idea.gradle.dsl.TestFileName.PROJECT_BUILD_MODEL_SETTINGS_FILE_UPDATES_CORRECTLY_SUB
@@ -40,6 +44,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.B
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.runWriteAction
 import org.gradle.internal.impldep.org.hamcrest.CoreMatchers.hasItems
 import org.gradle.internal.impldep.org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -160,6 +165,23 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(otherParentPropertyModel.resolve(), STRING_TYPE, "Hello i am false!", STRING, REGULAR, 1)
       verifyPropertyModel(otherChildPropertyModel.resolve(), STRING_TYPE, "ood", STRING, REGULAR, 0)
     }
+  }
+
+  @Test
+  fun testApplyResolvesCorrectFile() {
+    // The sub-module applies a sub-module Gradle file which in turn applies a Gradle file from the root project directory.
+    writeToBuildFile(PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE)
+    writeToNewProjectFile("applied.gradle", PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_APPLIED)
+    writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_SUB)
+    writeToNewSubModuleFile("applied.gradle", PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_APPLIED_SUB)
+    writeToSettingsFile(subModuleSettingsText)
+
+    // This should correctly resolve the variable
+    val projectModel = ProjectBuildModel.get(myProject)
+    val buildModel = projectModel.getModuleBuildModel(mySubModule)!!
+
+    val prop = buildModel.ext().findProperty("prop")
+    verifyPropertyModel(prop, STRING_TYPE, "value", STRING, REGULAR, 0)
   }
 
   @Test

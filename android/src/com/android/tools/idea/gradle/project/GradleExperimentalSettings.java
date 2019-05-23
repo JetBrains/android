@@ -23,15 +23,16 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 
 @State(
-  name="GradleExperimentalSettings",
+  name = "GradleExperimentalSettings",
   storages = {
-  @Storage("gradle.experimental.xml")}
+    @Storage("gradle.experimental.xml")}
 )
 public class GradleExperimentalSettings implements PersistentStateComponent<GradleExperimentalSettings> {
   public boolean SKIP_SOURCE_GEN_ON_PROJECT_SYNC;
   public int MAX_MODULE_COUNT_FOR_SOURCE_GEN = 5;
   public boolean USE_L2_DEPENDENCIES_ON_SYNC = true;
   public boolean USE_SINGLE_VARIANT_SYNC = true;
+  public boolean SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC = false;
   public boolean USE_NEW_PSD = true;
 
   @NotNull

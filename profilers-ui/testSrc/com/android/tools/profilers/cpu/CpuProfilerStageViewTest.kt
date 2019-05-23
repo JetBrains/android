@@ -24,16 +24,14 @@ import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.profilers.FakeIdeProfilerComponents
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.StudioProfilers
@@ -63,8 +61,6 @@ import javax.swing.SwingUtilities
 // Path to trace file. Used in test to build AtraceParser.
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
 
-private const val ART_TRACE_FILE = "tools/adt/idea/profilers-ui/testData/valid_trace.trace"
-
 class CpuProfilerStageViewTest {
 
   private val myTimer = FakeTimer()
@@ -75,10 +71,11 @@ class CpuProfilerStageViewTest {
 
   private val myCpuService = FakeCpuService()
 
+  private val myTransportService = FakeTransportService(myTimer)
 
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel(
-    "CpuCaptureViewTestChannel", myCpuService, FakeTransportService(myTimer), FakeProfilerService(myTimer),
+    "CpuCaptureViewTestChannel", myCpuService, myTransportService, FakeProfilerService(myTimer),
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
 
@@ -157,14 +154,15 @@ class CpuProfilerStageViewTest {
 
   @Test
   fun importTraceModeShouldShowSelectedProcessName() {
+    // Generates a capture
+    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, 0, Cpu.CpuTraceType.ATRACE,
+                                             CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+
     // Enable import trace flag which is required for import-trace-mode.
     myIdeServices.enableImportTrace(true)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
-    // Set a capture of type atrace.
-    myCpuService.traceType = Cpu.CpuTraceType.ATRACE
-    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
-    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+
     val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
     // Selecting the capture automatically selects the first process in the capture.
     myStage.setAndSelectCapture(0)
@@ -191,11 +189,18 @@ class CpuProfilerStageViewTest {
   @Test
   fun recordButtonDisabledInDeadSessions() {
     // Create a valid capture and end the current session afterwards.
-    myCpuService.traceType = Cpu.CpuTraceType.ART
-    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
-    myCpuService.setTrace(ByteString.copyFrom(TestUtils.getWorkspaceFile(ART_TRACE_FILE).readBytes()))
+    CpuProfilerTestUtils.captureSuccessfully(
+      myStage,
+      myCpuService,
+      myTransportService,
+      FakeCpuService.FAKE_TRACE_ID,
+      Cpu.CpuTraceType.ATRACE,
+      CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
     myStage.studioProfilers.sessionsManager.endCurrentSession()
 
+    // Re-create the stage so that the capture is not cached
+    myStage = CpuProfilerStage(myStage.studioProfilers)
+    myStage.studioProfilers.stage = myStage
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
     val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
       it.text == CpuProfilerToolbar.RECORD_TEXT

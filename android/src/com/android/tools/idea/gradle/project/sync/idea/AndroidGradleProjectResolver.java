@@ -29,6 +29,7 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
+import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
@@ -94,6 +95,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.PathsList;
 import java.io.File;
 import java.io.IOException;
@@ -185,6 +187,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
   }
 
+  // A copy from BaseGradleProjectResolverExtension.
+  @NotNull
+  private static String[] getIdeModuleGroup(String moduleName, IdeaModule gradleModule) {
+    String[] moduleGroup;
+    final String gradlePath = gradleModule.getGradleProject().getPath();
+    final String rootName = gradleModule.getProject().getName();
+    final boolean isRootModule = StringUtil.isEmpty(gradlePath) || ":".equals(gradlePath);
+    moduleGroup = isRootModule
+                  ? new String[]{ moduleName }
+                  : (rootName + gradlePath).split(":");
+    return moduleGroup;
+  }
+
   @NotNull
   private DataNode<ModuleData> doCreateModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
     String moduleName = gradleModule.getName();
@@ -201,7 +216,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     String typeId = StdModuleTypes.JAVA.getId();
 
     ModuleData moduleData = new ModuleData(moduleId, owner, typeId, moduleName, moduleConfigPath, moduleConfigPath);
-
+    moduleData.setIdeModuleGroup(getIdeModuleGroup(moduleName, gradleModule));
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
     if (externalProject != null) {
       moduleData.setDescription(externalProject.getDescription());
@@ -309,6 +324,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
       // This is a Java lib module.
       createJavaProject(gradleModule, ideModule, syncIssues, androidProjectWithoutVariants);
+      // Populate ContentRootDataNode for buildSrc module. This DataNode is required to setup classpath buildscript.
+      if(BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName())){
+        nextResolver.populateModuleContentRoots(gradleModule, ideModule);
+      }
     }
   }
 

@@ -73,7 +73,7 @@ class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : Abs
     module.dependencies.forEachJarDependency { collector.add(it) }
     module.dependencies.forEachModuleDependency { collector.add(it) }
     when (module) {
-      is PsAndroidModule -> module.variants.forEach { variant ->
+      is PsAndroidModule -> module.resolvedVariants.forEach { variant ->
         variant.forEachArtifact { artifact ->
           artifact.dependencies.forEachLibraryDependency { collector.add(it) }
         }

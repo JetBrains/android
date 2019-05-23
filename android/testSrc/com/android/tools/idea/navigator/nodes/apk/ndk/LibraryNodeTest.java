@@ -123,7 +123,7 @@ public class LibraryNodeTest extends IdeaTestCase {
     VirtualFile ndkBaseFolder = createFolderInProjectRoot(getProject(), "ndk");
     when(myIdeSdks.getAndroidNdkPath()).thenReturn(null); // No singleton NDK only SxS
 
-    VirtualFile ndkVersionFolder = createFolder(ndkBaseFolder, "19.0.5232133");
+    VirtualFile ndkVersionFolder = createFolder(ndkBaseFolder, "19.2.5345600");
     VirtualFile sysrootFolder = createFolder(ndkVersionFolder, "sysroot");
 
     List<String> sourceFolderPaths = new ArrayList<>(createSourceFolders("a", "b", "c"));

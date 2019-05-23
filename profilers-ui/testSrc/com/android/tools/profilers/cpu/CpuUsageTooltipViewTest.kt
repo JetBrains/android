@@ -67,13 +67,13 @@ class CpuUsageTooltipViewTest {
                               .setTraceType(Cpu.CpuTraceType.ATRACE)
                               .setFromTimestamp(TimeUnit.SECONDS.toNanos(2))
                               .setToTimestamp(TimeUnit.SECONDS.toNanos(4))
-                              .addTids(3).build())
+                              .build())
     cpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
                               .setTraceId(2)
                               .setTraceType(Cpu.CpuTraceType.SIMPLEPERF)
                               .setFromTimestamp(TimeUnit.SECONDS.toNanos(5))
                               .setToTimestamp(TimeUnit.SECONDS.toNanos(7))
-                              .addTids(3).build())
+                              .build())
 
   }
 

@@ -144,13 +144,9 @@ public class NavSceneManager extends SceneManager {
 
     NlComponent nlComponent = sceneComponent.getNlComponent();
 
-    switch (NavComponentHelperKt.getActionType(nlComponent, getRoot())) {
-      case GLOBAL:
-      case EXIT:
-        sceneComponent.setSize((int)ACTION_WIDTH, (int)ACTION_HEIGHT);
-        return;
-      default:
-        break;
+    if (isHorizontalAction(nlComponent)) {
+      sceneComponent.setSize((int)ACTION_WIDTH, (int)ACTION_HEIGHT);
+      return;
     }
 
     NavigationSchema.DestinationType type = NavComponentHelperKt.getDestinationType(nlComponent);
@@ -570,6 +566,11 @@ public class NavSceneManager extends SceneManager {
     }
   }
 
+  private boolean isHorizontalAction(@NotNull NlComponent component) {
+    ActionType actionType = (NavComponentHelperKt.getActionType(component, getRoot()));
+    return actionType == ActionType.GLOBAL || actionType == ActionType.EXIT;
+  }
+
   @NotNull
   @Override
   public CompletableFuture<Void> requestLayout(boolean animate) {
@@ -715,7 +716,7 @@ public class NavSceneManager extends SceneManager {
     if (NavComponentHelperKt.getSupportsActions(component)) {
       return myNavDestinationHitProvider;
     }
-    else if (NavComponentHelperKt.getPopUpTo(component) != null) {
+    else if (isHorizontalAction(component)) {
       return myHorizontalActionHitProvider;
     }
     return super.getHitProvider(component);

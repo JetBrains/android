@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslParser;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslWriter;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslParser;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Application;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 /**
@@ -77,21 +79,24 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     PsiFile psiFile = application.runReadAction((Computable<PsiFile>)() -> PsiManager.getInstance(myProject).findFile(myFile));
 
     // Pick the language that should be used by this GradleDslFile, we do this by selecting the parser implementation.
-    GroovyFile groovyPsiFile;
     if (psiFile instanceof GroovyFile) {
-      groovyPsiFile = (GroovyFile)psiFile;
+      GroovyFile groovyPsiFile = (GroovyFile)psiFile;
       myGradleDslParser = new GroovyDslParser(groovyPsiFile, this);
       myGradleDslWriter = new GroovyDslWriter();
+      setPsiElement(groovyPsiFile);
+    }
+    else if (psiFile instanceof KtFile) {
+      KtFile ktFile = (KtFile)psiFile;
+      myGradleDslParser = new KotlinDslParser(ktFile, this);
+      myGradleDslWriter = new GradleDslWriter.Adapter(); // TODO: Implement
+      setPsiElement(ktFile);
     }
     else {
       // If we don't support the language we ignore the PsiElement and set stubs for the writer and parser.
       // This means this file will produce an empty model.
       myGradleDslParser = new GradleDslParser.Adapter();
       myGradleDslWriter = new GradleDslWriter.Adapter();
-      return;
     }
-
-    setPsiElement(groovyPsiFile);
   }
 
   /**

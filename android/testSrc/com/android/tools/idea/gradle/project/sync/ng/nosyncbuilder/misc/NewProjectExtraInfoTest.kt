@@ -35,7 +35,7 @@ class NewProjectExtraInfoTest : TestCase() {
   @Throws(Exception::class)
   fun testFill() {
     val projectInfoBuilder = NewProjectExtraInfoBuilder(10)
-    val values1 = mapOf(ATTR_TARGET_API to 25, ATTR_PACKAGE_NAME to "com.google.test", ATTR_PROJECT_LOCATION to "location")
+    val values1 = mapOf(ATTR_TARGET_API to 25, ATTR_PACKAGE_NAME to "com.google.test", ATTR_TOP_OUT to "location")
     projectInfoBuilder.fill(values1)
     assertFailsWith(IllegalStateException::class) {
       projectInfoBuilder.build()

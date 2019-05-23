@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.debuggers",
     srcs = ["src"],
     iml_files = ["intellij.android.debuggers.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",

@@ -112,17 +112,21 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
     }
 
   @VisibleForTesting
-  enum class Type(val display: String, val attrValue: String?, val isCustom: Boolean = false) {
+  enum class Type(val display: String,
+                  val attrValue: String?,
+                  val isCustom: Boolean = false,
+                  val supportsNullable: Boolean = false,
+                  val supportsArray: Boolean = true) {
     INFERRED("<inferred type>", null),
     INTEGER("Integer", "integer"),
     FLOAT("Float", "float"),
     LONG("Long", "long"),
     BOOLEAN("Boolean", "boolean"),
-    STRING("String", "string"),
-    REFERENCE("Resource Reference", "reference"),
-    CUSTOM_PARCELABLE("Custom Parcelable...", "custom_parcelable", true),
-    CUSTOM_SERIALIZABLE("Custom Serializable...", "custom_serializable", true),
-    CUSTOM_ENUM("Custom Enum...", "custom_enum", true);
+    STRING("String", "string", supportsNullable = true),
+    REFERENCE("Resource Reference", "reference", supportsArray = false),
+    CUSTOM_PARCELABLE("Custom Parcelable...", "custom_parcelable", isCustom = true, supportsNullable = true),
+    CUSTOM_SERIALIZABLE("Custom Serializable...", "custom_serializable", isCustom = true, supportsNullable = true),
+    CUSTOM_ENUM("Custom Enum...", "custom_enum", isCustom = true,  supportsArray = false);
 
     override fun toString(): String {
       return display
@@ -258,12 +262,19 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
   }
 
   private fun updateUi() {
-    val nullable = selectedType == Type.STRING || selectedType.isCustom || isArray
+    val nullable = selectedType.supportsNullable || isArray
     dialogUI.myNullableCheckBox.isEnabled = nullable
     dialogUI.myNullableLabel.isEnabled = nullable
     if (!nullable) {
       dialogUI.myNullableCheckBox.isSelected = false
     }
+    val supportsArray = selectedType.supportsArray
+    dialogUI.myArrayCheckBox.isEnabled = supportsArray
+    dialogUI.myArrayLabel.isEnabled = supportsArray
+    if (!supportsArray) {
+      dialogUI.myArrayCheckBox.isSelected = false
+    }
+
     when {
       selectedType == Type.BOOLEAN && !isArray -> {
         (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")

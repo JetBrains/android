@@ -28,11 +28,6 @@ iml_module(
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
     ],
-    # do not sort: must match IML order
-    test_runtime_deps = [
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-    ],
     test_srcs = ["testSrc"],
     test_tags = [
         "slow",
@@ -44,6 +39,7 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/adt/idea/android:intellij.android.core.tests",
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
@@ -51,6 +47,9 @@ iml_module(
         "//tools/idea/platform/configuration-store-impl:intellij.platform.configurationStore.impl",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/adt/idea/databinding:intellij.android.databinding",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
     ],
     # do not sort: must match IML order
     deps = [

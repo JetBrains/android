@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.lang.databinding.model.PsiModelField
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -26,11 +25,10 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 /**
  * Reference that refers to a [PsiField]
  */
-internal class PsiFieldReference(refExpr: PsiDbRefExpr, field: PsiField)
-  : DbExprReference(refExpr, field, refExpr.id.textRange.shiftLeft(refExpr.textOffset)) {
+internal class PsiFieldReference(refExpr: PsiDbRefExpr, field: PsiModelField)
+  : DbExprReference(refExpr, field.psiField, refExpr.id.textRange.shiftLeft(refExpr.textOffset)) {
 
-  override val resolvedType: PsiModelClass
-    get() = PsiModelClass((resolve() as PsiField).type, DataBindingMode.fromPsiElement(element))
+  override val resolvedType = field.fieldType
 
   override val isStatic: Boolean
     get() {

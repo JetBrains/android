@@ -38,7 +38,7 @@ val PsResolvedModuleDependency.targetModuleResolvedDependencies: PsDependencyCol
     return when (targetModule) {
       is PsAndroidModule ->
         targetModule
-          .variants
+          .resolvedVariants
           .firstOrNull { it.name == (this as? PsResolvedModuleAndroidDependency)?.moduleVariant }
           ?.findArtifact(ARTIFACT_MAIN)
           ?.dependencies

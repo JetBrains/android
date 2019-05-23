@@ -86,7 +86,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     boolean upgraded = myVersionUpgrade.performUpgradeAndSync(getProject(), myPluginInfo);
     assertFalse(upgraded);
 
-    verify(mySyncState, never()).syncEnded();
+    verify(mySyncState, never()).syncSucceeded();
     verify(myVersionUpdater, never()).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
@@ -103,7 +103,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     boolean upgraded = myVersionUpgrade.performUpgradeAndSync(getProject(), myPluginInfo);
     assertTrue(upgraded);
 
-    verify(mySyncState).syncEnded();
+    verify(mySyncState).syncSucceeded();
     verify(myVersionUpdater).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
@@ -126,7 +126,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     String message = messages.get(0).getText()[1];
     assertThat(message).contains("Please update your project to use version 2.0.0.");
 
-    verify(mySyncState).syncEnded();
+    verify(mySyncState).syncSucceeded();
     verify(myVersionUpdater, never()).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
   }
 }

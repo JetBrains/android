@@ -208,6 +208,7 @@ object TypeResolver {
       SdkConstants.ATTR_LISTFOOTER,
       SdkConstants.ATTR_LISTHEADER,
       SdkConstants.ATTR_LISTITEM -> NelePropertyType.LAYOUT
+      SdkConstants.ATTR_NAV_GRAPH -> NelePropertyType.NAVIGATION
 
       else -> null
     }

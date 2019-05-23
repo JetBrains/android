@@ -16,7 +16,6 @@
 
 package org.jetbrains.android.dom;
 
-import com.android.SdkConstants;
 import com.android.sdklib.SdkVersionInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
@@ -44,7 +43,6 @@ import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.LayoutViewClassUtils;
-import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,11 +109,8 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     }
     else if (domElement instanceof XmlResourceElement) {
       AndroidFacet facet = AndroidFacet.getInstance(domElement);
-      if(facet != null && AndroidXmlResourcesUtil.isAndroidXPreferenceFile(tag, facet)){
-        className = MigrateToAndroidxUtil.getNameInProject(SdkConstants.CLASS_PREFERENCE_ANDROIDX, project);
-      } else {
-        className = SdkConstants.CLASS_PREFERENCE;
-      }
+      AndroidXmlResourcesUtil.PreferenceSource preferenceSource = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet);
+      className = preferenceSource.getQualifiedBaseClass();
     }
     return Pair.create((AndroidDomElement)domElement, className);
   }

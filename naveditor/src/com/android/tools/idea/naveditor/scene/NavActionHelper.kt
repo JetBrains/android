@@ -32,8 +32,6 @@ import java.awt.geom.Rectangle2D
 
 @SwingCoordinate
 private val ACTION_STROKE_WIDTH = JBUI.scale(3f)
-@SwingCoordinate
-private val DASHED_STROKE_CYCLE = JBUI.scale(5f)
 
 @JvmField
 @NavCoordinate
@@ -44,11 +42,6 @@ val SELF_ACTION_RADII = floatArrayOf(JBUI.scale(10f), JBUI.scale(10f),
 @JvmField
 val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, BasicStroke.CAP_BUTT,
                                 BasicStroke.JOIN_ROUND)
-@JvmField
-val DASHED_ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, BasicStroke.CAP_BUTT,
-                                       BasicStroke.JOIN_ROUND, DASHED_STROKE_CYCLE,
-                                       floatArrayOf(DASHED_STROKE_CYCLE),
-                                       DASHED_STROKE_CYCLE)
 private val START_DIRECTION = ConnectionDirection.RIGHT
 @NavCoordinate
 private val CONTROL_POINT_THRESHOLD = JBUI.scale(120)

@@ -25,7 +25,6 @@ import freemarker.template.TemplateModelException
  * Method invoked by FreeMarker to compare two Maven artifact version strings.
  */
 abstract class AbstractFmCompareVersionsMethod : TemplateMethodModelEx {
-
   override fun exec(args: List<*>): TemplateModel {
     if (args.size != 2) {
       throw TemplateModelException("Wrong arguments")

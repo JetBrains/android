@@ -26,7 +26,6 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.naveditor.model.isNavHostFragment
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
@@ -54,6 +53,7 @@ import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription
+import org.jetbrains.android.dom.navigation.isNavHostFragment
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.event.FocusEvent

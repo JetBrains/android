@@ -48,7 +48,9 @@ class NlTreeCellRenderer(
     TreeCellRenderer {
   private val primaryLabel = JLabel()
   private val secondaryLabel = JLabel().apply {
+    border = JBUI.Borders.emptyLeft(8)
     foreground = UIUtil.getInactiveTextColor()
+    font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
   }
 
   private val primaryLabelMetrics = primaryLabel.getFontMetrics(primaryLabel.font)
@@ -57,7 +59,7 @@ class NlTreeCellRenderer(
   private val otherFont = primaryLabel.font.deriveFont(Font.ITALIC)
 
   init {
-    alignmentY = JPanel.CENTER_ALIGNMENT
+    alignmentY = CENTER_ALIGNMENT
     add(primaryLabel)
     add(secondaryLabel)
   }
@@ -74,7 +76,9 @@ class NlTreeCellRenderer(
     primaryLabel.text = null
     primaryLabel.icon = null
     secondaryLabel.text = null
-    primaryLabel.foreground = UIUtil.getListForeground(hasFocus)
+    val treeFocused = tree.hasFocus()
+    primaryLabel.foreground = UIUtil.getListForeground(selected, treeFocused)
+    secondaryLabel.foreground = if(selected && treeFocused) primaryLabel.foreground else UIUtil.getLabelDisabledForeground()
 
     if (value is String) {
       primaryLabel.text = value
@@ -91,7 +95,7 @@ class NlTreeCellRenderer(
     val handler = ViewHandlerManager.get(facet).getHandler(value)
 
     primaryLabel.icon = handler?.getIcon(value)?.let {
-      if (hasFocus) ColoredIconGenerator.generateWhiteIcon(it) else it
+      if (selected && treeFocused) ColoredIconGenerator.generateWhiteIcon(it) else it
     }
 
     val id = stripIdPrefix(value.id)

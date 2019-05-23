@@ -203,8 +203,8 @@ public class AndroidProcessHandler extends ProcessHandler
      */
     private void notifyClientsFound(@NotNull Set<Integer> pids) {
       for (int pid : pids) {
-        myAndroidLogcatOutputCapture.startCapture(myDevice, pid, AndroidProcessHandler.this::notifyTextAvailable);
         print("Connected to process %d on device '%s'.\n", pid, myDevice.getName());
+        myAndroidLogcatOutputCapture.startCapture(myDevice, pid, AndroidProcessHandler.this::notifyTextAvailable);
       }
     }
 

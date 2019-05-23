@@ -56,8 +56,16 @@ public class GuidelineTarget extends BaseTarget {
   private int myEnd = -1;
   private float myPercent = -1;
 
+  private GuidelineDropHandler myDropHandler;
+
   public GuidelineTarget(boolean isHorizontal) {
     myIsHorizontal = isHorizontal;
+  }
+
+  @Override
+  public void setComponent(@NotNull SceneComponent component) {
+    super.setComponent(component);
+    myDropHandler = new GuidelineDropHandler(component, myIsHorizontal);
   }
 
   @Override
@@ -238,41 +246,7 @@ public class GuidelineTarget extends BaseTarget {
   }
 
   protected void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    String begin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
-    String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
-    String percent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
-    SceneComponent parent = myComponent.getParent();
-    int value = y - parent.getDrawY();
-    float dimension = parent.getDrawHeight();
-    if (!myIsHorizontal) {
-      value = x - parent.getDrawX();
-      dimension = parent.getDrawWidth();
-    }
-    if (begin != null) {
-      String position = String.format(SdkConstants.VALUE_N_DP, value);
-      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, position);
-    }
-    else if (end != null) {
-      String position = String.format(SdkConstants.VALUE_N_DP, (int)dimension - value);
-      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, position);
-    }
-    else if (percent != null) {
-      String percentStringValue = null;
-      float percentValue = value / dimension;
-      if (percentValue > 1) {
-        percentValue = 1;
-      }
-      if (percentValue < 0) {
-        percentValue = 0;
-      }
-      percentValue = Math.round(percentValue * 100) / 100f;
-      percentStringValue = String.valueOf(percentValue);
-      if (percentStringValue.equalsIgnoreCase("NaN")) {
-        percentStringValue = "0.5";
-      }
-      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, percentStringValue);
-    }
-    ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
+    myDropHandler.updateAttributes(attributes, x, y);
   }
 
   @Override
@@ -307,5 +281,54 @@ public class GuidelineTarget extends BaseTarget {
   @Override
   public List<SceneComponent> newSelection() {
     return ImmutableList.of(getComponent());
+  }
+
+  public static class GuidelineDropHandler {
+
+    @NotNull private SceneComponent myComponent;
+    private boolean myHorizontal;
+
+    public GuidelineDropHandler(@NotNull SceneComponent component, boolean horizontal) {
+      myComponent = component;
+      myHorizontal = horizontal;
+    }
+
+    public void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+      String begin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
+      String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
+      String percent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
+      SceneComponent parent = myComponent.getParent();
+      int value = y - parent.getDrawY();
+      float dimension = parent.getDrawHeight();
+      if (!myHorizontal) {
+        value = x - parent.getDrawX();
+        dimension = parent.getDrawWidth();
+      }
+      if (begin != null || (end == null && percent == null)) {
+        String position = String.format(SdkConstants.VALUE_N_DP, value);
+        attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, position);
+      }
+      else if (end != null) {
+        String position = String.format(SdkConstants.VALUE_N_DP, (int)dimension - value);
+        attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, position);
+      }
+      else {
+        String percentStringValue;
+        float percentValue = value / dimension;
+        if (percentValue > 1) {
+          percentValue = 1;
+        }
+        if (percentValue < 0) {
+          percentValue = 0;
+        }
+        percentValue = Math.round(percentValue * 100) / 100f;
+        percentStringValue = String.valueOf(percentValue);
+        if (percentStringValue.equalsIgnoreCase("NaN")) {
+          percentStringValue = "0.5";
+        }
+        attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, percentStringValue);
+      }
+      ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
+    }
   }
 }

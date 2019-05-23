@@ -1,5 +1,7 @@
 PROJECT             : testPsdSample
     MODULE              : app
+        - ModuleGroupPath   : testPsdSample
+        - ModuleGroupPath   : app
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -45,8 +47,8 @@ PROJECT             : testPsdSample
             JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/basicBarDebug/compileBasicBarDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/basicBarDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/basicBarDebugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/basicBar/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
@@ -428,6 +430,10 @@ PROJECT             : testPsdSample
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
     MODULE              : deep2
+        - ModuleGroupPath   : testPsdSample
+        - ModuleGroupPath   : nested2
+        - ModuleGroupPath   : trans
+        - ModuleGroupPath   : deep2
         LinkedProjectId     : :nested2:trans:deep2
         LinkedProjectPath   : <PROJECT>/nested2/trans/deep2
         RootProjectPath     : <PROJECT>
@@ -471,8 +477,8 @@ PROJECT             : testPsdSample
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug [-]
@@ -527,6 +533,8 @@ PROJECT             : testPsdSample
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
     MODULE              : dyn_feature
+        - ModuleGroupPath   : testPsdSample
+        - ModuleGroupPath   : dyn_feature
         LinkedProjectId     : :dyn_feature
         LinkedProjectPath   : <PROJECT>/dyn_feature
         RootProjectPath     : <PROJECT>
@@ -570,8 +578,8 @@ PROJECT             : testPsdSample
             JavaSource          : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/dyn_feature/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/dyn_feature/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/dyn_feature/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/dyn_feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/dyn_feature/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/dyn_feature/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/androidTest/debug [-]
@@ -626,6 +634,8 @@ PROJECT             : testPsdSample
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
     MODULE              : jav
+        - ModuleGroupPath   : testPsdSample
+        - ModuleGroupPath   : jav
         LinkedProjectId     : :jav
         LinkedProjectPath   : <PROJECT>/jav
         RootProjectPath     : <PROJECT>
@@ -648,6 +658,8 @@ PROJECT             : testPsdSample
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
     MODULE              : lib
+        - ModuleGroupPath   : testPsdSample
+        - ModuleGroupPath   : lib
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
@@ -691,8 +703,8 @@ PROJECT             : testPsdSample
             JavaSource          : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
@@ -990,6 +1002,8 @@ PROJECT             : testPsdSample
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
     MODULE              : nested1
+        - ModuleGroupPath   : testPsdSample
+        - ModuleGroupPath   : nested1
         LinkedProjectId     : :nested1
         LinkedProjectPath   : <PROJECT>/nested1
         RootProjectPath     : <PROJECT>
@@ -1033,8 +1047,8 @@ PROJECT             : testPsdSample
             JavaSource          : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/nested1/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/nested1/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/nested1/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/nested1/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/nested1/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/nested1/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/nested1/build/generated/source/buildConfig/androidTest/debug [-]
@@ -1089,6 +1103,9 @@ PROJECT             : testPsdSample
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
     MODULE              : nested1-deep
+        - ModuleGroupPath   : testPsdSample
+        - ModuleGroupPath   : nested1
+        - ModuleGroupPath   : deep
         LinkedProjectId     : :nested1:deep
         LinkedProjectPath   : <PROJECT>/nested1/deep
         RootProjectPath     : <PROJECT>
@@ -1132,8 +1149,8 @@ PROJECT             : testPsdSample
             JavaSource          : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/nested1/deep/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/nested1/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/nested1/deep/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/nested1/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/nested1/deep/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/nested1/deep/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/androidTest/debug [-]
@@ -1188,6 +1205,8 @@ PROJECT             : testPsdSample
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
     MODULE              : nested2
+        - ModuleGroupPath   : testPsdSample
+        - ModuleGroupPath   : nested2
         LinkedProjectId     : :nested2
         LinkedProjectPath   : <PROJECT>/nested2
         RootProjectPath     : <PROJECT>
@@ -1231,8 +1250,8 @@ PROJECT             : testPsdSample
             JavaSource          : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
             JavaSource (test)   : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/nested2/build/generated/renderscript_source_output_dir/basicDebug/compileBasicDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/nested2/build/generated/renderscript_source_output_dir/basicDebugAndroidTest/compileBasicDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/nested2/build/generated/renderscript_source_output_dir/basicDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/nested2/build/generated/renderscript_source_output_dir/basicDebugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/nested2/build/generated/res/rs/androidTest/basic/debug [-]
             JavaResource        : file://<PROJECT>/nested2/build/generated/res/rs/basic/debug [-]
             JavaSource (test)   : file://<PROJECT>/nested2/build/generated/source/buildConfig/androidTest/basic/debug [-]
@@ -1329,6 +1348,9 @@ PROJECT             : testPsdSample
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
     MODULE              : nested2-deep
+        - ModuleGroupPath   : testPsdSample
+        - ModuleGroupPath   : nested2
+        - ModuleGroupPath   : deep
         LinkedProjectId     : :nested2:deep
         LinkedProjectPath   : <PROJECT>/nested2/deep
         RootProjectPath     : <PROJECT>
@@ -1372,8 +1394,8 @@ PROJECT             : testPsdSample
             JavaSource          : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/nested2/deep/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/nested2/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/nested2/deep/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/nested2/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/nested2/deep/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/nested2/deep/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/androidTest/debug [-]
@@ -1428,6 +1450,7 @@ PROJECT             : testPsdSample
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
     MODULE              : testPsdSample
+        - ModuleGroupPath   : testPsdSample
         LinkedProjectId     : testPsdSample
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
@@ -1443,6 +1466,9 @@ PROJECT             : testPsdSample
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
     MODULE              : trans
+        - ModuleGroupPath   : testPsdSample
+        - ModuleGroupPath   : nested2
+        - ModuleGroupPath   : trans
         LinkedProjectId     : :nested2:trans
         LinkedProjectPath   : <PROJECT>/nested2/trans
         RootProjectPath     : <PROJECT>

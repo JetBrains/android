@@ -251,7 +251,16 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
       if (marginString != null) {
         marginValue = getMarginValue(attribute);
       }
-      if (marginValue != -1 && marginValue == currentValue) {
+      if (currentValue == 0) {
+        attributes.removeAttribute(SdkConstants.ANDROID_URI, attribute);
+        if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attribute)) {
+          attributes.removeAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
+        }
+        else if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attribute)) {
+          attributes.removeAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
+        }
+      }
+      else if (marginValue != -1 && marginValue == currentValue) {
         attributes.setAttribute(SdkConstants.ANDROID_URI, attribute, marginString);
         if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attribute)) {
           attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, marginString);
