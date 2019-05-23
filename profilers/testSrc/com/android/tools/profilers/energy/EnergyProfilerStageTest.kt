@@ -153,21 +153,21 @@ class EnergyProfilerStageTest {
     assertThat(eventSeries).hasSize(3)
 
     // Alarms & Jobs
-    val alarmAndJobEvents = eventSeries[0].dataSeries.getDataForXRange(range)
+    val alarmAndJobEvents = eventSeries[0].getSeriesForRange(range)
     assertThat(alarmAndJobEvents).hasSize(4)
     for (i in 0..3) {
       assertThat(alarmAndJobEvents[i].value).isEqualTo(fakeData[i])
     }
 
     // Wake locks
-    val wakeLockEvents = eventSeries[1].dataSeries.getDataForXRange(range)
+    val wakeLockEvents = eventSeries[1].getSeriesForRange(range)
     assertThat(wakeLockEvents).hasSize(2)
     for (i in 0..1) {
       assertThat(wakeLockEvents[i].value).isEqualTo(fakeData[i + 4])
     }
 
     // Locations
-    val locationEvents = eventSeries[2].dataSeries.getDataForXRange(range)
+    val locationEvents = eventSeries[2].getSeriesForRange(range)
     assertThat(locationEvents).hasSize(2)
     for (i in 0..1) {
       assertThat(locationEvents[i].value).isEqualTo(fakeData[i + 6])
