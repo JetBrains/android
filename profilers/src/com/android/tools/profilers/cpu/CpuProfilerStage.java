@@ -283,7 +283,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       Range xRange = myRecentTraceDurations.getSeries().getXRange();
 
       CpuTraceInfo candidateToSelect = null;  // candidate trace to automatically set and select
-      List<SeriesData<CpuTraceInfo>> recentTraceInfo = myRecentTraceDurations.getSeries().getDataSeries().getDataForXRange(xRange);
+      List<SeriesData<CpuTraceInfo>> recentTraceInfo = myRecentTraceDurations.getSeries().getSeriesForRange(xRange);
       for (SeriesData<CpuTraceInfo> series : recentTraceInfo) {
         CpuTraceInfo trace = series.value;
         if (trace.getDurationUs() == Long.MAX_VALUE) {
@@ -846,7 +846,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   @Nullable
   CpuTraceInfo getIntersectingTraceInfo(Range range) {
-    List<SeriesData<CpuTraceInfo>> infoList = getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
+    List<SeriesData<CpuTraceInfo>> infoList = getTraceDurations().getSeries().getSeriesForRange(range);
     for (SeriesData<CpuTraceInfo> info : infoList) {
       Range captureRange = info.value.getRange();
       if (!captureRange.getIntersection(range).isEmpty()) {

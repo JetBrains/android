@@ -508,7 +508,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     RangedContinuousSeries objectSeries = usage.getObjectsSeries();
     assertThat(legends.getLegends().stream().filter(legend -> legend == objectLegend).findFirst().get().getValue()).isEqualTo("N/A");
     assertThat(usage.getSeries().stream().anyMatch(series -> series == objectSeries)).isTrue();
-    assertThat(objectSeries.getDataSeries().getDataForXRange(new Range(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(1))))
+    assertThat(objectSeries.getSeriesForRange(new Range(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(1))))
       .isEmpty();
 
     myTransportService.setAgentStatus(AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build());
@@ -521,7 +521,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(legends.getLegends().stream().filter(legend -> legend == objectLegend).findFirst().get().getValue()).isNotNull();
     assertThat(usage.getSeries().stream().anyMatch(series -> series == objectSeries)).isTrue();
-    assertThat(objectSeries.getDataSeries().getDataForXRange(new Range(TimeUnit.SECONDS.toMicros(2), TimeUnit.SECONDS.toMicros(2))))
+    assertThat(objectSeries.getSeriesForRange(new Range(TimeUnit.SECONDS.toMicros(2), TimeUnit.SECONDS.toMicros(2))))
       .isNotEmpty();
   }
 

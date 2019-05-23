@@ -165,7 +165,7 @@ public final class CpuKernelsView {
     }
     CpuKernelModel.CpuState state = cpuModel.getElementAt(selectedIndex);
     Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
-    List<SeriesData<CpuThreadSliceInfo>> process = state.getModel().getSeries().get(0).getDataSeries().getDataForXRange(tooltipRange);
+    List<SeriesData<CpuThreadSliceInfo>> process = state.getModel().getSeries().get(0).getSeriesForRange(tooltipRange);
     if (process.isEmpty()) {
       return;
     }
