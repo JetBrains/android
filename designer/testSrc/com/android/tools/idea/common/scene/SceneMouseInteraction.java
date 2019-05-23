@@ -402,6 +402,17 @@ public class SceneMouseInteraction {
     repaint();
   }
 
+  private static List<ViewAction> getToolbarActions(@Nullable SceneComponent component) {
+    if (component == null) {
+      return ImmutableList.of();
+    }
+
+    NlComponent nlComponent = component.getNlComponent();
+    ViewHandlerManager handlerManager = ViewHandlerManager.get(nlComponent.getModel().getProject());
+    ViewHandler viewHandler = handlerManager.getHandler(nlComponent);
+    return handlerManager.getToolbarActions(viewHandler);
+  }
+
   private static List<ViewAction> getPopupActions(@Nullable SceneComponent component) {
     if (component == null) {
       return ImmutableList.of();
@@ -413,19 +424,35 @@ public class SceneMouseInteraction {
     return handlerManager.getPopupMenuActions(component, viewHandler);
   }
 
+  /**
+   * Helper function to perform the action in the toolbar of given component.
+   */
+  public void performToolbarAction(@NotNull SceneComponent component, @NotNull Predicate<ViewAction> selector) {
+    performAction(component, selector, getToolbarActions(component).stream());
+  }
+
+  /**
+   * Helper function to perform the action in the context menu of given component.
+   */
   public void performViewAction(@NotNull SceneComponent component, @NotNull Predicate<ViewAction> selector) {
+    performAction(component, selector, Stream.concat(getPopupActions(component).stream(), getPopupActions(component.getParent()).stream()));
+  }
+
+  private void performAction(@NotNull SceneComponent component,
+                             @NotNull Predicate<ViewAction> selector,
+                             @NotNull Stream<ViewAction> actionStream) {
     NlComponent nlComponent = component.getNlComponent();
 
-    ViewAction viewAction = Stream.concat(getPopupActions(component).stream(), getPopupActions(component.getParent()).stream())
-      .filter(selector)
-      .findFirst().orElseThrow(() -> new NullPointerException("No action matching predicate for " + component));
+    ViewAction viewAction = actionStream.filter(selector)
+      .findFirst()
+      .orElseThrow(() -> new NullPointerException("No action matching predicate for " + component));
 
     ViewEditor viewEditor = new ViewEditorImpl(nlComponent.getModel(), myScene);
 
     ViewHandlerManager handlerManager = ViewHandlerManager.get(nlComponent.getModel().getProject());
     ViewHandler viewHandler = handlerManager.getHandler(nlComponent);
 
-    viewAction.perform(viewEditor, viewHandler, nlComponent, ImmutableList.of(nlComponent), 0);
+    viewAction.perform(viewEditor, viewHandler, nlComponent, myScene.getSelection(), 0);
   }
 
   public void performViewAction(@NotNull String componentId, @NotNull Predicate<ViewAction> selector) {
