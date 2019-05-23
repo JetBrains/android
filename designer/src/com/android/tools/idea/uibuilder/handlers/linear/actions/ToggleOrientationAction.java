@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.actions;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.google.wireless.android.sdk.stats.LayoutPaletteEvent;
 import icons.StudioIcons;
+import java.util.ArrayList;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,14 +41,19 @@ import static com.android.SdkConstants.*;
 public class ToggleOrientationAction extends LinearLayoutAction {
 
   @Override
-  protected void perform(@NotNull ViewEditor editor, @NotNull LinearLayoutHandler handler, @NotNull NlComponent component,
+  protected void perform(@NotNull ViewEditor editor,
+                         @NotNull LinearLayoutHandler handler,
+                         @NotNull NlComponent component,
                          @NotNull List<NlComponent> selectedChildren,
                          @JdkConstants.InputEventMask int modifiers) {
-    boolean isHorizontal = !handler.isVertical(component);
-    String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
-
-    NlWriteCommandActionUtil.run(component, "Change LinearLayout orientation", () ->
-      component.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value));
+    List<NlComponent> targetLinearLayouts = getTargetLinearLayouts(component, selectedChildren);
+    NlWriteCommandActionUtil.run(targetLinearLayouts, "Change LinearLayout orientation", () -> {
+      for (NlComponent child : targetLinearLayouts) {
+        boolean isVertical = handler.isVertical(child);
+        String value = isVertical ? null : VALUE_VERTICAL; // null: horizontal is the default
+        child.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value);
+      }
+    });
   }
 
   @Override
@@ -53,12 +63,31 @@ public class ToggleOrientationAction extends LinearLayoutAction {
                                     @NotNull NlComponent component,
                                     @NotNull List<NlComponent> selectedChildren,
                                     int modifiers) {
-
-    boolean vertical = handler.isVertical(component);
+    List<NlComponent> targetLinearLayouts = getTargetLinearLayouts(component, selectedChildren);
+    // It is possible that part of them are vertical and others are horizontal.
+    // Because this is a toggle action, using primary one for displaying icon is fine.
+    NlComponent primary = targetLinearLayouts.get(0);
+    boolean vertical = handler.isVertical(primary);
     presentation.setLabel("Convert orientation to " + (vertical ? VALUE_HORIZONTAL : VALUE_VERTICAL));
     // If current orientation is vertical, then the icon should be horizontal, as so on.
     Icon icon = vertical ? StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ : StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT;
     presentation.setIcon(icon);
+  }
+
+  private static List<NlComponent> getTargetLinearLayouts(@NotNull NlComponent parent, @NotNull List<NlComponent> selectedChildren) {
+    // Check if selecting any linear layout
+    List<NlComponent> targetLinearLayouts = new ArrayList<>();
+    for (NlComponent child : selectedChildren) {
+      if (NlComponentHelperKt.isOrHasSuperclass(child, LINEAR_LAYOUT)) {
+        targetLinearLayouts.add(child);
+      }
+    }
+
+    if (targetLinearLayouts.isEmpty()) {
+      // No selected linear layout, toggle parent instead.
+      targetLinearLayouts.add(parent);
+    }
+    return targetLinearLayouts;
   }
 }
 
