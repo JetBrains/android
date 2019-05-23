@@ -22,9 +22,9 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.*;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -112,7 +112,7 @@ public class AndroidModuleDependenciesSetupTest extends JavaProjectTestCase {
 
   @NotNull
   private Library createLibrary(@NotNull File binaryPath, @NotNull File sourcePath, @NotNull File javadocPath) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(getProject());
     LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
     Library library = libraryTableModel.createLibrary("Gradle: " + binaryPath.getName());
 
