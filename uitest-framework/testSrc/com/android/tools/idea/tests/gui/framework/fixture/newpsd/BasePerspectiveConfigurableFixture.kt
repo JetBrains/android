@@ -49,7 +49,13 @@ open class BasePerspectiveConfigurableFixture protected constructor(
 ) : IdeFrameContainerFixture {
 
   fun minimizeModulesList() {
-    val hideButton = finder().find(container, matcher<InplaceButton> { it.toolTipText == "Hide" })
+    val hideButton =
+      finder().find(
+        finder().find(
+          container,
+          matcher<ToolWindowHeader> { !finder().findAll(it, matcher<JLabel> { it.text == "Modules" }).isEmpty() }
+        ),
+        matcher<InplaceButton> { it.toolTipText == "Hide" })
     robot().pressMouse(hideButton, Point(3, 3), MouseButton.LEFT_BUTTON)
     try {
       waitForIdle()  // This is to make sure that pause() waits long enough.
