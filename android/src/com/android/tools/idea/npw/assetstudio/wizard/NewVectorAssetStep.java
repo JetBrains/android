@@ -32,6 +32,7 @@ import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.Receiver;
 import com.android.tools.idea.observable.adapters.StringToDoubleAdapterProperty;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -46,6 +47,7 @@ import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
 import com.android.tools.idea.observable.ui.ColorProperty;
+import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.HasFocusProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
@@ -278,8 +280,14 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
       myValidatorPanel.registerValidator(myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name)));
       myValidatorPanel.registerValidator(myAssetValidityState, validity -> truncateMessage(validity, 3));
-      myValidatorPanel.registerValidator(widthText, new SizeValidator("Width has to be a positive number"));
-      myValidatorPanel.registerValidator(heightText, new SizeValidator("Height has be a positive number"));
+      EnabledProperty widthEnabled = new EnabledProperty(myWidthTextField);
+      ObservableValue<String> widthForValidation =
+          Expression.create(() -> widthEnabled.get() ? widthText.get() : "24", widthText, widthEnabled);
+      myValidatorPanel.registerValidator(widthForValidation, new SizeValidator("Width has to be a positive number"));
+      EnabledProperty heightEnabled = new EnabledProperty(myHeightTextField);
+      ObservableValue<String> heightForValidation =
+          Expression.create(() -> heightEnabled.get() ? heightText.get() : "24", heightText, heightEnabled);
+      myValidatorPanel.registerValidator(heightForValidation, new SizeValidator("Height has to be a positive number"));
 
       if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
         myActiveAssetBindings.bind(ObjectProperty.wrap(myActiveAsset.get().color()), myColor);
