@@ -376,8 +376,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     Range dataRange = getStudioProfilers().getTimeline().getDataRange();
     if (myPendingCaptureStartTime != INVALID_START_TIME) {
       List<SeriesData<CaptureDurationData<CaptureObject>>> series =
-        new ArrayList<>(getAllocationInfosDurations().getSeries().getDataSeries().getDataForXRange(dataRange));
-      series.addAll(getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(dataRange));
+        new ArrayList<>(getAllocationInfosDurations().getSeries().getSeriesForRange(dataRange));
+      series.addAll(getHeapDumpSampleDurations().getSeries().getSeriesForRange(dataRange));
 
       long pendingCaptureStartTimeUs = TimeUnit.NANOSECONDS.toMicros(myPendingCaptureStartTime);
       SeriesData<CaptureDurationData<CaptureObject>> captureToSelect = null;
@@ -506,9 +506,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     double overlap = 0.0f; // Weight value to determine which capture is "more" selected.
 
     List<SeriesData<CaptureDurationData<CaptureObject>>> series =
-      new ArrayList<>(getAllocationInfosDurations().getSeries().getDataSeries().getDataForXRange(range));
+      new ArrayList<>(getAllocationInfosDurations().getSeries().getSeriesForRange(range));
     // Heap dumps break ties vs allocations.
-    series.addAll(getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(range));
+    series.addAll(getHeapDumpSampleDurations().getSeries().getSeriesForRange(range));
 
     for (SeriesData<CaptureDurationData<CaptureObject>> data : series) {
       long duration = data.value.getDurationUs();
@@ -838,7 +838,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
         // Controls whether the series should be shown by looking at whether there is a FULL tracking mode event within the query range.
         List<SeriesData<AllocationSamplingRateDurationData>> data =
-          usage.getAllocationSamplingRateDurations().getSeries().getDataSeries().getDataForXRange(r);
+          usage.getAllocationSamplingRateDurations().getSeries().getSeriesForRange(r);
 
         if (data.isEmpty()) {
           return false;
