@@ -19,9 +19,9 @@ import com.android.tools.idea.gradle.project.library.LibraryPropertiesDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -85,7 +85,7 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
 
   @NotNull
   public LibraryFixture getLibrary() {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(myProject);
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myProject);
     Library library = libraryTable.getLibraryByName(myLibraryName);
 
     assertNotNull("Failed to find library '" + myLibraryName + "'", library);
