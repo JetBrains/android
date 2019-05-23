@@ -17,6 +17,8 @@ package com.android.tools.idea.run.tasks;
 
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.notification.NotificationListener;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LaunchResult {
   private boolean mySuccess;
@@ -28,6 +30,7 @@ public class LaunchResult {
   // Hyperlink to be appended to the footer of the console error message.
   private String myConsoleHyperlinkText;
   private HyperlinkInfo myConsoleHyperlinkInfo;
+  private List<Runnable> myOnFinishedCallbacks;
 
   public LaunchResult() {
     mySuccess = true;
@@ -37,6 +40,7 @@ public class LaunchResult {
     myConsoleHyperlinkText = "";
     myConsoleHyperlinkInfo = null;
     myNotificationListener = null;
+    myOnFinishedCallbacks = new ArrayList<>();
   }
 
   public void setSuccess(boolean success) {
@@ -90,5 +94,13 @@ public class LaunchResult {
 
   public void setNotificationListener(NotificationListener listener) {
     myNotificationListener = listener;
+  }
+
+  public List<Runnable> onFinishedCallbacks() {
+    return myOnFinishedCallbacks;
+  }
+
+  public void addOnFinishedCallback(Runnable runnable) {
+    myOnFinishedCallbacks.add(runnable);
   }
 }

@@ -36,11 +36,13 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentManager;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
@@ -66,6 +68,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   @NotNull private final LaunchTasksProvider myLaunchTasksProvider;
   @NotNull private final RunStats myStats;
   @NotNull private final BiConsumer<String, HyperlinkInfo> myConsoleConsumer;
+  @NotNull private final List<Runnable> myOnFinished;
 
   @Nullable private String myError;
   @Nullable private NotificationListener myErrorNotificationListener;
@@ -91,6 +94,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     myLaunchTasksProvider = launchTasksProvider;
     myStats = stats;
     myConsoleConsumer = consoleConsumer;
+    myOnFinished = new ArrayList<>();
   }
 
   @Override
@@ -161,6 +165,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
         indicator.setText(task.getDescription());
         LaunchResult result = task.run(myLaunchInfo.executor, device, launchStatus, consolePrinter);
+        myOnFinished.addAll(result.onFinishedCallbacks());
         success = result.getSuccess();
         myStats.endLaunchTask(task, details, success);
         if (!success) {
@@ -237,6 +242,14 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       myStats.fail();
       LaunchUtils.showNotification(
         myProject, myLaunchInfo.executor, myConfigName, myError, NotificationType.ERROR, myErrorNotificationListener);
+    }
+  }
+
+  @Override
+  public void onFinished() {
+    super.onFinished();
+    for (Runnable runnable : myOnFinished) {
+      ApplicationManager.getApplication().invokeLater(runnable);
     }
   }
 
