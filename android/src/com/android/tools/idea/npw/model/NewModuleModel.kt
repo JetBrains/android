@@ -50,7 +50,7 @@ import java.util.HashMap
 
 class NewModuleModel : WizardModel {
   val isLibrary: BoolProperty = BoolValueProperty()
-  val renderTemplateValues: OptionalProperty<Map<String, Any>> = OptionalValueProperty()
+  val renderTemplateValues: OptionalProperty<MutableMap<String, Any>> = OptionalValueProperty()
   val templateValues: Map<String, Any> = hashMapOf()
   val project: OptionalProperty<Project>
   val projectSyncInvoker: ProjectSyncInvoker
