@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.absolute
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import java.awt.Point
@@ -46,10 +47,40 @@ class AbsolutePlaceholderTest : SceneTest() {
     val bottom = absoluteLayout.drawY - 10
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(left, top, right, bottom, p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom), p)
     assertFalse(snappedResult)
     assertEquals(-1, p.x)
     assertEquals(-1, p.y)
+  }
+
+  fun testSnapSucceedIfCenterIsInside() {
+    val absoluteLayout = myScene.getSceneComponent("absolute")!!
+    val placeholder = AbsolutePlaceholder(absoluteLayout)
+
+    // The center point is at (absoluteLayout.drawX + 10, absoluteLayout.drawY +10), which is inside absoluteLayout.
+    val left = absoluteLayout.drawX - 10
+    val top = absoluteLayout.drawY - 10
+    val right = absoluteLayout.drawX + 30
+    val bottom = absoluteLayout.drawY + 30
+
+    val p = Point(-1, -1)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom), p)
+    assertTrue(snappedResult)
+    assertEquals(absoluteLayout.drawX - 10, p.x)
+    assertEquals(absoluteLayout.drawY - 10, p.y)
+  }
+
+  fun testSnapFailedIfCenterIsOutside() {
+    val absoluteLayout = myScene.getSceneComponent("absolute")!!
+    val placeholder = AbsolutePlaceholder(absoluteLayout)
+
+    // The center point is at (absoluteLayout.drawX - 20, absoluteLayout.drawY - 20), which is outside absoluteLayout.
+    val left = absoluteLayout.drawX - 50
+    val top = absoluteLayout.drawY - 50
+    val right = absoluteLayout.drawX + 10
+    val bottom = absoluteLayout.drawY + 10
+
+    assertFalse(placeholder.snap(SnappingInfo(left, top, right, bottom), Point(-1, -1)))
   }
 
   fun testSnapSucceed() {
@@ -64,7 +95,7 @@ class AbsolutePlaceholderTest : SceneTest() {
     val bottom = absoluteLayout.drawY + textView.drawHeight
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(left, top, right, bottom, p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom), p)
     assertTrue(snappedResult)
     assertEquals(left, p.x)
     assertEquals(top, p.y)

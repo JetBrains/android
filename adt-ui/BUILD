@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.adt.ui",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.adt.ui.iml"],
+    lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_coverage = True,

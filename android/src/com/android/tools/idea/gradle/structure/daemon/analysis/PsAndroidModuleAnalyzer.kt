@@ -67,7 +67,7 @@ class PsAndroidModuleAnalyzer(
   private fun analyzeLibraryVersionPromotions(model: PsAndroidModule): Sequence<PsIssue> {
     val promotedLibraries =
       model
-        .variants
+        .resolvedVariants
         .flatMap { it.artifacts }
         .flatMap { it.dependencies.libraries }
         .flatMap { resolved ->

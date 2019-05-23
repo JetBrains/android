@@ -211,7 +211,7 @@ class SyncExecutor {
           PropertiesComponent.getInstance(myProject).setValue(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC, true);
           StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(false);
           StudioFlags.NEW_SYNC_INFRA_ENABLED.override(false);
-          GradleSyncState.getInstance(myProject).syncEnded();
+          GradleSyncState.getInstance(myProject).syncSucceeded();
           generateFailureEvent(id);
           GradleSyncInvoker.getInstance()
             .requestProjectSync(myProject, request != null ? request : new GradleSyncInvoker.Request(TRIGGER_SVS_NOT_SUPPORTED), listener);

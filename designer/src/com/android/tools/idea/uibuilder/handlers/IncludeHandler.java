@@ -67,7 +67,7 @@ public final class IncludeHandler extends ViewHandler {
   @Override
   public String getTitleAttributes(@NotNull NlComponent component) {
     String layout = component.getAttribute(null, ATTR_LAYOUT);
-    return StringUtil.isEmpty(layout) ? "" : "- " + layout;
+    return StringUtil.isEmpty(layout) ? "" : layout;
   }
 
   @Override

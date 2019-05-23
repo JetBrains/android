@@ -29,6 +29,7 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocatorKt;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.Notification;
@@ -389,9 +390,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
 
     // We use the deprecated |oldService| to migrate the user created configurations to the new persistent class.
     // |oldService| probably will be removed in coming versions of Android Studio: http://b/74601959
-    oldService.getConfigurations().forEach(
-      old -> configsState.addUserConfig(CpuProfilerConfigConverter.fromProto(old.toProto()))
-    );
+    oldService.getConfigurations().forEach(old -> configsState.addUserConfig(CpuProfilerConfigConverter.fromProto(old.toProto())));
     // We don't need configurations from |oldService| anymore, so clear it.
     oldService.setConfigurations(Collections.emptyList());
 

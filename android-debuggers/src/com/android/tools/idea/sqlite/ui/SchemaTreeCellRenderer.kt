@@ -20,6 +20,7 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.intellij.icons.AllIcons
 import com.intellij.ui.SimpleColoredComponent
 import java.awt.Component
+import java.util.Locale
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeCellRenderer
@@ -53,7 +54,7 @@ class SchemaTreeCellRenderer : TreeCellRenderer {
           component.icon = AllIcons.Nodes.DataColumn
           component.append(userObject.name)
           component.append(" : ")
-          component.append(userObject.type.name.toLowerCase())
+          component.append(userObject.type.name.toLowerCase(Locale.US))
         }
 
       // String (e.g. "Tables" node)

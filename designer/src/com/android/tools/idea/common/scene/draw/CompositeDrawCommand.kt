@@ -23,12 +23,14 @@ import java.awt.Graphics2D
  * of child draw commands that have a predefined order. Derived classes
  * provide the list of child commands as well as custom serialization.
  */
-abstract class CompositeDrawCommand : DrawCommand {
+abstract class CompositeDrawCommand(private val level: Int = 0) : DrawCommand {
   val commands: List<DrawCommand> by lazy {
     buildCommands()
   }
 
   protected abstract fun buildCommands(): List<DrawCommand>
+
+  override fun getLevel(): Int = level
 
   override fun paint(g: Graphics2D?, sceneContext: SceneContext?) {
     commands.forEach { it.paint(g, sceneContext) }

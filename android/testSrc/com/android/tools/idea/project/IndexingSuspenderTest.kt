@@ -214,7 +214,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
     val buildRequest = mock(GradleBuildInvoker.Request::class.java)
     // build is scheduled while sync is still in progress - IndexingSuspender should amend its deactivation condition
     buildState.buildExecutorCreated(buildRequest)
-    syncState.syncEnded()
+    syncState.syncSucceeded()
 
     assertFalse(syncState.isSyncInProgress)
     // Build does not suspend indexing. Indexing should have resumed by this point.
@@ -253,7 +253,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
     val buildState = GradleBuildState.getInstance(project)
     val buildRequest = mock(GradleBuildInvoker.Request::class.java)
     buildState.buildExecutorCreated(buildRequest)
-    syncState.syncEnded()
+    syncState.syncSucceeded()
 
     // Indexing should have resumed by this point.
     assertEquals(0, currentBatchUpdateLevel)
@@ -302,7 +302,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
     assertEquals(1, currentBatchUpdateLevel)
     assertEquals(1, currentBatchFileUpdateLevel)
 
-    syncState.syncEnded()
+    syncState.syncSucceeded()
     // No change
     assertEquals(0, currentBatchUpdateLevel)
     assertEquals(0, currentBatchFileUpdateLevel)
@@ -361,7 +361,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
       syncState.syncFailed("Test", null, null)
     }
     else {
-      syncState.syncEnded()
+      syncState.syncSucceeded()
     }
     assertEquals(0, currentBatchUpdateLevel)
     assertEquals(0, currentBatchFileUpdateLevel)

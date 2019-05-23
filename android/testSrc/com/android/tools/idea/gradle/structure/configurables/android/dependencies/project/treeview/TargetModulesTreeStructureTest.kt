@@ -225,7 +225,7 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
     project.forEachModule(Consumer { module ->
       if (module is PsAndroidModule) {
         nodeModels.addAll(module.dependencies.findLibraryDependencies(groupId, name))
-        module.variants.forEach { variant ->
+        module.resolvedVariants.forEach { variant ->
           variant.forEachArtifact { artifact ->
             nodeModels.addAll(artifact.dependencies.findLibraryDependencies(groupId, name))
           }

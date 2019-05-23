@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.common;
 
 import static com.android.builder.model.AndroidProject.MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD;
 import static com.android.builder.model.AndroidProject.MODEL_LEVEL_4_NEW_DEP_MODEL;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD;
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY;
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_ADVANCED;
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED;
@@ -30,6 +31,7 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.ui.GuiTestingService;
@@ -101,6 +103,9 @@ public class CommandLineArgs {
       // Example of version to pass: 2.4.0.6
       args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, myApplicationInfo.getStrictVersion()));
     }
+    // Whether or not skip download of source and javadoc jars during Gradle sync.
+    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD,
+                                   GradleExperimentalSettings.getInstance().SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC));
 
     if (project != null) {
       Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);

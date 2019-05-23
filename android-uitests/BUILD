@@ -61,6 +61,7 @@ iml_module(
         "//tools/idea/platform/remote-servers/impl:intellij.platform.remoteServers.impl",
         "//tools/idea/colorSchemes:intellij.platform.colorSchemes",
         "//tools/idea/plugins/groovy/structuralsearch-groovy:intellij.groovy.structuralSearch",
+        "//tools/adt/idea/android:intellij.android.core.tests",
         "//tools/idea/plugins/git4idea/remote-servers-git-java:intellij.java.remoteServers.git",
         "//tools/idea/plugins/terminal:intellij.terminal",
         "//tools/idea/jps/javac-ref-scanner-8:intellij.java.jps.javacRefScanner8",

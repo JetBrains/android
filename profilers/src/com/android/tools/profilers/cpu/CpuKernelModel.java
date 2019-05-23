@@ -51,9 +51,10 @@ public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
     removeAllElements();
     CpuCapture capture = myStage.getCapture();
     if (capture instanceof AtraceCpuCapture) {
-      int count = ((AtraceCpuCapture)capture).getCpuCount();
+      AtraceCpuCapture atraceCpuCapture = (AtraceCpuCapture)capture;
+      int count = atraceCpuCapture.getCpuCount();
       for (int i = 0; i < count; i++) {
-        addElement(new CpuState(i, myStage));
+        addElement(new CpuState(i, atraceCpuCapture));
       }
     }
     contentsChanged();
@@ -70,10 +71,10 @@ public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
     @NotNull
     private final StateChartModel<CpuThreadSliceInfo> myModel;
 
-    public CpuState(int cpuId, @NotNull CpuProfilerStage stage) {
+    public CpuState(int cpuId, @NotNull AtraceCpuCapture atraceCpuCapture) {
       myCpuId = cpuId;
       myModel = new StateChartModel<>();
-      myAtraceCpuStateDataSeries = new AtraceDataSeries<>(stage, capture -> capture.getCpuThreadSliceInfoStates(myCpuId));
+      myAtraceCpuStateDataSeries = new AtraceDataSeries<>(atraceCpuCapture, capture -> capture.getCpuThreadSliceInfoStates(myCpuId));
       myModel.addSeries(new RangedSeries<>(myRange, myAtraceCpuStateDataSeries));
     }
 

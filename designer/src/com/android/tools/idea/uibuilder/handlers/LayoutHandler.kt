@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.handlers.frame.FrameDragHandler
@@ -57,14 +58,12 @@ class LayoutPlaceholder(host: SceneComponent) : Placeholder(host) {
     Region(0, 0, width, height)
   }
 
-  override fun snap(left: Int, top: Int, right: Int, bottom: Int, retPoint: Point): Boolean {
+  override fun snap(info: SnappingInfo, retPoint: Point): Boolean {
     // Only allow to add component when there is no root View.
     if (host.nlComponent.childCount == 0) {
-      val centerX = (left + right) / 2
-      val centerY = (top + bottom) / 2
-      if (centerX in region.left..region.right && centerY in region.top..region.bottom) {
-        retPoint.x = left
-        retPoint.y = top
+      if (region.contains(info.centerX, info.centerY)) {
+        retPoint.x = info.left
+        retPoint.y = info.top
         return true
       }
     }

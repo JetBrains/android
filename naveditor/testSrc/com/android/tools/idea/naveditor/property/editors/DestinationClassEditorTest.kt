@@ -124,6 +124,17 @@ class DestinationClassEditorTest : NavTestCase() {
   }
 
   fun testProjectSorting() {
+    val relativePath = "src/mytest/navtest/AnotherProjectFragment.java"
+    val fileText = """
+      package mytest.navtest;
+      import android.support.v4.app.Fragment;
+
+      public class AnotherProjectFragment extends Fragment {
+      }
+      """.trimIndent()
+
+    myFixture.addFileToProject(relativePath, fileText)
+
     val model = model("nav.xml") {
       navigation("root") {
         fragment("f1")
@@ -144,9 +155,9 @@ class DestinationClassEditorTest : NavTestCase() {
     assertOrderedEquals(choices,
                         "none" displayFor null,
                         "mytest.navtest.BlankFragment" displayFor "mytest.navtest.BlankFragment",
-                        "android.support.v4.app.Fragment" displayFor "android.support.v4.app.Fragment")
+                        "mytest.navtest.AnotherProjectFragment" displayFor "mytest.navtest.AnotherProjectFragment")
 
-    isInProject = { psiClass -> psiClass.qualifiedName == "android.support.v4.app.Fragment" }
+    isInProject = { psiClass -> psiClass.qualifiedName == "mytest.navtest.AnotherProjectFragment" }
 
     choices = EnumEditorFixture.create { listener, comboBox -> DestinationClassEditor(listener, comboBox, isInProject) }.use {
       it.setProperty(property)
@@ -156,7 +167,7 @@ class DestinationClassEditorTest : NavTestCase() {
 
     assertOrderedEquals(choices,
                         "none" displayFor null,
-                        "android.support.v4.app.Fragment" displayFor "android.support.v4.app.Fragment",
+                        "mytest.navtest.AnotherProjectFragment" displayFor "mytest.navtest.AnotherProjectFragment",
                         "mytest.navtest.BlankFragment" displayFor "mytest.navtest.BlankFragment")
   }
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.psi;
 
-import com.android.support.AndroidxName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.psi.PsiClass;
@@ -23,23 +22,16 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public interface TagToClassMapper {
-  /**
-   * Returns a map from tag names to {@link PsiClass} instances for all subclasses of {@code frameworkClass} that can be accessed from the
-   * current module.
-   *
-   * @param frameworkClass fully qualified name of the framework superclass
-   */
-  @NotNull
-  Map<String, PsiClass> getFrameworkClassMap(@NotNull String frameworkClass);
 
   /**
-   * Returns a map from tag names to {@link PsiClass} instances for all subclasses of {@code androidXClass} that can be accessed from the
+   * Returns a map from tag names to {@link PsiClass} instances for all subclasses of {@code className} that can be accessed from the
    * current module.
    *
-   * @param androidXClass {@link AndroidxName} of the superclass
+   * @param className fully qualified name of the superclass
    */
   @NotNull
-  Map<String, PsiClass> getAndroidXClassMap(@NotNull AndroidxName androidXClass);
+  Map<String, PsiClass> getClassMap(String className);
+
 
   static TagToClassMapper getInstance(@NotNull Module module) {
     return ModuleServiceManager.getService(module, TagToClassMapper.class);

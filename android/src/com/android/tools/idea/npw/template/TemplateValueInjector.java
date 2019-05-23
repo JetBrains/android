@@ -69,7 +69,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEV
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MONOLITHIC_MODULE_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_OUT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_RES_DIR;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_RES_OUT;
@@ -319,7 +318,7 @@ public final class TemplateValueInjector {
       moduleName = moduleName.substring(1);
     }
 
-    myTemplateValues.put(ATTR_PROJECT_LOCATION, projectPath);
+    myTemplateValues.put(ATTR_TOP_OUT, projectPath);
     myTemplateValues.put(ATTR_MODULE_NAME, moduleName);
     myTemplateValues.put(ATTR_PACKAGE_NAME, packageName);
 

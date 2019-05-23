@@ -23,7 +23,10 @@ import static com.android.SdkConstants.ATTR_PARENT;
 import static com.android.SdkConstants.ATTR_QUANTITY;
 import static com.android.SdkConstants.ATTR_TYPE;
 import static com.android.SdkConstants.ATTR_VALUE;
+import static com.android.SdkConstants.DOT_AAR;
+import static com.android.SdkConstants.DOT_JAR;
 import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.DOT_ZIP;
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.FN_PUBLIC_TXT;
 import static com.android.SdkConstants.FN_RESOURCE_TEXT;
@@ -40,6 +43,8 @@ import static com.android.SdkConstants.TAG_SKIP;
 import static com.android.ide.common.resources.ResourceItem.ATTR_EXAMPLE;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_G_TAG;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_NAMESPACE_PREFIX;
+import static com.intellij.util.io.URLUtil.JAR_PROTOCOL;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
@@ -48,6 +53,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
+import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
 import com.android.ide.common.resources.PatternBasedFileFilter;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceNameKeyedMap;
@@ -59,8 +65,6 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.symbols.SymbolIo;
 import com.android.ide.common.symbols.SymbolTable;
 import com.android.ide.common.util.PathString;
-import com.android.ide.common.xml.AndroidManifestParser;
-import com.android.ide.common.xml.ManifestData;
 import com.android.projectmodel.ResourceFolder;
 import com.android.resources.Arity;
 import com.android.resources.Density;
@@ -71,10 +75,10 @@ import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.resources.aar.Base128InputStream.StreamFormatException;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -85,11 +89,15 @@ import com.intellij.openapi.util.NullableLazyValue;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ObjectIntHashMap;
+import com.intellij.util.io.URLUtil;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -110,17 +118,31 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * A resource repository representing unpacked contents of a non-namespaced AAR.
+ *
+ * For performance reasons ID resources defined using @+id syntax in layout XML files are
+ * obtained from R.txt instead, when it is available. This means that
+ * {@link ResourceItem#getOriginalSource()} method may return null for such ID resources.
  */
 public class AarSourceResourceRepository extends AbstractAarResourceRepository {
+  /**
+   * Increment when making changes that may affect content of repository cache files.
+   * Used together with CachingData.codeVersion. Important for developer builds.
+   */
+  static final String CACHE_FILE_FORMAT_VERSION = "1";
+  private static final byte[] CACHE_FILE_HEADER = "Resource cache".getBytes(UTF_8);
   private static final Logger LOG = Logger.getInstance(AarSourceResourceRepository.class);
 
   @NotNull protected final Path myResourceDirectoryOrFile;
@@ -139,8 +161,6 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
    * the {@link AarFileResourceItem#getValue()} method.
    */
   @NotNull private final String myResourceUrlPrefix;
-  /** @see #getIdsFromRTxt(). */
-  @Nullable private Set<String> myRTxtIds;
   /** The package name read on-demand from the manifest. */
   @NotNull private final NullableLazyValue<String> myManifestPackageName;
 
@@ -152,17 +172,15 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     myResourceUrlPrefix = loader.getResourceUrlPrefix();
 
     myManifestPackageName = NullableLazyValue.createValue(() -> {
-      Path manifest = myResourceDirectoryOrFile.resolveSibling(FN_ANDROID_MANIFEST_XML);
-      if (Files.notExists(manifest)) {
+      try {
+        PathString manifestPath = getSourceFile("../" + FN_ANDROID_MANIFEST_XML, true);
+        return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifestPath);
+      }
+      catch (FileNotFoundException e) {
         return null;
       }
-
-      try {
-        ManifestData manifestData = AndroidManifestParser.parse(manifest);
-        return manifestData.getPackage();
-      }
       catch (IOException e) {
-        LOG.error("Failed to read manifest " + manifest.toString() + " for " + getDisplayName(), e);
+        LOG.error("Failed to read manifest " + FN_ANDROID_MANIFEST_XML + " for " + getDisplayName(), e);
         return null;
       }
     });
@@ -172,40 +190,71 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
    * Creates and loads a resource repository. Consider calling AarResourceRepositoryCache.getSourceRepository instead of this
    * method.
    *
-   * @param resourceDirectory the directory containing resources
+   * @param resourceDirectoryOrFile the res directory or an AAR file containing resources
    * @param libraryName the name of the library
    * @return the created resource repository
    */
   @NotNull
-  public static AarSourceResourceRepository create(@NotNull File resourceDirectory, @NotNull String libraryName) {
-    return create(resourceDirectory, null, ResourceNamespace.RES_AUTO, libraryName);
+  public static AarSourceResourceRepository create(@NotNull Path resourceDirectoryOrFile, @NotNull String libraryName) {
+    return create(resourceDirectoryOrFile, libraryName, null);
   }
 
   /**
-   * Creates and loads a resource repository. Consider calling AarResourceRepositoryCache.getSourceRepository
-   * instead of this method.
+   * Creates and loads a resource repository. Consider calling AarResourceRepositoryCache.getSourceRepository instead of this
+   * method.
+   *
+   * @param resourceDirectoryOrFile the res directory or an AAR file containing resources
+   * @param libraryName the name of the library
+   * @param cachingData data used to validate and create a persistent cache file
+   * @return the created resource repository
+   */
+  @NotNull
+  public static AarSourceResourceRepository create(@NotNull Path resourceDirectoryOrFile, @NotNull String libraryName,
+                                                   @Nullable CachingData cachingData) {
+    return create(resourceDirectoryOrFile, null, ResourceNamespace.RES_AUTO, libraryName, cachingData);
+  }
+
+  /**
+   * Creates and loads a resource repository without using a persistent cache. Consider calling
+   * AarResourceRepositoryCache.getSourceRepository instead of this method.
    *
    * @param resourceFolder specifies the resource files to be loaded. It contains a root resource directory and an optional
    *     list of files and subdirectories that should be loaded. A null {@code resourceFolder.getResources()} list indicates
    *     that all files contained in {@code resourceFolder.getRoot()} should be loaded.
    * @param libraryName the name of the library
+   * @param cachingData data used to validate and create a persistent cache file
    * @return the created resource repository
    */
   @NotNull
-  public static AarSourceResourceRepository create(@NotNull ResourceFolder resourceFolder, @NotNull String libraryName) {
-    File resDir = resourceFolder.getRoot().toFile();
+  public static AarSourceResourceRepository create(@NotNull ResourceFolder resourceFolder, @NotNull String libraryName,
+                                                   @Nullable CachingData cachingData) {
+    Path resDir = resourceFolder.getRoot().toPath();
     Preconditions.checkArgument(resDir != null);
-    return create(resDir, resourceFolder.getResources(), ResourceNamespace.RES_AUTO, libraryName);
+    return create(resDir, resourceFolder.getResources(), ResourceNamespace.RES_AUTO, libraryName, cachingData);
   }
 
   @NotNull
-  private static AarSourceResourceRepository create(@NotNull File resourceDirectory,
+  private static AarSourceResourceRepository create(@NotNull Path resourceDirectoryOrFile,
                                                     @Nullable Collection<PathString> resourceFilesAndFolders,
                                                     @NotNull ResourceNamespace namespace,
-                                                    @NotNull String libraryName) {
-    Loader loader = new Loader(resourceDirectory.toPath(), resourceFilesAndFolders, namespace, libraryName);
+                                                    @NotNull String libraryName,
+                                                    @Nullable CachingData cachingData) {
+    Loader loader = new Loader(resourceDirectoryOrFile, resourceFilesAndFolders, namespace, libraryName);
     AarSourceResourceRepository repository = new AarSourceResourceRepository(loader);
+
+    // If loading from an AAR file, try to load from a cache file first.
+    if (cachingData != null && resourceFilesAndFolders == null && repository.loadFromPersistentCache(cachingData)) {
+      return repository;
+    }
+
     loader.loadRepositoryContents(repository);
+
+    if (cachingData != null && resourceFilesAndFolders == null) {
+      Executor executor = cachingData.getCacheCreationExecutor();
+      if (executor != null) {
+        executor.execute(() -> repository.createPersistentCache(cachingData));
+      }
+    }
     return repository;
   }
 
@@ -215,12 +264,11 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     return myResourceDirectoryOrFile;
   }
 
-  @VisibleForTesting
+  @TestOnly
   @NotNull
-  public static AarSourceResourceRepository createForTest(@NotNull File resourceDirectory,
-                                                          @NotNull ResourceNamespace namespace,
-                                                          @NotNull String libraryName) {
-    return create(resourceDirectory, null, namespace, libraryName);
+  public static AarSourceResourceRepository createForTest(
+      @NotNull Path resourceDirectoryOrFile, @NotNull ResourceNamespace namespace, @NotNull String libraryName) {
+    return create(resourceDirectoryOrFile, null, namespace, libraryName, null);
   }
 
   @Override
@@ -228,24 +276,6 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   public String getPackageName() {
     String packageName = myNamespace.getPackageName();
     return packageName == null ? myManifestPackageName.getValue() : packageName;
-  }
-
-  /**
-   * Returns names of id resources found in the R.txt file if the directory referenced by this repository contained a valid one.
-   *
-   * <p>When R.txt is present, the Ids obtained using {@link #getResources(ResourceNamespace, ResourceType)} by passing in
-   * {@link ResourceType#ID} only contain a subset of Ids (top level ones like layout file names, and id resources in values
-   * xml file). Ids declared inside layouts and menus (using "@+id/") are not included. This is done for efficiency. However,
-   * such IDs can be obtained from the R.txt file. And hence, this collection includes all id names from the R.txt file, but
-   * doesn't have the associated {@link ResourceItem} with it.
-   *
-   * <p>When R.txt is missing or cannot be parsed, layout and menu files are scanned for "@+id/" declarations and this method returns null.
-   *
-   * @see Loader#loadIdsFromRTxt
-   */
-  @Nullable
-  public Set<String> getIdsFromRTxt() {
-    return myRTxtIds;
   }
 
   @Override
@@ -258,6 +288,43 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   @NotNull
   final String getResourceUrl(@NotNull String relativeResourcePath) {
     return myResourceUrlPrefix + relativeResourcePath;
+  }
+
+  /**
+   * Loads the resource repository from a binary cache file on disk.
+   *
+   * @return true if the repository was loaded from the cache, or false if the cache does not
+   *     exist or is out of date
+   * @see #createPersistentCache(CachingData)
+   */
+  protected boolean loadFromPersistentCache(@NotNull CachingData cachingData) {
+    byte[] header = getCacheFileHeader(cachingData);
+    return loadFromPersistentCache(cachingData.getCacheFile(), header);
+  }
+
+  protected void createPersistentCache(@NotNull CachingData cachingData) {
+    byte[] header = getCacheFileHeader(cachingData);
+    createPersistentCache(cachingData.getCacheFile(), header);
+  }
+
+  @NotNull
+  private byte[] getCacheFileHeader(@NotNull CachingData cachingData) {
+    ByteArrayOutputStream header = new ByteArrayOutputStream();
+    try (Base128OutputStream stream = new Base128OutputStream(header)) {
+      writeCacheHeaderContent(cachingData, stream);
+    }
+    catch (IOException e) {
+      throw new Error("Internal error", e); // An IOException in the try block above indicates a bug.
+    }
+    return header.toByteArray();
+  }
+
+  protected void writeCacheHeaderContent(@NotNull CachingData cachingData, @NotNull Base128OutputStream stream) throws IOException {
+    stream.write(CACHE_FILE_HEADER);
+    stream.writeString(CACHE_FILE_FORMAT_VERSION);
+    stream.writeString(myResourceDirectoryOrFile.toString());
+    stream.writeString(cachingData.getContentVersion());
+    stream.writeString(cachingData.getCodeVersion());
   }
 
   /**
@@ -471,9 +538,16 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
   }
 
-  @VisibleForTesting
+  @TestOnly
   boolean isLoadedFromCache() {
     return myLoadedFromCache;
+  }
+
+  protected static boolean isZipArchive(@NotNull Path resourceDirectoryOrFile) {
+    String filename = resourceDirectoryOrFile.getFileName().toString();
+    return SdkUtils.endsWithIgnoreCase(filename, DOT_AAR) ||
+           SdkUtils.endsWithIgnoreCase(filename, DOT_JAR) ||
+           SdkUtils.endsWithIgnoreCase(filename, DOT_ZIP);
   }
 
   // For debugging only.
@@ -497,6 +571,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     private final PatternBasedFileFilter myFileFilter = new PatternBasedFileFilter();
 
     @NotNull protected final Map<ResourceType, Set<String>> myPublicResources = new EnumMap<>(ResourceType.class);
+    @NotNull private Set<String> myRTxtIds = ImmutableSet.of();
     @NotNull private final ListMultimap<String, AarAttrResourceItem> myAttrs = ArrayListMultimap.create();
     @NotNull private final ListMultimap<String, AarAttrResourceItem> myAttrCandidates = ArrayListMultimap.create();
     @NotNull private final ListMultimap<String, AarStyleableResourceItem> myStyleables = ArrayListMultimap.create();
@@ -509,90 +584,175 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     @NotNull private final Table<ResourceType, String, AbstractAarValueResourceItem> myValueFileResources =
         Tables.newCustomTable(new EnumMap<>(ResourceType.class), () -> new LinkedHashMap<>());
     @NotNull protected final Path myResourceDirectoryOrFile;
+    @NotNull protected final PathString myResourceDirectoryOrFilePath;
+    protected final boolean myLoadFromZipArchive;
     @NotNull private final ResourceNamespace myNamespace;
     @Nullable private final Collection<PathString> myResourceFilesAndFolders;
     @Nullable private final String myLibraryName;
+    @Nullable private ZipFile myZipFile;
 
     Loader(@NotNull Path resourceDirectoryOrFile, @Nullable Collection<PathString> resourceFilesAndFolders,
-           @NotNull ResourceNamespace namespace,  @Nullable String libraryName) {
+           @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
       myResourceDirectoryOrFile = resourceDirectoryOrFile;
+      myResourceDirectoryOrFilePath = new PathString(myResourceDirectoryOrFile);
+      myLoadFromZipArchive = isZipArchive(resourceDirectoryOrFile);
       myNamespace = namespace;
       myResourceFilesAndFolders = resourceFilesAndFolders;
       myLibraryName = libraryName;
     }
 
+    protected boolean useRTxt() {
+      return true;
+    }
+
     protected void loadRepositoryContents(@NotNull AarSourceResourceRepository repository) {
+      if (myLoadFromZipArchive) {
+        loadFromZip(repository);
+      }
+      else {
+        loadFromResFolder(repository);
+      }
+    }
+
+    protected void loadFromZip(@NotNull AarSourceResourceRepository repository) {
+      try (ZipFile zipFile = new ZipFile(myResourceDirectoryOrFile.toFile())) {
+        myZipFile = zipFile;
+        loadPublicResourceNames();
+        boolean shouldParseResourceIds = !useRTxt() || !loadIdsFromRTxt();
+
+        zipFile.stream().forEach(zipEntry -> {
+          if (!zipEntry.isDirectory()) {
+            PathString path = new PathString(zipEntry.getName());
+            loadResourceFile(path, repository, shouldParseResourceIds);
+          }
+        });
+      }
+      catch (Exception e) {
+        LOG.error("Failed to load resources from " + myResourceDirectoryOrFile.toString(), e);
+      }
+      finally {
+        myZipFile = null;
+      }
+
+      finalizeResources(repository);
+    }
+
+    private void loadFromResFolder(@NotNull AarSourceResourceRepository repository) {
       try {
         if (Files.notExists(myResourceDirectoryOrFile)) {
           return; // Don't report errors if the resource directory doesn't exist. This happens in some tests.
         }
 
         loadPublicResourceNames();
-
-        Set<String> ids = loadIdsFromRTxt();
-        repository.myRTxtIds = ids;
-        boolean shouldParseResourceIds = ids == null;
+        boolean shouldParseResourceIds = !useRTxt() || !loadIdsFromRTxt();
 
         List<Path> sourceFilesAndFolders = myResourceFilesAndFolders == null ?
                                            ImmutableList.of(myResourceDirectoryOrFile) :
                                            myResourceFilesAndFolders.stream().map(PathString::toPath).collect(Collectors.toList());
-        List<Path> resourceFiles = findResourceFiles(sourceFilesAndFolders);
-        for (Path file : resourceFiles) {
-          FolderInfo folderInfo = FolderInfo.create(file.getParent().getFileName().toString());
-          if (folderInfo != null) {
-            AarConfiguration configuration = getAarConfiguration(repository, folderInfo.configuration);
-            loadResourceFile(file, folderInfo, configuration, shouldParseResourceIds);
-          }
+        List<PathString> resourceFiles = findResourceFiles(sourceFilesAndFolders);
+        for (PathString file : resourceFiles) {
+          loadResourceFile(file, repository, shouldParseResourceIds);
         }
-
-        processAttrsAndStyleables();
-        repository.populatePublicResourcesMap();
-        repository.freezeResources();
       }
       catch (Exception e) {
         LOG.error("Failed to load resources from " + myResourceDirectoryOrFile.toString(), e);
       }
+
+      finalizeResources(repository);
+    }
+
+    private void loadResourceFile(
+        @NotNull PathString file, @NotNull AarSourceResourceRepository repository, boolean shouldParseResourceIds) {
+      String folderName = file.getParentFileName();
+      if (folderName != null) {
+        FolderInfo folderInfo = FolderInfo.create(folderName);
+        if (folderInfo != null) {
+          AarConfiguration configuration = getAarConfiguration(repository, folderInfo.configuration);
+          loadResourceFile(file, folderInfo, configuration, shouldParseResourceIds);
+        }
+      }
+    }
+
+    private void finalizeResources(@NotNull AarSourceResourceRepository repository) {
+      processAttrsAndStyleables();
+      createResourcesForRTxtIds(repository);
+      repository.populatePublicResourcesMap();
+      repository.freezeResources();
     }
 
     @NotNull
-    protected String getSourceFileProtocol() {
-      return "file";
+    private String getSourceFileProtocol() {
+      if (myLoadFromZipArchive) {
+        return JAR_PROTOCOL;
+      }
+      else {
+        return "file";
+      }
     }
 
     @NotNull
-    protected String getResourcePathPrefix() {
-      return myResourceDirectoryOrFile.toString() + File.separatorChar;
+    private String getResourcePathPrefix() {
+      if (myLoadFromZipArchive) {
+        return myResourceDirectoryOrFile.toString() + URLUtil.JAR_SEPARATOR + "res/";
+      }
+      else {
+        return myResourceDirectoryOrFile.toString() + File.separatorChar;
+      }
     }
 
     @NotNull
-    protected String getResourceUrlPrefix() {
-      return portableFileName(myResourceDirectoryOrFile.toString()) + '/';
+    private String getResourceUrlPrefix() {
+      if (myLoadFromZipArchive) {
+        return JAR_PROTOCOL + "://" + portableFileName(myResourceDirectoryOrFile.toString()) + URLUtil.JAR_SEPARATOR + "res/";
+      }
+      else {
+        return portableFileName(myResourceDirectoryOrFile.toString()) + '/';
+      }
     }
 
     /**
-     * Loads resource IDs from R.txt file and returns the list of their names, if successful.
+     * Loads resource IDs from R.txt file.
      *
-     * @return the names of ID resources, or null if the file is missing or invalid
+     * @return true if the IDs were loaded successfully
      */
-    @Nullable
-    protected Set<String> loadIdsFromRTxt() {
-      Path rDotTxt = myResourceDirectoryOrFile.resolveSibling(FN_RESOURCE_TEXT);
-      if (Files.exists(rDotTxt)) {
-        try {
-          SymbolTable symbolTable = SymbolIo.readFromAaptNoValues(rDotTxt.toFile(), null);
-          return symbolTable.getSymbols()
-              .row(ResourceType.ID)
-              .values()
-              .stream()
-              .map(s -> s.getCanonicalName())
-              .collect(Collectors.toSet());
-        }
-        catch (Exception e) {
-          LOG.warn("Failed to load id resources from " + rDotTxt.toString(), e);
-          return null;
+    private boolean loadIdsFromRTxt() {
+      if (myZipFile == null) {
+        Path rDotTxt = myResourceDirectoryOrFile.resolveSibling(FN_RESOURCE_TEXT);
+        if (Files.exists(rDotTxt)) {
+          try {
+            SymbolTable symbolTable = SymbolIo.readFromAaptNoValues(rDotTxt.toFile(), null);
+            myRTxtIds = computeIds(symbolTable);
+            return true;
+          }
+          catch (Exception e) {
+            LOG.warn("Failed to load id resources from " + rDotTxt.toString(), e);
+          }
         }
       }
-      return null;
+      else {
+        ZipEntry zipEntry = myZipFile.getEntry(FN_RESOURCE_TEXT);
+        if (zipEntry != null) {
+          try (BufferedReader reader = new BufferedReader(new InputStreamReader(myZipFile.getInputStream(zipEntry), UTF_8))) {
+            SymbolTable symbolTable = SymbolIo.readFromAaptNoValues(reader, FN_RESOURCE_TEXT + " in " + myResourceDirectoryOrFile, null);
+            myRTxtIds = computeIds(symbolTable);
+            return true;
+          }
+          catch (Exception e) {
+            LOG.warn("Failed to load id resources from " + FN_RESOURCE_TEXT + " in " + myResourceDirectoryOrFile, e);
+          }
+        }
+        return false;
+      }
+      return false;
+    }
+
+    private static Set<String> computeIds(@NotNull SymbolTable symbolTable) {
+      return symbolTable.getSymbols()
+          .row(ResourceType.ID)
+          .values()
+          .stream()
+          .map(s -> s.getCanonicalName())
+          .collect(Collectors.toSet());
     }
 
     @Override
@@ -601,33 +761,54 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
 
     protected void loadPublicResourceNames() {
-      Path file = myResourceDirectoryOrFile.resolveSibling(FN_PUBLIC_TXT);
-      try (BufferedReader reader = Files.newBufferedReader(file)) {
-        String line;
-        while ((line = reader.readLine()) != null) {
-          // Lines in public.txt have the following format: <resource_type> <resource_name>
-          line = line.trim();
-          int delimiterPos = line.indexOf(' ');
-          if (delimiterPos > 0 && delimiterPos + 1 < line.length()) {
-            ResourceType type = ResourceType.fromXmlTagName(line.substring(0, delimiterPos));
-            if (type != null) {
-              String name = line.substring(delimiterPos + 1);
-              Set<String> names = myPublicResources.computeIfAbsent(type, t -> new HashSet<>());
-              names.add(name);
-            }
+      if (myZipFile == null) {
+        Path file = myResourceDirectoryOrFile.resolveSibling(FN_PUBLIC_TXT);
+        try (BufferedReader reader = Files.newBufferedReader(file)) {
+          readPublicResourceNames(reader);
+        }
+        catch (NoSuchFileException e) {
+          myDefaultVisibility = ResourceVisibility.PUBLIC; // The "public.txt" file does not exist - myDefaultVisibility will be PUBLIC.
+        }
+        catch (IOException e) {
+          // Failure to load public resource names is not considered fatal.
+          LOG.warn("Error reading " + file.toString(), e);
+        }
+      } else {
+        ZipEntry zipEntry = myZipFile.getEntry(FN_PUBLIC_TXT);
+        if (zipEntry == null) {
+          myDefaultVisibility = ResourceVisibility.PUBLIC; // The "public.txt" file does not exist - myDefaultVisibility will be PUBLIC.
+        }
+        else {
+          try (BufferedReader reader = new BufferedReader(new InputStreamReader(myZipFile.getInputStream(zipEntry), UTF_8))) {
+            readPublicResourceNames(reader);
+          }
+          catch (IOException e) {
+            // Failure to load public resource names is not considered fatal.
+            LOG.warn("Error reading " + FN_PUBLIC_TXT + " from " + myResourceDirectoryOrFile, e);
           }
         }
       }
-      catch (NoSuchFileException e) {
-        myDefaultVisibility = ResourceVisibility.PUBLIC; // The "public.txt" file does not exist - defaultVisibility will be PUBLIC.
-      }
-      catch (IOException e) {
-        LOG.warn("Error reading " + file.toString(), e);
+    }
+
+    private void readPublicResourceNames(@NotNull BufferedReader reader) throws IOException {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        // Lines in public.txt have the following format: <resource_type> <resource_name>
+        line = line.trim();
+        int delimiterPos = line.indexOf(' ');
+        if (delimiterPos > 0 && delimiterPos + 1 < line.length()) {
+          ResourceType type = ResourceType.fromXmlTagName(line.substring(0, delimiterPos));
+          if (type != null) {
+            String name = line.substring(delimiterPos + 1);
+            Set<String> names = myPublicResources.computeIfAbsent(type, t -> new HashSet<>());
+            names.add(name);
+          }
+        }
       }
     }
 
     @NotNull
-    private List<Path> findResourceFiles(@NotNull List<Path> filesOrFolders) {
+    private List<PathString> findResourceFiles(@NotNull List<Path> filesOrFolders) {
       ResourceFileCollector fileCollector = new ResourceFileCollector(this);
       for (Path file : filesOrFolders) {
         try {
@@ -658,13 +839,12 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
 
     private void loadResourceFile(
-        @NotNull Path file, @NotNull FolderInfo folderInfo, @NotNull AarConfiguration configuration, boolean shouldParseResourceIds) {
+        @NotNull PathString file, @NotNull FolderInfo folderInfo, @NotNull AarConfiguration configuration, boolean shouldParseResourceIds) {
       if (folderInfo.resourceType == null) {
         parseValueResourceFile(file, configuration);
       }
       else {
-        String fileName = file.getFileName().toString();
-        if (shouldParseResourceIds && folderInfo.isIdGenerating && SdkUtils.endsWithIgnoreCase(fileName, DOT_XML)) {
+        if (shouldParseResourceIds && folderInfo.isIdGenerating && SdkUtils.endsWithIgnoreCase(file.getFileName(), DOT_XML)) {
           parseIdGeneratingResourceFile(file, configuration);
         }
 
@@ -677,10 +857,10 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       item.getRepository().addResourceItem(item);
     }
 
-    private void parseValueResourceFile(@NotNull Path file, @NotNull AarConfiguration configuration) {
-      AarSourceFile sourceFile = new AarSourceFile(getRelativePath(file), configuration);
+    private void parseValueResourceFile(@NotNull PathString file, @NotNull AarConfiguration configuration) {
+      AarSourceFile sourceFile = new AarSourceFile(getResRelativePath(file), configuration);
 
-      try (InputStream stream = new BufferedInputStream(Files.newInputStream(file))) {
+      try (InputStream stream = newBufferedStream(file)) {
         myParser.setInput(stream, null);
 
         int event;
@@ -744,10 +924,10 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       myValueFileResources.clear();
     }
 
-    private void parseIdGeneratingResourceFile(@NotNull Path file, @NotNull AarConfiguration configuration) {
-      AarSourceFile sourceFile = new AarSourceFile(getRelativePath(file), configuration);
+    private void parseIdGeneratingResourceFile(@NotNull PathString file, @NotNull AarConfiguration configuration) {
+      AarSourceFile sourceFile = new AarSourceFile(getResRelativePath(file), configuration);
 
-      try (InputStream stream = new BufferedInputStream(Files.newInputStream(file))) {
+      try (InputStream stream = newBufferedStream(file)) {
         XmlPullParser parser = new KXmlParser();
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
         parser.setInput(stream, null);
@@ -761,11 +941,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
               String idValue = parser.getAttributeValue(i);
               if (idValue.startsWith(NEW_ID_PREFIX) && idValue.length() > NEW_ID_PREFIX.length()) {
                 String resourceName = idValue.substring(NEW_ID_PREFIX.length());
-                ResourceVisibility visibility = getVisibility(ResourceType.ID, resourceName);
-                AarValueResourceItem item = new AarValueResourceItem(ResourceType.ID, resourceName, sourceFile, visibility, null);
-                if (!resourceAlreadyDefined(item)) { // Don't create duplicate ID resources.
-                  addValueResourceItem(item);
-                }
+                addIdResourceItem(resourceName, sourceFile);
               }
             }
           }
@@ -779,11 +955,35 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
 
     @NotNull
-    private AarFileResourceItem createFileResourceItem(@NotNull Path file, @NotNull ResourceType resourceType,
+    private BufferedInputStream newBufferedStream(@NotNull PathString file) throws IOException {
+      if (myZipFile == null) {
+        Path path = file.toPath();
+        Preconditions.checkArgument(path != null);
+        return new BufferedInputStream(Files.newInputStream(path));
+      }
+      else {
+        ZipEntry entry = myZipFile.getEntry(file.getPortablePath());
+        if (entry == null) {
+          throw new NoSuchFileException(file.getPortablePath());
+        }
+        return new BufferedInputStream(myZipFile.getInputStream(entry));
+      }
+    }
+
+    private void addIdResourceItem(@NotNull String resourceName, @NotNull AarSourceFile sourceFile) {
+      ResourceVisibility visibility = getVisibility(ResourceType.ID, resourceName);
+      AarValueResourceItem item = new AarValueResourceItem(ResourceType.ID, resourceName, sourceFile, visibility, null);
+      if (!resourceAlreadyDefined(item)) { // Don't create duplicate ID resources.
+        addValueResourceItem(item);
+      }
+    }
+
+    @NotNull
+    private AarFileResourceItem createFileResourceItem(@NotNull PathString file, @NotNull ResourceType resourceType,
                                                        @NotNull AarConfiguration configuration) {
       String resourceName = getResourceName(file);
       ResourceVisibility visibility = getVisibility(resourceType, resourceName);
-      String relativePath = getRelativePath(file);
+      String relativePath = getResRelativePath(file);
       if (DensityBasedResourceValue.isDensityBasedResourceType(resourceType)) {
         DensityQualifier densityQualifier = configuration.getFolderConfiguration().getDensityQualifier();
         if (densityQualifier != null) {
@@ -800,8 +1000,8 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
      * Resource name is the part of the file name before the first dot, e.g. for "tab_press.9.png" it is "tab_press".
      */
     @NotNull
-    private static String getResourceName(@NotNull Path file) {
-      String filename = file.getFileName().toString();
+    private static String getResourceName(@NotNull PathString file) {
+      String filename = file.getFileName();
       int dotPos = filename.indexOf('.');
       return dotPos < 0 ? filename : filename.substring(0, dotPos);
     }
@@ -870,7 +1070,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         String prefix = myUrlParser.getNamespacePrefix();
         attrNamespace = ResourceNamespace.fromNamespacePrefix(prefix, myNamespace, myParser.getNamespaceResolver());
         if (attrNamespace == null) {
-          throw new XmlSyntaxException("Undefined prefix of attr resource name \"" + name + "\"", myParser, getFile(sourceFile));
+          throw new XmlSyntaxException("Undefined prefix of attr resource name \"" + name + "\"", myParser, getDisplayName(sourceFile));
         }
       }
       name = myUrlParser.getName();
@@ -970,7 +1170,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       String parentStyle = myParser.getAttributeValue(null, ATTR_PARENT);
       if (parentStyle != null && !parentStyle.isEmpty()) {
         myUrlParser.parseResourceUrl(parentStyle);
-        myUrlParser.getQualifiedName();
+        parentStyle = myUrlParser.getQualifiedName();
       }
       List<StyleItemResourceValue> styleItems = new ArrayList<>();
       forSubTags(TAG_ITEM, () -> {
@@ -1068,6 +1268,20 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
 
     /**
+     * Creates ID resources for the ID names in the R.txt file.
+     */
+    private void createResourcesForRTxtIds(@NotNull AarSourceResourceRepository repository) {
+      if (!myRTxtIds.isEmpty()) {
+        AarConfiguration configuration = getAarConfiguration(repository, FolderConfiguration.createDefault());
+        AarSourceFile sourceFile = new AarSourceFile(null, configuration);
+        for (String name : myRTxtIds) {
+          addIdResourceItem(name, sourceFile);
+        }
+        addValueFileResources();
+      }
+    }
+
+    /**
      * Checks if resource with the same name, type and configuration has already been defined.
      *
      * @param resource the resource to check
@@ -1106,7 +1320,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
 
     @Nullable
-    private ResourceType getResourceType(@NotNull String tagName, @NotNull Path file) throws XmlSyntaxException {
+    private ResourceType getResourceType(@NotNull String tagName, @NotNull PathString file) throws XmlSyntaxException {
       ResourceType type = ResourceType.fromXmlTagName(tagName);
 
       if (type == null) {
@@ -1122,11 +1336,11 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
               return type;
             }
 
-            throw new XmlSyntaxException("Invalid type attribute \"" + typeAttr + "\"", myParser, file);
+            throw new XmlSyntaxException("Invalid type attribute \"" + typeAttr + "\"", myParser, getDisplayName(file));
           }
         }
 
-        throw new XmlSyntaxException("Invalid tag name \"" + tagName + "\"", myParser, file);
+        throw new XmlSyntaxException("Invalid tag name \"" + tagName + "\"", myParser, getDisplayName(file));
       }
 
       return type;
@@ -1148,12 +1362,24 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       } while (event != XmlPullParser.END_DOCUMENT && (event != XmlPullParser.END_TAG || myParser.getDepth() > elementDepth));
     }
 
-    private void validateResourceName(@NotNull String resourceName, @NotNull ResourceType resourceType, @NotNull Path file)
+    private void validateResourceName(@NotNull String resourceName, @NotNull ResourceType resourceType, @NotNull PathString file)
         throws XmlSyntaxException {
       String error = ValueResourceNameValidator.getErrorText(resourceName, resourceType);
       if (error != null) {
-        throw new XmlSyntaxException(error, myParser, file);
+        throw new XmlSyntaxException(error, myParser, getDisplayName(file));
       }
+    }
+
+    @NotNull
+    private String getDisplayName(@NotNull PathString file) {
+      return file.isAbsolute() ? file.getNativePath() : file.getPortablePath() + " in " + myResourceDirectoryOrFile.toString();
+    }
+
+    @NotNull
+    private String getDisplayName(@NotNull AarSourceFile sourceFile) {
+      String relativePath = sourceFile.getRelativePath();
+      Preconditions.checkArgument(relativePath != null);
+      return getDisplayName(new PathString(relativePath));
     }
 
     @NotNull
@@ -1172,15 +1398,15 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
 
     @NotNull
-    private String getRelativePath(@NotNull Path file) {
-      return portableFileName(myResourceDirectoryOrFile.relativize(file).toString());
-    }
+    private String getResRelativePath(@NotNull PathString file) {
+      if (file.isAbsolute()) {
+        return myResourceDirectoryOrFilePath.relativize(file).getPortablePath();
+      }
 
-    @NotNull
-    private Path getFile(@NotNull AarSourceFile sourceFile) {
-      String relativePath = sourceFile.getRelativePath();
-      Preconditions.checkArgument(relativePath != null);
-      return myResourceDirectoryOrFile.resolve(relativePath);
+      // The path is already relative, drop the first "res" segment.
+      assert file.getNameCount() != 0;
+      assert file.segment(0).equals("res");
+      return file.subpath(1, file.getNameCount()).getPortablePath();
     }
   }
 
@@ -1191,7 +1417,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   }
 
   private static class ResourceFileCollector implements FileVisitor<Path> {
-    @NotNull final List<Path> resourceFiles = new ArrayList<>();
+    @NotNull final List<PathString> resourceFiles = new ArrayList<>();
     @NotNull final List<IOException> ioErrors = new ArrayList<>();
     @NotNull final ResourceFileFilter fileFilter;
 
@@ -1214,7 +1440,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       if (fileFilter.isIgnored(file, attrs)) {
         return FileVisitResult.SKIP_SUBTREE;
       }
-      resourceFiles.add(file);
+      resourceFiles.add(new PathString(file));
       return FileVisitResult.CONTINUE;
     }
 
@@ -1417,8 +1643,8 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   }
 
   private static class XmlSyntaxException extends Exception {
-    XmlSyntaxException(@NotNull String error, @NotNull XmlPullParser parser, @NotNull Path file) {
-      super(error + " at " + file.toString() + " line " + parser.getLineNumber());
+    XmlSyntaxException(@NotNull String error, @NotNull XmlPullParser parser, @NotNull String filename) {
+      super(error + " at " + filename + " line " + parser.getLineNumber());
     }
   }
 }

@@ -24,6 +24,7 @@ import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Computable;
@@ -44,6 +45,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
 /**
  * Tests for {@link NavigationSchema}.
@@ -528,5 +530,12 @@ public class NavigationSchemaTest extends AndroidTestCase {
     schema.rebuildSchema().get();
     assertTrue(didRun.tryAcquire(5, TimeUnit.SECONDS));
     NavigationSchema.removeSchemaRebuildListener(myModule, checkListener);
+  }
+
+  public void testMissingModule() {
+    Module module = Mockito.mock(Module.class);
+    NavigationSchema schema = NavigationSchema.get(module);
+    NavigationSchema empty = new NavigationSchema(module);
+    assertEquals(schema, empty);
   }
 }

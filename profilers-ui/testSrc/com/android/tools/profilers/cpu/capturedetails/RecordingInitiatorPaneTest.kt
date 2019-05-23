@@ -55,11 +55,12 @@ class RecordingInitiatorPaneTest {
 
   init {
     val cpuService = FakeCpuService()
+    val transportService = FakeTransportService(timer)
     grpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", cpuService,
-                                  FakeTransportService(timer), FakeProfilerService(timer),
+                                  transportService, FakeProfilerService(timer),
                                   FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
-    cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, cpuService = cpuService)
+    cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, transportService = transportService, cpuService = cpuService)
   }
 
   private lateinit var stageView: CpuProfilerStageView

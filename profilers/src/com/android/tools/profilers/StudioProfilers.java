@@ -33,6 +33,7 @@ import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Device;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
@@ -83,6 +84,9 @@ import org.jetbrains.annotations.TestOnly;
  * global across all the profilers, device management, process management, current state of the tool etc.
  */
 public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
+
+  // Device directory where the transport daemon lives.
+  public static final String DAEMON_DEVICE_DIR_PATH = "/data/local/tmp/perfd";
 
   @VisibleForTesting static final int AGENT_STATUS_MAX_RETRY_COUNT = 10;
 
@@ -627,7 +631,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     ProfilingStateResponse response = getClient().getCpuClient()
       .checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
 
-    return response.getBeingProfiled() && response.getIsStartupProfiling();
+    return response.getBeingProfiled() && response.getConfiguration().getInitiationType() == Cpu.TraceInitiationType.INITIATED_BY_STARTUP;
   }
 
   /**

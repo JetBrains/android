@@ -1,5 +1,7 @@
 PROJECT             : testSyncWithKotlinDsl
     MODULE              : app
+        - ModuleGroupPath   : testSyncWithKotlinDsl
+        - ModuleGroupPath   : app
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -67,8 +69,8 @@ PROJECT             : testSyncWithKotlinDsl
             JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
@@ -403,6 +405,8 @@ PROJECT             : testSyncWithKotlinDsl
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : lib
     MODULE              : lib
+        - ModuleGroupPath   : testSyncWithKotlinDsl
+        - ModuleGroupPath   : lib
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
@@ -470,8 +474,8 @@ PROJECT             : testSyncWithKotlinDsl
             JavaSource          : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
@@ -547,6 +551,7 @@ PROJECT             : testSyncWithKotlinDsl
             Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     MODULE              : testSyncWithKotlinDsl
+        - ModuleGroupPath   : testSyncWithKotlinDsl
         LinkedProjectId     : testSyncWithKotlinDsl
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

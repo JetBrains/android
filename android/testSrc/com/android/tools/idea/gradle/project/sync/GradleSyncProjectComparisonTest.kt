@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.testutils.TestUtils
-import com.android.testutils.TestUtils.runningFromBazel
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
@@ -27,6 +26,7 @@ import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.FileSubject
 import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY
@@ -40,8 +40,8 @@ import com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
+import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.google.common.truth.Truth.assertAbout
-import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteAction.run
@@ -68,18 +68,18 @@ import java.io.File
  * details on the way in which the file names are constructed.
  *
  * NOTE: It you made changes to sync or the test projects which make these tests fail in an expected way, you can re-run the tests
- *       from IDE with -DUPDATE_SYNC_TEST_SNAPSHOTS to update the files. (You may need to re-run several times (currently up to 3) to
+ *       from IDE with -DUPDATE_TEST_SNAPSHOTS to update the files. (You may need to re-run several times (currently up to 3) to
  *       update multiple snapshots used in one test.
  *
  *       Or with bazel:
          bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sharding_strategy=disabled  \
                --test_filter="GradleSyncProjectComparisonTest" --nocache_test_results --strategy=TestRunner=standalone \
-               --jvmopt='-DUPDATE_SYNC_TEST_SNAPSHOTS' --test_output=streamed --runs_per_test=3
+               --jvmopt='-DUPDATE_TEST_SNAPSHOTS' --test_output=streamed --runs_per_test=3
  */
 abstract class GradleSyncProjectComparisonTest(
     private val useNewSync: Boolean,
     private val singleVariantSync: Boolean = false
-) : GradleSyncIntegrationTestCase() {
+) : GradleSyncIntegrationTestCase(), SnapshotComparisonTest {
   override fun useNewSyncInfrastructure(): Boolean = useNewSync
   override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
   override fun useCompoundSyncInfrastructure(): Boolean = false
@@ -94,12 +94,13 @@ abstract class GradleSyncProjectComparisonTest(
 
   class OldSyncGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest(useNewSync = false)
 
-  private val snapshotSuffixes = listOfNotNull(
-      // Suffixes to use to override the default expected result.
-      ".new_sync.single_variant".takeIf { useNewSync && singleVariantSync },
-      ".new_sync".takeIf { useNewSync },
-      ".old_sync".takeIf { !useNewSync },
-      ""
+  override val snapshotDirectoryName = "syncedProjectSnapshots"
+  override val snapshotSuffixes = listOfNotNull(
+    // Suffixes to use to override the default expected result.
+    ".new_sync.single_variant".takeIf { useNewSync && singleVariantSync },
+    ".new_sync".takeIf { useNewSync },
+    ".old_sync".takeIf { !useNewSync },
+    ""
   )
 
   private lateinit var ideComponents: IdeComponents
@@ -358,51 +359,9 @@ abstract class GradleSyncProjectComparisonTest(
     assertAbout<FileSubject, File>(file()).that(settingsFilePath).isFile()
     refreshProjectFiles()
   }
-
-  private fun getExpectedTextFor(project: String): String =
-      getCandidateSnapshotFiles(project).let { candidateFiles ->
-        candidateFiles.firstOrNull { it.exists() }?.let {
-          println("Comparing with: ${it.relativeTo(File(AndroidTestBase.getTestDataPath()))}")
-          it.readText().trimIndent()
-        }
-        ?: candidateFiles
-            .joinToString(separator = "\n", prefix = "No snapshot files found. Candidates considered:\n\n") {
-              it.relativeTo(File(AndroidTestBase.getTestDataPath())).toString()
-            }
-      }
-
-
-  private fun getCandidateSnapshotFiles(project: String) = snapshotSuffixes
-      .map { File("${AndroidTestBase.getTestDataPath()}/syncedProjectSnapshots/${project.substringAfter("projects/")}$it.txt") }
-
-
-  private fun assertIsEqualToSnapshot(text: String, snapshotTestSuffix: String = "") {
-    val fullSnapshotName = FileUtil.sanitizeFileName(getTestName(true)) + snapshotTestSuffix
-    val expectedText = getExpectedTextFor(fullSnapshotName)
-
-    if (System.getProperty("UPDATE_SYNC_TEST_SNAPSHOTS") != null) {
-      updateSnapshotFile(fullSnapshotName, text)
-    }
-
-    if (runningFromBazel()) {
-      // Produces diffs readable in logs.
-      assertThat(text).isEqualTo(expectedText)
-    }
-    else {
-      // Produces diffs that can be visually inspected in IDE.
-      assertEquals(expectedText, text)
-    }
-  }
-
-  private fun updateSnapshotFile(snapshotName: String, text: String) {
-    getCandidateSnapshotFiles(snapshotName).let { candidates -> candidates.firstOrNull { it.exists() } ?: candidates.last() }.run {
-      println("Writing to: ${this.absolutePath}")
-      writeText(text)
-    }
-  }
 }
 
 private fun getOfflineM2Repositories(): List<File> =
-    (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths() + AndroidGradleTests.getLocalRepositoryDirectories())
-        .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
+  (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths() + AndroidGradleTests.getLocalRepositoryDirectories())
+    .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
 

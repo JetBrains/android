@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.common.actions;
 
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
@@ -29,14 +27,13 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 /**
- * Action which shows the current number of warnings in the layout
- * and when clicked, shows them
+ * Action which shows the current number of warnings in the layout and when clicked, shows them.
  */
 public class IssueNotificationAction extends ToggleAction {
   public static final String NO_ISSUE = "No Issue";
   public static final String SHOW_ISSUE = "Show Warnings and Errors";
   private static final Icon DISABLED_ICON = IconUtil.desaturate(StudioIcons.Common.ERROR);
-  private final DesignSurface mySurface;
+  @NotNull private final DesignSurface mySurface;
 
   public IssueNotificationAction(@NotNull DesignSurface surface) {
     super(NO_ISSUE, NO_ISSUE, null);
@@ -61,7 +58,7 @@ public class IssueNotificationAction extends ToggleAction {
 
   @Override
   public void setSelected(@NotNull AnActionEvent e, boolean state) {
-    NlUsageTracker.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.SHOW_LINT_MESSAGES);
+    mySurface.getAnalyticsManager().trackShowIssuePanel();
     mySurface.setShowIssuePanel(state);
   }
 

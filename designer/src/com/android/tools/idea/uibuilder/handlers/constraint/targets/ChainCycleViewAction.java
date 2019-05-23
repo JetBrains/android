@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import icons.StudioIcons;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,8 +33,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ChainCycleViewAction extends DirectViewAction {
   private static final String CHAIN_LABEL = "Cycle Chain mode";
-
-  private ChainChecker myChainChecker = new ChainChecker();
 
   public ChainCycleViewAction() {
     super(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD_INLINE, CHAIN_LABEL);
@@ -45,21 +44,34 @@ public class ChainCycleViewAction extends DirectViewAction {
                       @NotNull NlComponent component,
                       @NotNull List<NlComponent> selectedChildren,
                       int modifiers) {
-    if (selectedChildren.size() != 1) {
-      // The action can only operate in one element that is part of the chain at a time
+    if (selectedChildren.isEmpty()) {
+      return;
+    }
+    NlComponent primaryNlComponent = selectedChildren.get(0);
+    SceneComponent primary = editor.getScene().getSceneComponent(primaryNlComponent);
+
+    List<SceneComponent> nonPrimaryComponents = selectedChildren.stream()
+      .filter(it -> it != primaryNlComponent)
+      .map(it -> editor.getScene().getSceneComponent(it))
+      .collect(Collectors.toList());
+
+    if (primary == null) {
       return;
     }
 
-    SceneComponent selectedComponent = editor.getScene().getSceneComponent(selectedChildren.get(0));
-    if (selectedComponent != null) {
-      myChainChecker.checkIsInChain(selectedComponent);
-      if (myChainChecker.isInHorizontalChain()) {
-        ConstraintComponentUtilities.cycleChainStyle(myChainChecker.getHorizontalChainHead(),
-                                                     SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, selectedComponent);
+    ChainChecker checker = new ChainChecker();
+    if (checker.checkIsInChain(primary)) {
+      if (checker.isInHorizontalChain()) {
+        SceneComponent horizontalChainHead = checker.getHorizontalChainHead();
+        if (isInSameHorizontalChain(horizontalChainHead, nonPrimaryComponents)) {
+          ConstraintComponentUtilities.cycleChainStyle(horizontalChainHead, SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, primary);
+        }
       }
-      else if (myChainChecker.isInVerticalChain()) {
-        ConstraintComponentUtilities.cycleChainStyle(myChainChecker.getVerticalChainHead(),
-                                                     SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, selectedComponent);
+      if (checker.isInVerticalChain()) {
+        SceneComponent verticalChainHead = checker.getVerticalChainHead();
+        if (isInSameVerticalChain(verticalChainHead, nonPrimaryComponents)) {
+          ConstraintComponentUtilities.cycleChainStyle(verticalChainHead, SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, primary);
+        }
       }
     }
   }
@@ -73,15 +85,74 @@ public class ChainCycleViewAction extends DirectViewAction {
                                  int modifiers) {
     super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiers);
 
-    boolean isVisible = false;
-    if (selectedChildren.size() == 1) {
-      SceneComponent selectedComponent = editor.getScene().getSceneComponent(selectedChildren.get(0));
-      if (selectedComponent != null) {
-        myChainChecker.checkIsInChain(selectedComponent);
-        isVisible = myChainChecker.isInHorizontalChain() || myChainChecker.isInVerticalChain();
-      }
+    boolean isVisible = true;
+    if (selectedChildren.isEmpty()) {
+      isVisible = false;
+    }
+    if (!isApplicable(editor, selectedChildren)) {
+      isVisible = false;
+    }
+    presentation.setVisible(isVisible);
+  }
+
+  private static boolean isApplicable(@NotNull ViewEditor editor, @NotNull List<NlComponent> selectedChildren) {
+    if (selectedChildren.isEmpty()) {
+      return false;
+    }
+    NlComponent primaryNlComponent = selectedChildren.get(0);
+    SceneComponent primary = editor.getScene().getSceneComponent(primaryNlComponent);
+    if (primary == null) {
+      return false;
     }
 
-    presentation.setVisible(isVisible);
+    List<SceneComponent> nonPrimaryComponents = selectedChildren.stream()
+      .filter(it -> it != primaryNlComponent)
+      .map(it -> editor.getScene().getSceneComponent(it))
+      .collect(Collectors.toList());
+
+    ChainChecker checker = new ChainChecker();
+    if (checker.checkIsInChain(primary)) {
+      if (checker.isInHorizontalChain()) {
+        SceneComponent horizontalChainHead = checker.getHorizontalChainHead();
+        if (isInSameHorizontalChain(horizontalChainHead, nonPrimaryComponents)) {
+          return true;
+        }
+      }
+      if (checker.isInVerticalChain()) {
+        SceneComponent verticalChainHead = checker.getVerticalChainHead();
+        if (isInSameVerticalChain(verticalChainHead, nonPrimaryComponents)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static boolean isInSameVerticalChain(@NotNull SceneComponent head, @NotNull List<SceneComponent> components) {
+    for (SceneComponent component: components) {
+      if (component == null) {
+        return false;
+      }
+      ChainChecker checker = new ChainChecker();
+      checker.checkIsInChain(component);
+      if (!checker.isInVerticalChain() || checker.getVerticalChainHead() != head) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean isInSameHorizontalChain(@NotNull SceneComponent head, @NotNull List<SceneComponent> components) {
+    for (SceneComponent component: components) {
+      if (component == null) {
+        return false;
+      }
+      ChainChecker checker = new ChainChecker();
+      checker.checkIsInChain(component);
+      if (!checker.isInHorizontalChain() || checker.getHorizontalChainHead() != head) {
+        return false;
+      }
+    }
+    return true;
   }
 }

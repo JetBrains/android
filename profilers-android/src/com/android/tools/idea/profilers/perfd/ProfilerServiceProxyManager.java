@@ -20,6 +20,7 @@ import com.android.tools.idea.profilers.StudioLegacyAllocationTracker;
 import com.android.tools.idea.profilers.StudioLegacyCpuTraceProfiler;
 import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.grpc.ManagedChannel;
 import java.util.concurrent.Executors;
@@ -34,11 +35,16 @@ public class ProfilerServiceProxyManager {
 
     transportProxy.registerProxyService(new ProfilerServiceProxy(transportChannel));
     transportProxy.registerProxyService(new EventServiceProxy(device, transportChannel));
-    transportProxy.registerProxyService(new CpuServiceProxy(device, transportChannel, new StudioLegacyCpuTraceProfiler(device,
-                                                                                                                   CpuServiceGrpc
-                                                                                                     .newBlockingStub(transportChannel))));
+    transportProxy.registerProxyService(
+      new CpuServiceProxy(device,
+                          transportChannel,
+                          new StudioLegacyCpuTraceProfiler(device,
+                                                           CpuServiceGrpc.newBlockingStub(transportChannel),
+                                                           TransportServiceGrpc.newBlockingStub(transportChannel),
+                                                           transportProxy.getBytesCache())));
     transportProxy.registerProxyService(new MemoryServiceProxy(
-      device, transportChannel, Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(MEMORY_PROXY_EXECUTOR_NAME).build()),
+      device, transportChannel,
+      Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(MEMORY_PROXY_EXECUTOR_NAME).build()),
       (d, p) -> new StudioLegacyAllocationTracker(d, p)));
     transportProxy.registerProxyService(new NetworkServiceProxy(transportChannel));
     transportProxy.registerProxyService(new EnergyServiceProxy(transportChannel));

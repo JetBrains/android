@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import static com.android.tools.idea.profilers.AndroidProfilerToolWindow.LAST_RUN_APP_INFO;
+import static com.android.tools.profilers.StudioProfilers.DAEMON_DEVICE_DIR_PATH;
 
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
@@ -80,19 +81,17 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   @NotNull
   @Override
   public LaunchTask getTask(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions) {
-    return new AndroidProfilerToolWindowLaunchTask(module, launchOptions);
+    return new AndroidProfilerToolWindowLaunchTask(module.getProject(), launchOptions, AndroidProfilerToolWindow.getModuleName(module));
   }
 
   @NotNull
-  @Override
-  public String getAmStartOptions(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions,
-                                  @NotNull IDevice device) {
+  public static String getAmStartOptions(@NotNull Project project, @NotNull String applicationId, @NotNull LaunchOptions launchOptions,
+                                         @NotNull IDevice device) {
     if (!isProfilerLaunch(launchOptions)) {
       // Not a profile action
       return "";
     }
 
-    Project project = module.getProject();
     TransportService transportService = TransportService.getInstance();
     if (transportService == null) {
       // Profiler cannot be run.
@@ -117,7 +116,14 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
-  private void pushStartupAgentConfig(@NotNull TransportFileManager fileManager, @NotNull Project project) {
+  @NotNull
+  @Override
+  public String getAmStartOptions(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions,
+                                  @NotNull IDevice device) {
+    return getAmStartOptions(module.getProject(), applicationId, launchOptions, device);
+  }
+
+  private static void pushStartupAgentConfig(@NotNull TransportFileManager fileManager, @NotNull Project project) {
     // Memory live allocation setting may change in the run config so push a new one
     try {
       fileManager.pushAgentConfig(STARTUP_AGENT_CONFIG_NAME, getSelectedRunConfiguration(project));
@@ -168,26 +174,37 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
+    String cpuAbi = "";
+    switch (startupConfig.getTechnology()) {
+      case SAMPLED_NATIVE:
+        cpuAbi = getAbiDependentLibraryName("simpleperf", "simpleperf", device);
+        break;
+      case ATRACE:
+        cpuAbi = getAbiDependentLibraryName("perfetto", "perfetto", device);
+        break;
+      default:
+        break;
+    }
+
+    Cpu.CpuTraceConfiguration.UserOptions traceOptions = CpuProfilerConfigConverter.toProto(startupConfig);
+    // TODO b/133321803 switch back to having daemon generates and provides the path.
+    String traceFilePath = String.format("%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, appPackageName, System.nanoTime());
     CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest
       .newBuilder()
-      .setAppPackage(appPackageName)
       .setDeviceId(deviceId)
-      .setConfiguration(CpuProfilerConfigConverter.toProto(startupConfig));
+      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                          .setAppName(appPackageName)
+                          .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP)
+                          .setAbiCpuArch(cpuAbi)
+                          .setTempPath(traceFilePath)
+                          .setUserOptions(traceOptions));
+    client.getCpuClient().startStartupProfiling(requestBuilder.build());
 
-    if (requestBuilder.getConfiguration().getTraceType() == Cpu.CpuTraceType.SIMPLEPERF) {
-      requestBuilder.setAbiCpuArch(getAbiDependentCommonLibName("simpleperf", "simpleperf", device));
-    }
-    else if (requestBuilder.getConfiguration().getTraceType() == Cpu.CpuTraceType.ATRACE) {
-      requestBuilder.setAbiCpuArch(getAbiDependentCommonLibName("perfetto", "perfetto", device));
-    }
-
-    CpuProfiler.StartupProfilingResponse response = client.getCpuClient().startStartupProfiling(requestBuilder.build());
-
-    if (response.getFilePath().isEmpty() || requestBuilder.getConfiguration().getTraceType() != Cpu.CpuTraceType.ART) {
+    if (traceOptions.getTraceType() != Cpu.CpuTraceType.ART) {
       return "";
     }
 
-    StringBuilder argsBuilder = new StringBuilder("--start-profiler ").append(response.getFilePath());
+    StringBuilder argsBuilder = new StringBuilder("--start-profiler ").append(traceFilePath);
     if (startupConfig.getTechnology() == CpuProfilerConfig.Technology.SAMPLED_JAVA) {
       argsBuilder.append(" --sampling ").append(startupConfig.getSamplingIntervalUs());
     }
@@ -245,7 +262,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   }
 
   @NotNull
-  private static String getAbiDependentCommonLibName(String dir, String fileName, IDevice device) {
+  private static String getAbiDependentLibraryName(String dir, String fileName, IDevice device) {
     return getBestAbiCpuArch(device,
                              "plugins/android/resources/" + dir,
                              "../../prebuilts/tools/common/" + dir,
@@ -279,19 +296,23 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   /**
    * @return true if the launch is initiated by the {@link ProfileRunExecutor}. False otherwise.
    */
-  private static boolean isProfilerLaunch(@NotNull LaunchOptions options) {
+  public static boolean isProfilerLaunch(@NotNull LaunchOptions options) {
     Object launchValue = options.getExtraOption(ProfileRunExecutor.PROFILER_LAUNCH_OPTION_KEY);
     return launchValue instanceof Boolean && (Boolean)launchValue;
   }
 
   public static final class AndroidProfilerToolWindowLaunchTask implements LaunchTask {
     private static final String ID = "PROFILER_TOOLWINDOW";
-    @NotNull private final Module myModule;
+    @NotNull private final Project myProject;
     @NotNull private final LaunchOptions myLaunchOptions;
+    @Nullable private final String myTargetProcessName;
 
-    public AndroidProfilerToolWindowLaunchTask(@NotNull Module module, @NotNull LaunchOptions launchOptions) {
-      myModule = module;
+    public AndroidProfilerToolWindowLaunchTask(@NotNull Project project,
+                                               @NotNull LaunchOptions launchOptions,
+                                               @Nullable String targetProcessName) {
+      myProject = project;
       myLaunchOptions = launchOptions;
+      myTargetProcessName = targetProcessName;
     }
 
     @NotNull
@@ -315,21 +336,19 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       long currentDeviceTimeNs = getCurrentDeviceTime(device);
       ApplicationManager.getApplication().invokeLater(
         () -> {
-          Project project = myModule.getProject();
-          ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
+          ToolWindow window = ToolWindowManagerEx.getInstanceEx(myProject).getToolWindow(AndroidProfilerToolWindowFactory.ID);
           if (window != null) {
             window.setShowStripeButton(true);
 
             String deviceName = AndroidProfilerToolWindow.getDeviceDisplayName(device);
-            String processName = AndroidProfilerToolWindow.getModuleName(myModule);
             AndroidProfilerToolWindow.PreferredProcessInfo preferredProcessInfo =
-              new AndroidProfilerToolWindow.PreferredProcessInfo(deviceName, processName,
+              new AndroidProfilerToolWindow.PreferredProcessInfo(deviceName, myTargetProcessName,
                                                                  p -> p.getStartTimestampNs() >= currentDeviceTimeNs);
             // If the window is currently not shown, either if the users click on Run/Debug or if they manually collapse/hide the window,
             // then we shouldn't start profiling the launched app.
             boolean profileStarted = false;
             if (window.isVisible()) {
-              AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project);
+              AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(myProject);
               if (profilerToolWindow != null) {
                 profilerToolWindow.profile(preferredProcessInfo);
                 profileStarted = true;
@@ -337,7 +356,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
             }
             // Caching the device+process info in case auto-profiling should kick in at a later time.
             if (!profileStarted) {
-              project.putUserData(LAST_RUN_APP_INFO, preferredProcessInfo);
+              myProject.putUserData(LAST_RUN_APP_INFO, preferredProcessInfo);
             }
           }
         });
@@ -349,7 +368,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
         ProcessAdapter adapter = new ProcessAdapter() {
           @Override
           public void processTerminated(@NotNull ProcessEvent event) {
-            myModule.getProject().putUserData(LAST_RUN_APP_INFO, null);
+            myProject.putUserData(LAST_RUN_APP_INFO, null);
             // Removes the listener as soon as we receive the event, to avoid the ProcessHandler holding to it any longer than needed.
             processHandler.removeProcessListener(this);
           }

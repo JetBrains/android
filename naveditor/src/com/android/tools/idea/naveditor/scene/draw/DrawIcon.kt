@@ -27,7 +27,6 @@ import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColorOrNull
 import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.common.util.iconToImage
-import com.android.tools.idea.naveditor.scene.DRAW_ICON_LEVEL
 import com.android.tools.idea.naveditor.scene.setRenderingHints
 import icons.StudioIcons.NavEditor.Surface.DEEPLINK
 import icons.StudioIcons.NavEditor.Surface.POP_ACTION
@@ -66,13 +65,10 @@ data class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float,
     image = iconToImage(icon).getScaledInstance(rectangle.width.toInt(), rectangle.height.toInt(), Image.SCALE_SMOOTH)
   }
 
-  private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), IconType.valueOf(sp[1]), stringToColorOrNull((sp[2])))
+  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), IconType.valueOf(tokens[1]),
+                                                    stringToColorOrNull((tokens[2])))
 
-  constructor(s: String) : this(parse(s, 3))
-
-  override fun getLevel(): Int {
-    return DRAW_ICON_LEVEL
-  }
+  constructor(serialized: String) : this(parse(serialized, 3))
 
   override fun serialize(): String {
     return buildString(javaClass.simpleName, rect2DToString(rectangle), iconType, colorOrNullToString(color))

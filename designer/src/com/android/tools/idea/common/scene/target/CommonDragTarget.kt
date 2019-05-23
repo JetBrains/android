@@ -22,6 +22,7 @@ import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.common.scene.draw.ColorSet
@@ -281,7 +282,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
           continue
         }
 
-        if (ph.snap(left, top, right, bottom, retPoint)) {
+        if (ph.snap(SnappingInfo(left, top, right, bottom), retPoint)) {
           val distance = retPoint.distance(xDouble, yDouble)
           if (distance < currentDistance || ph.region.level > currentPlaceholderLevel) {
             targetPlaceholder = ph
@@ -400,8 +401,8 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       component.isDragging = false
       // Rollback the transaction. Some attributes may be changed due to live rendering.
       val nlComponent = component.authoritativeNlComponent
-      if (liveRendered && nlComponent.parent?.viewHandler is ConstraintLayoutHandler) {
-        nlComponent.startAttributeTransaction().rollback()
+      if (nlComponent.startAttributeTransaction().rollback()) {
+        // Has pending value means it has live change, fire live change event since it is changed back.
         nlComponent.fireLiveChangeEvent()
       }
     }

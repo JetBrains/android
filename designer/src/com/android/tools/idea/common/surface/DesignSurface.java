@@ -20,6 +20,7 @@ import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
@@ -44,14 +45,11 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
-import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -164,6 +162,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   };
   private ZoomType myCurrentZoomType;
 
+  /**
+   * Responsible for converting this surface state and send it for tracking (if logging is enabled).
+   */
+  @NotNull
+  private final DesignerAnalyticsManager myAnalyticsManager;
+
   public DesignSurface(@NotNull Project project, @NotNull SelectionModel selectionModel, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
@@ -171,6 +175,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     setOpaque(true);
     setFocusable(false);
+
+    myAnalyticsManager = new DesignerAnalyticsManager(this);
 
     mySelectionModel = selectionModel;
     mySelectionModel.addListener(mySelectionListener);
@@ -565,23 +571,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public boolean zoom(@NotNull ZoomType type) {
     // track user triggered change
-    switch (type) {
-      case ACTUAL:
-        NlUsageTracker.getInstance(this).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_ACTUAL);
-        break;
-      case IN:
-        NlUsageTracker.getInstance(this).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN);
-        break;
-      case OUT:
-        NlUsageTracker.getInstance(this).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_OUT);
-        break;
-      case FIT_INTO:
-      case FIT:
-        NlUsageTracker.getInstance(this).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT);
-        break;
-      default:
-    }
-
+    myAnalyticsManager.trackZoom(type);
     return zoom(type, -1, -1);
   }
 
@@ -843,6 +833,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myLayeredPane;
   }
 
+  @NotNull
+  public DesignerAnalyticsManager getAnalyticsManager() {
+    return myAnalyticsManager;
+  }
+
   protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
     List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
     for (DesignSurfaceListener listener : listeners) {
@@ -935,7 +930,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Sets the file editor to which actions like undo/redo will be delegated. This is only needed if this DesignSurface is not a child
-   * of a {@link FileEditor} like in the case of {@link NlPreviewForm}.
+   * of a {@link FileEditor}.
    * <p>
    * The surface will only keep a {@link WeakReference} to the editor.
    */

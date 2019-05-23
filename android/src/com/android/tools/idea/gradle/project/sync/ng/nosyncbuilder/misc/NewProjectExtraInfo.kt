@@ -52,7 +52,7 @@ data class NewProjectExtraInfoBuilder(
     minApi = minApi ?: values[ATTR_MIN_API]?.toString()?.toInt()
     targetApi = targetApi ?: values[ATTR_TARGET_API]?.toString()?.toInt()
     packageName = packageName ?: values[ATTR_PACKAGE_NAME]?.toString()
-    projectLocation = projectLocation ?: values[ATTR_PROJECT_LOCATION]?.toString()
+    projectLocation = projectLocation ?: values[ATTR_TOP_OUT]?.toString()
     sdkDir = sdkDir ?: values[ATTR_SDK_DIR]?.toString()
     activityTemplateName = activityTemplateName ?: values[ACTIVITY_TEMPLATE_NAME]?.toString()
     mobileProjectName = mobileProjectName ?: values[MOBILE_PROJECT_NAME]?.toString()

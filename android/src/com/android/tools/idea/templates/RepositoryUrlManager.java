@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.templates;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.android.ide.common.repository.*;
+import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
+
+import com.android.ide.common.repository.GoogleMavenRepository;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleCoordinate.ArtifactType;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.MavenRepositories;
+import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
@@ -35,52 +40,39 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.LintClient;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Ordering;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.apache.commons.io.IOUtils;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
-import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.function.Predicate;
-
-import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
-import static com.android.tools.idea.projectsystem.GoogleMavenArtifactId.PLAY_SERVICES;
 
 /**
  * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
  */
 public class RepositoryUrlManager {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.RepositoryUrlManager");
-
-  /**
-   * The tag used by the maven metadata file to describe versions.
-   */
-  private static final String TAG_VERSION = "version";
-
   /**
    * Constant full revision for "anything available"
    */
   public static final String REVISION_ANY = "+";
 
-  private static final Ordering<GradleCoordinate> GRADLE_COORDINATE_ORDERING = Ordering.from(COMPARE_PLUS_LOWER);
 
   private final boolean myForceRepositoryChecksInTests;
-  private GoogleMavenRepository myGoogleMavenRepository;
-  private GoogleMavenRepository myCachedGoogleMavenRepository;
+  private final Set<String> myPendingNetworkRequests = ConcurrentHashMap.newKeySet();
+  private final GoogleMavenRepository myGoogleMavenRepository;
+  private final GoogleMavenRepository myCachedGoogleMavenRepository;
 
   public static RepositoryUrlManager get() {
     return ServiceManager.getService(RepositoryUrlManager.class);
@@ -137,15 +129,12 @@ public class RepositoryUrlManager {
                                    @NotNull FileOp fileOp) {
     // First check the Google maven repository, which has most versions.
     GradleVersion version;
-
-    // This is a workaround for b/122113652. When callers invoke this method in the UI thread, it could block. For now, we avoid that
-    // by checking and using the local cached version when called from the dispatch thread.
     if (!ApplicationManager.getApplication().isDispatchThread()) {
       version = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews);
     }
     else {
-      LOG.warn("RepositoryUrlManager#getLibraryRevision called from the UI thread. Using local cache to avoid network requests");
       version = myCachedGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews);
+      refreshCacheInBackground(groupId, artifactId);
     }
 
     if (version != null) {
@@ -182,14 +171,10 @@ public class RepositoryUrlManager {
   public File getArchiveForCoordinate(@NotNull GradleCoordinate gradleCoordinate,
                                       @NotNull File sdkLocation,
                                       @NotNull FileOp fileOp) {
-    if (gradleCoordinate.getGroupId() == null || gradleCoordinate.getArtifactId() == null) {
-      return null;
-    }
 
-    SdkMavenRepository repository = SdkMavenRepository.find(sdkLocation,
-                                                            gradleCoordinate.getGroupId(),
-                                                            gradleCoordinate.getArtifactId(),
-                                                            fileOp);
+    String groupId = gradleCoordinate.getGroupId();
+    String artifactId = gradleCoordinate.getArtifactId();
+    SdkMavenRepository repository = SdkMavenRepository.find(sdkLocation, groupId, artifactId, fileOp);
     if (repository == null) {
       return null;
     }
@@ -206,10 +191,7 @@ public class RepositoryUrlManager {
 
     for (ArtifactType artifactType : ImmutableList.of(ArtifactType.JAR, ArtifactType.AAR)) {
       File archive = new File(artifactDirectory,
-                              String.format("%s-%s.%s",
-                                            gradleCoordinate.getArtifactId(),
-                                            gradleCoordinate.getRevision(),
-                                            artifactType.toString()));
+                              String.format("%s-%s.%s", artifactId, gradleCoordinate.getRevision(), artifactType.toString()));
 
       if (fileOp.isFile(archive)) {
         return archive;
@@ -217,80 +199,6 @@ public class RepositoryUrlManager {
     }
 
     return null;
-  }
-
-  /**
-   * Parses a Maven metadata file and returns a string of the highest found version
-   *
-   * @param metadataFile    the files to parse
-   * @param includePreviews if false, preview versions of the library will not be returned
-   * @return the string representing the highest version found in the file or "0.0.0" if no versions exist in the file
-   */
-  @Nullable
-  private static String getLatestVersionFromMavenMetadata(@NotNull File metadataFile,
-                                                          @Nullable Predicate<GradleVersion> filter,
-                                                          boolean includePreviews,
-                                                          @NotNull FileOp fileOp) throws IOException {
-    String xml = fileOp.toString(metadataFile, StandardCharsets.UTF_8);
-
-    List<GradleCoordinate> versions = new ArrayList<>();
-    try {
-      SAXParserFactory.newInstance().newSAXParser().parse(IOUtils.toInputStream(xml), new DefaultHandler() {
-        boolean inVersionTag = false;
-
-        @Override
-        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-          if (qName.equals(TAG_VERSION)) {
-            inVersionTag = true;
-          }
-        }
-
-        @Override
-        public void characters(char[] ch, int start, int length) throws SAXException {
-          // Get the version and compare it to the current known max version
-          if (inVersionTag) {
-            inVersionTag = false;
-            String revision = new String(ch, start, length);
-            //noinspection StatementWithEmptyBody
-            if (!includePreviews &&
-                "5.2.08".equals(revision) &&
-                metadataFile.getPath().contains(PLAY_SERVICES.getMavenArtifactId())) {
-              // This version (despite not having -rcN in its version name is actually a preview
-              // (See https://code.google.com/p/android/issues/detail?id=75292).
-              // Ignore it.
-            }
-            else if (applyVersionPredicate(revision, filter)) {
-              versions.add(GradleCoordinate.parseVersionOnly(revision));
-            }
-          }
-        }
-      });
-    }
-    catch (Exception e) {
-      LOG.warn(e);
-    }
-
-    if (versions.isEmpty()) {
-      return REVISION_ANY;
-    }
-    else if (includePreviews) {
-      return GRADLE_COORDINATE_ORDERING.max(versions).getRevision();
-    }
-    else {
-      return versions.stream()
-        .filter(v -> !v.isPreview())
-        .max(GRADLE_COORDINATE_ORDERING)
-        .map(GradleCoordinate::getRevision)
-        .orElse(null);
-    }
-  }
-
-  private static boolean applyVersionPredicate(@NotNull String revision, @Nullable Predicate<GradleVersion> predicate) {
-    if (predicate == null) {
-      return true;
-    }
-    GradleVersion version = GradleVersion.tryParse(revision);
-    return version != null && predicate.test(version);
   }
 
   @Nullable
@@ -322,7 +230,7 @@ public class RepositoryUrlManager {
                                                    @Nullable Project project,
                                                    @NotNull AndroidSdkHandler sdkHandler) {
     String version = resolveDynamicCoordinateVersion(coordinate, project, sdkHandler);
-    if (version != null && coordinate.getGroupId() != null && coordinate.getArtifactId() != null) {
+    if (version != null) {
       List<GradleCoordinate.RevisionComponent> revisions = GradleCoordinate.parseRevisionNumber(version);
       if (!revisions.isEmpty()) {
         return new GradleCoordinate(coordinate.getGroupId(), coordinate.getArtifactId(), revisions, coordinate.getArtifactType());
@@ -347,7 +255,7 @@ public class RepositoryUrlManager {
    * there is no local cache and the network query is not successful.
    *
    * @param coordinate the coordinate whose version we want to resolve
-   * @param project    the current project, if known. This is equired if you want to
+   * @param project    the current project, if known. This is required if you want to
    *                   perform a network lookup of the current best version if we can't
    *                   find a locally cached version of the library
    * @return the string version number, or null if not successful
@@ -362,19 +270,16 @@ public class RepositoryUrlManager {
   String resolveDynamicCoordinateVersion(@NotNull GradleCoordinate coordinate,
                                          @Nullable Project project,
                                          @NotNull AndroidSdkHandler sdkHandler) {
-    String groupId = coordinate.getGroupId();
-    String artifactId = coordinate.getArtifactId();
-    if (groupId == null || artifactId == null) {
-      return null;
-    }
-
     String revision = coordinate.getRevision();
     if (!revision.endsWith("+")) {
       // Already resolved. That was easy.
       return revision;
     }
+
     String versionPrefix = revision.substring(0, revision.length() - 1);
     Predicate<GradleVersion> filter = version -> version.toString().startsWith(versionPrefix);
+    String groupId = coordinate.getGroupId();
+    String artifactId = coordinate.getArtifactId();
 
     // First check the Google maven repository, which has most versions
     GradleVersion stable = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, false);
@@ -452,9 +357,6 @@ public class RepositoryUrlManager {
 
     for (String key : dependencies.keySet()) {
       GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
-      if (highest.getGroupId() == null || highest.getArtifactId() == null) {
-        return null;
-      }
 
       // For test consistency, don't depend on installed SDK state while testing
       if (myForceRepositoryChecksInTests || !ApplicationManager.getApplication().isUnitTestMode()) {
@@ -529,7 +431,7 @@ public class RepositoryUrlManager {
       if (compileSdkVersion == null) {
         return null;
       }
-      String prefix = String.valueOf(compileSdkVersion.getApiLevel()) + ".";
+      String prefix = compileSdkVersion.getApiLevel() + ".";
       return version -> version.toString().startsWith(prefix);
     }
     GradleVersion found = highest;
@@ -576,6 +478,22 @@ public class RepositoryUrlManager {
     }
     String prefix = raw.substring(0, raw.length() - 1);
     return version -> version.toString().startsWith(prefix);
+  }
+
+  private void refreshCacheInBackground(@NotNull String groupId, @NotNull String artifactId) {
+    String searchKey = String.format("%s:%s", groupId, artifactId);
+    if (myPendingNetworkRequests.add(searchKey)) {
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        try {
+          // We don't care about the result, just the side effect of updating the cache.
+          // This will only make a network request if there is no cache or it has expired.
+          myGoogleMavenRepository.findVersion(groupId, artifactId, (Predicate<GradleVersion>)null, true);
+        }
+        finally {
+          myPendingNetworkRequests.remove(searchKey);
+        }
+      });
+    }
   }
 
   @Nullable

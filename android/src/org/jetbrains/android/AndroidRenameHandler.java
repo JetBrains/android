@@ -1,5 +1,8 @@
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.TAG_ITEM;
+
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
@@ -18,6 +21,7 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.xml.SchemaPrefix;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -201,11 +205,22 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (element == null) {
       return null;
     }
-
-    if (element instanceof XmlToken && ((XmlToken)element).getTokenType() == XmlTokenType.XML_DATA_CHARACTERS) {
-      XmlText text = PsiTreeUtil.getParentOfType(element, XmlText.class);
-      if (text != null) {
-        return ResourceUrl.parse(text.getText().trim());
+    if (element instanceof XmlToken) {
+      IElementType tokenType = ((XmlToken)element).getTokenType();
+      if (tokenType == XmlTokenType.XML_DATA_CHARACTERS) {
+        XmlText text = PsiTreeUtil.getParentOfType(element, XmlText.class);
+        if (text != null) {
+          return ResourceUrl.parse(text.getText().trim());
+        }
+      }
+      else if (tokenType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) {
+        XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
+        if (tag != null && tag.getLocalName().equals(TAG_ITEM)) {
+          XmlAttribute attribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
+          if (attribute != null && attribute.getLocalName().equals(ATTR_NAME)) {
+            return ResourceUrl.parseAttrReference(element.getText());
+          }
+        }
       }
     }
     return null;
