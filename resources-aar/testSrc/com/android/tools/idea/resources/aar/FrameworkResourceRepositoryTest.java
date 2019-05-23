@@ -16,6 +16,7 @@
 package com.android.tools.idea.resources.aar;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.AttrResourceValue;
@@ -36,10 +37,9 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.utils.PathUtils;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.application.PathManager;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,6 +51,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
@@ -68,11 +69,16 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   private static final String FRAMEWORK_RES_JAR_PATH = "tools/adt/idea/resources-aar/framework_res.jar";
 
   private Path myResourceFolder;
+  private Path myCacheDir;
 
-  private void deleteRepositoryCache() throws IOException {
-    for (boolean withLocaleResources : new boolean[] {false, true}) {
-      Files.deleteIfExists(FrameworkResourceRepository.getCacheFile(myResourceFolder, withLocaleResources));
-    }
+  @NotNull
+  private Path getCacheFile(boolean withLocaleResources) {
+    return myCacheDir.resolve(withLocaleResources ? "cache_with_locales.bin" : "cache_without_locales.bin");
+  }
+
+  @NotNull
+  private CachingData createCachingData(boolean withLocaleResources, @Nullable Executor cacheCreationExecutor) {
+    return new CachingData(getCacheFile(withLocaleResources), "", "", cacheCreationExecutor);
   }
 
   /**
@@ -112,13 +118,13 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myResourceFolder = getSdkResFolder();
-    deleteRepositoryCache();
+    myCacheDir = Files.createTempDirectory("caches");
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      deleteRepositoryCache();
+      PathUtils.deleteRecursivelyIfExists(myCacheDir);
     } finally {
       super.tearDown();
     }
@@ -127,7 +133,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   public void testLoadingFromSourcesAndCache() {
     for (boolean withLocaleResources : new boolean[] {true, false}) {
       // Create persistent cache.
-      FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, true, MoreExecutors.directExecutor());
+      FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, createCachingData(withLocaleResources, directExecutor()));
 
       long loadTimeFromSources = 0;
       long loadTimeFromCache = 0;
@@ -137,7 +143,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
       for (int i = 0; i < count; ++i) {
         long start = System.currentTimeMillis();
         FrameworkResourceRepository fromSourceFiles =
-            FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, false, null);
+            FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, null);
         loadTimeFromSources += System.currentTimeMillis() - start;
         if (i == 0) {
           assertFalse(fromSourceFiles.isLoadedFromCache());
@@ -145,7 +151,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
         }
         start = System.currentTimeMillis();
         FrameworkResourceRepository fromCache =
-            FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, true, null);
+            FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, createCachingData(withLocaleResources, null));
         loadTimeFromCache += System.currentTimeMillis() - start;
         if (i == 0) {
           assertTrue(fromCache.isLoadedFromCache());
@@ -173,6 +179,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
       for (int i = 0; i < count; ++i) {
         long start = System.currentTimeMillis();
         FrameworkResourceRepository fromSourceFiles = FrameworkResourceRepository.create(myResourceFolder, withLocaleResources);
+        assertThat(fromSourceFiles.isWithLocaleResources()).isEqualTo(withLocaleResources);
         loadTimeFromSources += System.currentTimeMillis() - start;
         if (i == 0) {
           assertFalse(fromSourceFiles.isLoadedFromCache());
@@ -180,6 +187,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
         }
         start = System.currentTimeMillis();
         FrameworkResourceRepository fromJar = FrameworkResourceRepository.create(frameworkResJar, withLocaleResources);
+        assertThat(fromJar.isWithLocaleResources()).isEqualTo(withLocaleResources);
         loadTimeFromJar += System.currentTimeMillis() - start;
         if (i == 0) {
           assertFalse(fromJar.isLoadedFromCache());
@@ -200,21 +208,11 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     List<ResourceItem> expectedItems = new ArrayList<>(expected.getAllResources());
     List<ResourceItem> actualItems = new ArrayList<>(actual.getAllResources());
 
-    Comparator<ResourceItem> comparator = (item1, item2) -> {
-      int comp = item1.getType().compareTo(item2.getType());
-      if (comp != 0) {
-        return comp;
-      }
-      comp = item1.getNamespace().compareTo(item2.getNamespace());
-      if (comp != 0) {
-        return comp;
-      }
-      comp = item1.getName().compareTo(item2.getName());
-      if (comp != 0) {
-        return comp;
-      }
-      return item1.getSource().compareTo(item2.getSource());
-    };
+    Comparator<ResourceItem> comparator = Comparator
+        .comparing(ResourceItem::getType)
+        .thenComparing(ResourceItem::getNamespace)
+        .thenComparing(ResourceItem::getName)
+        .thenComparing(ResourceItem::getSource);
     expectedItems.sort(comparator);
     actualItems.sort(comparator);
     TestCase.assertEquals(expectedItems.size(), actualItems.size());

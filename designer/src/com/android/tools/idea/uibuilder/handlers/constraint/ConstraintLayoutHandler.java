@@ -79,7 +79,7 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -117,7 +117,6 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -225,6 +224,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     if (WidgetDraw.sGuidelinePercent == null) {
       WidgetDraw.sGuidelinePercent = iconToImage(StudioIcons.LayoutEditor.Toolbar.PERCENT);
     }
+  }
+
+  @NotNull
+  private static NlAnalyticsManager getAnalyticsManager(@NotNull ViewEditor editor) {
+    return ((NlDesignSurface)editor.getScene().getDesignSurface()).getAnalyticsManager();
   }
 
   @Override
@@ -544,8 +548,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      NlUsageTracker.getInstance(editor.getScene().getDesignSurface())
-        .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
+      getAnalyticsManager(editor).trackClearAllConstraints();
 
       editor.getScene().clearAllConstraints();
       ensureLayersAreShown(editor, 1000);
@@ -642,8 +645,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      NlUsageTracker.getInstance(editor.getScene().getDesignSurface())
-                           .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
+      getAnalyticsManager(editor).trackInferConstraints();
       try {
         Scout.inferConstraintsAndCommit(component);
         ensureLayersAreShown(editor, 1000);
@@ -673,8 +675,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      NlUsageTracker.getInstance(editor.getScene().getDesignSurface())
-                           .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
+      getAnalyticsManager(editor).trackInferConstraints();
       try {
         Scout.findConstraintSetAndCommit(component);
         ensureLayersAreShown(editor, 1000);
@@ -818,10 +819,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             assert guideline != null;
             guideline.ensureId();
             guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
-            NlUsageTracker tracker = NlUsageTracker.getInstance(editor.getScene().getDesignSurface());
-            tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
-            guideline.setAttribute(ANDROID_URI, ATTR_ORIENTATION,
-                                   ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
+            getAnalyticsManager(editor).trackAddHorizontalGuideline();
+            guideline.setAttribute(ANDROID_URI, ATTR_ORIENTATION, ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
           }
           break;
           case VERTICAL_GUIDELINE: {
@@ -831,11 +830,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             assert guideline != null;
             guideline.ensureId();
             guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
-            NlUsageTracker tracker = NlUsageTracker.getInstance(editor.getScene().getDesignSurface());
-
-            tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE);
-            guideline.setAttribute(ANDROID_URI, ATTR_ORIENTATION,
-                                   ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+            getAnalyticsManager(editor).trackAddVerticalGuideline();
+            guideline.setAttribute(ANDROID_URI, ATTR_ORIENTATION, ATTR_GUIDELINE_ORIENTATION_VERTICAL);
           }
           break;
           case GROUP: {
@@ -908,9 +904,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             assert barrier != null;
             barrier.ensureId();
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "top");
-
-            // NlUsageTracker tracker = NlUsageTrackerImpl.getInstance(editor.getScene().getDesignSurface());
-            // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_BARRIER);
+            // TODO add getAnalyticsManager(editor).trackAddHorizontalBarrier
 
             if (ConstraintHelperHandler.USE_HELPER_TAGS) {
               if (!selectedChildren.isEmpty()) {
@@ -974,8 +968,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             barrier.ensureId();
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "left");
 
-            // NlUsageTracker tracker = NlUsageTrackerImpl.getInstance(editor.getScene().getDesignSurface());
-            // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_BARRIER);
+            // TODO add getAnalyticsManager(editor).trackAddVerticalBarrier
 
             if (ConstraintHelperHandler.USE_HELPER_TAGS) {
               if (!selectedChildren.isEmpty()) {
@@ -1134,8 +1127,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      NlUsageTracker.getInstance(editor.getScene().getDesignSurface())
-                           .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
+      getAnalyticsManager(editor).trackAlign();
       // noinspection AssignmentToMethodParameter
       modifiers &= InputEvent.CTRL_MASK;
       Scout.arrangeWidgetsAndCommit(myActionType, selectedChildren, modifiers == 0 || ToggleAutoConnectAction.isAutoconnectOn());
@@ -1310,7 +1302,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       myComponent = component;
       myMarginPopup = createIfNeeded();
       DesignSurface surface = editor.getScene().getDesignSurface();
-      NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
+      getAnalyticsManager(editor).trackDefaultMargins();
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
         .setRequestFocus(true)
@@ -1649,25 +1641,25 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     private static class ConnectAction extends DirectViewAction implements EnabledAction {
       private final Scout.Connect myConnectType;
-      private final Icon myAlignIcon;
+      private final Icon myConnectConstraintIcon;
       private final Icon myConstrainIcon;
       private final String myToolTip;
       private boolean mReverse;
       private boolean mToParent = false;
 
-      ConnectAction(Scout.Connect actionType, Icon alignIcon, String toolTip, boolean reverse) {
-        super(alignIcon, toolTip);
+      ConnectAction(Scout.Connect actionType, Icon connectConstraintIcon, String toolTip, boolean reverse) {
+        super(connectConstraintIcon, toolTip);
         myConnectType = actionType;
-        myAlignIcon = alignIcon;
+        myConnectConstraintIcon = connectConstraintIcon;
         myConstrainIcon = null;
         myToolTip = toolTip;
         mReverse = reverse;
       }
 
-      ConnectAction(Scout.Connect actionType, Icon alignIcon, String toolTip) {
-        super(alignIcon, toolTip);
+      ConnectAction(Scout.Connect actionType, Icon connectConstraintIcon, String toolTip) {
+        super(connectConstraintIcon, toolTip);
         myConnectType = actionType;
-        myAlignIcon = alignIcon;
+        myConnectConstraintIcon = connectConstraintIcon;
         myConstrainIcon = null;
         myToolTip = toolTip;
         mToParent = true;
@@ -1676,7 +1668,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
       /**
        * Function is called on right click
-       * It is moderatly compute intensive. (<10ms)
+       * It is moderately compute intensive. (<10ms)
        *
        * @param selected
        * @return
@@ -1699,8 +1691,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                           @NotNull NlComponent component,
                           @NotNull List<NlComponent> selectedChildren,
                           @InputEventMask int modifiers) {
-        NlUsageTracker.getInstance(editor.getScene().getDesignSurface())
-                             .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
+        // TODO: getAnalyticsManager(editor).trackConnectConstraint();
         Scout.connect(selectedChildren, myConnectType, mReverse, true);
         ensureLayersAreShown(editor, 1000);
         ComponentModification modification = new ComponentModification(component, "Connect Constraint");
@@ -1717,7 +1708,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                      @InputEventMask int modifiers) {
 
 
-        Icon icon = myAlignIcon;
+        Icon icon = myConnectConstraintIcon;
         if (myConstrainIcon != null) {
           if (ToggleAutoConnectAction.isAutoconnectOn() || (InputEvent.CTRL_MASK & modifiers) == 0) {
             icon = myConstrainIcon;
@@ -1739,7 +1730,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
     }
 
-    //
     private static class ConnectSource extends DisappearingActionMenu {
       int mIndex;
 

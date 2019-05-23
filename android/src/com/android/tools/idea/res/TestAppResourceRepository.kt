@@ -58,7 +58,7 @@ class TestAppResourceRepository private constructor(
         )
       }
 
-      val aarCache = AarResourceRepositoryCache.getInstance()
+      val aarCache = AarResourceRepositoryCache.instance
       val libraryRepositories: Collection<AarResourceRepository> = dependencies?.androidLibraries.orEmpty().asSequence()
         .map {
           aarCache.getSourceRepository(

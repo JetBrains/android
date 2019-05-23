@@ -18,16 +18,9 @@ package com.android.tools.idea.navigator.nodes.android;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiFile;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
 
 /**
  * This provider is a workaround for the ResourceBundleGrouper and the Kotlin plugin overriding
@@ -56,5 +49,10 @@ public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
   @Override
   public Object getData(@NotNull Collection<AbstractTreeNode> selected, String dataName) {
     return myRealTreeStructureProvider.getData(selected, dataName);
+  }
+
+  @Override
+  public String toString() {
+    return String.format("BuildScriptTreeStructureProvider(%s)", myRealTreeStructureProvider);
   }
 }

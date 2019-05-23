@@ -53,7 +53,6 @@ import com.google.common.collect.Maps;
 import com.intellij.ide.scratch.ScratchFileService;
 import com.intellij.ide.scratch.ScratchRootType;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.module.Module;
@@ -290,15 +289,14 @@ public final class RenderTemplateModel extends WizardModel {
       final Project project = myProject.getValue();
 
       try {
-        WriteCommandAction.writeCommandAction(project).withName(myCommandName).run(() -> {
-          boolean success = renderTemplate(false, project, paths, myCreatedFiles, myFilesToReformat);
-          if (success && myIconGenerator != null) {
-            myIconGenerator.generateIconsToDisk(paths);
-          }
-          myRenderSuccess = success;
-        });
+        boolean success = renderTemplate(false, project, paths, myCreatedFiles, myFilesToReformat);
+        if (success && myIconGenerator != null) {
+          myIconGenerator.generateIconsToDisk(paths);
+        }
+        myRenderSuccess = success;
       }
-      catch (Throwable ignored) {
+      catch (Throwable t) {
+        getLog().warn(t);
       }
     }
 
@@ -391,7 +389,7 @@ public final class RenderTemplateModel extends WizardModel {
    * If it *does* have a Kotlin facet, then remember the previous selection (if there was no previous selection yet, default to Kotlin)
    */
   @NotNull
-  static Language getInitialSourceLanguage(@Nullable Project project) {
+  public static Language getInitialSourceLanguage(@Nullable Project project) {
     if (project != null && AndroidStudioKotlinPluginUtils.hasAnyKotlinModules(project)) {
       return Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY), Language.KOTLIN);
     }

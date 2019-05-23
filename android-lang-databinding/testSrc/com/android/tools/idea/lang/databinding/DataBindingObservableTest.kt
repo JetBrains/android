@@ -93,7 +93,7 @@ class DataBindingObservableTest(private val mode: DataBindingMode) {
     assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
       .that(assembleDebug.isBuildSuccessful).isTrue()
     val syncState = GradleSyncState.getInstance(projectRule.project)
-    assertThat(syncState.isSyncNeeded.toBoolean()).isFalse()
+    assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
     VirtualFileManager.getInstance().syncRefresh()
     UIUtil.dispatchAllInvocationEvents()
 
@@ -118,7 +118,7 @@ class DataBindingObservableTest(private val mode: DataBindingMode) {
     assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
       .that(assembleDebug.isBuildSuccessful).isTrue()
     val syncState = GradleSyncState.getInstance(projectRule.project)
-    assertThat(syncState.isSyncNeeded.toBoolean()).isFalse()
+    assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
     VirtualFileManager.getInstance().syncRefresh()
     UIUtil.dispatchAllInvocationEvents()
 

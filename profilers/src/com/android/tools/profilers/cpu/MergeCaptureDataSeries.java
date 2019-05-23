@@ -43,12 +43,12 @@ public class MergeCaptureDataSeries<T> implements DataSeries<T> {
   private AtraceDataSeries<T> myAtraceDataSeries;
 
   @NotNull
-  private final CpuProfilerStage myStage;
+  private final CpuCapture myCapture;
 
-  public MergeCaptureDataSeries(@NotNull CpuProfilerStage stage,
+  public MergeCaptureDataSeries(@NotNull CpuCapture capture,
                                 @NotNull DataSeries<T> dataStoreSeries,
                                 @NotNull AtraceDataSeries traceState) {
-    myStage = stage;
+    myCapture = capture;
     myAtraceDataSeries = traceState;
     myDataStoreSeries = dataStoreSeries;
   }
@@ -58,8 +58,8 @@ public class MergeCaptureDataSeries<T> implements DataSeries<T> {
     double minRangeUs = xRange.getMin();
     double maxRangeUs = xRange.getMax();
     List<SeriesData<T>> seriesData = new ArrayList<>();
-    if (myStage.getCapture() instanceof AtraceCpuCapture) {
-      Range traceRange = myStage.getCapture().getRange();
+    if (myCapture instanceof AtraceCpuCapture) {
+      Range traceRange = myCapture.getRange();
       if (traceRange.getMin() <= maxRangeUs && traceRange.getMax() >= minRangeUs) {
         // If our trace starts before our requested we query only for the last bit of data in our range.
         // otherwise we request all data from the start up to the first event found in atrace. This ensures we cover two scenarios.

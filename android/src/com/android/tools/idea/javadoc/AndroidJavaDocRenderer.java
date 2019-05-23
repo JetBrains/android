@@ -142,7 +142,7 @@ public class AndroidJavaDocRenderer {
     }
 
     String valueDoc = renderer.render(url);
-    if (url.isTheme()) {
+    if (url.type.equals(ResourceType.ATTR)) {
       String attrDoc = renderAttributeDoc(module, configuration, (url.isFramework() ? ANDROID_NS_NAME_PREFIX : "") + url.name);
       if (valueDoc == null) {
         return attrDoc;

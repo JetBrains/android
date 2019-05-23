@@ -100,7 +100,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_BENCHMARK_TEMPLATE_MODULE = Flag.create(
     NPW, "benchmark.template.module", "Enable benchmark module template",
     "If enabled, the new module wizard will show an option to create a benchmark module",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_FIRST_RUN_SHOW = Flag.create(
     NPW, "first.run.wizard.show", "Show Welcome Wizard always",

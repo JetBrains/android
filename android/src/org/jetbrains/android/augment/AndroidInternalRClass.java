@@ -9,6 +9,7 @@ import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
@@ -67,6 +68,11 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
   @Override
   public PsiFile getContainingFile() {
     return myFile;
+  }
+
+  @Override
+  public TextRange getTextRange() {
+    return TextRange.EMPTY_RANGE;
   }
 
   @NotNull

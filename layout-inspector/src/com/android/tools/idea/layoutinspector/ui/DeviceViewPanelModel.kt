@@ -108,5 +108,6 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   fun resetRotation() {
     xOff = 0.0
     yOff = 0.0
+    refresh()
   }
 }

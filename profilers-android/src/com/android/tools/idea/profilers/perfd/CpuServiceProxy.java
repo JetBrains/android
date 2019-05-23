@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.perfd;
 import com.android.ddmlib.*;
 import com.android.tools.idea.profilers.LegacyCpuTraceProfiler;
 import com.android.tools.idea.transport.ServiceProxy;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.ManagedChannel;
@@ -26,6 +27,7 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -103,6 +105,19 @@ public class CpuServiceProxy extends ServiceProxy {
     responseObserver.onCompleted();
   }
 
+  private void getTraceInfo(GetTraceInfoRequest request,
+                            StreamObserver<GetTraceInfoResponse> responseObserver) {
+    if (myUseLegacyTracing) {
+      List<Cpu.CpuTraceInfo> traceInfos = myLegacyProfiler.getTraceInfo(request);
+      responseObserver.onNext(GetTraceInfoResponse.newBuilder().addAllTraceInfo(traceInfos).build());
+    }
+    else {
+      // Post-O tracing - goes straight to daemon.
+      responseObserver.onNext(myServiceStub.getTraceInfo(request));
+    }
+    responseObserver.onCompleted();
+  }
+
   @Override
   public ServerServiceDefinition getServiceDefinition() {
     Map<MethodDescriptor, ServerCallHandler> overrides = new HashMap<>();
@@ -117,6 +132,10 @@ public class CpuServiceProxy extends ServiceProxy {
     overrides.put(CpuServiceGrpc.METHOD_CHECK_APP_PROFILING_STATE,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     checkAppProfilingState((ProfilingStateRequest)request, (StreamObserver)observer);
+                  }));
+    overrides.put(CpuServiceGrpc.METHOD_GET_TRACE_INFO,
+                  ServerCalls.asyncUnaryCall((request, observer) -> {
+                    getTraceInfo((GetTraceInfoRequest)request, (StreamObserver)observer);
                   }));
 
     return generatePassThroughDefinitions(overrides, myServiceStub);

@@ -236,7 +236,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
       .that(assembleDebug.isBuildSuccessful).isTrue()
 
     val syncState = GradleSyncState.getInstance(projectRule.project)
-    assertThat(syncState.isSyncNeeded.toBoolean()).isFalse()
+    assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
     assertThat(parameters.mode).isEqualTo(ModuleDataBinding.getInstance(projectRule.androidFacet).dataBindingMode)
 
     // trigger initialization

@@ -69,8 +69,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ConstraintAnchorTarget extends AnchorTarget {
 
-  private final Type myType;
-
   private boolean myRenderingTemporaryConnection = false;
   @AndroidDpCoordinate private int myConnectedX = -1;
   @AndroidDpCoordinate private int myConnectedY = -1;
@@ -83,7 +81,6 @@ public class ConstraintAnchorTarget extends AnchorTarget {
 
   public ConstraintAnchorTarget(@NotNull Type type, boolean isEdge) {
     super(type, isEdge);
-    myType = type;
   }
 
   //endregion
@@ -766,13 +763,22 @@ public class ConstraintAnchorTarget extends AnchorTarget {
           }
         }
         if (!allItems.isEmpty()) {
+          AnchorTarget.Type typeToConnect = myType;
           JBPopupMenu menu = new JBPopupMenu("Connect to:");
+          if (isRtl()) {
+            if (typeToConnect == Type.LEFT) {
+              typeToConnect = Type.RIGHT;
+            }
+            else if (typeToConnect == Type.RIGHT) {
+              typeToConnect = Type.LEFT;
+            }
+          }
           for (SceneComponent component : allItems) {
             list.set(1, component.getAuthoritativeNlComponent());
-            switch (myType) {
+            switch (typeToConnect) {
               case LEFT:
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToStart, "start ", " start", CONSTRAIN_START_TO_START);
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToEnd, "end ", " start", CONSTRAIN_START_TO_END);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToStart, "Start ", " start", CONSTRAIN_START_TO_START);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToEnd, "Start ", " end", CONSTRAIN_START_TO_END);
                 break;
               case RIGHT:
                 addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToStart, "End ", " start", CONSTRAIN_END_TO_START);
@@ -875,7 +881,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
                               String to,
                               Icon icon) {
     if (Scout.connectCheck(list, type, false)) {
-      menu.add(new ConnectMenu(allItems, myComponent, from, component, to, icon, type));
+      menu.add(new ConnectMenu(allItems, myComponent, from, component, to, icon, type, isRtl()));
     }
   }
 
@@ -890,14 +896,14 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     public ConnectMenu(List<SceneComponent> allItems,
                        SceneComponent src,
                        String from,
-                       SceneComponent dest, String text, Icon icon, Scout.Connect type) {
-      super(from + " to " + dest.getId() + text, icon);
+                       SceneComponent dest, String text, Icon icon, Scout.Connect type, boolean isRtl) {
+      super(from + "to " + dest.getId() + text, icon);
       mAllItems = allItems;
       mySrc = src;
       myDest = dest;
       myType = type;
       for (Target target : myDest.getTargets()) {
-        if (target instanceof AnchorTarget && ((AnchorTarget)target).getType() == myType.getDstAnchorType()) {
+        if (target instanceof AnchorTarget && ((AnchorTarget)target).getType() == myType.getDstAnchorType(isRtl)) {
           myDestTarget = (AnchorTarget)target;
         }
       }

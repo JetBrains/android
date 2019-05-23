@@ -125,6 +125,23 @@ class PTableImplTest {
   }
 
   @Test
+  fun testFilterWithParentMatch() {
+    table!!.filter = "eis"
+    assertThat(table!!.rowCount).isEqualTo(1)
+    assertThat(table!!.item(0).name).isEqualTo("weiss")
+  }
+
+  @Test
+  fun testFilterWithExpandedParentMatch() {
+    table!!.filter = "eis"
+    table!!.model.expand(4)
+    assertThat(table!!.rowCount).isEqualTo(3)
+    assertThat(table!!.item(0).name).isEqualTo("weiss")
+    assertThat(table!!.item(1).name).isEqualTo("siphon")
+    assertThat(table!!.item(2).name).isEqualTo("extra")
+  }
+
+  @Test
   fun testHomeNavigation() {
     table!!.model.expand(3)
     table!!.setRowSelectionInterval(4, 4)

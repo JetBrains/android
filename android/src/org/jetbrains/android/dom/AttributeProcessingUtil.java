@@ -50,7 +50,6 @@ import static com.android.SdkConstants.CLASS_NESTED_SCROLL_VIEW;
 import static com.android.SdkConstants.CLASS_PERCENT_FRAME_LAYOUT;
 import static com.android.SdkConstants.CLASS_PERCENT_RELATIVE_LAYOUT;
 import static com.android.SdkConstants.CLASS_PREFERENCE;
-import static com.android.SdkConstants.CLASS_PREFERENCE_ANDROIDX;
 import static com.android.SdkConstants.CLASS_VIEWGROUP;
 import static com.android.SdkConstants.FQCN_GRID_LAYOUT_V7;
 import static com.android.SdkConstants.GRID_LAYOUT;
@@ -362,11 +361,8 @@ public class AttributeProcessingUtil {
 
     // Handle preferences:
     Map<String, PsiClass> prefClassMap;
-    if (AndroidXmlResourcesUtil.isAndroidXPreferenceFile(tag, facet)) {
-      prefClassMap = getAndroidXPreferencesClassMap(facet);
-    } else {
-      prefClassMap = getFrameworkPreferencesClassMap(facet);
-    }
+    AndroidXmlResourcesUtil.PreferenceSource preferenceSource = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet);
+    prefClassMap = getClassMap(facet, preferenceSource.getQualifiedBaseClass());
     PsiClass psiClass = prefClassMap.get(tagName);
     if (psiClass == null) {
       return;
@@ -388,32 +384,23 @@ public class AttributeProcessingUtil {
     }
   }
 
-  public static Map<String, PsiClass> getAndroidXPreferencesClassMap(AndroidFacet facet) {
+  public static Map<String, PsiClass> getClassMap(AndroidFacet facet, String qualifiedClassName) {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
     }
-    return TagToClassMapper.getInstance(facet.getModule()).getAndroidXClassMap(CLASS_PREFERENCE_ANDROIDX);
-
+    return TagToClassMapper.getInstance(facet.getModule()).getClassMap(qualifiedClassName);
   }
 
   public static Map<String, PsiClass> getFrameworkPreferencesClassMap(AndroidFacet facet) {
-    return getFrameworkClassMap(facet, CLASS_PREFERENCE);
+    return getClassMap(facet, CLASS_PREFERENCE);
   }
 
   public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
-    return getFrameworkClassMap(facet, VIEW_CLASS_NAME);
+    return getClassMap(facet, VIEW_CLASS_NAME);
   }
 
   public static Map<String, PsiClass> getViewGroupClassMap(@NotNull AndroidFacet facet) {
-    return getFrameworkClassMap(facet, CLASS_VIEWGROUP);
-  }
-
-  private static Map<String, PsiClass> getFrameworkClassMap(@NotNull AndroidFacet facet,
-                                                            @NotNull String frameworkClass) {
-    if (DumbService.isDumb(facet.getModule().getProject())) {
-      return Collections.emptyMap();
-    }
-    return TagToClassMapper.getInstance(facet.getModule()).getFrameworkClassMap(frameworkClass);
+    return getClassMap(facet, CLASS_VIEWGROUP);
   }
 
   /**

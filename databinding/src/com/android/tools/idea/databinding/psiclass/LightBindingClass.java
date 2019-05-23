@@ -28,6 +28,7 @@ import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.*;
@@ -444,10 +445,8 @@ public class LightBindingClass extends AndroidLightClassBase {
     }
 
     @Override
-    @Nullable
-    public PsiFile getContainingFile() {
-      PsiClass containingClass = super.getContainingClass();
-      return containingClass.getContainingFile();
+    public TextRange getTextRange() {
+      return TextRange.EMPTY_RANGE;
     }
 
     @NotNull
@@ -481,6 +480,11 @@ public class LightBindingClass extends AndroidLightClassBase {
     public PsiFile getContainingFile() {
       PsiClass containingClass = super.getContainingClass();
       return containingClass == null ? null : containingClass.getContainingFile();
+    }
+
+    @Override
+    public TextRange getTextRange() {
+      return TextRange.EMPTY_RANGE;
     }
 
     @Override

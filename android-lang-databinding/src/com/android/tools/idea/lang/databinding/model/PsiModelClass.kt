@@ -25,7 +25,6 @@ import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.MethodSignatureUtil
 import java.util.ArrayList
-import java.util.Arrays
 
 /**
  * PSI wrapper around class types that additionally expose information particularly useful in data binding expressions.
@@ -89,7 +88,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * Returns the list of fields in the class and all its superclasses.
    */
   val allFields: List<PsiModelField>
-    get() = (type as? PsiClassType)?.resolve()?.allFields?.map { PsiModelField(it) } ?: listOf()
+    get() = (type as? PsiClassType)?.resolve()?.allFields?.map { PsiModelField(this, it) } ?: listOf()
 
   /**
    * Returns the list of methods in the class and all its superclasses.
@@ -105,18 +104,27 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
       while (psiClass != null) {
         val newMethods = psiClass.methods.filter {
           // Only keep the methods that do not have equivalents in the result set with same name and signatures.
-          newMethod -> methods.none { it.name == newMethod.name && MethodSignatureUtil.areOverrideEquivalent(it.psiMethod, newMethod) }
+          newMethod ->
+          methods.none { it.name == newMethod.name && MethodSignatureUtil.areOverrideEquivalent(it.psiMethod, newMethod) }
         }
-        methods.addAll(newMethods.map { PsiModelMethod(it, mode) })
+        methods.addAll(newMethods.map { PsiModelMethod(this, it) })
         psiClass = psiClass.superClass
       }
       return methods
     }
 
   /**
-   * Returns the PsiSubstitutor which can be used to resolve generic types.
+   * Returns the [PsiSubstitutor] which can be used to resolve generic types.
    */
-  val substitutor = (type as? PsiClassType)?.resolveGenerics()?.substitutor ?: PsiSubstitutor.EMPTY
+  val substitutor: PsiSubstitutor
+    get() {
+      // Create the substitutor for this class
+      val localSubstitutor = (type as? PsiClassType)?.resolveGenerics()?.substitutor ?: PsiSubstitutor.EMPTY
+      // Find the superType for its base class
+      val superType = type.superTypes.firstOrNull { (it as? PsiClassType)?.resolve()?.isInterface == false } ?: return localSubstitutor
+      // Combine the substitutors for this class and its base class
+      return PsiModelClass(superType, mode).substitutor.putAll(localSubstitutor)
+    }
 
   /**
    * Returns true if this is an ObservableField, or any of the primitive versions
@@ -162,13 +170,11 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * see [isLiveData], [isObservableField]
    */
   val unwrapped: PsiModelClass
-    get() = observableGetterName?.let {
-      if (isGeneric)
-      // For Generics (LiveData<T>, ObservableField<T>, ObservableParcelable<T>), return its type parameter
-        typeArguments[0].unwrapped
-      else
-      // For Non-Generics (ObservableInt, ObservableChar etc.) return the returnType of its getter method
-        getMethod("get", listOf(), staticOnly = false, allowProtected = false)?.returnType?.unwrapped
+    get() = observableGetterName?.let { name ->
+      // Find the return type of getter function from LiveData/ObservableField
+      val getterTypeModelClass = getMethod(name, listOf(), staticOnly = false, allowProtected = false)?.returnType ?: return this
+      // Recursively unwrap the getter type
+      PsiModelClass(getterTypeModelClass.type, mode).unwrapped
     } ?: this
 
   /**

@@ -1,5 +1,7 @@
 PROJECT             : testNestedModule
     MODULE              : app
+        - ModuleGroupPath   : testNestedModule
+        - ModuleGroupPath   : app
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -45,8 +47,8 @@ PROJECT             : testNestedModule
             JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
@@ -448,6 +450,7 @@ PROJECT             : testNestedModule
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
         ORDER_ENTRY         : testNestedModule
     MODULE              : testNestedModule
+        - ModuleGroupPath   : testNestedModule
         LinkedProjectId     : testNestedModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

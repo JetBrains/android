@@ -19,15 +19,14 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.ui.HideablePanel
-import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.StudioProfilers
@@ -47,11 +46,12 @@ import javax.swing.JLabel
 class CpuKernelsViewTest {
   private val timer = FakeTimer()
   private val cpuService = FakeCpuService()
+  private val transportService = FakeTransportService(timer)
 
   @Rule
   @JvmField
   var grpcChannel = FakeGrpcChannel("CpuKernelsViewTest", cpuService,
-                                    FakeTransportService(timer), FakeProfilerService(timer),
+                                    transportService, FakeProfilerService(timer),
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
   private lateinit var stage: CpuProfilerStage
@@ -108,14 +108,13 @@ class CpuKernelsViewTest {
     val kernelsView = CpuKernelsView(stage)
 
     stage.studioProfilers.stage = stage
-    cpuService.apply {
-      traceType = Cpu.CpuTraceType.ATRACE
-      setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
-      setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
-    }
-    stage.setAndSelectCapture(0)
-    // One second is enough for the models to be updated.
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    CpuProfilerTestUtils.captureSuccessfully(
+      stage,
+      cpuService,
+      transportService,
+      0,
+      Cpu.CpuTraceType.ATRACE,
+      CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
     stage.studioProfilers.timeline.viewRange.set(stage.capture!!.range)
 
     val hideablePanel = TreeWalker(kernelsView.component).ancestors().filterIsInstance<HideablePanel>().first()

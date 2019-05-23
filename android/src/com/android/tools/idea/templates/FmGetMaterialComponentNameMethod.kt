@@ -16,7 +16,11 @@
 package com.android.tools.idea.templates
 
 import com.android.support.AndroidxNameUtils
-import freemarker.template.*
+import freemarker.template.SimpleScalar
+import freemarker.template.TemplateBooleanModel
+import freemarker.template.TemplateMethodModelEx
+import freemarker.template.TemplateModel
+import freemarker.template.TemplateModelException
 
 /**
  * Method invoked by FreeMarker to compute the mapping for material components naming.
@@ -32,16 +36,13 @@ import freemarker.template.*
  * otherwise "android.support.design.widget.FloatingActionButton"
  */
 class FmGetMaterialComponentNameMethod : TemplateMethodModelEx {
-
-  @Throws(TemplateModelException::class)
   override fun exec(args: List<*>): TemplateModel {
     if (args.size != 2) {
       throw TemplateModelException("Wrong arguments")
     }
 
-    val oldName = (args[0] as TemplateScalarModel).asString
-    val useMaterial2 = (args[1] as TemplateBooleanModel).asBoolean
-    return when (useMaterial2) {
+    val oldName = args[0].toString()
+    return when ((args[1] as TemplateBooleanModel).asBoolean) {
       true -> SimpleScalar(AndroidxNameUtils.getNewName(oldName))
       else -> SimpleScalar(oldName)
     }

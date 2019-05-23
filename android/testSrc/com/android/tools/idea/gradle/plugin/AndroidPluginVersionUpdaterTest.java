@@ -62,7 +62,7 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.pluginVersionUpdated();
     myVersionUpdater.handleUpdateResult(result);
-    verify(mySyncState, never()).syncEnded();
+    verify(mySyncState, never()).syncSucceeded();
   }
 
   public void testHandleUpdateResultWithPluginUpdateErrorAndInvalidatingSync() {
@@ -126,7 +126,7 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
     request.cleanProject = true;
 
-    verify(mySyncState, verificationMode).syncEnded();
+    verify(mySyncState, verificationMode).syncSucceeded();
     verify(mySyncInvoker, verificationMode).requestProjectSync(myProject, request);
   }
 

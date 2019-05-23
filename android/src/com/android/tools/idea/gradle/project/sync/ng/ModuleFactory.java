@@ -18,11 +18,14 @@ package com.android.tools.idea.gradle.project.sync.ng;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
+import com.intellij.openapi.util.text.StringUtil;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
+import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -44,6 +47,26 @@ class ModuleFactory {
     myModelsProvider = modelsProvider;
   }
 
+  // This methods implements the same behavior as BaseGradleProjectResolverExtension.getIdeModuleGroup.
+  @NotNull
+  private static String[] getIdeModuleGroup(String moduleName, GradleProject gradleModule) {
+    // First find the root project name.
+    GradleProject project = gradleModule;
+    String rootName;
+    do {
+      rootName = project.getName();
+      project = project.getParent();
+    }
+    while (project != null);
+
+    // Build the resulting groups.
+    String gradlePath = gradleModule.getPath();
+    boolean isRootModule = StringUtil.isEmpty(gradlePath) || ":".equals(gradlePath);
+    return isRootModule
+           ? new String[]{moduleName}
+           : (rootName + gradlePath).split(":");
+  }
+
   @NotNull
   Module createModule(@NotNull GradleModuleModels moduleModels) {
     GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
@@ -52,6 +75,8 @@ class ModuleFactory {
 
     Module newModule = myModelsProvider.newModule(imlFilePath.getPath(), StdModuleTypes.JAVA.getId());
     newModule.setOption(EXTERNAL_SYSTEM_ID_KEY, GRADLE_SYSTEM_ID.getId()); // Identifies a module as a "Gradle" module.
+    myModelsProvider.getModifiableModuleModel()
+      .setModuleGroupPath(newModule, getIdeModuleGroup(moduleModels.getModuleName(), gradleProject));
 
     ModifiableRootModel rootModel = myModelsProvider.getModifiableRootModel(newModule);
     rootModel.inheritSdk();

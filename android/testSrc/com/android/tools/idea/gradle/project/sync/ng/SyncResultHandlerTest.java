@@ -90,7 +90,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
 
     verify(mySyncState).syncFailed("Test error", error, mySyncListener);
     verify(mySyncState, never()).setupStarted();
-    verify(mySyncState, never()).syncEnded();
+    verify(mySyncState, never()).syncSucceeded();
   }
 
   public void testOnVariantOnlySyncFinished() {

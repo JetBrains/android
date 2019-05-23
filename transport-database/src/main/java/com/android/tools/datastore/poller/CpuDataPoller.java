@@ -22,9 +22,6 @@ import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.StatusRuntimeException;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -114,37 +111,10 @@ public class CpuDataPoller extends PollRunner {
       .newBuilder().setSession(mySession).setFromTimestamp(myTraceInfoRequestStartTimestampNs).setToTimestamp(Long.MAX_VALUE);
     CpuProfiler.GetTraceInfoResponse traceInfoResponse = myPollingService.getTraceInfo(traceInfoRequest.build());
     for (Cpu.CpuTraceInfo traceInfo : traceInfoResponse.getTraceInfoList()) {
-      if (traceInfo.getInitiationType().equals(Cpu.TraceInitiationType.INITIATED_BY_API)) {
-        // Insert trace content before inserting trace info. Because once the consumer of datastore (CpuProfilerStage) sees a
-        // trace info, it may decide to automatically set and select it which requires the content is in the datastore.
-        CpuProfiler.GetTraceRequest.Builder traceRequest =
-          CpuProfiler.GetTraceRequest.newBuilder().setSession(mySession).setTraceId(traceInfo.getTraceId());
-        CpuProfiler.GetTraceResponse traceResponse = myPollingService.getTrace(traceRequest.build());
-        // (b/120264801) Temp fix for exporting API initiated traces. Exporting traces assumes traces come from a file. This step copies the
-        // raw trace data to a temp file, then updates the trace info to point to the file. This allows export to copy the temp file to
-        // the user specified location.
-        File tempTraceFile =
-          new File(String.format("%s/cpu_automated_trace_%d.trace", System.getProperty("java.io.tmpdir"), traceInfo.getTraceId()));
-        tempTraceFile.deleteOnExit();
-        try (FileOutputStream out = new FileOutputStream(tempTraceFile)) {
-          out.write(traceResponse.getData().toByteArray());
-        }
-        catch (IOException ex) {
-          myLogService.getLogger(CpuDataPoller.class).warn("Failed to create temp file for automated trace.");
-        }
-        myCpuTable.insertTrace(
-          mySession, traceInfo.getTraceId(), traceResponse.getTraceType(), traceResponse.getTraceMode(), traceResponse.getData());
-        // TODO(b/74358723): Revisit the logic to insert data into datastore.
-        // Note the traceInfo returned by perfd is preliminary. For example, the start and end timestamps
-        // are set when those events are perceived by perfd including the time spent by perfa waiting for the trace to
-        // complete. They may be visibly different from the range inferred from trace content. When we work on b/74358723,
-        // the trace will be automatically selected, and we will parse the trace right away. In that case, we should insert
-        // the accurate traceInfo.
-        Cpu.CpuTraceInfo updatedTraceInfo = traceInfo.toBuilder().setTraceFilePath(tempTraceFile.getAbsolutePath()).build();
-        myCpuTable.insertTraceInfo(mySession, updatedTraceInfo);
-      }
+      myCpuTable.insertTraceInfo(mySession, traceInfo);
+      myTraceInfoRequestStartTimestampNs =
+        Math.max(myTraceInfoRequestStartTimestampNs, Math.max(traceInfo.getFromTimestamp(), traceInfo.getToTimestamp()));
     }
-    myTraceInfoRequestStartTimestampNs = traceInfoResponse.getResponseTimestamp();
 
     myDataRequestStartTimestampNs = Math.max(Math.max(myDataRequestStartTimestampNs + 1, getDataStartNs), getThreadsStartNs);
   }

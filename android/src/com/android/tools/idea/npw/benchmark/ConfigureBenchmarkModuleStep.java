@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.npw.benchmark;
 
+import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
+import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.npw.module.AndroidApiLevelComboBox;
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.DomainToPackageExpression;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
@@ -37,6 +43,7 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
+import java.util.List;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -45,18 +52,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ConfigureBenchmarkModuleStep extends SkippableWizardStep<NewBenchmarkModuleModel> {
-  @NotNull private final StudioWizardStepPanel myRootPanel;
-  @NotNull private ValidatorPanel myValidatorPanel;
+  private final AndroidVersionsInfo myAndroidVersionsInfo = new AndroidVersionsInfo();
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
+
+  @NotNull private final StudioWizardStepPanel myRootPanel;
+  @NotNull private final ValidatorPanel myValidatorPanel;
+  private final int myMinSdkLevel;
 
   private JPanel myPanel;
   private JTextField myModuleName;
   private LabelWithEditButton myPackageName;
   private JComboBox<Language> myLanguageComboBox;
+  private AndroidApiLevelComboBox myApiLevelComboBox;
 
-  public ConfigureBenchmarkModuleStep(@NotNull NewBenchmarkModuleModel model, String title) {
+  public ConfigureBenchmarkModuleStep(@NotNull NewBenchmarkModuleModel model, @NotNull String title, int minSdkLevel) {
     super(model, title);
+
+    myMinSdkLevel = minSdkLevel;
 
     TextProperty moduleNameText = new TextProperty(myModuleName);
     TextProperty packageNameText = new TextProperty(myPackageName);
@@ -77,6 +90,19 @@ public class ConfigureBenchmarkModuleStep extends SkippableWizardStep<NewBenchma
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myBindings.bind(model.packageName(), packageNameText);
     myBindings.bindTwoWay(language, model.language());
+
+    myBindings.bind(model.minSdk(), new SelectedItemProperty<>(myApiLevelComboBox));
+    myValidatorPanel.registerValidator(model.minSdk(), value -> {
+      if (!value.isPresent()) {
+        return new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text"));
+      }
+
+      if (value.get().getTargetApiLevel() >= AndroidVersion.VersionCodes.Q && !isAndroidx(model.getProject())) {
+        return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.module.needs.androidx"));
+      }
+
+      return Validator.Result.OK;
+    });
 
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
@@ -102,13 +128,25 @@ public class ConfigureBenchmarkModuleStep extends SkippableWizardStep<NewBenchma
     return myPackageName;
   }
 
-  private void createUIComponents() {
-    myLanguageComboBox = new LanguageComboProvider().createComponent();
-  }
-
   @Override
   public void dispose() {
     myBindings.releaseAll();
     myListeners.releaseAll();
+  }
+
+  @Override
+  protected void onEntering() {
+    myAndroidVersionsInfo.loadLocalVersions();
+
+    // Pre-populate
+    List<AndroidVersionsInfo.VersionItem> versions = myAndroidVersionsInfo.getKnownTargetVersions(MOBILE, myMinSdkLevel);
+    myApiLevelComboBox.init(MOBILE, versions);
+
+    myAndroidVersionsInfo.loadRemoteTargetVersions(MOBILE, myMinSdkLevel, items -> myApiLevelComboBox.init(MOBILE, items));
+  }
+
+  private void createUIComponents() {
+    myLanguageComboBox = new LanguageComboProvider().createComponent();
+    myApiLevelComboBox = new AndroidApiLevelComboBox();
   }
 }

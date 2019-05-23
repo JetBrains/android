@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SnappingInfo
 import java.awt.Point
 
 const val SIZE = 8
@@ -56,13 +57,11 @@ object LinearPlaceholderFactory {
   ): LinearPlaceholder(host, anchor) {
     override val region = Region(left, snappedY - SIZE, right, snappedY + SIZE, host.depth)
 
-    override fun snap(left: Int, top: Int, right: Int, bottom: Int, retPoint: Point): Boolean {
-      val centerX = (left + right) / 2
-      val centerY = (top + bottom) / 2
+    override fun snap(info: SnappingInfo, retPoint: Point): Boolean {
       val r = region
-      if (centerX in r.left..r.right && centerY in r.top..r.bottom) {
-        retPoint.x = left
-        retPoint.y = snappedY - (centerY - top)
+      if (r.contains(info.centerX, info.centerY)) {
+        retPoint.x = info.left
+        retPoint.y = snappedY - (info.centerY - info.top)
         return true
       }
       return false
@@ -77,13 +76,11 @@ object LinearPlaceholderFactory {
   ) : LinearPlaceholder(host, anchor) {
     override val region = Region(snappedX - SIZE, top, snappedX + SIZE, bottom, host.depth)
 
-    override fun snap(left: Int, top: Int, right: Int, bottom: Int, retPoint: Point): Boolean {
-      val centerX = (left + right) / 2
-      val centerY = (top + bottom) / 2
+    override fun snap(info: SnappingInfo, retPoint: Point): Boolean {
       val r = region
-      if (centerX in r.left..r.right && centerY in r.top..r.bottom) {
-        retPoint.x = snappedX - (centerX - left)
-        retPoint.y = top
+      if (r.contains(info.centerX, info.centerY)) {
+        retPoint.x = snappedX - (info.centerX - info.left)
+        retPoint.y = info.top
         return true
       }
       return false

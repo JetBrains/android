@@ -76,7 +76,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
     assertTrue(StringUtil.join(assembleDebug.getCompilerMessages(Message.Kind.ERROR), "\n"), assembleDebug.isBuildSuccessful)
 
     val syncState = GradleSyncState.getInstance(myProjectRule.project)
-    assertFalse(syncState.isSyncNeeded.toBoolean())
+    assertFalse(syncState.isSyncNeeded().toBoolean())
     assertEquals(ModuleDataBinding.getInstance(myProjectRule.androidFacet).dataBindingMode,
                  dataBindingMode)
 

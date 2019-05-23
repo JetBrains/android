@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.linear
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
@@ -60,7 +61,7 @@ class LinearPlaceholderTest : SceneTest() {
     val bottom = top + textView1.drawHeight
 
     val p = Point()
-    placeholder.snap(left, top, right, bottom, p)
+    placeholder.snap(SnappingInfo(left, top, right, bottom), p)
     val distance = p.distance(left.toDouble(), top.toDouble())
     assertEquals(left + 5, p.x)
     assertEquals(top, p.y)
@@ -170,7 +171,7 @@ class LinearPlaceholderTest : SceneTest() {
     val top = 50
 
     val p = Point()
-    val snappedPlaceholders = placeholders.filter { it.snap(left, top, left + 50, top + 50, p) }.toList()
+    val snappedPlaceholders = placeholders.filter { it.snap(SnappingInfo(left, top, left + 50, top + 50), p) }.toList()
 
     assertSize(1, snappedPlaceholders)
     assertInstanceOf(snappedPlaceholders[0], ViewGroupPlaceholder::class.java)

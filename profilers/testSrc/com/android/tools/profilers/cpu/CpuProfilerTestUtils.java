@@ -15,11 +15,20 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.testutils.TestUtils;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -75,5 +84,133 @@ public class CpuProfilerTestUtils {
   public static CpuCapture getCapture(ByteString traceBytes, CpuTraceType profilerType) throws ExecutionException, InterruptedException {
     CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
     return parser.parse(ProfilersTestData.SESSION_DATA, FakeCpuService.FAKE_TRACE_ID, traceBytes, profilerType).get();
+  }
+
+  static CountDownLatch waitForProfilingStateChangeSequence(CpuProfilerStage stage, CpuProfilerStage.CaptureState... profilingStates) {
+    AspectObserver profilingStateObserver = new AspectObserver();
+    // We expect one state change going to STARTING
+    CountDownLatch latch = new CountDownLatch(profilingStates.length);
+    stage.getAspect().addDependency(profilingStateObserver).onChange(CpuProfilerAspect.CAPTURE_STATE, () -> {
+      assertThat(stage.getCaptureState()).isEqualTo(profilingStates[profilingStates.length - (int)latch.getCount()]);
+      latch.countDown();
+      // We are done listening to the input change sequence, remove the observer.
+      if (latch.getCount() == 0) {
+        stage.getAspect().removeDependencies(profilingStateObserver);
+      }
+    });
+
+    return latch;
+  }
+
+  static CountDownLatch waitForParsingStartFinish(CpuProfilerStage stage) {
+    AspectObserver parsingObserver = new AspectObserver();
+    CountDownLatch parsingLatch = new CountDownLatch(2);
+    stage.getCaptureParser().getAspect().addDependency(parsingObserver).onChange(CpuProfilerAspect.CAPTURE_PARSING, () -> {
+      if (parsingLatch.getCount() == 2) {
+        assertThat(stage.getCaptureParser().isParsing()).isTrue();
+      }
+      else {
+        assertThat(stage.getCaptureParser().isParsing()).isFalse();
+      }
+      parsingLatch.countDown();
+      if (parsingLatch.getCount() == 0) {
+        stage.getCaptureParser().getAspect().removeDependencies(parsingObserver);
+      }
+    });
+
+    return parsingLatch;
+  }
+
+  /**
+   * Convenience method for starting, stopping, and parsing a capture successfully.
+   */
+  static void captureSuccessfully(CpuProfilerStage stage,
+                                  FakeCpuService cpuService,
+                                  FakeTransportService transportService,
+                                  long traceId,
+                                  CpuTraceType traceType,
+                                  ByteString traceContent) throws InterruptedException {
+    // Start a successful capture
+    startCapturing(stage, cpuService, true);
+    stopCapturing(stage, cpuService, transportService, true, traceId, traceType, traceContent);
+    assertThat(stage.getCapture()).isNotNull();
+  }
+
+  /**
+   * This is a convenience method to start a capture successfully.
+   * It sets and checks all the necessary states in the service and call {@link CpuProfilerStage#startCapturing}.
+   */
+  static void startCapturing(CpuProfilerStage stage, FakeCpuService service, boolean success) throws InterruptedException {
+    assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+    service.setStartProfilingStatus(success
+                                    ? com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS
+                                    : CpuProfiler.CpuProfilingAppStartResponse.Status.FAILURE);
+    CountDownLatch latch;
+    if (success) {
+      latch = waitForProfilingStateChangeSequence(stage, CpuProfilerStage.CaptureState.STARTING, CpuProfilerStage.CaptureState.CAPTURING);
+    }
+    else {
+      latch = waitForProfilingStateChangeSequence(stage, CpuProfilerStage.CaptureState.STARTING, CpuProfilerStage.CaptureState.IDLE);
+    }
+    stage.startCapturing();
+    latch.await();
+  }
+
+  /**
+   * This is a convenience method to checking the stopping and selecting (if successful) of a capture. Also, it verifies the
+   * {@link CpuCaptureParser} is parsing the capture after we stop capturing.
+   */
+  static void stopCapturing(CpuProfilerStage stage,
+                            FakeCpuService cpuService,
+                            FakeTransportService transportService,
+                            boolean success,
+                            long traceId,
+                            CpuTraceType traceType,
+                            ByteString traceContent)
+    throws InterruptedException {
+    // Trace id is needed for the stop response.
+    cpuService.setTraceId(traceId);
+    cpuService.setStopProfilingStatus(success
+                                      ? CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS
+                                      : CpuProfiler.CpuProfilingAppStopResponse.Status.STOP_COMMAND_FAILED);
+
+    // Wait for the stop request to finish and the CpuProfilerStage calls back on the main thread.
+    // TODO: this is currently dependent on the implementation that the stopCapturingCallback is invoked via the main thread, we should
+    // investigate if there is a better way to wait based on state changes.
+    CountDownLatch stopLatch = new CountDownLatch(1);
+    ((FakeIdeProfilerServices)stage.getStudioProfilers().getIdeServices()).setOnExecute(() -> {
+      stopLatch.countDown();
+    });
+    stage.stopCapturing();
+    stopLatch.await();
+
+    // If the capture is unsuccessful, stage goes back to IDLE, otherwise STOPPING and wait for the incoming TraceInfo.
+    if (!success) {
+      assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+      assertThat(stage.getCapture()).isNull();
+    }
+    else {
+      assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.STOPPING);
+
+      // Inserts a trace info object, which the stage will see on the next time update and go through the parsing logic
+      Cpu.CpuTraceInfo traceInfo = Cpu.CpuTraceInfo.newBuilder()
+        .setTraceId(traceId)
+        .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(traceId))
+        .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(traceId + 1))
+        .setTraceType(traceType)
+        .build();
+      cpuService.addTraceInfo(traceInfo);
+      transportService.addFile(Long.toString(traceId), traceContent);
+
+      // If the trace is empty, then parsing will not happen.
+      if (traceContent.isEmpty()) {
+        stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
+      }
+      else {
+        CountDownLatch parsingLatch = waitForParsingStartFinish(stage);
+        stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
+        parsingLatch.countDown();
+      }
+    }
   }
 }

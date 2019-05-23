@@ -784,7 +784,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       ResourceNamespace namespace = ResourceNamespace.fromPackageName(LIBRARY_PACKAGE);
       long start = System.currentTimeMillis();
       AarSourceResourceRepository fromSources =
-          AarSourceResourceRepository.createForTest(myAarFolder.resolve(SdkConstants.FD_RES).toFile(), namespace, LIBRARY_NAME);
+          AarSourceResourceRepository.createForTest(myAarFolder.resolve(SdkConstants.FD_RES), namespace, LIBRARY_NAME);
       loadTimeFromSources += System.currentTimeMillis() - start;
       start = System.currentTimeMillis();
       AarProtoResourceRepository fromResApk =

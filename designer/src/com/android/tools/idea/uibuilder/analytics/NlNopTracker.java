@@ -28,18 +28,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * No-op tracker used when stats tracking is disabled
+ * No-op tracker used when stats tracking is disabled.
  */
 class NlNopTracker implements NlUsageTracker {
-  @Override
-  public void logAction(@NotNull LayoutEditorEvent.LayoutEditorEventType eventType) {
-  }
-
-  @Override
-  public void logRenderResult(@Nullable LayoutEditorRenderResult.Trigger trigger, @NotNull RenderResult result, long totalRenderTimeMs) {
-  }
-
-
   @Override
   public void logDropFromPalette(@NotNull String viewTagName,
                                  @NotNull String representation,

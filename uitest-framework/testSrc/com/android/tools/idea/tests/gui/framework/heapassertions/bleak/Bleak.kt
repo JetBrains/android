@@ -53,17 +53,22 @@ private fun Signature.isWhitelisted(): Boolean =
 
   // don't report growing weak maps. Nodes whose weak referents have been GC'd will be removed from the map during some future map operation.
   entry(-3) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" && lastType() == "[Ljava.util.concurrent.ConcurrentHashMap\$Node;" ||
+  entry(-3) == "com.intellij.util.containers.ConcurrentWeakKeyWeakValueHashMap#myMap" ||
   entry(-3) == "com.intellij.util.containers.WeakHashMap#myMap" && lastType() == "[Ljava.lang.Object;" ||
 
+  entry(-4) == "com.android.tools.idea.configurations.ConfigurationManager#myCache" ||
   entry(-4) == "com.maddyhome.idea.copyright.util.NewFileTracker#newFiles" || // b/126417715
   entry(-3) == "com.intellij.openapi.vfs.newvfs.impl.VfsData\$Segment#myObjectArray" ||
   entry(-4) == "com.intellij.openapi.vcs.impl.FileStatusManagerImpl#myCachedStatuses" ||
   entry(-4) == "com.intellij.util.indexing.VfsAwareMapIndexStorage#myCache" ||
+  entry(-3) == "com.intellij.util.indexing.IndexingStamp#myTimestampsCache" ||
+  entry(-3) == "com.intellij.util.indexing.IndexingStamp#ourFinishedFiles" ||
   entry(-3) == "com.intellij.openapi.fileEditor.impl.EditorWindow#myRemovedTabs" ||
   entry(-3) == "com.intellij.notification.EventLog\$ProjectTracker#myInitial" ||
   entry(2) == "sun.java2d.Disposer#records" ||
   entry(2) == "sun.java2d.marlin.OffHeapArray#REF_LIST" ||
-  entry(2) == "sun.awt.X11.XInputMethod#lastXICFocussedComponent" // b/126447315
+  entry(2) == "sun.awt.X11.XInputMethod#lastXICFocussedComponent" || // b/126447315
+  entry(-3) == "sun.font.XRGlyphCache#cacheMap"
 
 // "Troublesome" signatures are whitelisted as well, but are removed from the set of leak roots before leakShare is determined, rather
 // than after.

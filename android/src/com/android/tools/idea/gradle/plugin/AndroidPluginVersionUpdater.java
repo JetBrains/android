@@ -97,7 +97,7 @@ public class AndroidPluginVersionUpdater {
         }
       }
       return true;
-    }, false);
+    });
     return foundPlugin[0];
   }
 
@@ -139,7 +139,7 @@ public class AndroidPluginVersionUpdater {
     else if (result.isPluginVersionUpdated() || result.isGradleVersionUpdated()) {
       // Update successful. Sync project.
       if (!mySyncState.lastSyncFailed()) {
-        mySyncState.syncEnded();
+        mySyncState.syncSucceeded();
       }
 
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED);
@@ -219,7 +219,7 @@ public class AndroidPluginVersionUpdater {
         }
       }
       return true;
-    }, false /* process composite builds */);
+    });
 
     boolean updateModels = !modelsToUpdate.isEmpty();
     if (updateModels) {

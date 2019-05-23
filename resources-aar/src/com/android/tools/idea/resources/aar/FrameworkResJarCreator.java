@@ -83,7 +83,7 @@ public class FrameworkResJarCreator {
   }
 
   private static byte[] getEncodedResources(@NotNull Path resDirectory, boolean withLocaleResources) throws IOException {
-    FrameworkResourceRepository repository = FrameworkResourceRepository.create(resDirectory, withLocaleResources, false, null);
+    FrameworkResourceRepository repository = FrameworkResourceRepository.create(resDirectory, withLocaleResources, null);
     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
     try (Base128OutputStream stream = new Base128OutputStream(byteStream)) {
       repository.writeToStream(stream);

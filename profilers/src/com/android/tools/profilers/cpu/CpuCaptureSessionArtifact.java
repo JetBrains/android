@@ -20,11 +20,8 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
-import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
-import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
-import com.android.tools.profilers.sessions.SessionsManager;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,13 +42,12 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
   public CpuCaptureSessionArtifact(@NotNull StudioProfilers profilers,
                                    @NotNull Common.Session session,
                                    @NotNull Common.SessionMetaData sessionMetaData,
-                                   @NotNull Cpu.CpuTraceInfo info,
-                                   boolean isOngoingCapture) {
+                                   @NotNull Cpu.CpuTraceInfo info) {
     myProfilers = profilers;
     mySession = session;
     mySessionMetaData = sessionMetaData;
     myInfo = info;
-    myIsOngoingCapture = isOngoingCapture;
+    myIsOngoingCapture = info.getToTimestamp() == -1;
   }
 
   @NotNull
@@ -155,7 +151,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
   @Override
   public void export(@NotNull OutputStream outputStream) {
     assert canExport();
-    CpuProfiler.saveCaptureToFile(getArtifactProto(), outputStream);
+    CpuProfiler.saveCaptureToFile(myProfilers, getArtifactProto(), outputStream);
   }
 
   private boolean isImportedSession() {
@@ -169,30 +165,17 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
       GetTraceInfoRequest.newBuilder()
         .setSession(session)
         // We need to list imported traces and their timestamps might not be within the session range, so we search for max range.
-        .setFromTimestamp(Long.MIN_VALUE)
-        .setToTimestamp(Long.MAX_VALUE)
+        .setFromTimestamp(
+          sessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL ? session.getStartTimestamp() : Long.MIN_VALUE)
+        .setToTimestamp(sessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL ? session.getEndTimestamp() : Long.MAX_VALUE)
         .build());
 
+    // TODO b/133324501 handle the case where a CpuTraceInfo is still ongoing after a session has ended.
     List<SessionArtifact> artifacts = new ArrayList<>();
     for (Cpu.CpuTraceInfo info : response.getTraceInfoList()) {
-      artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, info, false));
+      artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, info));
     }
 
-    // If there is an ongoing capture, add an artifact to represent it. If the session is not alive, there is not a capture in progress, so
-    // we don't need to bother calling the service.
-    if (SessionsManager.isSessionAlive(session)) {
-      ProfilingStateResponse profilingStateResponse =
-        profilers.getClient().getCpuClient().checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(session).build());
-
-      if (profilingStateResponse.getBeingProfiled()) {
-        Cpu.CpuTraceInfo ongoingTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-          .setTraceType(profilingStateResponse.getConfiguration().getTraceType())
-          .setTraceMode(profilingStateResponse.getConfiguration().getTraceMode())
-          .setFromTimestamp(profilingStateResponse.getStartTimestamp())
-          .build();
-        artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, ongoingTraceInfo, true));
-      }
-    }
     return artifacts;
   }
 }

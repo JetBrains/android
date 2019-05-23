@@ -1,5 +1,7 @@
 PROJECT             : testPsdDependencyDeleteModule
     MODULE              : app
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : app
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -45,8 +47,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebug/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/freeDebug/compileFreeDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/compileFreeDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/freeDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug [-]
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/free/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/free/debug [-]
@@ -387,6 +389,8 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
         ORDER_ENTRY         : mainModule
     MODULE              : jModuleK
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : jModuleK
         LinkedProjectId     : :jModuleK
         LinkedProjectPath   : <PROJECT>/jModuleK
         RootProjectPath     : <PROJECT>
@@ -459,6 +463,8 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         ORDER_ENTRY         : jModuleL
     MODULE              : jModuleL
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : jModuleL
         LinkedProjectId     : :jModuleL
         LinkedProjectPath   : <PROJECT>/jModuleL
         RootProjectPath     : <PROJECT>
@@ -495,6 +501,8 @@ PROJECT             : testPsdDependencyDeleteModule
             Name                : Gradle: lib4-1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
     MODULE              : jModuleM
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : jModuleM
         LinkedProjectId     : :jModuleM
         LinkedProjectPath   : <PROJECT>/jModuleM
         RootProjectPath     : <PROJECT>
@@ -531,6 +539,8 @@ PROJECT             : testPsdDependencyDeleteModule
             Name                : Gradle: lib4-0.9.1 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
     MODULE              : jModuleZ
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : jModuleZ
         LinkedProjectId     : :jModuleZ
         LinkedProjectPath   : <PROJECT>/jModuleZ
         RootProjectPath     : <PROJECT>
@@ -619,6 +629,8 @@ PROJECT             : testPsdDependencyDeleteModule
         ORDER_ENTRY         : jModuleL
         ORDER_ENTRY         : nestedZ
     MODULE              : mainModule
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : mainModule
         LinkedProjectId     : :mainModule
         LinkedProjectPath   : <PROJECT>/mainModule
         RootProjectPath     : <PROJECT>
@@ -664,8 +676,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource          : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebug/out [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/mainModule/build/generated/renderscript_source_output_dir/freeDebug/compileFreeDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/compileFreeDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/mainModule/build/generated/renderscript_source_output_dir/freeDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/mainModule/build/generated/res/rs/androidTest/free/debug [-]
             JavaResource        : file://<PROJECT>/mainModule/build/generated/res/rs/free/debug [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/source/buildConfig/androidTest/free/debug [-]
@@ -1035,6 +1047,8 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/res
     MODULE              : moduleA
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : moduleA
         LinkedProjectId     : :moduleA
         LinkedProjectPath   : <PROJECT>/moduleA
         RootProjectPath     : <PROJECT>
@@ -1078,8 +1092,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource          : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/moduleA/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/moduleA/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/moduleA/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/moduleA/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/source/buildConfig/androidTest/debug [-]
@@ -1391,6 +1405,8 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
     MODULE              : moduleB
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : moduleB
         LinkedProjectId     : :moduleB
         LinkedProjectPath   : <PROJECT>/moduleB
         RootProjectPath     : <PROJECT>
@@ -1434,8 +1450,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource          : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/moduleB/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/moduleB/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/moduleB/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/moduleB/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/source/buildConfig/androidTest/debug [-]
@@ -1741,6 +1757,8 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
         ORDER_ENTRY         : jModuleL
     MODULE              : moduleC
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : moduleC
         LinkedProjectId     : :moduleC
         LinkedProjectPath   : <PROJECT>/moduleC
         RootProjectPath     : <PROJECT>
@@ -1784,8 +1802,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource          : file://<PROJECT>/moduleC/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/moduleC/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/moduleC/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/moduleC/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/moduleC/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/source/buildConfig/androidTest/debug [-]
@@ -2083,6 +2101,8 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
     MODULE              : modulePlus
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : modulePlus
         LinkedProjectId     : :modulePlus
         LinkedProjectPath   : <PROJECT>/modulePlus
         RootProjectPath     : <PROJECT>
@@ -2126,8 +2146,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource          : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/modulePlus/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/modulePlus/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             JavaResource (test) : file://<PROJECT>/modulePlus/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/modulePlus/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/androidTest/debug [-]
@@ -2456,6 +2476,9 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/res
         ORDER_ENTRY         : jModuleK
     MODULE              : nestedZ
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : jModuleZ
+        - ModuleGroupPath   : nestedZ
         LinkedProjectId     : :jModuleZ:nestedZ
         LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath     : <PROJECT>
@@ -2485,6 +2508,7 @@ PROJECT             : testPsdDependencyDeleteModule
             Name                : Gradle: lib4-0.6 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
     MODULE              : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
         LinkedProjectId     : testPsdDependencyDeleteModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

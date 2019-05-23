@@ -30,7 +30,10 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.ClassUtil
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.isNull
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 class AddArgumentDialogTest : NavTestCase() {
   fun testValidation() {
@@ -147,17 +150,22 @@ class AddArgumentDialogTest : NavTestCase() {
 
   fun testNullable() {
     val model = model("nav.xml") {
-      NavModelBuilderUtil.navigation {
+      navigation {
         fragment("fragment1") {
           argument("myArgument", type = "custom.Parcelable")
           argument("myArgument2", type = "integer[]")
           argument("myArgument3", type = "long[]")
           argument("myArgument4", type = "float[]")
           argument("myArgument5", type = "boolean[]")
-          argument("myArgument6", type = "reference[]")
         }
       }
     }
+
+    val classChooser = replaceTreeClassChooser()
+    val customEnum = mock(PsiClass::class.java)
+    `when`(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
+    `when`(classChooser.selected).thenReturn(customEnum)
+
     val fragment1 = model.find("fragment1")!!
     fragment1.children.forEach {
       AddArgumentDialog(it, fragment1).runAndClose { dialog ->
@@ -175,10 +183,49 @@ class AddArgumentDialogTest : NavTestCase() {
         AddArgumentDialog.Type.LONG,
         AddArgumentDialog.Type.BOOLEAN,
         AddArgumentDialog.Type.REFERENCE,
+        AddArgumentDialog.Type.CUSTOM_ENUM,
         null
       )) {
         dialog.dialogUI.myTypeComboBox.selectedItem = t
         assertFalse(dialog.dialogUI.myNullableCheckBox.isEnabled)
+      }
+    }
+  }
+
+  fun testArray() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+
+    val classChooser = replaceTreeClassChooser()
+    val customEnum = mock(PsiClass::class.java)
+    `when`(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
+    `when`(classChooser.selected).thenReturn(customEnum)
+
+    val fragment1 = model.find("fragment1")!!
+
+    AddArgumentDialog(null, fragment1).runAndClose { dialog ->
+      for (t in listOf(
+        AddArgumentDialog.Type.INFERRED,
+        AddArgumentDialog.Type.INTEGER,
+        AddArgumentDialog.Type.FLOAT,
+        AddArgumentDialog.Type.LONG,
+        AddArgumentDialog.Type.BOOLEAN,
+        AddArgumentDialog.Type.STRING
+      )) {
+        dialog.dialogUI.myTypeComboBox.selectedItem = t
+        assertTrue(dialog.dialogUI.myArrayCheckBox.isEnabled)
+      }
+
+      for (t in listOf(
+        AddArgumentDialog.Type.REFERENCE,
+        AddArgumentDialog.Type.CUSTOM_ENUM,
+        null
+      )) {
+        dialog.dialogUI.myTypeComboBox.selectedItem = t
+        assertFalse(dialog.dialogUI.myArrayCheckBox.isEnabled)
       }
     }
   }
@@ -206,10 +253,7 @@ class AddArgumentDialogTest : NavTestCase() {
     myFixture.addFileToProject(relativePath, fileText)
 
     val parcelable = ClassUtil.findPsiClass(PsiManager.getInstance(project), CLASS_PARCELABLE)
-    val classChooserFactory = mock(TreeClassChooserFactory::class.java)
-    val classChooser = mock(TreeClassChooser::class.java)
-    `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(parcelable), isNull(), any())).thenReturn(classChooser)
-    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
+    val classChooser = replaceTreeClassChooser(parcelable)
 
     testParcelable(model, classChooser, "mytest.navtest.Containing")
     testParcelable(model, classChooser, "mytest.navtest.Containing\$Inner")
@@ -225,6 +269,7 @@ class AddArgumentDialogTest : NavTestCase() {
     AddArgumentDialog(null, fragment1).runAndClose { dialog ->
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_PARCELABLE
       assertEquals(jvmName, dialog.type)
+      assertTrue(dialog.dialogUI.myArrayCheckBox.isEnabled)
     }
   }
 
@@ -235,13 +280,10 @@ class AddArgumentDialogTest : NavTestCase() {
       }
     }
 
-    val classChooserFactory = mock(TreeClassChooserFactory::class.java)
-    val classChooser = mock(TreeClassChooser::class.java)
-    `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), isNull(), any(), any())).thenReturn(classChooser)
+    val classChooser = replaceTreeClassChooser()
     val customEnum = mock(PsiClass::class.java)
     `when`(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
     `when`(classChooser.selected).thenReturn(customEnum)
-    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
 
     val fragment1 = model.find("fragment1")!!
 
@@ -345,6 +387,14 @@ class AddArgumentDialogTest : NavTestCase() {
                                    .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
       }
     }
+  }
+
+  private fun replaceTreeClassChooser(base: PsiClass? = null): TreeClassChooser {
+    val classChooserFactory = mock(TreeClassChooserFactory::class.java)
+    val classChooser = mock(TreeClassChooser::class.java)
+    `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(base), any(), any())).thenReturn(classChooser)
+    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
+    return classChooser
   }
 }
 

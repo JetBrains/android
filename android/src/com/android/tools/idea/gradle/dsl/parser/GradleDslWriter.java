@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * <li>createDsl*  - Creates an element in the file from scratch. These return the created {@link PsiElement}.</li>
  * <li>applyDsl*  - Updates the existing {@link PsiElement}s given by {@link GradleDslElement#getPsiElement()} based on any changed
  *                  made to the {@link GradleDslElement}</li>.
- * <li>dataDsl*  - Deletes an existing {@link GradleDslElement} from the underlying file.</li>
+ * <li>deleteDsl*  - Deletes an existing {@link GradleDslElement} from the underlying file.</li>
  * </ul><p>
  *
  * Every {@link GradleDslElement} should be representable by only one {@link PsiElement}.

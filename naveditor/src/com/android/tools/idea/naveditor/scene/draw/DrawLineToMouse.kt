@@ -33,18 +33,15 @@ import java.awt.geom.Point2D
 
 val LINE_TO_MOUSE_STROKE: Stroke = BasicStroke(JBUI.scale(3.0f))
 
-data class DrawLineToMouse(private val level: Int,
-                           @SwingCoordinate private val center: Point2D.Float) : DrawCommandBase() {
-  private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint2D(sp[1]))
+data class DrawLineToMouse(@SwingCoordinate private val center: Point2D.Float) : DrawCommandBase() {
+  private constructor(tokens: Array<String>) : this(stringToPoint2D(tokens[0]))
 
   @VisibleForTesting
   val line = Line2D.Float(center.x, center.y, 0f, 0f)
 
-  constructor(s: String) : this(parse(s, 2))
+  constructor(serialized: String) : this(parse(serialized, 1))
 
-  override fun getLevel() = level
-
-  override fun serialize() = buildString(javaClass.simpleName, level, point2DToString(center))
+  override fun serialize() = buildString(javaClass.simpleName, point2DToString(center))
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     line.x2 = sceneContext.mouseX.toFloat()
