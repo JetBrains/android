@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
@@ -26,19 +27,18 @@ import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BORDER
 import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_THICKNESS
+import com.google.common.annotations.VisibleForTesting
 import java.awt.BasicStroke
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
-data class DrawPlaceholder(private val level: Int, private val rectangle: Rectangle2D.Float) : CompositeDrawCommand() {
-  private constructor(sp: Array<String>)
-    : this(sp[0].toInt(), stringToRect2D(sp[1]))
+class DrawPlaceholder(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2D.Float) : CompositeDrawCommand() {
+  private constructor(tokens: Array<String>)
+    : this(stringToRect2D(tokens[0]))
 
-  constructor(s: String) : this(parse(s, 2))
+  constructor(serialized: String) : this(parse(serialized, 1))
 
-  override fun getLevel(): Int = level
-
-  override fun serialize(): String = buildString(javaClass.simpleName, level, rect2DToString(rectangle))
+  override fun serialize(): String = buildString(javaClass.simpleName, rect2DToString(rectangle))
 
   override fun buildCommands(): List<DrawCommand> {
     val rect = DrawFilledRectangle(0, rectangle, PLACEHOLDER_BACKGROUND)

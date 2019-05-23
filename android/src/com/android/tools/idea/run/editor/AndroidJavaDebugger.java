@@ -81,7 +81,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
   @NotNull
   @Override
   public String getDisplayName() {
-    return getId();
+    return "Java Only";
   }
 
   @NotNull

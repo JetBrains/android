@@ -64,8 +64,8 @@ public class MissingNdkErrorHandlerTest extends AndroidGradleTestCase {
       .isEqualTo("19.2.5345600");
     assertThat(
       tryExtractPreferredNdkDownloadVersion(
-        "No version of NDK matched the requested version 19.2"))
-      .isNull();
+        "No version of NDK matched the requested version 19.2").toString())
+      .isEqualTo("19.2");
   }
 
   public void testHandleErrorWithNdkLicenceMissing() throws Exception {

@@ -98,9 +98,9 @@ class CpuProfilerContextMenuInstaller {
   private void installExportTraceMenuItem() {
     // Call setEnableBooleanSupplier() on ProfilerAction.Builder to make it easier to test.
     ProfilerAction exportTrace = new ProfilerAction.Builder("Export trace...").setIcon(AllIcons.ToolbarDecorator.Export)
-                                                                              .setContainerComponent(myContainerComponent)
-                                                                              .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode())
-                                                                              .build();
+      .setContainerComponent(myContainerComponent)
+      .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode())
+      .build();
     myInstaller.installGenericContextMenu(
       myComponent, exportTrace,
       x -> exportTrace.isEnabled() && getTraceIntersectingWithMouseX(x) != null,
@@ -109,7 +109,9 @@ class CpuProfilerContextMenuInstaller {
         () -> CpuProfiler.generateCaptureFileName(getTraceIntersectingWithMouseX(x).getTraceType()),
         () -> "trace",
         file -> myStage.getStudioProfilers().getIdeServices().saveFile(
-          file, (output) -> CpuProfiler.saveCaptureToFile(getTraceIntersectingWithMouseX(x).getTraceInfo(), output), null)));
+          file,
+          (output) -> CpuProfiler.saveCaptureToFile(myStage.getStudioProfilers(), getTraceIntersectingWithMouseX(x).getTraceInfo(), output),
+          null)));
     myInstaller.installGenericContextMenu(myComponent, ContextMenuItem.SEPARATOR);
   }
 
@@ -146,7 +148,8 @@ class CpuProfilerContextMenuInstaller {
 
   /**
    * Installs CPU specific context menus.
-   * @param component - a component where context menus should be installed.
+   *
+   * @param component          - a component where context menus should be installed.
    * @param containerComponent - a container component where context menu will be rendered.
    */
   public static void install(@NotNull CpuProfilerStage stage,

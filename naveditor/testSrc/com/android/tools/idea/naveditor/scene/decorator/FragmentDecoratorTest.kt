@@ -52,7 +52,7 @@ class FragmentDecoratorTest : NavTestCase() {
 
     FragmentDecorator.buildListComponent(displayList, 0, context, sceneComponent)
     assertEquals(1, displayList.commands.size)
-    assertDrawCommandsEqual(DrawFragment(RECT, context.scale.toFloat(), null), displayList.commands[0] as DrawFragment)
+    assertDrawCommandsEqual(DrawFragment(RECT, context.scale.toFloat(), null), displayList.commands[0])
   }
 
   fun testHighlightedContent() {
@@ -73,6 +73,6 @@ class FragmentDecoratorTest : NavTestCase() {
 
     FragmentDecorator.buildListComponent(displayList, 0, context, sceneComponent)
     assertEquals(1, displayList.commands.size)
-    assertDrawCommandsEqual(DrawFragment(RECT, context.scale.toFloat(), COLOR), displayList.commands[0] as DrawFragment)
+    assertDrawCommandsEqual(DrawFragment(RECT, context.scale.toFloat(), COLOR), displayList.commands[0])
   }
 }

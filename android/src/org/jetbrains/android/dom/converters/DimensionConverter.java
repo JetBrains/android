@@ -2,6 +2,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.primitives.Doubles;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.ConvertContext;
@@ -82,9 +83,15 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
     final String unit = getUnitFromValue(s);
     if (unit != null && !unit.isEmpty()) {
       if (unit.startsWith(",")) {
-        return "Use a dot instead of a comma as the decimal mark";
+        return "Use a dot (.) instead of a comma (,) as the decimal separator.";
       }
       return "Unknown unit '" + unit + "'";
+    }
+    if (s != null) {
+      Double dimensionValue = Doubles.tryParse(s);
+      if (dimensionValue != null) {
+        return "Dimension value " + s + " must specify a unit, such as 'dp'.";
+      }
     }
     return super.getErrorMessage(s, context);
   }

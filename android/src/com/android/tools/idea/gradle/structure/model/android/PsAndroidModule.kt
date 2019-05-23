@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.structure.model.PsModuleType
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.getValue
-import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.structure.model.moduleTypeFromAndroidModuleType
 import com.android.tools.idea.gradle.structure.model.parsedModelModuleType
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
@@ -50,7 +49,7 @@ class PsAndroidModule(
   private var buildTypeCollection: PsBuildTypeCollection? = null
   private var flavorDimensionCollection: PsFlavorDimensionCollection? = null
   private var productFlavorCollection: PsProductFlavorCollection? = null
-  private var variantCollection: PsVariantCollection? = null
+  private var resolvedVariantCollection: PsResolvedVariantCollection? = null
   private var dependencyCollection: PsAndroidModuleDependencyCollection? = null
   private var signingConfigCollection: PsSigningConfigCollection? = null
 
@@ -78,14 +77,14 @@ class PsAndroidModule(
     buildTypeCollection?.refresh()
     flavorDimensionCollection?.refresh()
     productFlavorCollection?.refresh()
-    variantCollection?.refresh()
+    resolvedVariantCollection?.refresh()
     dependencyCollection = null
     signingConfigCollection?.refresh()
   }
 
   val buildTypes: PsModelCollection<PsBuildType> get() = getOrCreateBuildTypeCollection()
   val productFlavors: PsModelCollection<PsProductFlavor> get() = getOrCreateProductFlavorCollection()
-  val variants: PsModelCollection<PsVariant> get() = getOrCreateVariantCollection()
+  val resolvedVariants: PsModelCollection<PsVariant> get() = getOrCreateResolvedVariantCollection()
   override val dependencies: PsAndroidModuleDependencyCollection get() = getOrCreateDependencyCollection()
   val signingConfigs: PsModelCollection<PsSigningConfig> get() = getOrCreateSigningConfigCollection()
   val defaultConfig = PsAndroidModuleDefaultConfig(this)
@@ -96,7 +95,7 @@ class PsAndroidModule(
   fun findProductFlavor(dimension: String, name: String): PsProductFlavor? =
     getOrCreateProductFlavorCollection().findElement(PsProductFlavorKey(dimension, name))
 
-  fun findVariant(key: PsVariantKey): PsVariant? = getOrCreateVariantCollection().findElement(key)
+  fun findVariant(key: PsVariantKey): PsVariant? = getOrCreateResolvedVariantCollection().findElement(key)
 
   fun findSigningConfig(signingConfig: String): PsSigningConfig? = getOrCreateSigningConfigCollection().findElement(signingConfig)
 
@@ -217,8 +216,8 @@ class PsAndroidModule(
   private fun getOrCreateProductFlavorCollection(): PsProductFlavorCollection =
     productFlavorCollection ?: PsProductFlavorCollection(this).also { productFlavorCollection = it }
 
-  private fun getOrCreateVariantCollection(): PsVariantCollection =
-    variantCollection ?: PsVariantCollection(this).also { variantCollection = it }
+  private fun getOrCreateResolvedVariantCollection(): PsResolvedVariantCollection =
+    resolvedVariantCollection ?: PsResolvedVariantCollection(this).also { resolvedVariantCollection = it }
 
   private fun getOrCreateDependencyCollection(): PsAndroidModuleDependencyCollection =
     dependencyCollection ?: PsAndroidModuleDependencyCollection(this).also { dependencyCollection = it }
@@ -240,7 +239,7 @@ class PsAndroidModule(
   }
 
   internal fun resetResolvedDependencies() {
-    variants.forEach { variant -> variant.forEachArtifact { artifact -> artifact.resetDependencies() } }
+    resolvedVariants.forEach { variant -> variant.forEachArtifact { artifact -> artifact.resetDependencies() } }
   }
 
   private fun resetDeclaredDependencies() {

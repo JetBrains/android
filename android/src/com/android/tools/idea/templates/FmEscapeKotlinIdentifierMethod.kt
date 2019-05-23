@@ -28,30 +28,24 @@ class FmEscapeKotlinIdentifierMethod : TemplateMethodModelEx {
       throw TemplateModelException("Wrong arguments")
     }
 
-    val argument = (args[0] as TemplateScalarModel).asString
-    val escaped = escape(argument)
-    return SimpleScalar(escaped)
+    return SimpleScalar(escape(args[0].toString()))
   }
 
   fun escape(s: String): String =
-      if (s.contains(".")) {
-        s.split(".").asSequence().joinToString(separator = ".") { escapeSingle(it) }
-      }
-      else {
-        escapeSingle(s)
-      }
+    if (s.contains(".")) {
+      s.split(".").joinToString(separator = ".") { escapeSingle(it) }
+    }
+    else {
+      escapeSingle(s)
+    }
 
-  private fun escapeSingle(s: String): String =
-      when {
-        isKotlinKeyword(s) -> "`$s`"
-        else -> s
-      }
+  private fun escapeSingle(s: String): String = when {
+      isKotlinKeyword(s) -> "`$s`"
+      else -> s
+    }
 
-  private fun isKotlinKeyword(keyword: String): Boolean =
-      // From https://github.com/JetBrains/kotlin/blob/master/core/descriptors/src/org/jetbrains/kotlin/renderer/KeywordStringsGenerated.java
-      when (keyword) {
-        "package", "as", "typealias", "class", "this", "super", "val", "var", "fun", "for", "null", "true", "false", "is", "in",
-        "throw", "return", "break", "continue", "object", "if", "try", "else", "while", "do", "when", "interface", "typeof" -> true
-        else -> false
-      }
+  // From https://github.com/JetBrains/kotlin/blob/master/core/descriptors/src/org/jetbrains/kotlin/renderer/KeywordStringsGenerated.java
+  private fun isKotlinKeyword(keyword: String): Boolean = keyword in listOf(
+    "package", "as", "typealias", "class", "this", "super", "val", "var", "fun", "for", "null", "true", "false", "is", "in", "throw",
+    "return", "break", "continue", "object", "if", "try", "else", "while", "do", "when", "interface", "typeof")
 }

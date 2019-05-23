@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +27,7 @@ import java.util.Map;
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_LOCATION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT;
 
 /**
  * Helper class that tracks the Wizard Template and the Template Values
@@ -119,7 +118,7 @@ public class TestTemplateWizardState {
   }
 
   public void populateDirectoryParameters() {
-    String projectPath = getString(ATTR_PROJECT_LOCATION);
+    String projectPath = getString(ATTR_TOP_OUT);
     String moduleName = getString(ATTR_MODULE_NAME);
     String packageName = getString(ATTR_PACKAGE_NAME);
 

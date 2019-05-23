@@ -29,14 +29,14 @@ class DrawHorizontalActionTest : NavTestCase() {
     val rectangle = Rectangle2D.Float(50f, 100f, 300f, 12f)
     val color = Color.BLUE
 
-    var drawAction = DrawHorizontalAction(0, rectangle, color, false)
+    var drawAction = DrawHorizontalAction(rectangle, color, false)
 
     assertEquals(drawAction.commands[0],
                  DrawLine(0, Point2D.Float(50f, 106f), Point2D.Float(340f, 106f), color, ACTION_STROKE))
     assertEquals(drawAction.commands[1],
                  DrawArrow(1, ArrowDirection.RIGHT, Rectangle2D.Float(340f, 100f, 10f, 12f), color))
 
-    drawAction = DrawHorizontalAction(0, rectangle, color, true)
+    drawAction = DrawHorizontalAction(rectangle, color, true)
 
     assertEquals(drawAction.commands[0],
                  DrawLine(0, Point2D.Float(50f, 106f), Point2D.Float(340f, 106f), color, ACTION_STROKE))

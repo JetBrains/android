@@ -30,7 +30,6 @@ import com.android.tools.idea.common.scene.draw.stringToPoint2D
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.ConnectionDirection
-import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
 import com.android.tools.idea.naveditor.scene.SELF_ACTION_LENGTHS
 import com.android.tools.idea.naveditor.scene.SELF_ACTION_RADII
 import com.android.tools.idea.naveditor.scene.getArrowPoint
@@ -49,13 +48,9 @@ import java.awt.geom.Rectangle2D
 data class DrawSelfAction(@SwingCoordinate private val start: Point2D.Float,
                      @SwingCoordinate private val end: Point2D.Float,
                      private val myColor: Color) : DrawCommandBase() {
-  private constructor(sp: Array<String>) : this(stringToPoint2D(sp[0]), stringToPoint2D(sp[1]), stringToColor(sp[2]))
+  private constructor(tokens: Array<String>) : this(stringToPoint2D(tokens[0]), stringToPoint2D(tokens[1]), stringToColor(tokens[2]))
 
-  constructor(s: String) : this(parse(s, 3))
-
-  override fun getLevel(): Int {
-    return DRAW_ACTION_LEVEL
-  }
+  constructor(serialized: String) : this(parse(serialized, 3))
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     val path = GeneralPath()
@@ -85,7 +80,7 @@ data class DrawSelfAction(@SwingCoordinate private val start: Point2D.Float,
       val arrowRectangle = getArrowRectangle(sceneView, arrowPoint, ConnectionDirection.BOTTOM)
       val end = Point2D.Float(arrowRectangle.x + arrowRectangle.width / 2, arrowRectangle.y + arrowRectangle.height - 1)
 
-      list.add(DrawArrow(DRAW_ACTION_LEVEL, ArrowDirection.UP, arrowRectangle, color))
+      list.add(DrawArrow(0, ArrowDirection.UP, arrowRectangle, color))
       list.add(DrawSelfAction(start, end, color))
 
       if (isPopAction) {

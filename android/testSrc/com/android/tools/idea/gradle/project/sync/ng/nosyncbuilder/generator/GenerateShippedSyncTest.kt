@@ -145,7 +145,7 @@ class GenerateShippedSyncTest : AndroidTestBase() {
       Template.convertApisToInt(parameters)
       TemplateValueInjector(parameters).addGradleVersions(null)
       put(ATTR_IS_INSTANT_APP, false)
-      put(ATTR_PROJECT_LOCATION, projectLocation)
+      put(ATTR_TOP_OUT, projectLocation)
       put(ATTR_BUILD_TOOLS_VERSION, sdkData.getLatestBuildTool(false)!!.revision.toString())
     }
 
@@ -194,7 +194,7 @@ private fun createProject(projectState: TestNewProjectWizardState, project: Proj
   val moduleState = projectState.moduleTemplateState
   moduleState.populateDirectoryParameters()
   val moduleName = moduleState.getString(ATTR_MODULE_NAME)
-  val projectRoot = File(moduleState.getString(ATTR_PROJECT_LOCATION)!!)
+  val projectRoot = File(moduleState.getString(ATTR_TOP_OUT)!!)
   val moduleRoot = File(projectRoot, moduleName!!)
   if (FileUtilRt.createDirectory(projectRoot)) {
     projectState.updateParameters()

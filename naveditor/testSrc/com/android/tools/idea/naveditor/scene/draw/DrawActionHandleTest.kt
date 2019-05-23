@@ -38,7 +38,7 @@ private val INNER_COLOR = Color.BLUE
 class DrawActionHandleTest : NavTestCase() {
   fun testDrawActionHandle() {
     val center = Point2D.Float(CENTER_X, CENTER_Y)
-    val drawHandle = DrawActionHandle(0, center,
+    val drawHandle = DrawActionHandle(center,
                                       INITIAL_OUTER_RADIUS,
                                       FINAL_OUTER_RADIUS,
                                       INITIAL_INNER_RADIUS,

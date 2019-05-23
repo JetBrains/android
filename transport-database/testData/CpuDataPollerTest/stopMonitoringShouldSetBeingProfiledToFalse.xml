@@ -354,6 +354,7 @@ to_timestamp: 9223372036854775807
   stream_id: 1234
   pid: 5678
 }
+from_timestamp: -9223372036854775808
 to_timestamp: 9223372036854775807
 </message>
     </GrpcCall>

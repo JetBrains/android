@@ -36,7 +36,6 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
-import com.android.tools.idea.naveditor.scene.NavColors;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -103,6 +102,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
   private NlModel myModel;
   private ListSelectionListener myListSelectionListener;
   private MouseListener myMouseListener;
+  private MouseListener myPanelMouseListener;
   private NavDesignSurface myDesignSurface;
 
   private ToolWindowCallback myToolWindow = null;
@@ -118,6 +118,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     myDesignSurface = surface;
     Disposer.register(parentDisposable, this);
     setLayout(new BorderLayout());
+    setBackground(StudioColorsKt.getSecondaryPanelBackground());
     myList = new JBList<>(myListModel);
     myList.getEmptyText().setText("");
     myList.setName("DestinationList");
@@ -175,22 +176,22 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     getActionMap().put(deleteDestinationKey, new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent event) {
-          List<NlComponent> toDelete = myList.getSelectedValuesList();
-          if (!toDelete.isEmpty()) {
-            new WriteCommandAction(myDesignSurface.getProject(), "Delete Destination" + (toDelete.size() > 1 ? "s" : ""),
-                                   myDesignSurface.getModel().getFile()) {
-              @Override
-              protected void run(@NotNull Result result) {
-                myDesignSurface.getModel().delete(toDelete);
-              }
-            }.execute();
-          }
+        List<NlComponent> toDelete = myList.getSelectedValuesList();
+        if (!toDelete.isEmpty()) {
+          new WriteCommandAction(myDesignSurface.getProject(), "Delete Destination" + (toDelete.size() > 1 ? "s" : ""),
+                                 myDesignSurface.getModel().getFile()) {
+            @Override
+            protected void run(@NotNull Result result) {
+              myDesignSurface.getModel().delete(toDelete);
+            }
+          }.execute();
+        }
       }
     });
 
     JScrollPane pane = ScrollPaneFactory.createScrollPane(myList, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
     pane.setBorder(null);
-    add(pane, BorderLayout.CENTER);
+    add(pane, BorderLayout.NORTH);
 
     myModel = surface.getModel();
     mySelectionModel = surface.getSelectionModel();
@@ -231,6 +232,16 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     myList.addMouseListener(myMouseListener);
     myModel.addListener(myModelListener);
 
+    myPanelMouseListener = new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        myList.clearSelection();
+        myDesignSurface.needsRepaint();
+      }
+    };
+
+    addMouseListener(myPanelMouseListener);
+
     myList.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     updateComponentList();
     myList.putClientProperty(CLIENT_PROPERTY_DATA_PROVIDER, (DataProvider)dataId -> {
@@ -247,6 +258,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     myModel.removeListener(myModelListener);
     myList.removeListSelectionListener(myListSelectionListener);
     myList.removeMouseListener(myMouseListener);
+    removeMouseListener(myPanelMouseListener);
   }
 
   void updateComponentList() {

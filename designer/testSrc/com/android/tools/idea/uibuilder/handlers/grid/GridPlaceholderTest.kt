@@ -20,6 +20,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.TestNlAttributeHolder
 import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.mockito.Mockito
@@ -71,24 +72,24 @@ class GridPlaceholderTest : SceneTest() {
     val p = Point(-1, -1)
 
     // inside
-    assertTrue(placeholder.snap(60, 60, 80, 80, p))
+    assertTrue(placeholder.snap(SnappingInfo(60, 60, 80, 80), p))
     // outside
-    assertFalse(placeholder.snap(30, 30, 40, 40, p))
+    assertFalse(placeholder.snap(SnappingInfo(30, 30, 40, 40), p))
 
     // partially outside but center is in the region
-    assertTrue(placeholder.snap(45, 45, 65, 65, p))
-    assertTrue(placeholder.snap(85, 85, 105, 105, p))
+    assertTrue(placeholder.snap(SnappingInfo(45, 45, 65, 65), p))
+    assertTrue(placeholder.snap(SnappingInfo(85, 85, 105, 105), p))
 
     // x inside but y outside
-    assertFalse(placeholder.snap(70, 30, 80, 40, p))
+    assertFalse(placeholder.snap(SnappingInfo(70, 30, 80, 40), p))
     // x outside but y inside
-    assertFalse(placeholder.snap(30, 70, 40, 80, p))
+    assertFalse(placeholder.snap(SnappingInfo(30, 70, 40, 80), p))
 
     // bigger than placeholder but center is in the region
-    assertTrue(placeholder.snap(30, 30, 130, 130, p))
+    assertTrue(placeholder.snap(SnappingInfo(30, 30, 130, 130), p))
 
     // bigger than placeholder but center is not in the region
-    assertFalse(placeholder.snap(30, 30, 200, 200, p))
+    assertFalse(placeholder.snap(SnappingInfo(30, 30, 200, 200), p))
   }
 
   fun testApply() {

@@ -56,7 +56,7 @@ class ObservableAndLiveDataTrackingHelperTest {
     assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
       .that(assembleDebug.isBuildSuccessful).isTrue()
     val syncState = GradleSyncState.getInstance(projectRule.project)
-    assertThat(syncState.isSyncNeeded.toBoolean()).isFalse()
+    assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
 
     val tracker = TestUsageTracker(VirtualTimeScheduler())
     try {

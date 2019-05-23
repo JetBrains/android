@@ -69,17 +69,12 @@ abstract class Placeholder(val host: SceneComponent) {
   }
 
   /**
-   * Called for snapping to Placeholder. ([left], [top], [right], [bottom]) is the bound of the interacting [SceneComponent].<br>
+   * Called for snapping to Placeholder. [info] provides the bounds of the interacting [SceneComponent].<br>
    * [retPoint] is used to store the value after snapping.<br>
    * The return value is the distance of original point to snapped point. It may not exist if it the given point couldn't snap to this
    * Placeholder.
    */
-  open fun snap(@AndroidDpCoordinate left: Int,
-                @AndroidDpCoordinate top: Int,
-                @AndroidDpCoordinate right: Int,
-                @AndroidDpCoordinate bottom: Int,
-                retPoint: Point)
-    : Boolean = false
+  open fun snap(info: SnappingInfo, retPoint: Point): Boolean = false
 
   /**
    * Function to update attribute when mouse is dragging.
@@ -96,8 +91,32 @@ data class Region(@AndroidDpCoordinate val left: Int,
                   @AndroidDpCoordinate val top: Int,
                   @AndroidDpCoordinate val right: Int,
                   @AndroidDpCoordinate val bottom: Int,
-                  val level: Int = 0
-)
+                  val level: Int = 0) {
+  /**
+   * Helper function to determine if [Region] contains the specified point.
+   */
+  fun contains(x: Int, y: Int): Boolean = x in left..right && y in top..bottom
+}
+
+/**
+ * Class for providing information from snapping [SceneComponent].
+ */
+class SnappingInfo(@AndroidDpCoordinate val left: Int,
+                   @AndroidDpCoordinate val top: Int,
+                   @AndroidDpCoordinate val right: Int,
+                   @AndroidDpCoordinate val bottom: Int) {
+  /**
+   * Helper function for getting centerX
+   */
+  @AndroidDpCoordinate
+  val centerX: Int = (left + right) / 2
+
+  /**
+   * Helper function for getting centerY
+   */
+  @AndroidDpCoordinate
+  val centerY: Int = (top + bottom) / 2
+}
 
 /**
  * This is an interface for marking the Target which is not part of Placeholder architecture.

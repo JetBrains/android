@@ -76,7 +76,7 @@ public class CpuThreadsModelTest {
 
   @Test
   public void updateRange() {
-    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(myProfilers), ProfilersTestData.SESSION_DATA);
+    myThreadsModel = new CpuThreadsModel(myRange, myProfilers, ProfilersTestData.SESSION_DATA, false);
     // Make sure there are no threads before calling update
     assertThat(myThreadsModel.getSize()).isEqualTo(0);
 
@@ -130,18 +130,18 @@ public class CpuThreadsModelTest {
         streamId, ProfilersTestData.generateCpuThreadEvent(1, 103, "RenderThread", Cpu.CpuThreadData.State.RUNNING).build());
     }
     else {
-      myCpuService.addAdditionalThreads(104, "Thread 100", new ArrayList<>());
-      myCpuService.addAdditionalThreads(100, "Thread 100", new ArrayList<>());
-      myCpuService.addAdditionalThreads(ProfilersTestData.SESSION_DATA.getPid(), "Main", new ArrayList<>());
-      myCpuService.addAdditionalThreads(101, "RenderThread", new ArrayList<>());
-      myCpuService.addAdditionalThreads(102, "A Named Thread", new ArrayList<>());
-      myCpuService.addAdditionalThreads(103, "RenderThread", new ArrayList<>());
+      myCpuService.addThreads(104, "Thread 100", new ArrayList<>());
+      myCpuService.addThreads(100, "Thread 100", new ArrayList<>());
+      myCpuService.addThreads(ProfilersTestData.SESSION_DATA.getPid(), "Main", new ArrayList<>());
+      myCpuService.addThreads(101, "RenderThread", new ArrayList<>());
+      myCpuService.addThreads(102, "A Named Thread", new ArrayList<>());
+      myCpuService.addThreads(103, "RenderThread", new ArrayList<>());
     }
     // Updates to a range with all threads.
     myRange.set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(10));
 
     // Create new model so we sort on our first queried range.
-    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(myProfilers), ProfilersTestData.SESSION_DATA);
+    myThreadsModel = new CpuThreadsModel(myRange, myProfilers, ProfilersTestData.SESSION_DATA, false);
 
     assertThat(myThreadsModel.getSize()).isEqualTo(8);
     // Main thread gets sorted first per thread id passed into reset function.
@@ -189,7 +189,7 @@ public class CpuThreadsModelTest {
   @Test
   public void notEmptyWhenInitialized() {
     myRange.set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(5));
-    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(myProfilers), ProfilersTestData.SESSION_DATA);
+    myThreadsModel = new CpuThreadsModel(myRange, myProfilers, ProfilersTestData.SESSION_DATA, false);
     assertThat(myThreadsModel.getSize()).isEqualTo(1);
   }
 

@@ -401,15 +401,17 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   @Override
   public String getToolTipText() {
     String side = null;
+    boolean isRtl = myComponent.getScene().isInRTL();
+    boolean supportRtl = myComponent.getScene().supportsRTL();
     switch (myType) {
       case LEFT:
-        side = "Left";
+        side = supportRtl ? isRtl ? "End" : "Start" : "Left";
         break;
       case TOP:
         side = "Top";
         break;
       case RIGHT:
-        side = "Right";
+        side = supportRtl ? isRtl ? "Start" : "End" : "Right";
         break;
       case BOTTOM:
         side = "Bottom";

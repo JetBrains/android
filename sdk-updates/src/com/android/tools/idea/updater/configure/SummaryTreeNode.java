@@ -170,9 +170,10 @@ class SummaryTreeNode extends UpdaterTreeNode {
     boolean foundSources = false;
     boolean foundPlatform = false;
     boolean foundUpdate = false;
+    boolean sourcesAvailable = false;
     for (UpdaterTreeNode child : myAllChildren) {
+      TypeDetails details = ((DetailsTreeNode)child).getPackage().getTypeDetails();
       if (child.getInitialState() != PackageNodeModel.SelectedState.NOT_INSTALLED) {
-        TypeDetails details = ((DetailsTreeNode)child).getPackage().getTypeDetails();
         if (details instanceof DetailsTypes.SourceDetailsType) {
           foundSources = true;
         } else if (details instanceof DetailsTypes.PlatformDetailsType) {
@@ -182,12 +183,17 @@ class SummaryTreeNode extends UpdaterTreeNode {
           foundUpdate = true;
         }
       }
+      if (details instanceof DetailsTypes.SourceDetailsType) {
+        sourcesAvailable = true;
+      }
     }
     if (foundUpdate) {
       return "Update available";
     }
-    if (foundPlatform && (foundSources || myVersion.getApiLevel() < 14)) {
-      // APIs before 14 don't have separate sources
+    if (foundPlatform && (foundSources || !sourcesAvailable)) {
+      // Sometimes sources might be not published for the given platform at all (e.g., if API < 14, or
+      // for a platform being currently in preview stage). In that case, do not take sources into account
+      // when determining platform installation status.
       return "Installed";
     }
     if (foundPlatform || foundSources) {

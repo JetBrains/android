@@ -111,7 +111,6 @@ import com.intellij.util.ui.TwoColorsIcon
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.android.refactoring.getNameInProject
 import org.jetbrains.annotations.Contract
 import java.awt.Color
 import java.io.File
@@ -339,8 +338,11 @@ fun isClassPackageNeeded(qualifiedName: String, baseClass: PsiClass, apiLevel: I
   return when {
     InheritanceUtil.isInheritor(baseClass, CLASS_VIEW) -> isViewPackageNeeded(qualifiedName, apiLevel)
     InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE) -> !isDirectlyInPackage(qualifiedName, "android.preference")
-    InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE_ANDROIDX.getNameInProject(baseClass.project)) ->
+    InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE_ANDROIDX.newName()) ->
       !isDirectlyInPackage(qualifiedName, "androidx.preference")
+    InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE_ANDROIDX.oldName()) ->
+      !isDirectlyInPackage(qualifiedName, "android.support.v7.preference") &&
+      !isDirectlyInPackage(qualifiedName, "android.support.v14.preference")
     else -> // TODO: removing that makes some of unit tests fail, but leaving it as it is can introduce buggy XML validation
       // Issue with further information: http://b.android.com/186559
       !qualifiedName.startsWith(ANDROID_PKG_PREFIX)

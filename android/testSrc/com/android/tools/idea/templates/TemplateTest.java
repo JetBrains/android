@@ -42,12 +42,12 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEV
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_RES_OUT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SOURCE_PROVIDER_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API_STRING;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT;
 import static com.android.tools.idea.templates.TemplateMetadata.getBuildApiString;
 import static com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy;
 import static com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories;
@@ -1458,14 +1458,14 @@ public class TemplateTest extends AndroidGradleTestCase {
       new IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
       setUpSdks(project);
       projectDir = Projects.getBaseDirPath(project);
-      moduleState.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
+      moduleState.put(ATTR_TOP_OUT, projectDir.getPath());
 
       System.out.println("Checking project " + projectName + " in " + project.getBaseDir());
       createProject(projectState, CHECK_LINT);
 
       File projectRoot = virtualToIoFile(project.getBaseDir());
       if (activityState != null && !moduleState.getBoolean(ATTR_CREATE_ACTIVITY)) {
-        activityState.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
+        activityState.put(ATTR_TOP_OUT, projectDir.getPath());
         ApplicationManager.getApplication().runWriteAction(() -> {
           Template template = activityState.getTemplate();
           assert template != null;
@@ -1607,7 +1607,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     });
 
     // Update to latest plugin / gradle and sync model
-    File projectRoot = new File(moduleState.getString(ATTR_PROJECT_LOCATION));
+    File projectRoot = new File(moduleState.getString(ATTR_TOP_OUT));
     assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
     createGradleWrapper(projectRoot);
 
@@ -1631,7 +1631,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     try {
       moduleState.populateDirectoryParameters();
       String moduleName = moduleState.getString(ATTR_MODULE_NAME);
-      String projectPath = moduleState.getString(ATTR_PROJECT_LOCATION);
+      String projectPath = moduleState.getString(ATTR_TOP_OUT);
       File projectRoot = new File(projectPath);
       AndroidModuleTemplate paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(projectPath, moduleName).getPaths();
       if (FileUtilRt.createDirectory(projectRoot)) {

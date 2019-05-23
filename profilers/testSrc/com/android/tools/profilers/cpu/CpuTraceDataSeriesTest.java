@@ -21,15 +21,14 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
-import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,7 +45,8 @@ public class CpuTraceDataSeriesTest {
   private CpuProfilerStage.CpuTraceDataSeries mySeries;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
+
     StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -57,39 +57,28 @@ public class CpuTraceDataSeriesTest {
   @Test
   public void emptySeries() {
     Range maxRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    myService.setValidTrace(false);
     assertThat(mySeries.getDataForXRange(maxRange)).isEmpty();
   }
 
   @Test
-  public void validTraceSuccessStatus() throws IOException, ExecutionException, InterruptedException {
+  public void validTraceSuccessStatus() {
     Range maxRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    myService.setValidTrace(true);
-    myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
-    CpuCapture expectedCapture = myService.parseTraceFile();
+    Cpu.CpuTraceInfo info = Cpu.CpuTraceInfo.newBuilder()
+      .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(1))
+      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(3))
+      .build();
+    myService.addTraceInfo(info);
 
     List<SeriesData<CpuTraceInfo>> seriesData = mySeries.getDataForXRange(maxRange);
     assertThat(seriesData).hasSize(1);
     SeriesData<CpuTraceInfo> data = seriesData.get(0);
     assertThat(data).isNotNull();
-    assertThat(data.x).isEqualTo((long)expectedCapture.getRange().getMin());
+    assertThat(data.x).isEqualTo(1);
     CpuTraceInfo traceInfo = data.value;
     // Verify duration is also equal
-    assertThat(traceInfo.getDurationUs()).isEqualTo(expectedCapture.getDurationUs());
+    assertThat(traceInfo.getDurationUs()).isEqualTo(2);
     // As Range also doesn't have an equals method, compare max and min
-    assertThat(traceInfo.getRange()).isNotNull();
-    assertThat(expectedCapture.getRange()).isNotNull();
-    assertThat(traceInfo.getRange().getMin()).isWithin(0).of(expectedCapture.getRange().getMin());
-    assertThat(traceInfo.getRange().getMax()).isWithin(0).of(expectedCapture.getRange().getMax());
-  }
-
-  @Test
-  public void validTraceSuccessStatusNoCaptureWithinRange() throws IOException, ExecutionException, InterruptedException {
-    Range noCapturesRange = new Range(-Double.MAX_VALUE, 0);
-    myService.setValidTrace(true);
-    myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
-    CpuCapture serviceCapture = myService.parseTraceFile(); // Not on the request range
-    assertThat(serviceCapture).isNotNull();
-    assertThat(mySeries.getDataForXRange(noCapturesRange)).isEmpty();
+    assertThat(traceInfo.getRange().getMin()).isWithin(0).of(1);
+    assertThat(traceInfo.getRange().getMax()).isWithin(0).of(3);
   }
 }

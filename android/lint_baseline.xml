@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 26.5.0-alpha13">
+<issues format="5" by="lint 26.6.0-alpha01">
 
     <issue
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/org/jetbrains/android/dom/AndroidDomElementDescriptorProvider.java"
-            line="170"/>
+            line="165"/>
     </issue>
 
     <issue
@@ -118,7 +118,7 @@
         message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
         <location
             file="src/com/android/tools/idea/run/LaunchTaskRunner.java"
-            line="112"/>
+            line="120"/>
     </issue>
 
     <issue
@@ -134,7 +134,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleTasksExecutorImpl.java"
-            line="353"/>
+            line="352"/>
     </issue>
 
     <issue
@@ -143,14 +143,6 @@
         <location
             file="src/com/android/tools/idea/res/ModuleResourceRepository.java"
             line="275"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/run/deployment/SelectDeviceAndSnapshotAction.java"
-            line="88"/>
     </issue>
 
     <issue
@@ -270,7 +262,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
-            line="905"/>
+            line="944"/>
     </issue>
 
     <issue
@@ -447,22 +439,6 @@
         <location
             file="src/com/android/tools/swing/layoutlib/AndroidPreviewPanel.java"
             line="142"/>
-    </issue>
-
-    <issue
-        id="SwingWorker"
-        message="Do not use `javax.swing.SwingWorker`, use `com.intellij.util.concurrency.SwingWorker` instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/run/deployment/ConnectedDevicesWorkerDelegate.java"
-            line="40"/>
-    </issue>
-
-    <issue
-        id="SwingWorker"
-        message="Do not use `javax.swing.SwingWorker`, use `com.intellij.util.concurrency.SwingWorker` instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/run/deployment/VirtualDevicesWorkerDelegate.java"
-            line="44"/>
     </issue>
 
     <issue

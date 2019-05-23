@@ -33,13 +33,13 @@ private const val DURATION = 30
 class DrawActionHandleDragTest : NavTestCase() {
   fun testDrawActionHandleDrag() {
     val center = Point2D.Float(CENTER_X, CENTER_Y)
-    val drawHandle = DrawActionHandleDrag(0, center, INITIAL_OUTER_RADIUS, FINAL_OUTER_RADIUS, INNER_RADIUS, DURATION)
+    val drawHandle = DrawActionHandleDrag(center, INITIAL_OUTER_RADIUS, FINAL_OUTER_RADIUS, INNER_RADIUS, DURATION)
 
     assertEquals(drawHandle.commands[0],
                  DrawFilledCircle(0, center, primaryPanelBackground, LerpFloat(INITIAL_OUTER_RADIUS, FINAL_OUTER_RADIUS, DURATION)))
     assertEquals(drawHandle.commands[1],
                  DrawFilledCircle(1, center, SELECTED, LerpFloat(INNER_RADIUS, INNER_RADIUS, 0)))
     assertEquals(drawHandle.commands[2],
-                 DrawLineToMouse(2, center))
+                 DrawLineToMouse(center))
   }
 }

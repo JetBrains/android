@@ -53,20 +53,20 @@ public class TagToClassMapperImplTest extends AndroidTestCase {
     myFixture.addFileToProject(getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/src/com/test/other/ClassB.java", classB);
 
     // The main module should only see the classes from MODULE_WITH_DEPENDENCY
-    Set<String> classes = new TagToClassMapperImpl(myFacet.getModule()).getFrameworkClassMap(OBJECT_CLASS).keySet();
+    Set<String> classes = new TagToClassMapperImpl(myFacet.getModule()).getClassMap(OBJECT_CLASS).keySet();
     assertContainsElements(classes, "com.test.ClassA");
     assertDoesntContain(classes, "com.test.other.ClassB");
 
     // MODULE_WITH_DEPENDENCY should only see the classes from MODULE_WITH_DEPENDENCY
     classes = new TagToClassMapperImpl(getAdditionalModuleByName(MODULE_WITH_DEPENDENCY))
-      .getFrameworkClassMap(OBJECT_CLASS)
+      .getClassMap(OBJECT_CLASS)
       .keySet();
     assertContainsElements(classes, "com.test.ClassA");
     assertDoesntContain(classes, "com.test.other.ClassB");
 
     // MODULE_WITHOUT_DEPENDENCY should see its own class
     classes = new TagToClassMapperImpl(getAdditionalModuleByName(MODULE_WITHOUT_DEPENDENCY))
-      .getFrameworkClassMap(OBJECT_CLASS)
+      .getClassMap(OBJECT_CLASS)
       .keySet();
     assertDoesntContain(classes, "com.test.ClassA");
     assertContainsElements(classes, "com.test.other.ClassB");

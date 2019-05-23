@@ -43,40 +43,33 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+
+private const val MAX_ZOOM = 300
+private const val MIN_ZOOM = 30
 
 /**
  * Panel that shows the device screen in the layout inspector.
  */
-class DeviceViewPanel(val layoutInspector: LayoutInspector) : JPanel(BorderLayout()), Zoomable, DataProvider {
+class DeviceViewPanel(
+  val layoutInspector: LayoutInspector, val viewSettings: DeviceViewSettings
+) : JPanel(BorderLayout()), Zoomable, DataProvider {
+
   private val client = layoutInspector.client
 
-  enum class ViewMode(val icon: Icon) {
-    FIXED(StudioIcons.LayoutEditor.Extras.ROOT_INLINE),
-    X_ONLY(StudioIcons.DeviceConfiguration.SCREEN_WIDTH),
-    XY(StudioIcons.DeviceConfiguration.SMALLEST_SCREEN_SIZE);
-
-    val next: ViewMode
-      get() = enumValues<ViewMode>()[(this.ordinal + 1).rem(enumValues<ViewMode>().size)]
-  }
-
-  var viewMode = ViewMode.XY
-
-  override var scale: Double = .5
+  override val scale
+    get() = viewSettings.scaleFraction
 
   override val screenScalingFactor = 1f
 
-  private var drawBorders = true
-
   private val showBordersCheckBox = object : CheckboxAction("Show borders") {
     override fun isSelected(e: AnActionEvent): Boolean {
-      return drawBorders
+      return viewSettings.drawBorders
     }
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
-      drawBorders = state
+      viewSettings.drawBorders = state
       repaint()
     }
   }
@@ -84,7 +77,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector) : JPanel(BorderLayou
   private val myProcessSelectionAction = SelectProcessAction(client)
   private val myStopLayoutInspectorAction = PauseLayoutInspectorAction(client)
 
-  val contentPanel = DeviceViewContentPanel(layoutInspector, scale, viewMode)
+  val contentPanel = DeviceViewContentPanel(layoutInspector, viewSettings)
   private val scrollPane = JBScrollPane(contentPanel)
 
   init {
@@ -101,12 +94,11 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector) : JPanel(BorderLayou
     position.x = (position.x / scale).toInt()
     position.y = (position.y / scale).toInt()
     when (type) {
-      ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> scale = 0.5
-      ZoomType.ACTUAL -> scale = 1.0
-      ZoomType.IN -> scale += 0.1
-      ZoomType.OUT -> scale -= 0.1
+      ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> viewSettings.scalePercent = 50  // TODO
+      ZoomType.ACTUAL -> viewSettings.scalePercent = 100
+      ZoomType.IN -> viewSettings.scalePercent += 10
+      ZoomType.OUT -> viewSettings.scalePercent -= 10
     }
-    contentPanel.scale = scale
     scrollPane.viewport.revalidate()
 
     position.x = (position.x * scale).toInt()
@@ -116,9 +108,9 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector) : JPanel(BorderLayou
     return true
   }
 
-  override fun canZoomIn() = true
+  override fun canZoomIn() = viewSettings.scalePercent < MAX_ZOOM
 
-  override fun canZoomOut() = true
+  override fun canZoomOut() = viewSettings.scalePercent > MIN_ZOOM
 
   override fun canZoomToFit() = true
 
@@ -145,12 +137,11 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector) : JPanel(BorderLayou
     val rightGroup = DefaultActionGroup()
     rightGroup.add(object : AnAction("reset") {
       override fun actionPerformed(e: AnActionEvent) {
-        viewMode = viewMode.next
-        contentPanel.viewMode = viewMode
+        viewSettings.viewMode = viewSettings.viewMode.next
       }
 
       override fun update(e: AnActionEvent) {
-        e.presentation.icon = viewMode.icon
+        e.presentation.icon = viewSettings.viewMode.icon
       }
     })
     rightGroup.add(ZoomOutAction)

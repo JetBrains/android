@@ -53,7 +53,14 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
         if (realFile.exists() && realFile.isAbsolute()) {
           file = LocalFileSystem.getInstance().findFileByIoFile(realFile);
         } else {
-          file = VirtualFileManager.getInstance().findFileByUrl(getDslFile().getFile().getParent() + "/" + fileName);
+          VirtualFile parsingRoot = getDslFile().getContext().getCurrentParsingRoot();
+          if (parsingRoot == null) {
+            parsingRoot = getDslFile().getFile().getParent();
+          } else {
+              parsingRoot = parsingRoot.getParent();
+          }
+          file =
+            VirtualFileManager.getInstance().findFileByUrl(parsingRoot + "/" + fileName);
         }
         if (file != null) {
           // Parse the file

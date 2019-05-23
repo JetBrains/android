@@ -73,6 +73,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public class NlPaletteModel implements Disposable {
+  private boolean myDisposed;
+
   @VisibleForTesting
   static final String PROJECT_GROUP = "Project";
 
@@ -132,6 +134,7 @@ public class NlPaletteModel implements Disposable {
   public void dispose() {
     myListeners.clear();
     myTypeToPalette.clear();
+    myDisposed = true;
   }
 
   @TestOnly
@@ -189,7 +192,11 @@ public class NlPaletteModel implements Disposable {
 
   private void notifyUpdateListener(@NotNull LayoutEditorFileType layoutType) {
     if (!myListeners.isEmpty()) {
-      myListeners.forEach(listener -> ApplicationManager.getApplication().invokeLater(() -> listener.update(this, layoutType)));
+      myListeners.forEach(listener -> ApplicationManager.getApplication().invokeLater(() -> {
+        if (!myDisposed) {
+          listener.update(this, layoutType);
+        }
+      }));
     }
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -29,6 +30,7 @@ import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,11 +66,6 @@ public class CpuCaptureParser {
   private final Map<Long, CompletableFuture<CpuCapture>> myCaptures;
 
   /**
-   * Maps a trace id to the path of a temporary file containing the trace content.
-   */
-  private final Map<Long, String> myTraceFiles;
-
-  /**
    * Services containing the {@link java.util.concurrent.Executor} responsible for parsing the capture.
    * This is also used for determining if large trace files should be parsed.
    */
@@ -89,10 +86,14 @@ public class CpuCaptureParser {
    */
   private long myParsingStartTimeMs;
 
+  /**
+   * Metadata associated with parsing a capture. If an entry exists, the metadata will be populated and uploaded to metrics.
+   */
+  private Map<Long, CpuCaptureMetadata> myCaptureMetadataMap = new HashMap<>();
+
   public CpuCaptureParser(@NotNull IdeProfilerServices services) {
     myServices = services;
     myCaptures = new HashMap<>();
-    myTraceFiles = new HashMap<>();
   }
 
   private static Logger getLogger() {
@@ -111,9 +112,14 @@ public class CpuCaptureParser {
     return myCaptures.get(traceId);
   }
 
-  @Nullable
-  String getTraceFilePath(long traceId) {
-    return myTraceFiles.get(traceId);
+  /**
+   * Next time a capture associated with the traceId is parsed, record and send the parsing metadata.
+   *
+   * @param traceId   the trace id of the capture to track
+   * @param metadata  the initial set of metadata unrelated to parsing (e.g. configuration, record duration, etc_
+   */
+  void trackCaptureMetadata(long traceId, @NotNull CpuCaptureMetadata metadata) {
+    myCaptureMetadataMap.put(traceId, metadata);
   }
 
   /**
@@ -144,7 +150,7 @@ public class CpuCaptureParser {
       myIsParsing = false;
       myAspect.changed(CpuProfilerAspect.CAPTURE_PARSING);
       return capture;
-    }, myServices.getPoolExecutor());
+    }, myServices.getMainExecutor());
   }
 
   /**
@@ -171,7 +177,6 @@ public class CpuCaptureParser {
       getLogger().info("Trace not parsed, as its path doesn't exist or points to a directory.");
       return null;
     }
-    myTraceFiles.put(IMPORTED_TRACE_ID, traceFile.getAbsolutePath());
 
     long fileLength = traceFile.length();
     if (fileLength > MAX_SUPPORTED_TRACE_SIZE) {
@@ -272,6 +277,9 @@ public class CpuCaptureParser {
                                              long traceId,
                                              @NotNull ByteString traceData,
                                              CpuTraceType profilerType) {
+    CpuCaptureMetadata metadata = myCaptureMetadataMap.containsKey(traceId) ?
+                                  myCaptureMetadataMap.get(traceId) : new CpuCaptureMetadata(new ProfilingConfiguration());
+
     if (!myCaptures.containsKey(traceId)) {
       // Trace is not being parsed nor is already parsed. We need to start parsing it.
       if (traceData.size() <= MAX_SUPPORTED_TRACE_SIZE) {
@@ -296,14 +304,97 @@ public class CpuCaptureParser {
       }
     }
 
+    CompletableFuture<CpuCapture> future = myCaptures.get(traceId);
+    if (future != null) {
+      future.handleAsync((capture, exception) -> {
+        if (capture != null) {
+          // Update capture metadata
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
+          metadata.setParsingTimeMs(System.currentTimeMillis() - myParsingStartTimeMs);
+          metadata.setCaptureDurationMs(TimeUnit.MICROSECONDS.toMillis(capture.getDurationUs()));
+          metadata.setRecordDurationMs(calculateRecordDurationMs(capture));
+        }
+        else if (future.isCancelled()) {
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
+          myServices.showNotification(CpuProfilerNotifications.PARSING_ABORTED);
+        }
+        else if (exception != null) {
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
+          getLogger().warn("Unable to parse capture: " + exception.getMessage(), exception);
+          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+        }
+
+        // Only log the first time.
+        // TODO b/133325202 this feels quite ugly... as it requires the stage to set the metadata entry when tracing is stopped, then when
+        // the parsing subsequently happens, multiple places populate the metadata instance (e.g. this method and createCaptureFuture)
+        // before it can be sent. Investigate whether there is a way to keep all logic in one place.
+        if (myCaptureMetadataMap.containsKey(traceId)) {
+          myServices.getFeatureTracker().trackCaptureTrace(metadata);
+          myCaptureMetadataMap.remove(traceId);
+        }
+
+        return capture;
+      }, myServices.getMainExecutor());
+    }
+    else {
+      metadata.setTraceFileSizeBytes(traceData.size());
+      metadata.setStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
+      myServices.showNotification(CpuProfilerNotifications.PARSING_ABORTED);
+
+      // TODO b/133325202 this feels quite ugly... as it requires the stage to set the metadata entry when tracing is stop, then when the
+      // parsing subsequently happens, multiple places populate the metadata instance (e.g. this method and createCaptureFuture) before it
+      // can be sent. Investigate whether there is a way to keep all logic in one place.
+      if (myCaptureMetadataMap.containsKey(traceId)) {
+        myServices.getFeatureTracker().trackCaptureTrace(metadata);
+        myCaptureMetadataMap.remove(traceId);
+      }
+    }
+
     return myCaptures.get(traceId);
+  }
+
+  /**
+   * Iterates the threads of the capture to find the node with the minimum start time and the one with the maximum end time.
+   * Maximum end - minimum start result in the record duration.
+   */
+  private static long calculateRecordDurationMs(CpuCapture capture) {
+    Range maxDataRange = new Range();
+    for (CpuThreadInfo thread : capture.getThreads()) {
+      CaptureNode threadMainNode = capture.getCaptureNode(thread.getId());
+      assert threadMainNode != null;
+      maxDataRange.expand(threadMainNode.getStartGlobal(), threadMainNode.getEndGlobal());
+    }
+    return TimeUnit.MICROSECONDS.toMillis((long)maxDataRange.getLength());
   }
 
   private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull Common.Session session, long traceId, ByteString traceBytes,
                                                             CpuTraceType profilerType) {
+    CpuCaptureMetadata metadata = myCaptureMetadataMap.containsKey(traceId) ?
+                                  myCaptureMetadataMap.get(traceId) : new CpuCaptureMetadata(new ProfilingConfiguration());
+
     CompletableFuture<CpuCapture> future =
-      CompletableFuture.supplyAsync(() -> traceBytesToCapture(session, traceId, traceBytes, profilerType), myServices.getPoolExecutor());
+      CompletableFuture.supplyAsync(() -> {
+        ByteString processedBytes = traceBytes;
+        if (myServices.getFeatureConfig().isSimpleperfHostEnabled() && profilerType == CpuTraceType.SIMPLEPERF) {
+          processedBytes = myServices.getSimpleperfTracePreProcessor().preProcessTrace(traceBytes);
+        }
+        metadata.setTraceFileSizeBytes(processedBytes.size());
+        boolean failedToPreProcess = processedBytes.equals(TracePreProcessor.FAILURE);
+        if (failedToPreProcess) {
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
+          return null;
+        }
+        return traceBytesToCapture(session, traceId, processedBytes, profilerType);
+      }, myServices.getPoolExecutor())
+        .thenApplyAsync(capture -> {
+          if (metadata.getStatus() == CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE) {
+            myServices.showNotification(CpuProfilerNotifications.PREPROCESS_FAILURE);
+            getLogger().warn("Unable to pre-process trace file.");
+          }
+          return capture;
+        }, myServices.getMainExecutor());
     updateParsingStateWhenDone(future);
+
     return future;
   }
 
@@ -315,7 +406,6 @@ public class CpuCaptureParser {
       try (FileOutputStream out = new FileOutputStream(trace)) {
         out.write(traceData.toByteArray());
       }
-      myTraceFiles.put(traceId, trace.getAbsolutePath());
 
       TraceParser parser;
       if (profilerType == CpuTraceType.ART) {

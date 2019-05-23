@@ -19,11 +19,13 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,13 +44,20 @@ public final class TransportProxy {
   @NotNull private IDevice myDevice;
   @NotNull private ManagedChannel myTransportChannel;
   @NotNull private final TransportServiceProxy myProxyService;
+  // General file/byte cache used in the proxy layer.
+  @NotNull private final Map<String, ByteString> myProxyBytesCache = Collections.synchronizedMap(new HashMap<>());
 
   public TransportProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device tranportDevice, @NotNull ManagedChannel transportChannel) {
     myDevice = ddmlibDevice;
     myTransportChannel = transportChannel;
     myProxyServices = new LinkedList<>();
     myProxyHandlers = new HashMap<>();
-    myProxyService = new TransportServiceProxy(ddmlibDevice, tranportDevice, transportChannel);
+    myProxyService = new TransportServiceProxy(ddmlibDevice, tranportDevice, transportChannel, myProxyBytesCache);
+  }
+
+  @NotNull
+  public Map<String, ByteString> getBytesCache() {
+    return myProxyBytesCache;
   }
 
   public void registerProxyService(ServiceProxy proxyService) {

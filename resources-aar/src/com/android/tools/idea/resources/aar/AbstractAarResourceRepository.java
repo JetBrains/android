@@ -265,7 +265,6 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
    */
   protected final static class ResourceUrlParser {
     @NotNull private String resourceUrl = "";
-    private int prefixEnd;
     private int colonPos;
     private int slashPos;
     private int typeStart;
@@ -284,6 +283,7 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
       typeStart = -1;
       namespacePrefixStart = -1;
 
+      int prefixEnd;
       if (resourceUrl.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
         if (resourceUrl.startsWith("@+")) {
           prefixEnd = 2;

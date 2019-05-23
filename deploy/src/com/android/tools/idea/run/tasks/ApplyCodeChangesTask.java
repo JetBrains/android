@@ -56,8 +56,7 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
    * @param device The device we are deploying to.
    * @param apk The apk we want to deploy.
    */
-  private ImmutableMap<Integer, ClassRedefiner> makeSpecificRedefiners(Project project, IDevice device)
-    throws DeployerException {
+  private ImmutableMap<Integer, ClassRedefiner> makeSpecificRedefiners(Project project, IDevice device) {
     if (!DebuggerRedefiner.hasDebuggersAttached(project)) {
       return ImmutableMap.of();
     }

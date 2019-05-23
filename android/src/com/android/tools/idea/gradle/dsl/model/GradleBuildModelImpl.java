@@ -125,7 +125,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file,
                                                 @NotNull Project project,
                                                 @NotNull String moduleName) {
-    return new GradleBuildModelImpl(parseBuildFile(file, project, moduleName, BuildModelContext.create(project), false));
+    return new GradleBuildModelImpl(BuildModelContext.create(project).getOrCreateBuildFile(file, moduleName, false));
   }
 
   @Deprecated

@@ -16,6 +16,7 @@
 package com.android.tools.idea.transport.faketransport;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
@@ -59,6 +60,7 @@ import io.grpc.BindableService;
 import io.grpc.stub.StreamObserver;
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public class FakeGrpcServer extends FakeGrpcChannel {
   /**
@@ -223,21 +225,15 @@ public class FakeGrpcServer extends FakeGrpcChannel {
 
   public static class CpuService extends CpuServiceGrpc.CpuServiceImplBase {
     private boolean myIsBeingProfiled = false;
-    private boolean myIsStartupProfiling = false;
-    private long myProfilingStartTimestamp = 0;
-
+    private Cpu.CpuTraceConfiguration myTraceConfiguration = Cpu.CpuTraceConfiguration.getDefaultInstance();
     private FakeGrpcServer myServer;
 
-    public void setStartupProfiling(boolean isStartupProfiling) {
-      myIsStartupProfiling = isStartupProfiling;
-      if (isStartupProfiling) {
+    public void setConfiguration(@NotNull Cpu.CpuTraceConfiguration config) {
+      myTraceConfiguration = config;
+      if (myTraceConfiguration.getInitiationType() == Cpu.TraceInitiationType.INITIATED_BY_STARTUP) {
         // if startup profiling is true, it means that an app is being profiled
         myIsBeingProfiled = true;
       }
-    }
-
-    public void setProfilingStartTimestamp(long timestamp) {
-      myProfilingStartTimestamp = timestamp;
     }
 
     @Override
@@ -275,11 +271,9 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     @Override
     public void checkAppProfilingState(ProfilingStateRequest request,
                                        StreamObserver<ProfilingStateResponse> response) {
-      response.onNext(
-        ProfilingStateResponse.newBuilder()
-          .setBeingProfiled(myIsBeingProfiled)
-          .setIsStartupProfiling(myIsStartupProfiling)
-          .setStartTimestamp(myProfilingStartTimestamp).build());
+      response.onNext(ProfilingStateResponse.newBuilder()
+                        .setBeingProfiled(myIsBeingProfiled)
+                        .setConfiguration(myTraceConfiguration).build());
       response.onCompleted();
     }
   }

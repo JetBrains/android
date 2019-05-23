@@ -26,6 +26,7 @@ import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.projectmodel.ExternalLibrary;
 import com.android.tools.idea.AndroidProjectModelUtils;
+import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
@@ -47,14 +48,12 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
@@ -728,14 +727,12 @@ public final class ResourceRepositoryManager implements Disposable {
                                                                aarResourceRepositoryCache::getSourceRepository :
                                                                aarResourceRepositoryCache::getProtoRepository;
 
-    int maxThreads = ForkJoinPool.getCommonPoolParallelism();
-    ExecutorService executorService =
-        AppExecutorUtil.createBoundedApplicationPoolExecutor(ResourceRepositoryManager.class.getName(), maxThreads);
+    ExecutorService executor = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
 
     // Construct the repositories in parallel.
     Map<ExternalLibrary, Future<AarResourceRepository>> futures = Maps.newHashMapWithExpectedSize(libraries.size());
     for (ExternalLibrary library : libraries) {
-      futures.put(library, executorService.submit(() -> factory.apply(library)));
+      futures.put(library, executor.submit(() -> factory.apply(library)));
     }
 
     // Gather all the results.

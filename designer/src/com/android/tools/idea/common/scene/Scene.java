@@ -53,6 +53,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
@@ -91,6 +92,9 @@ public class Scene implements SelectionListener, Disposable {
 
   @SwingCoordinate
   private static final int DRAG_THRESHOLD = JBUI.scale(10);
+  private static final String PREFERENCE_KEY_PREFIX = "ScenePreference";
+  private static final String SHOW_TOOLTIP_KEY = PREFERENCE_KEY_PREFIX + "ShowToolTip";
+  private static Boolean SHOW_TOOLTIP_VALUE = null;
 
   private final DesignSurface myDesignSurface;
   private final SceneManager mySceneManager;
@@ -164,6 +168,21 @@ public class Scene implements SelectionListener, Disposable {
     myIsLiveRenderingEnabled = renderSettings.getUseLiveRendering();
 
     Disposer.register(sceneManager, this);
+  }
+
+  public static void setTooltipVisibility(boolean visible) {
+    SHOW_TOOLTIP_VALUE = visible;
+    PropertiesComponent.getInstance().setValue(SHOW_TOOLTIP_KEY, visible);
+  }
+
+  public static boolean getTooltipVisibility() {
+    if (SHOW_TOOLTIP_VALUE != null) {
+      return SHOW_TOOLTIP_VALUE;
+    }
+
+    // Here we assume that setValue is controlled by this class only.
+    SHOW_TOOLTIP_VALUE = PropertiesComponent.getInstance().getBoolean(SHOW_TOOLTIP_KEY, false);
+    return SHOW_TOOLTIP_VALUE;
   }
 
   @Override
@@ -557,9 +576,8 @@ public class Scene implements SelectionListener, Disposable {
     if (closestComponent == null
         || closestComponent.getNlComponent().isRoot()
            && myHitTarget == null) {
-      Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
-      if (obj != null && obj instanceof SecondarySelector) {
-        SecondarySelector ss = (SecondarySelector)obj;
+      SecondarySelector ss = getSecondarySelector(transform, x, y);
+      if (ss != null) {
         NlComponent component = ss.getComponent();
         myLastHoverConstraintComponent = ss.getComponent();
         tooltip = getConstraintToolTip(ss);
@@ -568,7 +586,10 @@ public class Scene implements SelectionListener, Disposable {
       }
     }
 
-    transform.setToolTip(tooltip);
+    if (getTooltipVisibility()) {
+      transform.setToolTip(tooltip);
+    }
+
     setCursor(transform, x, y);
   }
 
@@ -807,7 +828,7 @@ public class Scene implements SelectionListener, Disposable {
       }
       return true;
     });
-    SecondarySelector secondarySelector = getSelector(transform, x, y);
+    SecondarySelector secondarySelector = getSecondarySelector(transform, x, y);
     myHitListener.find(transform, myRoot, x, y);
     myHitTarget = myHitListener.getClosestTarget();
     myHitComponent = myHitListener.getClosestComponent();
@@ -827,9 +848,13 @@ public class Scene implements SelectionListener, Disposable {
     myHitListener.setTargetFilter(null);
   }
 
-  private SecondarySelector getSelector(@NotNull SceneContext transform,
-                                        @AndroidDpCoordinate int x,
-                                        @AndroidDpCoordinate int y) {
+  /**
+   * @return The {@link SecondarySelector} (if any) from drawn objects at a given android coordinate.
+   */
+  @Nullable
+  public static SecondarySelector getSecondarySelector(@NotNull SceneContext transform,
+                                                       @AndroidDpCoordinate int x,
+                                                       @AndroidDpCoordinate int y) {
     Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
     if (obj != null && obj instanceof SecondarySelector) {
       return  (SecondarySelector)obj;
@@ -867,8 +892,10 @@ public class Scene implements SelectionListener, Disposable {
       myHitListener.setTargetFilter(target -> myHitTarget != target);
       myHitListener.find(transform, myRoot, x, y);
       SceneComponent targetComponent = myHitTarget.getComponent();
-      if ((lassoTarget == null || lassoTarget.getIntersectingComponents().isEmpty())
-          && targetComponent != null && !inCurrentSelection(targetComponent)) {
+      if (lassoTarget == null // No need to select LassoTarget's component.
+          && targetComponent != null
+          && !inCurrentSelection(targetComponent)) {
+        // Select the target's component when it is first being dragged.
         myNewSelectedComponentsOnRelease.clear();
         myNewSelectedComponentsOnRelease.add(targetComponent);
         select(myNewSelectedComponentsOnRelease);
@@ -947,7 +974,7 @@ public class Scene implements SelectionListener, Disposable {
       }
     }
 
-    SecondarySelector secondarySelector = getSelector(transform, x, y);
+    SecondarySelector secondarySelector = getSecondarySelector(transform, x, y);
 
     boolean same = sameSelection();
     if (secondarySelector == null && !same && (myHitTarget == null || myHitTarget.canChangeSelection())) {
