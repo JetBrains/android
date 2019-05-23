@@ -710,12 +710,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testNewNotification() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "Notification");
-  }
-
-  @TemplateCheck
   public void testNewDayDream() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "Daydream");
