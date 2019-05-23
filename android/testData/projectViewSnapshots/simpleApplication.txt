@@ -1,0 +1,41 @@
+testSimpleApplication
+    app (Android)
+        manifests
+            AndroidManifest.xml (main)
+        java
+            simpleapplication (main)
+                MyActivity
+            simpleapplication (androidTest)
+                ApplicationTest
+            simpleapplication (test)
+                UnitTest
+        res
+            drawable
+                ic_launcher.xml
+            layout
+                absolute.xml
+                activity_my.xml
+                frames.xml
+            menu
+                my.xml
+            values
+                dimens (2)
+                    dimens.xml
+                    dimens.xml (w820dp)
+                strings (5)
+                    strings.xml
+                    strings.xml (en)
+                    strings.xml (en-rGB)
+                    strings.xml (ta)
+                    strings.xml (zh-rCN)
+                styles (3)
+                    styles.xml
+                    styles.xml (v19)
+                    styles.xml (v20)
+    Gradle Scripts
+        build.gradle (Project: testSimpleApplication)
+        build.gradle (Module: app)
+        gradle-wrapper.properties (Gradle Version)
+        proguard-rules.pro (ProGuard Rules for app)
+        settings.gradle (Project Settings)
+        local.properties (SDK Location)
