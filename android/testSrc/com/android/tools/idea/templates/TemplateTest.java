@@ -782,12 +782,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testNewPlusOneFragment() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "PlusOneFragment");
-  }
-
-  @TemplateCheck
   public void testNewAidlFile() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "AidlFile");
