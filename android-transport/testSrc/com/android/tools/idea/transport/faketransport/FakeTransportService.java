@@ -20,19 +20,20 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.idea.transport.faketransport.commands.BeginSession;
+import com.android.tools.idea.transport.faketransport.commands.CommandHandler;
+import com.android.tools.idea.transport.faketransport.commands.EndSession;
 import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.idea.transport.faketransport.commands.BeginSession;
-import com.android.tools.idea.transport.faketransport.commands.CommandHandler;
-import com.android.tools.idea.transport.faketransport.commands.EndSession;
 import com.intellij.util.containers.MultiMap;
 import io.grpc.stub.StreamObserver;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -336,8 +337,8 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
       responseObserver.onError(new RuntimeException("Server error"));
       return;
     }
-    // This logic mirrors that logic of transport-database. We do proper filtering of all events here so our test, behave as close to runtime as
-    // possible.
+    // This logic mirrors that logic of transport-database. We do proper filtering of all events here so our test, behave as close to
+    // runtime as possible.
     HashMap<Long, Transport.EventGroup.Builder> eventGroups = new HashMap<>();
     synchronized (myStreamEvents) {
       for (long streamId : myStreamEvents.keySet()) {
@@ -345,7 +346,9 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
           continue;
         }
         for (Transport.EventGroup.Builder eventGroup : myStreamEvents.get(streamId)) {
-          for (Common.Event event : eventGroup.getEventsList()) {
+          ListIterator<Common.Event> it = eventGroup.getEventsList().listIterator();
+          while (it.hasNext()) {
+            Common.Event event = it.next();
             if (request.getPid() != EMPTY_REQUEST_VALUE && request.getPid() != event.getPid()) {
               continue;
             }
@@ -353,10 +356,29 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
               continue;
             }
             if (request.getFromTimestamp() != EMPTY_REQUEST_VALUE && request.getFromTimestamp() > event.getTimestamp()) {
-              continue;
+              // Event occurs before from_timestamp but it may still be included.
+              if (event.getIsEnded()) {
+                // No more events in this group. Exclude this event.
+                continue;
+              }
+              if (it.hasNext() && eventGroup.getEvents(it.nextIndex()).getTimestamp() < request.getFromTimestamp()) {
+                // Next event occurs before from_timestamp as well. Exclude this event.
+                continue;
+              }
+              // Otherwise this event crosses from_timestamp boundary and should be included.
             }
             if (request.getToTimestamp() != EMPTY_REQUEST_VALUE && request.getToTimestamp() < event.getTimestamp()) {
-              continue;
+              // Event occurs after to_timestamp but it may be included.
+              int previousIndex = it.previousIndex();
+              if (previousIndex < 0) {
+                // No previous event in this group. Exclude this event.
+                continue;
+              }
+              if (eventGroup.getEvents(previousIndex).getTimestamp() > request.getToTimestamp()) {
+                // Previous event occurs before to_timestamp. Exclude this event.
+                continue;
+              }
+              // Otherwise this event crosses to_timestamp boundary and should be included.
             }
             if (request.getKind() != event.getKind()) {
               continue;

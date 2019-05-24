@@ -27,14 +27,14 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A data series of all energy events in a time range.
+ * A data series of all energy events in a time range. Legacy pipeline only.
  */
-public final class EnergyEventsDataSeries implements DataSeries<Common.Event> {
+public final class LegacyEnergyEventsDataSeries implements DataSeries<Common.Event> {
 
   @NotNull private final ProfilerClient myClient;
   @NotNull private final Common.Session mySession;
 
-  public EnergyEventsDataSeries(@NotNull ProfilerClient client, @NotNull Common.Session session) {
+  public LegacyEnergyEventsDataSeries(@NotNull ProfilerClient client, @NotNull Common.Session session) {
     myClient = client;
     mySession = session;
   }

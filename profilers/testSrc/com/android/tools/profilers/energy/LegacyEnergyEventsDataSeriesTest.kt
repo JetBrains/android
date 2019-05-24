@@ -24,7 +24,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit.SECONDS
 
-class EnergyEventsDataSeriesTest {
+class LegacyEnergyEventsDataSeriesTest {
 
   // W = Wake lock, J = Job
   //     |    |    |    |    |    |    |    |    |
@@ -111,7 +111,8 @@ class EnergyEventsDataSeriesTest {
 
   @Test
   fun testAllDataIncluded() {
-    val dataSeries = EnergyEventsDataSeries(ProfilerClient(grpcChannel.name), ProfilersTestData.SESSION_DATA)
+    val dataSeries = LegacyEnergyEventsDataSeries(ProfilerClient(grpcChannel.name),
+                                                  ProfilersTestData.SESSION_DATA)
 
     val range = Range(0.0, Double.MAX_VALUE)
     val dataList = dataSeries.getDataForXRange(range)
@@ -120,11 +121,12 @@ class EnergyEventsDataSeriesTest {
 
   @Test
   fun testEventsMerged() {
-    val dataSeries = EnergyEventsDataSeries(ProfilerClient(grpcChannel.name), ProfilersTestData.SESSION_DATA)
+    val dataSeries = LegacyEnergyEventsDataSeries(ProfilerClient(grpcChannel.name),
+                                                  ProfilersTestData.SESSION_DATA)
 
     // Filter wakelocks
     run {
-      val mergedSeries = MergedEnergyEventsDataSeries(dataSeries, EnergyDuration.Kind.WAKE_LOCK)
+      val mergedSeries = LegacyMergedEnergyEventsDataSeries(dataSeries, EnergyDuration.Kind.WAKE_LOCK)
       val range = Range(0.0, Double.MAX_VALUE)
       val dataList = mergedSeries.getDataForXRange(range)
       assertThat(dataList).hasSize(4)
@@ -141,7 +143,7 @@ class EnergyEventsDataSeriesTest {
 
     // Filter jobs
     run {
-      val mergedSeries = MergedEnergyEventsDataSeries(dataSeries, EnergyDuration.Kind.JOB)
+      val mergedSeries = LegacyMergedEnergyEventsDataSeries(dataSeries, EnergyDuration.Kind.JOB)
       val range = Range(0.0, Double.MAX_VALUE)
       val dataList = mergedSeries.getDataForXRange(range)
       assertThat(dataList).hasSize(4)
@@ -158,7 +160,8 @@ class EnergyEventsDataSeriesTest {
 
     // Combine both jobs and wakelock events together
     run {
-      val mergedSeries = MergedEnergyEventsDataSeries(dataSeries, EnergyDuration.Kind.WAKE_LOCK, EnergyDuration.Kind.JOB)
+      val mergedSeries = LegacyMergedEnergyEventsDataSeries(dataSeries, EnergyDuration.Kind.WAKE_LOCK,
+                                                                                               EnergyDuration.Kind.JOB)
       val range = Range(0.0, Double.MAX_VALUE)
       val dataList = mergedSeries.getDataForXRange(range)
       assertThat(dataList).hasSize(4)
