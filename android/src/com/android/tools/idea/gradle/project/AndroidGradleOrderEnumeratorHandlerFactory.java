@@ -78,15 +78,17 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
 
         AndroidModuleModel androidModel = AndroidModuleModel.get(rootModel.getModule());
         if (androidModel != null) {
-          result.addAll(getAndroidCompilerOutputFolders(androidModel, includeProduction, includeTests));
           super.addCustomModuleRoots(type, rootModel, result, includeProduction, includeTests);
+          getAndroidCompilerOutputFolders(androidModel, includeProduction, includeTests).stream()
+            .filter((root) -> !result.contains(root)).forEachOrdered(result::add);
           return true;
         }
 
         JavaModuleModel javaModel = JavaModuleModel.get(rootModel.getModule());
         if (javaModel != null) {
-          result.addAll(getJavaAndKotlinCompilerOutputFolders(javaModel, includeProduction, includeTests));
           super.addCustomModuleRoots(type, rootModel, result, includeProduction, includeTests);
+          getJavaAndKotlinCompilerOutputFolders(javaModel, includeProduction, includeTests).stream()
+            .filter((root) -> !result.contains(root)).forEachOrdered(result::add);
           return true;
         }
 
