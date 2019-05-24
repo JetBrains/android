@@ -94,17 +94,6 @@ public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> 
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture<W> undoTextFieldValue(@NotNull ActivityTextField activityField) {
-    JTextComponent textField = findTextFieldWithLabel(activityField.getLabelText());
-    robot().rightClick(textField);
-
-    JMenuItem popup = GuiTests.waitUntilShowing(robot(), null, Matchers.byText(JMenuItem.class, "Restore default value"));
-    robot().click(popup);
-
-    return this;
-  }
-
-  @NotNull
   public ConfigureBasicActivityStepFixture<W> setTargetSourceSet(@NotNull String targetSourceSet) {
     new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Target Source Set:", JComboBox.class, true))
       .selectItem(targetSourceSet);
