@@ -59,7 +59,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   // Naming scheme follows "Gradle: " + name of the library. See LibraryDependency#setName method
   private static final String GRADLE_PREFIX = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
 
-  private static final String GSON = GRADLE_PREFIX + "com.google.code.gson:gson:2.2.4@jar";
+  private static final String GSON = GRADLE_PREFIX + "com.google.code.gson:gson:2.8.0@jar";
   private static final String GUAVA = GRADLE_PREFIX + "com.google.guava:guava:18.0@jar";
   private static final String HAMCREST = GRADLE_PREFIX + "org.hamcrest:hamcrest-core:1.3@jar";
   private static final String JUNIT = GRADLE_PREFIX + "junit:junit:4.12@jar";
