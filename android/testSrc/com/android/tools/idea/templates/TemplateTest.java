@@ -227,7 +227,6 @@ public class TemplateTest extends AndroidGradleTestCase {
    */
   private static final Set<String> SKIPPABLE_PARAMETERS = ImmutableSet.of(
     "instantAppActivityRouteType",
-    "makeIgnore", // not exposed in UI
     "enableProGuard" // not exposed in UI
   );
 
