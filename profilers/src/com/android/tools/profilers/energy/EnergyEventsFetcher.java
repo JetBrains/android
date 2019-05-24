@@ -19,14 +19,12 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A class which handles fetching a list of {@link EnergyDuration} instances within a
@@ -71,12 +69,12 @@ public class EnergyEventsFetcher {
         .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMin()))
         .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax()))
         .build();
-      List<EnergyEvent> eventList = myClient.getEvents(request).getEventsList();
+      List<Common.Event> eventList = myClient.getEvents(request).getEventsList();
       List<EnergyDuration> partialDurations = EnergyDuration.groupById(eventList);
       for (EnergyDuration partialDuration : partialDurations) {
         EnergyProfiler.EnergyEventGroupRequest eventGroupRequest = EnergyProfiler.EnergyEventGroupRequest.newBuilder()
           .setSession(mySession)
-          .setEventId(partialDuration.getEventList().get(0).getEventId())
+          .setEventId(partialDuration.getEventList().get(0).getGroupId())
           .build();
         durationList.add(new EnergyDuration(myClient.getEventGroup(eventGroupRequest).getEventsList()));
       }

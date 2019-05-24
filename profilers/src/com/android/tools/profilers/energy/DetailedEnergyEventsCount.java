@@ -18,7 +18,7 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +32,7 @@ public class DetailedEnergyEventsCount {
     Range countRange = new Range(0, EnergyMonitor.MAX_EXPECTED_USAGE);
     EnergyEventsDataSeries sourceSeries = new EnergyEventsDataSeries(profilers.getClient(), profilers.getSession());
     Range dataRange = profilers.getTimeline().getDataRange();
-    RangedSeries<EnergyProfiler.EnergyEvent> series = new RangedSeries<>(dataRange, sourceSeries);
+    RangedSeries<Common.Event> series = new RangedSeries<>(dataRange, sourceSeries);
 
     myLocationCountSeries = new RangedContinuousSeries("Location", profilers.getTimeline().getViewRange(), countRange,
                                                        new EnergyEventsCountDataSeries(series, EnergyDuration.Kind.LOCATION));

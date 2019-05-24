@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.service;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
@@ -23,9 +22,9 @@ import com.android.tools.datastore.database.EnergyTable;
 import com.android.tools.datastore.energy.BatteryModel;
 import com.android.tools.datastore.poller.EnergyDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEventGroupRequest;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEventsResponse;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
@@ -34,6 +33,7 @@ import com.android.tools.profiler.proto.EnergyProfiler.EnergySamplesResponse;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.stub.StreamObserver;
 import java.sql.Connection;
 import java.util.Collections;
@@ -134,7 +134,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   public void getEvents(EnergyRequest request, StreamObserver<EnergyEventsResponse> responseObserver) {
     if (!myLastEventsResponse.matches(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
       EnergyProfiler.EnergyEventsResponse.Builder response = EnergyProfiler.EnergyEventsResponse.newBuilder();
-      List<EnergyEvent> events = myEnergyTable.getEvents(request);
+      List<Common.Event> events = myEnergyTable.getEvents(request);
       response.addAllEvents(events);
       myLastEventsResponse =
         new ResponseData<>(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp(), response.build());
@@ -146,7 +146,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   @Override
   public void getEventGroup(EnergyEventGroupRequest request, StreamObserver<EnergyEventsResponse> responseObserver) {
     EnergyProfiler.EnergyEventsResponse.Builder response = EnergyProfiler.EnergyEventsResponse.newBuilder();
-    List<EnergyEvent> events = myEnergyTable.getEventGroup(request);
+    List<Common.Event> events = myEnergyTable.getEventGroup(request);
     response.addAllEvents(events);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
