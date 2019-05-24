@@ -15,11 +15,12 @@
  */
 package com.android.tools.profilers.energy;
 
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.StudioProfilers;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 public class DetailedEnergyEventsCount {
@@ -30,17 +31,13 @@ public class DetailedEnergyEventsCount {
 
   public DetailedEnergyEventsCount(@NotNull StudioProfilers profilers) {
     Range countRange = new Range(0, EnergyMonitor.MAX_EXPECTED_USAGE);
-    EnergyEventsDataSeries sourceSeries = new EnergyEventsDataSeries(profilers.getClient(), profilers.getSession());
-    Range dataRange = profilers.getTimeline().getDataRange();
-    RangedSeries<Common.Event> series = new RangedSeries<>(dataRange, sourceSeries);
-
     myLocationCountSeries = new RangedContinuousSeries("Location", profilers.getTimeline().getViewRange(), countRange,
-                                                       new EnergyEventsCountDataSeries(series, EnergyDuration.Kind.LOCATION));
+                                                       createEventsCountSeries(profilers, kind -> kind == EnergyDuration.Kind.LOCATION));
     myWakeLockCountSeries = new RangedContinuousSeries("Wake Locks", profilers.getTimeline().getViewRange(), countRange,
-                                                       new EnergyEventsCountDataSeries(series, EnergyDuration.Kind.WAKE_LOCK));
+                                                       createEventsCountSeries(profilers, kind -> kind == EnergyDuration.Kind.WAKE_LOCK));
     myAlarmAndJobCountSeries = new RangedContinuousSeries("Alarms & Jobs", profilers.getTimeline().getViewRange(), countRange,
-                                                          new EnergyEventsCountDataSeries(series, EnergyDuration.Kind.ALARM,
-                                                                                          EnergyDuration.Kind.JOB));
+                                                          createEventsCountSeries(profilers, kind -> kind == EnergyDuration.Kind.ALARM ||
+                                                                                                     kind == EnergyDuration.Kind.JOB));
   }
 
   @NotNull
@@ -56,5 +53,20 @@ public class DetailedEnergyEventsCount {
   @NotNull
   public RangedContinuousSeries getAlarmAndJobCountSeries() {
     return myAlarmAndJobCountSeries;
+  }
+
+  @NotNull
+  private static DataSeries<Long> createEventsCountSeries(StudioProfilers profilers, Predicate<EnergyDuration.Kind> kindFilter) {
+    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      return new EnergyEventsCountDataSeries(
+        profilers.getClient().getTransportClient(),
+        profilers.getSession().getStreamId(),
+        profilers.getSession().getPid(),
+        kindFilter);
+    }
+    return new LegacyEnergyEventsCountDataSeries(
+      new RangedSeries<>(profilers.getTimeline().getDataRange(),
+                         new LegacyEnergyEventsDataSeries(profilers.getClient(), profilers.getSession())),
+      kindFilter);
   }
 }

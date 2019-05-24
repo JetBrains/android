@@ -737,13 +737,13 @@ public final class StudioFeatureTracker implements FeatureTracker {
       Common.Event firstEvent = subevents.get(0);
       builder.setType(toEnergyType(firstEvent.getEnergyEvent()));
 
-      EnergyEvent.Subtype eventSubtype = toEnergySubtype(firstEvent);
+      EnergyEvent.Subtype eventSubtype = toEnergySubtype(firstEvent.getEnergyEvent());
       if (eventSubtype != null) {
         builder.setSubtype(eventSubtype);
       }
 
       for (Common.Event event : subevents) {
-        builder.addSubevents(toEnergySubevent(event));
+        builder.addSubevents(toEnergySubevent(event.getEnergyEvent()));
       }
 
       profilerEvent.setEnergyEventMetadata(builder);
@@ -872,11 +872,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
     /**
      * Returns the subtype of the current event, if it has one, or {@code null} if none.
+     * @param eventData
      */
     @Nullable
-    private static EnergyEvent.Subtype toEnergySubtype(@NotNull Common.Event energyEvent) {
-      if (energyEvent.getEnergyEvent().getMetadataCase() == Energy.EnergyEventData.MetadataCase.WAKE_LOCK_ACQUIRED) {
-        Energy.WakeLockAcquired wakeLockAcquired = energyEvent.getEnergyEvent().getWakeLockAcquired();
+    private static EnergyEvent.Subtype toEnergySubtype(@NotNull Energy.EnergyEventData eventData) {
+      if (eventData.getMetadataCase() == Energy.EnergyEventData.MetadataCase.WAKE_LOCK_ACQUIRED) {
+        Energy.WakeLockAcquired wakeLockAcquired = eventData.getWakeLockAcquired();
         switch (wakeLockAcquired.getLevel()) {
           case PARTIAL_WAKE_LOCK:
             return EnergyEvent.Subtype.WAKE_LOCK_PARTIAL;
@@ -893,8 +894,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
             return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
         }
       }
-      else if (energyEvent.getEnergyEvent().getMetadataCase() == Energy.EnergyEventData.MetadataCase.ALARM_SET) {
-        Energy.AlarmSet alarmSet = energyEvent.getEnergyEvent().getAlarmSet();
+      else if (eventData.getMetadataCase() == Energy.EnergyEventData.MetadataCase.ALARM_SET) {
+        Energy.AlarmSet alarmSet = eventData.getAlarmSet();
         switch (alarmSet.getType()) {
           case RTC:
             return EnergyEvent.Subtype.ALARM_RTC;
@@ -914,8 +915,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
     }
 
     @NotNull
-    private static EnergyEvent.Subevent toEnergySubevent(@NotNull Common.Event energyEvent) {
-      switch (energyEvent.getEnergyEvent().getMetadataCase()) {
+    private static EnergyEvent.Subevent toEnergySubevent(@NotNull Energy.EnergyEventData eventData) {
+      switch (eventData.getMetadataCase()) {
         case WAKE_LOCK_ACQUIRED:
           return EnergyEvent.Subevent.WAKE_LOCK_ACQUIRED;
         case WAKE_LOCK_RELEASED:
