@@ -61,17 +61,10 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.common.base.Joiner
 import com.google.common.base.Strings
 import com.google.common.io.Files
-import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
-import com.intellij.ui.PopupHandler
 import com.intellij.ui.RecentsManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.uiDesigner.core.GridConstraints
@@ -83,7 +76,6 @@ import com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL
 import com.intellij.uiDesigner.core.GridConstraints.FILL_NONE
 import com.intellij.uiDesigner.core.GridLayoutManager
 import com.intellij.util.ui.JBUI
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
@@ -227,26 +219,13 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     for (parameter in templateMetadata.parameters) {
       val row = createRowForParameter(model.module, parameter)
       val property = row.property
-      if (property != null) {
-        property.addListener {
-          // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
-          if (evaluationState != EvaluationState.EVALUATING && rootPanel.isShowing) {
-            userValues[parameter] = property.get()
-            // Evaluate later to prevent modifying Swing values that are locked during read
-            enqueueEvaluateParameters()
-          }
+      property?.addListener {
+        // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
+        if (evaluationState != EvaluationState.EVALUATING && rootPanel.isShowing) {
+          userValues[parameter] = property.get()
+          // Evaluate later to prevent modifying Swing values that are locked during read
+          enqueueEvaluateParameters()
         }
-
-        val resetParameterGroup = object : ActionGroup() {
-          override fun getChildren(e: AnActionEvent?): Array<AnAction> {
-            return arrayOf(ResetParameterAction(parameter))
-          }
-        }
-        row.component.addMouseListener(object : PopupHandler() {
-          override fun invokePopup(comp: Component, x: Int, y: Int) {
-            ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, resetParameterGroup).component.show(comp, x, y)
-          }
-        })
       }
       parameterRows[parameter] = row
       row.addToPanel(parametersPanel)
@@ -568,23 +547,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
         suffix++
       }
       return suggested
-    }
-  }
-
-  /**
-   * Right-click context action which lets the user clear any modifications they made to a parameter.
-   * Once cleared, the parameter is re-evaluated.
-   */
-  private inner class ResetParameterAction(private val myParameter: Parameter)
-    : AnAction("Restore default value", "Discards any user modifications made to this parameter", AllIcons.General.Reset) {
-
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = userValues.containsKey(myParameter)
-    }
-
-    override fun actionPerformed(e: AnActionEvent) {
-      userValues.remove(myParameter)
-      evaluateParameters()
     }
   }
 }
