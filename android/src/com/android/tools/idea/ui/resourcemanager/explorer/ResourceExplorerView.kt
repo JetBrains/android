@@ -109,7 +109,7 @@ private const val DELAY_BEFORE_LOADING_STATE = 100L // ms
 /**
  * View meant to display [com.android.tools.idea.ui.resourcemanager.model.Asset] located
  * in the project.
- * It uses an [ProjectResourcesBrowserViewModel] to populates the views
+ * It uses an [ResourceExplorerViewModelImpl] to populates the views
  */
 class ResourceExplorerView(
   private val resourcesBrowserViewModel: ResourceExplorerViewModel,
@@ -202,9 +202,10 @@ class ResourceExplorerView(
   /**
    * A mouse listener that opens a [ResourceDetailView] when double clicking
    * on an item from the list.
-   * @see openAssets
+   * @see doSelectAssetAction
    */
-  private val doubleClickListener = object : MouseAdapter() {
+  private val mouseClickListener = object : MouseAdapter() {
+    // TODO: Use selection listeners, listen to single click events.
     override fun mouseClicked(e: MouseEvent) {
       if (!(e.clickCount == 2 && e.button == MouseEvent.BUTTON1)) {
         return
@@ -213,7 +214,7 @@ class ResourceExplorerView(
       val index = assetListView.locationToIndex(e.point)
       if (index >= 0) {
         val designAssetSet = assetListView.model.getElementAt(index)
-        openAssets(designAssetSet)
+        doSelectAssetAction(designAssetSet)
       }
     }
   }
@@ -222,7 +223,7 @@ class ResourceExplorerView(
     override fun keyPressed(e: KeyEvent) {
       if (KeyEvent.VK_ENTER == e.keyCode) {
         val assetListView = e.source as AssetListView
-        openAssets(assetListView.selectedValue)
+        doSelectAssetAction(assetListView.selectedValue)
       }
     }
   }
@@ -230,15 +231,15 @@ class ResourceExplorerView(
   /**
    * Replace the content of the view with a [ResourceDetailView] for the provided [designAssetSet].
    */
-  private fun openAssets(designAssetSet: ResourceAssetSet) {
+  private fun doSelectAssetAction(designAssetSet: ResourceAssetSet) {
     if (designAssetSet.assets.size == 1) {
       val asset = designAssetSet.assets.first()
       if (!(asset is DesignAsset)) return // TODO: Show some sort of ui feedback. E.g: A warning icon on resource + error dialog.
-      // TODO: Refactor openFile out of ResourceExplorerViewModel, would need something different for resource picking.
       ResourceManagerTracking.logAssetOpened(asset.type)
-      resourcesBrowserViewModel.openFile(asset)
+      resourcesBrowserViewModel.doSelectAssetAction(asset)
       return
     }
+    // TODO: Should not show the DetailsView for ResourcePicker.
     showDetailView(designAssetSet)
   }
 
@@ -398,7 +399,7 @@ class ResourceExplorerView(
       cellRenderer = DesignAssetCellRenderer(resourcesBrowserViewModel.assetPreviewManager)
       dragHandler.registerSource(this)
       addMouseListener(popupHandler)
-      addMouseListener(doubleClickListener)
+      addMouseListener(mouseClickListener)
       addKeyListener(keyListener)
       thumbnailWidth = this@ResourceExplorerView.previewSize
       isGridMode = this@ResourceExplorerView.gridMode
