@@ -54,6 +54,7 @@ import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -790,6 +791,24 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     FinishBuildEvent finishEvent = (FinishBuildEvent)buildEvents.get(1);
     assertThat(finishEvent.getResult()).isInstanceOf(FailureResult.class);
     assertEquals(errorMessage, finishEvent.getMessage());
+  }
+
+  public void testFinishBuildEventOnlyCreatedOnce() throws Exception {
+    Project project = getProject();
+    // Spy on SyncView manager to capture the build events.
+    SyncViewManager spyViewManager = spy(ServiceManager.getService(project, SyncViewManager.class));
+    myIdeComponents.replaceProjectService(SyncViewManager.class, spyViewManager);
+
+    // Invoke Gradle sync.
+    loadSimpleApplication();
+
+    ArgumentCaptor<BuildEvent> buildEventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
+    verify(spyViewManager, atLeastOnce()).onEvent(buildEventCaptor.capture());
+
+    // Verify that FinishBuildEvent was created only once.
+    List<BuildEvent> buildEvents = buildEventCaptor.getAllValues().stream().filter(FinishBuildEvent.class::isInstance).collect(toList());
+    assertThat(buildEvents).hasSize(1);
+    assertThat(buildEvents.get(0).getMessage()).isEqualTo("synced successfully");
   }
 
   public void testContentRootDataNodeWithBuildSrcModule() throws Exception {
