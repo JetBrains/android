@@ -23,6 +23,7 @@ import com.android.tools.profiler.proto.Cpu.CpuCoreUsageData;
 import com.android.tools.profiler.proto.Cpu.CpuUsageData;
 import com.google.common.primitives.Doubles;
 import java.util.List;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuConfig {
@@ -47,7 +48,7 @@ public class CpuConfig {
         int core = config.getCore();
         if (core >= coreConfigCount || myIsCpuCorePopulated[core]) {
           getLogger().debug(core > coreConfigCount ?
-                            String.format("Core index %d is >= the number of configs (%d) reported.", core, coreConfigCount) :
+                            String.format(Locale.US, "Core index %d is >= the number of configs (%d) reported.", core, coreConfigCount) :
                             "Core index already populated.");
           isValidCpuCoreConfig = false;
           break;
@@ -58,8 +59,8 @@ public class CpuConfig {
         int maxFreq = config.getMaxFrequencyInKhz();
         if (minFreq <= 0 || minFreq >= maxFreq) {
           getLogger().debug(minFreq <= 0 ?
-                            String.format("Min frequency %d <= 0.", minFreq) :
-                            String.format("Min frequency %d >= max frequency of %d.", minFreq, maxFreq));
+                            String.format(Locale.US, "Min frequency %d <= 0.", minFreq) :
+                            String.format(Locale.US, "Min frequency %d >= max frequency of %d.", minFreq, maxFreq));
           isValidCpuCoreConfig = false;
           break;
         }
@@ -100,7 +101,7 @@ public class CpuConfig {
     // We'll assume that CpuUsageData is more reliable than CpuCoreConfigResponse.
     final int coreCount = currUsageData.getCoresCount();
     if (coreCount != prevUsageData.getCoresCount()) {
-      getLogger().info(String.format("CPU config changing from %d to %d cores.", prevUsageData.getCoresCount(), coreCount));
+      getLogger().info(String.format(Locale.US, "CPU config changing from %d to %d cores.", prevUsageData.getCoresCount(), coreCount));
       return new CpuCoreUsage[0];
     }
     CpuCoreUsage[] cpuCoresUtilization = new CpuCoreUsage[coreCount];

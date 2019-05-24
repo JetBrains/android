@@ -26,6 +26,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.io.File
+import java.util.Locale
 
 /**
  * Given a map of possible symbols locations finds symbol files
@@ -63,7 +64,7 @@ fun getArchToSymDirsMap(project: Project): Map<String, Set<File>> {
     if (subdir == null || !subdir.isDirectory) return false
     val files = subdir.listFiles(
         { f ->
-          val extension = f.extension.toLowerCase()
+          val extension = f.extension.toLowerCase(Locale.US)
           extension == "so" || extension == "dwo"
         }
     )

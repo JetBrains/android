@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.buildCommon",
     srcs = ["src"],
     iml_files = ["intellij.android.buildCommon.iml"],
+    lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     test_coverage = True,
     test_resources = ["testResources"],

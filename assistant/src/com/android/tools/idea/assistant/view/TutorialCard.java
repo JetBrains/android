@@ -19,6 +19,7 @@ import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.components.JBLabel;
@@ -188,7 +189,7 @@ public class TutorialCard extends CardViewPanel {
     myContentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
     // reset the scroll bars after render see b/77530149
-    SwingUtilities.invokeLater(() -> initScrollValues());
+    ApplicationManager.getApplication().invokeLater(() -> initScrollValues());
   }
 
   private static class TutorialDescription extends JTextPane {

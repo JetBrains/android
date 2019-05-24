@@ -114,7 +114,7 @@ public abstract class DataStoreTable<T extends Enum> {
 
   protected void createIndex(@NotNull String table, int indexId, String... indexList) throws SQLException {
     StringBuilder statement = new StringBuilder();
-    statement.append(String.format("CREATE INDEX IF NOT EXISTS idx_%s_%d_pk ON %s", table, indexId, table));
+    statement.append(String.format(Locale.US, "CREATE INDEX IF NOT EXISTS idx_%s_%d_pk ON %s", table, indexId, table));
     executeUniqueStatement(statement, indexList);
   }
 
