@@ -39,6 +39,8 @@ import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.Font
+import java.awt.Graphics
+import java.awt.KeyboardFocusManager
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
@@ -94,11 +96,10 @@ class PTableImpl(
   override val gridLineColor: Color
     get() = gridColor
   override var wrap = false
+  var isPaintingTable = false
+    private set
 
   init {
-    // The row heights should be identical, save time by only looking at the first rows
-    super.setMaxItemsForSizeCalculation(5)
-
     super.setShowColumns(false)
     super.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
 
@@ -148,6 +149,16 @@ class PTableImpl(
     valueColumn.width = width - nameColumn.width
   }
 
+  override fun paint(g: Graphics) {
+    isPaintingTable = true
+    try {
+      super.paint(g)
+    }
+    finally {
+      isPaintingTable = false
+    }
+  }
+
   override val component: JComponent
     get() = this
 
@@ -162,6 +173,14 @@ class PTableImpl(
 
   override fun isExpanded(item: PTableGroupItem): Boolean {
     return model.isExpanded(item)
+  }
+
+  // When an editor is present, do not accept focus on the table itself.
+  // This fixes a problem when navigating backwards.
+  // The LayoutFocusTraversalPolicy for the container of the table would include
+  // the table as the last possible focus component when navigating backwards.
+  override fun isFocusable(): Boolean {
+    return super.isFocusable() && !isEditing
   }
 
   override fun startEditing(row: Int) {
@@ -408,10 +427,14 @@ class PTableImpl(
   override fun removeEditor() {
     tableModel.editedItem = null
 
-    // b/37132037 Move focus back to table before hiding the editor
+    // b/37132037 Remove focus from the editor before hiding the editor.
+    // When we are transferring focus to another cell we will have to remove the current
+    // editor. The auto focus transfer in Container.removeNotify will cause another undesired
+    // focus event. This is an attempt to avoid that.
+    // The auto focus transfer is a common problem for applications see this open bug: JDK-6210779.
     val editor = editorComponent
     if (editor != null && IJSwingUtilities.hasFocus(editor)) {
-      requestFocus()
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().clearFocusOwner()
     }
 
     // Now remove the editor
@@ -646,7 +669,10 @@ class PTableImpl(
         if (table.isCellEditable(pos.row, pos.column)) {
           table.setRowSelectionInterval(pos.row, pos.row)
           if (table.editCellAt(pos.row, pos.column)) {
-            return getFocusCandidateFromNewlyCreatedEditor(forwards)
+            val component = getFocusCandidateFromNewlyCreatedEditor(forwards)
+            if (component != null) {
+              return component
+            }
           }
         }
       }

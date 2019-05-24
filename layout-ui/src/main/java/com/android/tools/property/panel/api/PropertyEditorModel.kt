@@ -53,6 +53,13 @@ interface PropertyEditorModel {
   var visible: Boolean
 
   /**
+   * Controls whether the editor is readonly.
+   *
+   * The editor should update itself to ignore focus requests and mouse interactions.
+   */
+  var readOnly: Boolean
+
+  /**
    * Returns true if the editor currently has the focus.
    */
   val hasFocus: Boolean
@@ -60,9 +67,19 @@ interface PropertyEditorModel {
   /**
    * Controls the visuals of the editor.
    *
-   * The editor should display itself as being a selected table cell renderer.
+   * The editor is a table cell renderer.
+   * If true the editor should display itself as being a selected state.
    */
   var isUsedInRendererWithSelection: Boolean
+
+  /**
+   * Controls the visuals of the editor.
+   *
+   * The editor is a table cell renderer.
+   * If true the editor is currently displaying a cell in an expanded table row.
+   * The editor may decide to show different content based on this value.
+   */
+  var isExpandedTableItem: Boolean
 
   /**
    * Request focus to be placed on this editor.

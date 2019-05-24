@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.DesignLookup
+import com.android.tools.idea.layoutinspector.resource.DesignLookup
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.parseColor
@@ -34,12 +34,15 @@ import javax.swing.Icon
 /**
  * A [PropertyItem] in the inspector with a snapshot of the value.
  */
-data class InspectorPropertyItem(
+open class InspectorPropertyItem(
 
   /** The namespace of the attribute e.g. "http://schemas.android.com/apk/res/android" */
   override val namespace: String,
 
   /** The name of the attribute */
+  val attrName: String,
+
+  /** The name displayed in a property table */
   override val name: String,
 
   /** The type of the attribute */
@@ -62,10 +65,14 @@ data class InspectorPropertyItem(
 
 ) : PropertyItem {
 
-  override fun hashCode(): Int = HashCodes.mix(namespace.hashCode(), name.hashCode())
+  override fun hashCode(): Int = HashCodes.mix(namespace.hashCode(), attrName.hashCode(), source?.hashCode() ?: 0)
 
   override fun equals(other: Any?): Boolean =
-    other is InspectorPropertyItem && namespace == other.namespace && name == other.name
+    other is InspectorPropertyItem &&
+    namespace == other.namespace &&
+    attrName == other.attrName &&
+    source == other.source &&
+    javaClass == other.javaClass
 
   override val helpSupport = object : HelpSupport {
     override fun browse() { DesignLookup.gotoLayoutAttributeDefinition(this@InspectorPropertyItem) }
