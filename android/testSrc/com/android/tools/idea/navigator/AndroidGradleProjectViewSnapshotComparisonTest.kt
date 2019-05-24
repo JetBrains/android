@@ -20,11 +20,17 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.impl.GroupByTypeComparator
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.IconLoader
+import com.intellij.ui.DeferredIcon
+import com.intellij.ui.LayeredIcon
+import com.intellij.ui.RowIcon
 import java.io.File
+import javax.swing.Icon
 
 class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotComparisonTest {
   override val snapshotDirectoryName = "projectViewSnapshots"
@@ -60,11 +66,37 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
 
     return buildString {
 
+      fun Icon.getIconText(): Icon? {
+        var icon: Icon? = this
+        do {
+          val previous = icon
+          icon = if (icon is DeferredIcon) icon.evaluate() else icon
+          icon = if (icon is RowIcon && icon.allIcons.size == 1) icon.getIcon(0) else icon
+          icon = if (icon is LayeredIcon && icon.allLayers.size == 1) icon.getIcon(0) else icon
+        }
+        while (previous != icon)
+        return icon
+      }
+
+      fun PresentationData.toTestText(): String {
+        val icon = getIcon(false)?.getIconText()
+        val iconText = (icon as? IconLoader.CachedImageIcon)?.originalPath ?: icon?.let { "$it (${it.javaClass.simpleName})" }
+        val nodeText =
+          if (coloredText.isEmpty()) presentableText
+          else coloredText.joinToString(separator = "") { it.text }
+
+        return buildString {
+          append(nodeText)
+          if (iconText != null) append(" (icon: $iconText)")
+        }
+      }
+
       fun dump(element: AbstractTreeNode<*>, prefix: String = "") {
-        appendln("$prefix${element.toTestString(null) ?: element.toString()}")
+        appendln("$prefix${element.presentation.toTestText()}")
         treeStructure
           .getChildElements(element)
           .map { it as AbstractTreeNode<*> }
+          .apply { forEach { it.update() } }
           .sortedWith(comparator)
           .forEach { dump(it, "    $prefix") }
       }
