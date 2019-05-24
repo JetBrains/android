@@ -106,13 +106,13 @@ public class DetailedMemoryUsageTest {
       }
     }
 
-    // Request negative to mid range
+    // Request mid to high range
     range.set(TimeUnit.SECONDS.toMicros(45), TimeUnit.SECONDS.toMicros(200));
     for (int i = 0; i < allSeries.size(); i++) {
       List<SeriesData<Long>> series = allSeries.get(i).getSeries();
-      Truth.assertThat(series.size()).isEqualTo(5);
+      Truth.assertThat(series.size()).isEqualTo(6);
       for (int j = 0; j < series.size(); j++) {
-        Truth.assertThat(series.get(j).value).isEqualTo((j + 5) * 10 + i);
+        Truth.assertThat(series.get(j).value).isEqualTo((j + 4) * 10 + i);
       }
     }
   }

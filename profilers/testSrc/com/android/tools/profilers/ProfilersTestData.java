@@ -17,14 +17,18 @@ package com.android.tools.profilers;
 
 import static com.android.tools.profiler.proto.Common.Event.EventGroupIds.NETWORK_RX_VALUE;
 import static com.android.tools.profiler.proto.Common.Event.EventGroupIds.NETWORK_TX_VALUE;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Energy;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Network;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profilers.network.httpdata.HttpData;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
@@ -135,7 +139,7 @@ public final class ProfilersTestData {
   public static Common.Event.Builder generateCpuThreadEvent(long timestampSeconds, int tid, String name, Cpu.CpuThreadData.State state) {
     return Common.Event.newBuilder()
       .setPid(SESSION_DATA.getPid())
-      .setTimestamp(TimeUnit.SECONDS.toNanos(timestampSeconds))
+      .setTimestamp(SECONDS.toNanos(timestampSeconds))
       .setKind(Common.Event.Kind.CPU_THREAD)
       .setGroupId(tid)
       .setIsEnded(state == Cpu.CpuThreadData.State.DEAD)
@@ -164,5 +168,109 @@ public final class ProfilersTestData {
     service.addEventToEventGroup(streamId,
                                  ProfilersTestData.generateCpuThreadEvent(15, 2, "Thread 2", Cpu.CpuThreadData.State.DEAD)
                                    .build());
+  }
+
+  // W = Wake lock, J = Job
+  // t: 100--150--200--250--300--350--400--450--500
+  //     |    |    |    |    |    |    |    |    |
+  // 1:  W=========]
+  // 2:       J==============]
+  // 3:          W======]
+  // 4:                           J=========]
+  // 5:                                J=========]
+  // 6:                                   W====]
+  public static List<Common.Event> generateEnergyEvents(int pid) {
+    return Arrays.asList(
+      Common.Event.newBuilder()
+        .setPid(pid)
+        .setGroupId(1)
+        .setTimestamp(SECONDS.toNanos(100))
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setPid(pid)
+        .setGroupId(2)
+        .setTimestamp(SECONDS.toNanos(150))
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStarted(Energy.JobStarted.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setPid(pid)
+        .setGroupId(3)
+        .setTimestamp(SECONDS.toNanos(170))
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setPid(pid)
+        .setGroupId(1)
+        .setTimestamp(SECONDS.toNanos(200))
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setPid(pid)
+        .setGroupId(3)
+        .setTimestamp(SECONDS.toNanos(250))
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setPid(pid)
+        .setGroupId(2)
+        .setTimestamp(SECONDS.toNanos(300))
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(Energy.JobFinished.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setPid(pid)
+        .setGroupId(4)
+        .setTimestamp(SECONDS.toNanos(350))
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStarted(Energy.JobStarted.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setPid(pid)
+        .setGroupId(5)
+        .setTimestamp(SECONDS.toNanos(400))
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStarted(Energy.JobStarted.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setPid(pid)
+        .setGroupId(6)
+        .setTimestamp(SECONDS.toNanos(420))
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setPid(pid)
+        .setGroupId(4)
+        .setTimestamp(SECONDS.toNanos(450))
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(Energy.JobFinished.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setPid(pid)
+        .setGroupId(6)
+        .setTimestamp(SECONDS.toNanos(480))
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setPid(pid)
+        .setGroupId(5)
+        .setTimestamp(SECONDS.toNanos(500))
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(Energy.JobFinished.getDefaultInstance()))
+        .build()
+    );
   }
 }

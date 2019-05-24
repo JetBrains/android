@@ -33,13 +33,23 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.util.concurrent.TimeUnit
 
-class EnergyProfilerStageTest {
+@RunWith(Parameterized::class)
+class EnergyProfilerStageTest(private val useUnifiedEvents: Boolean) {
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters
+    fun useNewEvenPipelineParameter() = listOf(false, true)
+  }
+
   private val fakeData = ImmutableList.of<Common.Event>(
     Common.Event.newBuilder()
       .setGroupId(1)
       .setTimestamp(2000)
+      .setKind(Common.Event.Kind.ENERGY_EVENT)
       .setEnergyEvent(
         Energy.EnergyEventData.newBuilder()
           .setAlarmSet(Energy.AlarmSet.getDefaultInstance())
@@ -48,12 +58,14 @@ class EnergyProfilerStageTest {
     Common.Event.newBuilder()
       .setGroupId(1)
       .setTimestamp(3000)
+      .setKind(Common.Event.Kind.ENERGY_EVENT)
       .setEnergyEvent(Energy.EnergyEventData.newBuilder().setAlarmCancelled(Energy.AlarmCancelled.getDefaultInstance()))
       .setIsEnded(true)
       .build(),
     Common.Event.newBuilder()
       .setGroupId(2)
       .setTimestamp(3000)
+      .setKind(Common.Event.Kind.ENERGY_EVENT)
       .setEnergyEvent(
         Energy.EnergyEventData.newBuilder()
           .setJobScheduled(Energy.JobScheduled.getDefaultInstance())
@@ -62,6 +74,7 @@ class EnergyProfilerStageTest {
     Common.Event.newBuilder()
       .setGroupId(2)
       .setTimestamp(4000)
+      .setKind(Common.Event.Kind.ENERGY_EVENT)
       .setEnergyEvent(
         Energy.EnergyEventData.newBuilder()
       .setJobFinished(Energy.JobFinished.getDefaultInstance()))
@@ -70,22 +83,26 @@ class EnergyProfilerStageTest {
     Common.Event.newBuilder()
       .setGroupId(3)
       .setTimestamp(0)
+      .setKind(Common.Event.Kind.ENERGY_EVENT)
       .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
       .build(),
     Common.Event.newBuilder()
       .setGroupId(3)
       .setTimestamp(1000)
+      .setKind(Common.Event.Kind.ENERGY_EVENT)
       .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
       .setIsEnded(true)
       .build(),
     Common.Event.newBuilder()
       .setGroupId(4)
       .setTimestamp(4000)
+      .setKind(Common.Event.Kind.ENERGY_EVENT)
       .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationUpdateRequested(Energy.LocationUpdateRequested.getDefaultInstance()))
       .build(),
     Common.Event.newBuilder()
       .setGroupId(4)
       .setTimestamp(5000)
+      .setKind(Common.Event.Kind.ENERGY_EVENT)
       .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationUpdateRemoved(Energy.LocationUpdateRemoved.getDefaultInstance()))
       .setIsEnded(true)
       .build()
@@ -102,7 +119,11 @@ class EnergyProfilerStageTest {
 
   @Before
   fun setUp() {
-    val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
+    val services = FakeIdeProfilerServices().apply {
+      enableEnergyProfiler(true)
+      enableEventsPipeline(useUnifiedEvents)
+    }
+    fakeData.forEach { event -> transportService.addEventToEventGroup(1, event) }
     myStage = EnergyProfilerStage(StudioProfilers(ProfilerClient(grpcChannel.name), services, timer))
     myStage.studioProfilers.timeline.viewRange.set(TimeUnit.SECONDS.toMicros(0).toDouble(), TimeUnit.SECONDS.toMicros(5).toDouble())
     myStage.studioProfilers.stage = myStage
