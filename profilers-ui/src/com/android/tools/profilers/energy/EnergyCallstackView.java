@@ -18,21 +18,23 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.ui.HideablePanel;
-import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.stacktrace.StackTraceGroup;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class EnergyCallstackView extends JPanel {
 
@@ -55,12 +57,13 @@ public final class EnergyCallstackView extends JPanel {
     List<HideablePanel> callstackList = new ArrayList<>();
     StackTraceGroup stackTraceGroup = myStageView.getIdeComponents().createStackGroup();
     long startTimeNs = myStageView.getStage().getStudioProfilers().getSession().getStartTimestamp();
-    for (EnergyProfiler.EnergyEvent event : duration.getEventList()) {
-      if (event.getTraceId().isEmpty() || EnergyDuration.getMetadataName(event.getMetadataCase()).isEmpty()) {
+    for (Common.Event event : duration.getEventList()) {
+      if (event.getEnergyEvent().getTraceId().isEmpty() ||
+          EnergyDuration.getMetadataName(event.getEnergyEvent().getMetadataCase()).isEmpty()) {
         continue;
       }
 
-      String callstackString = myStageView.getStage().requestBytes(event.getTraceId()).toStringUtf8();
+      String callstackString = myStageView.getStage().requestBytes(event.getEnergyEvent().getTraceId()).toStringUtf8();
       StackTraceModel model = new StackTraceModel(myStageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator());
       StackTraceView stackTraceView = stackTraceGroup.createStackView(model);
       stackTraceView.getModel().setStackFrames(callstackString);
@@ -77,7 +80,7 @@ public final class EnergyCallstackView extends JPanel {
       }
 
       String time = TimeFormatter.getFullClockString(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp() - startTimeNs));
-      String description = time + "&nbsp;&nbsp;" + EnergyDuration.getMetadataName(event.getMetadataCase());
+      String description = time + "&nbsp;&nbsp;" + EnergyDuration.getMetadataName(event.getEnergyEvent().getMetadataCase());
       HideablePanel hideablePanel = new HideablePanel.Builder(description, traceComponent)
         .setContentBorder(new JBEmptyBorder(5, 0, 0, 0))
         .setPanelBorder(new JBEmptyBorder(0, 0, 0, 0))

@@ -15,6 +15,11 @@
  */
 package com.android.tools.profilers.energy;
 
+import static com.android.tools.profilers.ProfilerColors.ENERGY_BACKGROUND;
+import static com.android.tools.profilers.ProfilerColors.ENERGY_LOCATION;
+import static com.android.tools.profilers.ProfilerColors.ENERGY_WAKE_LOCK;
+import static com.android.tools.profilers.ProfilerColors.TRANSPARENT_COLOR;
+
 import com.android.tools.adtui.chart.statechart.DefaultStateChartReducer;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
@@ -24,13 +29,10 @@ import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import com.android.tools.profiler.proto.Common;
+import java.awt.Color;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
-import static com.android.tools.profilers.ProfilerColors.*;
+import org.jetbrains.annotations.NotNull;
 
 public final class EnergyEventStateChart {
   /**
@@ -45,30 +47,30 @@ public final class EnergyEventStateChart {
     .add(EnergyDuration.Kind.UNKNOWN, TRANSPARENT_COLOR)
     .build();
 
-  private static final StateChartColorProvider<EnergyEvent> DURATION_STATE_COLOR_PROVIDER = new StateChartColorProvider<EnergyEvent>() {
+  private static final StateChartColorProvider<Common.Event> DURATION_STATE_COLOR_PROVIDER = new StateChartColorProvider<Common.Event>() {
     @NotNull
     @Override
-    public Color getColor(boolean isMouseOver, @NotNull EnergyEvent value) {
-      if (value.getIsTerminal()) {
+    public Color getColor(boolean isMouseOver, @NotNull Common.Event value) {
+      if (value.getIsEnded()) {
         return TRANSPARENT_COLOR;
       }
-      return DURATION_STATE_ENUM_COLORS.getColor(EnergyDuration.Kind.from(value));
+      return DURATION_STATE_ENUM_COLORS.getColor(EnergyDuration.Kind.from(value.getEnergyEvent()));
     }
   };
 
   @NotNull
-  public static StateChart<EnergyEvent> create(@NotNull EnergyDuration duration, @NotNull Range range) {
-    DefaultDataSeries<EnergyEvent> series = new DefaultDataSeries<>();
+  public static StateChart<Common.Event> create(@NotNull EnergyDuration duration, @NotNull Range range) {
+    DefaultDataSeries<Common.Event> series = new DefaultDataSeries<>();
     duration.getEventList().forEach(evt -> series.add(TimeUnit.NANOSECONDS.toMicros(evt.getTimestamp()), evt));
 
-    StateChartModel<EnergyEvent> model = new StateChartModel<>();
+    StateChartModel<Common.Event> model = new StateChartModel<>();
     model.addSeries(new RangedSeries<>(range, series));
 
     return create(model);
   }
 
   @NotNull
-  public static StateChart<EnergyEvent> create(@NotNull StateChartModel<EnergyEvent> model) {
+  public static StateChart<Common.Event> create(@NotNull StateChartModel<Common.Event> model) {
     return new StateChart<>(model, new StateChartConfig<>(new DefaultStateChartReducer<>(), 1, 1, 0.33f), DURATION_STATE_COLOR_PROVIDER);
   }
 }

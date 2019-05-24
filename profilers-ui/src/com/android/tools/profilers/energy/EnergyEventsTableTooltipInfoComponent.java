@@ -21,17 +21,20 @@ import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.RenderInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
-import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Energy;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtilities;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
   private final FontMetrics BOLD_FONT_METRICS = UIUtilities.getFontMetrics(this, mDefaultFontMetrics.getFont().deriveFont(Font.BOLD));
@@ -110,13 +113,13 @@ public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
       return;
     }
     renderText(myModel.getStatusString());
-    EnergyProfiler.EnergyEvent firstEvent = myModel.getDuration().getEventList().get(0);
-    if (firstEvent.hasAlarmSet()) {
-      if (firstEvent.getAlarmSet().hasOperation()) {
+    Common.Event firstEvent = myModel.getDuration().getEventList().get(0);
+    if (firstEvent.getEnergyEvent().hasAlarmSet()) {
+      if (firstEvent.getEnergyEvent().getAlarmSet().hasOperation()) {
         myInstructions.add(new TextInstruction(BOLD_FONT_METRICS, "Intent"));
-        String packageString = firstEvent.getAlarmSet().getOperation().getCreatorPackage();
+        String packageString = firstEvent.getEnergyEvent().getAlarmSet().getOperation().getCreatorPackage();
         packageString = packageString.substring(packageString.lastIndexOf('.') + 1);
-        int uid = firstEvent.getAlarmSet().getOperation().getCreatorUid();
+        int uid = firstEvent.getEnergyEvent().getAlarmSet().getOperation().getCreatorUid();
         myInstructions.add(new TextInstruction(mDefaultFontMetrics, ": " + packageString));
         myInstructions.add(new TextInstruction(ITALIC_FONT_METRICS, " (" + uid + ")"));
         myInstructions.add(new NewRowInstruction(VERTICAL_MARGIN_PX));
@@ -129,7 +132,7 @@ public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
       myInstructions.add(new TextInstruction(ITALIC_FONT_METRICS, " (" + myModel.getSimplifiedClockFormattedString(triggerTimeUs) + ")"));
       myInstructions.add(new NewRowInstruction(VERTICAL_MARGIN_PX));
 
-      long frequency = TimeUnit.MILLISECONDS.toMicros(firstEvent.getAlarmSet().getIntervalMs());
+      long frequency = TimeUnit.MILLISECONDS.toMicros(firstEvent.getEnergyEvent().getAlarmSet().getIntervalMs());
 
       if (myModel.getCurrentSelectedEvent() == null) {
         if (frequency != 0) {
@@ -139,19 +142,19 @@ public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
       }
       else {
         long scheduledTimeUs = -1;
-        List<EnergyProfiler.EnergyEvent> events = myModel.getDuration().getEventList();
+        List<Common.Event> events = myModel.getDuration().getEventList();
         for (int k = 0; k < events.size(); ++k) {
           if (events.get(k) == myModel.getCurrentSelectedEvent()) {
             // Predict the next scheduled time based on trigger time and repeat interval.
-            if (events.get(k).hasAlarmFired()) {
+            if (events.get(k).getEnergyEvent().hasAlarmFired()) {
               scheduledTimeUs = TimeUnit.NANOSECONDS.toMicros(events.get(k).getTimestamp()) + frequency;
             }
             // Find the next scheduled event.
             if (k + 1 < events.size()) {
-              if (events.get(k + 1).hasAlarmCancelled()) {
+              if (events.get(k + 1).getEnergyEvent().hasAlarmCancelled()) {
                 scheduledTimeUs = -1;
               }
-              if (events.get(k + 1).hasAlarmFired()) {
+              if (events.get(k + 1).getEnergyEvent().hasAlarmFired()) {
                 scheduledTimeUs = TimeUnit.NANOSECONDS.toMicros(events.get(k + 1).getTimestamp());
               }
             }
@@ -173,7 +176,7 @@ public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
       return;
     }
     renderText(myModel.getStatusString());
-    EnergyProfiler.EnergyEvent firstEvent = myModel.getDuration().getEventList().get(0);
+    Energy.EnergyEventData firstEvent = myModel.getDuration().getEventList().get(0).getEnergyEvent();
     if (firstEvent.hasLocationUpdateRequested() && firstEvent.getLocationUpdateRequested().hasRequest()) {
       renderNameValuePair("Priority", firstEvent.getLocationUpdateRequested().getRequest().getPriority().toString());
       long frequency = TimeUnit.MILLISECONDS.toMicros(firstEvent.getLocationUpdateRequested().getRequest().getIntervalMs());

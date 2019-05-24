@@ -18,10 +18,13 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
+import com.android.tools.profiler.proto.Common;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
 
 /**
  * A data series where multiple, separate series are merged into one.
@@ -42,7 +45,7 @@ import java.util.*;
  *    [===============]     [=======]   [========]
  * </pre>
  */
-public final class MergedEnergyEventsDataSeries implements DataSeries<EnergyEvent> {
+public final class MergedEnergyEventsDataSeries implements DataSeries<Common.Event> {
 
   @NotNull private final EnergyEventsDataSeries myDelegateSeries;
   private final List<EnergyDuration.Kind> myKindsFilter;
@@ -57,13 +60,13 @@ public final class MergedEnergyEventsDataSeries implements DataSeries<EnergyEven
   }
 
   @Override
-  public List<SeriesData<EnergyEvent>> getDataForXRange(Range xRange) {
-    List<SeriesData<EnergyEvent>> sourceData = myDelegateSeries.getDataForXRange(xRange);
-    List<SeriesData<EnergyEvent>> destData = new ArrayList<>();
-    Set<Integer> activeEventGroups = new HashSet<>();
+  public List<SeriesData<Common.Event>> getDataForXRange(Range xRange) {
+    List<SeriesData<Common.Event>> sourceData = myDelegateSeries.getDataForXRange(xRange);
+    List<SeriesData<Common.Event>> destData = new ArrayList<>();
+    Set<Long> activeEventGroups = new HashSet<>();
 
-    for (SeriesData<EnergyEvent> eventData : sourceData) {
-      if (!myKindsFilter.contains(EnergyDuration.Kind.from(eventData.value))) {
+    for (SeriesData<Common.Event> eventData : sourceData) {
+      if (!myKindsFilter.contains(EnergyDuration.Kind.from(eventData.value.getEnergyEvent()))) {
         continue;
       }
 
@@ -79,14 +82,14 @@ public final class MergedEnergyEventsDataSeries implements DataSeries<EnergyEven
       //    |             [=========]    <- Active t3 - t5
       //    |                       |
       //  start                    end
-      if (!eventData.value.getIsTerminal()) {
+      if (!eventData.value.getIsEnded()) {
         if (activeEventGroups.isEmpty()) {
           destData.add(eventData);
         }
-        activeEventGroups.add(eventData.value.getEventId());
+        activeEventGroups.add(eventData.value.getGroupId());
       }
       else {
-        activeEventGroups.remove(eventData.value.getEventId());
+        activeEventGroups.remove(eventData.value.getGroupId());
         if (activeEventGroups.isEmpty()) {
           destData.add(eventData);
         }

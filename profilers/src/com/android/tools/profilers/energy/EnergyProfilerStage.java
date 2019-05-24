@@ -31,8 +31,8 @@ import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profiler.proto.Transport.BytesRequest;
 import com.android.tools.profiler.proto.Transport.BytesResponse;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -65,7 +65,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   @NotNull private final EnergyEventLegends myEventTooltipLegends;
   @NotNull private final SelectionModel mySelectionModel;
   @NotNull private final EnergyEventsFetcher myFetcher;
-  @NotNull private final StateChartModel<EnergyEvent> myEventModel;
+  @NotNull private final StateChartModel<Common.Event> myEventModel;
   @NotNull private final EaseOutModel myInstructionsEaseOutModel;
   @NotNull private final Updatable myUpdatable;
 
@@ -98,7 +98,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
       public void selectionCreated() {
         setProfilerMode(ProfilerMode.EXPANDED);
         profilers.getIdeServices().getFeatureTracker().trackSelectRange();
-        List<EnergyEvent> energyEvents =
+        List<Common.Event> energyEvents =
           eventsDataSeries
             .getDataForXRange(mySelectionModel.getSelectionRange())
             .stream()
@@ -171,7 +171,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
-  StateChartModel<EnergyEvent> getEventModel() {
+  StateChartModel<Common.Event> getEventModel() {
     return myEventModel;
   }
 
@@ -265,12 +265,12 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
    */
   @NotNull
   public EnergyDuration updateDuration(@NotNull EnergyDuration duration) {
-    if (duration.getEventList().get(duration.getEventList().size() - 1).getIsTerminal()) {
+    if (duration.getEventList().get(duration.getEventList().size() - 1).getIsEnded()) {
       return duration;
     }
     EnergyProfiler.EnergyEventGroupRequest request = EnergyProfiler.EnergyEventGroupRequest.newBuilder()
       .setSession(getStudioProfilers().getSession())
-      .setEventId(duration.getEventList().get(0).getEventId())
+      .setEventId(duration.getEventList().get(0).getGroupId())
       .build();
     return new EnergyDuration(getStudioProfilers().getClient().getEnergyClient().getEventGroup(request).getEventsList());
   }

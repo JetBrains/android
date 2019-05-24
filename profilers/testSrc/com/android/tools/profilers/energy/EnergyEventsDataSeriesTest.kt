@@ -14,8 +14,9 @@
 package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profiler.proto.EnergyProfiler.*
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Energy
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat
@@ -35,61 +36,72 @@ class EnergyEventsDataSeriesTest {
   // 6:                                   W====]
   private val eventList =
     listOf(
-      EnergyEvent.newBuilder()
-        .setEventId(1)
+      Common.Event.newBuilder()
+        .setGroupId(1)
         .setTimestamp(SECONDS.toNanos(100))
-        .setWakeLockAcquired(WakeLockAcquired.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
         .build(),
-      EnergyEvent.newBuilder()
-        .setEventId(2)
+      Common.Event.newBuilder()
+        .setGroupId(2)
         .setTimestamp(SECONDS.toNanos(150))
-        .setJobStarted(JobStarted.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(3)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStarted(Energy.JobStarted.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(3)
         .setTimestamp(SECONDS.toNanos(170))
-        .setWakeLockAcquired(WakeLockAcquired.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(1)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(1)
         .setTimestamp(SECONDS.toNanos(200))
-        .setIsTerminal(true)
-        .setWakeLockReleased(WakeLockReleased.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(3)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(3)
         .setTimestamp(SECONDS.toNanos(250))
-        .setIsTerminal(true)
-        .setWakeLockReleased(WakeLockReleased.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(2)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(2)
         .setTimestamp(SECONDS.toNanos(300))
-        .setIsTerminal(true)
-        .setJobFinished(JobFinished.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(4)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(Energy.JobFinished.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(4)
         .setTimestamp(SECONDS.toNanos(350))
-        .setJobStarted(JobStarted.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(5)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStarted(Energy.JobStarted.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(5)
         .setTimestamp(SECONDS.toNanos(400))
-        .setJobStarted(JobStarted.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(6)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStarted(Energy.JobStarted.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(6)
         .setTimestamp(SECONDS.toNanos(420))
-        .setWakeLockAcquired(WakeLockAcquired.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(4)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(4)
         .setTimestamp(SECONDS.toNanos(450))
-        .setIsTerminal(true)
-        .setJobFinished(JobFinished.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(6)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(Energy.JobFinished.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(6)
         .setTimestamp(SECONDS.toNanos(480))
-        .setIsTerminal(true)
-        .setWakeLockReleased(WakeLockReleased.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(5)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(5)
         .setTimestamp(SECONDS.toNanos(500))
-        .setIsTerminal(true)
-        .setJobFinished(JobFinished.getDefaultInstance()).build()
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(Energy.JobFinished.getDefaultInstance()))
+        .build()
     )
 
     private val service = FakeEnergyService(eventList = eventList)
@@ -118,10 +130,10 @@ class EnergyEventsDataSeriesTest {
       assertThat(dataList).hasSize(4)
 
       val mergedWakeLocks = listOf(
-        eventList.first { it.eventId == 1 },
-        eventList.first { it.eventId == 3 && it.isTerminal },
-        eventList.first { it.eventId == 6 },
-        eventList.first { it.eventId == 6 && it.isTerminal }
+        eventList.first { it.groupId == 1L },
+        eventList.first { it.groupId == 3L && it.isEnded },
+        eventList.first { it.groupId == 6L },
+        eventList.first { it.groupId == 6L && it.isEnded }
       )
 
       assertThat(dataList.map { it.value }).containsExactlyElementsIn(mergedWakeLocks)
@@ -135,10 +147,10 @@ class EnergyEventsDataSeriesTest {
       assertThat(dataList).hasSize(4)
 
       val mergedJobs = listOf(
-        eventList.first { it.eventId == 2 },
-        eventList.first { it.eventId == 2 && it.isTerminal },
-        eventList.first { it.eventId == 4 },
-        eventList.first { it.eventId == 5 && it.isTerminal }
+        eventList.first { it.groupId == 2L },
+        eventList.first { it.groupId == 2L && it.isEnded },
+        eventList.first { it.groupId == 4L },
+        eventList.first { it.groupId == 5L && it.isEnded }
       )
 
       assertThat(dataList.map { it.value }).containsExactlyElementsIn(mergedJobs)
@@ -152,10 +164,10 @@ class EnergyEventsDataSeriesTest {
       assertThat(dataList).hasSize(4)
 
       val mergedAllEvents = listOf(
-        eventList.first { it.eventId == 1 },
-        eventList.first { it.eventId == 2 && it.isTerminal },
-        eventList.first { it.eventId == 4 },
-        eventList.first { it.eventId == 5 && it.isTerminal }
+        eventList.first { it.groupId == 1L },
+        eventList.first { it.groupId == 2L && it.isEnded },
+        eventList.first { it.groupId == 4L },
+        eventList.first { it.groupId == 5L && it.isEnded }
       )
 
       assertThat(dataList.map { it.value }).containsExactlyElementsIn(mergedAllEvents)
