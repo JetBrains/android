@@ -68,20 +68,6 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
       return result
     }
 
-  init {
-    val connection = module.project.messageBus.connect(sceneManager)
-    connection.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER, object : FileEditorManagerListener.Before {
-      override fun beforeFileClosed(source: FileEditorManager, file: VirtualFile) {
-        if ((PsiUtil.getPsiFile(module.project, file) as? XmlFile)?.let { NavigationDomFileDescription.isNavFile(it) } == true) {
-          for (editor in source.getAllEditors(file).filterIsInstance<NavEditor>()) {
-            val layoutPositions = storage.state[file.name] ?: continue
-            editor.component.surface.model?.let { rectifyIds(it.components.flatMap { c -> c.children }, layoutPositions) }
-          }
-        }
-      }
-    })
-  }
-
   @VisibleForTesting
   constructor(state: LayoutPositions, module: Module, sceneManager: NavSceneManager)
     : this(module, sceneManager) {
