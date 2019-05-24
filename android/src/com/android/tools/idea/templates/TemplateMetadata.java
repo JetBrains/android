@@ -126,7 +126,6 @@ public class TemplateMetadata {
   public static final String ATTR_BASE_FEATURE_DIR = "baseFeatureDir";
   public static final String ATTR_BASE_FEATURE_RES_DIR = "baseFeatureResDir";
   public static final String ATTR_CLASS_NAME = "className";
-  public static final String ATTR_MAKE_IGNORE = "makeIgnore";
 
   public static final String ATTR_USE_NAV_CONTROLLER = "useNavController";
   public static final String ATTR_KOTLIN_SUPPORT = "includeKotlinSupport";
