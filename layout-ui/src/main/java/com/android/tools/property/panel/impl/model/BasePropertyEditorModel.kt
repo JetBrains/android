@@ -52,6 +52,8 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
       fireValueChanged()
     }
 
+  override var readOnly by Delegates.observable(false) { _, _, _ -> fireValueChanged() }
+
   final override var hasFocus = false
     private set
 
@@ -83,6 +85,8 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
 
   fun displayedBackground(background: Color): Color =
     if (isUsedInRendererWithSelection) UIUtil.getTableBackground(true, true) else background
+
+  override var isExpandedTableItem: Boolean by Delegates.observable(false) { _, _, _ -> fireValueChanged() }
 
   /**
    * Toggle to a known value.

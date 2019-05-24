@@ -111,7 +111,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
         private fun isClickOnItemInPopup(event: MouseEvent): Boolean {
           val source = event.source as? JList<*> ?: return false
           val popup = SwingUtilities.getAncestorOfClass(ComboPopup::class.java, source)
-          return popup != null
+          return popup != null && !model.readOnly
         }
       })
   }

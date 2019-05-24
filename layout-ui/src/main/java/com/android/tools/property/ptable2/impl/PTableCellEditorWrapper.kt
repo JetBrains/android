@@ -30,8 +30,13 @@ import javax.swing.JTable
 class PTableCellEditorWrapper : AbstractTableCellEditor() {
   var editor: PTableCellEditor = DefaultPTableCellEditor()
 
-  override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
-    return editor.editorComponent
+  override fun getTableCellEditorComponent(table: JTable, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
+    val pTable = table as PTableImpl
+    val component = editor.editorComponent
+    if (pTable.isPaintingTable && component is PTableVariableHeightCellEditor && component.isCustomHeight) {
+      table.setRowHeight(row, component.preferredSize.height)
+    }
+    return component
   }
 
   override fun getCellEditorValue(): Any? {

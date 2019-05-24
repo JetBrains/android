@@ -68,6 +68,7 @@ private class CustomThreeStateCheckBox(
     stateChangeFromModel = true
     try {
       state = toThreeStateValue(propertyModel.value)
+      isFocusable = !propertyModel.readOnly
     }
     finally {
       stateChangeFromModel = false
@@ -84,15 +85,15 @@ private class CustomThreeStateCheckBox(
 
   private fun toThreeStateValue(value: String?) =
     when (value) {
-      "", null -> ThreeStateCheckBox.State.DONT_CARE
-      SdkConstants.VALUE_TRUE -> ThreeStateCheckBox.State.SELECTED
-      else -> ThreeStateCheckBox.State.NOT_SELECTED
+      "", null -> State.DONT_CARE
+      SdkConstants.VALUE_TRUE -> State.SELECTED
+      else -> State.NOT_SELECTED
     }
 
   private fun fromThreeStateValue(value: Any?) =
     when (value) {
-      ThreeStateCheckBox.State.SELECTED -> SdkConstants.VALUE_TRUE
-      ThreeStateCheckBox.State.NOT_SELECTED -> SdkConstants.VALUE_FALSE
+      State.SELECTED -> SdkConstants.VALUE_TRUE
+      State.NOT_SELECTED -> SdkConstants.VALUE_FALSE
       else -> ""
     }
 }

@@ -72,6 +72,7 @@ open class PropertyTextFieldWithLeftButton(
   private fun setFromModel() {
     isVisible = editorModel.visible
     leftButton?.icon = editorModel.displayedIcon(editorModel.leftButtonIcon)
+    leftButton?.readOnly = editorModel.readOnly
     background = editorModel.displayedBackground(secondaryPanelBackground)
     toolTipText = editorModel.tooltip
   }

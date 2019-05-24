@@ -27,6 +27,7 @@ import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableCellEditor
 import com.android.tools.property.ptable2.PTableCellEditorProvider
 import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
@@ -81,6 +82,7 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
         val controlType = valueControlTypeProvider(valueProperty)
         val (newModel, newEditor) = valueEditorProvider.createEditor(valueProperty, asTableCellEditor = true)
         val border = JBUI.Borders.customLine(table.gridLineColor, 0, 1, 0, 0)
+        newModel.isExpandedTableItem = (property as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
         editor.nowEditing(table, property, column, controlType, newModel, EditorPanel(newEditor, border, table.backgroundColor))
       }
     }
