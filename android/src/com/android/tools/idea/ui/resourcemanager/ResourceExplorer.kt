@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
+import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
-import com.android.tools.idea.ui.resourcemanager.explorer.ProjectResourcesBrowserViewModel
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbar
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbarViewModel
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerViewModel
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.intellij.openapi.Disposable
@@ -39,25 +40,20 @@ internal val RESOURCE_DEBUG = System.getProperty("res.manag.debug", "false")?.to
 /**
  * The resource explorer lets the user browse resources from the provided [AndroidFacet]
  */
-class ResourceExplorer private constructor(facet: AndroidFacet)
+class ResourceExplorer private constructor(
+  facet: AndroidFacet,
+  private val resourceExplorerViewModel: ResourceExplorerViewModel,
+  private val resourceExplorerView: ResourceExplorerView,
+  private val toolbarViewModel: ResourceExplorerToolbarViewModel,
+  private val toolbar: ResourceExplorerToolbar,
+  private val resourceImportDragTarget: ResourceImportDragTarget)
   : JPanel(BorderLayout()), Disposable {
 
   var facet by Delegates.observable(facet) { _, _, newValue -> updateFacet(newValue) }
 
-
-  private val importersProvider = ImportersProvider()
-
-  private val projectResourcesBrowserViewModel = ProjectResourcesBrowserViewModel(facet)
-  private val toolbarViewModel = ResourceExplorerToolbarViewModel(
-    facet,
-    importersProvider,
-    projectResourcesBrowserViewModel.filterOptions
-  ) { newFacet -> this.facet = newFacet }
-
-  private val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
-  private val toolbar = ResourceExplorerToolbar(toolbarViewModel)
-  private val resourceExplorerView = ResourceExplorerView(
-    projectResourcesBrowserViewModel, resourceImportDragTarget)
+  init {
+    toolbarViewModel.facetUpdaterCallback = {newValue -> this.facet = newValue}
+  }
 
   companion object {
     private val DIALOG_PREFERRED_SIZE = JBUI.size(850, 620)
@@ -66,13 +62,49 @@ class ResourceExplorer private constructor(facet: AndroidFacet)
      * Create a new instance of [ResourceExplorer] optimized to be used in a [com.intellij.openapi.wm.ToolWindow]
      */
     @JvmStatic
-    fun createForToolWindow(facet: AndroidFacet): ResourceExplorer = ResourceExplorer(facet)
+    fun createForToolWindow(facet: AndroidFacet): ResourceExplorer {
+      val importersProvider = ImportersProvider()
+      val resourceExplorerViewModel = ResourceExplorerViewModel.createResManagerViewModel(facet)
+      val toolbarViewModel = ResourceExplorerToolbarViewModel(
+        facet,
+        importersProvider,
+        resourceExplorerViewModel.filterOptions)
+      val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
+      val toolbar = ResourceExplorerToolbar(toolbarViewModel)
+      val resourceExplorerView = ResourceExplorerView(
+        resourceExplorerViewModel, resourceImportDragTarget)
+      return ResourceExplorer(
+        facet,
+        resourceExplorerViewModel,
+        resourceExplorerView,
+        toolbarViewModel,
+        toolbar,
+        resourceImportDragTarget)
+    }
 
     /**
      * Create a new instance of [ResourceExplorer] to be used as resource picker.
      */
-    fun createResourcePicker(facet: AndroidFacet): ResourceExplorer {
-      val explorer = ResourceExplorer(facet)
+    fun createResourcePicker(
+      facet: AndroidFacet,
+      doSelectResourceCallback: (resourceItem: ResourceItem) -> Unit): ResourceExplorer {
+      val importersProvider = ImportersProvider()
+      val resourceExplorerViewModel = ResourceExplorerViewModel.createResPickerViewModel(facet, doSelectResourceCallback)
+      val toolbarViewModel = ResourceExplorerToolbarViewModel(
+        facet,
+        importersProvider,
+        resourceExplorerViewModel.filterOptions)
+      val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
+      val toolbar = ResourceExplorerToolbar(toolbarViewModel)
+      val resourceExplorerView = ResourceExplorerView(
+        resourceExplorerViewModel, resourceImportDragTarget)
+      val explorer = ResourceExplorer(
+        facet,
+        resourceExplorerViewModel,
+        resourceExplorerView,
+        toolbarViewModel,
+        toolbar,
+        resourceImportDragTarget)
       explorer.preferredSize = DIALOG_PREFERRED_SIZE
       return explorer
     }
@@ -84,12 +116,15 @@ class ResourceExplorer private constructor(facet: AndroidFacet)
     centerContainer.add(toolbar, BorderLayout.NORTH)
     centerContainer.add(resourceExplorerView)
     add(centerContainer, BorderLayout.CENTER)
-    Disposer.register(this, projectResourcesBrowserViewModel)
+    if (resourceExplorerViewModel is Disposable) {
+      // TODO: Consider making interface disposable, or passing a disposable parent to constructor.
+      Disposer.register(this, resourceExplorerViewModel)
+    }
     Disposer.register(this, resourceExplorerView)
   }
 
   private fun updateFacet(facet: AndroidFacet) {
-    projectResourcesBrowserViewModel.facet = facet
+    resourceExplorerViewModel.facet = facet
     resourceImportDragTarget.facet = facet
     toolbarViewModel.facet = facet
   }

@@ -27,29 +27,36 @@ import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.SUPPORTED_RESOURCES
 import com.android.tools.idea.ui.resourcemanager.model.Asset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
+import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.speedSearch.SpeedSearch
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import java.util.concurrent.CompletableFuture
+import java.util.function.Supplier
 import kotlin.properties.Delegates
 
 /**
  * ViewModel for [com.android.tools.idea.ui.resourcemanager.view.ResourceExplorerView]
  * to manage resources in the provided [facet].
+ *
+ * @param filterInitialParams Sets the initial values for the filter options.
+ * @param selectAssetAction Optional callback for asset selection, default behavior opens the asset's file.
  */
-class ProjectResourcesBrowserViewModel(
-  facet: AndroidFacet
+class ResourceExplorerViewModelImpl(
+  facet: AndroidFacet,
+  filterInitialParams: FilterOptionsParams,
+  selectAssetAction: ((asset: Asset) -> Unit)? = null
 ) : Disposable, ResourceExplorerViewModel {
   /**
    * callback called when the resource model have change. This happen when the facet is changed.
@@ -99,9 +106,10 @@ class ProjectResourcesBrowserViewModel(
 
   override val speedSearch = SpeedSearch(true)
 
-  val filterOptions: FilterOptions = FilterOptions(
+  override val filterOptions = FilterOptions.create(
     { resourceChangedCallback?.invoke() },
-    { speedSearch.updatePattern(it) })
+    { speedSearch.updatePattern(it) },
+    filterInitialParams)
 
   init {
     subscribeListener(facet)
@@ -172,17 +180,19 @@ class ProjectResourcesBrowserViewModel(
       .toList()
   }
 
-  override fun getResourcesLists(): CompletableFuture<List<ResourceSection>> = CompletableFuture.supplyAsync {
-    val resourceType = resourceTypes[resourceTypeIndex]
-    var resources = listOf(getModuleResources(resourceType))
-    if (filterOptions.isShowModuleDependencies) {
-      resources += getDependentModuleResources(resourceType)
-    }
-    if (filterOptions.isShowLibraries) {
-      resources += getLibraryResources(resourceType)
-    }
-    resources
-  }
+  override fun getResourcesLists(): CompletableFuture<List<ResourceSection>> = CompletableFuture.supplyAsync(
+    Supplier {
+      val resourceType = resourceTypes[resourceTypeIndex]
+      var resources = listOf(getModuleResources(resourceType))
+      if (filterOptions.isShowModuleDependencies) {
+        resources += getDependentModuleResources(resourceType)
+      }
+      if (filterOptions.isShowLibraries) {
+        resources += getLibraryResources(resourceType)
+      }
+      resources
+    },
+    AppExecutorUtil.getAppExecutorService())
 
   override fun getTabIndexForFile(virtualFile: VirtualFile): Int {
     val folderType = if (virtualFile.isDirectory) ResourceFolderType.getFolderType(virtualFile.name) else getFolderType(virtualFile)
@@ -198,7 +208,7 @@ class ProjectResourcesBrowserViewModel(
     return dataManager.getData(dataId, selectedAssets)
   }
 
-  override fun openFile(asset: DesignAsset) {
+  override val doSelectAssetAction: (asset: Asset) -> Unit = selectAssetAction?: { asset ->
     val psiElement = dataManager.findPsiElement(asset.resourceItem)
     psiElement?.let { NavigationUtil.openFileWithPsiElement(it, true, true) }
   }

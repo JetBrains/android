@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
@@ -74,11 +75,12 @@ class ResourceExplorerViewTest {
     assertThat(firstAsset.file.name).isEqualTo("png.png")
   }
 
-  private fun createViewModel(module: Module): ProjectResourcesBrowserViewModel {
+  private fun createViewModel(module: Module): ResourceExplorerViewModel {
     val facet = AndroidFacet.getInstance(module)!!
-    val viewModel = ProjectResourcesBrowserViewModel(facet)
+    val viewModel = ResourceExplorerViewModel.createResManagerViewModel(facet)
 
-    Disposer.register(disposable, viewModel)
+    assert(viewModel is Disposable)
+    Disposer.register(disposable, viewModel as Disposable)
     return viewModel
   }
 
@@ -98,7 +100,7 @@ class ResourceExplorerViewTest {
 
     // Dummy implementation of a ViewModel to record the opened file
     val viewModel = object : ResourceExplorerViewModel by createViewModel(projectRule.module) {
-      override fun openFile(asset: DesignAsset) {
+      override val doSelectAssetAction: (asset: DesignAsset) -> Unit =  { asset ->
         openedFile = FileUtil.getRelativePath(projectRule.fixture.tempDirPath, asset.file.path, '/').orEmpty()
       }
     }

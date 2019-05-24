@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
+import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog
-import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
-import com.android.tools.idea.ui.resourcemanager.model.Asset
-import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.intellij.openapi.util.Disposer
+
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 
 /** A [ResourceExplorer] used in a dialog for resource picking. */
-class ResourceExplorerDialog(facet: AndroidFacet) : ResourcePickerDialog(facet.module.project), ResourceExplorerView.SelectionListener {
+class ResourceExplorerDialog(facet: AndroidFacet) : ResourcePickerDialog(facet.module.project) {
 
-  private val resourceExplorerPanel = ResourceExplorer.createResourcePicker(facet)
+  @TestOnly // TODO: consider getting this in a better way.
+  val resourceExplorerPanel = ResourceExplorer.createResourcePicker(facet, this::updatePickedResourceName)
+
   private var pickedResourceName: String? = null
 
   init {
@@ -34,10 +37,16 @@ class ResourceExplorerDialog(facet: AndroidFacet) : ResourcePickerDialog(facet.m
 
   override fun createCenterPanel() = resourceExplorerPanel
 
-  override fun onDesignAssetSetSelected(resourceAssetSet: ResourceAssetSet?) {
-    pickedResourceName = (resourceAssetSet?.getHighestDensityAsset() as Asset).resourceItem.referenceToSelf.resourceUrl.toString()
+  override fun dispose() {
+    super.dispose()
+    Disposer.dispose(resourceExplorerPanel)
   }
 
   override val resourceName: String?
     get() = pickedResourceName
+
+  private fun updatePickedResourceName(resource: ResourceItem) {
+    pickedResourceName = resource.referenceToSelf.resourceUrl.toString()
+    doOKAction()
+  }
 }
