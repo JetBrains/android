@@ -16,23 +16,21 @@
 package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.ProfilerClient
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
-import java.util.*
+import java.util.Arrays
 import java.util.concurrent.TimeUnit
-import kotlin.collections.ArrayList
 
 class EnergyEventsFetcherTest {
-  private val events = ImmutableList.Builder<EnergyProfiler.EnergyEvent>()
-    .addAll(newEnergyEventGroup(1, Arrays.asList(1000, 1300)))
-    .addAll(newEnergyEventGroup(2, Arrays.asList(1200)))
-    .addAll(newEnergyEventGroup(3, Arrays.asList(1300, 1400)))
+  private val events = ImmutableList.Builder<Common.Event>()
+    .addAll(newEnergyEventGroup(1L, Arrays.asList(1000, 1300)))
+    .addAll(newEnergyEventGroup(2L, Arrays.asList(1200)))
+    .addAll(newEnergyEventGroup(3L, Arrays.asList(1300, 1400)))
     .build()
   private val energyService = FakeEnergyService(eventList = events)
 
@@ -91,9 +89,9 @@ class EnergyEventsFetcherTest {
   }
 
   // Build an immutable list of default events with the same ID.
-  private fun newEnergyEventGroup(id: Int, timeList: List<Long>): List<EnergyProfiler.EnergyEvent> {
+  private fun newEnergyEventGroup(id: Long, timeList: List<Long>): List<Common.Event> {
     return timeList.stream()
-      .map { time -> EnergyProfiler.EnergyEvent.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(time)).setEventId(id).build() }
+      .map { time -> Common.Event.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(time)).setGroupId(id).build() }
       .collect(ImmutableList.toImmutableList())
   }
 }

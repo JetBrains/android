@@ -15,13 +15,20 @@ package com.android.tools.profilers.energy
 
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EnergyProfiler
-import com.android.tools.profiler.proto.EnergyProfiler.*
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyEventGroupRequest
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyEventsResponse
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest
+import com.android.tools.profiler.proto.EnergyProfiler.EnergySample
+import com.android.tools.profiler.proto.EnergyProfiler.EnergySamplesResponse
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyStartRequest
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyStartResponse
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyStopRequest
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyStopResponse
 import com.android.tools.profiler.proto.EnergyServiceGrpc
 import io.grpc.stub.StreamObserver
 import java.util.stream.Collectors
-import kotlin.collections.ArrayList
 
-class FakeEnergyService(val dataList: List<EnergySample> = ArrayList(), val eventList: List<EnergyEvent> = ArrayList())
+class FakeEnergyService(val dataList: List<EnergySample> = ArrayList(), val eventList: List<Common.Event> = ArrayList())
   : EnergyServiceGrpc.EnergyServiceImplBase() {
 
   lateinit var session: Common.Session
@@ -39,7 +46,7 @@ class FakeEnergyService(val dataList: List<EnergySample> = ArrayList(), val even
   }
 
   override fun getSamples(request: EnergyRequest, responseObserver: StreamObserver<EnergySamplesResponse>) {
-    val listStream = dataList.stream().filter({d -> d.timestamp >= request.startTimestamp && d.timestamp < request.endTimestamp })
+    val listStream = dataList.stream().filter { d -> d.timestamp >= request.startTimestamp && d.timestamp < request.endTimestamp }
     val resultList = listStream.collect(Collectors.toList())
     val response = EnergySamplesResponse.newBuilder().addAllSamples(resultList).build()
     responseObserver.onNext(response)
@@ -47,14 +54,14 @@ class FakeEnergyService(val dataList: List<EnergySample> = ArrayList(), val even
   }
 
   override fun getEvents(request: EnergyRequest, responseObserver: StreamObserver<EnergyProfiler.EnergyEventsResponse>) {
-    val listStream = eventList.stream().filter({d -> d.timestamp >= request.startTimestamp && d.timestamp < request.endTimestamp })
+    val listStream = eventList.stream().filter { d -> d.timestamp >= request.startTimestamp && d.timestamp < request.endTimestamp }
     val response = EnergyProfiler.EnergyEventsResponse.newBuilder().addAllEvents(listStream.collect(Collectors.toList())).build()
     responseObserver.onNext(response)
     responseObserver.onCompleted()
   }
 
   override fun getEventGroup(request: EnergyEventGroupRequest, responseObserver: StreamObserver<EnergyEventsResponse>) {
-    val eventsWithRequestedId = eventList.stream().filter({e -> e.eventId == request.eventId}).collect(Collectors.toList())
+    val eventsWithRequestedId = eventList.stream().filter { e -> e.groupId == request.eventId }.collect(Collectors.toList())
     val response = EnergyProfiler.EnergyEventsResponse.newBuilder().addAllEvents(eventsWithRequestedId).build()
     responseObserver.onNext(response)
     responseObserver.onCompleted()

@@ -24,7 +24,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.Energy;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioMonitorStage;
@@ -733,16 +733,16 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
       EnergyEventMetadata.Builder builder = EnergyEventMetadata.newBuilder();
 
-      List<EnergyProfiler.EnergyEvent> subevents = myEnergyEventMetadata.getSubevents();
-      EnergyProfiler.EnergyEvent firstEvent = subevents.get(0);
-      builder.setType(toEnergyType(firstEvent));
+      List<Common.Event> subevents = myEnergyEventMetadata.getSubevents();
+      Common.Event firstEvent = subevents.get(0);
+      builder.setType(toEnergyType(firstEvent.getEnergyEvent()));
 
       EnergyEvent.Subtype eventSubtype = toEnergySubtype(firstEvent);
       if (eventSubtype != null) {
         builder.setSubtype(eventSubtype);
       }
 
-      for (EnergyProfiler.EnergyEvent event : subevents) {
+      for (Common.Event event : subevents) {
         builder.addSubevents(toEnergySubevent(event));
       }
 
@@ -814,7 +814,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
      * Converts the given {@link ProfilingConfiguration} to the representation in analytics, i.e to {@link CpuProfilingConfig}.
      */
     @NotNull
-    private CpuProfilingConfig toStatsCpuProfilingConfig(@NotNull ProfilingConfiguration config) {
+    private static CpuProfilingConfig toStatsCpuProfilingConfig(@NotNull ProfilingConfiguration config) {
       CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder()
         .setSampleInterval(config.getProfilingSamplingIntervalUs())
         .setSizeLimit(config.getProfilingBufferSizeInMb());
@@ -850,12 +850,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
     }
 
     @NotNull
-    private EnergyEvent.Type toEnergyType(@NotNull EnergyProfiler.EnergyEvent energyEvent) {
+    private static EnergyEvent.Type toEnergyType(@NotNull Energy.EnergyEventData energyEvent) {
       return toEnergyType(EnergyDuration.Kind.from(energyEvent));
     }
 
     @NotNull
-    private EnergyEvent.Type toEnergyType(@NotNull EnergyDuration.Kind energyKind) {
+    private static EnergyEvent.Type toEnergyType(@NotNull EnergyDuration.Kind energyKind) {
       switch (energyKind) {
         case WAKE_LOCK:
           return EnergyEvent.Type.WAKE_LOCK;
@@ -874,9 +874,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
      * Returns the subtype of the current event, if it has one, or {@code null} if none.
      */
     @Nullable
-    private EnergyEvent.Subtype toEnergySubtype(@NotNull EnergyProfiler.EnergyEvent energyEvent) {
-      if (energyEvent.getMetadataCase() == EnergyProfiler.EnergyEvent.MetadataCase.WAKE_LOCK_ACQUIRED) {
-        EnergyProfiler.WakeLockAcquired wakeLockAcquired = energyEvent.getWakeLockAcquired();
+    private static EnergyEvent.Subtype toEnergySubtype(@NotNull Common.Event energyEvent) {
+      if (energyEvent.getEnergyEvent().getMetadataCase() == Energy.EnergyEventData.MetadataCase.WAKE_LOCK_ACQUIRED) {
+        Energy.WakeLockAcquired wakeLockAcquired = energyEvent.getEnergyEvent().getWakeLockAcquired();
         switch (wakeLockAcquired.getLevel()) {
           case PARTIAL_WAKE_LOCK:
             return EnergyEvent.Subtype.WAKE_LOCK_PARTIAL;
@@ -893,8 +893,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
             return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
         }
       }
-      else if (energyEvent.getMetadataCase() == EnergyProfiler.EnergyEvent.MetadataCase.ALARM_SET) {
-        EnergyProfiler.AlarmSet alarmSet = energyEvent.getAlarmSet();
+      else if (energyEvent.getEnergyEvent().getMetadataCase() == Energy.EnergyEventData.MetadataCase.ALARM_SET) {
+        Energy.AlarmSet alarmSet = energyEvent.getEnergyEvent().getAlarmSet();
         switch (alarmSet.getType()) {
           case RTC:
             return EnergyEvent.Subtype.ALARM_RTC;
@@ -914,8 +914,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
     }
 
     @NotNull
-    private EnergyEvent.Subevent toEnergySubevent(@NotNull EnergyProfiler.EnergyEvent energyEvent) {
-      switch (energyEvent.getMetadataCase()) {
+    private static EnergyEvent.Subevent toEnergySubevent(@NotNull Common.Event energyEvent) {
+      switch (energyEvent.getEnergyEvent().getMetadataCase()) {
         case WAKE_LOCK_ACQUIRED:
           return EnergyEvent.Subevent.WAKE_LOCK_ACQUIRED;
         case WAKE_LOCK_RELEASED:
@@ -946,7 +946,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     }
   }
 
-  private final static Logger getLogger() {
+  private static Logger getLogger() {
     return Logger.getInstance(StudioFeatureTracker.class);
   }
 }

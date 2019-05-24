@@ -15,19 +15,17 @@
  */
 package com.android.tools.profilers.energy;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
-import com.android.tools.profiler.proto.EnergyProfiler;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.android.tools.profiler.proto.Common;
+import com.google.common.annotations.VisibleForTesting;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsTableTooltipInfoModel.Aspect> {
 
@@ -39,7 +37,7 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
   final private long mySystemTimeDelta;
 
   @Nullable private EnergyDuration myDuration;
-  @Nullable private EnergyProfiler.EnergyEvent myCurrentSelectedEvent;
+  @Nullable private Common.Event myCurrentSelectedEvent;
 
   @VisibleForTesting
   EnergyEventsTableTooltipInfoModel(@NotNull Range globalRange, long systemTimeDelta) {
@@ -53,17 +51,17 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
 
   public void update(@NotNull EnergyDuration duration, @NotNull Range range) {
     // Reset duration if it does not contains range
-    EnergyProfiler.EnergyEvent firstEvent = duration.getEventList().get(0);
-    EnergyProfiler.EnergyEvent lastEvent = duration.getEventList().get(duration.getEventList().size() - 1);
+    Common.Event firstEvent = duration.getEventList().get(0);
+    Common.Event lastEvent = duration.getEventList().get(duration.getEventList().size() - 1);
     if (range.getMax() < TimeUnit.NANOSECONDS.toMicros(firstEvent.getTimestamp()) ||
-        (lastEvent.getIsTerminal() && range.getMin() > TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp()))) {
+        (lastEvent.getIsEnded() && range.getMin() > TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp()))) {
       duration = null;
     }
 
     // Find the event inside range.
-    EnergyProfiler.EnergyEvent newSelectedEvent = null;
+    Common.Event newSelectedEvent = null;
     if (duration != null) {
-      for (EnergyProfiler.EnergyEvent event : duration.getEventList()) {
+      for (Common.Event event : duration.getEventList()) {
         long minTimestamp = TimeUnit.MICROSECONDS.toNanos((long)range.getMin());
         long maxTimestamp = TimeUnit.MICROSECONDS.toNanos((long)range.getMax());
         if (event.getTimestamp() >= minTimestamp && event.getTimestamp() <= maxTimestamp) {
@@ -87,13 +85,15 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
   }
 
   @Nullable
-  public EnergyProfiler.EnergyEvent getCurrentSelectedEvent() {
+  public Common.Event getCurrentSelectedEvent() {
     return myCurrentSelectedEvent;
   }
 
   @Nullable
   public String getStatusString() {
-    return myCurrentSelectedEvent == null ? "Active" : EnergyDuration.getMetadataName(myCurrentSelectedEvent.getMetadataCase());
+    return myCurrentSelectedEvent == null
+           ? "Active"
+           : EnergyDuration.getMetadataName(myCurrentSelectedEvent.getEnergyEvent().getMetadataCase());
   }
 
   public String getDateFormattedString(long timestampMs) {
@@ -109,8 +109,8 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
     if (myDuration == null) {
       return null;
     }
-    EnergyProfiler.EnergyEvent firstEvent = myDuration.getEventList().get(0);
-    EnergyProfiler.EnergyEvent lastEvent = myDuration.getEventList().get(myDuration.getEventList().size() - 1);
+    Common.Event firstEvent = myDuration.getEventList().get(0);
+    Common.Event lastEvent = myDuration.getEventList().get(myDuration.getEventList().size() - 1);
     String startTime = getSimplifiedClockFormattedString(TimeUnit.NANOSECONDS.toMicros(firstEvent.getTimestamp()));
     String unknownString;
     switch (myDuration.getKind()) {
@@ -125,7 +125,7 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
     }
 
     String endTime =
-      lastEvent.getIsTerminal()
+      lastEvent.getIsEnded()
       ? getSimplifiedClockFormattedString(TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp()))
       : unknownString;
     return startTime + " - " + endTime;
@@ -135,9 +135,9 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
     if (myDuration == null) {
       return null;
     }
-    EnergyProfiler.EnergyEvent firstEvent = myDuration.getEventList().get(0);
-    EnergyProfiler.EnergyEvent lastEvent = myDuration.getEventList().get(myDuration.getEventList().size() - 1);
-    if (!lastEvent.getIsTerminal()) {
+    Common.Event firstEvent = myDuration.getEventList().get(0);
+    Common.Event lastEvent = myDuration.getEventList().get(myDuration.getEventList().size() - 1);
+    if (!lastEvent.getIsEnded()) {
       return null;
     }
     return TimeFormatter.getSingleUnitDurationString(

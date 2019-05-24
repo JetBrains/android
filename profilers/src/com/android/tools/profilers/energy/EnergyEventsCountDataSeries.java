@@ -19,13 +19,12 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
-import org.jetbrains.annotations.NotNull;
-
+import com.android.tools.profiler.proto.Common;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A data series to count how many energy events are merged into one.
@@ -49,7 +48,7 @@ import java.util.Set;
  */
 public final class EnergyEventsCountDataSeries implements DataSeries<Long> {
 
-  @NotNull private final RangedSeries<EnergyEvent> myDelegateSeries;
+  @NotNull private final RangedSeries<Common.Event> myDelegateSeries;
 
   private final List<EnergyDuration.Kind> myKindsFilter;
 
@@ -57,7 +56,7 @@ public final class EnergyEventsCountDataSeries implements DataSeries<Long> {
    * @param delegateSeries A source series whose events will be read from and then counted
    * @param kindsFilter    A list of one or more event kinds to merge into a single bar
    */
-  public EnergyEventsCountDataSeries(@NotNull RangedSeries<EnergyEvent> delegateSeries,
+  public EnergyEventsCountDataSeries(@NotNull RangedSeries<Common.Event> delegateSeries,
                                      @NotNull EnergyDuration.Kind... kindsFilter) {
     myDelegateSeries = delegateSeries;
     myKindsFilter = Arrays.asList(kindsFilter);
@@ -65,22 +64,22 @@ public final class EnergyEventsCountDataSeries implements DataSeries<Long> {
 
   @Override
   public List<SeriesData<Long>> getDataForXRange(Range xRange) {
-    List<SeriesData<EnergyEvent>> sourceData = myDelegateSeries.getSeries();
+    List<SeriesData<Common.Event>> sourceData = myDelegateSeries.getSeries();
     long position = (long)xRange.getMax();
-    Set<Integer> activeEventGroups = new HashSet<>();
+    Set<Long> activeEventGroups = new HashSet<>();
 
-    for (SeriesData<EnergyEvent> eventData : sourceData) {
-      if (!myKindsFilter.contains(EnergyDuration.Kind.from(eventData.value))) {
+    for (SeriesData<Common.Event> eventData : sourceData) {
+      if (!myKindsFilter.contains(EnergyDuration.Kind.from(eventData.value.getEnergyEvent()))) {
         continue;
       }
       if (eventData.x > position) {
         break;
       }
-      if (!eventData.value.getIsTerminal()) {
-        activeEventGroups.add(eventData.value.getEventId());
+      if (!eventData.value.getIsEnded()) {
+        activeEventGroups.add(eventData.value.getGroupId());
       }
       else {
-        activeEventGroups.remove(eventData.value.getEventId());
+        activeEventGroups.remove(eventData.value.getGroupId());
       }
     }
     return Arrays.asList(new SeriesData(position, Long.valueOf(activeEventGroups.size())));
