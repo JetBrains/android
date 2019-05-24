@@ -25,6 +25,8 @@ class FakePropertyEditorModel(override var property: PropertyItem): PropertyEdit
 
   override var visible = true
 
+  override var readOnly = false
+
   var focusWasRequested = false
     private set
 
@@ -46,6 +48,8 @@ class FakePropertyEditorModel(override var property: PropertyItem): PropertyEdit
   override val hasFocus = false
 
   override var isUsedInRendererWithSelection = false
+
+  override var isExpandedTableItem = false
 
   override var lineModel: InspectorLineModel? = null
 

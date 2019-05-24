@@ -35,6 +35,7 @@ import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Icon
+import kotlin.properties.Delegates
 
 /**
  * A component to show an icon with a focus border.
@@ -57,12 +58,21 @@ open class IconWithFocusBorder(private val actionToPerform: () -> AnAction?) : J
     })
   }
 
+  var readOnly by Delegates.observable(false) { _, _, _ -> updateFocusability() }
+
   override fun setIcon(icon: Icon?) {
     super.setIcon(icon)
-    isFocusable = icon != null && actionToPerform() != null
+    updateFocusability()
+  }
+
+  private fun updateFocusability() {
+    isFocusable = icon != null && actionToPerform() != null && !readOnly
   }
 
   private fun iconClicked(mouseEvent: MouseEvent?) {
+    if (readOnly) {
+      return
+    }
     val action = actionToPerform() ?: return
     if (action is ActionGroup) {
       val popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, action)
