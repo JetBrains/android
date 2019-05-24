@@ -186,7 +186,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     myOutputIconType = ObjectProperty.wrap(new SelectedItemProperty<>(myIconTypeCombo));
     myOutputPreviewPanel.setName("PreviewIconsPanel"); // for UI Tests
 
-    myValidatorPanel = new ValidatorPanel(this, myRootPanel);
+    myValidatorPanel = new ValidatorPanel(this, myRootPanel, "Conversion Issues", "Encountered Issues:");
 
     myPreviewResolutionComboBox.setRenderer(new ListCellRendererWrapper<Density>() {
       @Override
