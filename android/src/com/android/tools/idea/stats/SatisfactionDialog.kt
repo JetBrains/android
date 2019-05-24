@@ -64,9 +64,9 @@ private data class SentimentInput(val icon: Icon,
 
 private val actions = listOf(
   SentimentInput(SENTIMENT_VERY_SATISFIED, VERY_SATISFIED, "Very satisfied"),
-  SentimentInput(SENTIMENT_SATISFIED, SATISFIED, "Satisfied"),
+  SentimentInput(SENTIMENT_SATISFIED, SATISFIED, "Somewhat satisfied"),
   SentimentInput(SENTIMENT_NEUTRAL, NEUTRAL, "Neither satisfied or dissatisfied"),
-  SentimentInput(SENTIMENT_DISSATISFIED, DISSATISFIED, "Dissatisfied"),
+  SentimentInput(SENTIMENT_DISSATISFIED, DISSATISFIED, "Somewhat dissatisfied"),
   SentimentInput(SENTIMENT_VERY_DISSATISFIED, VERY_DISSATISFIED, "Very dissatisfied")
 )
 
