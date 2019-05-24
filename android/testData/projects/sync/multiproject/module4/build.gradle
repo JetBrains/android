@@ -25,3 +25,7 @@ android {
   }
   targetProjectPath ':module1'
 }
+
+repositories {
+  mavenCentral()
+}
