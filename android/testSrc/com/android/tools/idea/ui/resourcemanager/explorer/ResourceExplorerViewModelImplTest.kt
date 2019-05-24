@@ -47,7 +47,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.ImageIcon
 
-class ProjectResourcesBrowserViewModelTest {
+class ResourceExplorerViewModelImplTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
   private val chain = RuleChain(projectRule, EdtRule())
@@ -159,9 +159,9 @@ class ProjectResourcesBrowserViewModelTest {
       .containsExactly("res/drawable/png.png", "res/drawable/new_name.xml")
   }
 
-  private fun createViewModel(module: Module): ProjectResourcesBrowserViewModel {
+  private fun createViewModel(module: Module): ResourceExplorerViewModelImpl {
     val facet = AndroidFacet.getInstance(module)!!
-    val viewModel = ProjectResourcesBrowserViewModel(facet)
+    val viewModel = ResourceExplorerViewModel.createResManagerViewModel(facet) as ResourceExplorerViewModelImpl
     Disposer.register(disposable, viewModel)
     return viewModel
   }

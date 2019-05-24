@@ -21,11 +21,12 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.explorer.ProjectResourcesBrowserViewModel
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerViewModel
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFileSystem
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
@@ -77,10 +78,10 @@ class LayoutRendererTest {
     val layoutRenderer = LayoutRenderer(androidFacet, ::createRenderTaskForTest)
     LayoutRenderer.setInstance(androidFacet, layoutRenderer)
     val designAsset = DesignAsset(createLayoutFile().virtualFile, emptyList(), ResourceType.LAYOUT)
-    lateinit var projectResourcesBrowserViewModel: ProjectResourcesBrowserViewModel
+    lateinit var resourceExplorerViewModel: ResourceExplorerViewModel
     try {
-      projectResourcesBrowserViewModel = ProjectResourcesBrowserViewModel(androidFacet)
-      val previewProvider = projectResourcesBrowserViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
+      resourceExplorerViewModel = ResourceExplorerViewModel.createResManagerViewModel(androidFacet)
+      val previewProvider = resourceExplorerViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
       val width = 150
       val height = 200
       previewProvider.getIcon(designAsset, width, height, { latch.countDown() })
@@ -101,7 +102,8 @@ class LayoutRendererTest {
       assertThat(image.height).isEqualTo(height)
     }
     finally {
-      Disposer.dispose(projectResourcesBrowserViewModel)
+      assert(resourceExplorerViewModel is Disposable)
+      Disposer.dispose(resourceExplorerViewModel as Disposable)
     }
   }
 

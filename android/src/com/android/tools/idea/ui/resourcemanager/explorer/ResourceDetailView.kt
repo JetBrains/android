@@ -221,7 +221,7 @@ class ResourceDetailView(
 
   private fun openFile(asset: DesignAsset) {
     ResourceManagerTracking.logAssetOpened(asset.type)
-    viewModel.openFile(asset)
+    viewModel.doSelectAssetAction(asset)
   }
 
   override fun getData(dataId: String): Any? {
