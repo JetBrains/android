@@ -193,12 +193,12 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
 
       defaultValue = existingComponent.defaultValue
       myOKAction.putValue(Action.NAME, "Update")
-      title = "Update Argument Link"
+      title = "Update Argument"
     }
     else {
       (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "textDefaultValue")
       myOKAction.putValue(Action.NAME, "Add")
-      title = "Add Argument Link"
+      title = "Add Argument"
     }
 
     dialogUI.myTypeComboBox.addActionListener { event ->
