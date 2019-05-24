@@ -18,6 +18,8 @@ package com.android.tools.idea.npw.assetstudio.assets;
 import static com.android.SdkConstants.TAG_VECTOR;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.android.annotations.concurrency.AnyThread;
+import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.concurrent.FutureUtils;
@@ -28,14 +30,15 @@ import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
-import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import javax.annotation.concurrent.GuardedBy;
 import javax.imageio.ImageIO;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +54,8 @@ public final class ImageAsset extends BaseAsset {
   @NotNull private final ObservableBool myIsResizable;
   @NotNull private final BoolValueProperty myXmlDrawableIsResizable = new BoolValueProperty();
   @NotNull private final ObjectValueProperty<Validator.Result> myValidityState = new ObjectValueProperty<>(Validator.Result.OK);
-  @NotNull private String myRole = "an image file";
+  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+  @NotNull private String myRole = "image"; // The setRole method has to be called immediately after construction.
 
   private boolean isClipart;
 
@@ -63,6 +67,7 @@ public final class ImageAsset extends BaseAsset {
   @GuardedBy("myLock")
   @Nullable private ListenableFuture<BufferedImage> myImageFuture;
 
+  @UiThread
   public ImageAsset() {
     myImagePath = new OptionalValueProperty<>();
     myImagePath.addListener(() -> {
@@ -95,10 +100,12 @@ public final class ImageAsset extends BaseAsset {
 
   /**
    * Sets the role played by this image asset. Can be used for producing unambiguous error messages in situations
-   * when there are multiple image assets. The default role is "an image file".
+   * when there are multiple image assets. The default role is "image". Has to be called immediately after
+   * construction of the object.
    *
-   * @param role a short description of the role, e.g. "a background image file"
+   * @param role a short description of the role, e.g. "background image"
    */
+  @UiThread
   public void setRole(@NotNull String role) {
     myRole = role;
   }
@@ -106,6 +113,7 @@ public final class ImageAsset extends BaseAsset {
   /**
    * Sets the clipart designation of the image asset.
    */
+  @UiThread
   public void setClipart(boolean clipart) {
     isClipart = clipart;
   }
@@ -113,10 +121,12 @@ public final class ImageAsset extends BaseAsset {
   /**
    * Checks if the image is clipart. All clipart images are black on a transparent background.
    */
+  @UiThread
   public boolean isClipart() {
     return isClipart;
   }
 
+  @UiThread
   @Override
   public boolean isColorable() {
     return isClipart;
@@ -125,11 +135,13 @@ public final class ImageAsset extends BaseAsset {
   /**
    * Returns the path to the image asset.
    */
+  @UiThread
   @NotNull
   public OptionalValueProperty<File> imagePath() {
     return myImagePath;
   }
 
+  @UiThread
   @Override
   @NotNull
   public ObservableBool isResizable() {
@@ -140,11 +152,13 @@ public final class ImageAsset extends BaseAsset {
    * Returns an observable reflecting the latest error or warning encountered while reading
    * the file or processing its contents.
    */
+  @UiThread
   @NotNull
   public ObjectValueProperty<Validator.Result> getValidityState() {
     return myValidityState;
   }
 
+  @UiThread
   @Override
   @Nullable
   public ListenableFuture<BufferedImage> toImage() {
@@ -163,9 +177,8 @@ public final class ImageAsset extends BaseAsset {
   /**
    * Returns the text of the XML drawable as a future, or null if the image asset does not represent a drawable.
    * For an SVG or a PSD file this method returns the result of conversion to an Android drawable.
-   * <p>
-   * This method may be called on any thread.
    */
+  @AnyThread
   @Nullable
   public ListenableFuture<String> getXmlDrawable() {
     synchronized (myLock) {
@@ -194,7 +207,7 @@ public final class ImageAsset extends BaseAsset {
       try {
         switch (fileType) {
           case XML_DRAWABLE:
-            xmlText = Files.toString(file, UTF_8);
+            xmlText = new String(Files.readAllBytes(file.toPath()), UTF_8);
             break;
 
           case SVG:
@@ -205,7 +218,8 @@ public final class ImageAsset extends BaseAsset {
               xmlText = null;
             }
             if (!message.isEmpty()) {
-              validityState = new Validator.Result(xmlText == null ? Validator.Severity.ERROR : Validator.Severity.WARNING, message);
+              Validator.Severity severity = xmlText == null ? Validator.Severity.ERROR : Validator.Severity.WARNING;
+              validityState = createValidatorResult(severity, message);
             }
             break;
 
@@ -217,18 +231,37 @@ public final class ImageAsset extends BaseAsset {
             break;
         }
       }
-      catch (IOException e) {
-        validityState = Validator.Result.fromThrowable(e);
+      catch (Exception e) {
+        StringBuilder message = new StringBuilder();
+        message.append("Error while parsing ").append(file.getName());
+        String errorDetail = e.getLocalizedMessage();
+        if (errorDetail != null) {
+          message.append(" - ").append(errorDetail);
+        }
+        validityState = Validator.Result.fromNullableMessage(message.toString());
       }
     }
 
     if (xmlText == null && validityState.getSeverity() == Validator.Severity.OK) {
-      validityState = Validator.Result.fromNullableMessage("The specified asset could not be parsed. Please choose another asset.");
+      validityState = Validator.Result.fromNullableMessage("The " + myRole + " file could not be parsed. Please choose another file.");
     }
     boolean resizable = xmlText != null && TAG_VECTOR.equals(XmlUtils.getRootTagName(xmlText));
 
     updateValidityStateAndResizability(file, validityState, resizable);
     return xmlText;
+  }
+
+
+  @NotNull
+  private Validator.Result createValidatorResult(@NotNull Validator.Severity severity, @NotNull String errors) {
+    if (errors.indexOf('\n') < 0) {
+      // Single-line error message.
+      return new Validator.Result(severity, "The " + myRole + " may be incomplete: " + errors);
+    }
+
+    // Multi-line error message.
+    String shortMessage = "<html>The " + myRole + " may be incomplete due to encountered <a href=\"issues\">issues</a></html>";
+    return new Validator.Result(severity, shortMessage, errors);
   }
 
   @Nullable
@@ -258,15 +291,24 @@ public final class ImageAsset extends BaseAsset {
       return Validator.Result.fromNullableMessage("File " + file.getName() + " does not exist");
     }
     if (file.isDirectory()) {
-      return new Validator.Result(Validator.Severity.WARNING, "Please select " + myRole);
+      return new Validator.Result(Validator.Severity.WARNING, "Please select " + getIndefiniteArticlePrefixFor(myRole) + myRole + " file");
     }
 
     return Validator.Result.OK;
   }
 
+  @NotNull
+  private static String getIndefiniteArticlePrefixFor(@NotNull String nounClause) {
+    if (nounClause.isEmpty()) {
+      return "";
+    }
+    return StringUtil.isVowel(Character.toLowerCase(nounClause.charAt(0))) ? "an " : "a ";
+  }
+
   /**
-   * Updates validity state and resizability asynchronously on the UI thread. May be called from any thread.
+   * Updates validity state and resizability asynchronously on the UI thread.
    */
+  @AnyThread
   private void updateValidityStateAndResizability(@NotNull File file, @NotNull Validator.Result validityState, boolean resizable) {
     UIUtil.invokeLaterIfNeeded(() -> {
       if (FileUtil.filesEqual(file, myImagePath.getValueOrNull())) {

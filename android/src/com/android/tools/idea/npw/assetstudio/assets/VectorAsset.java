@@ -41,8 +41,6 @@ import com.intellij.util.ui.EdtInvocationManager;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.nio.file.Files;
 import javax.xml.parsers.DocumentBuilder;
@@ -134,8 +132,9 @@ public final class VectorAsset extends BaseAsset {
 
   @NotNull
   private static VectorDrawableInfo convertToVectorDrawable(@NotNull File file) {
+    String filename = file.getName();
     if (!file.exists()) {
-      return new VectorDrawableInfo("File " + file.getName() + " does not exist");
+      return new VectorDrawableInfo("File " + filename + " does not exist");
     }
     if (file.isDirectory()) {
       return new VectorDrawableInfo(new Validator.Result(Severity.WARNING, "Please select a file"));
@@ -143,15 +142,15 @@ public final class VectorAsset extends BaseAsset {
 
     String xmlFileContent = null;
     StringBuilder errors = new StringBuilder();
-    FileType fileType = FileType.fromFile(file);
 
     try {
+      FileType fileType = FileType.fromFile(file);
       switch (fileType) {
         case SVG: {
-          OutputStream outStream = new ByteArrayOutputStream();
+          ByteArrayOutputStream outStream = new ByteArrayOutputStream();
           String errorMessage = Svg2Vector.parseSvgToXml(file, outStream);
+          xmlFileContent = outStream.toString(UTF_8.name());
           errors.append(errorMessage);
-          xmlFileContent = outStream.toString();
           break;
         }
 
@@ -163,8 +162,13 @@ public final class VectorAsset extends BaseAsset {
           xmlFileContent = new String(Files.readAllBytes(file.toPath()), UTF_8);
           break;
       }
-    } catch (IOException e) {
-      errors.replace(0, errors.length(), e.getMessage());
+    } catch (Exception e) {
+      errors.append("Error while parsing ").append(filename);
+      String errorDetail = e.getLocalizedMessage();
+      if (errorDetail != null) {
+        errors.append(" - ").append(errorDetail);
+      }
+      return new VectorDrawableInfo(errors.toString());
     }
 
     double originalWidth = 0;
@@ -188,13 +192,25 @@ public final class VectorAsset extends BaseAsset {
     }
 
     Severity severity = !valid ? Severity.ERROR : errors.length() == 0 ? Severity.OK : Severity.WARNING;
-    Validator.Result messages = new Validator.Result(severity, errors.toString());
-    return new VectorDrawableInfo(messages, xmlFileContent, originalWidth, originalHeight);
+    Validator.Result validityState = createValidatorResult(severity, errors.toString());
+    return new VectorDrawableInfo(validityState, xmlFileContent, originalWidth, originalHeight);
+  }
+
+  @NotNull
+  private static Validator.Result createValidatorResult(@NotNull Validator.Severity severity, @NotNull String errors) {
+    if (errors.indexOf('\n') < 0) {
+      // Single-line error message.
+      return new Validator.Result(severity, "The image may be incomplete: " + errors);
+    }
+
+    // Multi-line error message.
+    String shortMessage = "<html>The image may be incomplete due to encountered <a href=\"issues\">issues</a></html>";
+    return new Validator.Result(severity, shortMessage, errors);
   }
 
   /**
-   * Parses the file specified by the {@link #path()} property, overriding its final width which is
-   * useful for previewing this vector asset in some UI component of the same width.
+   * Parses the file specified by the {@link #path()} property, overriding its final width,
+   * which is useful for previewing this vector asset in some UI component of the same width.
    *
    * @param previewWidth width of the display component
    */
@@ -244,7 +260,8 @@ public final class VectorAsset extends BaseAsset {
 
     if (validityState.getSeverity() == Severity.OK && errors.length() != 0) {
       validityState = image == null ?
-                      new Validator.Result(Severity.ERROR, ERROR_EMPTY_PREVIEW) : new Validator.Result(Severity.WARNING, errors.toString());
+                      new Validator.Result(Severity.ERROR, ERROR_EMPTY_PREVIEW) :
+                      createValidatorResult(Severity.WARNING, errors.toString());
     }
 
     return new Preview(validityState, image, xmlFileContent);
