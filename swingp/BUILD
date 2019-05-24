@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.adt.swingp",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.adt.swingp.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_coverage = True,
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

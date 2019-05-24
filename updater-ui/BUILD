@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.updater.ui",
     srcs = ["src"],
     iml_files = ["intellij.android.updater.ui.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_coverage = True,
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

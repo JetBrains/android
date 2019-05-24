@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
 import javax.swing.DefaultListModel;
@@ -304,7 +305,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
         // TODO(b/69367377): Update the design for features that are supported outside the current device level.
         if (!value.isDeviceLevelSupported(myDeviceLevel)) {
-          cellText += String.format(" (API Level %d+)", value.getRequiredDeviceLevel());
+          cellText += String.format(Locale.US, " (API Level %d+)", value.getRequiredDeviceLevel());
         }
         myLabel.setText(cellText);
         myLabel.setForeground(isSelected ? Gray._255 : JBColor.BLACK);
@@ -368,7 +369,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         String uniqueName = name;
         int i = 1;
         while (names.contains(uniqueName)) {
-          uniqueName = String.format("%s (%d)", name, i++);
+          uniqueName = String.format(Locale.US, "%s (%d)", name, i++);
         }
         return uniqueName;
       }

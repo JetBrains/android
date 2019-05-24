@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.assistant.view;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.assistant.AssistActionState;
 import com.android.tools.idea.assistant.AssistActionStateManager;
 import com.android.tools.idea.assistant.StatefulButtonNotifier;
 import com.android.tools.idea.assistant.datamodel.ActionData;
-import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonPainter;
-import com.intellij.ide.ui.laf.intellij.MacIntelliJButtonBorder;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.plaf.ButtonUI;
-import java.awt.*;
+import com.intellij.util.ui.UIUtil;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collection;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A wrapper presentation on {@link ActionButton} that allows for the button to maintain state. In practice this means that either a button
@@ -149,25 +149,21 @@ public class StatefulButton extends JPanel {
    * TODO: Determine how to update the state on card view change at minimum.
    */
   public void updateButtonState() {
-    // Ensure we're on the AWT event dispatch thread
-    if (!SwingUtilities.isEventDispatchThread()) {
-      SwingUtilities.invokeLater(this::updateButtonState);
-      return;
-    }
-    // There may be cases where the action is not stateful such as triggering a debug event which can occur any number of times.
-    if (myStateManager == null) {
-      myButton.setVisible(true);
-      return;
-    }
+    UIUtil.invokeLaterIfNeeded(() -> {
+      // There may be cases where the action is not stateful such as triggering a debug event which can occur any number of times.
+      if (myStateManager == null) {
+        myButton.setVisible(true);
+        return;
+      }
 
-    AssistActionState state = myStateManager.getState(myProject, myAction);
-    revalidate();
-    repaint();
+      AssistActionState state = myStateManager.getState(myProject, myAction);
+      revalidate();
+      repaint();
 
-
-    if (myMessage != null) {
-      updateUIForState(state);
-    }
+      if (myMessage != null) {
+        updateUIForState(state);
+      }
+    });
   }
 
   private void updateUIForState(AssistActionState state) {

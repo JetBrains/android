@@ -70,6 +70,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
@@ -742,7 +743,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       if (rowCount > myAllocationCountLimit) {
         int pruneCount = rowCount - myAllocationCountLimit;
         execute(PRUNE_ALLOC, session.getSessionId(), session.getSessionId(), pruneCount);
-        getLogger().info(String.format("Allocations have exceed %d entries. Attempting to prune %d.", myAllocationCountLimit, pruneCount));
+        getLogger().info(String.format(Locale.US, "Allocations have exceed %d entries. Attempting to prune %d.", myAllocationCountLimit, pruneCount));
       }
     }
     catch (SQLException e) {
@@ -760,7 +761,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         int pruneCount = rowCount - myAllocationCountLimit;
         execute(PRUNE_JNI_REF_RECORDS, session.getSessionId(), session.getSessionId(), pruneCount);
         getLogger()
-          .info(String.format("JNI ref records have exceed %d entries. Attempting to prune %d.", myAllocationCountLimit, pruneCount));
+          .info(String.format(Locale.US, "JNI ref records have exceed %d entries. Attempting to prune %d.", myAllocationCountLimit, pruneCount));
       }
     }
     catch (SQLException e) {
