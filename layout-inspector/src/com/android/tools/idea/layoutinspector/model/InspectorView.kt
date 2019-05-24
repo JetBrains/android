@@ -42,31 +42,15 @@ class InspectorView(
   var x: Int,
   var y: Int,
   var width: Int,
-  var height: Int
-) {
+  var height: Int,
   var image: Image? = null
+) {
   var imageGenerationTime: Long? = null
 
   /**
    * Map of View IDs to views.
    */
   val children: MutableMap<String, InspectorView> = mutableMapOf()
-
-  @Suppress("unused") // invoked via reflection
-  fun setData(data: IntArray) {
-    val buffer = DataBufferInt(data, width * height)
-    val model = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, width, height, intArrayOf(0xff0000, 0xff00, 0xff, -0x1000000))
-    val raster = Raster.createWritableRaster(model, buffer, Point(0, 0))
-    val tmpimage = BufferedImage(
-      DirectColorModel(32, 0xff0000, 0xff00, 0xff, -0x1000000), raster, false, null)
-    UIUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB).let {
-      image = it
-      imageGenerationTime = System.currentTimeMillis()
-      val g = it.createGraphics()
-      g.drawImage(tmpimage, 0, 0, null)
-      g.dispose()
-    }
-  }
 
   @Suppress("unused") // invoked via reflection
   fun addChild(child: InspectorView) {
