@@ -15,34 +15,64 @@
  */
 package com.android.tools.datastore.database;
 
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.INSERT_LEGACY_ALLOCATED_CLASS;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.INSERT_LEGACY_ALLOCATION_STACK;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.INSERT_OR_REPLACE_ALLOCATIONS_INFO;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.INSERT_OR_REPLACE_HEAP_INFO;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.INSERT_SAMPLE;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_ALLOCATION_INFO_BY_ID;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_ALLOCATION_INFO_BY_TIME;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_ALLOC_STATS;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_GC_STATS;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_HEAP_DUMP_BY_ID;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_HEAP_INFO_BY_TIME;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_HEAP_STATUS_BY_ID;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_LEGACY_ALLOCATED_CLASS;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_LEGACY_ALLOCATION_DUMP_BY_ID;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_LEGACY_ALLOCATION_EVENTS_BY_ID;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_LEGACY_ALLOCATION_STACK;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_MEMORY;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.UPDATE_HEAP_DUMP;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.UPDATE_LEGACY_ALLOCATIONS_INFO_DUMP;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.UPDATE_LEGACY_ALLOCATIONS_INFO_EVENTS;
+import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.values;
+
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profiler.protobuf3jarjar.GeneratedMessageV3;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import com.android.tools.profiler.protobuf3jarjar.Message;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.*;
+import java.util.Locale;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStatements> {
 
   public enum MemoryStatements {
     INSERT_SAMPLE("INSERT OR IGNORE INTO Memory_Samples (Session, Timestamp, Type, Data) VALUES (?, ?, ?, ?)"),
-    QUERY_MEMORY(String.format("SELECT Data FROM Memory_Samples WHERE Session = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
+    QUERY_MEMORY(String.format(Locale.US, "SELECT Data FROM Memory_Samples WHERE Session = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
                                MemorySamplesType.MEMORY.ordinal())),
-    QUERY_ALLOC_STATS(String.format("SELECT Data FROM Memory_Samples WHERE Session = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
+    QUERY_ALLOC_STATS(String.format(Locale.US, "SELECT Data FROM Memory_Samples WHERE Session = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
                                     MemorySamplesType.ALLOC_STATS.ordinal())),
 
     // TODO: gc stats are duration data so we should account for end time. In reality this is usually sub-ms so it might not matter?
-    QUERY_GC_STATS(String.format("SELECT Data FROM Memory_Samples WHERE Session = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
+    QUERY_GC_STATS(String.format(Locale.US, "SELECT Data FROM Memory_Samples WHERE Session = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
                                  MemorySamplesType.GC_STATS.ordinal())),
 
     INSERT_OR_REPLACE_HEAP_INFO(

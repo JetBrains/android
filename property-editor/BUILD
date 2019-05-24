@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.property-editor",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.property-editor.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_coverage = True,
     # do not sort: must match IML order
     test_runtime_deps = [

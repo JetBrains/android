@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.naveditor",
     srcs = ["src"],
     iml_files = ["intellij.android.naveditor.iml"],
+    lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [

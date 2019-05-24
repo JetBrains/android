@@ -47,6 +47,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -336,7 +337,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
       else {
         myDevice.createForward(localPort, DEVICE_PORT);
       }
-      getLogger().info(String.format("Port forwarding created for port: %d", localPort));
+      getLogger().info(String.format(Locale.US, "Port forwarding created for port: %d", localPort));
 
       /*
         Creates the channel that is used to connect to the device transport daemon.

@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.jps",
     srcs = ["src"],
     iml_files = ["intellij.android.jps.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_runtime_deps = ["//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl"],
     test_srcs = ["testSrc"],
     test_tags = ["manual"],
