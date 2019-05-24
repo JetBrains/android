@@ -1,98 +1,98 @@
-testNestedProjects
-    app (Android)
-        manifests
-            AndroidManifest.xml (main)
-        java
-            app (main)
-                dummy.kt
-                MainActivity
-                NavigationDrawerFragment
-        res
-            drawable
-                drawer_shadow.9 (4)
-                    drawer_shadow.9.png (hdpi)
-                    drawer_shadow.9.png (mdpi)
-                    drawer_shadow.9.png (xhdpi)
-                    drawer_shadow.9.png (xxhdpi)
-                ic_drawer (4)
-                    ic_drawer.png (hdpi)
-                    ic_drawer.png (mdpi)
-                    ic_drawer.png (xhdpi)
-                    ic_drawer.png (xxhdpi)
-                ic_launcher (4)
-                    ic_launcher.png (hdpi)
-                    ic_launcher.png (mdpi)
-                    ic_launcher.png (xhdpi)
-                    ic_launcher.png (xxhdpi)
-            layout
-                activity_main.xml
-                fragment_main.xml
-                fragment_navigation_drawer.xml
-            menu
-                global.xml
-                main.xml
-            values
-                dimens (2)
-                    dimens.xml
-                    dimens.xml (w820dp)
-                refs.xml
-                strings.xml
-                styles.xml
-    deep2 (Android)
-        manifests
-            AndroidManifest.xml (main)
-    dyn_feature (Android)
-        manifests
-            AndroidManifest.xml (main)
-    jav (non-Android)
-    lib (Android)
-        manifests
-            AndroidManifest.xml (main)
-        java
-            lib (main)
-                LoginActivity
-                PlusBaseActivity
-        res
-            drawable
-                ic_launcher (4)
-                    ic_launcher.png (hdpi)
-                    ic_launcher.png (mdpi)
-                    ic_launcher.png (xhdpi)
-                    ic_launcher.png (xxhdpi)
-            layout
-                activity_login.xml
-            values
-                dimens.xml
-                strings.xml
-                strings_activity_login.xml
-    nested1 (Android)
-        manifests
-            AndroidManifest.xml (main)
-    nested1-deep (Android)
-        manifests
-            AndroidManifest.xml (main)
-    nested2 (Android)
-        manifests
-            AndroidManifest.xml (main)
-    nested2-deep (Android)
-        manifests
-            AndroidManifest.xml (main)
-    Gradle Scripts
-        build.gradle (Project: trans)
-        build.gradle (Module: app)
-        build.gradle (Module: deep2)
-        build.gradle (Module: dyn_feature)
-        build.gradle (Module: jav)
-        build.gradle (Module: lib)
-        build.gradle (Module: nested1)
-        build.gradle (Module: nested1-deep)
-        build.gradle (Module: nested2)
-        build.gradle (Module: nested2-deep)
-        gradle-wrapper.properties (Gradle Version)
-        other.pro (ProGuard Rules for app)
-        proguard-rules.txt (ProGuard Rules for app)
-        other.pro (ProGuard Rules for lib)
-        proguard-rules.txt (ProGuard Rules for lib)
-        gradle.properties (Project Properties)
-        settings.gradle (Project Settings)
-        local.properties (SDK Location)
+testNestedProjects (icon: /toolwindows/toolWindowProject.svg)
+    app (icon: /studio/icons/shell/filetree/android-module.svg)
+        manifests (icon: /modules/sourceRoot.svg)
+            AndroidManifest.xml (icon: /studio/icons/shell/filetree/manifest-file.svg)
+        java (icon: /modules/sourceRoot.svg)
+            com.example.projectwithappandlib.app (icon: /nodes/package.svg)
+                dummy.kt (icon: /org/jetbrains/kotlin/idea/icons/kotlin_file.svg)
+                MainActivity (icon: /nodes/class.svg)
+                NavigationDrawerFragment (icon: /nodes/class.svg)
+        res (icon: /modules/resourcesRoot.svg)
+            drawable (icon: /nodes/package.svg)
+                drawer_shadow.9 (4) (icon: /nodes/package.svg)
+                    drawer_shadow.9.png (hdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                    drawer_shadow.9.png (mdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                    drawer_shadow.9.png (xhdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                    drawer_shadow.9.png (xxhdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                ic_drawer (4) (icon: /nodes/package.svg)
+                    ic_drawer.png (hdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                    ic_drawer.png (mdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                    ic_drawer.png (xhdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                    ic_drawer.png (xxhdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                ic_launcher (4) (icon: /nodes/package.svg)
+                    ic_launcher.png (hdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                    ic_launcher.png (mdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                    ic_launcher.png (xhdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                    ic_launcher.png (xxhdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+            layout (icon: /nodes/package.svg)
+                activity_main.xml (icon: /fileTypes/xml.svg)
+                fragment_main.xml (icon: /fileTypes/xml.svg)
+                fragment_navigation_drawer.xml (icon: /fileTypes/xml.svg)
+            menu (icon: /nodes/package.svg)
+                global.xml (icon: /fileTypes/xml.svg)
+                main.xml (icon: /fileTypes/xml.svg)
+            values (icon: /nodes/package.svg)
+                dimens (2) (icon: /nodes/package.svg)
+                    dimens.xml (icon: /fileTypes/xml.svg)
+                    dimens.xml (w820dp) (icon: /fileTypes/xml.svg)
+                refs.xml (icon: /fileTypes/xml.svg)
+                strings.xml (icon: /fileTypes/xml.svg)
+                styles.xml (icon: /fileTypes/xml.svg)
+    deep2 (icon: /studio/icons/shell/filetree/library-module.svg)
+        manifests (icon: /modules/sourceRoot.svg)
+            AndroidManifest.xml (icon: /studio/icons/shell/filetree/manifest-file.svg)
+    dyn_feature (icon: /studio/icons/shell/filetree/android-module.svg)
+        manifests (icon: /modules/sourceRoot.svg)
+            AndroidManifest.xml (icon: /studio/icons/shell/filetree/manifest-file.svg)
+    jav (icon: /nodes/Module.svg)
+    lib (icon: /studio/icons/shell/filetree/library-module.svg)
+        manifests (icon: /modules/sourceRoot.svg)
+            AndroidManifest.xml (icon: /studio/icons/shell/filetree/manifest-file.svg)
+        java (icon: /modules/sourceRoot.svg)
+            com.example.projectwithappandlib.lib (icon: /nodes/package.svg)
+                LoginActivity (icon: /nodes/class.svg)
+                PlusBaseActivity (icon: /nodes/abstractClass.svg)
+        res (icon: /modules/resourcesRoot.svg)
+            drawable (icon: /nodes/package.svg)
+                ic_launcher (4) (icon: /nodes/package.svg)
+                    ic_launcher.png (hdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                    ic_launcher.png (mdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                    ic_launcher.png (xhdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+                    ic_launcher.png (xxhdpi) (icon: /org/intellij/images/icons/ImagesFileType.svg)
+            layout (icon: /nodes/package.svg)
+                activity_login.xml (icon: /fileTypes/xml.svg)
+            values (icon: /nodes/package.svg)
+                dimens.xml (icon: /fileTypes/xml.svg)
+                strings.xml (icon: /fileTypes/xml.svg)
+                strings_activity_login.xml (icon: /fileTypes/xml.svg)
+    nested1 (icon: /studio/icons/shell/filetree/library-module.svg)
+        manifests (icon: /modules/sourceRoot.svg)
+            AndroidManifest.xml (icon: /studio/icons/shell/filetree/manifest-file.svg)
+    nested1-deep (icon: /studio/icons/shell/filetree/library-module.svg)
+        manifests (icon: /modules/sourceRoot.svg)
+            AndroidManifest.xml (icon: /studio/icons/shell/filetree/manifest-file.svg)
+    nested2 (icon: /studio/icons/shell/filetree/library-module.svg)
+        manifests (icon: /modules/sourceRoot.svg)
+            AndroidManifest.xml (icon: /studio/icons/shell/filetree/manifest-file.svg)
+    nested2-deep (icon: /studio/icons/shell/filetree/library-module.svg)
+        manifests (icon: /modules/sourceRoot.svg)
+            AndroidManifest.xml (icon: /studio/icons/shell/filetree/manifest-file.svg)
+    Gradle Scripts (icon: /icons/gradle.svg)
+        build.gradle (Project: trans) (icon: /icons/gradleFile.svg)
+        build.gradle (Module: app) (icon: /icons/gradleFile.svg)
+        build.gradle (Module: deep2) (icon: /icons/gradleFile.svg)
+        build.gradle (Module: dyn_feature) (icon: /icons/gradleFile.svg)
+        build.gradle (Module: jav) (icon: /icons/gradleFile.svg)
+        build.gradle (Module: lib) (icon: /icons/gradleFile.svg)
+        build.gradle (Module: nested1) (icon: /icons/gradleFile.svg)
+        build.gradle (Module: nested1-deep) (icon: /icons/gradleFile.svg)
+        build.gradle (Module: nested2) (icon: /icons/gradleFile.svg)
+        build.gradle (Module: nested2-deep) (icon: /icons/gradleFile.svg)
+        gradle-wrapper.properties (Gradle Version) (icon: /fileTypes/properties.svg)
+        other.pro (ProGuard Rules for app) (icon: /fileTypes/text.svg)
+        proguard-rules.txt (ProGuard Rules for app) (icon: /fileTypes/text.svg)
+        other.pro (ProGuard Rules for lib) (icon: /fileTypes/text.svg)
+        proguard-rules.txt (ProGuard Rules for lib) (icon: /fileTypes/text.svg)
+        gradle.properties (Project Properties) (icon: /fileTypes/properties.svg)
+        settings.gradle (Project Settings) (icon: /icons/gradleFile.svg)
+        local.properties (SDK Location) (icon: /fileTypes/properties.svg)
