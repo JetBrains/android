@@ -303,7 +303,7 @@ filegroup(
             "//tools/base/profiler/app:perfa_okhttp.dex",
             "//tools/base/profiler/transform:profilers-transform.jar",
         ],
-    }) + [ "//tools/base/profiler:perfetto-protos" ],
+    }) + ["//tools/base/profiler:perfetto-protos"],
     visibility = ["//visibility:public"],
 )
 
@@ -356,6 +356,12 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "layout-inspector-artifacts",
+    srcs = ["//tools/base/dynamic-layout-inspector/proto:java_proto"],
+    visibility = ["//visibility:public"],
+)
+
 # Various artifacts that the ANT and within-idea studio build depend on.
 filegroup(
     name = "artifacts",
@@ -363,6 +369,7 @@ filegroup(
         ":aia-artifacts",
         ":analytics-artifacts",
         ":deploy-artifacts",
+        ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",

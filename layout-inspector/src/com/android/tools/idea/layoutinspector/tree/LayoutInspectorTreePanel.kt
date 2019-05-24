@@ -86,7 +86,15 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     }
   }
 
+  private var loadInProgress = false
+
   private fun loadComponentTree(event: LayoutInspectorEvent) {
+    synchronized(loadInProgress) {
+      if (loadInProgress) {
+        return
+      }
+      loadInProgress = true
+    }
     val application = ApplicationManager.getApplication()
     application.executeOnPooledThread {
       val loader = ComponentTreeLoader(event.tree)
@@ -94,7 +102,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
       val bytes = client?.getPayload(event.tree.payloadId) ?: return@executeOnPooledThread
       var viewRoot: InspectorView? = null
       if (bytes.isNotEmpty()) {
-        viewRoot = SkiaParser().getViewTree(bytes)
+        viewRoot = SkiaParser.getViewTree(bytes)
       }
       if (viewRoot != null) {
         val imageLoader = ComponentImageLoader(root, viewRoot)
@@ -103,6 +111,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
 
       application.invokeLater {
         layoutInspector?.layoutInspectorModel?.update(root)
+        loadInProgress = false
       }
     }
   }
