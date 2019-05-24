@@ -41,13 +41,13 @@ public class AndroidJunitPatcherWithProjectsTest extends AndroidGradleTestCase {
 
     String classpath = parameters.getClassPath().getPathsString();
     assertThat(classpath).contains("junit-4.12.jar");
-    assertThat(classpath).contains("gson-2.2.4.jar");
+    assertThat(classpath).contains("gson-2.8.0.jar");
 
     // JUnit is in test dependency, gson and guava are android test dependency
     myPatcher.patchJavaParameters(module1, parameters);
     classpath = parameters.getClassPath().getPathsString();
     assertThat(classpath).contains("junit-4.12.jar");
-    assertThat(classpath).doesNotContain("gson-2.2.4.jar");
+    assertThat(classpath).doesNotContain("gson-2.8.0.jar");
     assertThat(classpath).doesNotContain("guava-18.0.jar");
     assertThat(classpath).doesNotContain("module3");
   }
