@@ -261,10 +261,10 @@ public interface PowerProfile {
   }
 
   final class LocationEvent {
-    public final int myEventId;
+    public final long myEventId;
     public final LocationType myLocationType;
 
-    public LocationEvent(int id, @NotNull LocationType type) {
+    public LocationEvent(long id, @NotNull LocationType type) {
       myEventId = id;
       myLocationType = type;
     }

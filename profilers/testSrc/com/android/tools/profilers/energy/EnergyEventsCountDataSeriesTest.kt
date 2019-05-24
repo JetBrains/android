@@ -15,14 +15,15 @@ package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
-import com.android.tools.profiler.proto.EnergyProfiler.*
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Energy
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
-import java.util.*
+import java.util.ArrayList
 import java.util.concurrent.TimeUnit.NANOSECONDS
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -39,61 +40,72 @@ class EnergyEventsCountDataSeriesTest {
   // 6:                                   W====]
   private val eventList =
     listOf(
-      EnergyEvent.newBuilder()
-        .setEventId(1)
+      Common.Event.newBuilder()
+        .setGroupId(1)
         .setTimestamp(SECONDS.toNanos(100))
-        .setWakeLockAcquired(WakeLockAcquired.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
         .build(),
-      EnergyEvent.newBuilder()
-        .setEventId(2)
+      Common.Event.newBuilder()
+        .setGroupId(2)
         .setTimestamp(SECONDS.toNanos(150))
-        .setJobStarted(JobStarted.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(3)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStarted(Energy.JobStarted.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(3)
         .setTimestamp(SECONDS.toNanos(170))
-        .setWakeLockAcquired(WakeLockAcquired.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(1)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(1)
         .setTimestamp(SECONDS.toNanos(200))
-        .setIsTerminal(true)
-        .setWakeLockReleased(WakeLockReleased.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(3)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(3)
         .setTimestamp(SECONDS.toNanos(250))
-        .setIsTerminal(true)
-        .setWakeLockReleased(WakeLockReleased.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(2)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(2)
         .setTimestamp(SECONDS.toNanos(300))
-        .setIsTerminal(true)
-        .setJobFinished(JobFinished.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(4)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(Energy.JobFinished.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(4)
         .setTimestamp(SECONDS.toNanos(350))
-        .setJobStarted(JobStarted.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(5)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStarted(Energy.JobStarted.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(5)
         .setTimestamp(SECONDS.toNanos(400))
-        .setJobStarted(JobStarted.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(6)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStarted(Energy.JobStarted.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(6)
         .setTimestamp(SECONDS.toNanos(420))
-        .setWakeLockAcquired(WakeLockAcquired.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(4)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(4)
         .setTimestamp(SECONDS.toNanos(450))
-        .setIsTerminal(true)
-        .setJobFinished(JobFinished.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(6)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(Energy.JobFinished.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(6)
         .setTimestamp(SECONDS.toNanos(480))
-        .setIsTerminal(true)
-        .setWakeLockReleased(WakeLockReleased.getDefaultInstance()).build(),
-      EnergyEvent.newBuilder()
-        .setEventId(5)
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(5)
         .setTimestamp(SECONDS.toNanos(500))
-        .setIsTerminal(true)
-        .setJobFinished(JobFinished.getDefaultInstance()).build()
+        .setIsEnded(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(Energy.JobFinished.getDefaultInstance()))
+        .build()
     )
 
   private val service = FakeEnergyService(eventList = eventList)
@@ -138,8 +150,8 @@ class EnergyEventsCountDataSeriesTest {
       val count = eventList.count {
         val startEvent = it
         var result = false
-        if (!startEvent.isTerminal && countDataSeries.kindsFilter.contains(EnergyDuration.Kind.from(startEvent))) {
-          val terminalEvent = eventList.last { it.eventId == startEvent.eventId && it.isTerminal }
+        if (!startEvent.isEnded && countDataSeries.kindsFilter.contains(EnergyDuration.Kind.from(startEvent.energyEvent))) {
+          val terminalEvent = eventList.last { it.groupId == startEvent.groupId && it.isEnded }
           result = timestamp >= startEvent.timestamp && timestamp < terminalEvent.timestamp
         }
         result
