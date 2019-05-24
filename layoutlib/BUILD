@@ -10,6 +10,7 @@ iml_module(
         "//tools/adt/idea/resources-aar:framework_res",
     ],
     iml_files = ["intellij.android.layoutlib.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/studio/layoutlib:data/layoutlib"],
     # do not sort: must match IML order
@@ -24,6 +25,7 @@ iml_module(
     name = "intellij.android.layoutlib-loader",
     srcs = ["src"],
     iml_files = ["intellij.android.layoutlib-loader.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     # do not sort: must match IML order
     test_runtime_deps = [

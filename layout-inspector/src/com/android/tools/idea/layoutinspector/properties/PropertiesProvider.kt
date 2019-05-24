@@ -30,6 +30,7 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Resource
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
+import java.util.Locale
 
 private val INT32_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.INT32_VALUE_FIELD_NUMBER)
 private val INT64_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.INT64_VALUE_FIELD_NUMBER)
@@ -143,7 +144,7 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
 
     private fun fromColor(property: Property): String? {
       val intValue = fromInt32(property) ?: return null
-      return "#${Integer.toHexString(intValue).toUpperCase()}"
+      return "#${Integer.toHexString(intValue).toUpperCase(Locale.US)}"
     }
 
     private fun add(item: InspectorPropertyItem) {

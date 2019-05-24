@@ -45,6 +45,7 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
@@ -303,7 +304,7 @@ public class TransportPipelineDialog extends DialogWrapper {
     else {
       List<CommonAction> processActions = new ArrayList<>();
       for (Common.Process process : processes) {
-        CommonAction processAction = new CommonAction(String.format("%s (%d)", process.getName(), process.getPid()), null);
+        CommonAction processAction = new CommonAction(String.format(Locale.US, "%s (%d)", process.getName(), process.getPid()), null);
         processAction.setAction(() -> {
           mySelectedStream = stream;
           mySelectedProcess = process;
