@@ -20,4 +20,9 @@ public class SingleVariantSyncWithCompositeBuildTest extends NewGradleSyncWithCo
   protected boolean useSingleVariantSyncInfrastructure() {
     return true;
   }
+
+  @Override
+  protected boolean useNewSyncInfrastructure() {
+    return false;
+  }
 }

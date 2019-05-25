@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
 import com.android.tools.idea.gradle.structure.model.PsProject
@@ -36,6 +37,8 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
 
   override fun setUp() {
     super.setUp()
+    // This test requires Single Variant Sync to be turned off
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false
     loadProject(TestProjectPaths.PSD_DEPENDENCY)
     reparse()
   }
