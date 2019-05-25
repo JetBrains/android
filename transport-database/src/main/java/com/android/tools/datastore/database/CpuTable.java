@@ -24,7 +24,7 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
-import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

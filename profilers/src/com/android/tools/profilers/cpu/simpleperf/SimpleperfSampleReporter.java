@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu.simpleperf;
 
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.PathManager;

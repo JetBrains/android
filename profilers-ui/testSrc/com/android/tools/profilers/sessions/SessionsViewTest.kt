@@ -25,7 +25,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.MemoryProfiler
-import com.android.tools.profiler.protobuf3jarjar.ByteString
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
