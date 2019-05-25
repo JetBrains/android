@@ -27,7 +27,7 @@ import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.intellij.util.containers.MultiMap;
 import io.grpc.stub.StreamObserver;
 import java.util.ArrayList;

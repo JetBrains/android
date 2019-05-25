@@ -43,7 +43,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
-        "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:jcip",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:sqlite",
@@ -54,5 +53,8 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/idea/.idea/libraries:studio-grpc",
+        "//tools/idea/.idea/libraries:studio-proto",
+        "//tools/idea/.idea/libraries:transport-proto",
     ],
 )

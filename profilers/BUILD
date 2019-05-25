@@ -29,7 +29,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
-        "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/idea/platform/util:intellij.platform.util[module]",
@@ -45,6 +44,10 @@ iml_module(
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
+        "//tools/idea/.idea/libraries:studio-grpc",
+        "//tools/idea/.idea/libraries:studio-proto",
+        "//tools/idea/.idea/libraries:perfetto-proto",
+        "//tools/idea/.idea/libraries:transport-proto",
     ],
 )
 
@@ -63,7 +66,9 @@ kotlin_test(
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase",
         "//tools/base/perf-logger:studio.perf-logger",
         "//tools/base/testutils:tools.testutils",
+        "//tools/base/transport/proto:transport_java_proto",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
-        "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
+        "//tools/idea/.idea/libraries:studio-grpc",
+        "//tools/idea/.idea/libraries:studio-proto",
     ],
 )

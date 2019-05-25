@@ -24,7 +24,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profiler.protobuf3jarjar.ByteString
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat

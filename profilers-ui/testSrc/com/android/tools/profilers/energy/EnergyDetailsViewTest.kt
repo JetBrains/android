@@ -28,6 +28,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule

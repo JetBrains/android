@@ -18,6 +18,9 @@ iml_module(
         "//tools/adt/idea/android/lib:sample-data",
         "//tools/adt/idea/android:profiler-artifacts",
         "//tools/adt/idea/android:aia-artifacts",
+        "//tools/adt/idea/android:transport-artifacts",
+        "//tools/base/bazel:studio-proto",
+        "//tools/base/bazel:studio-grpc",
     ] + glob([
         "build.xml",
     ]),
@@ -136,6 +139,8 @@ iml_module(
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
         "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module]",
         "//tools/idea/.idea/libraries:NanoXML",
+        "//tools/idea/.idea/libraries:studio-proto",
+        "//tools/idea/.idea/libraries:perfetto-proto",
     ],
 )
 
@@ -285,20 +290,19 @@ iml_module(
         "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module, test]",
         "//tools/idea/.idea/libraries:kotlin-plugin[test]",
         "//tools/idea/.idea/libraries:NanoXML[test]",
+        "//tools/idea/.idea/libraries:studio-proto",
     ],
 )
 
 filegroup(
     name = "profiler-artifacts",
     srcs = select({
-        "//tools/base/bazel:windows": ["//tools/base/profiler:studio-profiler-grpc-1.0-jarjar.jar"],
+        "//tools/base/bazel:windows": [],
         "//conditions:default": [
-            "//tools/base/profiler:studio-profiler-grpc-1.0-jarjar.jar",
             "//tools/base/profiler/app:perfa.jar",
             "//tools/base/profiler/app:perfa_okhttp.dex",
-            "//tools/base/transport/agent:android",
-            "//tools/base/transport:android",
             "//tools/base/profiler/transform:profilers-transform.jar",
+            "//tools/base/profiler:perfetto-protos",
         ],
     }),
     visibility = ["//visibility:public"],
@@ -327,7 +331,7 @@ filegroup(
 filegroup(
     name = "aia-artifacts",
     srcs = [
-        "//tools/base/sdk-common/aia-manifest-jar-generator:aia-manifest-proto-1.0-jarjar.jar",
+        "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
     ],
     visibility = ["//visibility:public"],
 )
@@ -335,6 +339,21 @@ filegroup(
 filegroup(
     name = "analytics-artifacts",
     srcs = ["//tools/analytics-library/protos/src/main/proto:studio.proto"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "transport-artifacts",
+    srcs = select({
+        "//tools/base/bazel:windows": [
+            "//tools/base/transport/proto:transport_java_proto",
+        ],
+        "//conditions:default": [
+            "//tools/base/transport:android",
+            "//tools/base/transport/agent:android",
+            "//tools/base/transport/proto:transport_java_proto",
+        ],
+    }),
     visibility = ["//visibility:public"],
 )
 
@@ -346,11 +365,14 @@ filegroup(
         ":analytics-artifacts",
         ":deploy-artifacts",
         ":profiler-artifacts",
+        ":transport-artifacts",
         "//tools/adt/idea/resources-aar:framework_res.jar",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents:ObjectSizeInstrumentationAgent_deploy.jar",
         "//tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents:jnibleakhelper",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
+        "//tools/base/bazel:studio-grpc",
+        "//tools/base/bazel:studio-proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/base/tracer:trace_agent",
