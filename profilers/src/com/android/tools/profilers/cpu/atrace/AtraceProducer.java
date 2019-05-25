@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu.atrace;
 
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;

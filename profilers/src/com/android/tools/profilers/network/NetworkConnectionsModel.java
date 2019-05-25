@@ -16,7 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;

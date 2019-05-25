@@ -17,7 +17,7 @@ package com.android.tools.profilers.sessions;
 
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.protobuf3jarjar.GeneratedMessageV3;
+import com.android.tools.idea.protobuf.GeneratedMessageV3;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.annotations.VisibleForTesting;

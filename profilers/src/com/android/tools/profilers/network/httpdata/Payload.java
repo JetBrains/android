@@ -16,7 +16,7 @@
 package com.android.tools.profilers.network.httpdata;
 
 import com.android.tools.profilers.network.NetworkConnectionsModel;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

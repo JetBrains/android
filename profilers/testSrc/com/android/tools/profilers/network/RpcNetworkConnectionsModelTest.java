@@ -24,7 +24,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport.EventGroup;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
