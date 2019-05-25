@@ -65,13 +65,14 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
-import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.ng.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.ng.SelectedVariants;
 import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions;
@@ -83,6 +84,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -222,6 +224,43 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       moduleData.setDescription(externalProject.getDescription());
     }
     return projectDataNode.createChild(ProjectKeys.MODULE, moduleData);
+  }
+
+  @Override
+  public boolean requiresTaskRunning() {
+    Project project = myProjectFinder.findProject(resolverCtx);
+    // This tells IDEAs infrastructure to allow AGP to run tasks if we are running compound sync.
+    return project != null && shouldGenerateSources(project);
+  }
+
+  @Override
+  public void buildFinished() {
+    Project project = myProjectFinder.findProject(resolverCtx);
+    if (project == null) {
+      return;
+    }
+
+    // We only want to notify the sourceGeneration listeners if source generation has been requested.
+    if (!shouldGenerateSources(project)) {
+      return;
+    }
+
+    // Since this is running in the Gradle connection thread we need to pass back to the UI thread to call the listeners as they may
+    // require reading or writing and we want to provide the same context as the other listeners.
+    // If we start these from the connection thread deadlocks can occur.
+    ApplicationManager.getApplication().invokeLater(() -> {
+      // Since this is run on the UI thread we need to check whether the project has been disposed.
+      if (!project.isDisposed()) {
+        GradleSyncState.getInstance(project).sourceGenerationFinished();
+
+        GradleSyncListener syncListener = project.getUserData(IdeaGradleSync.LISTENER_KEY);
+        if (syncListener == null) {
+          return;
+        }
+
+        syncListener.sourceGenerationFinished(project);
+      }
+    });
   }
 
   @Override
