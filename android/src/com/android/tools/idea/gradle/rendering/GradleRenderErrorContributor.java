@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.rendering.RenderErrorContributor;
 import com.android.tools.idea.rendering.RenderLogger;
@@ -73,9 +74,15 @@ public class GradleRenderErrorContributor extends RenderErrorContributor {
     };
     HtmlBuilder builder = new HtmlBuilder();
     HtmlLinkManager linkManager = logger.getLinkManager();
-    builder.add("Tip: Either ")
-      .addLink("update the Gradle plugin build version to 1.2.3", linkManager.createRunnableLink(runnable))
-      .add(" or later, or downgrade to version 1.1.3, or as a workaround, ");
+    builder.add("Tip: Either ");
+    //TODO(b/130224064): need to remove check when kts fully supported
+    if (!GradleUtil.hasKtsBuildFiles(facet.getModule().getProject())) {
+      builder.add("update the Gradle plugin build version to 1.2.3");
+    }
+    else {
+      builder.addLink("update the Gradle plugin build version to 1.2.3", linkManager.createRunnableLink(runnable));
+    }
+    builder.add(" or later, or downgrade to version 1.1.3, or as a workaround, ");
     builder.beginList()
       .listItem().addLink("", "Build the project", ", then", linkManager.createBuildProjectUrl())
       .listItem().addLink("", "Gradle Sync the project", ", then", linkManager.createSyncProjectUrl())

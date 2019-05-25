@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget
 import java.awt.Point
 
-/**
- * TODO: support auto-connection.
- */
 class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
 
   private val delegator = ViewGroupPlaceholder(host)
@@ -43,6 +42,13 @@ class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
   /**
    * Position of [SceneComponent] is not set yet when live rendering is enabled, the [x] and [y] argument should be passed in.
    */
-  override fun updateLiveAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder, x: Int, y: Int) =
-    ConstraintDragTarget.ConstraintDropHandler(sceneComponent).updateAttributes(attributes, host, x, y)
+  override fun updateLiveAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder, x: Int, y: Int) {
+    if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEquals(sceneComponent.authoritativeNlComponent.tagName)) {
+      val horizontal = attributes.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION) != SdkConstants.VALUE_VERTICAL
+      GuidelineTarget.GuidelineDropHandler(sceneComponent, horizontal).updateAttributes(attributes, x, y)
+    }
+    else {
+      ConstraintDragTarget.ConstraintDropHandler(sceneComponent).updateAttributes(attributes, host, x, y)
+    }
+  }
 }

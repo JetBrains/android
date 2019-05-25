@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.common.surface;
 
-import static com.android.annotations.VisibleForTesting.Visibility;
 import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -53,6 +51,7 @@ import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.utils.ImmutableCollectors;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -176,8 +175,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myProject = project;
 
     setOpaque(true);
-    setFocusable(true);
-    setRequestFocusEnabled(true);
+    setFocusable(false);
 
     mySelectionModel = selectionModel;
     mySelectionModel.addListener(mySelectionListener);
@@ -516,16 +514,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  @Override
-  protected void paintChildren(Graphics graphics) {
-    super.paintChildren(graphics);
-
-    if (isFocusOwner()) {
-      graphics.setColor(UIUtil.getFocusedBoundsColor());
-      graphics.drawRect(getX(), getY(), getWidth() - 1, getHeight() - 1);
-    }
-  }
-
   @Nullable
   public SceneView getCurrentSceneView() {
     SceneManager sceneManager = getSceneManager();
@@ -788,7 +776,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param y     The Y coordinate to center the scale to (in the Viewport's view coordinate system)
    * @return      True if the scaling was changed, false if this was a noop.
    */
-  @VisibleForTesting(visibility = Visibility.PROTECTED)
+  @VisibleForTesting
   public boolean setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
     double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
     if (Math.abs(newScale - myScale) < 0.005 / getScreenScalingFactor()) {
@@ -1534,7 +1522,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return doCreateInteractionOnClick(mouseX, mouseY, sceneView);
   }
 
-  @VisibleForTesting(visibility = Visibility.PROTECTED)
+  @VisibleForTesting
   @Nullable
   public abstract Interaction doCreateInteractionOnClick(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY, @NotNull SceneView view);
 
