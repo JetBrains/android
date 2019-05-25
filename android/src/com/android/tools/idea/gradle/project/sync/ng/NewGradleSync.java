@@ -83,19 +83,17 @@ public class NewGradleSync implements GradleSync {
   }
 
   public static boolean isEnabled(@NotNull Project project) {
-    return StudioFlags.NEW_SYNC_INFRA_ENABLED.get() || isSingleVariantSync(project);
+    return StudioFlags.NEW_SYNC_INFRA_ENABLED.get();
   }
 
   public static boolean isSingleVariantSync(@NotNull Project project) {
-    return StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() ||
-           (GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC &&
-            !PropertiesComponent.getInstance(project).getBoolean(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC));
+    return StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() || GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
   }
 
   public static boolean isCompoundSync(@NotNull Project project) {
     // Since Gradle plugin don't have the concept of selected variant and we don't want to generate sources for all variants, we only
     // activate Compound Sync if Single Variant Sync is also enabled.
-    return StudioFlags.COMPOUND_SYNC_ENABLED.get() && isEnabled(project) && isSingleVariantSync(project);
+    return StudioFlags.COMPOUND_SYNC_ENABLED.get() && isSingleVariantSync(project);
   }
 
   public NewGradleSync(@NotNull Project project) {
