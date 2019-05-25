@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject
 import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.level2.GlobalLibraryMap
+import com.android.java.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions
 import org.gradle.tooling.BuildController
@@ -78,10 +79,20 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
 
   override fun populateProjectModels(controller: BuildController,
                                      module: IdeaModule?,
-                                     modelConsumer: ProjectImportExtraModelProvider.ProjectModelConsumer) {
-    // Nothing to do at the project level
+                                     consumer: ProjectImportExtraModelProvider.ProjectModelConsumer) {
+    // We don't yet have any Global models so if module equal null we just return
+    module?.let {
+      controller
+        .findModel(it.gradleProject, GradlePluginModel::class.java)
+        ?.also { pluginModel ->
+          consumer.consume(pluginModel, GradlePluginModel::class.java)
+        }
+    }
   }
 
+  /**
+   * Gets the [AndroidProject] or [NativeAndroidProject] (based on [modelType]) for the given [GradleProject].
+   */
   private fun <T> findParameterizedAndroidModel(controller: BuildController,
                                                 project: GradleProject,
                                                 modelType: Class<T>): T? {
