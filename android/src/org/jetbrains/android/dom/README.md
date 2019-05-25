@@ -179,6 +179,15 @@ is reformatted.
 We provide a "predefined style" for XML that enables `USE_CUSTOM_SETTINGS` and a notification panel (in
 `AndroidCodeStyleNotificationProvider`) that suggests it is applied.
 
+## GotoDeclaration handling
+
+`XmlAttributeValue` and `XmlTag` goto declaration are not handled by any GotoDeclarationHandler. Instead the references are resolved at the
+caret location.
+
+`XmlAttributeName` goto declaration support is provided by `XmlAttributeNameGotoDeclarationHandler` for resource files. The attr resource is
+retrieved from the ResourceRepository and wrapped in a `LazyValueResourceElementWrapper` to delay DOM traversal until the user wants to
+navigate to the resource declaration.
+
 ## Other editor features
 
 `ResourceFoldingBuilder` uses the code folding feature to "collapse" resource references (e.g. `@string/app_name`) and display the

@@ -16,9 +16,14 @@
 package com.android.tools.idea.res;
 
 import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_FORMAT;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.TAG_RESOURCES;
+import static com.android.resources.ResourceType.ATTR;
+import static com.android.resources.ResourceType.STYLEABLE;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
+import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
@@ -274,13 +279,24 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       if (rootTag != null && rootTag.isValid()) {
         XmlTag[] subTags = rootTag.getSubTags();
         for (XmlTag tag : subTags) {
-          if (tag.isValid()
-              && resourceName.equals(tag.getAttributeValue(ATTR_NAME))
-              && item.getType() == AndroidResourceUtil.getResourceTypeForResourceTag(tag)) {
-            return tag;
+          if (tag.isValid()) {
+            ResourceType resourceType = getResourceTypeForResourceTag(tag);
+            if (resourceType == item.getType() && resourceName.equals(tag.getAttributeValue(ATTR_NAME))) {
+              return tag;
+            }
+
+            // Consider children of declare-styleable.
+            if (item.getType() == ATTR && resourceType == STYLEABLE) {
+              XmlTag[] items = tag.getSubTags();
+              for (XmlTag child : items) {
+                if (resourceName.equals(child.getAttributeValue(ATTR_NAME))
+                    && (child.getAttribute(ATTR_FORMAT) != null || child.getSubTags().length > 0)) {
+                  return child;
+                }
+              }
+            }
           }
         }
-        // TODO: Support nested tags inside declare-styleable. See http://b/74194028.
       }
 
       // This method should only be called on value resource types.

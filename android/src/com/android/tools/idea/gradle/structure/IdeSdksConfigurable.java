@@ -145,9 +145,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     myWholePanel.setPreferredSize(JBUI.size(700, 500));
     myWholePanel.setName(IDE_SDKS_LOCATION_VIEW);
 
-    myDetailsComponent = new DetailsComponent();
+    myDetailsComponent = new DetailsComponent(false /* no details */, false /* with border */);
     myDetailsComponent.setContent(myWholePanel);
-    myDetailsComponent.setText("SDK Location");
 
     // We can't update The IDE-level ndk directory. Due to that disabling the ndk directory option in the default Project Structure dialog.
     if (myProject == null || myProject.isDefault()) {

@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
@@ -57,12 +58,15 @@ public class MissingAndroidPluginErrorHandler extends BaseSyncErrorHandler {
       List<VirtualFile> buildFiles = getBuildFileForPlugin(project);
       if (!buildFiles.isEmpty()) {
         VirtualFile buildFile = buildFiles.get(0);
-        ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
-        if (projectBuildModel != null) {
-          GradleBuildModel gradleBuildModel = projectBuildModel.getModuleBuildModel(buildFile);
-          // Check if Google Maven repository can be added
-          if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
-            hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(ImmutableList.of(buildFile)));
+        //TODO(b/130224064): need to remove check when kts fully supported
+        if (!GradleUtil.isKtsFile(buildFile)) {
+          ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
+          if (projectBuildModel != null) {
+            GradleBuildModel gradleBuildModel = projectBuildModel.getModuleBuildModel(buildFile);
+            // Check if Google Maven repository can be added
+            if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
+              hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(ImmutableList.of(buildFile)));
+            }
           }
         }
         hyperlinks.add(new OpenFileHyperlink(toSystemDependentName(buildFile.getPath())));

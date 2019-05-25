@@ -99,6 +99,7 @@
         language="XML"
         order="first"/>
     <implicitUsageProvider implementation="org.jetbrains.android.AndroidXmlnsImplicitUsagesProvider"/>
+    <gotoDeclarationHandler implementation="org.jetbrains.android.XmlAttributeNameGotoDeclarationHandler" order="last"/>
 
     <!-- Code style: -->
     <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidXmlCodeStyleSettingsProvider"/>

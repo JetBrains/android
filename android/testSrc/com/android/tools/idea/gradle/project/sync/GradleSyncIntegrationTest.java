@@ -20,7 +20,6 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.ContentEntries.findChildContentEntries;
-import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
@@ -47,11 +46,9 @@ import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 import static java.util.Collections.singletonList;
@@ -99,8 +96,12 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.ExternalSystemManager;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
+import com.intellij.openapi.externalSystem.model.project.ContentRootData;
 import com.intellij.openapi.externalSystem.model.project.ExternalModuleBuildClasspathPojo;
 import com.intellij.openapi.externalSystem.model.project.ExternalProjectBuildClasspathPojo;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -110,7 +111,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.ExcludeFolder;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -637,7 +637,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   }
 
   public void testOnlyLastKnownAgpVersionPopulatedForUnsuccessfulSync() throws Exception {
-    Project project = getProject();
     // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
     loadProject(DEPENDENT_MODULES);
     for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
@@ -755,6 +754,29 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     FinishBuildEvent finishEvent = (FinishBuildEvent)buildEvents.get(1);
     assertThat(finishEvent.getResult()).isInstanceOf(FailureResult.class);
     assertEquals(errorMessage, finishEvent.getMessage());
+  }
+
+  public void testContentRootDataNodeWithBuildSrcModule() throws Exception {
+    loadSimpleApplication();
+
+    // Create buildSrc folder under root project.
+    File buildSrcDir = new File(getProject().getBasePath(), "buildSrc");
+    File buildFile = new File(buildSrcDir, "build.gradle");
+    writeToFile(buildFile, "repositories {}");
+
+    // Request Gradle sync.
+    requestSyncAndWait();
+
+    // Verify that buildSrc modules exists.
+    Module buildSrcModule = getModule("buildSrc");
+    assertNotNull(buildSrcModule);
+    DataNode<ModuleData> moduleData = ExternalSystemApiUtil.findModuleData(buildSrcModule, GradleConstants.SYSTEM_ID);
+    assertNotNull(moduleData);
+
+    // Verify that ContentRootData DataNode is created for buildSrc module.
+    Collection<DataNode<ContentRootData>> contentRootData = ExternalSystemApiUtil.findAll(moduleData, ProjectKeys.CONTENT_ROOT);
+    assertThat(contentRootData).hasSize(1);
+    assertThat(contentRootData.iterator().next().getData().getRootPath()).isEqualTo(buildSrcDir.getPath());
   }
 
   @NotNull
