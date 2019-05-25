@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue;
+
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.GradleBuildListener;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
@@ -91,6 +93,8 @@ public class CompoundSyncIntegrationTest extends SingleVariantSyncIntegrationTes
 
     // Invoke sync with source generation
     GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(getProject(), GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED);
+
+    dispatchAllEventsInIdeEventQueue();
 
     // All required sync phases were run and verified
     assertTrue(syncStarted.get());
