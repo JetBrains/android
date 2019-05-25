@@ -51,6 +51,11 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
   }
 
   @Override
+  protected boolean useNewSyncInfrastructure() {
+    return false;
+  }
+
+  @Override
   public void testSyncIssueWithNonMatchingVariantAttributes() throws Exception {
     Project project = getProject();
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
@@ -110,7 +115,8 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
     assertThat(ndkModuleModel.getNdkVariantNames()).doesNotContain(NdkModuleModel.DummyNdkVariant.variantNameWithAbi);
   }
 
-  public void testAddKotlinPluginToNonKotlinProject() throws Exception {
+  // This is ignored for now until the fix for KT-30076 is merged in.
+  public void /*test*/AddKotlinPluginToNonKotlinProject() throws Exception {
     loadSimpleApplication();
     // Verify that project is eligible for single-variant.
     assertFalse(PropertiesComponent.getInstance(getProject()).getBoolean((NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
@@ -147,7 +153,8 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
 
     // Verify that project is set as not eligible for single-variant.
     assertTrue(PropertiesComponent.getInstance(getProject()).getBoolean((NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
-    assertFalse(NewGradleSync.isSingleVariantSync(getProject()));
+    assertFalse(NewGradleSync.isEnabled(getProject()));
+    assertTrue(NewGradleSync.isSingleVariantSync(getProject()));
 
     // Verify that buildSrc module exists.
     List<String> moduleNames =
