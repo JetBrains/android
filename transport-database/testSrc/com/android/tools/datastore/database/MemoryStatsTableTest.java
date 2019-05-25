@@ -18,7 +18,7 @@ package com.android.tools.datastore.database;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.*;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 

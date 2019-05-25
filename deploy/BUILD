@@ -46,5 +46,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/idea/java/execution/openapi:intellij.java.execution[module]",
         "//tools/adt/idea/build-common:intellij.android.buildCommon[module]",
+        "//tools/idea/.idea/libraries:studio-proto",
     ],
 )

@@ -21,7 +21,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Cpu.CpuTraceType
-import com.android.tools.profiler.protobuf3jarjar.ByteString
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
