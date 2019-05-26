@@ -499,6 +499,17 @@ public class LauncherIconGenerator extends IconGenerator {
           image = generatePreviewImage(context, localOptions);
         } catch (Throwable e) {
           errorMessage = e.getMessage();
+          Throwable cause = e.getCause();
+          if (cause != null) {
+            String causeMessage = cause.getMessage();
+            if (causeMessage != null) {
+              errorMessage += ": " + causeMessage;
+            }
+            else {
+              // Probably an unexpected error, log it.
+              getLog().error(e);
+            }
+          }
           Rectangle imageRect = getFullBleedRectangle(localOptions);
           image = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
         }
@@ -865,7 +876,15 @@ public class LauncherIconGenerator extends IconGenerator {
 
     Rectangle imageRect = getFullBleedRectangle(options);
     if (options.backgroundImage != null) {
-      return generateIconLayer(context, options.backgroundImage, imageRect, false, 0, !options.generateOutputIcons);
+      try {
+        return generateIconLayer(context, options.backgroundImage, imageRect, false, 0, !options.generateOutputIcons);
+      }
+      catch (RuntimeException e) {
+        String message = options.backgroundImage.isDrawable() ?
+                         "Unable to generate image, possibly invalid background drawable" :
+                         "Failed to transform background image";
+        throw new RuntimeException(message, e);
+      }
     }
 
     //noinspection UseJBColor
@@ -880,8 +899,16 @@ public class LauncherIconGenerator extends IconGenerator {
 
     Rectangle imageRect = getFullBleedRectangle(options);
     if (options.foregroundImage != null) {
-      return generateIconLayer(context, options.foregroundImage, imageRect, options.useForegroundColor, options.foregroundColor,
-                                       !options.generateOutputIcons);
+      try {
+        return generateIconLayer(context, options.foregroundImage, imageRect, options.useForegroundColor, options.foregroundColor,
+                                 !options.generateOutputIcons);
+      }
+      catch (RuntimeException e) {
+        String message = options.foregroundImage.isDrawable() ?
+                         "Unable to generate image, possibly invalid foreground drawable" :
+                         "Failed to transform foreground image";
+        throw new RuntimeException(message, e);
+      }
     }
 
     return AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
