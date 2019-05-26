@@ -13,32 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates;
+package com.android.tools.idea.templates
 
-import org.junit.Test;
-import static org.junit.Assert.*;
-import static com.android.tools.idea.templates.FmUtil.stripSuffix;
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
 /**
  * Tests for the Freemarker utility functions
  */
-public class FmUtilTest {
+class FmUtilTest {
   @Test
-  public void testStripSuffix() throws Exception {
+  fun testStripSuffix() {
     // No-op test
-    assertEquals("", stripSuffix("", "", false));
-    assertEquals("", stripSuffix("", "foo", false));
+    assertEquals("", "".stripSuffix("", false))
+    assertEquals("", "".stripSuffix("foo", false))
 
     // Whole string test
-    assertEquals("", stripSuffix("foo", "foo", false));
+    assertEquals("", "foo".stripSuffix( "foo", false))
 
     // Suffix test
-    assertEquals("Foo", stripSuffix("FooBar", "Bar", false));
-    assertEquals("Foo", stripSuffix("FooBa", "Bar", false));
+    assertEquals("Foo", "FooBar".stripSuffix( "Bar", false))
+    assertEquals("Foo", "FooBar".stripSuffix("Bar", false))
 
     // Double Suffix test
-    assertEquals("Foo", stripSuffix("FooBarBar", "Bar", true));
-    assertEquals("FooBar", stripSuffix("FooBarBar", "Bar", false));
-
+    assertEquals("Foo", "FooBarBar".stripSuffix("Bar", true))
+    assertEquals("FooBar", "FooBarBar".stripSuffix( "Bar", false))
   }
 }
