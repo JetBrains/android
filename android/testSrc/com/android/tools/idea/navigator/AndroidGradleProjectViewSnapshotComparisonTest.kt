@@ -16,12 +16,15 @@
 package com.android.tools.idea.navigator
 
 import com.android.tools.idea.Projects
+import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
+import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.impl.GroupByTypeComparator
+import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.project.Project
@@ -45,16 +48,41 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
-  private fun importSyncAndDumpProject(projectDir: String, patch: ((projectRootPath: File) -> Unit)? = null): String {
+  fun testDependentNativeModules() {
+    val text = importSyncAndDumpProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, initialState = false) { element, state ->
+      // Drop any file nodes under IncludesViewNode node.
+      when {
+        element is IncludesViewNode -> true
+        state && element is PsiFileNode -> null
+        else -> state
+      }
+    }
+    assertIsEqualToSnapshot(text)
+  }
+
+  private fun importSyncAndDumpProject(
+    projectDir: String,
+    patch: ((projectRootPath: File) -> Unit)? = null
+  ): String =
+    importSyncAndDumpProject(projectDir, patch, Unit, { _, _ -> Unit })
+
+  private fun <T : Any> importSyncAndDumpProject(
+    projectDir: String,
+    patch: ((projectRootPath: File) -> Unit)? = null,
+    initialState: T,
+    filter: (element: AbstractTreeNode<*>, state: T) -> T?
+  ): String {
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
     val project = this.project!!
     importProject(project.name, Projects.getBaseDirPath(project))
 
-    return project.dumpAndroidProjectView()
+    return project.dumpAndroidProjectView(initialState, filter)
   }
 
-  private fun Project.dumpAndroidProjectView(): String {
+  private fun Project.dumpAndroidProjectView(): String = dumpAndroidProjectView(Unit, { _, _ -> Unit })
+
+  private fun <T : Any> Project.dumpAndroidProjectView(initialState: T, filter: (element: AbstractTreeNode<*>, state: T) -> T?): String {
     val viewPane = AndroidProjectViewPane(this)
     // We need to create a component to initialize the view pane.
     viewPane.createComponent()
@@ -65,6 +93,17 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     val comparator = GroupByTypeComparator(null, "android")
 
     return buildString {
+
+      val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!
+
+      fun String.replaceVariableParts(): String {
+        val userHomePath = System.getProperty("user.home")
+        val androidSdkAbsolutePath = androidSdk.absolutePath
+        val androidSdkUserRootedPath = androidSdk.absolutePath.replace(userHomePath, "~")
+        return replace(androidSdkAbsolutePath, "<ANDROID_SDK>", ignoreCase = false)
+          .replace(androidSdkUserRootedPath, "<ANDROID_SDK>", ignoreCase = false)
+          .replace(userHomePath, "<HOME>", ignoreCase = false)
+      }
 
       fun Icon.getIconText(): Icon? {
         var icon: Icon? = this
@@ -89,21 +128,25 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
           append(nodeText)
           if (iconText != null) append(" (icon: $iconText)")
         }
+          .replaceVariableParts()
       }
 
-      fun dump(element: AbstractTreeNode<*>, prefix: String = "") {
+      fun dump(element: AbstractTreeNode<*>, prefix: String = "", state: T) {
+        val newState = filter(element, state) ?: return
+
         appendln("$prefix${element.presentation.toTestText()}")
         treeStructure
           .getChildElements(element)
           .map { it as AbstractTreeNode<*> }
           .apply { forEach { it.update() } }
           .sortedWith(comparator)
-          .forEach { dump(it, "    $prefix") }
+          .forEach { dump(it, "    $prefix", newState) }
       }
 
-      dump(rootElement as AbstractTreeNode<*>)
+      dump(rootElement as AbstractTreeNode<*>, state = initialState)
     }
       // Trim the trailing line end since snapshots are loaded without it.
       .trimEnd()
   }
 }
+
