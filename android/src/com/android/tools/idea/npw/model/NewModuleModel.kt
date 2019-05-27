@@ -57,24 +57,24 @@ class NewModuleModel : WizardModel {
   val multiTemplateRenderer: MultiTemplateRenderer
 
   // Note: INVOKE_IMMEDIATELY otherwise Objects may be constructed in the wrong state
-  private val myBindings = BindingsManager(INVOKE_IMMEDIATELY_STRATEGY)
-  private val myModuleName = StringValueProperty()
-  private val mySplitName = StringValueProperty("feature")
+  private val bindings = BindingsManager(INVOKE_IMMEDIATELY_STRATEGY)
+  val moduleName = StringValueProperty()
+  val splitName = StringValueProperty("feature")
   // A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
   // module, or instead modifies an existing module (for example just adding a new Activity)
-  private val myTemplateFile = OptionalValueProperty<File>()
-  private val applicationName: StringProperty
-  private val projectLocation: StringProperty
-  private val packageName = StringValueProperty()
+  val templateFile = OptionalValueProperty<File>()
+  val applicationName: StringProperty
+  val projectLocation: StringProperty
+  val packageName = StringValueProperty()
   private val projectPackageName: StringProperty
-  private val isInstantApp = BoolValueProperty()
-  private val enableCppSupport: BoolProperty
-  private val language: OptionalValueProperty<Language>
-  private val myCreateInExistingProject: Boolean
+  val isInstantApp = BoolValueProperty()
+  val enableCppSupport: BoolProperty
+  val language: OptionalValueProperty<Language>
+  private val createInExistingProject: Boolean
 
   init { // Default init constructor
-    myModuleName.addConstraint(AbstractProperty.Constraint(String::trim))
-    mySplitName.addConstraint(AbstractProperty.Constraint(String::trim))
+    moduleName.addConstraint(AbstractProperty.Constraint(String::trim))
+    splitName.addConstraint(AbstractProperty.Constraint(String::trim))
   }
 
   constructor(project: Project,
@@ -82,7 +82,7 @@ class NewModuleModel : WizardModel {
     this.project = OptionalValueProperty(project)
     this.projectSyncInvoker = projectSyncInvoker
     projectPackageName = packageName
-    myCreateInExistingProject = true
+    createInExistingProject = true
     enableCppSupport = BoolValueProperty()
     language = OptionalValueProperty(getInitialSourceLanguage(project))
     applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
@@ -97,46 +97,26 @@ class NewModuleModel : WizardModel {
     project = projectModel.project()
     projectPackageName = projectModel.packageName()
     projectSyncInvoker = projectModel.projectSyncInvoker
-    myCreateInExistingProject = false
+    createInExistingProject = false
     enableCppSupport = projectModel.enableCppSupport()
     applicationName = projectModel.applicationName()
     projectLocation = projectModel.projectLocation()
-    myTemplateFile.value = templateFile
+    this.templateFile.value = templateFile
     multiTemplateRenderer = projectModel.multiTemplateRenderer
     multiTemplateRenderer.incrementRenders()
     language = OptionalValueProperty()
 
-    myBindings.bind(packageName, projectPackageName, isInstantApp.not())
+    bindings.bind(packageName, projectPackageName, isInstantApp.not())
   }
 
   override fun dispose() {
     super.dispose()
-    myBindings.releaseAll()
+    bindings.releaseAll()
   }
 
-  fun applicationName(): StringProperty = applicationName
-
-  fun projectLocation(): StringProperty = projectLocation
-
-  fun moduleName(): StringProperty = myModuleName
-
-  fun splitName(): StringProperty = mySplitName
-
-  fun packageName(): StringProperty = packageName
-
-  fun instantApp(): BoolProperty = isInstantApp
-
-  fun enableCppSupport(): BoolProperty = enableCppSupport
-
-  fun language(): OptionalValueProperty<Language> = language
-
-  fun templateFile(): OptionalProperty<File> = myTemplateFile
-
-  fun computedFeatureModulePackageName(): ObservableString {
-    return object : StringExpression(projectPackageName, mySplitName) {
-      override fun get(): String = projectPackageName.get() + "." + mySplitName.get()
+  fun computedFeatureModulePackageName(): ObservableString = object : StringExpression(projectPackageName, splitName) {
+      override fun get(): String = projectPackageName.get() + "." + splitName.get()
     }
-  }
 
   /**
    * This method should be called if there is no "Activity Render Template" step (For example when creating a Library, or the activity
@@ -146,7 +126,7 @@ class NewModuleModel : WizardModel {
     val renderTemplateValues = mutableMapOf<String, Any>()
     TemplateValueInjector(renderTemplateValues)
       .setBuildVersion(renderModel.androidSdkInfo.value, project)
-      .setModuleRoots(renderModel.template.get().paths, project!!.basePath!!, moduleName().get(), packageName().get())
+      .setModuleRoots(renderModel.template.get().paths, project!!.basePath!!, moduleName.get(), packageName.get())
 
     this.renderTemplateValues.value = renderTemplateValues
   }
@@ -164,7 +144,7 @@ class NewModuleModel : WizardModel {
 
     @WorkerThread
     override fun doDryRun(): Boolean {
-      if (myTemplateFile.valueOrNull == null) {
+      if (templateFile.valueOrNull == null) {
         return false // If here, the user opted to skip creating any module at all, or is just adding a new Activity
       }
 
@@ -183,10 +163,10 @@ class NewModuleModel : WizardModel {
         myTemplateValues[ATTR_INSTANT_APP_PACKAGE_NAME] = projectPackageName.get()
 
         if (renderTemplateValues != null) {
-          TemplateValueInjector(renderTemplateValues).setInstantAppSupport(myCreateInExistingProject, project, myModuleName.get())
+          TemplateValueInjector(renderTemplateValues).setInstantAppSupport(createInExistingProject, project, moduleName.get())
         }
 
-        if (myCreateInExistingProject) {
+        if (createInExistingProject) {
           val hasInstantAppWrapper = isInstantApp.get() && InstantApps.findBaseFeature(project) == null
           myTemplateValues[ATTR_HAS_MONOLITHIC_APP_WRAPPER] = false
           myTemplateValues[ATTR_HAS_INSTANT_APP_WRAPPER] = hasInstantAppWrapper
@@ -194,14 +174,14 @@ class NewModuleModel : WizardModel {
       }
 
       if (renderTemplateValues != null) {
-        if (language().get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
-          TemplateValueInjector(renderTemplateValues).setLanguage(language().value)
+        if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
+          TemplateValueInjector(renderTemplateValues).setLanguage(language.value)
         }
         myTemplateValues.putAll(renderTemplateValues)
       }
 
       // Returns false if there was a render conflict and the user chose to cancel creating the template
-      return renderModule(true, myTemplateValues, project, myModuleName.get())
+      return renderModule(true, myTemplateValues, project, moduleName.get())
     }
 
     @WorkerThread
@@ -209,7 +189,7 @@ class NewModuleModel : WizardModel {
       val project = project.value
 
       val success = WriteCommandAction.writeCommandAction(project).withName("New Module").compute<Boolean, Exception> {
-        renderModule(false, myTemplateValues, project, myModuleName.get())
+        renderModule(false, myTemplateValues, project, moduleName.get())
       }
 
       if (!success) {
@@ -221,7 +201,7 @@ class NewModuleModel : WizardModel {
                              moduleName: String): Boolean {
       val projectRoot = File(project.basePath!!)
       val moduleRoot = getModuleRoot(project.basePath!!, moduleName)
-      val template = Template.createFromPath(myTemplateFile.value)
+      val template = Template.createFromPath(templateFile.value)
       val filesToOpen = ArrayList<File>()
 
       val context = RenderingContext.Builder.newContext(template, project)

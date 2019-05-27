@@ -160,7 +160,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       validateTemplate();
     });
 
-    myListeners.listenAndFire(getModel().enableCppSupport().or(getModel().instantApp()), src -> {
+    myListeners.listenAndFire(getModel().getEnableCppSupport().or(getModel().isInstantApp()), src -> {
       TemplateRenderer[] listItems = createGalleryList(myTemplateRenderers);
       myActivityGallery.setModel(JBList.createDefaultListModel((Object[])listItems));
       myActivityGallery.setSelectedIndex(getDefaultSelectedTemplateIndex(listItems, isNewModule())); // Also fires the Selection Listener
@@ -194,7 +194,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     }
 
     new TemplateValueInjector(moduleModel.getTemplateValues())
-      .setProjectDefaults(project, moduleModel.applicationName().get());
+      .setProjectDefaults(project, moduleModel.getApplicationName().get());
   }
 
   private static int getDefaultSelectedTemplateIndex(@NotNull TemplateRenderer[] templateRenderers, boolean isNewModule) {
@@ -222,10 +222,10 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   private TemplateRenderer[] createGalleryList(@NotNull List<TemplateRenderer> templateRenderers) {
     // Cpp and Iapp Templates are mutually exclusive, and Cpp take priority
     Predicate<TemplateRenderer> predicate;
-    if (getModel().enableCppSupport().get()) {
+    if (getModel().getEnableCppSupport().get()) {
       predicate = TemplateRenderer::isCppTemplate;
     }
-    else if (getModel().instantApp().get()) {
+    else if (getModel().isInstantApp().get()) {
       predicate = TemplateRenderer::isIappTemplate;
     }
     else {

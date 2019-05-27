@@ -64,7 +64,7 @@ public final class NewProjectModuleModel extends WizardModel {
 
   @NotNull
   public BoolProperty instantApp() {
-    return myNewModuleModel.instantApp();
+    return myNewModuleModel.isInstantApp();
   }
 
   @NotNull
@@ -79,7 +79,7 @@ public final class NewProjectModuleModel extends WizardModel {
 
   @NotNull
   public OptionalProperty<File> moduleTemplateFile() {
-    return myNewModuleModel.templateFile();
+    return myNewModuleModel.getTemplateFile();
   }
 
   @NotNull
@@ -142,7 +142,7 @@ public final class NewProjectModuleModel extends WizardModel {
     }
 
     new TemplateValueInjector(myNewModuleModel.getTemplateValues())
-      .setProjectDefaults(project, myNewModuleModel.applicationName().get());
+      .setProjectDefaults(project, myNewModuleModel.getApplicationName().get());
 
     projectTemplateValues.put(ATTR_IS_DYNAMIC_INSTANT_APP, myDynamicInstantApp.get());
 
@@ -162,20 +162,20 @@ public final class NewProjectModuleModel extends WizardModel {
     if (myHasCompanionApp.get()) {
       moduleName = getModuleName(myFormFactor.get());
     }
-    else if (myNewModuleModel.instantApp().get()) {
-      moduleName = myNewModuleModel.splitName().get();
-      myNewModuleModel.packageName().set(myNewModuleModel.computedFeatureModulePackageName().get());
+    else if (myNewModuleModel.isInstantApp().get()) {
+      moduleName = myNewModuleModel.getSplitName().get();
+      myNewModuleModel.getPackageName().set(myNewModuleModel.computedFeatureModulePackageName().get());
     }
     else {
       moduleName = SdkConstants.APP_PREFIX;
     }
 
-    myNewModuleModel.moduleName().set(moduleName);
+    myNewModuleModel.getModuleName().set(moduleName);
   }
 
   @NotNull
   private RenderTemplateModel createMainRenderModel(String projectLocation) {
-    String moduleName = myNewModuleModel.moduleName().get();
+    String moduleName = myNewModuleModel.getModuleName().get();
     RenderTemplateModel newRenderTemplateModel;
     if (myProjectModel.enableCppSupport().get()) {
       newRenderTemplateModel = createCompanionRenderModel(projectLocation, myNewModuleModel);
@@ -196,7 +196,7 @@ public final class NewProjectModuleModel extends WizardModel {
   private static void addModuleToProject(@NotNull NewModuleModel moduleModel, @NotNull FormFactor formFactor,
                                          @NotNull NewProjectModel projectModel, @NotNull Map<String, Object> projectTemplateValues) {
     projectTemplateValues.put(formFactor.id + ATTR_INCLUDE_FORM_FACTOR, true);
-    projectTemplateValues.put(formFactor.id + ATTR_MODULE_NAME, moduleModel.moduleName().get());
+    projectTemplateValues.put(formFactor.id + ATTR_MODULE_NAME, moduleModel.getModuleName().get());
     projectModel.getNewModuleModels().add(moduleModel);
   }
 
@@ -205,10 +205,10 @@ public final class NewProjectModuleModel extends WizardModel {
     // Note: The companion Module is always a Mobile app
     File moduleTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_MODULE);
     NewModuleModel companionModuleModel = new NewModuleModel(projectModel, moduleTemplateFile);
-    companionModuleModel.moduleName().set(getModuleName(FormFactor.MOBILE));
+    companionModuleModel.getModuleName().set(getModuleName(FormFactor.MOBILE));
 
     new TemplateValueInjector(companionModuleModel.getTemplateValues())
-      .setProjectDefaults(projectModel.project().getValueOrNull(), companionModuleModel.applicationName().get());
+      .setProjectDefaults(projectModel.project().getValueOrNull(), companionModuleModel.getApplicationName().get());
 
     return companionModuleModel;
   }
@@ -216,7 +216,7 @@ public final class NewProjectModuleModel extends WizardModel {
   @NotNull
   private static RenderTemplateModel createCompanionRenderModel(@NotNull String projectLocation, @NotNull NewModuleModel moduleModel) {
     // Note: The companion Render is always a "Empty Activity"
-    NamedModuleTemplate namedModuleTemplate = createDefaultTemplateAt(projectLocation, moduleModel.moduleName().get());
+    NamedModuleTemplate namedModuleTemplate = createDefaultTemplateAt(projectLocation, moduleModel.getModuleName().get());
     File renderTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_ACTIVITY, EMPTY_ACTIVITY);
     TemplateHandle renderTemplateHandle = new TemplateHandle(renderTemplateFile);
 
