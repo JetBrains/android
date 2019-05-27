@@ -125,7 +125,7 @@ public class AndroidStudioInitializer implements Runnable {
       // and no metrics are ever sent.
       if (!application.isUnitTestMode() && !application.isHeadlessEnvironment() &&
         !Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
-        AppUIUtil.showConsentsAgreementIfNeed(getLog());
+        AppUIUtil.showConsentsAgreementIfNeeded(getLog());
       }
     }
 
