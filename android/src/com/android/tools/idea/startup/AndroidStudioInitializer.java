@@ -36,7 +36,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.XmlHighlighterColors;
@@ -160,7 +159,7 @@ public class AndroidStudioInitializer implements Runnable {
       String title = "Corrupt Installation";
       int option = Messages.showDialog(msg, title, new String[]{"Quit", "Proceed Anyway"}, 0, Messages.getErrorIcon());
       if (option == 0) {
-        ApplicationManagerEx.getApplicationEx().exit();
+        ApplicationManager.getApplication().exit();
       }
     }
   }
