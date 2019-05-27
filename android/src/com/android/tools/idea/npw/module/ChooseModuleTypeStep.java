@@ -100,8 +100,8 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
       if (moduleGalleryEntry instanceof ModuleTemplateGalleryEntry) {
         ModuleTemplateGalleryEntry templateEntry =  (ModuleTemplateGalleryEntry) moduleGalleryEntry;
         model.isLibrary().set(templateEntry.isLibrary());
-        model.instantApp().set(templateEntry.isInstantApp());
-        model.templateFile().setValue(templateEntry.getTemplateFile());
+        model.isInstantApp().set(templateEntry.isInstantApp());
+        model.getTemplateFile().setValue(templateEntry.getTemplateFile());
       }
 
       SkippableWizardStep step = moduleGalleryEntry.createStep(model);

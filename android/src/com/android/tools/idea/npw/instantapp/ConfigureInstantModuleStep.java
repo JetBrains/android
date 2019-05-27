@@ -59,10 +59,10 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
 
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     ObservableString computedFeatureModulePackageName = model.computedFeatureModulePackageName();
-    myBindings.bind(model.packageName(), packageNameText, model.instantApp());
+    myBindings.bind(model.getPackageName(), packageNameText, model.isInstantApp());
     myBindings.bind(packageNameText, computedFeatureModulePackageName, isPackageNameSynced);
 
-    myBindings.bindTwoWay(splitFieldText, model.splitName());
+    myBindings.bindTwoWay(splitFieldText, model.getSplitName());
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedFeatureModulePackageName.get())));
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
@@ -86,7 +86,7 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
 
   @Override
   protected boolean shouldShow() {
-    return getModel().instantApp().get();
+    return getModel().isInstantApp().get();
   }
 
   @NotNull
@@ -105,7 +105,7 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
   protected void onProceeding() {
     // For instant apps, the Module name is the same as the split name.
     // Doing the assignment during onProceeding guarantees a valid module name and also that we are an instant app
-    getModel().moduleName().set(getModel().splitName().get());
+    getModel().getModuleName().set(getModel().getSplitName().get());
   }
 
   @Override
