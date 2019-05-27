@@ -95,33 +95,33 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
     TextProperty packageNameText = new TextProperty(myPackageName);
     TextProperty moduleNameText = new TextProperty(myModuleName);
-    Expression<String> computedPackageName = new Expression<String>(model.moduleName()) {
+    Expression<String> computedPackageName = new Expression<String>(model.getModuleName()) {
       @NotNull
       @Override
       public String get() {
-        return String.format("%s.%s", basePackage, toPackagePart(model.moduleName().get()));
+        return String.format("%s.%s", basePackage, toPackagePart(model.getModuleName().get()));
       }
     };
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
-    myBindings.bind(model.packageName(), packageNameText);
+    myBindings.bind(model.getPackageName(), packageNameText);
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
     // Project should never be null (we are adding a new module to an existing project)
     NewModuleModel moduleModel = getModel();
     Project project = moduleModel.getProject().getValue();
 
-    Expression<String> computedModuleName = new AppNameToModuleNameExpression(project, model.applicationName());
+    Expression<String> computedModuleName = new AppNameToModuleNameExpression(project, model.getApplicationName());
     BoolProperty isModuleNameSynced = new BoolValueProperty(true);
     myBindings.bind(moduleNameText, computedModuleName, isModuleNameSynced);
-    myBindings.bind(model.moduleName(), moduleNameText);
+    myBindings.bind(model.getModuleName(), moduleNameText);
     myListeners.listen(moduleNameText, value -> isModuleNameSynced.set(value.equals(computedModuleName.get())));
 
-    myBindings.bindTwoWay(new TextProperty(myAppName), model.applicationName());
+    myBindings.bindTwoWay(new TextProperty(myAppName), model.getApplicationName());
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
 
-    myValidatorPanel.registerValidator(model.applicationName(), value -> {
+    myValidatorPanel.registerValidator(model.getApplicationName(), value -> {
       if (value.isEmpty()) {
         return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.empty.application.name"));
       }
@@ -131,8 +131,8 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
       return Validator.Result.OK;
     });
 
-    myValidatorPanel.registerValidator(model.moduleName(), new ModuleValidator(project));
-    myValidatorPanel.registerValidator(model.packageName(),
+    myValidatorPanel.registerValidator(model.getModuleName(), new ModuleValidator(project));
+    myValidatorPanel.registerValidator(model.getPackageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
     NamedModuleTemplate dummyTemplate = GradleAndroidModuleTemplate.createDummyTemplate();
@@ -153,7 +153,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
       return Validator.Result.OK;
     });
 
-    myBindings.bindTwoWay(new SelectedItemProperty<>(myLanguageCombo), getModel().language());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myLanguageCombo), getModel().getLanguage());
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
@@ -164,7 +164,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
     ChooseActivityTypeStep chooseActivityStep = new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor, Lists.newArrayList());
-    chooseActivityStep.setShouldShow(!getModel().isLibrary().get() || getModel().instantApp().get());
+    chooseActivityStep.setShouldShow(!getModel().isLibrary().get() || getModel().isInstantApp().get());
 
     LicenseAgreementStep licenseAgreementStep =
       new LicenseAgreementStep(new LicenseAgreementModel(AndroidVersionsInfo.getSdkManagerLocalPath()), myInstallLicenseRequests);
@@ -196,15 +196,15 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     moduleModel.getTemplateValues().put(myFormFactor.id + ATTR_INCLUDE_FORM_FACTOR, true);
 
     // At this point, the validator panel should have no errors, and the user has typed a valid Module Name
-    getModel().moduleName().set(myModuleName.getText());
+    getModel().getModuleName().set(myModuleName.getText());
     Project project = moduleModel.getProject().getValue();
-    myRenderModel.getTemplate().set(createDefaultTemplateAt(project.getBasePath(), moduleModel.moduleName().get()));
+    myRenderModel.getTemplate().set(createDefaultTemplateAt(project.getBasePath(), moduleModel.getModuleName().get()));
 
     if (moduleModel.isLibrary().get()) {
       moduleModel.setDefaultRenderTemplateValues(myRenderModel, project);
 
       new TemplateValueInjector(moduleModel.getTemplateValues())
-        .setProjectDefaults(project, moduleModel.applicationName().get());
+        .setProjectDefaults(project, moduleModel.getApplicationName().get());
     }
 
     myInstallRequests.clear();
