@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.impl.GroupByTypeComparator
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode
@@ -29,6 +30,9 @@ import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.DeferredIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RowIcon
@@ -57,6 +61,20 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
         else -> state
       }
     }
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testJpsWithQualifiedNames() {
+    // Prepare project in a different directory (_jps) to avoid closing the currently opened project.
+    val projectPath =
+      prepareProjectCoreForImport(
+        File(myFixture.testDataPath, toSystemDependentName(TestProjectPaths.JPS_WITH_QUALIFIED_NAMES)),
+        File(toSystemDependentName(project.basePath + "_jps"))) { /* Do nothing. */ }
+
+    val project = ProjectUtil.openProject(projectPath.absolutePath, null, false)!!
+    val text = project.dumpAndroidProjectView()
+    ProjectUtil.closeAndDispose(project)
+
     assertIsEqualToSnapshot(text)
   }
 
