@@ -22,6 +22,7 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.AbstractAction
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.KeyStroke
 
 class ColorPickerBuilderTest : IdeaTestCase() {
@@ -33,7 +34,8 @@ class ColorPickerBuilderTest : IdeaTestCase() {
   fun testCreatePickerWithSaturationBrightnessComponent() {
     val picker = ColorPickerBuilder().addSaturationBrightnessComponent().build()
     assertEquals(1, picker.components.size)
-    assertTrue(picker.getComponent(0) is SaturationBrightnessComponent)
+    // Picker wrappers the SaturationBrightnessComponent for supporting Contrast mode.
+    assertTrue((picker.getComponent(0) as JPanel).getComponent(0) is SaturationBrightnessComponent)
   }
 
   fun testCreatePickerWithColorAdjustPanel() {
