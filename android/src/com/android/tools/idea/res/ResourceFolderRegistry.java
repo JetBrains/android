@@ -270,6 +270,15 @@ public class ResourceFolderRegistry implements Disposable {
           VFileCopyEvent copyEvent = (VFileCopyEvent)event;
           onFileOrDirectoryCreated(copyEvent.getNewParent(), copyEvent.getNewChildName());
         }
+        else if (event instanceof VFileMoveEvent) {
+          VFileMoveEvent moveEvent = (VFileMoveEvent)event;
+          onFileOrDirectoryCreated(moveEvent.getNewParent(), moveEvent.getFile().getName());
+        }
+        else if (event instanceof VFilePropertyChangeEvent &&
+                 ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
+          VFilePropertyChangeEvent renameEvent = (VFilePropertyChangeEvent)event;
+          onFileOrDirectoryCreated(renameEvent.getFile().getParent(), (String)renameEvent.getNewValue());
+        }
       }
     }
 
