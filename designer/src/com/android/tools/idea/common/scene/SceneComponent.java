@@ -102,6 +102,8 @@ public class SceneComponent {
     return myCurrentTop + (myCurrentBottom - myCurrentTop) / 2;
   }
 
+  @Nullable private CommonDragTarget myDragTarget;
+
   /////////////////////////////////////////////////////////////////////////////
   //region Constructor & toString
   /////////////////////////////////////////////////////////////////////////////
@@ -880,7 +882,11 @@ public class SceneComponent {
         hasDragTarget = myTargets.removeIf(CommonDragTarget::isSupported);
       }
       if (hasDragTarget && myScene.getRoot() != this) {
-        addTarget(new CommonDragTarget(this));
+        if (myDragTarget == null) {
+          // Drag Target is reusable.
+          myDragTarget = new CommonDragTarget(this);
+        }
+        addTarget(myDragTarget);
       }
     }
   }
