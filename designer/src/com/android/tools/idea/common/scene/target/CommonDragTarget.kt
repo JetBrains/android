@@ -58,6 +58,11 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   private lateinit var draggedComponents: List<SceneComponent>
 
   /**
+   * List of new selected components. This is a list of new selection after mouse interaction.
+   */
+  private var newSelectedComponents: List<SceneComponent> = emptyList()
+
+  /**
    * List of initial positions of dragged components
    */
   private lateinit var initialPositions: List<Point>
@@ -338,7 +343,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       if (isClicked) {
         // If the component is not being dragged and the mouse position almost not changed,
         // it means that the user clicked the component without dragging.
-        draggedComponents = listOf(myComponent)
+        newSelectedComponents = listOf(myComponent)
       }
     }
     else {
@@ -356,8 +361,9 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
           sceneComponent.setPosition(firstMouse.x - offsets[index].x, firstMouse.y - offsets[index].y)
         }
       }
+      newSelectedComponents = draggedComponents
     }
-
+    draggedComponents = emptyList()
     currentSnappedPlaceholder = null
     placeholderHosts = emptySet()
   }
@@ -411,10 +417,12 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
         nlComponent.fireLiveChangeEvent()
       }
     }
+    newSelectedComponents = draggedComponents
+    draggedComponents = emptyList()
     myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
   }
 
-  override fun newSelection(): List<SceneComponent> = draggedComponents
+  override fun newSelection(): List<SceneComponent> = newSelectedComponents
 
   override fun getMouseCursor(): Cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 
