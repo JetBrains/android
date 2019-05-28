@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite.ui
+package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
+import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactory
 
-interface SqliteEditorViewFactory {
-  /**
-   * Returns a [SqliteEvaluatorView]. The controller is responsible for calling [SqliteEvaluatorView.show].
-   */
-  fun createEvaluatorDialog(): SqliteEvaluatorView
+class MockSqliteEditorViewFactory : SqliteEditorViewFactory {
+
+  val sqliteEvaluatorView = MockSqliteEvaluatorView()
+
+  override fun createEvaluatorDialog() = sqliteEvaluatorView
 }

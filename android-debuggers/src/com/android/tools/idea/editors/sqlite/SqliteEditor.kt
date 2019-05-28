@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.sqlite
 import com.android.tools.idea.sqlite.controllers.SqliteController
 import com.android.tools.idea.sqlite.jdbc.SqliteJdbcService
 import com.android.tools.idea.sqlite.model.SqliteModel
+import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactoryImpl
 import com.android.tools.idea.sqlite.ui.mainView.SqliteViewImpl
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.openapi.fileEditor.FileEditor
@@ -47,7 +48,7 @@ class SqliteEditor(private val project: Project, private val sqliteFile: Virtual
   init {
     val service = SqliteJdbcService(sqliteFile, this, PooledThreadExecutor.INSTANCE)
     controller = SqliteController(
-      this, model,
+      this, SqliteEditorViewFactoryImpl.getInstance(), model,
       sqliteView, service,
       EdtExecutorService.getInstance(), PooledThreadExecutor.INSTANCE
     )
