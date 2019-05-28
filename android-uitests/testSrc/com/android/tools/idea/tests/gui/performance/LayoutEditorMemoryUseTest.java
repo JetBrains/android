@@ -101,7 +101,7 @@ public class LayoutEditorMemoryUseTest {
     IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     warmUp(fixture);
-    createHprofDump(PathManager.getLogPath() + "heap-dump/before.hprof");
+    createHprofDump(PathManager.getLogPath() + "/before.hprof");
     if (CAPTURE_HEAP_DUMPS) {
       createHprofDump("/tmp/LayoutEditorMemoryUseTest-before.hprof");
     }
@@ -125,7 +125,7 @@ public class LayoutEditorMemoryUseTest {
       LOG.info("[Pass " + (i + 1) + "] Potential leaked classes count: " + currentCountsInstances.size());
     }
 
-    createHprofDump(PathManager.getLogPath() + "heap-dump/after.hprof");
+    createHprofDump(PathManager.getLogPath() + "/after.hprof");
 
     if (!currentCountsInstances.isEmpty()) {
       // Leaks have been found. Create a report.
