@@ -131,7 +131,7 @@ public class DeviceMenuAction extends DropDownAction {
   }
 
   /**
-   * Similar to {@link FormFactor#getFormFactor(Device)}
+   * Similar to {@link FormFactor#get(Device)}
    * but (a) distinguishes between tablets and phones, and (b) uses the new Nele icons
    */
   private static Icon getDeviceClassIcon(@Nullable Device device) {

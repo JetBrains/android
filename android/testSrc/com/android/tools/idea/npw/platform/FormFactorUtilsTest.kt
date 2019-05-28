@@ -13,28 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.platform;
+package com.android.tools.idea.npw.platform
 
-import com.intellij.ui.components.JBLabel;
-import org.junit.Test;
+import com.google.common.truth.Truth.assertThat
+import com.intellij.ui.components.JBLabel
+import org.junit.Test
 
-import javax.swing.*;
+import org.junit.Assert.assertNotNull
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-public final class FormFactorUtilsTest {
-
+class FormFactorUtilsTest {
   @Test
-  public void formFactorsImage() {
-    JBLabel jLabel = new JBLabel();
-    Icon withEmulatorIcons = FormFactorUtils.getFormFactorsImage(jLabel, true);
-    Icon allIcons = FormFactorUtils.getFormFactorsImage(jLabel, false);
+  fun formFactorsImage() {
+    val jLabel = JBLabel()
+    val withEmulatorIcons = getFormFactorsImage(jLabel, true)
+    val allIcons = getFormFactorsImage(jLabel, false)
 
-    assertNotNull(withEmulatorIcons);
-    assertNotNull(allIcons);
+    assertNotNull(withEmulatorIcons)
+    assertNotNull(allIcons)
 
     // Note: When running unit tests, it will not load the real images, each icon uses a 1x1 pixel size
-    assertTrue(allIcons.getIconWidth() >= withEmulatorIcons.getIconWidth());
+    assertThat(allIcons!!.iconWidth).isAtLeast(withEmulatorIcons!!.iconWidth)
   }
 }
