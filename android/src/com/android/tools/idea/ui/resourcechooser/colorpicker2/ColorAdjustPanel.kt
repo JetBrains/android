@@ -27,17 +27,10 @@ import javax.swing.JPanel
 import javax.swing.plaf.basic.BasicButtonUI
 import kotlin.math.abs
 
-private val PANEL_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 70)
-private val PANEL_BORDER = JBUI.Borders.empty(0, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 0, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
+private const val PREFERRED_HEIGHT = 70
 
-private val PIPETTE_BUTTON_BORDER = JBUI.Borders.empty()
-
-private val COLOR_INDICATOR_SIZE = JBUI.size(45)
-private val COLOR_INDICATOR_BORDER = JBUI.Borders.empty(6)
-
-private val HUE_SLIDER_BORDER = JBUI.Borders.empty(0, 16, 8, 16)
-
-private val ALPHA_SLIDER_BORDER = JBUI.Borders.empty(8, 16, 0, 16)
+private const val COLOR_INDICATOR_SIZE = 45
+private const val COLOR_INDICATOR_BORDER_SIZE = 6
 
 class ColorAdjustPanel(private val model: ColorPickerModel,
                        private val pipetteProvider: ColorPipetteProvider)
@@ -46,26 +39,26 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
   private val pipetteButton by lazy {
     val colorPipetteButton = ColorPipetteButton(model, pipetteProvider.createPipette(this@ColorAdjustPanel))
     with (colorPipetteButton) {
-      border = PIPETTE_BUTTON_BORDER
+      border = JBUI.Borders.empty()
       background = PICKER_BACKGROUND_COLOR
 
       ui = BasicButtonUI()
 
       isFocusable = false
-      preferredSize = COLOR_INDICATOR_SIZE
+      preferredSize = JBUI.size(COLOR_INDICATOR_SIZE)
     }
     colorPipetteButton
   }
 
   @VisibleForTesting
   val colorIndicator = ColorIndicator().apply {
-    border = COLOR_INDICATOR_BORDER
-    preferredSize = COLOR_INDICATOR_SIZE
+    border = JBUI.Borders.empty(COLOR_INDICATOR_BORDER_SIZE)
+    preferredSize = JBUI.size(COLOR_INDICATOR_SIZE)
   }
 
   @VisibleForTesting
   val hueSlider = HueSliderComponent().apply {
-    border = HUE_SLIDER_BORDER
+    border = JBUI.Borders.empty(0, 16, 8, 16)
     background = PICKER_BACKGROUND_COLOR
 
     addListener { it, commit ->
@@ -80,7 +73,7 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
 
   @VisibleForTesting
   val alphaSlider = AlphaSliderComponent().apply {
-    border = ALPHA_SLIDER_BORDER
+    border = JBUI.Borders.empty(8, 16, 0, 16)
     background = PICKER_BACKGROUND_COLOR
 
     addListener { it, commit ->
@@ -90,9 +83,9 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
   }
 
   init {
-    border = PANEL_BORDER
+    border = JBUI.Borders.empty(0, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 0, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
     background = PICKER_BACKGROUND_COLOR
-    preferredSize = PANEL_PREFERRED_SIZE
+    preferredSize = JBUI.size(COLOR_PICKER_WIDTH, PREFERRED_HEIGHT)
 
     // TODO: replace GridBag with other layout.
     val c = GridBagConstraints()

@@ -16,12 +16,13 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.intellij.ui.JBColor
-import com.intellij.ui.picker.ColorListener
 import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
+import java.awt.Graphics
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.AbstractAction
@@ -33,15 +34,15 @@ import javax.swing.JSeparator
 import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
 
-val PICKER_BACKGROUND_COLOR = JBColor(Color(252, 252, 252), Color(64, 64, 64))
+val PICKER_BACKGROUND_COLOR = JBColor.namedColor("UIDesigner.ColorPicker.background", JBColor(Color(252, 252, 252), Color(64, 64, 64)))
 val PICKER_TEXT_COLOR = Color(186, 186, 186)
 
-const val PICKER_PREFERRED_WIDTH = 300
+const val COLOR_PICKER_WIDTH = 300
 const val HORIZONTAL_MARGIN_TO_PICKER_BORDER = 14
 
-private val PICKER_BORDER = JBUI.Borders.empty()
-
 private const val SEPARATOR_HEIGHT = 5
+
+private val SATURATION_BOTTOM_EDGE_COLOR = JBColor.namedColor("UIDesigner.ColorPicker.foreground", PICKER_BACKGROUND_COLOR)
 
 /**
  * Builder class to help to create customized picker components depends on the requirement.
@@ -59,7 +60,36 @@ class ColorPickerBuilder {
 
   fun setOriginalColor(originalColor: Color?) = apply { this.originalColor = originalColor }
 
-  fun addSaturationBrightnessComponent() = apply { componentsToBuild.add(SaturationBrightnessComponent(model)) }
+  fun addSaturationBrightnessComponent() = apply {
+    // In contrast mode the background of color picker is black which user cannot recognise the bottom of picking area.
+    // Adding a line at bottom to separate the picking area and background of picker in contrast mode.
+    class BottomEdge: JComponent() {
+
+      override fun getPreferredSize(): Dimension = JBUI.size(COLOR_PICKER_WIDTH, 1)
+
+      override fun paintComponent(g: Graphics) {
+        g.color = SATURATION_BOTTOM_EDGE_COLOR
+        g.fillRect(0, 0, width, height)
+      }
+    }
+
+    class WrapperPanel : JPanel(BorderLayout()) {
+      private val component = SaturationBrightnessComponent(model)
+      private val line = BottomEdge()
+
+      init {
+        add(component, BorderLayout.CENTER)
+        add(line, BorderLayout.SOUTH)
+      }
+
+      override fun getPreferredSize(): Dimension {
+        val size = component.preferredSize
+        return Dimension(size.width, size.height + line.preferredSize.height)
+      }
+    }
+
+    componentsToBuild.add(WrapperPanel())
+  }
 
   @JvmOverloads
   fun addColorAdjustPanel(colorPipetteProvider: ColorPipetteProvider = GraphicalColorPipetteProvider()) = apply {
@@ -88,7 +118,7 @@ class ColorPickerBuilder {
   fun addSeparator() = apply {
     val separator = JSeparator(JSeparator.HORIZONTAL)
     separator.border = JBUI.Borders.empty()
-    separator.preferredSize = JBUI.size(PICKER_PREFERRED_WIDTH, SEPARATOR_HEIGHT)
+    separator.preferredSize = JBUI.size(COLOR_PICKER_WIDTH, SEPARATOR_HEIGHT)
     componentsToBuild.add(separator)
   }
 
@@ -142,7 +172,7 @@ class ColorPickerBuilder {
       }
     }
     panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
-    panel.border = PICKER_BORDER
+    panel.border = JBUI.Borders.empty()
     panel.preferredSize = Dimension(width, height)
     panel.background = PICKER_BACKGROUND_COLOR
 
@@ -174,3 +204,5 @@ class ColorPickerBuilder {
 private class MyFocusTraversalPolicy(val defaultComponent: Component?) : LayoutFocusTraversalPolicy() {
   override fun getDefaultComponent(aContainer: Container?): Component? = defaultComponent
 }
+
+private val color = JBColor.namedColor("UIDesigner.ColorPicker.foreground", PICKER_BACKGROUND_COLOR)

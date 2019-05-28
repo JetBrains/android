@@ -18,7 +18,6 @@ package com.android.tools.idea.ui.resourcechooser.colorpicker2
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.ui.picker.ColorListener
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -55,9 +54,7 @@ import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
 private const val HORIZONTAL_MARGIN = HORIZONTAL_MARGIN_TO_PICKER_BORDER + 1
-private val PANEL_BORDER = JBUI.Borders.empty(0, HORIZONTAL_MARGIN, 5, HORIZONTAL_MARGIN)
-
-private val PREFERRED_PANEL_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 55)
+private const val PREFERRED_HEIGHT = 55
 
 private const val TEXT_FIELDS_UPDATING_DELAY = 300
 
@@ -143,8 +140,8 @@ class ColorValuePanel(private val model: ColorPickerModel) : JPanel(GridBagLayou
   }
 
   init {
-    border = PANEL_BORDER
-    preferredSize = PREFERRED_PANEL_SIZE
+    border = JBUI.Borders.empty(0, HORIZONTAL_MARGIN, 5, HORIZONTAL_MARGIN)
+    preferredSize = JBUI.size(COLOR_PICKER_WIDTH, PREFERRED_HEIGHT)
     background = PICKER_BACKGROUND_COLOR
     isFocusable = false
 
@@ -189,6 +186,7 @@ class ColorValuePanel(private val model: ColorPickerModel) : JPanel(GridBagLayou
 
     updateAlphaFormat()
     updateColorFormat()
+    hexField.text = model.hex
 
     model.addListener(this)
   }
@@ -347,25 +345,26 @@ class ColorValuePanel(private val model: ColorPickerModel) : JPanel(GridBagLayou
   }
 }
 
-private const val HOVER_BORDER_LEFT = 0
-private const val HOVER_BORDER_TOP = 0
-private const val HOVER_BORDER_WIDTH = 1
+
 private val HOVER_BORDER_STROKE = BasicStroke(1f)
 private val HOVER_BORDER_COLOR = Color.GRAY.brighter()
 
-private const val PRESSED_BORDER_LEFT = 1
-private const val PRESSED_BORDER_TOP = 1
-private const val PRESSED_BORDER_WIDTH = 2
 private val PRESSED_BORDER_STROKE = BasicStroke(1.2f)
 private val PRESSED_BORDER_COLOR = Color.GRAY
-
-private const val BORDER_CORNER_ARC = 7
 
 private const val ACTION_PRESS_BUTTON_PANEL = "pressButtonPanel"
 private const val ACTION_RELEASE_BUTTON_PANEL = "releaseButtonPanel"
 
 @VisibleForTesting
 abstract class ButtonPanel : JPanel() {
+
+  private val hoverBorderLeft = JBUI.scale(0)
+  private val hoverBorderTop = JBUI.scale(0)
+  private val hoverBorderThickness = JBUI.scale(1)
+  private val pressedBorderLeft = JBUI.scale(1)
+  private val pressedBorderTop = JBUI.scale(1)
+  private val pressedBorderThickness = JBUI.scale(2)
+  private val borderCornerArc = JBUI.scale(7)
 
   companion object {
     private enum class Status { NORMAL, HOVER, PRESSED }
@@ -462,16 +461,16 @@ abstract class ButtonPanel : JPanel() {
       Status.HOVER -> {
         g.stroke = HOVER_BORDER_STROKE
         g.color = HOVER_BORDER_COLOR
-        g.drawRoundRect(HOVER_BORDER_LEFT,HOVER_BORDER_TOP,
-                        width - HOVER_BORDER_WIDTH, height - HOVER_BORDER_WIDTH,
-                        BORDER_CORNER_ARC, BORDER_CORNER_ARC)
+        g.drawRoundRect(hoverBorderLeft, hoverBorderTop,
+                        width - hoverBorderThickness, height - hoverBorderThickness,
+                        borderCornerArc, borderCornerArc)
       }
       Status.PRESSED -> {
         g.stroke = PRESSED_BORDER_STROKE
         g.color = PRESSED_BORDER_COLOR
-        g.drawRoundRect(PRESSED_BORDER_LEFT, PRESSED_BORDER_TOP,
-                        width - PRESSED_BORDER_WIDTH, height - PRESSED_BORDER_WIDTH,
-                        BORDER_CORNER_ARC, BORDER_CORNER_ARC)
+        g.drawRoundRect(pressedBorderLeft, pressedBorderTop,
+                        width - pressedBorderThickness, height - pressedBorderThickness,
+                        borderCornerArc, borderCornerArc)
       }
       else -> return
     }
@@ -492,7 +491,7 @@ private const val ACTION_DOWN = "down"
 class ColorValueField(private val hex: Boolean = false): JTextField(if (hex) 8 else 3) {
 
   init {
-    horizontalAlignment = JTextField.CENTER
+    horizontalAlignment = CENTER
     isEnabled = true
     isEditable = true
 
