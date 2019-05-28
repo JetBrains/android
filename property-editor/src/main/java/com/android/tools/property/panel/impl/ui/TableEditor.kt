@@ -64,9 +64,8 @@ class TableEditor(val lineModel: TableLineModelImpl,
       }
     })
     component.selectionModel.addListSelectionListener {
-      val model = lineModel.tableModel
       val index = component.selectedRow
-      val item = if (index >= 0 && index < model.items.size) model.items[index] else null
+      val item = if (index >= 0 && index < component.rowCount) component.getValueAt(index, 1) as? PTableItem else null
       lineModel.selectedItem = item
     }
     HelpSupportBinding.registerHelpKeyActions(component, { lineModel.selectedItem as? PropertyItem })
