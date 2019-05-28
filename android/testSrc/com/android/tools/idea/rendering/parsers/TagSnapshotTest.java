@@ -114,4 +114,24 @@ public class TagSnapshotTest {
       "}",
       root.toString());
   }
+
+
+  @Test
+  public void testTagReplace() {
+    @Language("XML") final String imageString = "<ImageView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                "  xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                                                "  android:layout_width=\"wrap_content\"\n" +
+                                                "  android:layout_height=\"wrap_content\"\n" +
+                                                "  tools:useTag=\"Button\" />";
+
+    TagSnapshot button = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
+      XmlTag image = XmlElementFactory.getInstance(myProjectRule.getProject()).createTagFromText(imageString);
+      return TagSnapshot.createTagSnapshot(image, null);
+    });
+    assertEquals(
+      "TagSnapshot{Button, attributes=[AttributeSnapshot{layout_width=\"wrap_content\"}, AttributeSnapshot{layout_height=\"wrap_content\"}, AttributeSnapshot{useTag=\"Button\"}], children=\n" +
+      "[]\n" +
+      "}",
+      button.toString());
+  }
 }
