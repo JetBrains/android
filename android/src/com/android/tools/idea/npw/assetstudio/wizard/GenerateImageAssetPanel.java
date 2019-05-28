@@ -443,7 +443,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
         String errorMessage = errors.isEmpty() ?
                               "" :
                               errors.size() == 1 ?
-                              "Preview rendering error: " + Iterables.getOnlyElement(errors) :
+                              Iterables.getOnlyElement(errors) :
                               "Icon preview was rendered with errors";
         myPreviewRenderingError.set(errorMessage);
       }
