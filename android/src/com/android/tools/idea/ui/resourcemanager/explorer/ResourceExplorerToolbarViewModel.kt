@@ -130,7 +130,13 @@ class ResourceExplorerToolbarViewModel(
 
   private val customImporters get() = importersProvider.importers.filter { it.hasCustomImport }
 
-  var isShowDependencies: Boolean
+  var isShowModuleDependencies: Boolean
+    get() = filterOptions.isShowModuleDependencies
+    set(value) {
+      filterOptions.isShowModuleDependencies = value
+    }
+
+  var isShowLibraryDependencies: Boolean
     get() = filterOptions.isShowLibraries
     set(value) {
       filterOptions.isShowLibraries = value
