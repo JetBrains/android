@@ -134,7 +134,7 @@ object AndroidStudioUsageTracker {
   }
 
   private fun reportEnabledPlugins() {
-    val plugins = PluginManagerCore.getLoadedPlugins(null)
+    val plugins = PluginManagerCore.getLoadedPlugins()
     val pluginInfoProto = IdePluginInfo.newBuilder()
 
     for (plugin in plugins) {
