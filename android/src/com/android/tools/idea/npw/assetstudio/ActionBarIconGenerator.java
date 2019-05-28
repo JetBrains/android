@@ -21,7 +21,6 @@ import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.intellij.openapi.project.Project;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,7 +102,7 @@ public class ActionBarIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public BufferedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
     return generateRasterImage(ICON_SIZE, options);
   }
 
