@@ -52,7 +52,7 @@ class GuiTestStarter : IdeaApplication.IdeStarter(), ApplicationStarter {
     processArgs(args)
     LOG.info("Starting GuiTest activity")
     guiTestThread.start()
-    super.premain(args)
+    super<IdeaApplication.IdeStarter>.premain(args)
   }
 
   override fun main(args: Array<String>) {
