@@ -16,14 +16,13 @@
 package com.android.tools.idea.editors.sqlite
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 
-class SqliteFileTypeDetectorTest : UsefulTestCase() {
+class SqliteFileTypeDetectorTest : PlatformTestCase() {
   private lateinit var mySqliteUtil: SqliteTestUtil
   private var myPreviousEnabled: Boolean = false
 
-  @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
     mySqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
@@ -31,7 +30,6 @@ class SqliteFileTypeDetectorTest : UsefulTestCase() {
     myPreviousEnabled = SqliteViewer.enableFeature(true)
   }
 
-  @Throws(Exception::class)
   override fun tearDown() {
     try {
       mySqliteUtil.tearDown()
@@ -42,7 +40,6 @@ class SqliteFileTypeDetectorTest : UsefulTestCase() {
     }
   }
 
-  @Throws(Exception::class)
   fun testSqliteFileDetection() {
     // Prepare
     val file = mySqliteUtil.createTempSqliteDatabase()
@@ -56,7 +53,6 @@ class SqliteFileTypeDetectorTest : UsefulTestCase() {
     assertThat(fileType).isNotNull()
   }
 
-  @Throws(Exception::class)
   fun testSqliteFileDetectionShortSequence() {
     // Prepare
     val file = mySqliteUtil.createTempSqliteDatabase()
@@ -71,7 +67,6 @@ class SqliteFileTypeDetectorTest : UsefulTestCase() {
     assertThat(fileType).isNull()
   }
 
-  @Throws(Exception::class)
   fun testSqliteFileDetectionEmptyDatabase() {
     // Prepare
     val file = mySqliteUtil.createEmptyTempSqliteDatabase()
@@ -86,7 +81,6 @@ class SqliteFileTypeDetectorTest : UsefulTestCase() {
     assertThat(fileType).isNull()
   }
 
-  @Throws(Exception::class)
   fun testRandomBinaryFileDetection() {
     // Prepare
     val file = mySqliteUtil.createTempBinaryFile(30000)
