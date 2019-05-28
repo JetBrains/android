@@ -335,7 +335,7 @@ open class GradleSyncState(
       return
     }
 
-    if (shouldRemoveModelsOnFailure) removeAndroidModels(project)
+    if (shouldRemoveModelsOnFailure && !(project.isDisposed)) removeAndroidModels(project)
 
     syncFailedTimeStamp = syncEndTimeStamp
 
