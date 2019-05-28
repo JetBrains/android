@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ThreeState;
@@ -278,5 +279,26 @@ public class GradleSyncStateTest extends IdeaTestCase {
     mySyncState.sourceGenerationFinished();
 
     verify(myGradleSyncListener, times(1)).sourceGenerationFinished(myProject);
+  }
+
+  public void testSyncStateFailedWithMessage() {
+    mySyncState.setSyncStartedTimeStamp(1, TRIGGER_TEST_REQUESTED);
+    mySyncState.syncFailed("Some Message", new RuntimeException("Runtime Message"), null);
+
+    verify(myGradleSyncListener).syncFailed(myProject, "Some Message");
+  }
+
+  public void testSyncStateFailedWithThrowableMessage() {
+    mySyncState.setSyncStartedTimeStamp(1, TRIGGER_TEST_REQUESTED);
+    mySyncState.syncFailed(null, new RuntimeException("Runtime Message"), null);
+
+    verify(myGradleSyncListener).syncFailed(myProject, "Runtime Message");
+  }
+
+  public void testSynStateFailedWithNoMessage() {
+    mySyncState.setSyncStartedTimeStamp(1, TRIGGER_TEST_REQUESTED);
+    mySyncState.syncFailed(null, null, null);
+
+    verify(myGradleSyncListener).syncFailed(myProject, "Unknown cause");
   }
 }

@@ -323,7 +323,7 @@ open class GradleSyncState(
    *
    * TODO: This should only be called at the end of sync, not all throughout which is currently the case
    */
-  open fun syncFailed(message: String, error: Throwable?, listener: GradleSyncListener?) {
+  open fun syncFailed(message: String?, error: Throwable?, listener: GradleSyncListener?) {
     projectStructure.clearData()
 
     val syncEndTimeStamp = System.currentTimeMillis()
@@ -339,9 +339,14 @@ open class GradleSyncState(
 
     syncFailedTimeStamp = syncEndTimeStamp
 
-    var resultMessage = "Gradle sync failed"
-    if (!message.isBlank()) resultMessage += ": $message"
-    resultMessage += " (${formatDuration(syncEndTimeStamp - syncStartedTimeStamp)})"
+    val throwableMessage = error?.message
+    // Find a none null message from either the provided message or the given throwable.
+    val causeMessage : String = when {
+      !message.isNullOrBlank() -> message
+      !throwableMessage.isNullOrBlank() -> throwableMessage
+      else -> "Unknown cause".also { LOG.warn(IllegalStateException("No error message given")) }
+    }
+    val resultMessage = "Gradle sync failed: $causeMessage (${formatDuration(syncEndTimeStamp - syncStartedTimeStamp)})"
     addToEventLog(SYNC_NOTIFICATION_GROUP, resultMessage, MessageType.ERROR, null)
     LOG.warn(resultMessage)
 
@@ -358,8 +363,8 @@ open class GradleSyncState(
 
     syncFinished(syncEndTimeStamp)
 
-    listener?.syncFailed(project, message)
-    syncPublisher { syncFailed(project, message) }
+    listener?.syncFailed(project, causeMessage)
+    syncPublisher { syncFailed(project, causeMessage) }
   }
 
   /**
