@@ -43,7 +43,8 @@ import java.util.concurrent.Executor
 @UiThread
 class SqliteController(
   parentDisposable: Disposable,
-  private val model: SqliteModel,
+  private val viewFactory: SqliteEditorViewFactory,
+  private val sqliteModel: SqliteModel,
   private val sqliteView: SqliteView,
   private val sqliteService: SqliteService,
   edtExecutor: EdtExecutorService,
@@ -60,39 +61,26 @@ class SqliteController(
   private var currentResultSetController: ResultSetController? = null
   private var currentTable: SqliteTable? = null
 
+  private val sqliteViewListener = SqliteViewListenerImpl()
+  private val sqliteModelListener = SqliteModelListenerImpl()
+
   init {
     Disposer.register(parentDisposable, this)
-    sqliteView.addListener(SqliteViewListenerImpl())
-    model.addListener(ModelListener())
   }
 
   fun setUp() {
+    sqliteView.addListener(sqliteViewListener)
+    sqliteModel.addListener(sqliteModelListener)
+
     sqliteView.setUp()
     sqliteView.startLoading("Opening Sqlite database...")
     loadDbSchema()
   }
 
-  fun updateView() {
-    edtExecutor.addCallback(sqliteService.readSchema(), object : FutureCallback<SqliteSchema> {
-      override fun onSuccess(schema: SqliteSchema?) {
-        if (schema?.tables?.find { it.name == currentTable?.name } != null) {
-          refreshCurrentTableDataSet(currentTable!!)
-        }
-        else {
-          currentTable = null
-          sqliteView.resetView()
-        }
-
-        schema?.let { setDatabaseSchema(it) }
-      }
-
-      override fun onFailure(t: Throwable) {
-        // TODO(b/132943925)
-      }
-    })
+  override fun dispose() {
+    sqliteView.removeListener(sqliteViewListener)
+    sqliteModel.removeListener(sqliteModelListener)
   }
-
-  override fun dispose() { }
 
   private fun loadDbSchema() {
     val futureSchema = taskExecutor.transformAsync(sqliteService.openDatabase()) { sqliteService.readSchema() }
@@ -117,8 +105,9 @@ class SqliteController(
   }
 
   private fun setDatabaseSchema(schema: SqliteSchema) {
-    if (Disposer.isDisposed(this)) return
-    model.schema = schema
+    if (!Disposer.isDisposed(this)) {
+      sqliteModel.schema = schema
+    }
   }
 
   private fun refreshCurrentTableDataSet(table: SqliteTable) {
@@ -140,6 +129,26 @@ class SqliteController(
     })
   }
 
+  private fun updateView() {
+    edtExecutor.addCallback(sqliteService.readSchema(), object : FutureCallback<SqliteSchema> {
+      override fun onSuccess(schema: SqliteSchema?) {
+        if (schema?.tables?.find { it.name == currentTable?.name } != null) {
+          refreshCurrentTableDataSet(currentTable!!)
+        }
+        else {
+          currentTable = null
+          sqliteView.resetView()
+        }
+
+        schema?.let { setDatabaseSchema(it) }
+      }
+
+      override fun onFailure(t: Throwable) {
+        // TODO(b/132943925)
+      }
+    })
+  }
+
   private inner class SqliteViewListenerImpl : SqliteViewListener {
     override fun tableNodeActionInvoked(table: SqliteTable) {
       currentTable = table
@@ -152,7 +161,7 @@ class SqliteController(
         return
       }
 
-      val sqlEvaluatorView = SqliteEditorViewFactory.getInstance().createEvaluatorDialog()
+      val sqlEvaluatorView = viewFactory.createEvaluatorDialog()
 
       sqliteEvaluatorController = SqliteEvaluatorController(
         this@SqliteController,
@@ -173,7 +182,7 @@ class SqliteController(
     }
   }
 
-  private inner class ModelListener : SqliteModelListener {
+  private inner class SqliteModelListenerImpl : SqliteModelListener {
     override fun schemaChanged(schema: SqliteSchema) {
       logger.info("Schema changed $schema")
       sqliteView.displaySchema(schema)

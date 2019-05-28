@@ -28,14 +28,15 @@ import java.sql.PreparedStatement
 import java.sql.SQLException
 
 class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
+
   fun setUp() {
     tempDirTestFixture.setUp()
   }
+
   fun tearDown() {
     tempDirTestFixture.tearDown()
   }
 
-  @Throws(IOException::class)
   fun createByteSequence(file: VirtualFile, size: Int): ByteSequence {
     return ApplicationManager.getApplication().runReadAction(ThrowableComputable<ByteSequence, IOException> {
       val bytes = ByteArray(size)
@@ -46,13 +47,11 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     })
   }
 
-  @Throws(SQLException::class)
   fun createTempSqliteDatabase(): VirtualFile {
     return ApplicationManager.getApplication().runWriteAction(ThrowableComputable<VirtualFile, SQLException> {
       val file = createEmptyTempSqliteDatabase()
 
-      // Note: We need to close the connection so the database file handle is released by the
-      // Sqlite engine.
+      // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
       openSqliteDatabase(file).use { connection -> fillDatabase(connection) }
 
       // File as changed on disk, refresh virtual file cached data
@@ -61,13 +60,11 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     })
   }
 
-  @Throws(SQLException::class)
   fun createTestSqliteDatabase(): VirtualFile {
     return ApplicationManager.getApplication().runWriteAction(ThrowableComputable<VirtualFile, SQLException> {
       val file = createEmptyTempSqliteDatabase()
 
-      // Note: We need to close the connection so the database file handle is released by the
-      // Sqlite engine.
+      // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
       openSqliteDatabase(file).use { connection -> fillTestDatabase(connection) }
 
       // File as changed on disk, refresh virtual file cached data
@@ -76,13 +73,11 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     })
   }
 
-  @Throws(SQLException::class)
   fun createEmptyTempSqliteDatabase(): VirtualFile {
     return ApplicationManager.getApplication().runWriteAction(ThrowableComputable<VirtualFile, SQLException> {
       val file = tempDirTestFixture.createFile("sqlite-database")
 
-      // Note: We need to close the connection so the database file handle is released by the
-      // Sqlite engine.
+      // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
       openSqliteDatabase(file).use { connection ->
         // Create then drop a test table so this file is not empty on disk.
         connection.createStatement().use { stmt ->
@@ -101,7 +96,6 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     })
   }
 
-  @Throws(IOException::class)
   fun createTempBinaryFile(size: Int): VirtualFile {
     return ApplicationManager.getApplication().runWriteAction(ThrowableComputable<VirtualFile, IOException> {
       val file = tempDirTestFixture.createFile("sqlite-database")
@@ -116,7 +110,6 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     })
   }
 
-  @Throws(SQLException::class)
   private fun fillDatabase(connection: Connection) {
     ApplicationManager.getApplication().runWriteAction {
       connection.createStatement().use { stmt ->
@@ -150,7 +143,6 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     }
   }
 
-  @Throws(SQLException::class)
   private fun fillTestDatabase(connection: Connection) {
     ApplicationManager.getApplication().runWriteAction {
       connection.createStatement().use { stmt ->
@@ -211,7 +203,6 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     stmt.addBatch()
   }
 
-  @Throws(SQLException::class)
   private fun openSqliteDatabase(file: VirtualFile): Connection {
     // db parameters
     val url = "jdbc:sqlite:" + file.path

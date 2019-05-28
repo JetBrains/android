@@ -17,13 +17,19 @@ package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.util.FutureUtils
 import com.google.common.util.concurrent.ListenableFuture
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
+
+fun <T> any(type: Class<T>): T = Mockito.any<T>(type)
+fun <T> eq(arg: T): T = Mockito.eq(arg)
+fun <T> refEq(arg: T): T = ArgumentMatchers.refEq(arg)
 
 object Utils {
   fun <V> pumpEventsAndWaitForFuture(future: ListenableFuture<V>): V {
     try {
-      return FutureUtils.pumpEventsAndWaitForFuture(future, ResultSetControllerTest.TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+      return FutureUtils.pumpEventsAndWaitForFuture(future, SqliteJdbcServiceTest.TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     }
     catch (e: Exception) {
       throw RuntimeException(e)
@@ -32,7 +38,7 @@ object Utils {
 
   fun <V> pumpEventsAndWaitForFutureException(future: ListenableFuture<V>): Throwable {
     try {
-      FutureUtils.pumpEventsAndWaitForFuture(future, ResultSetControllerTest.TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+      FutureUtils.pumpEventsAndWaitForFuture(future, SqliteJdbcServiceTest.TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
       throw RuntimeException("Expected ExecutionException from future, got value instead")
     }
     catch (e: ExecutionException) {

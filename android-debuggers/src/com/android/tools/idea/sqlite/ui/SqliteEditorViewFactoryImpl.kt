@@ -15,11 +15,19 @@
  */
 package com.android.tools.idea.sqlite.ui
 
+import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorDialog
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
+import com.intellij.openapi.components.ServiceManager
 
-interface SqliteEditorViewFactory {
+class SqliteEditorViewFactoryImpl : SqliteEditorViewFactory {
+  companion object {
+    @JvmStatic fun getInstance() = ServiceManager.getService(SqliteEditorViewFactoryImpl::class.java)!!
+  }
+
   /**
    * Returns a [SqliteEvaluatorView]. The controller is responsible for calling [SqliteEvaluatorView.show].
    */
-  fun createEvaluatorDialog(): SqliteEvaluatorView
+  override fun createEvaluatorDialog(): SqliteEvaluatorView {
+    return SqliteEvaluatorDialog(null, true)
+  }
 }
