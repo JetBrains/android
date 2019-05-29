@@ -40,7 +40,6 @@ import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -62,7 +61,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
   public Collection<? extends AbstractTreeNode> getChildren() {
     assert myProject != null;
     ViewSettings settings = getSettings();
-    List<AbstractTreeNode<?>> children = ModuleNodeUtils.getChildModules(myProject, myProjectViewPane, settings);
+    List<AbstractTreeNode<?>> children = ModuleNodeUtils.createChildModuleNodes(myProject, myProjectViewPane, settings);
 
     // If this is a gradle project, and its sync failed, then we attempt to show project root as a folder so that the files
     // are still visible. See https://code.google.com/p/android/issues/detail?id=76564

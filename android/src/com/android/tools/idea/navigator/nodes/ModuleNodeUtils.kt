@@ -34,34 +34,37 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.ArrayList
 
-fun getChildModules(
+/**
+ * Creates Android project view nodes for a given [project].
+ */
+fun createChildModuleNodes(
   project: Project,
   projectViewPane: AndroidProjectViewPane,
   settings: ViewSettings
 ): MutableList<AbstractTreeNode<*>> {
-  // add a node for every module
-  // TODO: make this conditional on getSettings().isShowModules(), otherwise collapse them all at the root
   val moduleManager = ModuleManager.getInstance(project)
   val modules = moduleManager.modules
   val children = ArrayList<AbstractTreeNode<*>>(modules.size)
-
-  fun Module.isIgnoredRootModule() = isRootModuleWithNoSources(this) && ApkFacet.getInstance(this) == null
 
   for (module in modules.filter { !it.isIgnoredRootModule() }) {
     val apkFacet = ApkFacet.getInstance(module)
     val androidFacet = AndroidFacet.getInstance(module)
     val ndkFacet = NdkFacet.getInstance(module)
     when {
-      androidFacet != null && androidFacet.configuration.model != null -> children.add(
-        AndroidModuleNode(project, module, projectViewPane, settings))
+      androidFacet != null && androidFacet.configuration.model != null ->
+        children.add(AndroidModuleNode(project, module, projectViewPane, settings))
       androidFacet != null && apkFacet != null -> {
         children.add(ApkModuleNode(project, module, androidFacet, apkFacet, settings))
         children.add(ExternalLibrariesNode(project, settings))
       }
-      ndkFacet != null && ndkFacet.ndkModuleModel != null -> children.add(NdkModuleNode(project, module, projectViewPane, settings))
-      else -> children.add(NonAndroidModuleNode(project, module, projectViewPane, settings))
+      ndkFacet != null && ndkFacet.ndkModuleModel != null ->
+        children.add(NdkModuleNode(project, module, projectViewPane, settings))
+      else ->
+        children.add(NonAndroidModuleNode(project, module, projectViewPane, settings))
     }
   }
   return children
 }
+
+private fun Module.isIgnoredRootModule() = isRootModuleWithNoSources(this) && ApkFacet.getInstance(this) == null
 
