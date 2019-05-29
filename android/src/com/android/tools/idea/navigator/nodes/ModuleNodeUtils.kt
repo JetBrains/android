@@ -53,13 +53,13 @@ fun getChildModules(
     val ndkFacet = NdkFacet.getInstance(module)
     when {
       androidFacet != null && androidFacet.configuration.model != null -> children.add(
-        AndroidModuleNode(project, module, settings, projectViewPane))
+        AndroidModuleNode(project, module, projectViewPane, settings))
       androidFacet != null && apkFacet != null -> {
         children.add(ApkModuleNode(project, module, androidFacet, apkFacet, settings))
         children.add(ExternalLibrariesNode(project, settings))
       }
-      ndkFacet != null && ndkFacet.ndkModuleModel != null -> children.add(NdkModuleNode(project, module, settings))
-      else -> children.add(NonAndroidModuleNode(project, module, settings))
+      ndkFacet != null && ndkFacet.ndkModuleModel != null -> children.add(NdkModuleNode(project, module, projectViewPane, settings))
+      else -> children.add(NonAndroidModuleNode(project, module, projectViewPane, settings))
     }
   }
   return children
