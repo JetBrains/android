@@ -87,7 +87,6 @@ public final class TestProjectPaths {
   public static final String TEST_ARTIFACTS_MULTIPROJECT = "projects/testArtifacts/multiproject";
   public static final String TEST_ARTIFACTS_OLD_TESTS = "projects/testArtifacts/oldTests";
   public static final String TEST_ARTIFACTS_SAME_NAME_CLASSES = "projects/testArtifacts/sameNameClasses";
-  public static final String TEST_NOSYNCBUILDER = "projects/testNosyncbuilder";
   public static final String TEST_ONLY_MODULE = "projects/testOnlyModule";
   public static final String TEST_RESOURCES = "projects/testResources";
   public static final String TRANSITIVE_DEPENDENCIES = "projects/transitiveDependencies";
