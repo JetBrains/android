@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -161,6 +162,7 @@ public class NlPaletteModel implements Disposable {
     return myModule;
   }
 
+  @Slow
   @NotNull
   public Palette getPalette(@NotNull LayoutEditorFileType type) {
     Palette palette = myTypeToPalette.get(type);
@@ -200,6 +202,7 @@ public class NlPaletteModel implements Disposable {
     }
   }
 
+  @Slow
   @NotNull
   private Palette loadPalette(@NotNull LayoutEditorFileType type) {
     try {
@@ -238,6 +241,7 @@ public class NlPaletteModel implements Disposable {
       .onError(error -> getLogger().error(error));
   }
 
+  @Slow
   private void replaceProjectComponents(@NotNull LayoutEditorFileType type, Collection<CustomViewInfo> viewInfos) {
     // Reload the palette first
     Palette palette = loadPalette(type);
