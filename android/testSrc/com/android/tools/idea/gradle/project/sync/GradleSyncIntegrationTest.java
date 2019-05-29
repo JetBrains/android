@@ -834,6 +834,21 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertThat(contentRootData.iterator().next().getData().getRootPath()).isEqualTo(buildSrcDir.getPath());
   }
 
+  public void testViewBindingOptionsAreCorrectlyVisibleFromIDE() throws Exception {
+    loadSimpleApplication();
+
+    // Default option value should be false.
+    assertFalse(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getViewBindingOptions().isEnabled());
+
+    // Change the option in the build file and re-sync
+    File appBuildFile = getBuildFilePath("app");
+    appendToFile(appBuildFile, "\nandroid { viewBinding { enabled true }\n}");
+    requestSyncAndWait();
+
+    // Check that the new option is visible from the IDE.
+    assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getViewBindingOptions().isEnabled());
+  }
+
   @NotNull
   private List<NativeArtifact> getNativeArtifacts() {
     return NdkModuleModel.get(getModule("app")).getVariants().stream()
