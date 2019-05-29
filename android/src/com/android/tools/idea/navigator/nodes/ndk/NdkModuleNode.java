@@ -57,7 +57,7 @@ public class NdkModuleNode extends AndroidViewModuleNode {
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode> getChildren() {
+  protected Collection<AbstractTreeNode> getModuleChildren() {
     Module module = getValue();
     if (module == null) {
       return Collections.emptyList();
