@@ -30,20 +30,7 @@ import org.jetbrains.android.dom.ProvidedDocumentationPsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 public class IssueIdDocumentationProvider implements DocumentationProvider {
-  @Nullable
-  @Override
-  public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public List<String> getUrlFor(PsiElement element, PsiElement originalElement) {
-    return null;
-  }
 
   @Nullable
   @Override
@@ -82,11 +69,5 @@ public class IssueIdDocumentationProvider implements DocumentationProvider {
 
     final Issue issue = (Issue)object;
     return new ProvidedDocumentationPsiElement(psiManager, Language.ANY, issue.getId(), issue.getExplanation(TextFormat.HTML));
-  }
-
-  @Nullable
-  @Override
-  public PsiElement getDocumentationElementForLink(PsiManager psiManager, String link, PsiElement context) {
-    return null;
   }
 }
