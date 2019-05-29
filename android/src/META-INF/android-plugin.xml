@@ -517,6 +517,7 @@
                      implementationClass="org.jetbrains.android.inspections.AndroidNonConstantResIdsInSwitchInspection"/>
 
 
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintBrokenIterator" displayName="Broken Iterator" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintBrokenIteratorInspection"/>
     <globalInspection hasStaticDescription="true" shortName="PermissionUsageInspection" displayName="Permission Check for Location APIs" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.experimental.PermissionUsageInspection"/>
 
     <predefinedCodeStyle implementation="org.jetbrains.android.formatter.AndroidJavaPredefinedCodeStyle"/>
