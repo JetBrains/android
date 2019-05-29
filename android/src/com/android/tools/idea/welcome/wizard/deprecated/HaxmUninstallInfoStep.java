@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -50,6 +50,6 @@ public class HaxmUninstallInfoStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return SystemInfo.isMac || SystemInfo.isWindows;
+    return SystemInfoRt.isMac || SystemInfoRt.isWindows;
   }
 }

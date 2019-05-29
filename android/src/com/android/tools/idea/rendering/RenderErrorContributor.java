@@ -58,6 +58,7 @@ import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.problems.WolfTheProblemSolver;
 import com.intellij.psi.JavaPsiFacade;
@@ -545,8 +546,8 @@ public class RenderErrorContributor {
       catch (IOException e) {
         // ignore
       }
-      builder.add("os.name: ").add(SystemInfo.OS_NAME).newline()
-        .add("os.version: ").add(SystemInfo.OS_VERSION).newline()
+      builder.add("os.name: ").add(SystemInfoRt.OS_NAME).newline()
+        .add("os.version: ").add(SystemInfoRt.OS_VERSION).newline()
         .add("java.runtime.version: ").add(SystemInfo.JAVA_RUNTIME_VERSION);
     }
 

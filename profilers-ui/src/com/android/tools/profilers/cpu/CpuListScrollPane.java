@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +41,7 @@ class CpuListScrollPane extends JBScrollPane {
 
   @Override
   protected JViewport createViewport() {
-    if (SystemInfo.isMac) {
+    if (SystemInfoRt.isMac) {
       return super.createViewport();
     }
     // Overrides it because, when not on mac, JBViewport adds the width of the scrollbar to the right inset of the border,

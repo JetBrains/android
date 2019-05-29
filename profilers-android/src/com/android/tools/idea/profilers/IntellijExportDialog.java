@@ -21,7 +21,7 @@ import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
@@ -59,7 +59,7 @@ public class IntellijExportDialog implements ExportDialog {
         FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
 
         // Append extension manually to file name on MacOS because FileSaverDialog does not do it automatically.
-        String fileName = fileNameSupplier.get() + (SystemInfo.isMac ? "." + extension : "");
+        String fileName = fileNameSupplier.get() + (SystemInfoRt.isMac ? "." + extension : "");
         VirtualFileWrapper result = saveFileDialog.save(outputDir, fileName);
 
         // If the dialog is closed with a valid result, pass it to saveToFile

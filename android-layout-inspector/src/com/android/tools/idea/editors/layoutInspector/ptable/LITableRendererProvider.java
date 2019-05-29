@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.layoutInspector.ptable;
 import com.android.tools.adtui.ptable.*;
 import com.android.tools.idea.editors.layoutInspector.ui.PropertiesTablePanel;
 import com.android.tools.idea.flags.StudioFlags;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.JBColor;
@@ -85,7 +85,7 @@ public class LITableRendererProvider implements PTableCellRendererProvider {
     private final JPanel myPanel;
 
     public LIItemCellRenderer() {
-      myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
+      myPanel = new JPanel(new BorderLayout(SystemInfoRt.isMac ? 0 : 2, 0));
       myPanel.add(this, BorderLayout.CENTER);
     }
 

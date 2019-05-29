@@ -35,11 +35,13 @@ import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CustomShortcutSet;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
-import icons.AndroidIcons;
+import com.intellij.openapi.util.SystemInfoRt;
 import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +51,7 @@ import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.SUPPORTED
 
 public class HotswapAction extends AndroidStudioGradleAction implements AnAction.TransparentUpdate {
 
-  private static final CustomShortcutSet SHORTCUT_SET = CustomShortcutSet.fromString(SystemInfo.isMac ? "control meta R" : "control F10");
+  private static final CustomShortcutSet SHORTCUT_SET = CustomShortcutSet.fromString(SystemInfoRt.isMac ? "control meta R" : "control F10");
 
   public HotswapAction() {
     super("Apply Changes", "Apply Changes", StudioIcons.Shell.Toolbar.INSTANT_RUN);

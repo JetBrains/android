@@ -29,7 +29,7 @@ import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.keymap.ex.KeymapManagerEx;
 import com.intellij.openapi.keymap.impl.KeymapManagerImpl;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
@@ -123,7 +123,7 @@ public class AndroidInitialConfigurator {
         EditorSettingsExternalizable.getInstance().setVirtualSpace(false);
 
         // For Macs, use 10.5+ keymap as the default
-        if (SystemInfo.isMac) {
+        if (SystemInfoRt.isMac) {
           setDefaultMacKeymap();
         }
       }

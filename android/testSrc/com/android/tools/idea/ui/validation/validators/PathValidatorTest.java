@@ -19,7 +19,7 @@ import com.android.repository.io.FileOp;
 import com.android.repository.testframework.MockFileOp;
 import com.android.tools.adtui.validation.Validator;
 import com.google.common.base.Strings;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,7 +72,7 @@ public class PathValidatorTest {
     // java.io.File normalizes all the forward slashes to backslashes during construction on Windows, so it becomes virtually impossible
     // to pass a File with an "invalid" slash. Note that this behavior isn't symmetric to Linux/MacOSX,
     // where backslashes remain "as is", despite being not supported as path separators
-    Assume.assumeFalse(SystemInfo.isWindows);
+    Assume.assumeFalse(SystemInfoRt.isWindows);
 
     File file = new File("at\\least/one\\of/these\\slashes/are\\wrong");
     assertRuleFails(myFileOp, PathValidator.INVALID_SLASHES, file);

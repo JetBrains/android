@@ -25,11 +25,14 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -38,8 +41,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class ScreenRecorderTask extends Task.Modal {
   private static final CharSequence MEDIA_UNSUPPORTED_ERROR = "-1010";
@@ -163,6 +164,6 @@ final class ScreenRecorderTask extends Task.Modal {
     Calendar now = Calendar.getInstance();
     String fileName = "device-%tF-%tH%tM%tS";
     // add extension to filename on Mac only see: b/38447816
-    return String.format(SystemInfo.isMac ? fileName + extension : fileName, now, now, now, now);
+    return String.format(SystemInfoRt.isMac ? fileName + extension : fileName, now, now, now, now);
   }
 }
