@@ -23,7 +23,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.border.CustomLineBorder;
 import org.jetbrains.annotations.NotNull;
@@ -149,7 +149,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   @Override
   @NotNull
   protected Action[] createActions() {
-    if (SystemInfo.isMac) {
+    if (SystemInfoRt.isMac) {
       return new Action[]{new DoNotAskAction(), new RemindMeTomorrowAction(), getOKAction()};
     }
     return new Action[]{getOKAction(), new RemindMeTomorrowAction(), new DoNotAskAction()};

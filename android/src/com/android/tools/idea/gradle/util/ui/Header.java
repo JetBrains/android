@@ -23,7 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
@@ -37,7 +37,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.EventListener;
 import java.util.List;
 
 import static com.intellij.ide.ui.UISettings.setupAntialiasing;
@@ -208,7 +208,7 @@ public class Header extends JPanel {
 
       myButton.setIcons(icon, icon, hoveredIcon);
 
-      myButton.setHoveringEnabled(!SystemInfo.isMac);
+      myButton.setHoveringEnabled(!SystemInfoRt.isMac);
       setContent(myButton);
       setOpaque(false);
     }

@@ -41,7 +41,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.messages.MessageBus;
@@ -543,7 +543,7 @@ public class IdeSdks {
         return isJdkCompatible(jdk, preferredVersion) ? jdk : null;
       }
       // On Linux, the returned path is the folder that contains all JDKs, instead of a specific JDK.
-      if (SystemInfo.isLinux) {
+      if (SystemInfoRt.isLinux) {
         for (File child : notNullize(jdkPath.listFiles())) {
           if (child.isDirectory() && checkForJdk(child)) {
             Sdk jdk = myJdks.createJdk(child.getPath());

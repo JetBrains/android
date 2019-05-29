@@ -37,7 +37,7 @@ import com.intellij.ide.FeedbackDescriptionProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.EnvironmentUtil;
 import org.jetbrains.annotations.NotNull;
@@ -246,7 +246,7 @@ public class AndroidFeedbackDescriptionProvider implements FeedbackDescriptionPr
 
   private static String getCMakeExecutableName() {
     String cmakeExecutableName = "cmake";
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       cmakeExecutableName += ".exe";
     }
     return cmakeExecutableName;

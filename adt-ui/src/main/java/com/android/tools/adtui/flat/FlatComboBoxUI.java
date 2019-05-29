@@ -18,7 +18,7 @@ package com.android.tools.adtui.flat;
 import com.android.tools.adtui.stdui.GraphicsUtilKt;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -74,7 +74,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
       @Override
       protected void configurePopup() {
         super.configurePopup();
-        if (SystemInfo.isMac) {
+        if (SystemInfoRt.isMac) {
           setBorderPainted(false);
           setBorder(JBUI.Borders.empty());
         }

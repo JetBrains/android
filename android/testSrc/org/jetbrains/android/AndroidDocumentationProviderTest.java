@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android;
 
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -33,7 +33,7 @@ public class AndroidDocumentationProviderTest extends AndroidTestCase {
   }
 
   public void testExternalFilterOldFormat() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }
@@ -46,7 +46,7 @@ public class AndroidDocumentationProviderTest extends AndroidTestCase {
   }
 
   public void testExternalFilterNewFormat() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }

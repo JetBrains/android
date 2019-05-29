@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.editor.ui;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.FixedComboBoxEditor;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.MacUIUtil;
@@ -52,7 +53,7 @@ public class GradleEditorComboBoxEditor implements ComboBoxEditor {
   private Object oldValue;
 
   public GradleEditorComboBoxEditor() {
-    if (SystemInfo.isMac && UIUtil.isUnderAquaLookAndFeel()) {
+    if (SystemInfoRt.isMac && UIUtil.isUnderAquaLookAndFeel()) {
       myField = new MacComboBoxTextField();
     } else {
       myField = new JTextField();

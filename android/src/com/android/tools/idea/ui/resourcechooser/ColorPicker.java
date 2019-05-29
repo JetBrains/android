@@ -1,10 +1,10 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.ui.resourcechooser;
 
-import com.android.tools.idea.editors.theme.ColorUtils;
-import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.adtui.util.GraphicsUtil;
+import com.android.tools.idea.editors.theme.ColorUtils;
+import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -16,6 +16,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.ColorPickerListener;
@@ -1169,7 +1170,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       picker.setVisible(true);
       myTimer.start();
       // it seems like it's the lowest value for opacity for mouse events to be processed correctly
-      WindowManager.getInstance().setAlphaModeRatio(picker, SystemInfo.isMac ? 0.95f : 0.99f);
+      WindowManager.getInstance().setAlphaModeRatio(picker, SystemInfoRt.isMac ? 0.95f : 0.99f);
     }
 
     @Override

@@ -34,7 +34,7 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -49,7 +49,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -170,7 +169,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
       return "";
     }
     String available = WelcomeUIUtils.getSizeLabel(file.getFreeSpace());
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       while (file.getParentFile() != null) {
         file = file.getParentFile();
       }

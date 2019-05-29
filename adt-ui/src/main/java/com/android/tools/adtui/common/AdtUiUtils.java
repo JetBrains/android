@@ -15,31 +15,25 @@
  */
 package com.android.tools.adtui.common;
 
-import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.META_DOWN_MASK;
-
-import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
 import com.android.tools.adtui.TabularLayout;
-import com.intellij.openapi.util.SystemInfo;
+import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.util.function.Predicate;
-import javax.swing.BorderFactory;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.border.Border;
-import org.jetbrains.annotations.NotNull;
+
+import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.META_DOWN_MASK;
 
 /**
  * ADT-UI utility class to hold constants and function used across the ADT-UI framework.
@@ -143,14 +137,14 @@ public final class AdtUiUtils {
    * meta key on mac, and control on other platforms.
    */
   public static boolean isActionKeyDown(@NotNull InputEvent event) {
-    return SystemInfo.isMac ? event.isMetaDown() : event.isControlDown();
+    return SystemInfoRt.isMac ? event.isMetaDown() : event.isControlDown();
   }
 
   /**
    * returns the action mask for the current platform. On mac it's {@link META_DOWN_MASK} everything else is {@link CTRL_DOWN_MASK}.
    */
   public static int getActionMask() {
-    return SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
+    return SystemInfoRt.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
   }
 
   /**

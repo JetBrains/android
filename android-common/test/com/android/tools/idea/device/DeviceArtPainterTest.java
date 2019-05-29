@@ -24,7 +24,7 @@ import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.webp.WebpMetadata;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.BeforeClass;
@@ -85,7 +85,7 @@ public class DeviceArtPainterTest {
           assertTrue(deleted);
         }
         ImageIO.write(image, "PNG", file);
-        if (file.exists() && SystemInfo.isMac) {
+        if (file.exists() && SystemInfoRt.isMac) {
           Runtime.getRuntime().exec("/usr/bin/open " + file.getPath());
         }
       }
