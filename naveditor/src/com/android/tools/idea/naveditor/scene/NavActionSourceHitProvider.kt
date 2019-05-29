@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,28 @@ package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
-import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
+import com.android.tools.idea.naveditor.model.isFragment
 
 /*
-  Augments the hit region for destinations to include the header above the destination
+  Augments the hit region for destinations which support actions to include the action handle
  */
-open class NavDestinationHitProvider : DefaultHitProvider() {
+class NavActionSourceHitProvider : NavDestinationHitProvider() {
   override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
     super.addHit(component, sceneTransform, picker)
 
     val sceneView = sceneTransform.surface?.currentSceneView ?: return
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
 
-    val headerRect = getHeaderRect(sceneView, drawRectangle)
+    @SwingCoordinate var x = drawRectangle.x + drawRectangle.width
+    if (component.nlComponent.isFragment) {
+      x += sceneTransform.getSwingDimension(ACTION_HANDLE_OFFSET)
+    }
 
-    val x1 = headerRect.x
-    val x2 = x1 + headerRect.width
-    val y1 = headerRect.y
-    val y2 = y1 + headerRect.height
-
-    picker.addRect(component, 0, x1.toInt(), y1.toInt(), x2.toInt(), y2.toInt())
+    @SwingCoordinate val y = drawRectangle.y + drawRectangle.height / 2
+    @SwingCoordinate val r = sceneTransform.getSwingDimensionDip(OUTER_RADIUS_LARGE)
+    picker.addCircle(component, 0, x.toInt(), y.toInt(), r)
   }
 }
