@@ -16,9 +16,11 @@ package com.android.tools.idea.navigator.nodes;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
+import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -35,6 +37,30 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
                                ViewSettings viewSettings) {
     super(project, value, viewSettings);
     myProjectViewPane = projectViewPane;
+  }
+
+  /**
+   * @return module children except of its sub-modules.
+   */
+  @NotNull
+  protected abstract Collection<AbstractTreeNode> getModuleChildren();
+
+  /**
+   * Provides access to the platform's {@link ProjectViewModuleNode#getChildren}.
+   */
+  @NotNull
+  protected final Collection<AbstractTreeNode> platformGetChildren() {
+    return super.getChildren();
+  }
+
+  /**
+   * {@inheritDoc}
+   * Final. Please override {@link #getModuleChildren()} }.
+   */
+  @NotNull
+  @Override
+  public final Collection<AbstractTreeNode> getChildren() {
+    return getModuleChildren();
   }
 
   @Override
