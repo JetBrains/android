@@ -30,7 +30,6 @@ iml_module(
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
@@ -50,6 +49,7 @@ iml_module(
         "//tools/idea/java/execution/openapi:intellij.java.execution[module]",
         "//tools/idea/platform/smRunner:intellij.platform.smRunner[module]",
         "//tools/idea/plugins/junit:intellij.junit[module]",
+        "//tools/idea/json:intellij.json[module]",
         "//tools/idea/plugins/maven:intellij.maven[module]",
         "//tools/idea:intellij.java.impl[module]",
         "//tools/idea/plugins/properties:intellij.properties[module]",
@@ -199,7 +199,6 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/databinding:intellij.android.databinding",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/json:intellij.json",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
