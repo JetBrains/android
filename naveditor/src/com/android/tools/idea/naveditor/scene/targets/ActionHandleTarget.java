@@ -32,6 +32,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
@@ -55,7 +56,7 @@ import org.jetbrains.annotations.Nullable;
  * {@linkplain ActionHandleTarget} is a target for handling drag-creation of actions.
  * It appears as a circular grab handle on the right side of the navigation screen.
  */
-public class ActionHandleTarget extends NavBaseTarget {
+public class ActionHandleTarget extends BaseTarget {
   private static final int DURATION = 200;
   private static String DRAG_CREATE_IN_PROGRESS = "DRAG_CREATE_IN_PROGRESS";
 
@@ -77,7 +78,7 @@ public class ActionHandleTarget extends NavBaseTarget {
   private boolean myIsDragging = false;
 
   public ActionHandleTarget(@NotNull SceneComponent component) {
-    super(component);
+    setComponent(component);
     myHandleState = calculateState();
   }
 
@@ -92,11 +93,18 @@ public class ActionHandleTarget extends NavBaseTarget {
                         @NavCoordinate int t,
                         @NavCoordinate int r,
                         @NavCoordinate int b) {
-    @NavCoordinate int x = r;
+    @NavCoordinate int centerX = r;
     if (NavComponentHelperKt.isFragment(getComponent().getNlComponent())) {
-      x += ACTION_HANDLE_OFFSET;
+      centerX += ACTION_HANDLE_OFFSET;
     }
-    layoutCircle(x, t + (b - t) / 2, (int)myHandleState.myOuterRadius);
+    @NavCoordinate int centerY = t + (b - t) / 2;
+    @NavCoordinate int radius = (int)myHandleState.myOuterRadius;
+
+    myLeft = centerX - radius;
+    myTop = centerY - radius;
+    myRight = centerX + radius;
+    myBottom = centerY + radius;
+
     return false;
   }
 
@@ -208,8 +216,9 @@ public class ActionHandleTarget extends NavBaseTarget {
 
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
-    picker.addCircle(this, 0, getSwingCenterX(transform), getSwingCenterY(transform),
-                     transform.getSwingDimension((int)OUTER_RADIUS_LARGE));
+    @SwingCoordinate int centerX = transform.getSwingX((int)getCenterX());
+    @SwingCoordinate int centerY = transform.getSwingY((int)getCenterY());
+    picker.addCircle(this, 0, centerX, centerY, transform.getSwingDimension((int)OUTER_RADIUS_LARGE));
   }
 
   @Override
