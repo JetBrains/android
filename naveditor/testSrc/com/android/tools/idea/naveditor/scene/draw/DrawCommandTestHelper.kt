@@ -73,6 +73,15 @@ fun assertDrawCommandsEqual(expected: DrawLineToMouse, actual: DrawCommand) {
   AndroidTestCase.assertEquals(expected.center, drawLineToMouse.center)
 }
 
+fun assertDrawCommandsEqual(expected: DrawHeader, actual: DrawCommand) {
+  val drawHeader = actual as DrawHeader
+  AndroidTestCase.assertEquals(expected.rectangle, drawHeader.rectangle)
+  AndroidTestCase.assertEquals(expected.scale, drawHeader.scale)
+  AndroidTestCase.assertEquals(expected.text, drawHeader.text)
+  AndroidTestCase.assertEquals(expected.isStart, drawHeader.isStart)
+  AndroidTestCase.assertEquals(expected.hasDeepLink, drawHeader.hasDeepLink)
+}
+
 fun assertAnimatedShapesEqual(expected: AnimatedValue<Shape>, actual: AnimatedValue<Shape>) {
   val constantValue = expected as? ConstantValue<Shape>
   if(constantValue != null) {
