@@ -21,9 +21,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Objects;
+import kotlin.collections.CollectionsKt;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Specialization of {@link ProjectViewModuleNode} for Android view.
@@ -60,7 +60,9 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
   @NotNull
   @Override
   public final Collection<AbstractTreeNode> getChildren() {
-    return getModuleChildren();
+    return CollectionsKt.plus(
+      ModuleNodeUtils.createChildModuleNodes(Objects.requireNonNull(getProject()), getValue(), myProjectViewPane, getSettings()),
+      getModuleChildren());
   }
 
   @Override
