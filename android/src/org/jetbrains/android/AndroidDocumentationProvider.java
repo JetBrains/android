@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
@@ -22,7 +22,10 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -41,16 +44,6 @@ import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
  */
 public class AndroidDocumentationProvider implements DocumentationProvider, ExternalDocumentationProvider {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.AndroidDocumentationProvider");
-
-  @Override
-  public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
-    return null;
-  }
-
-  @Override
-  public List<String> getUrlFor(PsiElement element, PsiElement originalElement) {
-    return null;
-  }
 
   @Override
   public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
@@ -75,16 +68,6 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
     String name = AndroidPsiUtils.getResourceName(originalElement);
     boolean isFrameworkResource = referenceType == ResourceReferenceType.FRAMEWORK;
     return AndroidJavaDocRenderer.render(module, type, name, isFrameworkResource);
-  }
-
-  @Override
-  public PsiElement getDocumentationElementForLookupItem(@NotNull PsiManager psiManager, @NotNull Object object, @NotNull PsiElement element) {
-    return null;
-  }
-
-  @Override
-  public PsiElement getDocumentationElementForLink(PsiManager psiManager, String link, PsiElement context) {
-    return null;
   }
 
   @Override

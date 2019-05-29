@@ -90,11 +90,6 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   }
 
   @Override
-  public List<String> getUrlFor(PsiElement element, PsiElement originalElement) {
-    return null;
-  }
-
-  @Override
   public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
     if (element instanceof ProvidedDocumentationPsiElement) {
       return ((ProvidedDocumentationPsiElement)element).getDocumentation();
@@ -487,11 +482,6 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     if (converter instanceof AttributeValueDocumentationProvider) {
       return new MyDocElement((XmlAttribute)parent, value);
     }
-    return null;
-  }
-
-  @Override
-  public PsiElement getDocumentationElementForLink(PsiManager psiManager, String link, PsiElement context) {
     return null;
   }
 
