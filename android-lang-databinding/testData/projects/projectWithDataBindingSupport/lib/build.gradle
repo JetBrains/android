@@ -1,11 +1,10 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
 
     defaultConfig {
-        applicationId "com.android.example.appwithdatabinding"
         minSdkVersion 22
         targetSdkVersion 23
         versionCode 1
@@ -23,7 +22,6 @@ android {
 }
 
 dependencies {
-    implementation project(':lib')
     api fileTree(dir: 'libs', include: ['*.jar'])
 
     // depending on the latest allows us to load whatever the testing infra has
