@@ -40,5 +40,8 @@
         android:id="@+id/observableFieldView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
+    <include
+        android:id="@+id/included"
+        layout="@layout/included"/>
 </RelativeLayout>
 </layout>
