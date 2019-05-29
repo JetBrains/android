@@ -21,7 +21,10 @@ import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.CommandProcessor;
@@ -35,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.unregisterAsNewProject;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.GRADLE_EXECUTION_ERRORS;
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.finishFailedSync;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleProjects.open;
@@ -124,6 +128,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     ProjectBuildFileChecksums.removeFrom(myProject);
     // To ensure the errorDetails are logged by GradleSyncState, create a runtime exception.
     GradleSyncState.getInstance(myProject).syncFailed(newMessage, new RuntimeException(errorDetails), mySyncListener);
+    GradleSyncMessages.getInstance(myProject).report(new SyncMessage(GRADLE_EXECUTION_ERRORS, MessageType.ERROR, errorMessage));
     finishFailedSync(externalTaskId, myProject);
   }
 }
