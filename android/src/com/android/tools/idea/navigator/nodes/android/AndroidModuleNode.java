@@ -80,10 +80,10 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode> getChildren() {
+  protected Collection<AbstractTreeNode> getModuleChildren() {
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
     if (facet == null || facet.getConfiguration().getModel() == null) {
-      return super.getChildren();
+      return platformGetChildren();
     }
     return getChildren(facet, getSettings(), myProjectViewPane, AndroidProjectViewPane.getSourceProviders(facet));
   }
