@@ -42,6 +42,7 @@ object ActivityDecorator : NavScreenDecorator() {
 
     val sceneView = sceneContext.surface?.currentSceneView ?: return
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
+    addHeader(list, sceneView, drawRectangle, component)
 
     @SwingCoordinate val imageRectangle = drawRectangle.let { Rectangle2D.Float(it.x, it.y, it.width, it.height) }
 
