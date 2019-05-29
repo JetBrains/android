@@ -64,13 +64,13 @@ public class JavaDepTest {
    *   5. Right click on the app module > Module settings under dependencies, add module dependency to library create in step 2.
    *   6. Add in the line "Gson gson = new Gson();" in class files of app module and library module.
    *   Verification
-   *   The line "Gson gsn = new Gson();" should get resolved in both the app and library modules without any errors.
+   *   The line "Gson gson = new Gson();" should get resolved in both the app and library modules without any errors.
    * </pre>
    */
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveJavaDependenciesResolve() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK, DependenciesTestUtil.LANGUAGE_JAVA);
 
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Java Library")
@@ -95,10 +95,10 @@ public class JavaDepTest {
       .clickOk();
 
     editor.open("/app/src/main/java/android/com/app/MainActivity.java")
-          .moveBetween("setContentView(R.layout.activity_main);", "")
-          .enterText("\nGson gson = new Gson();")
-          .select("()public class MainActivity")
-          .enterText("import com.google.gson.Gson;\n\n");
+      .moveBetween("setContentView(R.layout.activity_main);", "")
+      .enterText("\n\t\tGson gson = new Gson();")
+      .select("()public class MainActivity")
+      .enterText("import com.google.gson.Gson;\n\n");
 
     GradleInvocationResult result = guiTest.ideFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
