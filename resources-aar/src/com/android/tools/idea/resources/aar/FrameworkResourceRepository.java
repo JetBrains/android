@@ -59,7 +59,6 @@ import org.xmlpull.v1.XmlPullParser;
  */
 public final class FrameworkResourceRepository extends AarSourceResourceRepository {
   private static final ResourceNamespace ANDROID_NAMESPACE = ResourceNamespace.ANDROID;
-  private static final String CACHE_DIRECTORY = "caches/framework_resources";
   static final String ENTRY_NAME_WITH_LOCALES = "resources.bin";
   static final String ENTRY_NAME_WITHOUT_LOCALES = "resources_light.bin";
 
