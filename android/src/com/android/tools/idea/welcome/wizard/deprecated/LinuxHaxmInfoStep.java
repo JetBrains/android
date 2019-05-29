@@ -16,7 +16,7 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.utils.HtmlBuilder;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.util.ui.SwingHelper;
 import com.intellij.util.ui.UIUtil;
@@ -56,7 +56,7 @@ public class LinuxHaxmInfoStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return SystemInfo.isLinux;
+    return SystemInfoRt.isLinux;
   }
 
   private void createUIComponents() {

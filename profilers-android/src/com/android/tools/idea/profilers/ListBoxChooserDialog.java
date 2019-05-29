@@ -19,7 +19,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +78,7 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
     // This keeps us in alignment with the intellij style. The style indicates that
     // dialog buttons should be right aligned on mac (default) and center aligned
     // on all other platforms.
-    if (!SystemInfo.isMac) {
+    if (!SystemInfoRt.isMac) {
       setButtonsAlignment(SwingConstants.CENTER);
     }
 

@@ -24,7 +24,6 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.startup.AndroidSdkInitializer;
-import com.android.utils.NullLogger;
 import com.google.common.base.Joiner;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
@@ -38,7 +37,7 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,7 +138,7 @@ public class SystemInfoStatsMonitor {
       mySdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     }
 
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       updateHyperVState();
     }
     updateCpuInfo();

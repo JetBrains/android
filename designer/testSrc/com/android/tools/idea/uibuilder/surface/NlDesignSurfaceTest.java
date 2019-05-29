@@ -34,7 +34,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
@@ -436,7 +436,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   }
 
   public void testZoom() {
-    if (SystemInfo.isMac && UIUtil.isRetina()) {
+    if (SystemInfoRt.isMac && UIUtil.isRetina()) {
       _testZoomOnMacWithRetina();
       return;
     }

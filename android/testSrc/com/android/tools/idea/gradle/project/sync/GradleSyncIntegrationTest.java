@@ -48,7 +48,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -61,7 +61,10 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -78,7 +81,7 @@ import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.*;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -175,7 +178,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   }
 
   public void testWithUserDefinedLibrarySources() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }

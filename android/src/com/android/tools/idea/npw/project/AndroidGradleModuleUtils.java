@@ -26,15 +26,16 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidGradleModuleUtils {
 
@@ -73,7 +74,7 @@ public class AndroidGradleModuleUtils {
    * @throws IOException
    */
   public static void setGradleWrapperExecutable(@NotNull File projectRoot) throws IOException {
-    if (SystemInfo.isUnix) {
+    if (SystemInfoRt.isUnix) {
       File gradlewFile = new File(projectRoot, SdkConstants.FN_GRADLE_WRAPPER_UNIX);
       if (!gradlewFile.isFile()) {
         throw new IOException("Could not find gradle wrapper. Command line builds may not work properly.");

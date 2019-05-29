@@ -43,7 +43,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -117,7 +117,7 @@ public final class Haxm extends InstallableComponent {
       case NO_EMULATOR_INSTALLED:
       case UNKNOWN_ERROR:
         // We don't know if we can install Haxm. Assume we can if this is Windows or Mac:
-        return SystemInfo.isMac || SystemInfo.isWindows;
+        return SystemInfoRt.isMac || SystemInfoRt.isWindows;
       case NOT_ENOUGH_MEMORY:
       case ALREADY_INSTALLED:
         return false;
@@ -148,7 +148,7 @@ public final class Haxm extends InstallableComponent {
    * For some of these error conditions the user may rectify the problem and install Haxm later.
    */
   public static AccelerationErrorCode checkHaxmInstallation() {
-    if (!SystemInfo.isWindows && !SystemInfo.isMac) {
+    if (!SystemInfoRt.isWindows && !SystemInfoRt.isMac) {
       return CANNOT_INSTALL_ON_THIS_OS;
     }
     AvdManagerConnection manager = AvdManagerConnection.getDefaultAvdManagerConnection();
@@ -350,7 +350,7 @@ public final class Haxm extends InstallableComponent {
       // More testing of bash scripts invocation with intellij process wrappers might be useful.
       if (exitCode != INTEL_HAXM_INSTALLER_EXIT_CODE_SUCCESS) {
         // According to the installer docs for Windows, installer may signify that a reboot is required
-        if (SystemInfo.isWindows && exitCode == INTEL_HAXM_INSTALLER_EXIT_CODE_REBOOT_REQUIRED) {
+        if (SystemInfoRt.isWindows && exitCode == INTEL_HAXM_INSTALLER_EXIT_CODE_REBOOT_REQUIRED) {
           String rebootMessage = "Reboot required: HAXM installation succeeded, however the installer reported that a reboot is " +
                                  "required in order for the changes to take effect";
           installContext.print(rebootMessage, ConsoleViewContentType.NORMAL_OUTPUT);
@@ -367,7 +367,7 @@ public final class Haxm extends InstallableComponent {
         else {
           installContext.print(
             String.format("HAXM installation failed. To install HAXM follow the instructions found at: %s",
-                            SystemInfo.isWindows ? FirstRunWizardDefaults.HAXM_WINDOWS_INSTALL_URL
+                          SystemInfoRt.isWindows ? FirstRunWizardDefaults.HAXM_WINDOWS_INSTALL_URL
                                                  : FirstRunWizardDefaults.HAXM_MAC_INSTALL_URL),
             ConsoleViewContentType.ERROR_OUTPUT);
         }
@@ -414,10 +414,10 @@ public final class Haxm extends InstallableComponent {
 
   @NotNull
   private static GeneralCommandLine getInstallerCommandLine(@NotNull File sdk) throws WizardException, IOException {
-    if (SystemInfo.isMac) {
+    if (SystemInfoRt.isMac) {
       return getMacHaxmCommandLine(getSourceLocation(sdk));
     }
-    else if (SystemInfo.isWindows) {
+    else if (SystemInfoRt.isWindows) {
       return getWindowsHaxmCommandLine(getSourceLocation(sdk));
     }
     else {
@@ -428,10 +428,10 @@ public final class Haxm extends InstallableComponent {
 
   @NotNull
   private static GeneralCommandLine getUninstallCommandLine(File sdk) throws WizardException, IOException {
-    if (SystemInfo.isMac) {
+    if (SystemInfoRt.isMac) {
       return addUninstallParameters(getMacHaxmCommandLine(getSourceLocation(sdk)));
     }
-    else if (SystemInfo.isWindows) {
+    else if (SystemInfoRt.isWindows) {
       return addUninstallParameters(getWindowsHaxmCommandLine(getSourceLocation(sdk)));
     }
     else {

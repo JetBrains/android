@@ -17,21 +17,18 @@ package com.android.tools.idea.npw.project;
 
 
 import com.android.SdkConstants;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static com.intellij.testFramework.UsefulTestCase.assertDoesntExist;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.setGradleWrapperExecutable;
-import static org.junit.Assert.fail;
+import static com.intellij.testFramework.UsefulTestCase.assertDoesntExist;
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link AndroidGradleModuleUtils}
@@ -43,7 +40,7 @@ public class AndroidGradleUtilsTest {
 
   @Test
   public void gradleWrapperExecutable() throws IOException {
-    Assume.assumeTrue(SystemInfo.isUnix);
+    Assume.assumeTrue(SystemInfoRt.isUnix);
 
     File basePath = myFolder.newFolder();
     File gradleFile = new File(basePath, SdkConstants.FN_GRADLE_WRAPPER_UNIX);
@@ -56,7 +53,7 @@ public class AndroidGradleUtilsTest {
 
   @Test
   public void gradleWrapperExecutableNoFile() throws IOException{
-    Assume.assumeTrue(SystemInfo.isUnix);
+    Assume.assumeTrue(SystemInfoRt.isUnix);
 
     try {
       File missingDir = new File(myFolder.getRoot(), "missing");

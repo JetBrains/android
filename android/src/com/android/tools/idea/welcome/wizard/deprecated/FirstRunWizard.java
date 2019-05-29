@@ -28,7 +28,7 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -85,7 +85,7 @@ public class FirstRunWizard extends DynamicWizard {
       addPath(new SingleStepPath(new MissingSdkAlertStep()));
     }
     addPath(myComponentsPath);
-    if (SystemInfo.isLinux && myMode == FirstRunWizardMode.NEW_INSTALL) {
+    if (SystemInfoRt.isLinux && myMode == FirstRunWizardMode.NEW_INSTALL) {
       addPath(new SingleStepPath(new LinuxHaxmInfoStep()));
     }
     if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {

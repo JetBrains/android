@@ -24,6 +24,7 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PermanentInstallationID;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import org.apache.http.HttpEntity;
@@ -162,8 +163,8 @@ public class GoogleCrash {
     // product specific key value pairs
     builder.addTextBody("fullVersion", applicationInfo == null ? "0.0.0.0" : applicationInfo.getFullVersion());
 
-    builder.addTextBody("osName", StringUtil.notNullize(SystemInfo.OS_NAME));
-    builder.addTextBody("osVersion", StringUtil.notNullize(SystemInfo.OS_VERSION));
+    builder.addTextBody("osName", StringUtil.notNullize(SystemInfoRt.OS_NAME));
+    builder.addTextBody("osVersion", StringUtil.notNullize(SystemInfoRt.OS_VERSION));
     builder.addTextBody("osArch", StringUtil.notNullize(SystemInfo.OS_ARCH));
     builder.addTextBody("locale", StringUtil.notNullize(LOCALE));
 

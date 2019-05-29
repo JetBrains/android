@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
@@ -96,14 +96,14 @@ public final class PathValidationResult {
         return error(PathValidationResult.Message.ILLEGAL_CHARACTER, fieldName, illegalChar, filename);
       }
       if (INVALID_WINDOWS_FILENAMES.contains(StringUtil.toLowerCase(filename))) {
-        PathValidationResult.Status status = SystemInfo.isWindows ? PathValidationResult.Status.ERROR : PathValidationResult.Status.WARN;
+        PathValidationResult.Status status = SystemInfoRt.isWindows ? PathValidationResult.Status.ERROR : PathValidationResult.Status.WARN;
         return new PathValidationResult(status, PathValidationResult.Message.ILLEGAL_FILENAME, fieldName, filename);
       }
       if (CharMatcher.whitespace().matchesAnyOf(filename)) {
         warningResult = warn(PathValidationResult.Message.WHITESPACE, fieldName);
       }
       if (!CharMatcher.ascii().matchesAllOf(filename)) {
-        if (SystemInfo.isWindows) {
+        if (SystemInfoRt.isWindows) {
           return error(PathValidationResult.Message.NON_ASCII_CHARS_ERROR, fieldName);
         }
         else {
@@ -125,7 +125,7 @@ public final class PathValidationResult {
       testFile = parent;
     }
 
-    if (SystemInfo.isWindows && projectLocation.length() > WINDOWS_PATH_LENGTH_LIMIT) {
+    if (SystemInfoRt.isWindows && projectLocation.length() > WINDOWS_PATH_LENGTH_LIMIT) {
       return error(PathValidationResult.Message.PATH_TOO_LONG, fieldName);
     }
 
