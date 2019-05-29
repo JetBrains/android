@@ -625,7 +625,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       return false;
     }
 
-    List<Cpu.CpuTraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromSession(myClient, mySelectedSession);
+    List<Cpu.CpuTraceInfo> traceInfoList =
+      CpuProfiler.getTraceInfoFromSession(myClient, mySelectedSession, myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled());
     if (!traceInfoList.isEmpty()) {
       Cpu.CpuTraceInfo lastTraceInfo = traceInfoList.get(traceInfoList.size() - 1);
       if (lastTraceInfo.getConfiguration().getInitiationType() == Cpu.TraceInitiationType.INITIATED_BY_STARTUP) {
