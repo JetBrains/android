@@ -34,7 +34,7 @@ import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +53,7 @@ public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradle
   // See http://b.android.com/215255
   public void testConfigurationsAreDifferent() throws Exception {
     loadSimpleApplication();
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }

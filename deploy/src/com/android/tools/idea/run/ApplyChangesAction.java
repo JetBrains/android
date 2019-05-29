@@ -29,7 +29,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +40,7 @@ public class ApplyChangesAction extends AnAction {
 
   public static final Key<Boolean> APPLY_CHANGES = Key.create("android.apply.changes");
 
-  private static final CustomShortcutSet SHORTCUT_SET = CustomShortcutSet.fromString(SystemInfo.isMac ? "control meta R" : "control F10");
+  private static final CustomShortcutSet SHORTCUT_SET = CustomShortcutSet.fromString(SystemInfoRt.isMac ? "control meta R" : "control F10");
 
   public ApplyChangesAction() {
     super("Apply Changes", "Apply Changes", StudioIcons.Shell.Toolbar.INSTANT_RUN);

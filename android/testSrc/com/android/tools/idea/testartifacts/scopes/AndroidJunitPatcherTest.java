@@ -28,7 +28,7 @@ import com.google.common.collect.*;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathsList;
 import org.jetbrains.android.AndroidTestCase;
@@ -141,7 +141,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   }
 
   public void testCaseInsensitivity() throws Exception {
-    if (!SystemInfo.isWindows) {
+    if (!SystemInfoRt.isWindows) {
       // This test only makes sense on Windows.
       System.out.println("Skipping AndroidJunitPatcherTest#testCaseInsensitivity: not running on Windows.");
       return;

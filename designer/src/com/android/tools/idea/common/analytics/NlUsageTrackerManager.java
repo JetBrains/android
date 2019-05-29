@@ -29,14 +29,13 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.utils.NullLogger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.wireless.android.sdk.stats.*;
 import com.google.wireless.android.sdk.stats.LayoutEditorState.Mode;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -166,7 +165,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
     }
 
     double scale = surface.getScale();
-    if (SystemInfo.isMac && UIUtil.isRetina()) {
+    if (SystemInfoRt.isMac && UIUtil.isRetina()) {
       scale *= 2;
     }
     Configuration configuration = surface.getConfiguration();

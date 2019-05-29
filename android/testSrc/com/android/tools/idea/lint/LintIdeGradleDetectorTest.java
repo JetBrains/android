@@ -17,7 +17,7 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.GradleDetector;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -44,7 +44,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   }
 
   public void testPaths() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // This test doesn't work on Windows; the data file supplies what looks like an absolute elsewhere,
       // and flags it; on Windows the File#isAbsolute() call will return false and will not flag the issue.
       return;

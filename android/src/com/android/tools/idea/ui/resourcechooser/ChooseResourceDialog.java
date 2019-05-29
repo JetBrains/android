@@ -58,7 +58,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -2123,7 +2123,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
           super.getListCellRendererComponent(list, value, index, isSelected, false);
 
-          if (!SystemInfo.isMac) {
+          if (!SystemInfoRt.isMac) {
             // Bug 63478794
             // On Linux and Windows, the backgrounds is paint on the whole row
             // and covers everything on left of the icon.

@@ -27,7 +27,7 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -62,7 +62,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   private static final String JUNIT = GRADLE_PREFIX + "junit:junit:4.12@jar";
   @Override
   protected boolean shouldRunTest() {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       System.out.println("Class '" + getClass().getName() +
                          "' is skipped because it does not run on Windows (http://b.android.com/222904).");
       return false;

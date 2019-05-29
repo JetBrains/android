@@ -16,7 +16,7 @@
 package com.android.tools.idea.testing;
 
 import com.android.tools.idea.testing.TestProjectPathsGenerator.TestProjectPathsInfo;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import junit.framework.TestCase;
 
 import java.io.IOException;
@@ -29,7 +29,7 @@ import java.nio.file.Paths;
  */
 public class TestProjectPathsGeneratorTest extends TestCase {
   public void testCodeGeneration() throws IOException {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }

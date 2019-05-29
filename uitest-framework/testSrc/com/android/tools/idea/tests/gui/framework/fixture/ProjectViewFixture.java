@@ -38,7 +38,7 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.ui.tree.AsyncTreeModel;
@@ -101,7 +101,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
   private void changePane(@NotNull String paneName) {
     Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
-    if (SystemInfo.isMac) {
+    if (SystemInfoRt.isMac) {
       myRobot.click(projectDropDown.getParent());
     }
     else {

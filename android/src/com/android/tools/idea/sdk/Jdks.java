@@ -17,8 +17,8 @@ package com.android.tools.idea.sdk;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.*;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
@@ -32,6 +32,7 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
@@ -298,7 +299,7 @@ public class Jdks {
       return false;
     }
 
-    if (!SystemInfo.isWindows || !SystemInfo.is32Bit) {
+    if (!SystemInfoRt.isWindows || !SystemInfo.is32Bit) {
       // We only care about bitness compatibility on Windows. Elsewhere we just assume things are fine, because
       // nowadays virtually all Mac and Linux installations are 64 bits. No need to spend cycles on running 'java -version'
       return true;

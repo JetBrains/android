@@ -27,7 +27,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.ui.components.panels.OpaquePanel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -124,14 +124,14 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
   @Override
   protected Action[] createActions() {
     if (getHelpId() == null) {
-      if (SystemInfo.isMac) {
+      if (SystemInfoRt.isMac) {
         return new Action[]{getCancelAction(), myPreviousAction, myNextAction, myFinishAction};
       }
 
       return new Action[]{myPreviousAction, myNextAction, getCancelAction(), myFinishAction};
     }
     else {
-      if (SystemInfo.isMac) {
+      if (SystemInfoRt.isMac) {
         return new Action[]{getHelpAction(), getCancelAction(), myPreviousAction, myNextAction, myFinishAction};
       }
       return new Action[]{myPreviousAction, myNextAction, getCancelAction(), myFinishAction, getHelpAction()};

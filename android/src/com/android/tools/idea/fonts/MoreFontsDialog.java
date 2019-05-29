@@ -36,7 +36,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
@@ -57,8 +57,8 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.font.FontRenderContext;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
@@ -675,7 +675,7 @@ public class MoreFontsDialog extends DialogWrapper {
       @NotNull
       @Override
       public Color produce() {
-        if (SystemInfo.isMac && UIManager.getLookAndFeel().getName().contains("IntelliJ")) {
+        if (SystemInfoRt.isMac && UIManager.getLookAndFeel().getName().contains("IntelliJ")) {
           return Gray.xC9;
         }
         return color;

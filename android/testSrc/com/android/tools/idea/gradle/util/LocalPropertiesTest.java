@@ -21,7 +21,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.JavaProjectTestCase;
 
@@ -49,7 +49,7 @@ public class LocalPropertiesTest extends JavaProjectTestCase {
 
   // See https://code.google.com/p/android/issues/detail?id=82184
   public void testGetAndroidSdkPathWithSeparatorDifferentThanPlatformOne() throws IOException {
-    if (!SystemInfo.isWindows) {
+    if (!SystemInfoRt.isWindows) {
       String path = Joiner.on('\\').join("C:", "dir", "file");
       myLocalProperties.properties().setProperty(SDK_DIR_PROPERTY, path);
 
@@ -60,7 +60,7 @@ public class LocalPropertiesTest extends JavaProjectTestCase {
   }
 
   public void testGetAndroidNdkPathWithSeparatorDifferentThanPlatformOne() throws IOException {
-    if (!SystemInfo.isWindows) {
+    if (!SystemInfoRt.isWindows) {
       String path = Joiner.on('\\').join("C:", "dir", "file");
       myLocalProperties.properties().setProperty(NDK_DIR_PROPERTY, path);
       myLocalProperties.save();

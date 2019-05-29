@@ -58,7 +58,7 @@ import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -658,7 +658,7 @@ public class AvdManagerConnection {
         // report all other errors
         break;
     }
-    String accelerator = SystemInfo.isLinux ? "KVM" : "Intel HAXM";
+    String accelerator = SystemInfoRt.isLinux ? "KVM" : "Intel HAXM";
     int result = Messages.showOkCancelDialog(
       project,
       String.format("%1$s is required to run this AVD.\n%2$s\n\n%3$s\n", accelerator, error.getProblem(), error.getSolutionMessage()),
