@@ -178,7 +178,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
     val completionSuggestionsList = mutableListOf<LookupElement>()
     val childReferences = referenceExpression.references
     for (reference in childReferences) {
-      val ref = reference as ModelClassResolvable
+      val ref = reference as? ModelClassResolvable ?: continue
       val resolvedType = ref.resolvedType?.unwrapped ?: continue
       for (psiModelField in resolvedType.allFields) {
         if (onlyValidCompletions) {
