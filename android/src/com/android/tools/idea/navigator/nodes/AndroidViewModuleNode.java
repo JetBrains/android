@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.navigator.nodes;
 
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.openapi.module.Module;
@@ -26,8 +27,14 @@ import java.util.Objects;
  * Specialization of {@link ProjectViewModuleNode} for Android view.
  */
 public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
-  public AndroidViewModuleNode(Project project, @NotNull Module value, ViewSettings viewSettings) {
+  @NotNull protected final AndroidProjectViewPane myProjectViewPane;
+
+  public AndroidViewModuleNode(@NotNull Project project,
+                               @NotNull Module value,
+                               @NotNull AndroidProjectViewPane projectViewPane,
+                               ViewSettings viewSettings) {
     super(project, value, viewSettings);
+    myProjectViewPane = projectViewPane;
   }
 
   @Override

@@ -63,14 +63,12 @@ import org.jetbrains.annotations.Nullable;
  * a module.
  */
 public class AndroidModuleNode extends AndroidViewModuleNode {
-  private final AndroidProjectViewPane myProjectViewPane;
 
   public AndroidModuleNode(@NotNull Project project,
                            @NotNull Module module,
-                           @NotNull ViewSettings settings,
-                           @NotNull AndroidProjectViewPane projectViewPane) {
-    super(project, module, settings);
-    myProjectViewPane = projectViewPane;
+                           @NotNull AndroidProjectViewPane projectViewPane,
+                           @NotNull ViewSettings settings) {
+    super(project, module, projectViewPane, settings);
   }
 
   @NotNull
