@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.unregisterAsNewProject;
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.finishFailedSync;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleProjects.open;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
@@ -46,16 +47,12 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   @Nullable private final GradleSyncListener mySyncListener;
 
-  private final boolean mySyncSkipped;
-
   ProjectSetUpTask(@NotNull Project project,
                    @NotNull PostSyncProjectSetup.Request setupRequest,
-                   @Nullable GradleSyncListener syncListener,
-                   boolean syncSkipped) {
+                   @Nullable GradleSyncListener syncListener) {
     myProject = project;
     mySetupRequest = setupRequest;
     mySyncListener = syncListener;
-    mySyncSkipped = syncSkipped;
   }
 
   @Override
@@ -105,7 +102,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   }
 
   @Override
-  public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+  public void onFailure(@NotNull ExternalSystemTaskId externalTaskId, @NotNull String errorMessage, @Nullable String errorDetails) {
     // Make sure the failure was not because sync is already running, if so, then return
     // See b/75005810
     if (errorMessage.contains(ExternalSystemBundle.message("error.resolve.already.running", ""))) {
@@ -127,5 +124,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     ProjectBuildFileChecksums.removeFrom(myProject);
     // To ensure the errorDetails are logged by GradleSyncState, create a runtime exception.
     GradleSyncState.getInstance(myProject).syncFailed(newMessage, new RuntimeException(errorDetails), mySyncListener);
+    finishFailedSync(externalTaskId, myProject);
   }
 }
