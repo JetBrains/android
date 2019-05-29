@@ -294,7 +294,7 @@ public final class GradleUtil {
     if (ModuleRootManager.getInstance(module).getSourceRoots().length == 0) {
       String gradlePath = getGradlePath(module);
       if (gradlePath == null || gradlePath.equals(":")) {
-        return true;
+        return ModuleManager.getInstance(module.getProject()).getModuleGrouper(null).getGroupPath(module).size() <= 1;
       }
     }
     return false;
