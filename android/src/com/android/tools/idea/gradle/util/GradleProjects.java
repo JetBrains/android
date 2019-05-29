@@ -29,8 +29,10 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -160,16 +162,8 @@ public final class GradleProjects {
     if (!isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) {
       return false;
     }
-
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet != null && androidFacet.requiresAndroidModel() && GradleFacet.isAppliedTo(module)) {
-      // If the module is an Android project, check that the module's path is the same as the project's.
-      File moduleFilePath = toSystemDependentPath(module.getModuleFilePath());
-      File moduleRootDirPath = moduleFilePath.getParentFile();
-      return pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
-    }
-    // For non-Android project modules, the top-level one is the one without an "Android-Gradle" facet.
-    return !GradleFacet.isAppliedTo(module);
+    ExternalSystemModulePropertyManager externalSystemModulePropertyManager = ExternalSystemModulePropertyManager.getInstance(module);
+    return !Strings.nullToEmpty(externalSystemModulePropertyManager.getLinkedProjectId()).startsWith(":");
   }
 
   /**
