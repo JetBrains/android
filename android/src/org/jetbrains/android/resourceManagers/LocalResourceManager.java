@@ -81,12 +81,6 @@ public class LocalResourceManager extends ResourceManager {
   }
 
   @Override
-  @NotNull
-  protected ResourceRepository getResourceRepository() {
-    return ResourceRepositoryManager.getAppResources(myFacet);
-  }
-
-  @Override
   public boolean isResourceDir(@NotNull VirtualFile dir) {
     for (VirtualFile resDir : ResourceFolderManager.getInstance(myFacet).getFolders()) {
       if (dir.equals(resDir)) {
@@ -343,5 +337,23 @@ public class LocalResourceManager extends ResourceManager {
         }
       }
     }
+  }
+
+  @Override
+  @NotNull
+  protected Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
+    return getResourceRepository().getLeafResourceRepositories();
+  }
+
+  @Override
+  @NotNull
+  protected List<ResourceItem> getResources(
+      @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, @NotNull String resName) {
+    return getResourceRepository().getResources(namespace, resourceType, resName);
+  }
+
+  @NotNull
+  private ResourceRepository getResourceRepository() {
+    return ResourceRepositoryManager.getAppResources(myFacet);
   }
 }
