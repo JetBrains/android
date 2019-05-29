@@ -38,6 +38,7 @@ import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
@@ -266,7 +267,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myCaptureParser = captureParser;
 
     List<Cpu.CpuTraceInfo> existingCompletedTraceInfoList =
-      CpuProfiler.getTraceInfoFromSession(getStudioProfilers().getClient(), mySession).stream()
+      CpuProfiler.getTraceInfoFromSession(getStudioProfilers().getClient(), mySession,
+                                          getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()).stream()
         .filter(info -> info.getToTimestamp() != -1).collect(Collectors.toList());
     existingCompletedTraceInfoList.forEach(info -> myCompletedTraceIdToInfoMap.put(info.getTraceId(), new CpuTraceInfo(info)));
     // Populate the iterator with all TraceInfo existing in the current session.
@@ -454,30 +456,47 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void startCapturing() {
     ProfilingConfiguration config = myProfilerConfigModel.getProfilingConfiguration();
-    CpuServiceGrpc.CpuServiceBlockingStub cpuService = getCpuClient();
     assert getStudioProfilers().getProcess() != null;
     Common.Process process = getStudioProfilers().getProcess();
     String traceFilePath = String.format("%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, process.getName(), System.nanoTime());
-    CpuProfilingAppStartRequest request = CpuProfilingAppStartRequest.newBuilder()
-      .setSession(mySession)
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                          .setAppName(process.getName())
-                          .setAbiCpuArch(process.getAbiCpuArch())
-                          .setInitiationType(TraceInitiationType.INITIATED_BY_UI)
-                          .setTempPath(traceFilePath) // TODO b/133321803 switch back to having daemon generates and provides the path.
-                          .setUserOptions(config.toProto()))
-      .build();
 
     // Disable memory live allocation if config setting has the option set.
     if (config.isDisableLiveAllocation()) {
       getStudioProfilers().setMemoryLiveAllocationEnabled(false);
     }
-
     setCaptureState(CaptureState.STARTING);
-    CompletableFuture.supplyAsync(
-      () -> cpuService.startProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
-      .thenAcceptAsync(response -> this.startCapturingCallback(response, config),
-                       getStudioProfilers().getIdeServices().getMainExecutor());
+    Cpu.CpuTraceConfiguration configuration = Cpu.CpuTraceConfiguration.newBuilder()
+      .setAppName(process.getName())
+      .setAbiCpuArch(process.getAbiCpuArch())
+      .setInitiationType(TraceInitiationType.INITIATED_BY_UI)
+      .setTempPath(traceFilePath) // TODO b/133321803 switch back to having daemon generates and provides the path.
+      .setUserOptions(config.toProto())
+      .build();
+
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Commands.Command startCommand = Commands.Command.newBuilder()
+        .setStreamId(mySession.getStreamId())
+        .setPid(mySession.getPid())
+        .setType(Commands.Command.CommandType.START_CPU_TRACE)
+        .setStartCpuTrace(Cpu.StartCpuTrace.newBuilder().setConfiguration(configuration).build())
+        .build();
+
+      getStudioProfilers().getClient().getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
+                                                                      .setCommand(startCommand)
+                                                                      .build());
+      // TODO handle async error statuses. For now always assume state goes to Capturing.
+      setCaptureState(CaptureState.CAPTURING);
+    }
+    else {
+      CpuProfilingAppStartRequest request = CpuProfilingAppStartRequest.newBuilder()
+        .setSession(mySession)
+        .setConfiguration(configuration)
+        .build();
+      CompletableFuture.supplyAsync(
+        () -> getCpuClient().startProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
+        .thenAcceptAsync(response -> this.startCapturingCallback(response, config),
+                         getStudioProfilers().getIdeServices().getMainExecutor());
+    }
 
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_CPU_CAPTURE, true);
     myInstructionsEaseOutModel.setCurrentPercentage(1);
@@ -505,20 +524,46 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   @VisibleForTesting
   void stopCapturing() {
-    CpuServiceGrpc.CpuServiceBlockingStub cpuService = getCpuClient();
-    CpuProfilingAppStopRequest request = CpuProfilingAppStopRequest.newBuilder()
-      .setTraceType(myProfilerConfigModel.getProfilingConfiguration().getTraceType())
-      .setTraceMode(myProfilerConfigModel.getProfilingConfiguration().getMode())
-      .setSession(mySession)
-      // This is needed to stop an ongoing trace and should be handled via an explicit stop-trace command in the new pipeline.
-      // In the new pipeline, we can potentially pass the same info down via EndSession.
-      .setAppName(getStudioProfilers().getProcess() != null ? getStudioProfilers().getProcess().getName() : "")
-      .build();
-    setCaptureState(CaptureState.STOPPING);
-    myStopStartTimeNs = System.nanoTime();
-    CompletableFuture.supplyAsync(
-      () -> cpuService.stopProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
-      .thenAcceptAsync(this::stopCapturingCallback, getStudioProfilers().getIdeServices().getMainExecutor());
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      ProfilingConfiguration config = myProfilerConfigModel.getProfilingConfiguration();
+      assert getStudioProfilers().getProcess() != null;
+      Common.Process process = getStudioProfilers().getProcess();
+
+      Cpu.CpuTraceConfiguration configuration = Cpu.CpuTraceConfiguration.newBuilder()
+        .setAppName(process.getName())
+        .setAbiCpuArch(process.getAbiCpuArch())
+        .setInitiationType(TraceInitiationType.INITIATED_BY_UI)
+        .setUserOptions(config.toProto())
+        .build();
+
+      Commands.Command stopCommand = Commands.Command.newBuilder()
+        .setStreamId(mySession.getStreamId())
+        .setPid(mySession.getPid())
+        .setType(Commands.Command.CommandType.STOP_CPU_TRACE)
+        .setStopCpuTrace(Cpu.StopCpuTrace.newBuilder().setConfiguration(configuration).build())
+        .build();
+      getStudioProfilers().getClient().getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
+                                                                      .setCommand(stopCommand)
+                                                                      .build());
+      // TODO handle async error statuses. For now always assume state goes to stopping.
+      setCaptureState(CaptureState.STOPPING);
+    }
+    else {
+      CpuProfilingAppStopRequest request = CpuProfilingAppStopRequest.newBuilder()
+        .setTraceType(myProfilerConfigModel.getProfilingConfiguration().getTraceType())
+        .setTraceMode(myProfilerConfigModel.getProfilingConfiguration().getMode())
+        .setSession(mySession)
+        // This is needed to stop an ongoing trace and should be handled via an explicit stop-trace command in the new pipeline.
+        // In the new pipeline, we can potentially pass the same info down via EndSession.
+        .setAppName(getStudioProfilers().getProcess() != null ? getStudioProfilers().getProcess().getName() : "")
+        .build();
+      setCaptureState(CaptureState.STOPPING);
+      // TODO add tracking for new pipeline as well.
+      myStopStartTimeNs = System.nanoTime();
+      CompletableFuture.supplyAsync(
+        () -> getCpuClient().stopProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
+        .thenAcceptAsync(this::stopCapturingCallback, getStudioProfilers().getIdeServices().getMainExecutor());
+    }
   }
 
   public long getCaptureElapsedTimeUs() {
@@ -984,7 +1029,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       Cpu.CpuTraceInfo finishedTraceToSelect = null;
       // Request for the entire data range as we don't expect too many (100s) traces withing a single session.
       Range dataRange = getStudioProfilers().getTimeline().getDataRange();
-      List<Cpu.CpuTraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, dataRange);
+      List<Cpu.CpuTraceInfo> traceInfoList =
+        CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, dataRange,
+                                          getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
       for (int i = 0; i < traceInfoList.size(); i++) {
         Cpu.CpuTraceInfo trace = traceInfoList.get(i);
         if (trace.getToTimestamp() == -1) {
@@ -1062,8 +1109,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   class CpuTraceDataSeries implements DataSeries<CpuTraceInfo> {
     @Override
     public List<SeriesData<CpuTraceInfo>> getDataForRange(Range range) {
-      List<Cpu.CpuTraceInfo> traceInfo = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range);
-
+      List<Cpu.CpuTraceInfo> traceInfo =
+        CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range,
+                                          getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
       List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
       for (Cpu.CpuTraceInfo protoTraceInfo : traceInfo) {
         CpuTraceInfo info = new CpuTraceInfo(protoTraceInfo);
