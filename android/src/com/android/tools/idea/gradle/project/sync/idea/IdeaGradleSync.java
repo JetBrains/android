@@ -109,7 +109,7 @@ public class IdeaGradleSync implements GradleSync {
           // Create a new taskId when using cache
           ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);
 
-          ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, true /* sync skipped */);
+          ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener);
           setUpTask.onSuccess(taskId, cache);
           return;
         }
@@ -165,7 +165,7 @@ public class IdeaGradleSync implements GradleSync {
     }
 
     for (String rootPath : androidProjectCandidatesPaths) {
-      ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, false);
+      ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener);
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
       refreshProject(myProject, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
                      executionMode, true /* always report import errors */);
