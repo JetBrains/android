@@ -15,8 +15,15 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.XMLNS_PREFIX;
+import static com.google.common.collect.Lists.newArrayList;
+
 import com.android.ide.common.xml.XmlFormatPreferences;
-import com.android.manifmerger.*;
+import com.android.manifmerger.ManifestMerger2;
+import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlDocument;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.templates.recipe.RenderingContext;
@@ -24,7 +31,6 @@ import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.diagnostic.Logger;
@@ -33,21 +39,24 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.xml.*;
 import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlComment;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlTagChild;
+import com.intellij.psi.xml.XmlText;
 import com.intellij.util.SystemProperties;
-import freemarker.template.TemplateException;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
-
-import java.io.*;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Utility class to support the recipe.xml merge instruction.
@@ -59,32 +68,39 @@ public class RecipeMergeUtils {
   private static final String MERGE_ATTR_STRATEGY_REPLACE = "replace";
   private static final String MERGE_ATTR_STRATEGY_PRESERVE = "preserve";
 
-  /**
-   * Finds include ':module_name_1', ':module_name_2',... statements in settings.gradle files
-   */
-  private static final Pattern INCLUDE_PATTERN = Pattern.compile("(^|\\n)\\s*include +(':[^']+', *)*':[^']+'");
-
-  public static String mergeGradleSettingsFile(@NotNull String source, @NotNull String dest) throws IOException, TemplateException {
+  public static String mergeGradleSettingsFile(@NotNull String source, @NotNull String dest) throws RuntimeException {
     // TODO: Right now this is implemented as a dumb text merge. It would be much better to read it into PSI using IJ's Groovy support.
     // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply. At the moment, Our Gradle-Groovy
     // support requires a project, which we don't necessarily have when instantiating a template.
 
-    StringBuilder contents = new StringBuilder(dest);
+    /*
+    Add new include lines instead of merging everything in a single line (b/133578918)
 
+    For simplicity, this will add new lines at the end of the file. Trying to look for "include" lines could cause issues if we do not
+    consider all cases, for example if there are comment blocks or 'include' directives inside functions. See this for some examples:
+
+    https://docs.gradle.org/current/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])
+     */
+
+    LinkedList<String> includeLines = new LinkedList<>();
     for (String line : Splitter.on('\n').omitEmptyStrings().trimResults().split(source)) {
       if (!line.startsWith("include")) {
         throw new RuntimeException("When merging settings.gradle files, only include directives can be merged.");
       }
-      line = line.substring("include".length()).trim();
-
-      Matcher matcher = INCLUDE_PATTERN.matcher(contents);
-      if (matcher.find()) {
-        contents.insert(matcher.end(), ", " + line);
-      }
-      else {
-        contents.insert(0, "include " + line + SystemProperties.getLineSeparator());
-      }
+      includeLines.add(line);
     }
+    if (includeLines.isEmpty()) {
+      return dest;
+    }
+
+    StringBuilder contents = new StringBuilder(StringUtils.stripEnd(StringUtils.chomp(dest), null));
+    String lineSeparator = SystemProperties.getLineSeparator();
+    if (contents.length() > 0) {
+      contents.append(lineSeparator);
+    }
+    contents.append(String.join(lineSeparator, includeLines));
+    contents.append(lineSeparator);
+
     return contents.toString();
   }
 
@@ -183,7 +199,7 @@ public class RecipeMergeUtils {
       }
     }
 
-    List<XmlTagChild> prependElements = Lists.newArrayList();
+    List<XmlTagChild> prependElements = newArrayList();
     XmlText indent = null;
     if (folderType == ResourceFolderType.VALUES) {
       // Try to merge items of the same name
