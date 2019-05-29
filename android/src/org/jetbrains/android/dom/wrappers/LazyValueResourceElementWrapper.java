@@ -1,7 +1,9 @@
 package org.jetbrains.android.dom.wrappers;
 
 import com.android.tools.idea.res.psi.ResourceNavigationItem;
+import com.google.common.base.Stopwatch;
 import com.intellij.navigation.ItemPresentation;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiTarget;
 import com.intellij.psi.impl.RenameableFakePsiElement;
@@ -18,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 */
 public class LazyValueResourceElementWrapper extends RenameableFakePsiElement
     implements PsiTarget, Comparable<LazyValueResourceElementWrapper> {
+  private static final Logger LOG = Logger.getInstance(LazyValueResourceElementWrapper.class);
   private final ValueResourceInfo myResourceInfo;
   private final PsiElement myParent;
 
@@ -52,7 +55,15 @@ public class LazyValueResourceElementWrapper extends RenameableFakePsiElement
 
   @Nullable
   public XmlAttributeValue computeElement() {
-    return myResourceInfo.computeXmlElement();
+    if (LOG.isDebugEnabled()) {
+      Stopwatch stopwatch = Stopwatch.createStarted();
+      XmlAttributeValue value = myResourceInfo.computeXmlElement();
+      LOG.debug("Computing XML element for lazy resource: " + this.myResourceInfo + ", time: " + stopwatch);
+      return value;
+    }
+    else {
+      return myResourceInfo.computeXmlElement();
+    }
   }
 
   @Override
