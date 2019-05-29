@@ -64,11 +64,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
@@ -400,22 +400,20 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Nullable
   private static String getRunnerFromManifest(@NotNull final AndroidFacet facet) {
-    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> getRunnerFromManifest(facet));
-    }
-
-    Manifest manifest = facet.getManifest();
-    if (manifest != null) {
-      for (Instrumentation instrumentation : manifest.getInstrumentations()) {
-        if (instrumentation != null) {
-          PsiClass instrumentationClass = instrumentation.getInstrumentationClass().getValue();
-          if (instrumentationClass != null) {
-            return instrumentationClass.getQualifiedName();
+    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> {
+      Manifest manifest = facet.getManifest();
+      if (manifest != null) {
+        for (Instrumentation instrumentation : manifest.getInstrumentations()) {
+          if (instrumentation != null) {
+            PsiClass instrumentationClass = instrumentation.getInstrumentationClass().getValue();
+            if (instrumentationClass != null) {
+              return instrumentationClass.getQualifiedName();
+            }
           }
         }
       }
-    }
-    return null;
+      return null;
+    });
   }
 
   /**
