@@ -35,15 +35,10 @@ public class ScreenshotsDuringTest extends TestWatcher {
   private final ScreenshotTaker myScreenshotTaker = new ScreenshotTaker();
   private final ScheduledExecutorService myExecutorService;
   private final int myPeriod;
-  private final boolean mKeepOnTestSuccess;
   private File myFolder;
 
   public ScreenshotsDuringTest() {
-    this(100, false);
-  }
-
-  public ScreenshotsDuringTest(boolean keepOnTestSuccess) {
-    this(100, keepOnTestSuccess);
+    this(100);
   }
 
   /**
@@ -52,11 +47,9 @@ public class ScreenshotsDuringTest extends TestWatcher {
    * which can prevent the robot from ever reaching an "idle" state.</p>
    *
    * @param period time to wait between screenshots in milliseconds
-   * @param keepOnTestSuccess true to keep the screenshots even when the test succeeds
    */
-  public ScreenshotsDuringTest(int period, boolean keepOnTestSuccess) {
+  public ScreenshotsDuringTest(int period) {
     myPeriod = period;
-    mKeepOnTestSuccess = keepOnTestSuccess;
     myExecutorService = Executors.newScheduledThreadPool(1);
   }
 
@@ -93,7 +86,7 @@ public class ScreenshotsDuringTest extends TestWatcher {
 
   @Override
   protected void succeeded(Description description) {
-    if (!mKeepOnTestSuccess && myFolder != null) {
+    if (myFolder != null) {
       FileUtilRt.delete(myFolder);
     }
   }
