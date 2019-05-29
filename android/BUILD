@@ -125,7 +125,6 @@ iml_module(
         "//tools/adt/idea/android/lib:pepk",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/idea/.idea/libraries:HdrHistogram",
@@ -278,7 +277,6 @@ iml_module(
         "//tools/adt/idea/android/lib:pepk[test]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar[test]",
         "//tools/idea/.idea/libraries:jimfs[test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
@@ -341,14 +339,6 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-filegroup(
-    name = "nosyncbuilder-artifacts",
-    srcs = [
-        "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar.jar",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 # Various artifacts that the ANT and within-idea studio build depend on.
 filegroup(
     name = "artifacts",
@@ -356,7 +346,6 @@ filegroup(
         ":aia-artifacts",
         ":analytics-artifacts",
         ":deploy-artifacts",
-        ":nosyncbuilder-artifacts",
         ":profiler-artifacts",
         "//tools/adt/idea/resources-aar:framework_res.jar",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
