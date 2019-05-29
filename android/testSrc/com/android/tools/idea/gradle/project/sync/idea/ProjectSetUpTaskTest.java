@@ -15,8 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.build.SyncViewManager;
@@ -28,13 +38,6 @@ import com.intellij.openapi.project.Project;
 import java.util.List;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 public class ProjectSetUpTaskTest extends AndroidGradleTestCase {
   @Mock private GradleSyncState mySyncState;
@@ -64,6 +67,7 @@ public class ProjectSetUpTaskTest extends AndroidGradleTestCase {
     SyncViewManager syncViewManager = mock(SyncViewManager.class);
     ArgumentCaptor<BuildEvent> eventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
     new IdeComponents(getProject()).replaceProjectService(SyncViewManager.class, syncViewManager);
+    GradleSyncMessages syncMessages = new IdeComponents(getProject()).mockProjectService(GradleSyncMessages.class);
 
     // Invoke method to test.
     mySetupTask.onFailure(myTaskId, "sync failed", null);
@@ -73,5 +77,6 @@ public class ProjectSetUpTaskTest extends AndroidGradleTestCase {
     List<BuildEvent> capturedEvents = eventCaptor.getAllValues();
     assertThat(capturedEvents).hasSize(1);
     assertThat(capturedEvents.get(0)).isInstanceOf(FinishBuildEvent.class);
+    verify(syncMessages, times(1)).report(any(SyncMessage.class));
   }
 }
