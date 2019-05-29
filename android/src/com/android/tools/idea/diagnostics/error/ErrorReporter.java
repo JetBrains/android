@@ -127,7 +127,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
       feedbackTask = ((ErrorReportCustomizer) data).makeReportingTask(project, FEEDBACK_TASK_TITLE, true, bean, successCallback, errorCallback);
     } else {
       List<Pair<String, String>> kv = IdeaITNProxy
-        .getKeyValuePairs(null, null, bean, IdeaLogger.getOurCompilationTimestamp(), ApplicationManager.getApplication(),
+        .getKeyValuePairs(null, null, bean, ApplicationManager.getApplication(),
                           (ApplicationInfoEx)ApplicationInfo.getInstance(), ApplicationNamesInfo.getInstance(),
                           UpdateSettings.getInstance());
       feedbackTask = new SubmitCrashReportTask(project, FEEDBACK_TASK_TITLE, true, event.getThrowable(), pair2map(kv), successCallback, errorCallback);
