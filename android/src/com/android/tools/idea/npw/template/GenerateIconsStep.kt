@@ -54,7 +54,7 @@ class GenerateIconsStep(facet: AndroidFacet, model: RenderTemplateModel) : Model
   override fun canGoForward(): ObservableBool = generateIconsPanel.hasErrors().not()
 
   override fun onProceeding() {
-    model.setIconGenerator(generateIconsPanel.iconGenerator)
+    model.iconGenerator = generateIconsPanel.iconGenerator
   }
 
   override fun dispose() {
