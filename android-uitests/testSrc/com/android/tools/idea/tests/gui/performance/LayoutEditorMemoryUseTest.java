@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testFramework.LeakHunter;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -101,7 +100,7 @@ public class LayoutEditorMemoryUseTest {
     IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     warmUp(fixture);
-    createHprofDump(PathManager.getLogPath() + "heap-dump/before.hprof");
+
     if (CAPTURE_HEAP_DUMPS) {
       createHprofDump("/tmp/LayoutEditorMemoryUseTest-before.hprof");
     }
@@ -124,8 +123,6 @@ public class LayoutEditorMemoryUseTest {
       currentCountsInstances = copyMapWithSizeOnly(instancesTracker.getCurrentLeakCounts());
       LOG.info("[Pass " + (i + 1) + "] Potential leaked classes count: " + currentCountsInstances.size());
     }
-
-    createHprofDump(PathManager.getLogPath() + "heap-dump/after.hprof");
 
     if (!currentCountsInstances.isEmpty()) {
       // Leaks have been found. Create a report.
