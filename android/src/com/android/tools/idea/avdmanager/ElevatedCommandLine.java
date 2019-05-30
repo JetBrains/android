@@ -18,6 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.Shell32;
 import com.sun.jna.platform.win32.ShellAPI;
@@ -71,7 +72,7 @@ public class ElevatedCommandLine extends GeneralCommandLine {
     // directory.
     // Note: This was needed for the Haxm silent_install.bat.
     String exeName = new File(getExePath()).getName();
-    File wrapper = FileUtil.createTempFile(FileUtil.getNameWithoutExtension(exeName) + "_wrapper", ".bat", true);
+    File wrapper = FileUtil.createTempFile(FileUtilRt.getNameWithoutExtension(exeName) + "_wrapper", ".bat", true);
     String exePath = new File(getExePath()).getParent();
     FileUtil.writeToFile(wrapper, String.format(
       "@echo off\n" +

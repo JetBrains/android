@@ -11,6 +11,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
@@ -60,7 +61,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
   @Override
   @NotNull
   public String getDescription() {
-    return FileUtil.getNameWithoutExtension(SdkConstants.FN_DX);
+    return FileUtilRt.getNameWithoutExtension(SdkConstants.FN_DX);
   }
 
   @Override
