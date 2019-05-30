@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.ui
 
+import com.android.SdkConstants.CLASS_APP_BAR_LAYOUT
+import com.android.SdkConstants.CLASS_COLLAPSING_TOOLBAR_LAYOUT
+import com.android.SdkConstants.CLASS_COORDINATOR_LAYOUT
+import com.android.SdkConstants.CLASS_FLOATING_ACTION_BUTTON
+import com.android.SdkConstants.CLASS_NESTED_SCROLL_VIEW
+import com.android.SdkConstants.CLASS_TAB_ITEM
+import com.android.SdkConstants.CLASS_TAB_LAYOUT
+import com.android.SdkConstants.CLASS_TOOLBAR_V7
+import com.intellij.openapi.project.Project
+import org.jetbrains.android.refactoring.getNameInProject
+
 fun formatNamespaces(namespaces: Map<String, String>): String {
   val result = StringBuilder()
   for (ns in namespaces.keys) {
@@ -27,7 +38,8 @@ fun formatNamespaces(namespaces: Map<String, String>): String {
 object Templates {
   // TODO: Remove the hardcoded AppBar height (192dp) and ID (appbar).
   @JvmStatic
-  fun getCoordinatorLayout(androidPrefix: String,
+  fun getCoordinatorLayout(project: Project,
+                           androidPrefix: String,
                            autoPrefix: String,
                            namespaceDeclarations: String,
                            fitsSystemWindows: String,
@@ -38,18 +50,17 @@ object Templates {
                            scrollYPosition: String,
                            pageContentAsXml: String,
                            fab: String) = """
-    <android.support.design.widget.CoordinatorLayout
+    <${CLASS_COORDINATOR_LAYOUT.getNameInProject(project)}
       $namespaceDeclarations
       $fitsSystemWindows
       $androidPrefix:layout_width="match_parent"
       $androidPrefix:layout_height="match_parent">
-      <android.support.design.widget.AppBarLayout
+      <${CLASS_APP_BAR_LAYOUT.getNameInProject(project)}
           $androidPrefix:id="@+id/appbar"
           $fitsSystemWindows
-
           $androidPrefix:layout_height="192dp"
           $androidPrefix:layout_width="match_parent">
-        <android.support.design.widget.CollapsingToolbarLayout
+        <${CLASS_COLLAPSING_TOOLBAR_LAYOUT.getNameInProject(project)}
             $androidPrefix:layout_width="match_parent"
             $androidPrefix:layout_height="match_parent"
             $autoPrefix:toolbarId="@+id/toolbar"
@@ -58,29 +69,30 @@ object Templates {
             $autoPrefix:contentScrim="?attr/colorPrimary">
           $backgroundImage
 
-          <android.support.v7.widget.Toolbar
+          <${CLASS_TOOLBAR_V7.getNameInProject(project)}
               $androidPrefix:id="@+id/toolbar"
               $androidPrefix:layout_height="?attr/actionBarSize"
               $androidPrefix:layout_width="match_parent">
-          </android.support.v7.widget.Toolbar>
-        </android.support.design.widget.CollapsingToolbarLayout>
-      </android.support.design.widget.AppBarLayout>
-      <android.support.v4.widget.NestedScrollView
+          </${CLASS_TOOLBAR_V7.getNameInProject(project)}>
+        </${CLASS_COLLAPSING_TOOLBAR_LAYOUT.getNameInProject(project)}>
+      </${CLASS_APP_BAR_LAYOUT.getNameInProject(project)}>
+      <${CLASS_NESTED_SCROLL_VIEW.getNameInProject(project)}
           $androidPrefix:layout_width="match_parent"
           $androidPrefix:layout_height="match_parent"
           $behaviourOverlapTop
           $scrollYPosition
-          $autoPrefix:layout_behavior="android.support.design.widget.AppBarLayout${"$"}ScrollingViewBehavior">
+          $autoPrefix:layout_behavior="${CLASS_APP_BAR_LAYOUT.getNameInProject(project)}${"$"}ScrollingViewBehavior">
           $pageContentAsXml
 
-      </android.support.v4.widget.NestedScrollView>
+      </${CLASS_NESTED_SCROLL_VIEW.getNameInProject(project)}>
       $fab
 
-    </android.support.design.widget.CoordinatorLayout>
+    </${CLASS_COORDINATOR_LAYOUT.getNameInProject(project)}>
   """.trimIndent()
 
   @JvmStatic
-  fun getCoordinatorLayoutWithTabs(androidPrefix: String,
+  fun getCoordinatorLayoutWithTabs(project: Project,
+                                   androidPrefix: String,
                                    autoPrefix: String,
                                    namespaceDeclarations: String,
                                    scrollFlags: String,
@@ -88,49 +100,47 @@ object Templates {
                                    scrollYPosition: String,
                                    pageContentAsXml: String,
                                    fab: String) = """
-    <android.support.design.widget.CoordinatorLayout
+    <${CLASS_COORDINATOR_LAYOUT.getNameInProject(project)}
       $namespaceDeclarations
-
       $androidPrefix:layout_width="match_parent"
       $androidPrefix:layout_height="match_parent">
-      <android.support.design.widget.AppBarLayout
+      <${CLASS_APP_BAR_LAYOUT.getNameInProject(project)}
           $androidPrefix:id="@+id/appbar"
           $androidPrefix:layout_height="wrap_content"
           $androidPrefix:layout_width="match_parent">
-        <android.support.v7.widget.Toolbar
+        <${CLASS_TOOLBAR_V7.getNameInProject(project)}
             $androidPrefix:layout_height="?attr/actionBarSize"
             $androidPrefix:layout_width="match_parent"
             $autoPrefix:layout_scrollFlags="scroll|enterAlways">
-        </android.support.v7.widget.Toolbar>
-        <android.support.design.widget.TabLayout
+        </${CLASS_TOOLBAR_V7.getNameInProject(project)}>
+        <${CLASS_TAB_LAYOUT.getNameInProject(project)}
             $androidPrefix:id="@+id/tabs"
             $androidPrefix:layout_width="match_parent"
             $androidPrefix:layout_height="wrap_content"
             $scrollFlags
             $autoPrefix:tabMode="scrollable">
         $tabItems
-        </android.support.design.widget.TabLayout>
-      </android.support.design.widget.AppBarLayout>
-      <android.support.v4.widget.NestedScrollView
+        </${CLASS_TAB_LAYOUT.getNameInProject(project)}>
+      </${CLASS_APP_BAR_LAYOUT.getNameInProject(project)}>
+      <${CLASS_NESTED_SCROLL_VIEW.getNameInProject(project)}
           $androidPrefix:layout_width="match_parent"
           $androidPrefix:layout_height="match_parent"
           $scrollYPosition
-          $autoPrefix:layout_behavior="android.support.design.widget.AppBarLayout\${'$'}ScrollingViewBehavior">
+          $autoPrefix:layout_behavior="${CLASS_APP_BAR_LAYOUT.getNameInProject(project)}${'$'}ScrollingViewBehavior">
         $pageContentAsXml
-      </android.support.v4.widget.NestedScrollView>
+      </${CLASS_NESTED_SCROLL_VIEW.getNameInProject(project)}>
       $fab
-    </android.support.design.widget.CoordinatorLayout>
+    </${CLASS_COORDINATOR_LAYOUT.getNameInProject(project)}>
   """.trimIndent()
 
   @JvmStatic
-  fun getTagFloatingActionButton(androidPrefix: String, imageSrc: String) = """
-    <android.support.design.widget.FloatingActionButton
+  fun getTagFloatingActionButton(project: Project, androidPrefix: String, imageSrc: String) = """
+    <${CLASS_FLOATING_ACTION_BUTTON.getNameInProject(project)}
         $androidPrefix:layout_height="wrap_content"
         $androidPrefix:layout_width="wrap_content"
         $androidPrefix:src="$imageSrc"
         $androidPrefix:layout_gravity="bottom|end"
-        $androidPrefix:layout_margin="16dp"
-        $androidPrefix:clickable="true"/>"
+        $androidPrefix:layout_margin="16dp"/>"
     """.trimIndent()
 
 
@@ -146,8 +156,8 @@ object Templates {
   """.trimIndent()
 
   @JvmStatic
-  fun getTabItem(androidPrefix: String, textAttribute: String) = """
-    <android.support.design.widget.TabItem
+  fun getTabItem(project: Project, androidPrefix: String, textAttribute: String) = """
+    <${CLASS_TAB_ITEM.getNameInProject(project)}
       $androidPrefix:layout_height="wrap_content"
       $androidPrefix:layout_width="wrap_content"
       $androidPrefix:text="$textAttribute"/>
