@@ -943,10 +943,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>
-
-    <projectService serviceInterface="com.android.tools.idea.run.deployment.AsyncDevicesGetter"
-                    serviceImplementation="com.android.tools.idea.run.deployment.WorkerAsyncDevicesGetter"
-                    testServiceImplementation="com.android.tools.idea.run.deployment.TestAsyncDevicesGetter"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.deployment.AsyncDevicesGetter"/>
   </extensions>
 
   <!-- End new deployment target selection -->
