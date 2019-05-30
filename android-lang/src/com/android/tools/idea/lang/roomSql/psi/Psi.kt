@@ -25,6 +25,7 @@ import com.android.tools.idea.lang.roomSql.resolution.SqlTable
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiLanguageInjectionHost
@@ -82,8 +83,9 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, Ro
     val hostRoomAnnotation = findHostRoomAnnotation()
     if (hostRoomAnnotation != null) {
       // We are inside a Room annotation, let's use the Room schema.
+      val module = ModuleUtil.findModuleForPsiElement(this) ?: return true
       return ContainerUtil.process(
-        RoomSchemaManager.getInstance(project)?.getSchema(this)?.tables ?: emptySet<SqlTable>(),
+        RoomSchemaManager.getInstance(module).getSchema(this)?.tables ?: emptySet<SqlTable>(),
         amendProcessor(hostRoomAnnotation, processor)
       )
     }

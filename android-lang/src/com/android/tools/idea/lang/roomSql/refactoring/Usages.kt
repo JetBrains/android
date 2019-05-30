@@ -36,6 +36,7 @@ import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.application.QueryExecutorBase
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -73,7 +74,8 @@ class RoomIdIndexer : ScanningIdIndexer() {
 class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>() {
   private fun getSchema(element: PsiElement) = ReadAction.compute<RoomSchema?, Nothing> {
     if (element.containingFile != null) {
-      RoomSchemaManager.getInstance(element.project)?.getSchema(element.containingFile)
+      val module = ModuleUtil.findModuleForPsiElement(element) ?: return@compute null
+      RoomSchemaManager.getInstance(module).getSchema(element.containingFile)
     } else {
       null
     }
