@@ -26,6 +26,7 @@ import com.intellij.ide.actions.UndoRedoAction
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -51,6 +52,8 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
   override fun updateFromModel() {
     super.updateFromModel()
     isVisible = editorModel.visible
+    foreground = editorModel.displayedForeground(UIUtil.getLabelForeground())
+    background = editorModel.displayedBackground(secondaryPanelBackground)
     if (editorModel.focusRequest && !isFocusOwner) {
       requestFocusInWindow()
     }
