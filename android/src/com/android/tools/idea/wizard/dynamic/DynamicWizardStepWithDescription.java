@@ -74,7 +74,7 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
   protected static CompoundBorder createBodyBorder() {
     int fontSize = UIUtil.getLabelFont().getSize();
     Border insetBorder = BorderFactory.createEmptyBorder(fontSize * 4, fontSize * 2, fontSize * 4, fontSize * 2);
-    return BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()), insetBorder);
+    return BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(JBColor.border()), insetBorder);
   }
 
   @NotNull
