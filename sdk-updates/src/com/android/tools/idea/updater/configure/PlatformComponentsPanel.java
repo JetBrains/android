@@ -19,6 +19,7 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -58,8 +59,10 @@ public class PlatformComponentsPanel {
   @SuppressWarnings("unused") private JPanel myRootPanel;
   private boolean myModified;
 
-  private UpdaterTreeNode myPlatformDetailsRootNode;
-  private UpdaterTreeNode myPlatformSummaryRootNode;
+  @VisibleForTesting
+  UpdaterTreeNode myPlatformDetailsRootNode;
+  @VisibleForTesting
+  UpdaterTreeNode myPlatformSummaryRootNode;
 
   Set<PackageNodeModel> myStates = Sets.newHashSet();
 
