@@ -19,13 +19,10 @@ import com.android.annotations.VisibleForTesting;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
-import com.android.tools.idea.fd.actions.HotswapAction;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
-import com.android.tools.idea.run.ApplyChangesAction;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -50,6 +47,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
@@ -126,7 +124,7 @@ public class GradleSpecificInitializer implements Runnable {
 
       app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
         @Override
-        public void appStarting(Project project) {
+        public void appStarting(Project project, IdeFrame frame) {
           app.invokeLater(() -> {
             String message = String.format("%1$s must not be installed in a path containing '!' or Gradle sync will fail!",
                                            ApplicationNamesInfo.getInstance().getProductName());
@@ -239,7 +237,7 @@ public class GradleSpecificInitializer implements Runnable {
 
     app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
       @Override
-      public void appStarting(Project project) {
+      public void appStarting(Project project, IdeFrame frame) {
         app.invokeLater(() -> {
           Notification notification =
             getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
