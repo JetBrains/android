@@ -2175,6 +2175,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
   }
 
+  void onBitmapFileUpdated(@NotNull VirtualFile file) {
+    if (ResourceHelper.getFolderType(file) != null) {
+      bitmapUpdated();
+    }
+  }
+
   void onFileCreated(@NotNull VirtualFile file) {
     ResourceFolderType folderType = ResourceHelper.getFolderType(file);
     if (folderType == null) {
