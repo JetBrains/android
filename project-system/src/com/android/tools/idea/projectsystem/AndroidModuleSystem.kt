@@ -198,7 +198,7 @@ fun AndroidModuleSystem.getResolveScope(element: PsiElement): GlobalSearchScope 
   return getResolveScope(scopeType)
 }
 
-private fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): ScopeType {
+fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): ScopeType {
   if (!TestSourcesFilter.isTestSources(file, project)) return ScopeType.MAIN
   val testScopes = getTestArtifactSearchScopes() ?: return ScopeType.ANDROID_TEST
 
