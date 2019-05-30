@@ -46,7 +46,7 @@ public class CpuUsageDataSeriesTest {
     int appTime = (int)(0.4 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     myService.setAppTimeMs(appTime);
-    List<SeriesData<Long>> seriesData = mySeries.getDataForXRange(ANY_RANGE);
+    List<SeriesData<Long>> seriesData = mySeries.getDataForRange(ANY_RANGE);
     assertEquals(1, seriesData.size());
     SeriesData<Long> appUsageData = seriesData.get(0);
     assertNotNull(appUsageData);
@@ -56,7 +56,7 @@ public class CpuUsageDataSeriesTest {
     appTime = (int)(0.8 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     myService.setAppTimeMs(appTime);
-    seriesData = mySeries.getDataForXRange(ANY_RANGE);
+    seriesData = mySeries.getDataForRange(ANY_RANGE);
     assertEquals(1, seriesData.size());
     appUsageData = seriesData.get(0);
     assertNotNull(appUsageData);
@@ -66,7 +66,7 @@ public class CpuUsageDataSeriesTest {
 
     appTime = (int)(-0.2 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setAppTimeMs(appTime);
-    seriesData = mySeries.getDataForXRange(ANY_RANGE);
+    seriesData = mySeries.getDataForRange(ANY_RANGE);
     assertEquals(1, seriesData.size());
     appUsageData = seriesData.get(0);
     assertNotNull(appUsageData);
@@ -80,7 +80,7 @@ public class CpuUsageDataSeriesTest {
                                       dataList -> CpuUsage.extractData(dataList, true));
     int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
-    List<SeriesData<Long>> seriesData = mySeries.getDataForXRange(ANY_RANGE);
+    List<SeriesData<Long>> seriesData = mySeries.getDataForRange(ANY_RANGE);
     assertEquals(1, seriesData.size());
     SeriesData<Long> systemUsageData = seriesData.get(0);
     assertNotNull(systemUsageData);
@@ -88,7 +88,7 @@ public class CpuUsageDataSeriesTest {
 
     systemTime = (int)(1.5 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
-    seriesData = mySeries.getDataForXRange(ANY_RANGE);
+    seriesData = mySeries.getDataForRange(ANY_RANGE);
     assertEquals(1, seriesData.size());
     systemUsageData = seriesData.get(0);
     assertNotNull(systemUsageData);
@@ -97,7 +97,7 @@ public class CpuUsageDataSeriesTest {
 
     systemTime = (int)(-0.5 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
-    seriesData = mySeries.getDataForXRange(ANY_RANGE);
+    seriesData = mySeries.getDataForRange(ANY_RANGE);
     assertEquals(1, seriesData.size());
     systemUsageData = seriesData.get(0);
     assertNotNull(systemUsageData);
@@ -110,8 +110,8 @@ public class CpuUsageDataSeriesTest {
     mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA,
                                       dataList -> CpuUsage.extractData(dataList, false));
     assertNotNull(mySeries);
-    assertFalse(mySeries.getDataForXRange(ANY_RANGE).isEmpty());
+    assertFalse(mySeries.getDataForRange(ANY_RANGE).isEmpty());
     myService.setEmptyUsageData(true);
-    assertTrue(mySeries.getDataForXRange(ANY_RANGE).isEmpty());
+    assertTrue(mySeries.getDataForRange(ANY_RANGE).isEmpty());
   }
 }

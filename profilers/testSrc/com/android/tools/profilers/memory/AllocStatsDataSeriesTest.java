@@ -72,7 +72,7 @@ public class AllocStatsDataSeriesTest {
     AllocStatsDataSeries series =
       new AllocStatsDataSeries(studioProfilers, new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
                                sample -> (long)sample.getJavaAllocationCount());
-    List<SeriesData<Long>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
+    List<SeriesData<Long>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());
     assertEquals(3, dataList.get(0).x);
     assertEquals(1000, dataList.get(0).value.longValue());
@@ -81,7 +81,7 @@ public class AllocStatsDataSeriesTest {
 
     series = new AllocStatsDataSeries(studioProfilers, new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
                                       sample -> (long)sample.getJavaFreeCount());
-    dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
+    dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());
     assertEquals(3, dataList.get(0).x);
     assertEquals(2000, dataList.get(0).value.longValue());

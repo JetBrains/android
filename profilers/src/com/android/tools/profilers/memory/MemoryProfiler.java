@@ -289,7 +289,7 @@ public class MemoryProfiler extends StudioProfiler {
     Range dataRange = profilers.getTimeline().getDataRange();
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)dataRange.getMin());
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)dataRange.getMax());
-    List<SeriesData<AllocationSamplingRateDurationData>> series = samplingSeries.getDataForXRange(new Range(rangeMin, rangeMax));
+    List<SeriesData<AllocationSamplingRateDurationData>> series = samplingSeries.getDataForRange(new Range(rangeMin, rangeMax));
     return !series.isEmpty();
   }
 
@@ -299,7 +299,7 @@ public class MemoryProfiler extends StudioProfiler {
   public static boolean hasOnlyFullAllocationTrackingWithinRegion(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
                                                                   @NotNull Common.Session session, long startTimeUs, long endTimeUs) {
     AllocationSamplingRateDataSeries series = new AllocationSamplingRateDataSeries(client, session);
-    List<SeriesData<AllocationSamplingRateDurationData>> samplingModes = series.getDataForXRange(new Range(startTimeUs, endTimeUs));
+    List<SeriesData<AllocationSamplingRateDurationData>> samplingModes = series.getDataForRange(new Range(startTimeUs, endTimeUs));
     return samplingModes.size() == 1 && samplingModes.get(0).value.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval() ==
                                         MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
   }

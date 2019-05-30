@@ -57,7 +57,7 @@ public class CpuTraceDataSeriesTest {
   @Test
   public void emptySeries() {
     Range maxRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    assertThat(mySeries.getDataForXRange(maxRange)).isEmpty();
+    assertThat(mySeries.getDataForRange(maxRange)).isEmpty();
   }
 
   @Test
@@ -69,7 +69,7 @@ public class CpuTraceDataSeriesTest {
       .build();
     myService.addTraceInfo(info);
 
-    List<SeriesData<CpuTraceInfo>> seriesData = mySeries.getDataForXRange(maxRange);
+    List<SeriesData<CpuTraceInfo>> seriesData = mySeries.getDataForRange(maxRange);
     assertThat(seriesData).hasSize(1);
     SeriesData<CpuTraceInfo> data = seriesData.get(0);
     assertThat(data).isNotNull();

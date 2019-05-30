@@ -69,7 +69,7 @@ public class HeapDumpSampleDataSeriesTest {
       new HeapDumpSampleDataSeries(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA,
                                    myIdeProfilerServices.getFeatureTracker(), myStage);
     List<SeriesData<CaptureDurationData<CaptureObject>>> dataList =
-      series.getDataForXRange(new Range(0, Double.MAX_VALUE));
+      series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());
     SeriesData<CaptureDurationData<CaptureObject>> data1 = dataList.get(0);

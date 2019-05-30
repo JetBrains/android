@@ -75,7 +75,7 @@ public class RangedSeries<E> {
    */
   @NotNull
   public List<SeriesData<E>> getSeriesForRange(Range range) {
-    return mySeries.getDataForXRange(range);
+    return mySeries.getDataForRange(range);
   }
 
   /**
