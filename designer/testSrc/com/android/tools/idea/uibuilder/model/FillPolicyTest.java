@@ -15,73 +15,69 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-public class FillPolicyTest extends TestCase {
+import org.junit.Test;
+
+public class FillPolicyTest {
+  @Test
   public void testNone() {
-    FillPolicy policy = FillPolicy.get("none");
-    assertNotNull(policy);
-    assertSame(FillPolicy.NONE, policy);
+    FillPolicy policy = FillPolicy.NONE;
     assertFalse(policy.fillHorizontally(false));
     assertFalse(policy.fillHorizontally(true));
     assertFalse(policy.fillVertically(false));
     assertFalse(policy.fillVertically(true));
   }
 
+  @Test
   public void testBoth() {
-    FillPolicy policy = FillPolicy.get("both");
-    assertNotNull(policy);
-    assertSame(FillPolicy.BOTH, policy);
+    FillPolicy policy = FillPolicy.BOTH;
     assertTrue(policy.fillHorizontally(false));
     assertTrue(policy.fillHorizontally(true));
     assertTrue(policy.fillVertically(false));
     assertTrue(policy.fillVertically(true));
   }
 
+  @Test
   public void testWidth() {
-    FillPolicy policy = FillPolicy.get("width");
-    assertNotNull(policy);
-    assertSame(FillPolicy.WIDTH, policy);
+    FillPolicy policy = FillPolicy.WIDTH;
     assertTrue(policy.fillHorizontally(false));
     assertTrue(policy.fillHorizontally(true));
     assertFalse(policy.fillVertically(false));
     assertFalse(policy.fillVertically(true));
   }
 
+  @Test
   public void testHeight() {
-    FillPolicy policy = FillPolicy.get("height");
-    assertNotNull(policy);
-    assertSame(FillPolicy.HEIGHT, policy);
+    FillPolicy policy = FillPolicy.HEIGHT;
     assertFalse(policy.fillHorizontally(false));
     assertFalse(policy.fillHorizontally(true));
     assertTrue(policy.fillVertically(false));
     assertTrue(policy.fillVertically(true));
   }
 
+  @Test
   public void testOpposite() {
-    FillPolicy policy = FillPolicy.get("opposite");
-    assertNotNull(policy);
-    assertSame(FillPolicy.OPPOSITE, policy);
+    FillPolicy policy = FillPolicy.OPPOSITE;
     assertFalse(policy.fillHorizontally(false));
     assertTrue(policy.fillHorizontally(true));
     assertTrue(policy.fillVertically(false));
     assertFalse(policy.fillVertically(true));
   }
 
+  @Test
   public void testWidthInVertical() {
-    FillPolicy policy = FillPolicy.get("width_in_vertical");
-    assertNotNull(policy);
-    assertSame(FillPolicy.WIDTH_IN_VERTICAL, policy);
+    FillPolicy policy = FillPolicy.WIDTH_IN_VERTICAL;
     assertFalse(policy.fillHorizontally(false));
     assertTrue(policy.fillHorizontally(true));
     assertFalse(policy.fillVertically(false));
     assertFalse(policy.fillVertically(true));
   }
 
+  @Test
   public void testHeightInHorizontal() {
-    FillPolicy policy = FillPolicy.get("height_in_horizontal");
-    assertNotNull(policy);
-    assertSame(FillPolicy.HEIGHT_IN_HORIZONTAL, policy);
+    FillPolicy policy = FillPolicy.HEIGHT_IN_HORIZONTAL;
     assertFalse(policy.fillHorizontally(false));
     assertFalse(policy.fillHorizontally(true));
     assertTrue(policy.fillVertically(false));
