@@ -116,12 +116,14 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
 
     JavaModuleModel model = JavaModuleModel.get(module);
     assertSize(6, result);
-    assertEquals(result.get(0), pathToIdeaUrl(model.getCompilerOutput().getTestClassesDir()));
-    assertEquals(result.get(1), pathToIdeaUrl(new File(model.getBuildFolderPath(), join("classes", "kotlin", "test"))));
-    assertEquals(result.get(2), pathToIdeaUrl(model.getCompilerOutput().getTestResourcesDir()));
-    assertEquals(result.get(3), pathToIdeaUrl(model.getCompilerOutput().getMainClassesDir()));
-    assertEquals(result.get(4), pathToIdeaUrl(new File(model.getBuildFolderPath(), join("classes", "kotlin", "main"))));
-    assertEquals(result.get(5), pathToIdeaUrl(model.getCompilerOutput().getMainResourcesDir()));
+    assertContainsElements(result,
+                           pathToIdeaUrl(model.getCompilerOutput().getTestClassesDir()),
+                           pathToIdeaUrl(model.getCompilerOutput().getTestResourcesDir()),
+                           pathToIdeaUrl(model.getCompilerOutput().getMainClassesDir()),
+                           pathToIdeaUrl(model.getCompilerOutput().getMainResourcesDir()),
+                           pathToIdeaUrl(new File(model.getBuildFolderPath(), join("classes", "kotlin", "test"))),
+                           pathToIdeaUrl(new File(model.getBuildFolderPath(), join("classes", "kotlin", "main")))
+    );
   }
 
   private static List<String> getAmendedPaths(@NotNull Module module, boolean includeTests) {

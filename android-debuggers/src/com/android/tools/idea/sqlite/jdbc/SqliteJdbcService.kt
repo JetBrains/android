@@ -30,6 +30,7 @@ import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.JDBCType
+import java.sql.PreparedStatement
 import java.util.concurrent.Executor
 
 /**
@@ -43,6 +44,10 @@ class SqliteJdbcService(
   parentDisposable: Disposable,
   pooledExecutor: Executor
 ) : SqliteService {
+  companion object {
+    private val logger: Logger = Logger.getInstance(SqliteJdbcService::class.java)
+  }
+
   private var connection: Connection? = null
 
   val sequentialTaskExecutor = FutureCallbackExecutor.wrap(
@@ -115,24 +120,35 @@ class SqliteJdbcService(
     return columns
   }
 
-  override fun readTable(tableName: String): ListenableFuture<SqliteResultSet> {
+  override fun readTable(table: SqliteTable): ListenableFuture<SqliteResultSet> {
+    return executeQuery("select * from " + escapeName(table.name))
+  }
+
+  override fun executeQuery(query: String): ListenableFuture<SqliteResultSet> {
+    return execute(query) { preparedStatement ->
+      val resultSet = preparedStatement.executeQuery()
+      SqliteJdbcResultSet(this, preparedStatement, resultSet)
+    }
+  }
+
+  override fun executeUpdate(query: String): ListenableFuture<Int> {
+    return execute(query) { preparedStatement -> preparedStatement.executeUpdate() }
+  }
+
+  private fun <T> execute(query: String, connectionMethod: (PreparedStatement) -> T): ListenableFuture<T> {
     return sequentialTaskExecutor.executeAsync {
       checkNotNull(connection) { "Database is not open" }
 
       connection!!.let { connection ->
-        val statement = connection.prepareStatement("select * from " + escapeName(tableName))
-        val resultSet = statement.executeQuery()
-        logger.info("Successfully opened result set for table \"$tableName\"")
-        SqliteJdbcResultSet(this, statement, resultSet)
+        val statement = connection.prepareStatement(query)
+        val res = connectionMethod(statement)
+        logger.info("SQL statement \"$query\" executed with success.")
+        return@executeAsync res
       }
     }
   }
 
   private fun escapeName(tableName: String): String {
     return "'${tableName.replace("\'", "")}'"
-  }
-
-  companion object {
-    private val logger: Logger = Logger.getInstance(SqliteJdbcService::class.java)
   }
 }

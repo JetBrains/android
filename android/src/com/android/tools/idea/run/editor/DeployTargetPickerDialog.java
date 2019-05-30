@@ -23,7 +23,6 @@ import com.android.tools.idea.actions.DevicePickerHelpAction;
 import com.android.tools.idea.actions.DevicePickerHelpActionKt;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceCount;
 import com.android.tools.idea.run.DeviceFutures;
@@ -57,6 +56,7 @@ import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.Alarm;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -199,7 +199,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
                        "for IPv4 or IPv6, respectively.");
           setOKActionEnabled(false);
         }
-      }, EdtExecutor.INSTANCE);
+      }, EdtExecutorService.getInstance());
     }
 
     return loadingPanel;

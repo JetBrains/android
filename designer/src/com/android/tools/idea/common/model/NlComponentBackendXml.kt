@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.model
 
-import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.utils.TraceUtils
 import com.google.common.annotations.VisibleForTesting
@@ -27,6 +26,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
+
+private val LOGGER = Logger.getInstance(NlComponentBackendXml::class.java)
 
 open class NlComponentBackendXml private constructor(
   private val myProject: Project) : NlComponentBackend {
@@ -138,7 +139,7 @@ open class NlComponentBackendXml private constructor(
   private fun getAttributeImpl(attribute: String, namespace: String?): String? {
     val xmlTag = tag
     if (xmlTag == null) {
-      Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
+      LOGGER.warn(
         "Unable to get attribute from ${getTagName()} because XmlTag is invalidated ${getStackTrace()}")
       return null
     }
@@ -150,14 +151,14 @@ open class NlComponentBackendXml private constructor(
     if (!application.isWriteAccessAllowed) {
       assert(false) { "Unable to set attribute to ${getTagName()}. SetAttribute must be called within undo-transparent action" }
       // We shouldn't allow write to be performed outside the WriteCommandAction.
-      Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
+      LOGGER.warn(
         "Unable to set attribute to ${getTagName()}. SetAttribute must be called within undo-transparent action ${getStackTrace()}")
       return false
     }
 
     val xmlTag = tag
     if (xmlTag == null) {
-      Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
+      LOGGER.warn(
         "Unable to set attribute to ${getTagName()} because XmlTag is invalidated ${getStackTrace()}")
       return false
     }
@@ -168,7 +169,7 @@ open class NlComponentBackendXml private constructor(
     ApplicationManager.getApplication().assertWriteAccessAllowed()
     val xmlTag = myTagPointer.element
     if (xmlTag?.containingFile?.virtualFile == null) {
-      Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
+      LOGGER.warn(
         "Not reformatting ${getTagName()} because its virtual file is null ${getStackTrace()}")
       return
     }

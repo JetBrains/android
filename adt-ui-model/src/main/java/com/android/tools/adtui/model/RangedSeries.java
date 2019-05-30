@@ -51,15 +51,19 @@ public class RangedSeries<E> {
   }
 
   /**
+   * @param range The range to which the data will be scoped.
+   * @return A new, immutable {@link SeriesDataList} that allows the caller to get items in the DataStore scoped to the given range.
+   */
+  @NotNull
+  public List<SeriesData<E>> getSeriesForRange(Range range) {
+    return mSeries.getDataForXRange(range);
+  }
+
+  /**
    * @return The {@link Range} object that represents the xRange of this series.
    */
   @NotNull
   public Range getXRange() {
     return mXRange;
-  }
-
-  @NotNull
-  public DataSeries<E> getDataSeries() {
-    return mSeries;
   }
 }

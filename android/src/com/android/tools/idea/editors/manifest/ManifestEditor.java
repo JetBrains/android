@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifestManager;
@@ -37,6 +36,7 @@ import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -135,7 +135,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
       public void onFailure(@Nullable Throwable t) {
         showLoadingError();
       }
-    }, EdtExecutor.INSTANCE);
+    }, EdtExecutorService.getInstance());
   }
 
   private void showStaleManifest(MergedManifestSnapshot manifest) {

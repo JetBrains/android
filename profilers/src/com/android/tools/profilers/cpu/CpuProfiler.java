@@ -158,7 +158,13 @@ public class CpuProfiler extends StudioProfiler {
   @Override
   public void stopProfiling(Common.Session session) {
     // TODO: handle different status of the response
-    myProfilers.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder().setSession(session).build());
+    myProfilers.getClient().getCpuClient().stopMonitoringApp(
+      CpuStopRequest.newBuilder()
+        .setSession(session)
+        // This is needed to stop an ongoing trace and should be handled via an explicit stop-trace command in the new pipeline.
+        // TODO b/119261457 In the new pipeline, we can potentially pass the same info down via EndSession.
+        .setAppName(myProfilers.getProcess() != null ? myProfilers.getProcess().getName() : "")
+        .build());
   }
 
   /**

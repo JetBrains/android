@@ -41,7 +41,6 @@ public class ConfigureInstantAppModuleStep extends SkippableWizardStep<NewInstan
 
   private JPanel myPanel;
   private JTextField myModuleName;
-  private JCheckBox myCreateIgnoreFile;
 
   public ConfigureInstantAppModuleStep(@NotNull NewInstantAppModuleModel model, String title) {
     super(model, title);
@@ -51,8 +50,6 @@ public class ConfigureInstantAppModuleStep extends SkippableWizardStep<NewInstan
     ModuleValidator moduleValidator = new ModuleValidator(model.getProject());
     myModuleName.setText(WizardUtils.getUniqueName(model.moduleName().get(), moduleValidator));
     TextProperty moduleNameText = new TextProperty(myModuleName);
-
-    myBindings.bindTwoWay(new SelectedProperty(myCreateIgnoreFile), model.createGitIgnore());
 
     myValidatorPanel.registerValidator(moduleNameText, moduleValidator);
 

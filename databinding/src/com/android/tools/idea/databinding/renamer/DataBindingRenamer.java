@@ -25,6 +25,7 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.naming.AutomaticRenamer;
 import com.intellij.refactoring.rename.naming.NameSuggester;
+import java.util.Locale;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -77,7 +78,7 @@ public class DataBindingRenamer extends AutomaticRenamer {
                                          @NotNull String newFieldName, @NotNull String oldFieldName) {
     if (element instanceof ValueResourceElementWrapper) {
       String[] words = NameUtil.splitNameIntoWords(newFieldName);
-      return SdkConstants.NEW_ID_PREFIX + String.join("_", words).toLowerCase();
+      return SdkConstants.NEW_ID_PREFIX + String.join("_", words).toLowerCase(Locale.US);
     }
     return super.suggestNameForElement(element, suggester, newFieldName, oldFieldName);
   }

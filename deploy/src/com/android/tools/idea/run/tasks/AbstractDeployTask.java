@@ -220,7 +220,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     result.setNotificationListener(new DeploymentErrorNotificationListener(error.getResolution(),
                                                                            hyperlinkInfo));
     if (myFallback) {
-      ApplicationManager.getApplication().invokeLater(() -> hyperlinkInfo.navigate(myProject));
+      result.addOnFinishedCallback(() -> hyperlinkInfo.navigate(myProject));
     }
     return result;
   }

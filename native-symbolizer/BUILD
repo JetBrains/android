@@ -6,6 +6,7 @@ iml_module(
     # do not sort: must match IML order
     srcs = ["src"],
     iml_files = ["native-symbolizer.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = ["no_test_windows"],
     test_class = "com.android.tools.nativeSymbolizer.NativeSymbolizerTestSuite",
     test_coverage = True,

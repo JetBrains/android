@@ -44,6 +44,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
   var signingConfigsChanged = 0
   var variantsChanged = 0
 
+  private val DISALLOWED_NAME_CHARS = "/\\:<>\"?*|"
+
   fun testFlavorDimensions() {
     loadProject(PSD_SAMPLE)
 
@@ -108,6 +110,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(appModule.validateFlavorDimensionName("")).isEqualTo("Flavor dimension name cannot be empty.")
     assertThat(appModule.validateFlavorDimensionName("foo")).isEqualTo("Duplicate flavor dimension name: 'foo'")
     assertThat(appModule.validateFlavorDimensionName("ok")).isNull()
+    DISALLOWED_NAME_CHARS.forEach {
+      assertThat(appModule.validateFlavorDimensionName("${it}")).isNotNull()
+      assertThat(appModule.validateFlavorDimensionName("foo${it}")).isNotNull()
+      assertThat(appModule.validateFlavorDimensionName("foo${it}bar")).isNotNull()
+      assertThat(appModule.validateFlavorDimensionName("'${it}'")).isNotNull()
+      assertThat(appModule.validateFlavorDimensionName("''${it}''")).isNotNull()
+    }
   }
 
   fun testAddFlavorDimension() {
@@ -251,6 +260,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(appModule.validateProductFlavorName("")).isEqualTo("Product flavor name cannot be empty.")
     assertThat(appModule.validateProductFlavorName("paid")).isEqualTo("Duplicate product flavor name: 'paid'")
     assertThat(appModule.validateProductFlavorName("ok")).isNull()
+    DISALLOWED_NAME_CHARS.forEach {
+      assertThat(appModule.validateProductFlavorName("${it}")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}bar")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("'${it}'")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("''${it}''")).isNotNull()
+    }
   }
 
   fun testAddProductFlavor() {
@@ -410,6 +426,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(appModule.validateBuildTypeName("")).isEqualTo("Build type name cannot be empty.")
     assertThat(appModule.validateBuildTypeName("specialRelease")).isEqualTo("Duplicate build type name: 'specialRelease'")
     assertThat(appModule.validateBuildTypeName("ok")).isNull()
+    DISALLOWED_NAME_CHARS.forEach {
+      assertThat(appModule.validateBuildTypeName("${it}")).isNotNull()
+      assertThat(appModule.validateBuildTypeName("foo${it}")).isNotNull()
+      assertThat(appModule.validateBuildTypeName("foo${it}bar")).isNotNull()
+      assertThat(appModule.validateBuildTypeName("'${it}'")).isNotNull()
+      assertThat(appModule.validateBuildTypeName("''${it}''")).isNotNull()
+    }
   }
 
   fun testAddBuildType() {
@@ -606,6 +629,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(appModule.validateSigningConfigName("")).isEqualTo("Signing config name cannot be empty.")
     assertThat(appModule.validateSigningConfigName("myConfig")).isEqualTo("Duplicate signing config name: 'myConfig'")
     assertThat(appModule.validateSigningConfigName("ok")).isNull()
+    DISALLOWED_NAME_CHARS.forEach {
+      assertThat(appModule.validateSigningConfigName("${it}")).isNotNull()
+      assertThat(appModule.validateSigningConfigName("foo${it}")).isNotNull()
+      assertThat(appModule.validateSigningConfigName("foo${it}bar")).isNotNull()
+      assertThat(appModule.validateSigningConfigName("'${it}'")).isNotNull()
+      assertThat(appModule.validateSigningConfigName("''${it}''")).isNotNull()
+    }
   }
 
   fun testAddSigningConfig() {

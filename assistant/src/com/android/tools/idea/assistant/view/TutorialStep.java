@@ -217,6 +217,7 @@ public class TutorialStep extends JPanel {
           layout.setVgap(0);
           layout.setHgap(0);
           panel = new JPanel(layout);
+          panel.setOpaque(false);
           panelMap.put(groupName, panel);
           myContents.add(panel);
           addedNewComponent = true;

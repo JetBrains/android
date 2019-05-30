@@ -18,7 +18,6 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.tools.idea.adb.AdbService;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -46,6 +45,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
+import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -120,7 +120,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
         Logger.getInstance(AndroidLogcatToolWindowFactory.class).info("Unable to obtain debug bridge", t);
         Messages.showErrorDialog(AdbService.getDebugBridgeDiagnosticErrorMessage(t, adb), "ADB Connection Error");
       }
-    }, EdtExecutor.INSTANCE);
+    }, EdtExecutorService.getInstance());
   }
 
   private static final class MyToolWindowManagerListener extends ToolWindowManagerAdapter {

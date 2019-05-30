@@ -31,8 +31,8 @@ import java.util.EventListener;
 public class PsUISettings implements PersistentStateComponent<PsUISettings> {
   public boolean DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
   public boolean RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
-  public boolean RESOLVED_DEPENDENCIES_MINIMIZE = true;
-  public boolean TARGET_MODULES_MINIMIZE = true;
+  public boolean RESOLVED_DEPENDENCIES_MINIMIZE = false;
+  public boolean TARGET_MODULES_MINIMIZE = false;
   public boolean MODULES_LIST_MINIMIZE;
   // Lazily synced items (No change notification).
   public String MODULE_TAB;

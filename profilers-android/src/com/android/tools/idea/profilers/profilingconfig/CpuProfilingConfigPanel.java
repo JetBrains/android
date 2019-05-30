@@ -15,26 +15,37 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.ProfilingTechnology;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.util.ui.JBUI;
 import java.awt.event.ItemEvent;
+import java.util.Locale;
+import javax.swing.Box;
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JSeparator;
+import javax.swing.JSlider;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.DocumentEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
 
 /**
  * The configuration panel for the Android profiler settings.
@@ -177,9 +188,9 @@ public class CpuProfilingConfigPanel {
    */
   private static String getFileSizeLimitText(int fileSizeLimitInMB) {
     if (fileSizeLimitInMB < ONE_GB_IN_MB) {
-      return String.format("%d MB", fileSizeLimitInMB);
+      return String.format(Locale.US, "%d MB", fileSizeLimitInMB);
     }
-    return String.format("%.2f GB", fileSizeLimitInMB / 1024.0);
+    return String.format(Locale.US, "%.2f GB", fileSizeLimitInMB / 1024.0);
   }
 
   void setConfiguration(@Nullable ProfilingConfiguration configuration, boolean isDefaultConfiguration) {

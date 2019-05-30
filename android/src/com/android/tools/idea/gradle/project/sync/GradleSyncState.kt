@@ -241,13 +241,14 @@ open class GradleSyncState(
     }
 
     shouldRemoveModelsOnFailure = request.variantOnlySyncOptions == null
-    val syncType = if (NewGradleSync.isSingleVariantSync(project)) "single-variant" else "IDEA"
-    LOG.info("Started $syncType sync with Gradle for project '${project.name}'.")
+    val syncType = if (NewGradleSync.isEnabled(project)) "" else " IDEA"
+    val singleVariant = if (NewGradleSync.isSingleVariantSync(project)) " single-variant" else ""
+    LOG.info("Started$syncType$singleVariant sync with Gradle for project '${project.name}'.")
 
     setSyncStartedTimeStamp()
     trigger = request.trigger
 
-    addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started with $syncType sync", MessageType.INFO, null)
+    addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started with$syncType$singleVariant sync", MessageType.INFO, null)
 
     if (notifyUser) changeNotification.notifyStateChanged()
 
@@ -334,7 +335,7 @@ open class GradleSyncState(
       return
     }
 
-    if (shouldRemoveModelsOnFailure) removeAndroidModels(project)
+    if (shouldRemoveModelsOnFailure && !(project.isDisposed)) removeAndroidModels(project)
 
     syncFailedTimeStamp = syncEndTimeStamp
 

@@ -48,6 +48,12 @@ interface SqlTable : SqlDefinition {
 
 interface SqlColumn : SqlDefinition {
   val type: SqlType?
+  /**
+   * Column can be referred by multiple names e.g 'rowid' column
+   * @see https://sqlite.org/lang_createtable.html#rowid
+   */
+  val alternativeNames: Set<String> get() = emptySet()
+  val isPrimaryKey: Boolean get() = false
 }
 
 class AliasedTable(

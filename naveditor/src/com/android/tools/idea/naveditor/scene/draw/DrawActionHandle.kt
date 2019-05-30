@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.tools.idea.common.scene.LerpFloat
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
-import com.android.tools.idea.common.scene.draw.DrawCircle
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.TARGET_LEVEL
-import com.android.tools.idea.common.scene.draw.DrawFilledCircle
+import com.android.tools.idea.common.scene.draw.DrawShape
+import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
 import com.android.tools.idea.common.scene.draw.parse
@@ -28,6 +27,7 @@ import com.android.tools.idea.common.scene.draw.point2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToPoint2D
 import com.android.tools.idea.naveditor.scene.HANDLE_STROKE
+import com.android.tools.idea.naveditor.scene.makeCircleLerp
 import java.awt.Color
 import java.awt.geom.Point2D
 
@@ -63,8 +63,8 @@ data class DrawActionHandle(private val center: Point2D.Float,
                                                  colorToString(innerColor))
 
   override fun buildCommands(): List<DrawCommand> {
-    val outerCircle = DrawFilledCircle(0, center, outerColor, LerpFloat(initialOuterRadius, finalOuterRadius, duration))
-    val innerCircle = DrawCircle(1, center, innerColor, HANDLE_STROKE, LerpFloat(initialInnerRadius, finalInnerRadius, duration))
-    return listOf(outerCircle, innerCircle)
+    val outerCircle = makeCircleLerp(center, initialOuterRadius, finalOuterRadius, duration)
+    val innerCircle = makeCircleLerp(center, initialInnerRadius, finalInnerRadius, duration)
+    return listOf(FillShape(outerCircle, outerColor), DrawShape(innerCircle, innerColor, HANDLE_STROKE))
   }
 }

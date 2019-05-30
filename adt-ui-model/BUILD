@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.adt.ui.model",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.adt.ui.model.iml"],
+    lint_baseline = "lint_baseline.xml",
     test_coverage = True,
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

@@ -16,7 +16,6 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.tools.idea.adb.AdbService;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.testing.Sdks;
@@ -25,6 +24,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +60,7 @@ public class AdbDeviceFileSystemRendererFactoryTest extends AndroidTestCase {
   public void testCreateMethodWorks() throws Exception {
     // Prepare
     AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(getProject()),
-                                                                        EdtExecutor.INSTANCE,
+                                                                        EdtExecutorService.getInstance(),
                                                                         PooledThreadExecutor.INSTANCE,
                                                                         getProject());
     disposeOnTearDown(service);

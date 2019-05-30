@@ -104,6 +104,8 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
       override fun getResourceModuleDependencies() = emptyList<Module>()
 
+      override fun getDirectResourceModuleDependents() = emptyList<Module>()
+
       override fun registerDependency(coordinate: GradleCoordinate) {
         registerDependency(coordinate, DependencyType.IMPLEMENTATION)
       }

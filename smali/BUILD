@@ -9,6 +9,7 @@ iml_module(
         "gen",
     ],
     iml_files = ["intellij.android.smali.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     test_class = "com.android.tools.idea.smali.SmaliTestSuite",
     test_coverage = True,

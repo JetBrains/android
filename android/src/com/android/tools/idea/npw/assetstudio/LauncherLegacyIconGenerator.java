@@ -48,7 +48,6 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here.
 public class LauncherLegacyIconGenerator extends IconGenerator {
-  public static final Color DEFAULT_FOREGROUND_COLOR = Color.BLACK;
   public static final Color DEFAULT_BACKGROUND_COLOR = Color.WHITE;
   public static final Shape DEFAULT_ICON_SHAPE = Shape.SQUARE;
 
@@ -214,7 +213,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public BufferedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -257,16 +256,16 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
       gTemp.fillRect(0, 0, imageRect.width, imageRect.height);
     }
 
-    BufferedImage sourceImage = generateRasterImage(targetRect.getSize(), options);
+    AnnotatedImage sourceImage = generateRasterImage(targetRect.getSize(), options);
 
     // Render the foreground icon onto an intermediate buffer and then render over the
     // background shape. This lets us override the color of the icon.
     BufferedImage iconImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
     Graphics2D gIcon = (Graphics2D) iconImage.getGraphics();
     if (launcherOptions.crop) {
-      AssetUtil.drawCenterCrop(gIcon, sourceImage, targetRect);
+      AssetUtil.drawCenterCrop(gIcon, sourceImage.getImage(), targetRect);
     } else {
-      AssetUtil.drawCenterInside(gIcon, sourceImage, targetRect);
+      AssetUtil.drawCenterInside(gIcon, sourceImage.getImage(), targetRect);
     }
     AssetUtil.Effect[] effects;
     if (launcherOptions.useForegroundColor) {
@@ -287,7 +286,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     gTemp.dispose();
     gIcon.dispose();
 
-    return outImage;
+    return new AnnotatedImage(outImage, sourceImage.getErrorMessage());
   }
 
   @Override
@@ -297,7 +296,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
   }
 
   @Override
-  public void generateRasterImage(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
+  public void generateRasterImage(@Nullable String category, @NotNull Map<String, Map<String, AnnotatedImage>> categoryMap,
                                   @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
     LauncherLegacyOptions launcherOptions = (LauncherLegacyOptions)options;
     boolean generateWebImage = launcherOptions.generateWebIcon;
@@ -307,8 +306,8 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     if (generateWebImage) {
       launcherOptions.generateWebIcon = true;
       launcherOptions.density = Density.NODPI;
-      BufferedImage image = generateRasterImage(context, options);
-      Map<String, BufferedImage> imageMap = new HashMap<>();
+      AnnotatedImage image = generateRasterImage(context, options);
+      Map<String, AnnotatedImage> imageMap = new HashMap<>();
       categoryMap.put("Web", imageMap);
       imageMap.put(getIconPath(options, name), image);
     }
@@ -317,7 +316,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
   @Override
   @NotNull
   public Collection<GeneratedIcon> generateIcons(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
-    Map<String, Map<String, BufferedImage>> categoryMap = new HashMap<>();
+    Map<String, Map<String, AnnotatedImage>> categoryMap = new HashMap<>();
     generateRasterImage(null, categoryMap, context, options, name);
 
     // Category map is a map from category name to a map from relative path to image.

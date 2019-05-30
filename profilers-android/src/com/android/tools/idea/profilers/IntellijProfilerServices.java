@@ -29,7 +29,6 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocatorKt;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.Notification;
@@ -64,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -353,7 +353,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       try {
         // Tell UI thread that we want to show a dialog then block capture thread
         // until user has made a selection.
-        SwingUtilities.invokeLater(() -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
           selectedValue[0] = dialog.get();
           latch.countDown();
         });
@@ -417,7 +417,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     return Arrays.stream(FileEditorManager.getInstance(myProject).getSelectedFiles())
       .anyMatch(file -> {
         String extension = file.getExtension();
-        return extension != null && nativeExtensions.contains(extension.toLowerCase());
+        return extension != null && nativeExtensions.contains(extension.toLowerCase(Locale.US));
       });
   }
 

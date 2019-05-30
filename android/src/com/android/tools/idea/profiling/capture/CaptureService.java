@@ -18,7 +18,6 @@ package com.android.tools.idea.profiling.capture;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
@@ -37,6 +36,7 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -264,7 +264,7 @@ public class CaptureService {
         //noinspection ResultOfMethodCallIgnored
         captureHandle.getFile().delete();
       }
-    }, EdtExecutor.INSTANCE);
+    }, EdtExecutorService.getInstance());
   }
 
   /**

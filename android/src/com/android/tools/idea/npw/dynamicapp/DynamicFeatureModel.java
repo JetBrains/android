@@ -29,7 +29,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_IS_
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_FEATURE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MAKE_IGNORE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_SIMPLE_NAME;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -156,7 +155,6 @@ public class DynamicFeatureModel extends WizardModel {
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_TITLE, featureTitle().get());
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_ON_DEMAND, featureOnDemand().get());
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_FUSING, featureFusing().get());
-    myTemplateValues.put(ATTR_MAKE_IGNORE, true);
     myTemplateValues.put(ATTR_IS_NEW_PROJECT, true);
     myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, false);
     myTemplateValues.put(ATTR_DYNAMIC_IS_INSTANT_MODULE, instantModule().get());

@@ -204,9 +204,9 @@ public class AndroidVersionsInfo {
     myKnownTargetVersions.clear();
 
     if (AndroidSdkUtils.isAndroidSdkAvailable()) {
-      String[] knownVersions = TemplateUtils.getKnownVersions();
-      for (int i = 0; i < knownVersions.length; i++) {
-        myKnownTargetVersions.add(new VersionItem(knownVersions[i], i + 1));
+      List<String> knownVersions = TemplateUtils.getKnownVersions();
+      for (int i = 0; i < knownVersions.size(); i++) {
+        myKnownTargetVersions.add(new VersionItem(knownVersions.get(i), i + 1));
       }
     }
 

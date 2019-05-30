@@ -29,7 +29,7 @@ android {
         applicationId "google.testapplication"
         minSdkVersion 19
         targetSdkVersion 23
-        testInstrumentationRunner "com.android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 }
 
