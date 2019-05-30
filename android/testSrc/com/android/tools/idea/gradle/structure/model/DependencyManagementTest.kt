@@ -479,7 +479,7 @@ class DependencyManagementTest : DependencyTestCase() {
     assertThat(module.dependencies.findJarDependencies(jarPath).nullize(), notNullValue())
 
     assertThat(module.dependencies.findJarDependencies(libDirPath).nullize(), nullValue())
-    module.addJarFileTreeDependency(libDirPath, includes = setOf("*sam2*.jar"), excludes = setOf(), scopeName = "implementation")
+    module.addJarFileTreeDependency(libDirPath, includes = setOf("*sam2*.jar"), excludes = setOf(), configurationName = "implementation")
     assertThat(module.dependencies.findJarDependencies(jarPath).nullize(), notNullValue())
     assertThat(module.dependencies.findJarDependencies(libDirPath).nullize(), notNullValue())
 

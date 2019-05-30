@@ -30,10 +30,12 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.mock
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
+import javax.imageio.ImageIO
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -60,7 +62,7 @@ class DeviceViewContentPanelTest {
       }
     }
     val inspector = LayoutInspector(model)
-    val settings = DeviceViewSettings(scalePercent = 30, viewMode = ViewMode.X_ONLY)
+    val settings = DeviceViewSettings(scalePercent = 30)
     val panel = DeviceViewContentPanel(inspector, settings)
     assertEquals(Dimension(188, 197), panel.preferredSize)
 
@@ -88,7 +90,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val inspector = LayoutInspector(model)
-    val settings = DeviceViewSettings(scalePercent = 100, viewMode = ViewMode.X_ONLY)
+    val settings = DeviceViewSettings(scalePercent = 100)
     val panel = DeviceViewContentPanel(inspector, settings)
     panel.setSize(200, 300)
 
@@ -108,6 +110,34 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
 
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_rotated.png"), generatedImage, 0.1)
+  }
+
+  @Test
+  fun testClipping() {
+    val model = model {
+      view(ROOT, 0, 0, 100, 100) {
+        view(VIEW1, 25, 50, 50, 100)
+      }
+    }
+
+    val childImage = BufferedImage(50, 100, TYPE_INT_ARGB)
+    val childImageGraphics = childImage.createGraphics()
+    childImageGraphics.color = Color.RED
+    childImageGraphics.fillOval(0, 0, 50, 100)
+
+    model.root.children[VIEW1]!!.imageBottom = childImage
+
+    @Suppress("UndesirableClassUsage")
+    val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
+    val graphics = generatedImage.createGraphics()
+
+    val inspector = LayoutInspector(model)
+    val settings = DeviceViewSettings()
+    val panel = DeviceViewContentPanel(inspector, settings)
+    panel.setSize(200, 300)
+
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testClip.png"), generatedImage, 0.1)
   }
 
   @Test

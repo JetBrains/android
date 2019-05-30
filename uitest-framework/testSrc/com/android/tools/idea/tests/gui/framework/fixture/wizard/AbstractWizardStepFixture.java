@@ -16,16 +16,18 @@
 package com.android.tools.idea.tests.gui.framework.fixture.wizard;
 
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
-import com.intellij.ui.components.JBLabel;
+import com.intellij.openapi.util.text.StringUtil;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JRootPane;
+import javax.swing.text.JTextComponent;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
 
 public abstract class AbstractWizardStepFixture<S, W extends AbstractWizardFixture> extends JComponentFixture<S, JRootPane> {
   private final W myWizard;
@@ -85,8 +87,11 @@ public abstract class AbstractWizardStepFixture<S, W extends AbstractWizardFixtu
   }
 
   public String getValidationText() {
-    JBLabel validationLabel = robot().finder().findByName(target(), "ValidationLabel", JBLabel.class);
-    Wait.seconds(1).expecting("validation text to appear").until(() -> validationLabel.getText().matches(".*\\S.*"));
-    return validationLabel.getText();
+    JTextComponent validationText = robot().finder().findByName(target(), "ValidationText", JTextComponent.class);
+    Wait.seconds(1).expecting("validation text to appear").until(() -> getPlainText(validationText).matches(".*\\S.*"));
+    return getPlainText(validationText);
   }
-}
+
+  private static String getPlainText(@NotNull JTextComponent textComponent) {
+    return StringUtil.removeHtmlTags(textComponent.getText());
+  }}

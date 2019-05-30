@@ -324,6 +324,8 @@ class NavLogEventTest : NavTestCase() {
                                                         "        <attr format=\"integer\" name=\"myInteger2\"/>\n" +
                                                         "    </declare-styleable>\n" +
                                                         "</resources>\n")
+
+    ResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
     ResourceRepositoryManager.getAppResources(myFacet).sync()
 
     val model = model("nav.xml") {

@@ -24,7 +24,6 @@ import com.android.tools.apk.analyzer.internal.ApkDiffParser;
 import com.android.tools.apk.analyzer.internal.ApkEntry;
 import com.android.tools.apk.analyzer.internal.ApkFileByFileDiffParser;
 import com.android.tools.idea.apk.viewer.ApkViewPanel.FutureCallBackAdapter;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -36,6 +35,7 @@ import com.intellij.ui.LoadingNode;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.Function;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.Convertor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -101,7 +101,7 @@ public class ApkDiffPanel {
         myCalculateFileByFileCheckBox.setEnabled(true);
       }
     };
-    Futures.addCallback(myFbfTreeStructureFuture, setRootNode, EdtExecutor.INSTANCE);
+    Futures.addCallback(myFbfTreeStructureFuture, setRootNode, EdtExecutorService.getInstance());
   }
 
   private void constructDiffTree(){
@@ -119,7 +119,7 @@ public class ApkDiffPanel {
         myCalculateFileByFileCheckBox.setEnabled(true);
       }
     };
-    Futures.addCallback(treeStructureFuture, setRootNode, EdtExecutor.INSTANCE);
+    Futures.addCallback(treeStructureFuture, setRootNode, EdtExecutorService.getInstance());
   }
 
   private void createUIComponents() {

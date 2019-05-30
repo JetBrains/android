@@ -16,6 +16,8 @@
 package com.android.tools.idea.updater.configure;
 
 
+import static com.android.SdkConstants.FD_NDK;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.Revision;
@@ -27,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
  * State of a row in {@link SdkUpdaterConfigurable}.
  */
 class PackageNodeModel {
+
   enum SelectedState {
     NOT_INSTALLED,
     MIXED,
@@ -54,7 +57,7 @@ class PackageNodeModel {
     }
 
     myPkg = pkg;
-    if (pkg.getRepresentative().obsolete()) {
+    if (obsolete()) {
       name += " (Obsolete)";
     }
     myTitle = name;
@@ -77,5 +80,9 @@ class PackageNodeModel {
   @NonNull
   public String getTitle() {
     return myTitle;
+  }
+
+  public boolean obsolete() {
+    return myPkg.getRepresentative().obsolete() || myPkg.getPath().equals(FD_NDK);  // see bug 133519160
   }
 }

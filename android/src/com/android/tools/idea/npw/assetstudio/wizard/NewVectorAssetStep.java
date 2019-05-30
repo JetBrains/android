@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import static com.android.tools.adtui.validation.ValidatorPanel.truncateMessage;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
 
 import com.android.annotations.concurrency.UiThread;
@@ -192,7 +191,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myOpacityPercent = new SliderValueProperty(myOpacitySlider);
     myAutoMirrored = new SelectedProperty(myEnableAutoMirroredCheckBox);
 
-    myValidatorPanel = new ValidatorPanel(this, myPanel);
+    myValidatorPanel = new ValidatorPanel(this, myPanel, "Conversion Issues", "Encountered Issues:");
 
     ActionListener assetListener = actionEvent -> renderPreviews();
     myClipartAssetButton.addAssetListener(assetListener);
@@ -279,7 +278,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       myListeners.listenAndFire(vectorDrawableInfo, drawableListener);
 
       myValidatorPanel.registerValidator(myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name)));
-      myValidatorPanel.registerValidator(myAssetValidityState, validity -> truncateMessage(validity, 3));
+      myValidatorPanel.registerValidator(myAssetValidityState, validity -> validity);
       EnabledProperty widthEnabled = new EnabledProperty(myWidthTextField);
       ObservableValue<String> widthForValidation =
           Expression.create(() -> widthEnabled.get() ? widthText.get() : "24", widthText, widthEnabled);

@@ -64,6 +64,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Rectangle;
 import java.awt.dnd.DropTargetDropEvent;
@@ -582,13 +583,15 @@ public class NlComponentTreeTest extends LayoutTestCase {
     return model;
   }
 
-  public void testNonNlComponentDrop() {
+  public void testNonNlComponentDrop() throws Exception {
     assertNull(myTree.getSelectionPaths());
     myModel = createModelWithBarriers();
     mySurface.setModel(myModel);
 
     // Check initial state
     myTree.expandRow(3);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+
     TreePath pathForRow4 = myTree.getPathForRow(4);
     TreePath pathForRow5 = myTree.getPathForRow(5);
     assertThat(pathForRow4.getLastPathComponent()).isEqualTo("button2");
@@ -629,17 +632,20 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(pathForRow5.getLastPathComponent()).isEqualTo("button2");
   }
 
-  public void testDeleteBarrier() {
+  public void testDeleteBarrier() throws Exception {
     assertNull(myTree.getSelectionPaths());
     myModel = createModelWithBarriers();
     mySurface.setModel(myModel);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     // Check initial state
     myTree.expandRow(3);
     TreePath pathForRow4 = myTree.getPathForRow(4);
     myTree.setSelectionPath(pathForRow4);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     ((DeleteProvider)myTree.getData(PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName())).deleteElement(DataContext.EMPTY_CONTEXT);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     String constraintReferences = myModel.find("barrier").getAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS);
     assertThat(constraintReferences).isEqualTo("button3");
   }

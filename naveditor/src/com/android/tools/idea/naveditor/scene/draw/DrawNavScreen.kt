@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
+import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.rect2DToString
@@ -27,7 +28,6 @@ import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_TEXT
 import com.android.tools.idea.naveditor.scene.RefinableImage
-import com.android.tools.idea.naveditor.scene.setRenderingHints
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -60,7 +60,7 @@ class DrawNavScreen(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
-    setRenderingHints(g)
+    g.setRenderingHints(HQ_RENDERING_HINTS)
     g.clip(rectangle)
     val lastCompleted = image.lastCompleted
     val image = lastCompleted.image

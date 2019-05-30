@@ -26,16 +26,13 @@ import com.android.tools.idea.lang.roomSql.psi.RoomSqlFile
 import com.android.tools.idea.lang.roomSql.psi.RoomUpdateStatement
 import com.android.tools.idea.lang.roomSql.psi.RoomVisitor
 import com.android.tools.idea.lang.roomSql.psi.RoomWithClauseStatement
-import com.android.tools.idea.lang.roomSql.resolution.RoomColumnPsiReference
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
-import com.intellij.psi.PsiReference
 import com.intellij.psi.util.PsiTreeUtil
-import java.util.Locale
 
 /**
  * Inspection for the RoomSql language that only does something when running on a PSI file that's injected into a Room query.
@@ -88,29 +85,8 @@ class RoomUnresolvedReferenceInspection : RoomQueryOnlyInspection() {
         if (!(isWellUnderstood(PsiTreeUtil.findPrevParent(referenceElement.containingFile, referenceElement)))) return
 
         val reference = referenceElement.reference ?: return
-        if (reference.resolve() == null && !isRowIdReference(reference)) {
+        if (reference.resolve() == null) {
           holder.registerProblem(reference)
-        }
-      }
-
-      /**
-       * Checks if the given reference is a column reference to the magic ROWID column.
-       *
-       * ROWID can be referenced in queries (for most tables) using multiple special names, but doesn't need to be declared. There's also
-       * little point suggesting it in code completion, so we don't insert this column into the schema, instead we just ignore references
-       * to it, which are most likely correct (edge cases will be caught by the Room query compiler).
-       *
-       * See [SQLite docs](https://sqlite.org/lang_createtable.html#rowid).
-       */
-      private fun isRowIdReference(reference: PsiReference): Boolean {
-        return if (reference is RoomColumnPsiReference) {
-          when (reference.element.nameAsString.toLowerCase(Locale.US)) {
-            "rowid", "_rowid_", "oid" -> true
-            "docid" -> true // TODO(b/120407095): do this only in FTS tables.
-            else -> false
-          }
-        } else {
-          false
         }
       }
 

@@ -130,7 +130,6 @@ public class GuiTestRule implements TestRule {
       .around(new BlockReloading())
       .around(new BazelUndeclaredOutputs())
       .around(myLeakCheck)
-      .around(new BleakLogControl())
       .around(new IdeHandling())
       .around(new NpwControl())
       .around(new ScreenshotOnFailure())

@@ -105,12 +105,10 @@ public class NewModuleTest {
       .getConfigureJavaLibaryStepFixture()
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
-      .setCreateGitIgnore(true)
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyClass.java")).isFile();
-    assertAbout(file()).that(guiTest.getProjectPath("mylib/.gitignore")).isFile();
   }
 
   @Test
@@ -140,12 +138,10 @@ public class NewModuleTest {
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
       .enterClassName("MyJavaClass")
-      .setCreateGitIgnore(false)
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyJavaClass.java")).isFile();
-    assertAbout(file()).that(guiTest.getProjectPath("mylib/.gitignore")).doesNotExist();
   }
 
   @Test

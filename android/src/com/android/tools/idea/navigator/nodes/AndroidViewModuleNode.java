@@ -13,21 +13,56 @@
 // limitations under the License.
 package com.android.tools.idea.navigator.nodes;
 
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
+import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
-import org.jetbrains.annotations.NotNull;
-
+import java.util.Collection;
 import java.util.Objects;
+import kotlin.collections.CollectionsKt;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Specialization of {@link ProjectViewModuleNode} for Android view.
  */
 public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
-  public AndroidViewModuleNode(Project project, @NotNull Module value, ViewSettings viewSettings) {
+  @NotNull protected final AndroidProjectViewPane myProjectViewPane;
+
+  public AndroidViewModuleNode(@NotNull Project project,
+                               @NotNull Module value,
+                               @NotNull AndroidProjectViewPane projectViewPane,
+                               ViewSettings viewSettings) {
     super(project, value, viewSettings);
+    myProjectViewPane = projectViewPane;
+  }
+
+  /**
+   * @return module children except of its sub-modules.
+   */
+  @NotNull
+  protected abstract Collection<AbstractTreeNode> getModuleChildren();
+
+  /**
+   * Provides access to the platform's {@link ProjectViewModuleNode#getChildren}.
+   */
+  @NotNull
+  protected final Collection<AbstractTreeNode> platformGetChildren() {
+    return super.getChildren();
+  }
+
+  /**
+   * {@inheritDoc}
+   * Final. Please override {@link #getModuleChildren()} }.
+   */
+  @NotNull
+  @Override
+  public final Collection<AbstractTreeNode> getChildren() {
+    return CollectionsKt.plus(
+      ModuleNodeUtils.createChildModuleNodes(Objects.requireNonNull(getProject()), getValue(), myProjectViewPane, getSettings()),
+      getModuleChildren());
   }
 
   @Override

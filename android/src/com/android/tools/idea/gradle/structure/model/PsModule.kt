@@ -89,7 +89,7 @@ abstract class PsModule protected constructor(
   protected abstract fun resetDependencies()
   protected abstract fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency>
 
-  fun addLibraryDependency(library: ParsedValue.Set.Parsed<String>, scopeName: String) {
+  fun addLibraryDependency(library: ParsedValue.Set.Parsed<String>, configurationName: String) {
     // Update/reset the "parsed" model.
     val compactNotation =
       library.dslText.let {
@@ -101,22 +101,22 @@ abstract class PsModule protected constructor(
         }
       }
 
-    addLibraryDependencyToParsedModel(scopeName, compactNotation)
+    addLibraryDependencyToParsedModel(configurationName, compactNotation)
 
     resetDependencies()
 
     val spec = PsArtifactDependencySpec.create(compactNotation)!!
     fireDependencyAddedEvent(
-      lazy { dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == scopeName } })
+      lazy { dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == configurationName } })
     isModified = true
   }
 
-  fun addJarFileDependency(filePath: String, scopeName: String) {
-    addJarFileDependencyToParsedModel(scopeName, filePath)
+  fun addJarFileDependency(filePath: String, configurationName: String) {
+    addJarFileDependencyToParsedModel(configurationName, filePath)
 
     resetDependencies()
 
-    fireDependencyAddedEvent(lazy { dependencies.findJarDependencies(filePath).firstOrNull { it.configurationName == scopeName } })
+    fireDependencyAddedEvent(lazy { dependencies.findJarDependencies(filePath).firstOrNull { it.configurationName == configurationName } })
     isModified = true
   }
 
@@ -124,23 +124,24 @@ abstract class PsModule protected constructor(
     dirPath: String,
     includes: Collection<String>,
     excludes: Collection<String>,
-    scopeName: String
+    configurationName: String
   ) {
-    addJarFileTreeDependencyToParsedModel(scopeName, dirPath, includes, excludes)
+    addJarFileTreeDependencyToParsedModel(configurationName, dirPath, includes, excludes)
 
     resetDependencies()
 
-    fireDependencyAddedEvent(lazy { dependencies.findJarDependencies(dirPath).firstOrNull { it.configurationName == scopeName } })
+    fireDependencyAddedEvent(lazy { dependencies.findJarDependencies(dirPath).firstOrNull { it.configurationName == configurationName } })
     isModified = true
   }
 
-  fun addModuleDependency(modulePath: String, scopeName: String) {
+  fun addModuleDependency(modulePath: String, configurationName: String) {
     // Update/reset the "parsed" model.
-    addModuleDependencyToParsedModel(scopeName, modulePath)
+    addModuleDependencyToParsedModel(configurationName, modulePath)
 
     resetDependencies()
 
-    fireDependencyAddedEvent(lazy { dependencies.findModuleDependencies(modulePath).firstOrNull { it.configurationName == scopeName } })
+    fireDependencyAddedEvent(
+      lazy { dependencies.findModuleDependencies(modulePath).firstOrNull { it.configurationName == configurationName } })
     isModified = true
   }
 
@@ -160,7 +161,7 @@ abstract class PsModule protected constructor(
     isModified = true
   }
 
-  private fun findVersionedLibraryDependenciesWithScope(
+  private fun findVersionedLibraryDependenciesWithConfiguration(
     spec: PsArtifactDependencySpec,
     configurationName: String
   ): List<PsDeclaredLibraryDependency> {
@@ -178,7 +179,7 @@ abstract class PsModule protected constructor(
 
     // Usually there should be only one item in the matchingDependencies list. However, if there are duplicate entries in the config file
     // it might differ. We update all of them.
-    val matchingDependencies = findVersionedLibraryDependenciesWithScope(spec, configurationName)
+    val matchingDependencies = findVersionedLibraryDependenciesWithConfiguration(spec, configurationName)
     for (dependency in matchingDependencies) {
       val parsedDependency = dependency.parsedModel
       assert(parsedDependency is ArtifactDependencyModel)

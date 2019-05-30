@@ -27,8 +27,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_S
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ACTIVITY;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICONS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_INSTANT_APP;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
@@ -228,7 +226,6 @@ public class TemplateTest extends AndroidGradleTestCase {
    */
   private static final Set<String> SKIPPABLE_PARAMETERS = ImmutableSet.of(
     "instantAppActivityRouteType",
-    "makeIgnore", // not exposed in UI
     "enableProGuard" // not exposed in UI
   );
 
@@ -245,6 +242,9 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static boolean ourValidatedTemplateManager;
 
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
+
+  // TODO: this is used only in TemplateTest. We should pass this value without changing template values.
+  static String ATTR_CREATE_ACTIVITY = "createActivity";
 
   public TemplateTest() {
   }
@@ -708,18 +708,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testNewNotification() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "Notification");
-  }
-
-  @TemplateCheck
-  public void testNewDayDream() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "Daydream");
-  }
-
-  @TemplateCheck
   public void testNewListFragment() throws Exception {
     myApiSensitiveTemplate = true;
     checkCreateTemplate("other", "ListFragment");
@@ -777,12 +765,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   public void testNewServiceWithKotlin() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "Service", false, withKotlin);
-  }
-
-  @TemplateCheck
-  public void testNewPlusOneFragment() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "PlusOneFragment");
   }
 
   @TemplateCheck
@@ -1092,9 +1074,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     moduleState.put(ATTR_PACKAGE_NAME, "test.pkg");
     new TemplateValueInjector(moduleState.getParameters())
       .addGradleVersions(null);
-
-    // TODO: Test the icon generator too
-    moduleState.put(ATTR_CREATE_ICONS, false);
 
     BuildToolInfo buildTool = sdkData.getLatestBuildTool();
     if (buildTool != null) {
@@ -1635,8 +1614,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       File projectRoot = new File(projectPath);
       AndroidModuleTemplate paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(projectPath, moduleName).getPaths();
       if (FileUtilRt.createDirectory(projectRoot)) {
-        if (moduleState.getBoolean(ATTR_CREATE_ICONS) && iconGenerator != null) {
-          iconGenerator.generateIconsToDisk(paths);
+        if (iconGenerator != null) {
+          // TODO test the icon generator
         }
         projectState.updateParameters();
 
@@ -1723,8 +1702,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     return null;
   }
 
-  private static void assertLintsCleanly(@NotNull Project project, @NotNull Severity maxSeverity, @NotNull Set<Issue> ignored)
-    throws Exception {
+  private static void assertLintsCleanly(@NotNull Project project, @NotNull Severity maxSeverity, @NotNull Set<Issue> ignored) {
     BuiltinIssueRegistry registry = new LintIdeIssueRegistry();
     Map<Issue, Map<File, List<ProblemData>>> map = new HashMap<>();
     LintIdeClient client = LintIdeClient.forBatch(project, map, new AnalysisScope(project), new HashSet<>(registry.getIssues()));
@@ -1795,7 +1773,7 @@ public class TemplateTest extends AndroidGradleTestCase {
    */
   private void verifyLastLoggedUsage(@NotNull AndroidStudioEvent.TemplateRenderer templateRenderer, @NotNull Map<String, Object> paramMap) {
     List<LoggedUsage> usages = myUsageTracker.getUsages();
-    assertTrue(!usages.isEmpty());
+    assertFalse(usages.isEmpty());
     // get last logged usage
     LoggedUsage usage = usages.get(usages.size() - 1);
     assertEquals(AndroidStudioEvent.EventKind.TEMPLATE_RENDER, usage.getStudioEvent().getKind());

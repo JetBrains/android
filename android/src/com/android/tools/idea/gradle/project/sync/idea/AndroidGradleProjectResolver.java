@@ -602,8 +602,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     boolean shouldGenerateSources = false;
 
     if (project != null) {
-      isSingleVariantSync = NewGradleSync.isSingleVariantSync(project);
-      shouldGenerateSources = NewGradleSync.isCompoundSync(project);
+      isSingleVariantSync = shouldOnlySyncSingleVariant(project);
+      shouldGenerateSources = shouldGenerateSources(project);
       if (isSingleVariantSync) {
         SelectedVariantCollector variantCollector = new SelectedVariantCollector(project);
         selectedVariants = variantCollector.collectSelectedVariants();
@@ -615,6 +615,16 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     options.setShouldGenerateSources(shouldGenerateSources);
     options.setSelectedVariants(selectedVariants);
     return new AndroidExtraModelProvider(options);
+  }
+
+  private static boolean shouldGenerateSources(@NotNull Project project) {
+    Boolean generateSourcesRequested = project.getUserData(IdeaGradleSync.SOURCE_GENERATION_KEY);
+    return generateSourcesRequested != null && generateSourcesRequested;
+  }
+
+  private static boolean shouldOnlySyncSingleVariant(@NotNull Project project) {
+    Boolean shouldOnlySyncSingleVariant = project.getUserData(IdeaGradleSync.SINGLE_VARIANT_KEY);
+    return shouldOnlySyncSingleVariant != null && shouldOnlySyncSingleVariant;
   }
 
   @Override

@@ -52,8 +52,6 @@ public class TemplateMetadata {
   public static final String ATTR_PARENT_ACTIVITY_CLASS = "parentActivityClass";
   public static final String ATTR_IS_LAUNCHER = "isLauncher";
   public static final String ATTR_IS_LIBRARY_MODULE = "isLibraryProject";
-  public static final String ATTR_CREATE_ICONS = "createIcons";
-  public static final String ATTR_COPY_ICONS = "copyIcons";
   public static final String ATTR_TARGET_API = "targetApi";
   public static final String ATTR_TARGET_API_STRING = "targetApiString";
   public static final String ATTR_MIN_API = "minApi";
@@ -69,7 +67,6 @@ public class TemplateMetadata {
   public static final String ATTR_APP_TITLE = "appTitle";
   public static final String ATTR_IS_NEW_PROJECT = "isNewProject";
   public static final String ATTR_THEME_EXISTS = "themeExists";
-  public static final String ATTR_IS_GRADLE = "isGradle";
   public static final String ATTR_TOP_OUT = "topOut";
   public static final String ATTR_PROJECT_OUT = "projectOut"; // Module (Project in gradle language) location
   public static final String ATTR_SRC_OUT = "srcOut";
@@ -93,7 +90,6 @@ public class TemplateMetadata {
   public static final String ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName";
   public static final String ATTR_MODULE_NAME = "projectName";
   public static final String ATTR_MODULE_SIMPLE_NAME = "projectSimpleName"; // Same as ATTR_MODULE_NAME but no spaces or other symbols
-  public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_IS_LOW_MEMORY = "isLowMemory";
   public static final String ATTR_NUM_ENABLED_FORM_FACTORS = "NumberOfEnabledFormFactors";
@@ -128,7 +124,6 @@ public class TemplateMetadata {
   public static final String ATTR_BASE_FEATURE_DIR = "baseFeatureDir";
   public static final String ATTR_BASE_FEATURE_RES_DIR = "baseFeatureResDir";
   public static final String ATTR_CLASS_NAME = "className";
-  public static final String ATTR_MAKE_IGNORE = "makeIgnore";
 
   public static final String ATTR_USE_NAV_CONTROLLER = "useNavController";
   public static final String ATTR_KOTLIN_SUPPORT = "includeKotlinSupport";

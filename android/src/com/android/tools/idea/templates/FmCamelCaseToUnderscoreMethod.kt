@@ -21,6 +21,8 @@ import freemarker.template.TemplateMethodModelEx
 import freemarker.template.TemplateModel
 import freemarker.template.TemplateModelException
 
+// TODO(qumeric): this should be removed in favor of TemplateUtils method
+
 /**
  * Method invoked by FreeMarker to convert an underscore name into a CamelCase name.
  */

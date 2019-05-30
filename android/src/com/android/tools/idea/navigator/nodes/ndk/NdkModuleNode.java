@@ -25,6 +25,7 @@ import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkVariant;
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes;
@@ -46,13 +47,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NdkModuleNode extends AndroidViewModuleNode {
-  public NdkModuleNode(@NotNull Project project, @NotNull Module value, @NotNull ViewSettings settings) {
-    super(project, value, settings);
+  public NdkModuleNode(
+    @NotNull Project project,
+    @NotNull Module value,
+    @NotNull AndroidProjectViewPane projectViewPane,
+    @NotNull ViewSettings settings) {
+    super(project, value, projectViewPane, settings);
   }
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode> getChildren() {
+  protected Collection<AbstractTreeNode> getModuleChildren() {
     Module module = getValue();
     if (module == null) {
       return Collections.emptyList();

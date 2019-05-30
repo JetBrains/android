@@ -22,7 +22,6 @@ import com.android.tools.apk.analyzer.*;
 import com.android.tools.apk.analyzer.internal.ApkArchive;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.apk.analyzer.internal.InstantAppBundleArchive;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.primitives.Longs;
@@ -41,9 +40,9 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,7 +92,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         }
         setRootNode(result);
       }
-    } , EdtExecutor.INSTANCE);
+    } , EdtExecutorService.getInstance());
 
     // kick off computation of the compressed archive, and once its available, refresh the tree
     Futures.addCallback(apkParser.updateTreeWithDownloadSizes(), new FutureCallBackAdapter<ArchiveNode>() {
@@ -106,7 +105,7 @@ public class ApkViewPanel implements TreeSelectionListener {
           .sort(result, (o1, o2) -> Longs.compare(o2.getData().getDownloadFileSize(), o1.getData().getDownloadFileSize()));
         refreshTree();
       }
-    }, EdtExecutor.INSTANCE);
+    }, EdtExecutorService.getInstance());
 
     myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
@@ -140,7 +139,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         }
         setAppInfo(result);
       }
-    }, EdtExecutor.INSTANCE);
+    }, EdtExecutorService.getInstance());
 
 
     // obtain and set the download size
@@ -161,7 +160,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                               setApkSizes(uncompressed, compressed == null ? 0 : compressed.longValue());
                             }
                           }
-                        }, EdtExecutor.INSTANCE);
+                        }, EdtExecutorService.getInstance());
 
     Futures.addCallback(Futures.allAsList(uncompressedApkSize, compressedFullApkSize, applicationInfo),
                         new FutureCallBackAdapter<List<Object>>() {

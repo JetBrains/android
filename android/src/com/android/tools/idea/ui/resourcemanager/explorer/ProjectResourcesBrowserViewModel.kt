@@ -39,6 +39,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidUtils
 import java.util.concurrent.CompletableFuture
 import kotlin.properties.Delegates
 
@@ -136,6 +137,22 @@ class ProjectResourcesBrowserViewModel(
   }
 
   /**
+   * Returns a list of local module and their resources that the current module depends on.
+   */
+  private fun getDependentModuleResources(type: ResourceType): List<ResourceSection> {
+    return AndroidUtils.getAndroidResourceDependencies(facet.module).asSequence()
+      .flatMap { dependentFacet ->
+        val moduleRepository = ResourceRepositoryManager.getModuleResources(dependentFacet)
+        moduleRepository.namespaces.asSequence()
+          .map { namespace -> moduleRepository.getResources(namespace, type).values() }
+          .filter { it.isNotEmpty() }
+          .map {
+            createResourceSection(dependentFacet.module.name, it.sortedBy(ResourceItem::getName))
+          }
+      }.toList()
+  }
+
+  /**
    * Returns a map from the library name to its resource items
    */
   private fun getLibraryResources(type: ResourceType): List<ResourceSection> {
@@ -157,6 +174,9 @@ class ProjectResourcesBrowserViewModel(
   override fun getResourcesLists(): CompletableFuture<List<ResourceSection>> = CompletableFuture.supplyAsync {
     val resourceType = resourceTypes[resourceTypeIndex]
     var resources = listOf(getModuleResources(resourceType))
+    if (filterOptions.isShowModuleDependencies) {
+      resources += getDependentModuleResources(resourceType)
+    }
     if (filterOptions.isShowLibraries) {
       resources += getLibraryResources(resourceType)
     }

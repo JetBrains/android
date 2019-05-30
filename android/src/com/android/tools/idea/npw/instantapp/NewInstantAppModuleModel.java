@@ -48,7 +48,6 @@ public final class NewInstantAppModuleModel extends WizardModel {
   @NotNull private final ProjectSyncInvoker myProjectSyncInvoker;
 
   @NotNull private final StringProperty myModuleName = new StringValueProperty("instantapp");
-  @NotNull private final BoolProperty myCreateGitIgnore = new BoolValueProperty(true);
 
   public NewInstantAppModuleModel(@NotNull Project project,
                                   @NotNull TemplateHandle templateHandle,
@@ -68,11 +67,6 @@ public final class NewInstantAppModuleModel extends WizardModel {
     return myModuleName;
   }
 
-  @NotNull
-  public BoolProperty createGitIgnore() {
-    return myCreateGitIgnore;
-  }
-
   @Override
   protected void handleFinished() {
     File moduleRoot = NewModuleModel.getModuleRoot(myProject.getBasePath(), moduleName().get());
@@ -81,7 +75,6 @@ public final class NewInstantAppModuleModel extends WizardModel {
     myTemplateValues.put(ATTR_TOP_OUT, myProject.getBasePath());
     myTemplateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
     myTemplateValues.put(ATTR_MODULE_NAME, moduleName().get());
-    myTemplateValues.put(ATTR_MAKE_IGNORE, createGitIgnore().get());
 
     TemplateValueInjector injector = new TemplateValueInjector(myTemplateValues);
     injector.addGradleVersions(myProject);

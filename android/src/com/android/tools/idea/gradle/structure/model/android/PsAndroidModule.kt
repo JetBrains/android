@@ -32,8 +32,12 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.Android
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
 import com.android.utils.combineAsCamelCase
+import com.google.common.base.CharMatcher
 import java.io.File
 import javax.swing.Icon
+
+const val DISALLOWED_MESSAGE = "['/', ':', '<', '>', '\"', '?', '*', '|']"
+val DISALLOWED_IN_NAME: CharMatcher = CharMatcher.anyOf("/\\:<>\"?*|")
 
 class PsAndroidModule(
   parent: PsProject,
@@ -167,6 +171,7 @@ class PsAndroidModule(
 
   fun validateBuildTypeName(name: String): String? = when {
     name.isEmpty() -> "Build type name cannot be empty."
+    DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Build type name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
     getOrCreateBuildTypeCollection().any { it.name == name } -> "Duplicate build type name: '$name'"
     else -> null
   }
@@ -177,6 +182,7 @@ class PsAndroidModule(
 
   fun validateFlavorDimensionName(name: String): String? = when {
     name.isEmpty() -> "Flavor dimension name cannot be empty."
+    DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Flavor dimension name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
     getOrCreateFlavorDimensionCollection().any { it.name == name } -> "Duplicate flavor dimension name: '$name'"
     else -> null
   }
@@ -188,6 +194,7 @@ class PsAndroidModule(
 
   fun validateProductFlavorName(name: String): String? = when {
     name.isEmpty() -> "Product flavor name cannot be empty."
+    DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Product flavor name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
     getOrCreateProductFlavorCollection().any { it.name == name } -> "Duplicate product flavor name: '$name'"
     else -> null
   }
@@ -200,6 +207,7 @@ class PsAndroidModule(
 
   fun validateSigningConfigName(name: String): String? = when {
     name.isEmpty() -> "Signing config name cannot be empty."
+    DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Signing config name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
     getOrCreateSigningConfigCollection().any { it.name == name } -> "Duplicate signing config name: '$name'"
     else -> null
   }

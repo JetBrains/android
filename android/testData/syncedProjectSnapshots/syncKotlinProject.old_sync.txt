@@ -1057,6 +1057,7 @@ PROJECT             : testSyncKotlinProject
             JavaSource (test)   : file://<PROJECT>/contentLib/src/test/kotlin [-]
             JavaResource (test) : file://<PROJECT>/contentLib/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/contentLib/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/contentLib/build
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>

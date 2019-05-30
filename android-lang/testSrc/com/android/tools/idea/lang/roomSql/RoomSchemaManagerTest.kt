@@ -16,9 +16,13 @@
 package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.resolution.Dao
+import com.android.tools.idea.lang.roomSql.resolution.PRIMARY_KEY_NAMES
+import com.android.tools.idea.lang.roomSql.resolution.PRIMARY_KEY_NAMES_FOR_FTS
+import com.android.tools.idea.lang.roomSql.resolution.PsiElementForFakeColumn
 import com.android.tools.idea.lang.roomSql.resolution.RoomDatabase
+import com.android.tools.idea.lang.roomSql.resolution.RoomRowidColumn
 import com.android.tools.idea.lang.roomSql.resolution.RoomFieldColumn
-import com.android.tools.idea.lang.roomSql.resolution.RoomFtsColumn
+import com.android.tools.idea.lang.roomSql.resolution.RoomFtsTableColumn
 import com.android.tools.idea.lang.roomSql.resolution.RoomSchema
 import com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager
 import com.android.tools.idea.lang.roomSql.resolution.RoomTable
@@ -30,7 +34,6 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 
 class RoomSchemaManagerTest : RoomLightTestCase() {
-
   private fun getSchema(element: PsiElement) = RoomSchemaManager.getInstance(project)!!.getSchema(element.containingFile)!!
 
   fun testEntities() {
@@ -47,8 +50,12 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
     assertThat(getSchema(psiClass)).isEqualTo(
         RoomSchema(
           tables = setOf(
-            RoomTable(myFixture.classPointer("User"), ENTITY, "User"),
-            RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address")),
+            RoomTable(myFixture.classPointer("User"), ENTITY, "User", columns = setOf(
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("User").element!!))
+            )),
+            RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address", columns = setOf(
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Address").element!!))
+            ))),
           databases = emptySet(),
           daos = emptySet()))
   }
@@ -106,7 +113,9 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
     assertThat(getSchema(addressClass)).isEqualTo(
         RoomSchema(
           tables = setOf(
-            RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address")),
+            RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address", columns = setOf(
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Address").element!!))
+            ))),
           databases = emptySet(),
           daos = emptySet()))
   }
@@ -157,7 +166,9 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
     assertThat(getSchema(addressClass)).isEqualTo(
         RoomSchema(
           tables = setOf(
-            RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address")),
+            RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address", columns = setOf(
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Address").element!!))
+            ))),
           databases = emptySet(),
           daos = emptySet()))
 
@@ -191,9 +202,15 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
     assertThat(getSchema(database)).isEqualTo(
         RoomSchema(
           tables = setOf(
-            RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address"),
-            RoomTable(myFixture.classPointer("com.example.User"), ENTITY, "User"),
-            RoomTable(myFixture.classPointer("com.example.Order"), ENTITY, "Order")),
+            RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address", columns = setOf(
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Address").element!!))
+            )),
+            RoomTable(myFixture.classPointer("com.example.User"), ENTITY, "User", columns = setOf(
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
+            )),
+            RoomTable(myFixture.classPointer("com.example.Order"), ENTITY, "Order", columns = setOf(
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Order").element!!))
+            ))),
           databases = setOf(
                 RoomDatabase(
                     myFixture.classPointer("com.example.AppDatabase"),
@@ -231,9 +248,16 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
     assertThat(getSchema(psiClass)).isEqualTo(
         RoomSchema(
           tables = setOf(
-            RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address"),
-            RoomTable(myFixture.classPointer("com.example.User"), ENTITY, "User"),
-            RoomTable(myFixture.classPointer("com.example.Order"), ENTITY, "Order")),
+            RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address", columns = setOf(
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Address").element!!))
+            )),
+            RoomTable(myFixture.classPointer("com.example.User"), ENTITY, "User", columns = setOf(
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
+            )),
+            RoomTable(myFixture.classPointer("com.example.Order"), ENTITY, "Order", columns = setOf(
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Order").element!!))
+            ))
+        ),
           databases = setOf(
                 RoomDatabase(
                     myFixture.classPointer("com.example.UserDatabase"),
@@ -251,8 +275,8 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
   fun testDaos() {
     myFixture.addRoomEntity("com.example.User")
 
-    val dao= myFixture.addClass(
-        """
+    val dao = myFixture.addClass(
+      """
         package com.example;
 
         import androidx.room.Dao;
@@ -265,12 +289,18 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         """.trimIndent())
 
     assertThat(getSchema(dao)).isEqualTo(
-        RoomSchema(
-          tables = setOf(
-            RoomTable(myFixture.classPointer("com.example.User"), ENTITY, "User")),
-          databases = emptySet(),
-          daos = setOf(
-                Dao(myFixture.classPointer("com.example.UserDao")))))
+      RoomSchema(
+        tables = setOf(
+          RoomTable(
+            myFixture.classPointer("com.example.User"),
+            ENTITY,
+            "User",
+            columns = setOf(
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
+            ))),
+        databases = emptySet(),
+        daos = setOf(
+          Dao(myFixture.classPointer("com.example.UserDao")))))
   }
 
   fun testRoomMissing() {
@@ -297,6 +327,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
               name = "User",
               type = ENTITY,
               columns = setOf(
+                RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!)),
                 RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
                 RoomFieldColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
           databases = emptySet(),
@@ -325,7 +356,12 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
                     myFixture.classPointer("com.example.User"),
                     name = "User",
                     type = ENTITY,
-                    columns = setOf(RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name"), "name")))),
+                    columns = setOf(
+                      RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
+                      RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
+                    )
+            )
+          ),
           databases = emptySet(),
           daos = emptySet()))
   }
@@ -352,7 +388,10 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
                     myFixture.classPointer("com.example.User"),
                     name = "User",
                     type = ENTITY,
-                    columns = setOf(RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name"), "name")))),
+                    columns = setOf(
+                      RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
+                      RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
+                    ))),
           databases = emptySet(),
           daos = emptySet()))
   }
@@ -389,6 +428,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
                     name = "User",
                     type = ENTITY,
                     columns = setOf(
+                      RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!)),
                       RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name", checkBases = true), "name"),
                       RoomFieldColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
           databases = emptySet(),
@@ -420,7 +460,8 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
             type = ENTITY,
             columns = setOf(
               RoomFieldColumn(myFixture.fieldPointer("com.example.Mail", "body"), "body"),
-              RoomFtsColumn(myFixture.classPointer("com.example.Mail"), "Mail")
+              RoomFtsTableColumn(myFixture.classPointer("com.example.Mail").element!!, "Mail"),
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Mail").element!!), PRIMARY_KEY_NAMES_FOR_FTS)
             )
           )),
         databases = emptySet(),

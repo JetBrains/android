@@ -21,13 +21,18 @@ import kotlin.properties.Delegates
  * Options to filter the resources shown in the resource explorer
  */
 class FilterOptions(
-  private val isShowLibrariesChanged: () -> Unit = {},
+  private val isShowResourcesChanged: () -> Unit = {},
   private val searchStringChanged: (String) -> Unit = {}) {
+
+  /**
+   * If true, the resources from the dependent modules will be shown.
+   */
+  var isShowModuleDependencies: Boolean by Delegates.observable(false) { _, old, new -> if (new != old) isShowResourcesChanged() }
 
   /**
    * If true, the resources from the dependent libraries will be shown.
    */
-  var isShowLibraries: Boolean by Delegates.observable(false) { _, old, new -> if (new != old) isShowLibrariesChanged() }
+  var isShowLibraries: Boolean by Delegates.observable(false) { _, old, new -> if (new != old) isShowResourcesChanged() }
 
   /**
    * The search string to use to filter resources

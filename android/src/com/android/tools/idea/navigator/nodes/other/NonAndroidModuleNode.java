@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.other;
 
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.ViewSettings;
@@ -34,13 +35,18 @@ import java.util.List;
 import java.util.Set;
 
 public class NonAndroidModuleNode extends AndroidViewModuleNode {
-  public NonAndroidModuleNode(@NotNull Project project, @NotNull Module value, @NotNull ViewSettings settings) {
-    super(project, value, settings);
+  public NonAndroidModuleNode(
+    @NotNull Project project,
+    @NotNull Module value,
+    @NotNull AndroidProjectViewPane projectViewPane,
+    @NotNull ViewSettings settings
+  ) {
+    super(project, value, projectViewPane, settings);
   }
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode> getChildren() {
+  protected Collection<AbstractTreeNode> getModuleChildren() {
     Module module = getModule();
     Set<NonAndroidSourceType> sourceTypes = getNonEmptySourceTypes(module);
     List<AbstractTreeNode> nodes = new ArrayList<>(sourceTypes.size());
