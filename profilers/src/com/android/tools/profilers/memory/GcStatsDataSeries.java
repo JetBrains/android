@@ -37,7 +37,7 @@ public final class GcStatsDataSeries implements DataSeries<GcDurationData> {
   }
 
   @Override
-  public List<SeriesData<GcDurationData>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<GcDurationData>> getDataForRange(@NotNull Range timeCurrentRangeUs) {
     // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()

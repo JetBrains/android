@@ -49,7 +49,7 @@ public class GcStatsDataSeriesTest {
     myService.setMemoryData(memoryData);
 
     GcStatsDataSeries series = new GcStatsDataSeries(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA);
-    List<SeriesData<GcDurationData>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
+    List<SeriesData<GcDurationData>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());
     SeriesData<GcDurationData> data1 = dataList.get(0);

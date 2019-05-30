@@ -22,5 +22,5 @@ import java.util.List;
  */
 public interface DataSeries<E> {
 
-  List<SeriesData<E>> getDataForXRange(Range xRange);
+  List<SeriesData<E>> getDataForRange(Range range);
 }

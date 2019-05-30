@@ -36,7 +36,7 @@ import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
 // TODO reinvestigate these tests because the fake service currently returns all added threads regardless of timestamps which is wrong.
-// Hence the data series returned from getDataForXRange are overcounting and do not accurately reflect the request time range.
+// Hence the data series returned from getDataForRange are overcounting and do not accurately reflect the request time range.
 class MergeCaptureDataSeriesTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer)
@@ -70,7 +70,7 @@ class MergeCaptureDataSeriesTest {
 
   @Test
   fun testGetDataNoTrace() {
-    val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
+    val stateSeries = myMergeCaptureDataSeries.getDataForRange(
       Range(
         TimeUnit.MILLISECONDS.toMicros(201).toDouble(),
         TimeUnit.MILLISECONDS.toMicros(400).toDouble()
@@ -81,7 +81,7 @@ class MergeCaptureDataSeriesTest {
 
   @Test
   fun testGetDataTrace() {
-    val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
+    val stateSeries = myMergeCaptureDataSeries.getDataForRange(
       Range(
         TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
         TimeUnit.MILLISECONDS.toMicros(400).toDouble()
@@ -95,7 +95,7 @@ class MergeCaptureDataSeriesTest {
 
   @Test
   fun testGetDataTraceStartOverlap() {
-    val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
+    val stateSeries = myMergeCaptureDataSeries.getDataForRange(
       Range(
         TimeUnit.MILLISECONDS.toMicros(50).toDouble(),
         TimeUnit.MILLISECONDS.toMicros(200).toDouble()
@@ -109,7 +109,7 @@ class MergeCaptureDataSeriesTest {
 
   @Test
   fun testGetDataTraceEndOverlap() {
-    val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
+    val stateSeries = myMergeCaptureDataSeries.getDataForRange(
       Range(
         TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
         TimeUnit.MILLISECONDS.toMicros(150).toDouble()
@@ -122,7 +122,7 @@ class MergeCaptureDataSeriesTest {
 
   @Test
   fun testGetDataTraceDataOnly() {
-    val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
+    val stateSeries = myMergeCaptureDataSeries.getDataForRange(
       Range(
         TimeUnit.MILLISECONDS.toMicros(100).toDouble(),
         TimeUnit.MILLISECONDS.toMicros(150).toDouble()
@@ -140,7 +140,7 @@ class MergeCaptureDataSeriesTest {
     val aTraceSeries = AtraceDataSeries<CpuProfilerStage.ThreadState>(atraceCpuCapture) { buildSeriesData(50, 150, 0) }
     val threadStateSeries = LegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient, ProfilersTestData.SESSION_DATA, 1, myStage.capture)
     myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(atraceCpuCapture, threadStateSeries, aTraceSeries)
-    val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
+    val stateSeries = myMergeCaptureDataSeries.getDataForRange(
       Range(
         TimeUnit.MILLISECONDS.toMicros(100).toDouble(),
         TimeUnit.MILLISECONDS.toMicros(150).toDouble()
@@ -158,7 +158,7 @@ class MergeCaptureDataSeriesTest {
     val threadStateSeries = FakeLegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient, ProfilersTestData.SESSION_DATA, 1,
                                                                myStage.capture)
     myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(atraceCpuCapture, threadStateSeries, aTraceSeries)
-    myMergeCaptureDataSeries.getDataForXRange(
+    myMergeCaptureDataSeries.getDataForRange(
       Range(
         TimeUnit.MILLISECONDS.toMicros(0).toDouble(),
         TimeUnit.MILLISECONDS.toMicros(200).toDouble()
@@ -199,9 +199,9 @@ class MergeCaptureDataSeriesTest {
                                                    capture: CpuCapture?) : LegacyCpuThreadStateDataSeries(stub, session, tid, capture) {
     val calledWithRanges = arrayListOf<Range>()
 
-    override fun getDataForXRange(xRange: Range?): MutableList<SeriesData<CpuProfilerStage.ThreadState>> {
-      calledWithRanges.add(xRange!!)
-      return super.getDataForXRange(xRange)
+    override fun getDataForRange(range: Range?): MutableList<SeriesData<CpuProfilerStage.ThreadState>> {
+      calledWithRanges.add(range!!)
+      return super.getDataForRange(range)
     }
   }
 

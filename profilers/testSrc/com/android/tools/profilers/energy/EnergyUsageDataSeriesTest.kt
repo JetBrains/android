@@ -61,7 +61,7 @@ class EnergyUsageDataSeriesTest {
   @Test
   fun testAllDataIncluded() {
     val range = Range(SECONDS.toMicros(1).toDouble(), SECONDS.toMicros(20).toDouble())
-    val dataList = dataSeries.getDataForXRange(range)
+    val dataList = dataSeries.getDataForRange(range)
     assertThat(dataList.size).isEqualTo(4)
     assertThat(dataList[0].value).isEqualTo(50)
     assertThat(dataList[1].value).isEqualTo(60)
@@ -72,7 +72,7 @@ class EnergyUsageDataSeriesTest {
   @Test
   fun testExcludedTail() {
     val range = Range(SECONDS.toMicros(15).toDouble(), SECONDS.toMicros(19).toDouble())
-    val dataList = dataSeries.getDataForXRange(range)
+    val dataList = dataSeries.getDataForRange(range)
     assertThat(dataList.size).isEqualTo(1)
     assertThat(dataList[0].x).isEqualTo(SECONDS.toMicros(15))
     assertThat(dataList[0].value).isEqualTo(70)
@@ -81,7 +81,7 @@ class EnergyUsageDataSeriesTest {
   @Test
   fun testExcludedHead() {
     val range = Range(SECONDS.toMicros(7).toDouble(), SECONDS.toMicros(10).toDouble())
-    val dataList = dataSeries.getDataForXRange(range)
+    val dataList = dataSeries.getDataForRange(range)
     assertThat(dataList.size).isEqualTo(1)
     assertThat(dataList[0].x).isEqualTo(SECONDS.toMicros(10))
     assertThat(dataList[0].value).isEqualTo(60)

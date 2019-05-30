@@ -44,8 +44,8 @@ public final class LegacyMergedEnergyEventsDataSeries implements DataSeries<Comm
   }
 
   @Override
-  public List<SeriesData<Common.Event>> getDataForXRange(Range xRange) {
-    List<SeriesData<Common.Event>> sourceData = myDelegateSeries.getDataForXRange(xRange);
+  public List<SeriesData<Common.Event>> getDataForRange(Range range) {
+    List<SeriesData<Common.Event>> sourceData = myDelegateSeries.getDataForRange(range);
     List<SeriesData<Common.Event>> destData = new ArrayList<>();
     Set<Long> activeEventGroups = new HashSet<>();
 
