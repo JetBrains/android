@@ -23,6 +23,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.sdk.MessageBuildingSdkLog;
@@ -379,7 +380,7 @@ public class AndroidCommonUtils {
     Map<String, String> home = System.getenv().containsKey(PROGUARD_HOME_ENV_VARIABLE)
                                      ? Collections.emptyMap()
                                      : Collections.singletonMap(PROGUARD_HOME_ENV_VARIABLE, proguardHome);
-    return AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(commands), home);
+    return AndroidExecutionUtil.doExecute(ArrayUtilRt.toStringArray(commands), home);
   }
 
   @NotNull
@@ -518,7 +519,7 @@ public class AndroidCommonUtils {
         result.add(child);
       }
     }
-    return result.toArray(ArrayUtil.EMPTY_FILE_ARRAY);
+    return result.toArray(ArrayUtilRt.EMPTY_FILE_ARRAY);
   }
 
   @NotNull

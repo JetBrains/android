@@ -21,6 +21,7 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -30,7 +31,6 @@ import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.util.ArrayUtil.toStringArray;
 
 public class SourceFolderNode extends PsiDirectoryNode {
   @NotNull private final File myFolderPath;
@@ -48,7 +48,7 @@ public class SourceFolderNode extends PsiDirectoryNode {
     int segmentCount = segments.size();
     if (segmentCount > 4) {
       segments = segments.subList(segmentCount - 5, segmentCount - 1);
-      pathToShow = "..." + File.separatorChar + join(toStringArray(segments));
+      pathToShow = "..." + File.separatorChar + join(ArrayUtilRt.toStringArray(segments));
     }
     myPathToShow = pathToShow;
   }

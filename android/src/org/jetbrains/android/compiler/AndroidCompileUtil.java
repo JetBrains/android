@@ -50,6 +50,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.compiler.artifact.*;
@@ -845,7 +846,7 @@ public class AndroidCompileUtil {
       }
     }
 
-    return ArrayUtil.toStringArray(result);
+    return ArrayUtilRt.toStringArray(result);
   }
 
   // support for lib<->lib and app<->lib circular dependencies

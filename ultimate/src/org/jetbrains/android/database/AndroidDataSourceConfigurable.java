@@ -22,7 +22,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBRadioButton;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
@@ -227,7 +227,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     }
     else if (!selectedDevice.equals(mySelectedDevice)) {
       loadDatabases(selectedDevice);
-      myPackageNameComboBox.setModel(new DefaultComboBoxModel<>(ArrayUtil.toStringArray(myDatabaseMap.keySet())));
+      myPackageNameComboBox.setModel(new DefaultComboBoxModel<>(ArrayUtilRt.toStringArray(myDatabaseMap.keySet())));
       updateDbCombo();
     }
     mySelectedDevice = selectedDevice;
@@ -241,7 +241,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
 
     if (myInternalStorageRadioButton.isSelected()) {
       List<String> dbList = myDatabaseMap.get(selectedPackage);
-      myDataBaseComboBox.setModel(new DefaultComboBoxModel<>(ArrayUtil.toStringArray(dbList)));
+      myDataBaseComboBox.setModel(new DefaultComboBoxModel<>(ArrayUtilRt.toStringArray(dbList)));
     }
     else {
       myDataBaseComboBox.setModel(new DefaultComboBoxModel<>(DEFAULT_EXTERNAL_DB_PATTERNS));

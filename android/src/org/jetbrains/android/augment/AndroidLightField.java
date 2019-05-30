@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.augment;
 
 import com.intellij.lang.java.JavaLanguage;
@@ -11,7 +12,7 @@ import com.intellij.psi.impl.light.LightIdentifier;
 import com.intellij.psi.impl.light.LightModifierList;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.ui.RowIcon;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NonNls;
@@ -62,7 +63,7 @@ public class AndroidLightField extends LightElement implements PsiField, PsiVari
     if (fieldModifier == FieldModifier.FINAL) {
       modifiers.add(PsiModifier.FINAL);
     }
-    myModifierList = new LightModifierList(getManager(), getLanguage(), ArrayUtil.toStringArray(modifiers));
+    myModifierList = new LightModifierList(getManager(), getLanguage(), ArrayUtilRt.toStringArray(modifiers));
   }
 
   @Override

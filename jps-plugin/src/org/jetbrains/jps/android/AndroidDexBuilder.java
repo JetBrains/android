@@ -8,7 +8,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -134,7 +134,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
           proguardCfgFilePathsList.add(file.getAbsolutePath());
         }
         proguardCfgFilePathsList.add(proguardCfgOutputFile.getPath());
-        final String[] proguardCfgFilePaths = ArrayUtil.toStringArray(proguardCfgFilePathsList);
+        final String[] proguardCfgFilePaths = ArrayUtilRt.toStringArray(proguardCfgFilePathsList);
         final String outputJarPath =
           FileUtil.toSystemDependentName(dexOutputDir.getPath() + '/' + AndroidCommonUtils.PROGUARD_OUTPUT_JAR_NAME);
 
@@ -329,7 +329,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
 
     LOG.info(AndroidCommonUtils.command2string(commandLine));
 
-    final String[] commands = ArrayUtil.toStringArray(commandLine);
+    final String[] commands = ArrayUtilRt.toStringArray(commandLine);
     final Process process;
 
     if (testingManager != null) {
@@ -475,10 +475,10 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
         providedJars.add(rootFile.getPath());
       }
     }
-    final String[] classFilesDirOsPaths = ArrayUtil.toStringArray(classesDirs);
-    final String[] libClassFilesDirOsPaths = ArrayUtil.toStringArray(libClassesDirs);
-    final String[] externalJarOsPaths = ArrayUtil.toStringArray(externalJars);
-    final String[] providedJarOsPaths = ArrayUtil.toStringArray(providedJars);
+    final String[] classFilesDirOsPaths = ArrayUtilRt.toStringArray(classesDirs);
+    final String[] libClassFilesDirOsPaths = ArrayUtilRt.toStringArray(libClassesDirs);
+    final String[] externalJarOsPaths = ArrayUtilRt.toStringArray(externalJars);
+    final String[] providedJarOsPaths = ArrayUtilRt.toStringArray(providedJars);
     final String inputJarOsPath = AndroidCommonUtils.buildTempInputJar(classFilesDirOsPaths, libClassFilesDirOsPaths);
 
     final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();

@@ -42,6 +42,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -125,7 +126,7 @@ public class ViewLoader {
     if (CLASS_RECYCLER_VIEW_ADAPTER.isEquals(className)) {
       className = RecyclerViewHelper.CN_CUSTOM_ADAPTER;
       constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
-      constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
+      constructorArgs = ArrayUtilRt.EMPTY_OBJECT_ARRAY;
     }
     return loadClass(className, constructorSignature, constructorArgs, false);
   }

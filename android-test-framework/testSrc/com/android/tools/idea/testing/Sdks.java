@@ -34,7 +34,7 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -130,7 +130,7 @@ public final class Sdks {
   }
 
   public static void allowAccessToSdk(Disposable disposable) {
-    String[] paths = JavaSdk.getInstance().suggestHomePaths().toArray(ArrayUtil.EMPTY_STRING_ARRAY);
+    String[] paths = JavaSdk.getInstance().suggestHomePaths().toArray(ArrayUtilRt.EMPTY_STRING_ARRAY);
     VfsRootAccess.allowRootAccess(disposable, paths);
   }
 }
