@@ -50,7 +50,7 @@ public class AndroidPreDexBuilder extends AndroidTargetBuilder<AndroidPreDexBuil
       return srcFile.getName();
     }
     final int hashCode = canonicalPath.hashCode();
-    return FileUtil.getNameWithoutExtension(srcFile) + "-" +
+    return FileUtilRt.getNameWithoutExtension(srcFile.getName()) + "-" +
            Integer.toHexString(hashCode) + ".jar";
   }
 
