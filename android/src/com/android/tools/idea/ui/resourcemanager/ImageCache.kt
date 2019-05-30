@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
-import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.Disposable
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.annotations.Async
@@ -103,7 +103,7 @@ class ImageCache(cacheExpirationTime: Long = 5,
                     placeholder: Image,
                     forceComputation: Boolean,
                     onImageCached: () -> Unit = {},
-                    executor: Executor = EdtExecutor.INSTANCE,
+                    executor: Executor = EdtExecutorService.getInstance(),
                     computationFutureProvider: (() -> CompletableFuture<out Image?>))
     : Image {
 

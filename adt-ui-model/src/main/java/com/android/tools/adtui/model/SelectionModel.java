@@ -194,8 +194,8 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     boolean found = false;
     ConstrainedRangeResult result = null;
     for (DurationDataModel<? extends ConfigurableDurationData> constraint : myConstraints) {
-      DataSeries<? extends ConfigurableDurationData> series = constraint.getSeries().getDataSeries();
-      List<? extends SeriesData<? extends ConfigurableDurationData>> constraints = series.getDataForXRange(proposedRange);
+      RangedSeries<? extends ConfigurableDurationData> series = constraint.getSeries();
+      List<? extends SeriesData<? extends ConfigurableDurationData>> constraints = series.getSeriesForRange(proposedRange);
       for (SeriesData<? extends ConfigurableDurationData> data : constraints) {
         long duration = data.value.getDurationUs();
         if (duration == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {

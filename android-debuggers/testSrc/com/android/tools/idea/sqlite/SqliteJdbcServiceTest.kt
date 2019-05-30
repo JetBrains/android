@@ -122,7 +122,7 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     pumpEventsAndWaitForFuture(service.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(service.readTable("Book"))
+    val resultSet = pumpEventsAndWaitForFuture(service.readTable(SqliteTable("Book", listOf())))
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
@@ -153,6 +153,99 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
   }
 
   @Throws(Exception::class)
+  fun testExecuteQuerySelectAllReturnsResultSet() {
+    // Prepare
+    val file = sqliteUtil.createTestSqliteDatabase()
+    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
+    pumpEventsAndWaitForFuture(service.openDatabase())
+
+    // Act
+    val resultSet = pumpEventsAndWaitForFuture(service.executeQuery("SELECT * FROM Book"))
+
+    // Assert
+    assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
+    assertThat(resultSet.hasColumn("title", JDBCType.VARCHAR)).isTrue()
+    assertThat(resultSet.hasColumn("isbn", JDBCType.VARCHAR)).isTrue()
+    assertThat(resultSet.hasColumn("author_id", JDBCType.INTEGER)).isTrue()
+
+    // Act
+    resultSet.rowBatchSize = 3
+    var rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
+
+    // Assert
+    assertThat(rows.count()).isEqualTo(3)
+
+    // Act
+    rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
+
+    // Assert
+    assertThat(rows.count()).isEqualTo(1)
+
+    // Act
+    rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
+
+    // Assert
+    assertThat(rows.count()).isEqualTo(0)
+
+    service.closeDatabase()
+  }
+
+  @Throws(Exception::class)
+  fun testExecuteQuerySelectColumnReturnsResultSet() {
+    // Prepare
+    val file = sqliteUtil.createTestSqliteDatabase()
+    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
+    pumpEventsAndWaitForFuture(service.openDatabase())
+
+    // Act
+    val resultSet = pumpEventsAndWaitForFuture(service.executeQuery("SELECT book_id FROM Book"))
+
+    // Assert
+    assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
+    assertThat(resultSet.hasColumn("title", JDBCType.VARCHAR)).isFalse()
+    assertThat(resultSet.hasColumn("isbn", JDBCType.VARCHAR)).isFalse()
+    assertThat(resultSet.hasColumn("author_id", JDBCType.INTEGER)).isFalse()
+
+    // Act
+    resultSet.rowBatchSize = 3
+    var rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
+
+    // Assert
+    assertThat(rows.count()).isEqualTo(3)
+
+    // Act
+    rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
+
+    // Assert
+    assertThat(rows.count()).isEqualTo(1)
+
+    // Act
+    rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
+
+    // Assert
+    assertThat(rows.count()).isEqualTo(0)
+
+    service.closeDatabase()
+  }
+
+  @Throws(Exception::class)
+  fun testExecuteUpdateDropTable() {
+    // Prepare
+    val file = sqliteUtil.createTestSqliteDatabase()
+    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
+    pumpEventsAndWaitForFuture(service.openDatabase())
+
+    // Act
+    pumpEventsAndWaitForFuture(service.executeUpdate("DROP TABLE Book"))
+    val error = pumpEventsAndWaitForFutureException(service.readTable(SqliteTable("Book", listOf())))
+
+    // Assert
+    assertThat(error).isNotNull()
+
+    service.closeDatabase()
+  }
+
+  @Throws(Exception::class)
   fun testResultSetThrowsAfterDisposed() {
     // Prepare
     val file = sqliteUtil.createTestSqliteDatabase()
@@ -160,7 +253,7 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     pumpEventsAndWaitForFuture(service.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(service.readTable("Book"))
+    val resultSet = pumpEventsAndWaitForFuture(service.readTable(SqliteTable("Book", listOf())))
     Disposer.dispose(resultSet)
     val error = pumpEventsAndWaitForFutureException(resultSet.nextRowBatch())
 
@@ -178,7 +271,7 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     pumpEventsAndWaitForFuture(service.openDatabase())
 
     // Act
-    val error = pumpEventsAndWaitForFutureException(service.readTable("IncorrectTableName"))
+    val error = pumpEventsAndWaitForFutureException(service.readTable(SqliteTable("IncorrectTableName", listOf())))
 
     // Assert
     assertThat(error).isNotNull()

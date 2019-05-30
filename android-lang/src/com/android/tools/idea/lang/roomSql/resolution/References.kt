@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.roomSql.resolution
 
+import com.android.tools.idea.lang.roomSql.NotRenamableElement
 import com.android.tools.idea.lang.roomSql.RoomAnnotations
 import com.android.tools.idea.lang.roomSql.psi.RoomBindParameter
 import com.android.tools.idea.lang.roomSql.psi.RoomColumnName
@@ -52,7 +53,22 @@ interface RoomColumnPsiReference : PsiReference {
    * that define table A and table B.
    */
   fun resolveColumn(sqlTablesInProcess: MutableSet<PsiElement>): SqlColumn?
+
   override fun getElement(): RoomNameElement
+
+  override fun resolve(): PsiElement? {
+    val realColumn = resolveColumn(HashSet()) ?: return null
+
+    return if (realColumn.name.equals(element.nameAsString, ignoreCase = true)) {
+      realColumn.resolveTo
+    } else {
+      /**
+       * Case when we found column by alternative name that user didn't define which means the reference should not be used for renaming
+       * the column e.g "rowid" or "oid" or "_rowid_" columns
+       */
+      NotRenamableElement(realColumn.resolveTo)
+    }
+  }
 }
 
 /**
@@ -61,10 +77,9 @@ interface RoomColumnPsiReference : PsiReference {
  * @see RoomFieldColumn.nameElement
  */
 class UnqualifiedColumnPsiReference(columnName: RoomColumnName) : PsiReferenceBase<RoomColumnName>(columnName), RoomColumnPsiReference {
-  override fun resolve(): PsiElement? = resolveColumn(HashSet())?.resolveTo
 
   override fun resolveColumn(sqlTablesInProcess: MutableSet<PsiElement>): SqlColumn? {
-    val processor = FindByNameProcessor<SqlColumn>(element.nameAsString)
+    val processor = FindColumnByNameProcessor(element.nameAsString)
     processSelectedSqlTables(element, AllColumnsProcessor(processor, sqlTablesInProcess))
     return processor.foundValue
   }
@@ -96,12 +111,10 @@ class QualifiedColumnPsiReference(
 
   override fun resolveColumn(sqlTablesInProcess: MutableSet<PsiElement>): SqlColumn? {
     val table = resolveTable() ?: return null
-    val processor = FindByNameProcessor<SqlColumn>(element.nameAsString)
+    val processor = FindColumnByNameProcessor(element.nameAsString)
     table.processColumns(processor, sqlTablesInProcess)
     return processor.foundValue
   }
-
-  override fun resolve(): PsiElement? = resolveColumn(HashSet())?.resolveTo
 
   override fun getVariants(): Array<Any> {
     val table = resolveTable() ?: return emptyArray()
@@ -113,9 +126,11 @@ class QualifiedColumnPsiReference(
 
 private fun buildVariants(result: Collection<SqlColumn>): Array<Any> {
   return result
+    .filter { column -> column !is RoomRowidColumn}
     .map { column ->
       LookupElementBuilder.create(column.definingElement, RoomNameElementManipulator.getValidName(column.name!!))
         .withTypeText(column.type?.typeName)
+        .withTailText(if (column.isPrimaryKey) " (integer primary key)" else null)
         // Columns that come from Java fields will most likely use camelCase, starting with a lower-case letter. By default code
         // completion is configured to only check the case of first letter (see Settings), so if the user types `isv` we will
         // suggest e.g. `isValid`. Keeping this flag set to true means that the inserted string is exactly the same as the field
@@ -139,7 +154,7 @@ class RoomSelectedTablePsiReference(
   override fun resolve(): PsiElement? = resolveSqlTable()?.resolveTo
 
   fun resolveSqlTable(): SqlTable? {
-    val processor = FindByNameProcessor<SqlTable>(element.nameAsString)
+    val processor = FindTableByNameProcessor(element.nameAsString)
     processSelectedSqlTables(element, processor)
     return processor.foundValue
   }
@@ -158,7 +173,7 @@ class RoomDefinedTablePsiReference(
   override fun resolve(): PsiElement? = resolveSqlTable()?.resolveTo
 
   fun resolveSqlTable(): SqlTable? {
-    val processor = FindByNameProcessor<SqlTable>(element.nameAsString)
+    val processor = FindTableByNameProcessor(element.nameAsString)
     processDefinedSqlTables(element, if (acceptViews) processor else IgnoreViewsProcessor(processor))
     return processor.foundValue
   }

@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.profilers.ui",
     srcs = ["src"],
     iml_files = ["intellij.android.profilers.ui.iml"],
+    lint_baseline = "lint_baseline.xml",
     test_coverage = True,
     test_data = glob(["testData/**"]),
     # do not sort: must match IML order

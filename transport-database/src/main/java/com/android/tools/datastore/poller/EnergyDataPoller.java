@@ -32,6 +32,7 @@ import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import io.grpc.StatusRuntimeException;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -189,7 +190,7 @@ public final class EnergyDataPoller extends PollRunner {
             myLogService);
         }
         catch (StatusRuntimeException e) {
-          getLog().debug(String.format("Unable to parse CPU frequency files. Retries remaining: %d", myCpuConfigRetries), e);
+          getLog().debug(String.format(Locale.US, "Unable to parse CPU frequency files. Retries remaining: %d", myCpuConfigRetries), e);
         }
       }
 

@@ -78,7 +78,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   private fun clearComponentTree() {
     val application = ApplicationManager.getApplication()
     application.invokeLater {
-      val emptyRoot = ViewNode(0, "empty", null, 0, 0, 1, 1, null, "")
+      val emptyRoot = ViewNode.EMPTY
       layoutInspector?.layoutInspectorModel?.update(emptyRoot)
     }
   }

@@ -15,20 +15,29 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.wizard;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickCancelButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.intellij.openapi.util.text.StringUtil;
+import java.util.function.Predicate;
+import javax.swing.Icon;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JRootPane;
+import javax.swing.text.JTextComponent;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
+import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.function.Predicate;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Base class for fixtures which control wizards that extend {@link com.android.tools.idea.wizard.model.WizardModel}
@@ -91,22 +100,25 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JRoot
 
   @NotNull
   public S waitUntilStepErrorMessageIsGone() {
-    waitUntilGone(robot(), target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+    waitUntilGone(robot(), target(), new GenericTypeMatcher<JTextComponent>(JTextComponent.class) {
       @Override
-      protected boolean isMatching(@NotNull JLabel label) {
-        // Note: When there are no errors, the Validation Label is kept visible (for layout reasons) and the text is set to " "
-        return "ValidationLabel".equals(label.getName()) && label.isShowing() && !label.getText().trim().isEmpty();
+      protected boolean isMatching(@NotNull JTextComponent component) {
+        // Note: When there are no errors, the ValidationText component is kept visible (for layout reasons).
+        return "ValidationText".equals(component.getName()) && component.isShowing() && !getPlainText(component).trim().isEmpty();
       }
     });
 
     return myself();
   }
 
-
   @NotNull
   public S assertStepErrorMessage(@NotNull Predicate<String> predicate) {
-    JLabel errorLabel = waitUntilShowing(robot(), target(), JLabelMatcher.withName("ValidationLabel"));
-    assertThat(predicate.test(errorLabel.getText())).isTrue();
+    JTextComponent errorText = waitUntilShowing(robot(), target(), JTextComponentMatcher.withName("ValidationText"));
+    assertThat(predicate.test(getPlainText(errorText))).isTrue();
     return myself();
+  }
+
+  private static String getPlainText(@NotNull JTextComponent textComponent) {
+    return StringUtil.removeHtmlTags(textComponent.getText());
   }
 }

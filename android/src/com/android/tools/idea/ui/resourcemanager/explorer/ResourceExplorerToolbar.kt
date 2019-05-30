@@ -187,15 +187,25 @@ private class AddAction internal constructor(val viewModel: ResourceExplorerTool
 private class FilterAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
   : PopupAction(AllIcons.General.Filter, FILTERS_BUTTON_LABEL) {
   override fun createAddPopupGroup() = DefaultActionGroup().apply {
+    add(ShowModuleDependenciesAction(viewModel))
     add(ShowDependenciesAction(viewModel))
+  }
+}
+
+private class ShowModuleDependenciesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : ToggleAction("Show local dependencies") {
+  override fun isSelected(e: AnActionEvent) = viewModel.isShowModuleDependencies
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    viewModel.isShowModuleDependencies = state
+    // TODO: Add logging
   }
 }
 
 private class ShowDependenciesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
   : ToggleAction("Show libraries") {
-  override fun isSelected(e: AnActionEvent) = viewModel.isShowDependencies
+  override fun isSelected(e: AnActionEvent) = viewModel.isShowLibraryDependencies
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    viewModel.isShowDependencies = state
+    viewModel.isShowLibraryDependencies = state
     ResourceManagerTracking.logShowLibrariesToggle(state)
   }
 }

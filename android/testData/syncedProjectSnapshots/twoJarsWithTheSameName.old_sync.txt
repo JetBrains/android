@@ -137,6 +137,7 @@ PROJECT             : My Application
             JavaSource (test)   : file://<PROJECT>/lib/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/lib/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/lib/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>

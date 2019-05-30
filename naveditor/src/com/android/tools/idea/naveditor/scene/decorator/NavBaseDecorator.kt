@@ -26,12 +26,15 @@ import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.android.tools.idea.naveditor.scene.NavColors.TEXT
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget
 import com.intellij.util.ui.JBUI
+import java.awt.BasicStroke
 import java.awt.Color
 
 @SwingCoordinate
 val REGULAR_FRAME_THICKNESS = JBUI.scale(1f)
+val REGULAR_FRAME_STROKE = BasicStroke(REGULAR_FRAME_THICKNESS)
 @SwingCoordinate
 val HIGHLIGHTED_FRAME_THICKNESS = JBUI.scale(2f)
+val HIGHLIGHTED_FRAME_STROKE = BasicStroke(HIGHLIGHTED_FRAME_THICKNESS)
 
 
 abstract class NavBaseDecorator : SceneDecorator() {

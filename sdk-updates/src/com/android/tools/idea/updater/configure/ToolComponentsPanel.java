@@ -105,9 +105,6 @@ public class ToolComponentsPanel {
       Set<DetailsTreeNode> detailsNodes = new TreeSet<>();
       for (UpdatablePackage info : versions) {
         RepoPackage representative = info.getRepresentative();
-        if (representative.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
-          continue;
-        }
         if (representative.getTypeDetails() instanceof DetailsTypes.MavenType) {
           // Maven repository in the SDK manager is deprecated. So we should not visualise it here.
           // TODO: Mark the packages as deprecated on the server side.
@@ -115,6 +112,9 @@ public class ToolComponentsPanel {
         }
 
         PackageNodeModel model = new PackageNodeModel(info);
+        if (model.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
+          continue;
+        }
         myStates.add(model);
 
         detailsNodes.add(new DetailsTreeNode(model, myModificationListener, myConfigurable));
@@ -129,16 +129,15 @@ public class ToolComponentsPanel {
       }
     }
     for (UpdatablePackage info : myToolsPackages) {
-      RepoPackage representative = info.getRepresentative();
-      if (representative.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
-        continue;
-      }
       boolean isMaven = info.getPath().endsWith(RepoPackage.PATH_SEPARATOR + MavenInstallListener.MAVEN_DIR_NAME);
       if (isMaven) {
         continue;
       }
 
       PackageNodeModel holder = new PackageNodeModel(info);
+      if (holder.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
+        continue;
+      }
       myStates.add(holder);
       UpdaterTreeNode node = new DetailsTreeNode(holder, myModificationListener, myConfigurable);
       myToolsDetailsRootNode.add(node);

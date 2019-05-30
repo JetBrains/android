@@ -29,10 +29,12 @@ public abstract class GeneratedIcon {
   @NotNull private final IconCategory category;
   @Nullable private String errorMessage;
 
-  protected GeneratedIcon(@NotNull String name, @Nullable PathString outputPath, @NotNull IconCategory category) {
+  protected GeneratedIcon(
+      @NotNull String name, @Nullable PathString outputPath, @NotNull IconCategory category, @Nullable String errorMessage) {
     this.name = name;
     this.outputPath = outputPath;
     this.category = category;
+    this.errorMessage = errorMessage;
   }
 
   /** The icon category, see {@link IconCategory}. */

@@ -19,7 +19,6 @@ import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialog
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialogViewModel
-import com.android.tools.idea.ui.resourcemanager.importer.chooseDesignAssets
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter
 import com.android.tools.idea.util.androidFacet
@@ -131,7 +130,13 @@ class ResourceExplorerToolbarViewModel(
 
   private val customImporters get() = importersProvider.importers.filter { it.hasCustomImport }
 
-  var isShowDependencies: Boolean
+  var isShowModuleDependencies: Boolean
+    get() = filterOptions.isShowModuleDependencies
+    set(value) {
+      filterOptions.isShowModuleDependencies = value
+    }
+
+  var isShowLibraryDependencies: Boolean
     get() = filterOptions.isShowLibraries
     set(value) {
       filterOptions.isShowLibraries = value
@@ -184,11 +189,9 @@ class ResourceExplorerToolbarViewModel(
 
   inner class ImportResourceAction : AnAction("Import Drawables", "Import drawable files from disk", AllIcons.Actions.Upload), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
-      chooseDesignAssets(importersProvider) {
         ResourceManagerTracking.logAssetAddedViaButton()
         ResourceImportDialog(
-          ResourceImportDialogViewModel(facet, it, importersProvider = importersProvider)).show()
-      }
+          ResourceImportDialogViewModel(facet, emptySequence(), importersProvider = importersProvider)).show()
     }
   }
 }

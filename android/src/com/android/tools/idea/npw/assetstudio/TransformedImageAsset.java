@@ -23,6 +23,7 @@ import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.util.ExceptionUtilRt;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -129,18 +130,36 @@ public final class TransformedImageAsset {
         try {
           return future.get();
         }
-        catch (InterruptedException | ExecutionException e) {
-          // Ignore to fall through to the dummy image creation.
+        catch (ExecutionException e) {
+          ExceptionUtilRt.rethrow(e.getCause());
+        }
+        catch (InterruptedException ignore) {
         }
       }
     }
 
     // Transform bitmap image.
-    BufferedImage sourceImage = getTrimmedImage();
-    if (sourceImage == null) {
-      sourceImage = AssetStudioUtils.createDummyImage();
+    BufferedImage trimmedImage = getTrimmedImage();
+    if (trimmedImage == null) {
+      return createErrorImage(imageSize);
     }
 
+    return applyScaleTintAndOpacity(imageSize, trimmedImage);
+  }
+
+  /**
+   * Creates an image that is used as placeholder in case of rendering errors.
+   *
+   * @param imageSize the size of the placeholder image
+   * @return the created image
+   */
+  @NotNull
+  public BufferedImage createErrorImage(@NotNull Dimension imageSize) {
+    return applyScaleTintAndOpacity(imageSize, AssetStudioUtils.createDummyImage());
+  }
+
+  @NotNull
+  private BufferedImage applyScaleTintAndOpacity(@NotNull Dimension imageSize, @NotNull BufferedImage sourceImage) {
     double scaleFactor = Math.min(imageSize.getWidth() * myScaleFactor / sourceImage.getWidth(),
                                   imageSize.getHeight() * myScaleFactor / sourceImage.getHeight());
     int width = roundToInt(sourceImage.getWidth() * scaleFactor);
@@ -156,7 +175,6 @@ public final class TransformedImageAsset {
     AssetUtil.drawEffects(g, scaledImage, x, y, effects);
 
     g.dispose();
-
     return outImage;
   }
 

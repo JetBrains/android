@@ -116,21 +116,6 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testCpuUsageDataSource() {
-    // When unified pipeline is disabled, we use custom CpuUsageDataSeries.
-    myServices.enableEventsPipeline(false);
-    myStage = new CpuProfilerStage(new StudioProfilers(myProfilerClient, myServices, myTimer));
-    assertThat(myStage.getCpuUsage().getCpuSeries().getDataSeries()).isInstanceOf(CpuUsageDataSeries.class);
-    assertThat(myStage.getCpuUsage().getThreadsCountSeries().getDataSeries()).isInstanceOf(LegacyCpuThreadCountDataSeries.class);
-
-    // When unified pipeline is enabled, we use UnifiedEventDataSeries.
-    myServices.enableEventsPipeline(true);
-    myStage = new CpuProfilerStage(new StudioProfilers(myProfilerClient, myServices, myTimer));
-    assertThat(myStage.getCpuUsage().getCpuSeries().getDataSeries()).isInstanceOf(UnifiedEventDataSeries.class);
-    assertThat(myStage.getCpuUsage().getThreadsCountSeries().getDataSeries()).isInstanceOf(CpuThreadCountDataSeries.class);
-  }
-
-  @Test
   public void testStartCapturing() throws InterruptedException {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 

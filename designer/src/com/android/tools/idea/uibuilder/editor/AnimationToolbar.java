@@ -15,18 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.npw.assetstudio.wizard.WrappedFlowLayout;
+import com.android.tools.adtui.stdui.CommonButton;
+import com.android.tools.adtui.ui.DesignSurfaceToolbarUI;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import icons.StudioIcons;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import javax.swing.Box;
+import javax.swing.DefaultBoundedRangeModel;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JSlider;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import javax.swing.event.ChangeListener;
-import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.ScheduledFuture;
@@ -35,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Control that provides controls for animations (play, pause, stop and frame-by-frame steps).
  */
-public class AnimationToolbar extends Box implements Disposable {
+public class AnimationToolbar extends JPanel implements Disposable {
   private static final int TICKER_STEP = 1000 / 30; // 30 FPS
   private static final Font BUTTON_FONT = UIUtil.getLabelFont(UIUtil.FontSize.MINI);
 
@@ -45,6 +55,7 @@ public class AnimationToolbar extends Box implements Disposable {
   private final JButton myStopButton;
   private final JButton myFrameFwdButton;
   private final JButton myFrameBckButton;
+  // TODO: Add speed selector button.
 
   private final long myTickStepMs;
 
@@ -75,11 +86,6 @@ public class AnimationToolbar extends Box implements Disposable {
    */
   private AnimationToolbar(@NotNull Disposable parentDisposable, @NotNull AnimationListener listener, long tickStepMs,
                            long minTimeMs, long initialMaxTimeMs) {
-    super(BoxLayout.PAGE_AXIS);
-    setBorder(JBUI.Borders.empty(0, 10));
-
-    add(Box.createVerticalGlue());
-
     Disposer.register(parentDisposable, this);
 
     myListener = listener;
@@ -88,19 +94,25 @@ public class AnimationToolbar extends Box implements Disposable {
     myMaxTimeMs = initialMaxTimeMs;
 
     Box buttonsPanel = Box.createHorizontalBox();
-    // TODO: Replace with icons
-    myPlayButton = newControlButton(">", "Play", this::onPlay);
-    myPauseButton = newControlButton("||", "Pause", this::onPause);
-    myStopButton = newControlButton("■", "Stop", this::onStop);
-    myFrameFwdButton = newControlButton(">|", "Step forward", this::onFrameFwd);
-    myFrameBckButton = newControlButton("|<", "Step backwards", this::onFrameBck);
+    myPlayButton = newControlButton(StudioIcons.LayoutEditor.Motion.PLAY, "Play", this::onPlay);
+    myPlayButton.setEnabled(true);
+    myPauseButton = newControlButton(StudioIcons.LayoutEditor.Motion.PAUSE, "Pause", this::onPause);
+    myPauseButton.setEnabled(true);
+    myStopButton = newControlButton(StudioIcons.LayoutEditor.Motion.END_CONSTRAINT, "Stop", this::onStop);
+    myFrameFwdButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_END, "Step forward", this::onFrameFwd);
+    myFrameBckButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_START, "Step backwards", this::onFrameBck);
 
-    JPanel controlBar = new JPanel(new WrappedFlowLayout());
+    JPanel controlBar = new JPanel(new FlowLayout()) {
+      @Override
+      public void updateUI() {
+        setUI(new DesignSurfaceToolbarUI());
+      }
+    };
 
-    buttonsPanel.add(myPlayButton);
-    buttonsPanel.add(myPauseButton);
     buttonsPanel.add(myStopButton);
     buttonsPanel.add(myFrameBckButton);
+    buttonsPanel.add(myPlayButton);
+    buttonsPanel.add(myPauseButton);
     buttonsPanel.add(myFrameFwdButton);
     controlBar.add(buttonsPanel);
 
@@ -110,11 +122,6 @@ public class AnimationToolbar extends Box implements Disposable {
       myTimeSliderChangeModel = null;
     }
     else {
-      JCheckBox loopControl = new JCheckBox("Loop", myLoopEnabled);
-      loopControl.setFont(BUTTON_FONT);
-      loopControl.addChangeListener(e -> myLoopEnabled = loopControl.isSelected());
-      controlBar.add(loopControl);
-
       myTimeSliderModel = new DefaultBoundedRangeModel(0, 0, 0, 100);
       myTimeSliderChangeModel = e -> {
         long newPositionMs = (long)((myMaxTimeMs - myMinTimeMs) * (myTimeSliderModel.getValue() / 100f));
@@ -127,21 +134,17 @@ public class AnimationToolbar extends Box implements Disposable {
           updateLabelUIs();
         }
       };
-      timeSlider.setBorder(JBUI.Borders.empty(5, 0));
-      timeSlider.setMajorTickSpacing(10);
-      timeSlider.setPaintTicks(true);
+      timeSlider.setOpaque(false);
+      timeSlider.setBorder(JBUI.Borders.empty());
       myTimeSliderModel.addChangeListener(myTimeSliderChangeModel);
       timeSlider.setModel(myTimeSliderModel);
-      add(timeSlider);
-      add(Box.createVerticalStrut(JBUI.scale(10)));
+      buttonsPanel.add(new JSeparator(SwingConstants.VERTICAL));
+      controlBar.add(timeSlider);
     }
 
     myFrameControl = new JSlider(-5, 5, 0);
     myFrameControl.setSnapToTicks(true);
-    controlBar.add(Box.createHorizontalStrut(JBUI.scale(50)));
-    controlBar.add(myFrameControl);
     add(controlBar);
-    add(Box.createHorizontalGlue());
 
     myFrameControl.addChangeListener(e -> {
       stopFrameTicker();
@@ -212,29 +215,15 @@ public class AnimationToolbar extends Box implements Disposable {
    * Creates a new toolbar control button
    */
   @NotNull
-  private static JButton newControlButton(@NotNull String label, @NotNull Runnable callback) {
-    JButton button = new JButton(label);
-    button.addActionListener((e) -> callback.run());
-
-    button.setBorder(JBUI.Borders.empty(15, 10));
-    button.setBorderPainted(false);
-    button.setFont(BUTTON_FONT);
-    button.setEnabled(false);
-
-    return button;
-  }
-
-  /**
-   * Creates a new toolbar control button
-   */
-  @NotNull
-  private static JButton newControlButton(@NotNull String iconText, @NotNull String label, @NotNull Runnable callback) {
-    JButton button = new JButton();
+  private static JButton newControlButton(@NotNull Icon baseIcon, @NotNull String label, @NotNull Runnable callback) {
+    JButton button = new CommonButton();
     button.setName(label);
-    button.setText(iconText);
-    button.addActionListener((e) -> callback.run());
+    button.setIcon(baseIcon);
+    button.addActionListener((e) -> {
+      callback.run();
+    });
 
-    button.setBorder(JBUI.Borders.empty(15, 10));
+    button.setMinimumSize(JBUI.size(22, 22));
     button.setBorderPainted(false);
     button.setFont(BUTTON_FONT);
     button.setEnabled(false);
@@ -246,8 +235,8 @@ public class AnimationToolbar extends Box implements Disposable {
    * Set the enabled state of all the toolbar controls
    */
   private void setEnabledState(boolean play, boolean pause, boolean stop, boolean frame) {
-    myPlayButton.setEnabled(play);
-    myPauseButton.setEnabled(pause);
+    myPlayButton.setVisible(play);
+    myPauseButton.setVisible(pause);
     myStopButton.setEnabled(stop);
     myFrameFwdButton.setEnabled(frame);
     myFrameBckButton.setEnabled(frame);

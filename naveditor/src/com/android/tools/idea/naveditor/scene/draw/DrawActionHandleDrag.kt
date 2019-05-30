@@ -17,16 +17,17 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.common.primaryPanelBackground
-import com.android.tools.idea.common.scene.LerpFloat
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.TARGET_LEVEL
-import com.android.tools.idea.common.scene.draw.DrawFilledCircle
+import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.point2DToString
 import com.android.tools.idea.common.scene.draw.stringToPoint2D
 import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
+import com.android.tools.idea.naveditor.scene.makeCircle
+import com.android.tools.idea.naveditor.scene.makeCircleLerp
 import java.awt.geom.Point2D
 
 data class DrawActionHandleDrag(@SwingCoordinate private val center: Point2D.Float,
@@ -43,9 +44,8 @@ data class DrawActionHandleDrag(@SwingCoordinate private val center: Point2D.Flo
                                          innerRadius, duration)
 
   override fun buildCommands(): List<DrawCommand> {
-    val outerCircle = DrawFilledCircle(0, center, primaryPanelBackground, LerpFloat(initialOuterRadius, finalOuterRadius, duration))
-    val innerCircle = DrawFilledCircle(1, center, SELECTED, innerRadius)
-    val lineToMouse = DrawLineToMouse(center)
-    return listOf(outerCircle, innerCircle, lineToMouse)
+    val outerCircle = makeCircleLerp(center, initialOuterRadius, finalOuterRadius, duration)
+    val innerCircle = makeCircle(center, innerRadius)
+    return listOf(FillShape(outerCircle, primaryPanelBackground), FillShape(innerCircle, SELECTED), DrawLineToMouse(center))
   }
 }

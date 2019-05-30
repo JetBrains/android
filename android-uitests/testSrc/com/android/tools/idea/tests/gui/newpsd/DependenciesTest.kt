@@ -284,7 +284,7 @@ class DependenciesTest {
           selectModule("app")
         }
         findDependenciesPanel().run {
-          assertThat(items()).contains("mylibrary")
+          assertThat(findDependenciesTable().contents().map { it[0] }).contains("mylibrary")
         }
       }
       clickCancel()

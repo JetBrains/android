@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlAttributesHolder
@@ -59,8 +60,8 @@ class LayoutPlaceholder(host: SceneComponent) : Placeholder(host) {
   }
 
   override fun snap(info: SnappingInfo, retPoint: Point): Boolean {
-    // Only allow to add component when there is no root View.
-    if (host.nlComponent.childCount == 0) {
+    // Only allow to add component when there is no root View. Having only <data> tag is acceptable since it is not a View.
+    if (!(host.nlComponent.children.any { it.tagName != SdkConstants.TAG_DATA })) {
       if (region.contains(info.centerX, info.centerY)) {
         retPoint.x = info.left
         retPoint.y = info.top

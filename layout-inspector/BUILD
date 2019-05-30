@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.layout-inspector",
     srcs = ["src"],
     iml_files = ["intellij.android.layout-inspector.iml"],
+    lint_baseline = "lint_baseline.xml",
     test_coverage = True,
     test_data = [
         "//tools/adt/idea/layout-inspector/testData",

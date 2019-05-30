@@ -161,7 +161,7 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
     }
 
 @Suppress("DEPRECATION")
-private fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
+fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
     when (this) {
       SyncIssue.TYPE_PLUGIN_OBSOLETE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_PLUGIN_OBSOLETE
       SyncIssue.TYPE_UNRESOLVED_DEPENDENCY -> AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY
@@ -202,7 +202,9 @@ private fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType?
       SyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD -> AndroidStudioEvent.GradleSyncIssueType.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
       SyncIssue.TYPE_SIGNING_CONFIG_DECLARED_IN_DYNAMIC_FEATURE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_SIGNING_CONFIG_DECLARED_IN_DYNAMIC_FEATURE
       SyncIssue.TYPE_SDK_NOT_SET -> AndroidStudioEvent.GradleSyncIssueType.TYPE_SDK_NOT_SET
+      SyncIssue.TYPE_AMBIGUOUS_BUILD_TYPE_DEFAULT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AMBIGUOUS_BUILD_TYPE_DEFAULT
+      SyncIssue.TYPE_AMBIGUOUS_PRODUCT_FLAVOR_DEFAULT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AMBIGUOUS_PRODUCT_FLAVOR_DEFAULT
+      SyncIssue.TYPE_COMPILE_SDK_VERSION_NOT_SET -> AndroidStudioEvent.GradleSyncIssueType.TYPE_COMPILE_SDK_VERSION_NOT_SET
       else -> null.also { LOG.warn("Unknown sync issue type: $this") }
     }
-
 
