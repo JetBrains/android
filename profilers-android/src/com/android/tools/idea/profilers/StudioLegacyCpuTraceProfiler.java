@@ -96,15 +96,21 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
     String appPkgName = myDevice.getClientName(pid);
     Client client = appPkgName != null ? myDevice.getClient(appPkgName) : null;
     if (client == null) {
-      return responseBuilder.setStatus(CpuProfilingAppStartResponse.Status.FAILURE)
-        .setErrorMessage("App is not running.").build();
+      Cpu.TraceStartStatus status = Cpu.TraceStartStatus.newBuilder()
+        .setStatus(Cpu.TraceStartStatus.Status.FAILURE)
+        .setErrorMessage("App is not running")
+        .build();
+      return responseBuilder.setStatus(status).build();
     }
 
     synchronized (myLegacyProfilingLock) {
       LegacyProfilingRecord record = myLegacyProfilingRecord.get(pid);
       if (record != null && client.getClientData().getMethodProfilingStatus() != ClientData.MethodProfilingStatus.OFF) {
-        return responseBuilder.setStatus(CpuProfilingAppStartResponse.Status.FAILURE)
-          .setErrorMessage("Start request ignored. The app has an on-going profiling session.").build();
+        Cpu.TraceStartStatus status = Cpu.TraceStartStatus.newBuilder()
+          .setStatus(Cpu.TraceStartStatus.Status.FAILURE)
+          .setErrorMessage("Start request ignored. The app has an on-going profiling session.")
+          .build();
+        return responseBuilder.setStatus(status).build();
       }
 
       // com.android.ddmlib.HandleProfiling.sendSPSS(..) has buffer size as a parameter, but we cannot call it
@@ -132,7 +138,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
           myLegacyProfilingRecord.remove(pid);
         }
         else {
-          responseBuilder.setStatus(CpuProfilingAppStartResponse.Status.SUCCESS);
+          responseBuilder.setStatus(Cpu.TraceStartStatus.newBuilder().setStatus(Cpu.TraceStartStatus.Status.SUCCESS).build());
 
           // Create a corresponding CpuTraceInfo for the trace start event.
           Cpu.CpuTraceInfo.Builder infoBuilder = Cpu.CpuTraceInfo.newBuilder()
@@ -145,8 +151,11 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
         }
       }
       catch (IOException | InterruptedException e) {
-        responseBuilder.setStatus(CpuProfilingAppStartResponse.Status.FAILURE);
-        responseBuilder.setErrorMessage("Failed: " + e);
+        Cpu.TraceStartStatus status = Cpu.TraceStartStatus.newBuilder()
+          .setStatus(Cpu.TraceStartStatus.Status.FAILURE)
+          .setErrorMessage("Failed: " + e)
+          .build();
+        responseBuilder.setStatus(status);
         getLogger().error("Exception while CpuServiceProxy startProfilingAppDdms: " + e);
       }
     }
@@ -169,13 +178,20 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
     synchronized (myLegacyProfilingLock) {
       if (client == null) {
         myLegacyProfilingRecord.remove(pid);   // Remove the entry if there exists one.
-        responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.APP_PROCESS_DIED).setErrorMessage("App is not running.").build();
+        Cpu.TraceStopStatus status = Cpu.TraceStopStatus.newBuilder()
+          .setStatus(Cpu.TraceStopStatus.Status.APP_PROCESS_DIED)
+          .setErrorMessage("App is not running.")
+          .build();
+        responseBuilder.setStatus(status).build();
       }
       else {
         LegacyProfilingRecord record = myLegacyProfilingRecord.get(pid);
         if (isMethodProfilingStatusOff(record, client)) {
-          responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.NO_ONGOING_PROFILING)
-            .setErrorMessage("The app is not being profiled.").build();
+          Cpu.TraceStopStatus status = Cpu.TraceStopStatus.newBuilder()
+            .setStatus(Cpu.TraceStopStatus.Status.NO_ONGOING_PROFILING)
+            .setErrorMessage("The app is not being profiled.")
+            .build();
+          responseBuilder.setStatus(status);
         }
         else {
           record.setStopResponseBuilder(responseBuilder);
@@ -190,8 +206,11 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
             record.myStopLatch.await();
           }
           catch (IOException | InterruptedException e) {
-            responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.STOP_COMMAND_FAILED);
-            responseBuilder.setErrorMessage("Failed: " + e);
+            Cpu.TraceStopStatus status = Cpu.TraceStopStatus.newBuilder()
+              .setStatus(Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED)
+              .setErrorMessage("Failed: " + e)
+              .build();
+            responseBuilder.setStatus(status);
             getLogger().error("Exception while CpuServiceProxy stopProfilingApp: " + e);
           }
         }
@@ -256,9 +275,11 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
         assert stopResponseBuilder != null;
         // Devices older than API 10 don't return profile results via JDWP. Instead they save the results on the
         // sdcard. We don't support this.
-        stopResponseBuilder.setStatus(CpuProfilingAppStopResponse.Status.CANNOT_COPY_FILE);
-        stopResponseBuilder.setErrorMessage(
-          "Method profiling: Older devices (API level < 10) are not supported. Please use DDMS.");
+        Cpu.TraceStopStatus status = Cpu.TraceStopStatus.newBuilder()
+          .setStatus(Cpu.TraceStopStatus.Status.CANNOT_COPY_FILE)
+          .setErrorMessage("Method profiling: Older devices (API level < 10) are not supported. Please use DDMS.")
+          .build();
+        stopResponseBuilder.setStatus(status);
         record.myStopLatch.countDown();
       }
     }
@@ -269,7 +290,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       if (record != null) {
         CpuProfilingAppStopResponse.Builder stopResponseBuilder = record.getStopResponseBuilder();
         assert stopResponseBuilder != null;
-        stopResponseBuilder.setStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
+        stopResponseBuilder.setStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.SUCCESS).build());
         stopResponseBuilder.setTraceId(record.myStartRequestTimestamp);
 
         myProxyBytesCache.put(Long.toString(record.myStartRequestTimestamp), ByteString.copyFrom(data));
@@ -304,14 +325,20 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       if (record != null) {
         CpuProfilingAppStopResponse.Builder stopResponseBuilder = record.getStopResponseBuilder();
         if (stopResponseBuilder != null) {
-          stopResponseBuilder.setStatus(CpuProfilingAppStopResponse.Status.STOP_COMMAND_FAILED);
-          stopResponseBuilder.setErrorMessage("Failed to stop profiling: " + message);
+          Cpu.TraceStopStatus status = Cpu.TraceStopStatus.newBuilder()
+            .setStatus(Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED)
+            .setErrorMessage("Failed to stop profiling: " + message)
+            .build();
+          stopResponseBuilder.setStatus(status);
           record.myStopLatch.countDown();
         }
         else {
           record.myStartFailed = true;
-          record.myStartResponseBuilder.setStatus(CpuProfilingAppStartResponse.Status.FAILURE);
-          record.myStartResponseBuilder.setErrorMessage("Failed to start profiling: " + message);
+          Cpu.TraceStartStatus status = Cpu.TraceStartStatus.newBuilder()
+            .setStatus(Cpu.TraceStartStatus.Status.FAILURE)
+            .setErrorMessage("Failed to start profiling: " + message)
+            .build();
+          record.myStartResponseBuilder.setStatus(status);
           record.myStartLatch.countDown();
         }
       }

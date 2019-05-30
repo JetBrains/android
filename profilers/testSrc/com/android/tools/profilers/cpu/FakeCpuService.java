@@ -37,9 +37,9 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   public static final long FAKE_TRACE_ID = 6L;
 
-  private CpuProfiler.CpuProfilingAppStartResponse.Status myStartProfilingStatus = CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS;
+  private Cpu.TraceStartStatus.Status myStartProfilingStatus = Cpu.TraceStartStatus.Status.SUCCESS;
 
-  private CpuProfiler.CpuProfilingAppStopResponse.Status myStopProfilingStatus = CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS;
+  private Cpu.TraceStopStatus.Status myStopProfilingStatus = Cpu.TraceStopStatus.Status.SUCCESS;
 
   private Common.Session mySession;
 
@@ -67,14 +67,16 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
                                 StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> responseObserver) {
     CpuProfiler.CpuProfilingAppStartResponse.Builder response = CpuProfiler.CpuProfilingAppStartResponse.newBuilder();
-    response.setStatus(myStartProfilingStatus);
-    if (!myStartProfilingStatus.equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
-      response.setErrorMessage("StartProfilingApp error");
+    Cpu.TraceStartStatus.Builder status = Cpu.TraceStartStatus.newBuilder();
+    status.setStatus(myStartProfilingStatus);
+    if (!myStartProfilingStatus.equals(Cpu.TraceStartStatus.Status.SUCCESS)) {
+      status.setErrorMessage("StartProfilingApp error");
     } else {
       myProfilerType = request.getConfiguration().getUserOptions().getTraceType();
     }
     myStartStopCapturingSession = request.getSession();
 
+    response.setStatus(status.build());
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
@@ -83,13 +85,15 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   public void stopProfilingApp(CpuProfiler.CpuProfilingAppStopRequest request,
                                StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> responseObserver) {
     CpuProfiler.CpuProfilingAppStopResponse.Builder response = CpuProfiler.CpuProfilingAppStopResponse.newBuilder();
-    response.setStatus(myStopProfilingStatus);
+    Cpu.TraceStopStatus.Builder status = Cpu.TraceStopStatus.newBuilder();
+    status.setStatus(myStopProfilingStatus);
     response.setTraceId(myTraceId);
-    if (!myStopProfilingStatus.equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
-      response.setErrorMessage("StopProfilingApp error");
+    if (!myStopProfilingStatus.equals(Cpu.TraceStopStatus.Status.SUCCESS)) {
+      status.setErrorMessage("StopProfilingApp error");
     }
     myStartStopCapturingSession = request.getSession();
 
+    response.setStatus(status.build());
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
@@ -106,11 +110,11 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     myTraceId = id;
   }
 
-  public void setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status status) {
+  public void setStartProfilingStatus(Cpu.TraceStartStatus.Status status) {
     myStartProfilingStatus = status;
   }
 
-  public void setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status status) {
+  public void setStopProfilingStatus(Cpu.TraceStopStatus.Status status) {
     myStopProfilingStatus = status;
   }
 
