@@ -98,6 +98,10 @@ internal class SampleDataListener(project: Project) : PoliteAndroidVirtualFileLi
     reposToInvalidate.remove(path)?.invalidateBecauseOf(path)
   }
 
+  // We don't need to respond to VirtualFile content changes, as these will
+  // have already been picked up by the PsiTreeChangeListener methods.
+  override fun contentsChanged(event: VirtualFileEvent) {}
+
   private fun psiFileChanged(event: PsiTreeChangeEvent) {
     event.file?.virtualFile?.let { possiblyIrrelevantFileChanged(it) }
   }
