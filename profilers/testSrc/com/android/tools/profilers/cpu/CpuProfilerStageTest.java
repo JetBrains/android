@@ -1105,7 +1105,7 @@ public class CpuProfilerStageTest extends AspectObserver {
                                                                Cpu.CpuTraceMode.SAMPLED);
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
-    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    myCpuService.setStopProfilingStatus(Cpu.TraceStopStatus.Status.SUCCESS);
     ByteString largeTraceFile = ByteString.copyFrom(new byte[CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1]);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     myServices.setShouldParseLongTraces(false);

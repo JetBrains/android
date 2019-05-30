@@ -74,8 +74,8 @@ class StudioLegacyCpuTraceProfilerTest {
                                                                     .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
                                                                                       .setTraceType(Cpu.CpuTraceType.ART)))
                                                 .build())
-    assertThat(response.errorMessage).isNotEmpty()
-    assertThat(response.status).isEqualTo(CpuProfiler.CpuProfilingAppStartResponse.Status.FAILURE)
+    assertThat(response.status.errorMessage).isNotEmpty()
+    assertThat(response.status.status).isEqualTo(Cpu.TraceStartStatus.Status.FAILURE)
   }
 
   @Test
@@ -124,18 +124,18 @@ class StudioLegacyCpuTraceProfilerTest {
       .build()
     assertThat(profiler.getTraceInfo(traceInfoRequest)).isEmpty()
 
-    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)
+    myCpuService.setStartProfilingStatus(Cpu.TraceStartStatus.Status.SUCCESS)
     val startResponse = profiler.startProfilingApp(startRequest)
-    assertThat(startResponse.status).isEqualTo(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)
+    assertThat(startResponse.status.status).isEqualTo(Cpu.TraceStartStatus.Status.SUCCESS)
     assertThat(myCpuService.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
     assertThat(myCpuService.startStopCapturingSession).isEqualTo(session.build())
 
     // Check the state of the StudioLegacyCpuTraceProfiler
     myTimer.currentTimeNs = 150L
-    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)
+    myCpuService.setStopProfilingStatus(Cpu.TraceStopStatus.Status.SUCCESS)
     val stopResponse = profiler.stopProfilingApp(stopRequest)
     assertThat(stopResponse.traceId).isEqualTo(FakeCpuService.FAKE_TRACE_ID)
-    assertThat(stopResponse.status).isEqualTo(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)
+    assertThat(stopResponse.status.status).isEqualTo(Cpu.TraceStopStatus.Status.SUCCESS)
   }
 
   private fun createMockDevice(deviceName: String?): IDevice {

@@ -479,7 +479,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private void startCapturingCallback(CpuProfilingAppStartResponse response,
                                       ProfilingConfiguration profilingConfiguration) {
-    if (response.getStatus().equals(CpuProfilingAppStartResponse.Status.SUCCESS)) {
+    Cpu.TraceStartStatus status = response.getStatus();
+    if (status.getStatus().equals(Cpu.TraceStartStatus.Status.SUCCESS)) {
       myProfilerConfigModel.setProfilingConfiguration(profilingConfiguration);
       setCaptureState(CaptureState.CAPTURING);
       myCaptureStartTimeNs = currentTimeNs();
@@ -487,8 +488,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       getStudioProfilers().getTimeline().setStreaming(true);
     }
     else {
-      getLogger().warn("Unable to start tracing: " + response.getStatus());
-      getLogger().warn(response.getErrorMessage());
+      getLogger().warn("Unable to start tracing: " + status.getStatus());
+      getLogger().warn(status.getErrorMessage());
       getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.CAPTURE_START_FAILURE);
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
@@ -546,19 +547,20 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   private void stopCapturingCallback(CpuProfilingAppStopResponse response) {
+    Cpu.TraceStopStatus status = response.getStatus();
     CpuCaptureMetadata captureMetadata = new CpuCaptureMetadata(myProfilerConfigModel.getProfilingConfiguration());
     long estimateDurationMs = TimeUnit.NANOSECONDS.toMillis(currentTimeNs() - myCaptureStartTimeNs);
     // Set the estimate duration of the capture, i.e. the time difference between device time when user clicked start and stop.
     // If the capture is successful, it will be overridden by a more accurate time, calculated from the capture itself.
     captureMetadata.setCaptureDurationMs(estimateDurationMs);
-    if (!response.getStatus().equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
-      getLogger().warn("Unable to stop tracing: " + response.getStatus());
-      getLogger().warn(response.getErrorMessage());
+    if (!status.getStatus().equals(Cpu.TraceStopStatus.Status.SUCCESS)) {
+      getLogger().warn("Unable to stop tracing: " + status.getStatus());
+      getLogger().warn(status.getErrorMessage());
       getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.CAPTURE_STOP_FAILURE);
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
       setCapture(null);
-      captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.fromStopStatus(response.getStatus()));
+      captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.fromStopStatus(status.getStatus()));
       getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
     }
     else {
