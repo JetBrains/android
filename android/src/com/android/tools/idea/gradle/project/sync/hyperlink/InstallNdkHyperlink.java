@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.SelectNdkDialog;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -42,7 +41,6 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -117,7 +115,9 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
           if (dialog != null && dialog.showAndGet()) {
             LocalPackage highestLocalNdk = IdeSdks.getInstance().getHighestLocalNdkPackage(false);
             if (highestLocalNdk != null) {
-              new FixNdkVersionProcessor(project, buildFiles, highestLocalNdk.getVersion().toString()).run();
+              ApplicationManager.getApplication().invokeLater(() -> {
+                new FixNdkVersionProcessor(project, buildFiles, highestLocalNdk.getVersion().toString()).run();
+              });
             } else {
               GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_NDK_INSTALLED);
             }
