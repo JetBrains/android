@@ -14,7 +14,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileFilters;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -1511,7 +1511,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
              ? new Object[]{runProGuard, p.getProGuardCfgFiles()}
              : new Object[]{runProGuard};
     }
-    return ArrayUtil.EMPTY_OBJECT_ARRAY;
+    return ArrayUtilRt.EMPTY_OBJECT_ARRAY;
   }
 
   @NotNull

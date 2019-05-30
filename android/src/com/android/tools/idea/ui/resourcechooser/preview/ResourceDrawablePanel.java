@@ -34,7 +34,7 @@ import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -88,7 +88,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
     myItem = item;
     List<String> qualifiers = item.getQualifiers();
     //noinspection unchecked
-    myQualifierCombo.setModel(new DefaultComboBoxModel(ArrayUtil.toStringArray(qualifiers)));
+    myQualifierCombo.setModel(new DefaultComboBoxModel(ArrayUtilRt.toStringArray(qualifiers)));
 
     // Select the current item's qualifiers!
     //noinspection UnnecessaryLocalVariable
