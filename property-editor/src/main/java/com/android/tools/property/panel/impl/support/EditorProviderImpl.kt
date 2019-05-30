@@ -86,7 +86,7 @@ class EditorProviderImpl<in P : PropertyItem>(
     return Pair(model, addActionButtonBinding(model, comboBox))
   }
 
-  private fun addActionButtonBinding(model: PropertyEditorModel, editor: JComponent): JComponent {
+  private fun addActionButtonBinding(model: BasePropertyEditorModel, editor: JComponent): JComponent {
     return if (model.property.browseButton == null) editor else ActionButtonBinding(model, editor)
   }
 }
