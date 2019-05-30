@@ -36,7 +36,8 @@ class SubqueryTable(private val selectStmt: RoomSelectStatement) : SqlTable {
       columns@ for (resultColumn in resultColumns) {
         when {
           resultColumn.expression != null -> { // Try to process by [RoomExpression] e.g. "SELECT id FROM ..."; "SELECT id * 2 FROM ...".
-            if (!processor.process(resultColumn.column)) return false
+            val sqlColumn = resultColumn.column
+            if (sqlColumn != null && !processor.process(sqlColumn)) return false
           }
           resultColumn.selectedTableName != null -> { // "SELECT user.* FROM ..."
             val sqlTable = resultColumn.selectedTableName?.reference?.resolveSqlTable() ?: continue@columns

@@ -94,10 +94,8 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   private final AnAction myRunOnMultipleDevicesAction;
   private final AnAction myOpenAvdManagerAction;
-
   private final Clock myClock;
 
-  private List<Device> myDevices;
   private String mySelectedSnapshot;
 
   @SuppressWarnings("unused")
@@ -110,11 +108,11 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @VisibleForTesting
-  DeviceAndSnapshotComboBoxAction(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
-                                  @NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled,
-                                  @NotNull Function<Project, AsyncDevicesGetter> devicesGetterGetter,
-                                  @NotNull Function<Project, PropertiesComponent> getProperties,
-                                  @NotNull Clock clock) {
+  public DeviceAndSnapshotComboBoxAction(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
+                                         @NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled,
+                                         @NotNull Function<Project, AsyncDevicesGetter> devicesGetterGetter,
+                                         @NotNull Function<Project, PropertiesComponent> getProperties,
+                                         @NotNull Clock clock) {
     mySelectDeviceSnapshotComboBoxVisible = selectDeviceSnapshotComboBoxVisible;
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
 
@@ -130,8 +128,6 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     presentation.setText("Open AVD Manager");
 
     myClock = clock;
-
-    myDevices = Collections.emptyList();
   }
 
   boolean areSnapshotsEnabled() {
@@ -151,26 +147,27 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @NotNull
-  @VisibleForTesting
-  public List<Device> getDevices() {
-    return myDevices;
+  private List<Device> getDevices(@NotNull Project project) {
+    return myDevicesGetterGetter.apply(project).get();
   }
 
   @Nullable
   final Device getSelectedDevice(@NotNull Project project) {
-    if (myDevices.isEmpty()) {
+    List<Device> devices = getDevices(project);
+
+    if (devices.isEmpty()) {
       return null;
     }
 
     PropertiesComponent properties = myGetProperties.apply(project);
     Object key = properties.getValue(SELECTED_DEVICE);
 
-    Optional<Device> optionalSelectedDevice = myDevices.stream()
+    Optional<Device> optionalSelectedDevice = devices.stream()
       .filter(device -> device.getKey().equals(key))
       .findFirst();
 
     if (!optionalSelectedDevice.isPresent()) {
-      return myDevices.get(0);
+      return devices.get(0);
     }
 
     Device selectedDevice = optionalSelectedDevice.get();
@@ -179,7 +176,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return selectedDevice;
     }
 
-    Optional<Device> optionalConnectedDevice = myDevices.stream()
+    Optional<Device> optionalConnectedDevice = devices.stream()
       .filter(Device::isConnected)
       .findFirst();
 
@@ -326,7 +323,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   private Collection<AnAction> newSelectDeviceAndSnapshotActions(@NotNull Project project) {
-    Map<Boolean, List<Device>> connectednessToDeviceMap = myDevices.stream().collect(Collectors.groupingBy(Device::isConnected));
+    Map<Boolean, List<Device>> connectednessToDeviceMap = getDevices(project).stream().collect(Collectors.groupingBy(Device::isConnected));
 
     Collection<Device> connectedDevices = connectednessToDeviceMap.getOrDefault(true, Collections.emptyList());
     Collection<Device> disconnectedDevices = connectednessToDeviceMap.getOrDefault(false, Collections.emptyList());
@@ -402,10 +399,10 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     presentation.setVisible(true);
     updatePresentation(presentation, RunManager.getInstance(project).getSelectedConfiguration());
 
-    myDevices = myDevicesGetterGetter.apply(project).get();
-    myDevices.sort(new DeviceComparator());
+    List<Device> devices = getDevices(project);
+    devices.sort(new DeviceComparator());
 
-    if (myDevices.isEmpty()) {
+    if (devices.isEmpty()) {
       presentation.setIcon(null);
       presentation.setText("No devices");
 
@@ -419,7 +416,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     presentation.setIcon(device.getIcon());
 
-    String name = Devices.getName(device, myDevices);
+    String name = Devices.getName(device, devices);
     presentation.setText(mySelectedSnapshot == null ? name : name + " - " + mySelectedSnapshot, false);
 
     updateExecutionTargetManager(project, device);

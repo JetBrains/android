@@ -372,7 +372,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       myHelper.execute(myRequest.getBuildFilePath().getPath(), executionSettings, executeTasksFunction);
     }
     catch (ExternalSystemException e) {
-      if (e.getOriginalReason().startsWith("com.intellij.openapi.progress.ProcessCanceledException: java.lang.Throwable")) {
+      if (e.getOriginalReason().startsWith("com.intellij.openapi.progress.ProcessCanceledException")) {
         getLogger().info("Gradle execution cancelled.", e);
       }
       else {

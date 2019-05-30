@@ -28,6 +28,7 @@ import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
+import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Stopwatch;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
@@ -121,7 +122,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
       }
       catch (DeployerException e) {
         logger.warning("%s failed: %s %s", getDescription(), e.getMessage(), e.getDetails());
-        return toLaunchResult(executor, e);
+        return toLaunchResult(executor, e, printer);
       }
     }
 
@@ -192,7 +193,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return mySubTaskDetails;
   }
 
-  public LaunchResult toLaunchResult(@NotNull Executor executor, @NotNull DeployerException e) {
+  public LaunchResult toLaunchResult(@NotNull Executor executor, @NotNull DeployerException e, @NotNull ConsolePrinter printer) {
     LaunchResult result = new LaunchResult();
     result.setSuccess(false);
 
@@ -214,12 +215,12 @@ public abstract class AbstractDeployTask implements LaunchTask {
     result.setConsoleError(getFailureTitle() + "\n" + e.getMessage() + "\n" + e.getDetails());
     result.setErrorId(e.getId());
 
-    DeploymentHyperlinkInfo hyperlinkInfo = new DeploymentHyperlinkInfo(executor, error.getResolution());
+    DeploymentHyperlinkInfo hyperlinkInfo = new DeploymentHyperlinkInfo(executor, error.getResolution(), printer);
     result.setConsoleHyperlink(error.getCallToAction(), hyperlinkInfo);
     result.setNotificationListener(new DeploymentErrorNotificationListener(error.getResolution(),
                                                                            hyperlinkInfo));
     if (myFallback) {
-      ApplicationManager.getApplication().invokeLater(() -> hyperlinkInfo.navigate(myProject));
+      result.addOnFinishedCallback(() -> hyperlinkInfo.navigate(myProject));
     }
     return result;
   }
@@ -248,8 +249,11 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
   private class DeploymentHyperlinkInfo implements HyperlinkInfo {
     private final @Nullable String myActionId;
+    @NotNull
+    private final ConsolePrinter myPrinter;
 
-    public DeploymentHyperlinkInfo(@NotNull Executor executor, @NotNull DeployerException.ResolutionAction resolutionAction) {
+    public DeploymentHyperlinkInfo(@NotNull Executor executor, @NotNull DeployerException.ResolutionAction resolutionAction, @NotNull ConsolePrinter printer) {
+      myPrinter = printer;
       switch (resolutionAction) {
         case APPLY_CHANGES:
           myActionId = ApplyChangesAction.ID;
@@ -277,6 +281,15 @@ public abstract class AbstractDeployTask implements LaunchTask {
       AnAction action = manager.getAction(myActionId);
       if (action == null) {
         return;
+      }
+
+      if (action instanceof BaseAction) {
+        BaseAction.DisableMessage message = BaseAction.getDisableMessage(project);
+        if (message != null) {
+          myPrinter.stderr(
+            String.format("%s is disabled because %s.", action.getTemplatePresentation().getText(), message.getDescription()));
+          return;
+        }
       }
 
       manager.tryToExecute(action,
