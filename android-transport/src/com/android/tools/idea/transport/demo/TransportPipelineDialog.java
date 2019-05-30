@@ -319,7 +319,7 @@ public class TransportPipelineDialog extends DialogWrapper {
             .setType(Command.CommandType.ATTACH_AGENT)
             .setAttachAgent(
               Commands.AttachAgent.newBuilder()
-                .setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch()))
+                .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch()))
                 .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
             .build();
           myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
