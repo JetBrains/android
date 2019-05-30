@@ -52,9 +52,9 @@ public class CpuThreadStateDataSeries implements DataSeries<CpuProfilerStage.Thr
   }
 
   @Override
-  public List<SeriesData<CpuProfilerStage.ThreadState>> getDataForXRange(Range xRangeUs) {
+  public List<SeriesData<CpuProfilerStage.ThreadState>> getDataForRange(Range rangeUs) {
     List<SeriesData<CpuProfilerStage.ThreadState>> series = new ArrayList<>();
-    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMax());
+    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
     // Query from the beginning because we need the last state of the thread before range min.
     GetEventGroupsResponse response = myClient.getEventGroups(
       GetEventGroupsRequest.newBuilder()

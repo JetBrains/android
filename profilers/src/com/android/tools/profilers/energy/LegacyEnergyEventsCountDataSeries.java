@@ -47,9 +47,9 @@ public final class LegacyEnergyEventsCountDataSeries implements DataSeries<Long>
   }
 
   @Override
-  public List<SeriesData<Long>> getDataForXRange(Range xRange) {
+  public List<SeriesData<Long>> getDataForRange(Range range) {
     List<SeriesData<Common.Event>> sourceData = myDelegateSeries.getSeries();
-    long position = (long)xRange.getMax();
+    long position = (long)range.getMax();
     Set<Long> activeEventGroups = new HashSet<>();
 
     for (SeriesData<Common.Event> eventData : sourceData) {

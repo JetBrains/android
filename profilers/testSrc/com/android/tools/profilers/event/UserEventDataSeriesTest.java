@@ -75,7 +75,7 @@ public class UserEventDataSeriesTest {
   public void testRotationEvent() {
     buildRotationEvent(1);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForRange(range);
     assertEquals(dataList.size(), 1);
     for (SeriesData<EventAction<UserEvent>> data : dataList) {
       assertEquals(data.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
@@ -89,7 +89,7 @@ public class UserEventDataSeriesTest {
   public void testTouchEvent() {
     buildTouchEvent(1);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForRange(range);
     assertEquals(dataList.size(), 1);
     for (SeriesData<EventAction<UserEvent>> event : dataList) {
       assertEquals(event.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
@@ -103,7 +103,7 @@ public class UserEventDataSeriesTest {
   public void testKeyEvent() {
     buildKeyEvent(1);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForRange(range);
     assertEquals(dataList.size(), 1);
     for (SeriesData<EventAction<UserEvent>> event : dataList) {
       assertEquals(event.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
@@ -119,7 +119,7 @@ public class UserEventDataSeriesTest {
     buildTouchEvent(1);
     buildRotationEvent(2);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForRange(range);
     assertEquals(dataList.size(), 2);
     SeriesData<EventAction<UserEvent>> event = dataList.get(0);
     assertEquals(event.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));

@@ -933,7 +933,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       // Find the last sampling info and see if it is different from the current, if so,
       double dataRangeMaxUs = getStudioProfilers().getTimeline().getDataRange().getMax();
       List<SeriesData<AllocationSamplingRateDurationData>> data =
-        myAllocationSamplingRateDataSeries.getDataForXRange(new Range(dataRangeMaxUs, dataRangeMaxUs));
+        myAllocationSamplingRateDataSeries.getDataForRange(new Range(dataRangeMaxUs, dataRangeMaxUs));
 
       if (data.isEmpty()) {
         // No data available. Keep the current settings.

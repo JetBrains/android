@@ -53,11 +53,11 @@ public class EnergyUsageDataSeries implements DataSeries<Long> {
   }
 
   @Override
-  public List<SeriesData<Long>> getDataForXRange(Range range) {
+  public List<SeriesData<Long>> getDataForRange(Range range) {
     EnergyRequest.Builder builder = EnergyRequest.newBuilder().setSession(mySession);
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
-    builder.setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long) range.getMin()) - bufferNs);
-    builder.setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long) range.getMax()) + bufferNs);
+    builder.setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)range.getMin()) - bufferNs);
+    builder.setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)range.getMax()) + bufferNs);
     EnergyProfiler.EnergySamplesResponse samples = myClient.getEnergyClient().getSamples(builder.build());
 
     return samples.getSamplesList().stream()

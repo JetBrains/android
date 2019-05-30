@@ -52,12 +52,12 @@ public class LegacyCpuThreadStateDataSeries implements DataSeries<CpuProfilerSta
   }
 
   @Override
-  public List<SeriesData<CpuProfilerStage.ThreadState>> getDataForXRange(Range xRange) {
+  public List<SeriesData<CpuProfilerStage.ThreadState>> getDataForRange(Range range) {
     // TODO Investigate if this is too slow. We can then have them share a common "series", and return a view to that series.
     ArrayList<SeriesData<CpuProfilerStage.ThreadState>> data = new ArrayList<>();
 
-    long min = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
-    long max = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
+    long min = TimeUnit.MICROSECONDS.toNanos((long)range.getMin());
+    long max = TimeUnit.MICROSECONDS.toNanos((long)range.getMax());
     GetThreadsResponse threads = myClient.getThreads(GetThreadsRequest.newBuilder()
                                                        .setSession(mySession)
                                                        .setStartTimestamp(min)

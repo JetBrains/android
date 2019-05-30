@@ -155,7 +155,7 @@ class DataSeriesPerformanceTest {
 
   private fun <T> collectAndReportAverageTimes(offset: Long, metric: Metric, series: DataSeries<T>, recordMetric: Boolean) {
     val startTime = System.nanoTime()
-    series.getDataForXRange(Range(offset.toDouble(), (offset + QUERY_INTERVAL).toDouble()))
+    series.getDataForRange(Range(offset.toDouble(), (offset + QUERY_INTERVAL).toDouble()))
     if (recordMetric) {
       metric.addSamples(cpuBenchmark, Metric.MetricSample(Instant.now().toEpochMilli(), (System.nanoTime() - startTime)))
     }
@@ -166,8 +166,8 @@ class DataSeriesPerformanceTest {
       val LOAD_JOINER = MoreExecutors.directExecutor()
     }
 
-    override fun getDataForXRange(xRange: Range?): MutableList<SeriesData<Long>> {
-      liveAllocation.load(xRange, LOAD_JOINER)
+    override fun getDataForRange(range: Range?): MutableList<SeriesData<Long>> {
+      liveAllocation.load(range, LOAD_JOINER)
       return mutableListOf()
     }
 
