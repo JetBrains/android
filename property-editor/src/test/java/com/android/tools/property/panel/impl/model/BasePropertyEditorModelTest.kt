@@ -19,9 +19,16 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_COLOR
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
+import com.android.tools.property.testing.IconTester
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.IconLoader
+import com.intellij.ui.JBColor
+import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import org.junit.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
 
 class BasePropertyEditorModelTest {
 
@@ -93,6 +100,34 @@ class BasePropertyEditorModelTest {
     model.addListener(listener)
     model.visible = true
     assertThat(listener.called).isTrue()
+  }
+
+  @Test
+  fun testDisplayedIcon() {
+    IconLoader.activate()
+    val model = createModel()
+    assertThat(model.displayedIcon(StudioIcons.Common.ERROR)).isSameAs(StudioIcons.Common.ERROR)
+
+    model.isUsedInRendererWithSelection = true
+    assertThat(IconTester.hasOnlyWhiteColors(model.displayedIcon(StudioIcons.Common.ERROR)!!)).isTrue()
+  }
+
+  @Test
+  fun testDisplayedForeground() {
+    val model = createModel()
+    assertThat(model.displayedForeground(JBColor.BLUE)).isEqualTo(JBColor.BLUE)
+
+    model.isUsedInRendererWithSelection = true
+    assertThat(model.displayedForeground(JBColor.BLUE)).isEqualTo(UIUtil.getTableForeground(true, true))
+  }
+
+  @Test
+  fun testDisplayedBackground() {
+    val model = createModel()
+    assertThat(model.displayedBackground(JBColor.RED)).isEqualTo(JBColor.RED)
+
+    model.isUsedInRendererWithSelection = true
+    assertThat(model.displayedBackground(JBColor.RED)).isEqualTo(UIUtil.getTableBackground(true, true))
   }
 
   private class RecursiveValueChangedListener(private val model: BasePropertyEditorModel) : ValueChangedListener {

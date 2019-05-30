@@ -45,6 +45,8 @@ class FakePropertyEditorModel(override var property: PropertyItem): PropertyEdit
 
   override val hasFocus = false
 
+  override var isUsedInRendererWithSelection = false
+
   override var lineModel: InspectorLineModel? = null
 
   override fun refresh() {

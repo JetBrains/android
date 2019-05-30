@@ -15,22 +15,27 @@
  */
 package com.android.tools.property.panel.impl.ui
 
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.HelpSupport
-import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataProvider
 import java.awt.BorderLayout
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
+import javax.swing.JPanel
 
 /**
  * A standard class for implementing a browse button for an editor.
  *
  * The editor component is wrapped in panel with a possible icon to the right displaying of the editor.
  */
-class ActionButtonBinding(private val model: PropertyEditorModel,
-                          private val editor: JComponent) : CellPanel(), DataProvider {
+class ActionButtonBinding(
+  private val model: BasePropertyEditorModel,
+  private val editor: JComponent
+) : JPanel(BorderLayout()), DataProvider {
+
   private val actionButtonModel
     get() = model.property.browseButton
   private val actionButton = ButtonWithCustomTooltip(actionButtonModel?.action)
@@ -42,6 +47,7 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
     updateFromModel()
 
     model.addListener(ValueChangedListener { updateFromModel() })
+    background = secondaryPanelBackground
     initialized = true
   }
 
@@ -50,7 +56,8 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
   }
 
   private fun updateFromModel() {
-    actionButton.icon = actionButtonModel?.actionIcon
+    actionButton.icon = model.displayedIcon(actionButtonModel?.actionIcon)
+    background = model.displayedBackground(secondaryPanelBackground)
     isVisible = model.visible
   }
 
