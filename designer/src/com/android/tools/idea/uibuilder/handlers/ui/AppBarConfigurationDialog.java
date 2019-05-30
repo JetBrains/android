@@ -299,6 +299,10 @@ public class AppBarConfigurationDialog extends JDialog {
     Disposer.dispose(myDisposable);
   }
 
+  @NotNull
+  private Project getProject() {
+    return myEditor.getModel().getProject();
+  }
 
   private void updateControls() {
     myTabCount.setEnabled(myWithTabs.isSelected());
@@ -319,11 +323,11 @@ public class AppBarConfigurationDialog extends JDialog {
     myCollapsedPreviewFuture = cancel(myCollapsedPreviewFuture);
     Application application = ApplicationManager.getApplication();
     myExpandedPreviewFuture = application.executeOnPooledThread(() -> {
-      DumbService.getInstance(myEditor.getModel().getProject()).waitForSmartMode();
+      DumbService.getInstance(getProject()).waitForSmartMode();
       updateExpandedImage(expandedFile);
     });
     myCollapsedPreviewFuture = application.executeOnPooledThread(() -> {
-      DumbService.getInstance(myEditor.getModel().getProject()).waitForSmartMode();
+      DumbService.getInstance(getProject()).waitForSmartMode();
       updateCollapsedImage(collapsedFile);
     });
   }
@@ -344,7 +348,7 @@ public class AppBarConfigurationDialog extends JDialog {
     Map<String, String> namespaces = getNameSpaces(null, collapsed);
     String content = Templates.getTextView(namespaces.get(ANDROID_URI), text.toString());
     String xml = getXml(content, collapsed, namespaces);
-    Project project = myEditor.getModel().getProject();
+    Project project = getProject();
     return PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
   }
 
@@ -378,6 +382,7 @@ public class AppBarConfigurationDialog extends JDialog {
   @NotNull
   private String getXmlWithoutTabs(@NotNull String content, boolean collapsed, @NotNull Map<String, String> namespaces) {
     return Templates.getCoordinatorLayout(
+      getProject(),
       namespaces.get(ANDROID_URI),
       namespaces.get(AUTO_URI),
       formatNamespaces(namespaces),
@@ -394,6 +399,7 @@ public class AppBarConfigurationDialog extends JDialog {
   @NotNull
   private String getXmlWithTabs(@NotNull String content, boolean collapsed, @NotNull Map<String, String> namespaces) {
     return Templates.getCoordinatorLayoutWithTabs(
+      getProject(),
       namespaces.get(ANDROID_URI),
       namespaces.get(AUTO_URI),
       formatNamespaces(namespaces),
@@ -432,6 +438,7 @@ public class AppBarConfigurationDialog extends JDialog {
     StringBuilder builder = new StringBuilder();
     for (int index = 0; index < (Integer)myTabCount.getValue(); index++) {
       builder.append(Templates.getTabItem(
+        getProject(),
         namespaces.get(ANDROID_URI),
         "Tab" + (index + 1)));
     }
@@ -492,7 +499,7 @@ public class AppBarConfigurationDialog extends JDialog {
     if (!myFloatingActionButton.isSelected()) {
       return "";
     }
-    return Templates.getTagFloatingActionButton(namespaces.get(ANDROID_URI), myFloatingActionButtonImage);
+    return Templates.getTagFloatingActionButton(getProject(), namespaces.get(ANDROID_URI), myFloatingActionButtonImage);
   }
 
   @NotNull
@@ -586,7 +593,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
   private BufferedImage renderImage(@NotNull PsiFile xmlFile) {
     AndroidFacet facet = myEditor.getModel().getFacet();
-    RenderService renderService = RenderService.getInstance(myEditor.getModel().getProject());
+    RenderService renderService = RenderService.getInstance(getProject());
     RenderLogger logger = renderService.createLogger(facet);
     final RenderTask task = renderService.taskBuilder(facet, myEditor.getConfiguration())
                                          .withLogger(logger)
