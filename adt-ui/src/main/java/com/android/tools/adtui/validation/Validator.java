@@ -15,12 +15,13 @@
  */
 package com.android.tools.adtui.validation;
 
+import com.android.utils.HashCodes;
 import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
+import java.util.Objects;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * A class which is used to validate some input.
@@ -66,10 +67,16 @@ public interface Validator<T> {
 
     @NotNull private final Severity mySeverity;
     @NotNull private final String myMessage;
+    @Nullable private final String myDetailedMessage;
 
     public Result(@NotNull Severity severity, @NotNull String message) {
+      this(severity, message, null);
+    }
+
+    public Result(@NotNull Severity severity, @NotNull String message, @Nullable String detailedMessage) {
       mySeverity = severity;
       myMessage = message;
+      myDetailedMessage = detailedMessage;
     }
 
     /**
@@ -106,17 +113,24 @@ public interface Validator<T> {
       return myMessage;
     }
 
+    @Nullable
+    public String getDetailedMessage() {
+      return myDetailedMessage;
+    }
+
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
       if (this == obj) return true;
       if (obj == null || getClass() != obj.getClass()) return false;
       Result other = (Result)obj;
-      return mySeverity == other.mySeverity && myMessage.equals(other.myMessage);
+      return mySeverity == other.mySeverity &&
+             myMessage.equals(other.myMessage) &&
+             Objects.equals(myDetailedMessage, other.myDetailedMessage);
     }
 
     @Override
     public int hashCode() {
-      return myMessage.hashCode() * 31 + mySeverity.ordinal();
+      return HashCodes.mix(mySeverity.ordinal(), myMessage.hashCode());
     }
   }
 }

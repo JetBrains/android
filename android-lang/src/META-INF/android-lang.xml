@@ -59,6 +59,7 @@
     <idIndexer filetype="Android Room SQL" implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomIdIndexer"/>
     <referencesSearch implementation="com.android.tools.idea.lang.roomSql.refactoring.RoomReferenceSearchExecutor"/>
     <usageTypeProvider implementation="com.android.tools.idea.lang.roomSql.refactoring.RoomUsageTypeProvider"/>
+    <vetoRenameCondition implementation="com.android.tools.idea.lang.roomSql.RoomRenameVetoCondition"/>
 
     <localInspection groupPath="Android"
                      groupName="Room"

@@ -107,7 +107,7 @@ class ResultSetControllerTest : UsefulTestCase() {
     pumpEventsAndWaitForFuture(service.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(service.readTable("Book"))
+    val resultSet = pumpEventsAndWaitForFuture(service.readTable(SqliteTable("Book", listOf())))
 
     // Assert
     resultSet.hasColumn("book_id", JDBCType.INTEGER)
@@ -145,7 +145,7 @@ class ResultSetControllerTest : UsefulTestCase() {
     pumpEventsAndWaitForFuture(service.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(service.readTable("Book"))
+    val resultSet = pumpEventsAndWaitForFuture(service.readTable(SqliteTable("Book", listOf())))
     Disposer.dispose(resultSet)
     val error = pumpEventsAndWaitForFutureException(resultSet.nextRowBatch())
 
@@ -163,7 +163,7 @@ class ResultSetControllerTest : UsefulTestCase() {
     pumpEventsAndWaitForFuture(service.openDatabase())
 
     // Act
-    val error = pumpEventsAndWaitForFutureException(service.readTable("IncorrectTableName"))
+    val error = pumpEventsAndWaitForFutureException(service.readTable(SqliteTable("IncorrectTableName", listOf())))
 
     // Assert
     Truth.assertThat(error).isNotNull()

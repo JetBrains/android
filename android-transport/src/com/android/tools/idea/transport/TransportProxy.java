@@ -47,12 +47,12 @@ public final class TransportProxy {
   // General file/byte cache used in the proxy layer.
   @NotNull private final Map<String, ByteString> myProxyBytesCache = Collections.synchronizedMap(new HashMap<>());
 
-  public TransportProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device tranportDevice, @NotNull ManagedChannel transportChannel) {
+  public TransportProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device transportDevice, @NotNull ManagedChannel transportChannel) {
     myDevice = ddmlibDevice;
     myTransportChannel = transportChannel;
     myProxyServices = new LinkedList<>();
     myProxyHandlers = new HashMap<>();
-    myProxyService = new TransportServiceProxy(ddmlibDevice, tranportDevice, transportChannel, myProxyBytesCache);
+    myProxyService = new TransportServiceProxy(ddmlibDevice, transportDevice, transportChannel, myProxyBytesCache);
   }
 
   @NotNull
@@ -71,6 +71,10 @@ public final class TransportProxy {
   public void registerProxyCommandHandler(Commands.Command.CommandType commandType,
                                           Function<Commands.Command, Transport.ExecuteResponse> handler) {
     myProxyService.registerCommandHandler(commandType, handler);
+  }
+
+  public void registerEventPreprocessor(TransportEventPreprocessor eventPreprocessor) {
+    myProxyService.registerEventPreprocessor(eventPreprocessor);
   }
 
   /**

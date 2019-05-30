@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
@@ -39,6 +41,7 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
+@RunIn(TestGroup.UNRELIABLE)  // b/132898557
 @RunWith(GuiTestRemoteRunner.class)
 public final class MenuTest {
   @Language("XML")

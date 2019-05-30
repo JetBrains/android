@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
-import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
 import com.google.common.cache.CacheBuilder
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -121,7 +121,7 @@ class DesignAssetsList(
             assetToImage.put(asset, EMPTY_ICON) //TODO use unsupported icon.
           }
           repaint()
-        }, EdtExecutor.INSTANCE)
+        }, EdtExecutorService.getInstance())
       return EMPTY_ICON
     }
   }

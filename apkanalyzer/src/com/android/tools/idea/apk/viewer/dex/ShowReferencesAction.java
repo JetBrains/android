@@ -20,7 +20,6 @@ import com.android.tools.apk.analyzer.dex.DexReferences;
 import com.android.tools.apk.analyzer.dex.PackageTreeCreator;
 import com.android.tools.apk.analyzer.dex.ProguardMappings;
 import com.android.tools.apk.analyzer.dex.tree.*;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.google.common.util.concurrent.FutureCallback;
@@ -36,6 +35,7 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.iface.reference.FieldReference;
@@ -94,7 +94,7 @@ public class ShowReferencesAction extends AnAction {
       public void onFailure(Throwable t) {
 
       }
-    }, EdtExecutor.INSTANCE);
+    }, EdtExecutorService.getInstance());
   }
 
   private void showReferenceTree(AnActionEvent e, DexElementNode node, Project project, DexReferences references) {

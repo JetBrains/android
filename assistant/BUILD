@@ -5,6 +5,7 @@ iml_module(
     name = "assistant",
     srcs = ["src"],
     iml_files = ["assistant.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [

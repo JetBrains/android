@@ -5,6 +5,7 @@ iml_module(
     name = "android-layout-inspector",
     srcs = ["src"],
     iml_files = ["android-layout-inspector.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [

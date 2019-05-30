@@ -17,7 +17,6 @@ package com.android.tools.idea.ddms
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.concurrent.addCallback
 import com.android.tools.idea.concurrent.listenInPoolThread
 import com.android.tools.idea.concurrent.whenAllComplete
@@ -26,6 +25,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.util.concurrent.Future
 
@@ -42,7 +42,7 @@ import java.util.concurrent.Future
  */
 class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceNameProperties>,
                                   private val parent: Disposable) : Disposable by parent, DeviceNamePropertiesProvider {
-  private val edtExecutor = EdtExecutor.INSTANCE
+  private val edtExecutor = EdtExecutorService.getInstance()
   private val taskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor(DeviceNamePropertiesFetcher::class.toString())
   private val defaultValue = DeviceNameProperties(null, null, null, null)
   // This cache is for ListenableFuture<DeviceNameProperties> and must be accessed by taskExecutor only

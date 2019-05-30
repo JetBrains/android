@@ -7,6 +7,7 @@ iml_module(
     srcs = ["src"],
     exclude = ["testSrc/com/android/tools/profilers/performance/DataSeriesPerformanceTest.kt"],
     iml_files = ["intellij.android.profilers.iml"],
+    lint_baseline = "lint_baseline.xml",
     tags = [
         "no_test_mac_psq",
         "no_test_windows",

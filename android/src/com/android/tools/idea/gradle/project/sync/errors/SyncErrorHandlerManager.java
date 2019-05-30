@@ -50,7 +50,7 @@ public class SyncErrorHandlerManager {
     myProject = project;
   }
 
-  // Create NotificationData and call sync error handlers
+  // Create NotificationData and call sync error handlers, this should not be called if the project has been disposed.
   public void handleError(@NotNull Throwable error) {
     Runnable runnable = () -> {
       ErrorAndLocation errorAndLocation = myCauseAndLocationFactory.create(error);

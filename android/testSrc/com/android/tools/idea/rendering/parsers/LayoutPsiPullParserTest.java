@@ -120,7 +120,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("FrameLayout", parser.getName()); // Automatically inserted surrounding the <include>
-    assertEquals(5, parser.getAttributeCount());
+    assertEquals(3, parser.getAttributeCount());
     assertEquals("fill_parent", parser.getAttributeValue(ANDROID_URI, "layout_width"));
     assertEquals("fill_parent", parser.getAttributeValue(ANDROID_URI, "layout_height"));
     assertEquals(START_TAG, parser.nextTag());

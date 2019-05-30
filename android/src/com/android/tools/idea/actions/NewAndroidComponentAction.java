@@ -178,7 +178,7 @@ public class NewAndroidComponentAction extends AnAction {
                                       : AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
     Project project = module.getProject();
 
-    RenderTemplateModel templateModel = new RenderTemplateModel(
+    RenderTemplateModel templateModel = RenderTemplateModel.fromFacet(
       facet, new TemplateHandle(file), initialPackageSuggestion, moduleTemplates.get(0), "New " + activityDescription,
       new ProjectSyncInvoker.DefaultProjectSyncInvoker(),
       myShouldOpenFiles);

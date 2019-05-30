@@ -47,7 +47,7 @@ class CpuUsageTooltipView extends ProfilerTooltipView {
     if (canSelect) {
       List<SeriesData<CpuTraceInfo>>
         traceSeries =
-        myView.getStage().getTraceDurations().getSeries().getDataSeries().getDataForXRange(myView.getTimeline().getTooltipRange());
+        myView.getStage().getTraceDurations().getSeries().getSeriesForRange(myView.getTimeline().getTooltipRange());
       if (traceSeries.isEmpty()) {
         return;
       }

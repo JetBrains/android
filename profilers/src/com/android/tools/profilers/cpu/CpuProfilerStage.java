@@ -283,7 +283,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       Range xRange = myRecentTraceDurations.getSeries().getXRange();
 
       CpuTraceInfo candidateToSelect = null;  // candidate trace to automatically set and select
-      List<SeriesData<CpuTraceInfo>> recentTraceInfo = myRecentTraceDurations.getSeries().getDataSeries().getDataForXRange(xRange);
+      List<SeriesData<CpuTraceInfo>> recentTraceInfo = myRecentTraceDurations.getSeries().getSeriesForRange(xRange);
       for (SeriesData<CpuTraceInfo> series : recentTraceInfo) {
         CpuTraceInfo trace = series.value;
         if (trace.getDurationUs() == Long.MAX_VALUE) {
@@ -579,6 +579,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       .setTraceType(myProfilerConfigModel.getProfilingConfiguration().getTraceType())
       .setTraceMode(myProfilerConfigModel.getProfilingConfiguration().getMode())
       .setSession(mySession)
+      // This is needed to stop an ongoing trace and should be handled via an explicit stop-trace command in the new pipeline.
+      // In the new pipeline, we can potentially pass the same info down via EndSession.
+      .setAppName(getStudioProfilers().getProcess() != null ? getStudioProfilers().getProcess().getName() : "")
       .build();
     setCaptureState(CaptureState.STOPPING);
     CompletableFuture.supplyAsync(
@@ -843,7 +846,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   @Nullable
   CpuTraceInfo getIntersectingTraceInfo(Range range) {
-    List<SeriesData<CpuTraceInfo>> infoList = getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
+    List<SeriesData<CpuTraceInfo>> infoList = getTraceDurations().getSeries().getSeriesForRange(range);
     for (SeriesData<CpuTraceInfo> info : infoList) {
       Range captureRange = info.value.getRange();
       if (!captureRange.getIntersection(range).isEmpty()) {

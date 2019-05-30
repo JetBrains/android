@@ -31,6 +31,8 @@ import kotlin.math.sqrt
 
 private const val LAYER_SPACING = 150
 
+data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: ViewNode, val clip: Rectangle)
+
 class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
   internal var xOff = 0.0
@@ -47,7 +49,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootDimension.height.toFloat()).toInt()
 
   @VisibleForTesting
-  internal var hitRects = listOf<Triple<Shape, AffineTransform, ViewNode>>()
+  internal var hitRects = listOf<ViewDrawInfo>()
 
   init {
     refresh()
@@ -55,8 +57,8 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
 
   fun findTopRect(x: Double, y: Double): ViewNode? {
     return hitRects.findLast {
-      it.first.contains(x, y)
-    }?.third
+      it.bounds.contains(x, y)
+    }?.node
   }
 
   fun rotate(xRotation: Double, yRotation: Double) {
@@ -67,42 +69,62 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
 
   @VisibleForTesting
   fun refresh() {
-    rootDimension = Dimension(model.root.width, model.root.height)
-    val newHitRects = mutableListOf<Triple<Shape, AffineTransform, ViewNode>>()
+    val root = model.root
+    rootDimension = Dimension(root.width, root.height)
+    val newHitRects = mutableListOf<ViewDrawInfo>()
     val transform = AffineTransform()
-    transform.translate(-model.root.width / 2.0, -model.root.height / 2.0)
+    transform.translate(-root.width / 2.0, -root.height / 2.0)
 
     val magnitude = min(1.0, hypot(xOff, yOff))
     val angle = if (abs(xOff) < 0.00001) PI / 2.0 else atan(yOff / xOff)
 
-    transform.translate(rootDimension.width / 2.0, rootDimension.height / 2.0)
+    transform.translate(rootDimension.width / 2.0 - model.root.x, rootDimension.height / 2.0 - model.root.y)
     transform.rotate(angle)
-    maxDepth = findMaxDepth(model.root)
-    rebuildOneRect(transform, magnitude, 0, angle, model.root, newHitRects)
+    val levelLists = mutableListOf<MutableList<MutableList<Pair<ViewNode, Rectangle>>>>()
+    buildLevelLists(model.root, model.root.bounds, levelLists)
+
+    rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
+    maxDepth = levelLists.size
     hitRects = newHitRects.toList()
   }
 
-  private fun findMaxDepth(view: ViewNode): Int {
-    return 1 + (view.children.values.map { findMaxDepth(it) }.max() ?: 0)
+  private fun buildLevelLists(root: ViewNode,
+                              parentClip: Rectangle,
+                              levelListCollector: MutableList<MutableList<MutableList<Pair<ViewNode, Rectangle>>>>,
+                              level: Int = 0) {
+    val levelList = levelListCollector.getOrNull(level)
+                    ?: mutableListOf<MutableList<Pair<ViewNode, Rectangle>>>().also { levelListCollector.add(it) }
+    val clip = parentClip.intersection(root.bounds)
+    // add to the first sub level list with no rects that intersect ours
+    val subLevelList = levelList.find { it.none { (node, _) -> node.bounds.intersects(root.bounds) } }
+                       ?: mutableListOf<Pair<ViewNode, Rectangle>>().also { levelList.add(it) }
+    subLevelList.add(Pair(root, clip))
+    root.children.values.forEach { buildLevelLists(it, clip, levelListCollector, level + 1) }
   }
 
-  private fun rebuildOneRect(transform: AffineTransform,
-                             magnitude: Double,
-                             depth: Int,
-                             angle: Double,
-                             view: ViewNode,
-                             newHitRects: MutableList<Triple<Shape, AffineTransform, ViewNode>>) {
-    val viewTransform = AffineTransform(transform)
+  private fun rebuildRectsForLevel(transform: AffineTransform,
+                                   magnitude: Double,
+                                   angle: Double,
+                                   allLevels: List<List<List<Pair<ViewNode, Rectangle>>>>,
+                                   newHitRects: MutableList<ViewDrawInfo>) {
+    allLevels.forEachIndexed { level, levelList ->
+      levelList.forEachIndexed { subLevel, subLevelList ->
+        subLevelList.forEach { (view, clip) ->
+          val viewTransform = AffineTransform(transform)
 
-    val sign = if (xOff < 0) -1 else 1
-    viewTransform.translate(magnitude * (depth - maxDepth / 2) * LAYER_SPACING * sign, 0.0)
-    viewTransform.scale(sqrt(1.0 - magnitude * magnitude), 1.0)
-    viewTransform.rotate(-angle)
-    viewTransform.translate(-rootDimension.width / 2.0, -rootDimension.height / 2.0)
+          val sign = if (xOff < 0) -1 else 1
+          viewTransform.translate(
+            magnitude * ((level - maxDepth / 2) + (subLevel.toFloat() / levelList.size.toFloat())) * LAYER_SPACING * sign,
+            0.0)
+          viewTransform.scale(sqrt(1.0 - magnitude * magnitude), 1.0)
+          viewTransform.rotate(-angle)
+          viewTransform.translate(-rootDimension.width / 2.0, -rootDimension.height / 2.0)
 
-    val rect = viewTransform.createTransformedShape(Rectangle(view.x, view.y, view.width, view.height))
-    newHitRects.add(Triple(rect, viewTransform, view))
-    view.children.values.forEach { rebuildOneRect(transform, magnitude, depth + 1, angle, it, newHitRects) }
+          val rect = viewTransform.createTransformedShape(view.bounds)
+          newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip))
+        }
+      }
+    }
   }
 
   fun resetRotation() {

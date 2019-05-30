@@ -55,10 +55,4 @@ public class ConfigureJavaLibraryStepFixture<W extends AbstractWizardFixture>
     replaceText(textField, name);
     return this;
   }
-
-  @NotNull
-  public ConfigureJavaLibraryStepFixture<W> setCreateGitIgnore(boolean select) {
-    selectCheckBoxWithText("Create .gitignore file", select);
-    return this;
-  }
 }

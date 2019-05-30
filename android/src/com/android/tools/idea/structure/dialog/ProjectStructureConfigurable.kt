@@ -104,6 +104,9 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   private var inDoOK = false
   private var needsSync = false
 
+  private val isDefaultProject: Boolean
+    get() = myProject === ProjectManager.getInstance().defaultProject
+
   override fun getPreferredFocusedComponent(): JComponent? = myToFocus
 
   override fun setHistory(history: History) {
@@ -205,7 +208,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   override fun enableSearch(option: String): Runnable? = null
 
   @Nls
-  override fun getDisplayName(): String = ProjectBundle.message("project.settings.display.name")
+  override fun getDisplayName(): String = if (isDefaultProject) "Default Project Structure" else ProjectBundle.message("project.settings.display.name")
 
   override fun getHelpTopic(): String? = mySelectedConfigurable?.helpTopic
 
@@ -316,11 +319,12 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
 
   private fun initSidePanel() {
-    val isDefaultProject = myProject === ProjectManager.getInstance().defaultProject
 
     mySidePanel = SidePanel(this, myHistory)
 
-    if (isDefaultProject) {
+    if (myDisposable.disposed) myDisposable = MyDisposable()
+
+    if (this.isDefaultProject) {
       addConfigurable(IdeSdksConfigurable(this, myProject))
     } else {
       addConfigurables()
@@ -328,8 +332,6 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   }
 
   private fun addConfigurables() {
-    if (myDisposable.disposed) myDisposable = MyDisposable()
-
     val configurables =
       AndroidConfigurableContributor.EP_NAME.extensions
         .asSequence()

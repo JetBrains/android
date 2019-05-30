@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import static com.android.tools.adtui.validation.ValidatorPanel.truncateMessage;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
 
 import com.android.resources.Density;
@@ -412,13 +411,13 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
                                                               myForegroundImageRadioButton, myForegroundClipartRadioButton,
                                                               myForegroundTextRadioButton);
     myForegroundActiveAsset = new ObjectValueProperty<>(myForegroundImageAssetBrowser.getAsset());
-    myForegroundImageAssetBrowser.getAsset().setRole("a foreground image file");
+    myForegroundImageAssetBrowser.getAsset().setRole("foreground image");
     myForegroundColorPanel.setSelectedColor(LauncherIconGenerator.DEFAULT_FOREGROUND_COLOR);
 
     myBackgroundAssetType = new SelectedRadioButtonProperty<>(DEFAULT_BACKGROUND_ASSET_TYPE, BackgroundAssetType.values(),
                                                               myBackgroundImageRadioButton, myBackgroundColorRadioButton);
     myBackgroundImageAsset = new OptionalValueProperty<>(myBackgroundImageAssetBrowser.getAsset());
-    myBackgroundImageAssetBrowser.getAsset().setRole("a background image file");
+    myBackgroundImageAssetBrowser.getAsset().setRole("background image");
     myBackgroundColorPanel.setSelectedColor(myIconGenerator.backgroundColor().get());
 
     initializeListenersAndBindings();
@@ -678,8 +677,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myForegroundLayerName, myBackgroundLayerName),
                                   "Background and foreground layers must have distinct names");
 
-    myValidatorPanel.registerValidator(myForegroundAssetValidityState, validity -> truncateMessage(validity, 3));
-    myValidatorPanel.registerValidator(myBackgroundAssetValidityState, validity -> truncateMessage(validity, 3));
+    myValidatorPanel.registerValidator(myForegroundAssetValidityState, validity -> validity);
+    myValidatorPanel.registerValidator(myBackgroundAssetValidityState, validity -> validity);
   }
 
   @NotNull

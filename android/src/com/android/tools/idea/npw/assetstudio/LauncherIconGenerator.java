@@ -269,7 +269,7 @@ public class LauncherIconGenerator extends IconGenerator {
         localOptions.generateOutputIcons = true;
         localOptions.generatePreviewIcons = false;
         localOptions.legacyIconShape = localOptions.webIconShape;
-        BufferedImage image = generateLegacyImage(context, localOptions);
+        AnnotatedImage image = generateLegacyImage(context, localOptions);
         return new GeneratedImageIcon(name,
                                       new PathString(getIconPath(localOptions, name)),
                                       IconCategory.WEB,
@@ -289,7 +289,7 @@ public class LauncherIconGenerator extends IconGenerator {
         foregroundOptions.generateWebIcon = false;
         foregroundOptions.generatePreviewIcons = false;
         foregroundOptions.generateOutputIcons = true;
-        BufferedImage foregroundImage = generateIconForegroundLayer(context, foregroundOptions);
+        AnnotatedImage foregroundImage = generateIconForegroundLayer(context, foregroundOptions);
         return new GeneratedImageIcon(foregroundOptions.foregroundLayerName,
                                       new PathString(getIconPath(foregroundOptions, options.foregroundLayerName)),
                                       IconCategory.ADAPTIVE_FOREGROUND_LAYER,
@@ -305,7 +305,7 @@ public class LauncherIconGenerator extends IconGenerator {
         backgroundOptions.generateWebIcon = false;
         backgroundOptions.generatePreviewIcons = false;
         backgroundOptions.generateOutputIcons = true;
-        BufferedImage backgroundImage = generateIconBackgroundLayer(context, backgroundOptions);
+        AnnotatedImage backgroundImage = generateIconBackgroundLayer(context, backgroundOptions);
         return new GeneratedImageIcon(backgroundOptions.backgroundLayerName,
                                       new PathString(getIconPath(backgroundOptions, options.backgroundLayerName)),
                                       IconCategory.ADAPTIVE_BACKGROUND_LAYER,
@@ -321,7 +321,7 @@ public class LauncherIconGenerator extends IconGenerator {
         legacyOptions.generateWebIcon = false;
         legacyOptions.generatePreviewIcons = false;
         legacyOptions.generateOutputIcons = true;
-        BufferedImage legacy = generateLegacyImage(context, legacyOptions);
+        AnnotatedImage legacy = generateLegacyImage(context, legacyOptions);
         return new GeneratedImageIcon(name,
                                       new PathString(getIconPath(legacyOptions, name)),
                                       IconCategory.LEGACY,
@@ -338,7 +338,7 @@ public class LauncherIconGenerator extends IconGenerator {
         legacyOptions.generatePreviewIcons = false;
         legacyOptions.generateOutputIcons = true;
         legacyOptions.legacyIconShape = Shape.CIRCLE;
-        BufferedImage legacyRound = generateLegacyImage(context, legacyOptions);
+        AnnotatedImage legacyRound = generateLegacyImage(context, legacyOptions);
         return new GeneratedImageIcon(name + "_round",
                                       new PathString(getIconPath(legacyOptions, name + "_round")),
                                       IconCategory.ROUND_API_25,
@@ -493,30 +493,26 @@ public class LauncherIconGenerator extends IconGenerator {
         localOptions.generateRoundIcon = (previewShape == PreviewShape.LEGACY_ROUND);
         localOptions.generateWebIcon = (previewShape == PreviewShape.WEB);
 
-        BufferedImage image;
-        String errorMessage = null;
+        AnnotatedImage image;
         try {
           image = generatePreviewImage(context, localOptions);
-        } catch (Throwable e) {
-          errorMessage = e.getMessage();
-          Rectangle imageRect = getFullBleedRectangle(localOptions);
-          image = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
         }
-        GeneratedImageIcon icon = new GeneratedImageIcon(previewShape.id,
-                                                         null, // No path for preview icons.
-                                                         IconCategory.PREVIEW,
-                                                         localOptions.density,
-                                                         image);
-        if (errorMessage != null) {
-          icon.setErrorMessage(errorMessage);
+        catch (Throwable e) {
+          getLog().error(e); // Unexpected error, log it.
+          image = createPlaceholderErrorImage(e, localOptions);
         }
-        return icon;
+
+        return new GeneratedImageIcon(previewShape.id,
+                                      null, // No path for preview icons.
+                                      IconCategory.PREVIEW,
+                                      localOptions.density,
+                                      image);
       });
     }
   }
 
   @Override
-  public void generateRasterImage(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
+  public void generateRasterImage(@Nullable String category, @NotNull Map<String, Map<String, AnnotatedImage>> categoryMap,
                                   @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
     LauncherIconOptions launcherIconOptions = (LauncherIconOptions) options;
     LauncherIconOptions localOptions = launcherIconOptions.clone();
@@ -524,27 +520,27 @@ public class LauncherIconGenerator extends IconGenerator {
 
     Collection<GeneratedIcon> icons = generateIcons(context, options, name);
     icons.stream()
-        .filter(x -> x instanceof GeneratedImageIcon)
-        .map(x -> (GeneratedImageIcon) x)
-        .filter(x -> x.getOutputPath() != null)
+        .filter(icon -> icon instanceof GeneratedImageIcon)
+        .map(icon -> (GeneratedImageIcon) icon)
+        .filter(icon -> icon.getOutputPath() != null)
         .forEach(
-            x -> {
-              assert x.getOutputPath() != null;
+            icon -> {
+              assert icon.getOutputPath() != null;
 
-              Map<String, BufferedImage> imageMap = categoryMap.computeIfAbsent(x.getCategory().toString(), k -> new LinkedHashMap<>());
+              Map<String, AnnotatedImage> imageMap = categoryMap.computeIfAbsent(icon.getCategory().toString(), k -> new LinkedHashMap<>());
 
               // Store image in a map, where the key is the relative path to the image.
               LauncherIconOptions iconOptions = localOptions.clone();
-              iconOptions.density = x.getDensity();
+              iconOptions.density = icon.getDensity();
               iconOptions.iconFolderKind = IconFolderKind.MIPMAP;
-              iconOptions.generateWebIcon = (x.getCategory() == IconCategory.WEB);
-              imageMap.put(x.getOutputPath().toString(), x.getImage());
+              iconOptions.generateWebIcon = (icon.getCategory() == IconCategory.WEB);
+              imageMap.put(icon.getOutputPath().toString(), new AnnotatedImage(icon.getImage(), icon.getErrorMessage()));
             });
   }
 
   @Override
   @NotNull
-  public BufferedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -553,7 +549,7 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   @NotNull
-  private static BufferedImage generatePreviewImage(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
+  private static AnnotatedImage generatePreviewImage(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
     switch (options.previewShape) {
       case CIRCLE:
       case SQUIRCLE:
@@ -573,22 +569,22 @@ public class LauncherIconGenerator extends IconGenerator {
         return generateLegacyImage(context, options);
 
       case FULL_BLEED: {
-        BufferedImage image = generateFullBleedPreviewImage(context, options);
+        AnnotatedImage annotatedImage = generateFullBleedPreviewImage(context, options);
         // For preview, scale image down so that it does not display relatively
         // too big compared to the other preview icons.
-        return scaledPreviewImage(image, 0.8f);
+        return new AnnotatedImage(scaledPreviewImage(annotatedImage.getImage(), 0.8f), annotatedImage.getErrorMessage());
       }
 
       case WEB: {
         options.generatePreviewIcons = true;
         options.generateWebIcon = true;
         options.legacyIconShape = options.webIconShape;
-        BufferedImage image = generateLegacyImage(context, options);
-        image = AssetUtil.trimmedImage(image);
+        AnnotatedImage annotatedImage = generateLegacyImage(context, options);
+        BufferedImage image = AssetUtil.trimmedImage(annotatedImage.getImage());
         // For preview, scale image down so that it does not display relatively
         // too big compared to the other preview icons.
         double scale = getMdpiScaleFactor(options.previewDensity);
-        return scaledPreviewImage(image, 0.25 * scale);
+        return new AnnotatedImage(scaledPreviewImage(image, 0.25 * scale), annotatedImage.getErrorMessage());
       }
 
       case NONE:
@@ -599,22 +595,22 @@ public class LauncherIconGenerator extends IconGenerator {
 
   @SuppressWarnings("UseJBColor")
   @NotNull
-  private static BufferedImage generateFullBleedPreviewImage(@NotNull GraphicGeneratorContext context,
-                                                             @NotNull LauncherIconOptions options) {
+  private static AnnotatedImage generateFullBleedPreviewImage(@NotNull GraphicGeneratorContext context,
+                                                              @NotNull LauncherIconOptions options) {
     Layers layers = generateIconLayers(context, options);
-    BufferedImage result = mergeLayers(layers, Color.BLACK);
-    drawGrid(options, result);
-    return result;
+    AnnotatedImage mergedImage = mergeLayers(layers, Color.BLACK);
+    drawGrid(options, mergedImage.getImage());
+    return mergedImage;
   }
 
   /**
-   * Generates a {@link BufferedImage} for either a "Legacy", "Round" or "Web" icon. The created
+   * Generates an raster image for either a "Legacy", "Round" or "Web" icon. The created
    * image consists of both background and foreground layer images merge together, then a shape
    * (e.g. circle, square) mask is applied, and finally the image is scaled to the appropriate
    * size (48x48 legacy or 512x512px web).
    */
   @NotNull
-  private static BufferedImage generateLegacyImage(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
+  private static AnnotatedImage generateLegacyImage(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
     // The viewport rectangle (72x72dp) scaled according to density.
     Rectangle viewportRect = getViewportRectangle(options);
 
@@ -631,7 +627,8 @@ public class LauncherIconGenerator extends IconGenerator {
 
     // Generate full bleed and viewport images.
     Layers layers = generateIconLayers(context, options);
-    BufferedImage fullBleed = mergeLayers(layers);
+    AnnotatedImage mergedImage = mergeLayers(layers);
+    BufferedImage fullBleed = mergedImage.getImage();
 
     // Scale the "Full Bleed" icon so that it is contained in the "Legacy" shape rectangle.
     //
@@ -675,7 +672,7 @@ public class LauncherIconGenerator extends IconGenerator {
       gLegacy.drawImage(shapeImageFore, 0, 0, null);
     }
     gLegacy.dispose();
-    return legacyImage;
+    return new AnnotatedImage(legacyImage, mergedImage.getErrorMessage());
   }
 
   /**
@@ -729,16 +726,17 @@ public class LauncherIconGenerator extends IconGenerator {
 
   /** Generate a preview image with a Shape mask applied (e.g. Square, Squircle). */
   @NotNull
-  private static BufferedImage generateViewportPreviewImage(@NotNull GraphicGeneratorContext context,
+  private static AnnotatedImage generateViewportPreviewImage(@NotNull GraphicGeneratorContext context,
                                                             @NotNull LauncherIconOptions options) {
     Layers layers = generateIconLayers(context, options);
-    BufferedImage result = mergeLayers(layers);
+    AnnotatedImage mergedImage = mergeLayers(layers);
+    BufferedImage image = mergedImage.getImage();
     BufferedImage mask = generateMaskLayer(context, options, options.previewShape);
-    result = cropImageToViewport(options, result);
-    result = applyMask(result, mask);
-    drawGrid(options, result);
+    image = cropImageToViewport(options, image);
+    image = applyMask(image, mask);
+    drawGrid(options, image);
 
-    return result;
+    return new AnnotatedImage(image, mergedImage.getErrorMessage());
   }
 
   private static BufferedImage cropImageToViewport(@NotNull LauncherIconOptions options, @NotNull BufferedImage image) {
@@ -761,14 +759,16 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   @NotNull
-  private static BufferedImage mergeLayers(@NotNull Layers layers) {
+  private static AnnotatedImage mergeLayers(@NotNull Layers layers) {
     return mergeLayers(layers, null);
   }
 
   @NotNull
-  private static BufferedImage mergeLayers(@NotNull Layers layers, @Nullable Color fillColor) {
-    int width = Math.max(layers.background.getWidth(), layers.foreground.getWidth());
-    int height = Math.max(layers.background.getHeight(), layers.foreground.getHeight());
+  private static AnnotatedImage mergeLayers(@NotNull Layers layers, @Nullable Color fillColor) {
+    BufferedImage backgroundImage = layers.background.getImage();
+    BufferedImage foregroundImage = layers.foreground.getImage();
+    int width = Math.max(backgroundImage.getWidth(), foregroundImage.getWidth());
+    int height = Math.max(backgroundImage.getHeight(), foregroundImage.getHeight());
 
     BufferedImage outImage = AssetUtil.newArgbBufferedImage(width, height);
     Graphics2D gOut = (Graphics2D) outImage.getGraphics();
@@ -776,17 +776,21 @@ public class LauncherIconGenerator extends IconGenerator {
       gOut.setPaint(fillColor);
       gOut.fillRect(0, 0, width, height);
     }
-    gOut.drawImage(layers.background, 0, 0, null);
-    gOut.drawImage(layers.foreground, 0, 0, null);
+    gOut.drawImage(backgroundImage, 0, 0, null);
+    gOut.drawImage(foregroundImage, 0, 0, null);
     gOut.dispose();
 
-    return outImage;
+    String errorMessage = layers.foreground.getErrorMessage();
+    if (errorMessage == null) {
+      errorMessage = layers.background.getErrorMessage();
+    }
+    return new AnnotatedImage(outImage, errorMessage);
   }
 
   @NotNull
   private static Layers generateIconLayers(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
-    BufferedImage backgroundImage = generateIconBackgroundLayer(context, options);
-    BufferedImage foregroundImage = generateIconForegroundLayer(context, options);
+    AnnotatedImage backgroundImage = generateIconBackgroundLayer(context, options);
+    AnnotatedImage foregroundImage = generateIconForegroundLayer(context, options);
 
     return new Layers(backgroundImage, foregroundImage);
   }
@@ -858,33 +862,67 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   @NotNull
-  private static BufferedImage generateIconBackgroundLayer(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
+  private static AnnotatedImage generateIconBackgroundLayer(
+      @NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
 
+    BufferedImage image;
+    String errorMessage = null;
     Rectangle imageRect = getFullBleedRectangle(options);
-    if (options.backgroundImage != null) {
-      return generateIconLayer(context, options.backgroundImage, imageRect, false, 0, !options.generateOutputIcons);
+    TransformedImageAsset imageAsset = options.backgroundImage;
+    if (imageAsset == null) {
+      //noinspection UseJBColor
+      image = generateFlatColorRectangle(new Color(options.backgroundColor), imageRect);
+    }
+    else {
+      try {
+        image = generateIconLayer(context, imageAsset, imageRect, false, 0, !options.generateOutputIcons);
+      }
+      catch (RuntimeException e) {
+        errorMessage = composeErrorMessage(e, "background", imageAsset);
+        image = imageAsset.createErrorImage(imageRect.getSize());
+      }
     }
 
-    //noinspection UseJBColor
-    return generateFlatColorRectangle(new Color(options.backgroundColor), imageRect);
+    return new AnnotatedImage(image, errorMessage);
   }
 
   @NotNull
-  private static BufferedImage generateIconForegroundLayer(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
+  private static String composeErrorMessage(@NotNull Exception e, @NotNull String role, @NotNull TransformedImageAsset imageAsset) {
+    String errorMessage = imageAsset.isDrawable() ?
+               String.format("Unable to generate image, possibly invalid %s drawable", role) :
+               String.format("Failed to transform %s image", role);
+    String exceptionMessage = e.getMessage();
+    return exceptionMessage == null ? errorMessage : errorMessage + ": " + exceptionMessage;
+  }
+
+  @NotNull
+  private static AnnotatedImage generateIconForegroundLayer(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
 
+    BufferedImage image;
+    String errorMessage = null;
     Rectangle imageRect = getFullBleedRectangle(options);
-    if (options.foregroundImage != null) {
-      return generateIconLayer(context, options.foregroundImage, imageRect, options.useForegroundColor, options.foregroundColor,
-                                       !options.generateOutputIcons);
+    TransformedImageAsset imageAsset = options.foregroundImage;
+    if (imageAsset == null) {
+      image = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+    }
+    else {
+      try {
+        image = generateIconLayer(context, imageAsset, imageRect, options.useForegroundColor, options.foregroundColor,
+                                 !options.generateOutputIcons);
+      }
+      catch (RuntimeException e) {
+        errorMessage = composeErrorMessage(e, "foreground", imageAsset);
+        image = imageAsset.createErrorImage(imageRect.getSize());
+      }
     }
 
-    return AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+    return new AnnotatedImage(image, errorMessage);
   }
 
   @NotNull
@@ -1283,10 +1321,10 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   private static class Layers {
-    @NotNull public BufferedImage background;
-    @NotNull public BufferedImage foreground;
+    @NotNull public AnnotatedImage background;
+    @NotNull public AnnotatedImage foreground;
 
-    Layers(@NotNull BufferedImage background, @NotNull BufferedImage foreground) {
+    Layers(@NotNull AnnotatedImage background, @NotNull AnnotatedImage foreground) {
       this.background = background;
       this.foreground = foreground;
     }

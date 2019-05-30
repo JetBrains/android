@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.templates.TemplateTest.ATTR_CREATE_ACTIVITY;
 
 /**
  * Helper class that tracks the Project Wizard State (Project template, plus its Module and Activity State)
@@ -45,7 +46,6 @@ public class TestNewProjectWizardState {
 
     myModuleState.put(ATTR_HAS_APPLICATION_THEME, true);
     myModuleState.put(ATTR_IS_LAUNCHER, true);
-    myModuleState.put(ATTR_CREATE_ICONS, false);
     myModuleState.put(ATTR_IS_NEW_PROJECT, true);
     myModuleState.put(ATTR_THEME_EXISTS, true);
     myModuleState.put(ATTR_CREATE_ACTIVITY, true);
@@ -82,7 +82,6 @@ public class TestNewProjectWizardState {
    * (i.e. states for other template wizards that are part of the same dialog).
    */
   public void updateParameters() {
-    myModuleState.put(ATTR_COPY_ICONS, !Boolean.parseBoolean(myModuleState.get(ATTR_CREATE_ICONS).toString()));
     myActivityState.getParameters().putAll(myModuleState.getParameters());
   }
 

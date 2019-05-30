@@ -43,6 +43,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.android.SdkConstants.FD_NDK;
 import static com.android.tools.idea.updater.configure.PackageNodeModel.SelectedState.*;
 import static org.junit.Assert.*;
 
@@ -95,6 +96,13 @@ public class UpdaterTreeNodeTest {
     local.setObsolete(true);
     node = new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable);
     validateText(node, "my package (Obsolete)", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+
+    // bug 133519160
+    local = new FakePackage.FakeLocalPackage(FD_NDK);
+    local.setDisplayName("legacy ndk");
+    updatablePackage = new UpdatablePackage(local);
+    node = new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable);
+    validateText(node, "legacy ndk (Obsolete)", SimpleTextAttributes.REGULAR_ATTRIBUTES);
   }
 
   @Test

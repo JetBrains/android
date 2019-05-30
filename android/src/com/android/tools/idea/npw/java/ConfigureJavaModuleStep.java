@@ -55,7 +55,6 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
   private JTextField myLibraryName;
   private LabelWithEditButton myPackageName;
   private JTextField myClassName;
-  private JCheckBox myCreateIgnoreFile;
 
   public ConfigureJavaModuleStep(@NotNull NewJavaModuleModel model, String title) {
     super(model, title);
@@ -76,8 +75,6 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myBindings.bind(model.packageName(), packageNameText);
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
-
-    myBindings.bindTwoWay(new SelectedProperty(myCreateIgnoreFile), model.createGitIgnore());
 
     myValidatorPanel.registerValidator(libraryNameText, moduleValidator);
     myValidatorPanel.registerValidator(model.packageName(),

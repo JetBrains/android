@@ -37,6 +37,7 @@ import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMo
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.projectImport.ProjectOpenProcessor;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +55,8 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.registerAsNewProject;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.areCachedFilesMissing;
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isCompoundSync;
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isSingleVariantSync;
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
@@ -70,6 +73,10 @@ public class IdeaGradleSync implements GradleSync {
 
   @NotNull private final Project myProject;
   @NotNull private final GradleProjectInfo myProjectInfo;
+
+  @NotNull public static final Key<GradleSyncListener> LISTENER_KEY = new Key<>("GradleSyncListener");
+  @NotNull public static final Key<Boolean> SOURCE_GENERATION_KEY = new Key<>("android.sourcegeneration.enabled");
+  @NotNull public static final Key<Boolean> SINGLE_VARIANT_KEY = new Key<>("android.singlevariant.enabled");
 
   public IdeaGradleSync(@NotNull Project project) {
     this(project, GradleProjectInfo.getInstance(project));
@@ -102,17 +109,26 @@ public class IdeaGradleSync implements GradleSync {
           // Create a new taskId when using cache
           ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);
 
-          ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, true /* sync skipped */);
+          ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener);
           setUpTask.onSuccess(taskId, cache);
           return;
         }
       }
     }
 
+    // Setup the settings for setup.
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = request.generateSourcesOnSuccess;
+    setupRequest.generateSourcesAfterSync = request.generateSourcesOnSuccess && !isCompoundSync(myProject);
     setupRequest.cleanProjectAfterSync = request.cleanProject;
     setupRequest.usingCachedGradleModels = false;
+
+    // Setup the settings for the resolver.
+    // We enable compound sync if we have been requested to generate sources and compound sync is enabled.
+    boolean shouldUseCompoundSync = request.generateSourcesOnSuccess && isCompoundSync(myProject);
+    // We also pass through whether single variant sync should be enabled on the resolver, this allows fetchGradleModels to turn this off
+    boolean shouldUseSingleVariantSync = !request.forceFullVariantsSync && isSingleVariantSync(myProject);
+    // We also need to pass the listener so that the callbacks can be used
+    setProjectUserDataForAndroidGradleProjectResolver(shouldUseCompoundSync, shouldUseSingleVariantSync, listener);
 
     setSkipAndroidPluginUpgrade(request, setupRequest);
 
@@ -149,7 +165,7 @@ public class IdeaGradleSync implements GradleSync {
     }
 
     for (String rootPath : androidProjectCandidatesPaths) {
-      ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, false);
+      ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener);
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
       refreshProject(myProject, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
                      executionMode, true /* always report import errors */);
@@ -178,6 +194,23 @@ public class IdeaGradleSync implements GradleSync {
     }
   }
 
+  /**
+   * This method sets up the information to be used by the AndroidGradleProjectResolver.
+   * We use the projects user data as a way of passing this information across since the resolver is create by the
+   * external system infrastructure.
+   *
+   * @param shouldGenerateSources whether or not sources should be generated
+   * @param singleVariant whether or not only a single variant should be synced
+   * @param listener the listener that is being used for the current sync.
+   */
+  private void setProjectUserDataForAndroidGradleProjectResolver(boolean shouldGenerateSources,
+                                                                 boolean singleVariant,
+                                                                 @Nullable GradleSyncListener listener) {
+    myProject.putUserData(SOURCE_GENERATION_KEY, shouldGenerateSources);
+    myProject.putUserData(SINGLE_VARIANT_KEY, singleVariant);
+    myProject.putUserData(LISTENER_KEY, listener);
+  }
+
   @Override
   @NotNull
   public List<GradleModuleModels> fetchGradleModels(@NotNull ProgressIndicator indicator) {
@@ -185,6 +218,8 @@ public class IdeaGradleSync implements GradleSync {
     ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, myProject);
     String projectPath = myProject.getBasePath();
     assert projectPath != null;
+
+    setProjectUserDataForAndroidGradleProjectResolver(false, false, null);
 
     GradleProjectResolver projectResolver = new GradleProjectResolver();
     DataNode<ProjectData> projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);

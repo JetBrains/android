@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
 import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 
@@ -574,5 +575,31 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertFalse(mySurface.canZoomToFit());
     assertTrue(mySurface.canZoomIn());
     assertFalse(mySurface.canZoomOut());
+  }
+
+  /**
+   * Test that we don't have any negative scale in case the windows size becomes too small
+   */
+  public void testsMinScale() {
+    NlModel model = model("absolute.xml",
+                          component(ABSOLUTE_LAYOUT)
+                            .withBounds(0, 0, 1000, 1000)
+                            .matchParentWidth()
+                            .matchParentHeight()).build();
+    NlDesignSurface surface = mySurface;
+    surface.setModel(model);
+    surface.setBounds(0, 0, 1000, 1000);
+    surface.validate();
+    surface.getLayout().layoutContainer(surface);
+    surface.updateScrolledAreaSize();
+    surface.zoomToFit();
+    assertEquals(0.5, surface.getScale(), 0.1);
+
+    surface.setBounds(0, 0, 1, 1);
+    surface.updateScrolledAreaSize();
+    surface.validate();
+    surface.getLayout().layoutContainer(surface);
+    surface.zoomToFit();
+    assertEquals(0.01, surface.getScale());
   }
 }

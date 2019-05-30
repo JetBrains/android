@@ -15,27 +15,32 @@
  */
 package com.android.tools.adtui.validation;
 
+import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
+import static com.intellij.xml.util.XmlStringUtil.escapeString;
+import static com.intellij.xml.util.XmlStringUtil.isWrappedInHtml;
+import static com.intellij.xml.util.XmlStringUtil.wrapInHtml;
+
 import com.android.tools.adtui.validation.validators.TrueValidator;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import com.intellij.util.ui.SwingHelper;
+import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.intellij.xml.util.XmlStringUtil.escapeString;
-import static com.intellij.xml.util.XmlStringUtil.isWrappedInHtml;
-import static com.intellij.xml.util.XmlStringUtil.wrapInHtml;
+import javax.swing.JComponent;
+import javax.swing.JEditorPane;
+import javax.swing.JPanel;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * A panel that wraps some inner content and allows registering {@link Validator}s, which, if any
@@ -43,8 +48,8 @@ import static com.intellij.xml.util.XmlStringUtil.wrapInHtml;
  * panel.
  */
 public final class ValidatorPanel extends JPanel implements Disposable {
-  /** Used to set empty text on a label. If completely empty, the height calculations are off. */
-  private static final String BLANK = " ";
+  /** Used to set empty validation text. If completely empty, the height calculations are off. */
+  private static final String BLANK_HTML = "<html></html>";
 
   private final ListenerManager myListeners = new ListenerManager();
   private final List<Validator.Result> myResults = new ArrayList<>();
@@ -53,32 +58,64 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   private JPanel myRootPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel mySouthPanel;
-  private JBLabel myValidationLabel;
+  private JBLabel mySeverityIcon;
+  private JEditorPane myValidationText;
+  private ErrorDetailDialog myErrorDetailDialog;
+  private Validator.Result myValidationResult = Validator.Result.OK;
 
-  public ValidatorPanel(@NotNull Disposable parentDisposable, @NotNull JComponent innerPanel) {
+  /**
+   * Initializes the validator panel.
+   *
+   * @param parentDisposable the disposable parent
+   * @param innerPanel the panel that will be wrapped by the validator panel
+   * @param errorDetailDialogTitle the title for the error detail dialog
+   * @param errorDetailHeader the header label for the error detail dialog
+   */
+  public ValidatorPanel(@NotNull Disposable parentDisposable, @NotNull JComponent innerPanel,
+                        @NotNull String errorDetailDialogTitle, @NotNull String errorDetailHeader) {
     super(new BorderLayout());
 
     add(myRootPanel);
     myRootPanel.add(innerPanel);
 
-    myValidationLabel.setName("ValidationLabel");
-    myValidationLabel.setText(BLANK);
+    myValidationText.setName("ValidationText");
+    myValidationText.setText(BLANK_HTML);
+
+    myValidationText.addHyperlinkListener(event -> {
+      if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        String detailedMessage = myValidationResult.getDetailedMessage();
+        if (myErrorDetailDialog == null) {
+          myErrorDetailDialog = new ErrorDetailDialog(errorDetailDialogTitle, errorDetailHeader, detailedMessage);
+          // Remove reference to the error detail dialog when it is closed.
+          Disposer.register(myErrorDetailDialog.getDisposable(), () -> myErrorDetailDialog = null);
+          // Close the error detail dialog when the ValidatorPanel is disposed.
+          Disposer.register(this, () -> { if (myErrorDetailDialog != null) myErrorDetailDialog.close(CANCEL_EXIT_CODE); });
+          myErrorDetailDialog.show();
+        } else {
+          myErrorDetailDialog.setText(detailedMessage);
+        }
+      }
+    });
 
     Disposer.register(parentDisposable, this);
+  }
+
+  public ValidatorPanel(@NotNull Disposable parentDisposable, @NotNull JComponent innerPanel) {
+    this(parentDisposable, innerPanel, "Errors", "Error Details:");
   }
 
   /**
    * Register a {@link Validator} linked to a target property. Whenever the target property
    * changes, the validator will be tested with its value.
-   *
+   * <p>
    * If multiple validators produce non-OK results, the maximum severity wins. If there are
    * multiple messages with the same severity, the message produced by the validator that
    * was registered first wins.
-   *
+   * <p>
    * See also {@link #hasErrors()}, which will be true if any validator has returned an
    * {@link Validator.Severity#ERROR} result.
    */
-  public <T> void registerValidator(@NotNull ObservableValue<T> value, @NotNull Validator<T> validator) {
+  public <T> void registerValidator(@NotNull ObservableValue<T> value, @NotNull Validator<? super T> validator) {
     int index = myResults.size();
     myResults.add(Validator.Result.OK);
     myListeners.listenAndFire(value, () -> {
@@ -86,7 +123,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
       Validator.Result newValue = validator.validate(value.get());
       if (!newValue.equals(oldValue)) {
         myResults.set(index, newValue);
-        updateValidationLabel();
+        updateValidationText();
       }
     });
   }
@@ -100,8 +137,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   }
 
   /**
-   * Calls {@link #registerTest(ObservableValue, Validator.Severity, String)} with an error
-   * severity.
+   * Calls {@link #registerTest(ObservableValue, Validator.Severity, String)} with an error severity.
    */
   public void registerTest(@NotNull ObservableValue<Boolean> value, @NotNull String message) {
     registerTest(value, Validator.Severity.ERROR, message);
@@ -121,8 +157,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   }
 
   /**
-   * Calls {@link #registerMessageSource(ObservableValue, Validator.Severity)} with an error
-   * severity.
+   * Calls {@link #registerMessageSource(ObservableValue, Validator.Severity)} with an error severity.
    */
   public void registerMessageSource(@NotNull ObservableValue<String> message) {
     registerMessageSource(message, Validator.Severity.ERROR);
@@ -130,40 +165,51 @@ public final class ValidatorPanel extends JPanel implements Disposable {
 
   /**
    * Returns a property which indicates if any of the components in this panel are invalid.
-   *
+   * <p>
    * This is a useful property for UIs to listen to, as they can bind various components (such as
-   * a next button) as appropriate, disabling functionality until all errors are resolved.
+   * a Next button) as appropriate, disabling functionality until all errors are resolved.
    */
   @NotNull
   public ObservableBool hasErrors() {
     return myHasErrors;
   }
 
-  private void updateValidationLabel() {
-    Validator.Result mostSevereResult = Validator.Result.OK;
+  private void updateValidationText() {
+    myValidationResult = Validator.Result.OK;
     for (Validator.Result result : myResults) {
-      if (result.getSeverity().compareTo(mostSevereResult.getSeverity()) > 0) {
-        mostSevereResult = result;
-        if (mostSevereResult.getSeverity() == Validator.Severity.ERROR) {
+      if (result.getSeverity().compareTo(myValidationResult.getSeverity()) > 0) {
+        myValidationResult = result;
+        if (myValidationResult.getSeverity() == Validator.Severity.ERROR) {
           break;
         }
       }
     }
-    if (mostSevereResult.getSeverity() == Validator.Severity.OK) {
-      myValidationLabel.setIcon(null);
-      myValidationLabel.setText(BLANK);
+
+    if (myValidationResult.getSeverity() == Validator.Severity.OK) {
+      mySeverityIcon.setIcon(null);
+      myValidationText.setText(BLANK_HTML);
     }
     else {
-      myValidationLabel.setIcon(mostSevereResult.getSeverity().getIcon());
-      String message = mostSevereResult.getMessage().trim();
-      // A multiline message has to be wrapped to HTML to be displayed properly by JBLabel.
-      if (message.indexOf('\n') >= 0 && !isWrappedInHtml(message)) {
-        message = wrapInHtml(StringUtil.replace(escapeString(message), "\n", "<br>"));
+      mySeverityIcon.setIcon(myValidationResult.getSeverity().getIcon());
+      String message = myValidationResult.getMessage().trim();
+      // A message has to be wrapped in HTML to be displayed properly by JEditorPane.
+      if (!isWrappedInHtml(message)) {
+        if (!StringUtil.isEmpty(myValidationResult.getDetailedMessage())) {
+          message = wrapInHtml("<a href=\"details\">" + convertToHtml(message) + "</a>"); // Make the whole message a hyperlink.
+        }
+        else {
+          message = wrapInHtml(convertToHtml(message));
+        }
       }
-      myValidationLabel.setText(message);
+      myValidationText.setText(message);
     }
 
-    myHasErrors.set(mostSevereResult.getSeverity() == Validator.Severity.ERROR);
+    myHasErrors.set(myValidationResult.getSeverity() == Validator.Severity.ERROR);
+  }
+
+  @NotNull
+  private static String convertToHtml(String message) {
+    return StringUtil.replace(escapeString(message), "\n", "<br>");
   }
 
   @Override
@@ -171,29 +217,16 @@ public final class ValidatorPanel extends JPanel implements Disposable {
     myListeners.releaseAll();
   }
 
-  @VisibleForTesting
+  @TestOnly
   @NotNull
-  public JLabel getValidationLabel() {
-    return myValidationLabel;
+  public JEditorPane getValidationText() {
+    return myValidationText;
   }
 
-  /**
-   * Truncates the message if it contains more than {@code maxLineCount} lines.
-   */
-  @NotNull
-  public static Validator.Result truncateMessage(@NotNull Validator.Result validity, int maxLineCount) {
-    String message = validity.getMessage();
-    int lineCount = 0;
-    int lineOffset = 0;
-    int offset = 0;
-    while ((offset = message.indexOf('\n', offset)) >= 0) {
-      offset++;
-      if (++lineCount > maxLineCount) {
-        message = message.substring(0, lineOffset) + "...";
-        return new Validator.Result(validity.getSeverity(), message);
-      }
-      lineOffset = offset;
-    }
-    return validity;
+  private void createUIComponents() {
+    myValidationText = SwingHelper.createHtmlViewer(true, null, JBColor.WHITE, JBColor.BLACK);
+    myValidationText.setOpaque(false);
+    myValidationText.setFocusable(false);
+    myValidationText.addHyperlinkListener(event -> {});
   }
 }

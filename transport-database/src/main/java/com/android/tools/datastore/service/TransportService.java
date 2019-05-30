@@ -90,7 +90,6 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     myLegacyTable = new DeviceProcessTable();
   }
 
-
   @NotNull
   @Override
   public List<DataStoreService.BackingNamespace> getBackingNamespaces() {

@@ -50,7 +50,6 @@ public final class NewJavaModuleModel extends WizardModel {
   @NotNull private final StringProperty myLibraryName = new StringValueProperty("lib");
   @NotNull private final StringProperty myPackageName = new StringValueProperty();
   @NotNull private final StringProperty myClassName = new StringValueProperty("MyClass");
-  @NotNull private final BoolProperty myCreateGitIgnore = new BoolValueProperty(true);
 
   public NewJavaModuleModel(@NotNull Project project,
                             @NotNull TemplateHandle templateHandle,
@@ -80,11 +79,6 @@ public final class NewJavaModuleModel extends WizardModel {
     return myClassName;
   }
 
-  @NotNull
-  public BoolProperty createGitIgnore() {
-    return myCreateGitIgnore;
-  }
-
   @Override
   protected void handleFinished() {
     AndroidModuleTemplate modulePaths = createDefaultTemplateAt(myProject.getBasePath(), libraryNameName().get()).getPaths();
@@ -95,7 +89,6 @@ public final class NewJavaModuleModel extends WizardModel {
       .setJavaVersion(myProject);
 
     myTemplateValues.put(TemplateMetadata.ATTR_CLASS_NAME, className().get());
-    myTemplateValues.put(TemplateMetadata.ATTR_MAKE_IGNORE, createGitIgnore().get());
     myTemplateValues.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, true);
     myTemplateValues.put(TemplateMetadata.ATTR_IS_LIBRARY_MODULE, true);
 

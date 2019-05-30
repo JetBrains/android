@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.explorer;
 
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
@@ -50,6 +49,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.UIBundle;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -117,7 +117,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     ToolWindow toolWindow = toolWindowManager.registerToolWindow(
       DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID, false, ToolWindowAnchor.RIGHT, getProject(), true);
 
-    myEdtExecutor = FutureCallbackExecutor.wrap(EdtExecutor.INSTANCE);
+    myEdtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance());
     myTaskExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE);
     myModel = new DeviceExplorerModel() {
       @Override

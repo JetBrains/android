@@ -15,21 +15,16 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
-import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptsGroupNode;
-import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode;
-import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.ExternalBuildFilesGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
-import com.android.tools.idea.navigator.nodes.other.NonAndroidModuleNode;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
@@ -42,17 +37,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.PlatformIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
-import static com.android.tools.idea.gradle.util.GradleUtil.isRootModuleWithNoSources;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
 public class AndroidViewProjectNode extends ProjectViewNode<Project> {
@@ -70,36 +61,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
   public Collection<? extends AbstractTreeNode> getChildren() {
     assert myProject != null;
     ViewSettings settings = getSettings();
-
-    // add a node for every module
-    // TODO: make this conditional on getSettings().isShowModules(), otherwise collapse them all at the root
-    List<Module> modules = Arrays.asList(ModuleManager.getInstance(myProject).getModules());
-    List<AbstractTreeNode> children = new ArrayList<>(modules.size());
-    for (Module module : modules) {
-      ApkFacet apkFacet = ApkFacet.getInstance(module);
-      if (isRootModuleWithNoSources(module) && apkFacet == null) {
-        // exclude the root module if it doesn't have any source roots
-        // The most common organization of Gradle projects has an empty root module that is simply a container for other modules.
-        // If we detect such a module, then we don't show it..
-        continue;
-      }
-
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      NdkFacet ndkFacet = NdkFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.getConfiguration().getModel() != null) {
-        children.add(new AndroidModuleNode(myProject, module, settings, myProjectViewPane));
-      }
-      else if (androidFacet != null && apkFacet != null) {
-        children.add(new ApkModuleNode(myProject, module, androidFacet, apkFacet, settings));
-        children.add(new ExternalLibrariesNode(myProject, settings));
-      }
-      else if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
-        children.add(new NdkModuleNode(myProject, module, settings));
-      }
-      else {
-        children.add(new NonAndroidModuleNode(myProject, module, settings));
-      }
-    }
+    List<AbstractTreeNode<?>> children = ModuleNodeUtils.createChildModuleNodes(myProject, null, myProjectViewPane, settings);
 
     // If this is a gradle project, and its sync failed, then we attempt to show project root as a folder so that the files
     // are still visible. See https://code.google.com/p/android/issues/detail?id=76564

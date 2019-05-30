@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.intellij.openapi.util.Pair;
 import com.intellij.ui.ExpandableItemsHandler;
@@ -41,6 +43,7 @@ public abstract class ListWithMargin<E> extends JBList<E> {
 
   public ListWithMargin() {
     super();
+    setSelectionMode(SINGLE_SELECTION);
     setBackground(StudioColorsKt.getSecondaryPanelBackground());
   }
 

@@ -17,7 +17,6 @@ package com.android.tools.datastore;
 
 import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURABLE;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.service.CpuService;
@@ -37,9 +36,9 @@ import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerDbStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -251,7 +250,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   /**
    * Disconnect from the specified channel.
    */
-  public void disconnect(@NotNull long streamId) {
+  public void disconnect(long streamId) {
     if (myConnectedClients.containsKey(streamId)) {
       DataStoreClient client = myConnectedClients.remove(streamId);
       // Shutdown instead of shutdown now so that the client have a chance to receive all the remaining events that need to be streamed
@@ -271,7 +270,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     myDatabases.forEach((name, db) -> db.disconnect());
     DataStoreTable.removeDataStoreErrorCallback(this);
   }
-
 
   @VisibleForTesting
   List<ServicePassThrough> getRegisteredServices() {
@@ -309,6 +307,11 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   @Override
   public void onDataStoreError(Throwable t) {
     myNoPiiExceptionHandler.accept(t);
+  }
+
+  @NotNull
+  public LogService getLogService() {
+    return myLogService;
   }
 
   /**
