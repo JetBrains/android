@@ -1061,8 +1061,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @VisibleForTesting
   class CpuTraceDataSeries implements DataSeries<CpuTraceInfo> {
     @Override
-    public List<SeriesData<CpuTraceInfo>> getDataForXRange(Range xRange) {
-      List<Cpu.CpuTraceInfo> traceInfo = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, xRange);
+    public List<SeriesData<CpuTraceInfo>> getDataForRange(Range range) {
+      List<Cpu.CpuTraceInfo> traceInfo = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range);
 
       List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
       for (Cpu.CpuTraceInfo protoTraceInfo : traceInfo) {

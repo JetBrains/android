@@ -62,7 +62,7 @@ public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> imple
     }
 
     Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
-    List<SeriesData<CpuThreadSliceInfo>> series = mySeries.getDataForXRange(tooltipRange);
+    List<SeriesData<CpuThreadSliceInfo>> series = mySeries.getDataForRange(tooltipRange);
     myCpuThreadSliceInfo = series.isEmpty() ? null : series.get(0).value;
     if (myCpuThreadSliceInfo == CpuThreadSliceInfo.NULL_THREAD) {
       myCpuThreadSliceInfo = null;

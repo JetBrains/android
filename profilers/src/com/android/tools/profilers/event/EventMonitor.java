@@ -61,7 +61,7 @@ public class EventMonitor extends ProfilerMonitor {
     else {
       myFragmentEvents = new EventModel<>(new RangedSeries<>(new Range(1, -1), new DataSeries<EventAction<LifecycleEvent>>() {
         @Override
-        public List<SeriesData<EventAction<LifecycleEvent>>> getDataForXRange(Range xRange) {
+        public List<SeriesData<EventAction<LifecycleEvent>>> getDataForRange(Range range) {
           return new ArrayList<>();
         }
       }));

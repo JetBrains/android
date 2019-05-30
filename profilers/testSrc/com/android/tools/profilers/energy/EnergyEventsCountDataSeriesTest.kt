@@ -109,11 +109,11 @@ class EnergyEventsCountDataSeriesTest {
     for ((timestamp, countMap) in expectedEventCounts) {
       val range = Range(timestamp.toDouble(), timestamp.toDouble())
       assertWithMessage(String.format("Location count mismatch at timestamp: %d", timestamp)).that(
-        locationCountSeries.getDataForXRange(range)[0].value).isEqualTo(countMap["location"])
+        locationCountSeries.getDataForRange(range)[0].value).isEqualTo(countMap["location"])
       assertWithMessage(String.format("Wakelock count mismatch at timestamp: %d", timestamp)).that(
-        wakeLockCountSeries.getDataForXRange(range)[0].value).isEqualTo(countMap["wakelock"])
+        wakeLockCountSeries.getDataForRange(range)[0].value).isEqualTo(countMap["wakelock"])
       assertWithMessage(String.format("Alarm & job count mismatch at timestamp: %d", timestamp)).that(
-        alarmAndJobCountSeries.getDataForXRange(range)[0].value).isEqualTo(countMap["alarm_job"])
+        alarmAndJobCountSeries.getDataForRange(range)[0].value).isEqualTo(countMap["alarm_job"])
     }
   }
 
@@ -127,11 +127,11 @@ class EnergyEventsCountDataSeriesTest {
     for ((timestamp, countMap) in expectedLegacyEventCounts) {
       val range = Range(timestamp.toDouble(), timestamp.toDouble())
       assertWithMessage(String.format("Location count mismatch at timestamp: %d", timestamp)).that(
-        locationCountSeries.getDataForXRange(range)[0].value).isEqualTo(countMap["location"])
+        locationCountSeries.getDataForRange(range)[0].value).isEqualTo(countMap["location"])
       assertWithMessage(String.format("Wakelock count mismatch at timestamp: %d", timestamp)).that(
-        wakeLockCountSeries.getDataForXRange(range)[0].value).isEqualTo(countMap["wakelock"])
+        wakeLockCountSeries.getDataForRange(range)[0].value).isEqualTo(countMap["wakelock"])
       assertWithMessage(String.format("Alarm & job count mismatch at timestamp: %d", timestamp)).that(
-        alarmAndJobCountSeries.getDataForXRange(range)[0].value).isEqualTo(countMap["alarm_job"])
+        alarmAndJobCountSeries.getDataForRange(range)[0].value).isEqualTo(countMap["alarm_job"])
     }
   }
 

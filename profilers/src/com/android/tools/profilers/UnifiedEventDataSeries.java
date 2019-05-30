@@ -68,10 +68,10 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
   }
 
   @Override
-  public List<SeriesData<Long>> getDataForXRange(Range xRangeUs) {
+  public List<SeriesData<Long>> getDataForRange(Range rangeUs) {
     // TODO b/118319729 remove the one second buffer after our request supports buffering options.
-    long minNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMin()) - TimeUnit.SECONDS.toNanos(1);
-    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMax()) + TimeUnit.SECONDS.toNanos(1);
+    long minNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()) - TimeUnit.SECONDS.toNanos(1);
+    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()) + TimeUnit.SECONDS.toNanos(1);
 
     GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
       .setStreamId(myStreamId)

@@ -64,7 +64,7 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
     // However it is tricky to come up with the buffer duration, a thread state can be longer than any buffer.
     // So, lets get data what the user sees and extract the hovered state.
     List<SeriesData<CpuProfilerStage.ThreadState>> series =
-      mySeries.getDataForXRange(myStage.getStudioProfilers().getTimeline().getViewRange());
+      mySeries.getDataForRange(myStage.getStudioProfilers().getTimeline().getViewRange());
 
     int threadStateIndex = Collections.binarySearch(
       series,

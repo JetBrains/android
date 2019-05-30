@@ -48,7 +48,7 @@ public class MemoryDataSeriesTest {
     myService.setMemoryData(memoryData);
     MemoryDataSeries series =
       new MemoryDataSeries(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA, data -> 111L);
-    List<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
+    List<SeriesData<Long>> seriesDataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
     assertEquals(1, seriesDataList.size());
     assertEquals(222, seriesDataList.get(0).x);
     assertEquals(111, seriesDataList.get(0).value.longValue());
@@ -70,7 +70,7 @@ public class MemoryDataSeriesTest {
     myService.setMemoryData(memoryData);
     MemoryDataSeries series =
       new MemoryDataSeries(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA, data -> 111L);
-    List<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
+    List<SeriesData<Long>> seriesDataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, seriesDataList.size());
     assertEquals(333, seriesDataList.get(0).x);
     assertEquals(111, seriesDataList.get(0).value.longValue());

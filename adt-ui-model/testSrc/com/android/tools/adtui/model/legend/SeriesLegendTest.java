@@ -119,7 +119,7 @@ public class SeriesLegendTest {
     }
 
     @Override
-    public List<SeriesData<Long>> getDataForXRange(Range xRange) {
+    public List<SeriesData<Long>> getDataForRange(Range range) {
       return myDataList;
     }
   }

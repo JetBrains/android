@@ -353,7 +353,7 @@ public class LineChartTest {
 
   private static final class ReturnAllDataSeries extends DefaultDataSeries<Long> {
     @Override
-    public List<SeriesData<Long>> getDataForXRange(Range xRange) {
+    public List<SeriesData<Long>> getDataForRange(Range range) {
       return getAllData();
     }
   }

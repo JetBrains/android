@@ -104,7 +104,7 @@ class LegacyEnergyEventsDataSeriesTest {
         .build()
     )
 
-    private val service = FakeEnergyService(eventList = eventList)
+  private val service = FakeEnergyService(eventList = eventList)
 
   @get:Rule
   val grpcChannel = FakeGrpcChannel("EnergyEventsDataSeriesTest", service)
@@ -115,7 +115,7 @@ class LegacyEnergyEventsDataSeriesTest {
                                                   ProfilersTestData.SESSION_DATA)
 
     val range = Range(0.0, Double.MAX_VALUE)
-    val dataList = dataSeries.getDataForXRange(range)
+    val dataList = dataSeries.getDataForRange(range)
     assertThat(dataList.map { it.value }).containsExactlyElementsIn(eventList)
   }
 
@@ -128,7 +128,7 @@ class LegacyEnergyEventsDataSeriesTest {
     run {
       val mergedSeries = LegacyMergedEnergyEventsDataSeries(dataSeries, EnergyDuration.Kind.WAKE_LOCK)
       val range = Range(0.0, Double.MAX_VALUE)
-      val dataList = mergedSeries.getDataForXRange(range)
+      val dataList = mergedSeries.getDataForRange(range)
       assertThat(dataList).hasSize(4)
 
       val mergedWakeLocks = listOf(
@@ -145,7 +145,7 @@ class LegacyEnergyEventsDataSeriesTest {
     run {
       val mergedSeries = LegacyMergedEnergyEventsDataSeries(dataSeries, EnergyDuration.Kind.JOB)
       val range = Range(0.0, Double.MAX_VALUE)
-      val dataList = mergedSeries.getDataForXRange(range)
+      val dataList = mergedSeries.getDataForRange(range)
       assertThat(dataList).hasSize(4)
 
       val mergedJobs = listOf(
@@ -163,7 +163,7 @@ class LegacyEnergyEventsDataSeriesTest {
       val mergedSeries = LegacyMergedEnergyEventsDataSeries(dataSeries, EnergyDuration.Kind.WAKE_LOCK,
                                                                                                EnergyDuration.Kind.JOB)
       val range = Range(0.0, Double.MAX_VALUE)
-      val dataList = mergedSeries.getDataForXRange(range)
+      val dataList = mergedSeries.getDataForRange(range)
       assertThat(dataList).hasSize(4)
 
       val mergedAllEvents = listOf(

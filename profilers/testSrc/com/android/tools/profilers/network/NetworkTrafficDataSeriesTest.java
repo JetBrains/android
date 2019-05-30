@@ -127,7 +127,7 @@ public class NetworkTrafficDataSeriesTest {
 
   private static void check(NetworkTrafficDataSeries series, long startTimeSec, long endTimeSec, List<SeriesData<Long>> expectedResult) {
     Range range = new Range(TimeUnit.SECONDS.toMicros(startTimeSec), TimeUnit.SECONDS.toMicros(endTimeSec));
-    List<SeriesData<Long>> dataList = series.getDataForXRange(range);
+    List<SeriesData<Long>> dataList = series.getDataForRange(range);
     assertEquals(expectedResult.size(), dataList.size());
     for (int i = 0; i < dataList.size(); ++i) {
       assertEquals(dataList.get(i).value, expectedResult.get(i).value);
