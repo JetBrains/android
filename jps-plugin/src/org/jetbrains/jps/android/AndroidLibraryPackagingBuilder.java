@@ -2,7 +2,7 @@
 package org.jetbrains.jps.android;
 
 import com.android.tools.idea.jps.AndroidTargetBuilder;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.android.util.AndroidCommonUtils;
@@ -17,7 +17,6 @@ import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ProjectBuildException;
 import org.jetbrains.jps.incremental.StopBuildException;
-import org.jetbrains.jps.incremental.TargetBuilder;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
 import org.jetbrains.jps.model.module.JpsModule;
 
@@ -77,7 +76,7 @@ public class AndroidLibraryPackagingBuilder extends AndroidTargetBuilder<BuildRo
       final List<String> srcFiles;
 
       try {
-        srcFiles = AndroidCommonUtils.packClassFilesIntoJar(ArrayUtil.EMPTY_STRING_ARRAY, ArrayUtil.toStringArray(subdirs), outputJarFile);
+        srcFiles = AndroidCommonUtils.packClassFilesIntoJar(ArrayUtilRt.EMPTY_STRING_ARRAY, ArrayUtilRt.toStringArray(subdirs), outputJarFile);
       }
       catch (IOException e) {
         AndroidJpsUtil.reportExceptionError(context, null, e, BUILDER_NAME);

@@ -30,7 +30,7 @@ import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
@@ -63,7 +63,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
     myNameCache = cachedValuesManager.createCachedValue(nameCacheProvider, false);
 
     myAllClassNamesCache = cachedValuesManager.createCachedValue(
-      () -> CachedValueProvider.Result.create(ArrayUtil.toStringArray(myNameCache.getValue().keySet()), nameCacheProvider), false);
+      () -> CachedValueProvider.Result.create(ArrayUtilRt.toStringArray(myNameCache.getValue().keySet()), nameCacheProvider), false);
 
     myMethodsByNameCache = cachedValuesManager.createCachedValue(() -> {
       final Map<String, List<PsiMethod>> result = Maps.newHashMap();
@@ -99,12 +99,12 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
 
     myAllMethodNamesCache = cachedValuesManager.createCachedValue(() -> {
       Set<String> names = myMethodsByNameCache.getValue().keySet();
-      return CachedValueProvider.Result.create(ArrayUtil.toStringArray(names), nameCacheProvider);
+      return CachedValueProvider.Result.create(ArrayUtilRt.toStringArray(names), nameCacheProvider);
     }, false);
 
     myAllFieldNamesCache = cachedValuesManager.createCachedValue(() -> {
       Set<String> names = myFieldsByNameCache.getValue().keySet();
-      return CachedValueProvider.Result.create(ArrayUtil.toStringArray(names), nameCacheProvider);
+      return CachedValueProvider.Result.create(ArrayUtilRt.toStringArray(names), nameCacheProvider);
     }, false);
   }
 
@@ -143,7 +143,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   @Override
   public String[] getAllClassNames() {
     if (!isEnabled()) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
+      return ArrayUtilRt.EMPTY_STRING_ARRAY;
     }
     return myAllClassNamesCache.getValue();
   }
@@ -223,7 +223,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   @Override
   public String[] getAllMethodNames() {
     if (!isEnabled()) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
+      return ArrayUtilRt.EMPTY_STRING_ARRAY;
     }
     return myAllMethodNamesCache.getValue();
   }
@@ -250,7 +250,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   @Override
   public String[] getAllFieldNames() {
     if (!isEnabled()) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
+      return ArrayUtilRt.EMPTY_STRING_ARRAY;
     }
     return myAllFieldNamesCache.getValue();
   }

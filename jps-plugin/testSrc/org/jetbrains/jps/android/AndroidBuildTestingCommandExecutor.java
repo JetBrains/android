@@ -1,10 +1,11 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
@@ -185,7 +186,7 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
       final String depIdsStr = s.substring(colonIdx + 1, newLineIdx);
       final String[] depIds = depIdsStr.length() > 0
                               ? depIdsStr.trim().split(",")
-                              : ArrayUtil.EMPTY_STRING_ARRAY;
+                              : ArrayUtilRt.EMPTY_STRING_ARRAY;
       final String content = s.substring(newLineIdx + 1).trim();
       id2logEntry.put(id, new MyLogEntry(content, depIds));
     }

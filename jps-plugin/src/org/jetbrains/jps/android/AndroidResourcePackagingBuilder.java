@@ -4,7 +4,7 @@ package org.jetbrains.jps.android;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.PathUtilRt;
 import com.intellij.util.Processor;
 import org.jetbrains.android.compiler.tools.AndroidApt;
@@ -117,7 +117,7 @@ public class AndroidResourcePackagingBuilder extends AndroidTargetBuilder<BuildR
                                          : null;
     final String additionalParameters = extension.getAdditionalPackagingCommandLineParameters();
 
-    return doPackageResources(context, manifestFile, androidTarget, resourceDirPaths, ArrayUtil.toStringArray(assetsDirPaths),
+    return doPackageResources(context, manifestFile, androidTarget, resourceDirPaths, ArrayUtilRt.toStringArray(assetsDirPaths),
                               outputFilePath, releaseBuild, module.getName(), outputConsumer, customManifestPackage, additionalParameters);
   }
 

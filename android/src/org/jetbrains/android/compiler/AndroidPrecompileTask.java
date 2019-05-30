@@ -28,7 +28,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactProperties;
 import com.intellij.packaging.impl.compiler.ArtifactCompileScope;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.hash.HashSet;
 import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactProperties;
@@ -236,7 +236,7 @@ public class AndroidPrecompileTask implements CompileTask {
       final AndroidApplicationArtifactProperties p = (AndroidApplicationArtifactProperties)properties;
       return new Object[] {p.isRunProGuard(), p.getProGuardCfgFiles()};
     }
-    return ArrayUtil.EMPTY_OBJECT_ARRAY;
+    return ArrayUtilRt.EMPTY_OBJECT_ARRAY;
   }
 
   private static String toString(Collection<Artifact> artifacts) {

@@ -43,6 +43,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -524,7 +525,7 @@ public class InferSupportAnnotations {
     WriteCommandAction.runWriteCommandAction(project, new Runnable() {
       @Override
       public void run() {
-        String[] toRemoveArray = toRemove != null ? new String[]{toRemove} : ArrayUtil.EMPTY_STRING_ARRAY;
+        String[] toRemoveArray = toRemove != null ? new String[]{toRemove} : ArrayUtilRt.EMPTY_STRING_ARRAY;
         new AddAnnotationFix(fqn, element, values, toRemoveArray).invoke(project, null, element.getContainingFile());
       }
     });

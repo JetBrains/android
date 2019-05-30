@@ -15,20 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.common;
 
-import static com.android.builder.model.AndroidProject.MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD;
-import static com.android.builder.model.AndroidProject.MODEL_LEVEL_4_NEW_DEP_MODEL;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_ADVANCED;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED;
-import static com.android.builder.model.AndroidProject.PROPERTY_INVOKED_FROM_IDE;
-import static com.android.builder.model.AndroidProject.PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL;
-import static com.android.builder.model.AndroidProject.PROPERTY_SEPARATE_R_CLASS_COMPILATION;
-import static com.android.builder.model.AndroidProject.PROPERTY_STUDIO_VERSION;
-import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
-import static com.intellij.util.ArrayUtil.toStringArray;
-
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
@@ -41,11 +27,18 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.util.ArrayUtilRt;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.builder.model.AndroidProject.*;
+import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 
 public class CommandLineArgs {
   private static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
@@ -124,7 +117,7 @@ public class CommandLineArgs {
     boolean isTestingMode = isInTestingMode();
     if (isTestingMode) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
-      application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
+      application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, ArrayUtilRt.toStringArray(args));
     }
 
     if (!StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get() && (myIdeSettings.isEmbeddedMavenRepoEnabled() || isTestingMode)) {

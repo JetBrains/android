@@ -24,7 +24,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY
+import com.intellij.util.ArrayUtilRt
 import org.jetbrains.uast.UMethod
 
 interface RoomColumnPsiReference : PsiReference {
@@ -183,7 +183,7 @@ class RoomParameterReference(parameter: RoomBindParameter) : PsiReferenceBase<Ro
       ?.uastParameters
       ?.map { LookupElementBuilder.create(it.psi) }
       ?.toTypedArray<Any>()
-        ?: EMPTY_OBJECT_ARRAY
+        ?: ArrayUtilRt.EMPTY_OBJECT_ARRAY
 
   private fun findQueryMethod(): UMethod? = (element.containingFile as? RoomSqlFile)?.queryMethod
 }

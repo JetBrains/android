@@ -19,7 +19,7 @@ import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,6 +54,6 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
     while(tokenizer.hasMoreTokens()) {
       options.add(tokenizer.nextToken());
     }
-    return ArrayUtil.toStringArray(options);
+    return ArrayUtilRt.toStringArray(options);
   }
 }
