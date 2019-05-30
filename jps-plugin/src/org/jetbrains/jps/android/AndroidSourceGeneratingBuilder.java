@@ -730,7 +730,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         }
 
         final File outputFile = new File(aidlOutputDirectory, packageName.replace('.', File.separatorChar) +
-                                                              File.separator + FileUtil.getNameWithoutExtension(file) + ".java");
+                                                              File.separator + FileUtilRt.getNameWithoutExtension(file.getName()) + ".java");
         final String outputFilePath = outputFile.getPath();
         final Map<AndroidCompilerMessageKind, List<String>> messages =
           AndroidIdl.execute(target, filePath, outputFilePath, sourceRootPaths);
@@ -818,7 +818,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
           final List<File> newFiles = new ArrayList<>();
           AndroidCommonUtils.moveAllFiles(tmpOutputDirectory, rsOutputDirectory, newFiles);
 
-          final File bcFile = new File(rawDir, FileUtil.getNameWithoutExtension(file) + ".bc");
+          final File bcFile = new File(rawDir, FileUtilRt.getNameWithoutExtension(file.getName()) + ".bc");
           if (bcFile.exists()) {
             newFiles.add(bcFile);
           }

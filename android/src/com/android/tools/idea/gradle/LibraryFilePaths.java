@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle;
 
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.util.io.FileUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 public class LibraryFilePaths {
@@ -56,7 +56,7 @@ public class LibraryFilePaths {
     }
 
     File parentPath = libraryPath.getParentFile();
-    String name = getNameWithoutExtension(libraryPath);
+    String name = FileUtilRt.getNameWithoutExtension(libraryPath.getName());
     String sourceFileName = name + fileNameSuffix;
     if (parentPath != null) {
 

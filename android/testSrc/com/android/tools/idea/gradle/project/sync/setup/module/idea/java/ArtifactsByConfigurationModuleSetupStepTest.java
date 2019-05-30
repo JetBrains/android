@@ -26,6 +26,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +44,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -135,7 +135,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends JavaProjectTest
 
   @NotNull
   private String createLibraryName(@NotNull File jarFilePath) {
-    return getModule().getName() + "." + getNameWithoutExtension(jarFilePath);
+    return getModule().getName() + "." + FileUtilRt.getNameWithoutExtension(jarFilePath.getName());
   }
 
   public void testDoSetUpModuleWithCompiledJar() throws IOException {
