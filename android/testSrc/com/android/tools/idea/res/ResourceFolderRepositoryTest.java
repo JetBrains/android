@@ -21,8 +21,8 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans;
 import static com.android.tools.idea.testing.AndroidTestUtils.moveCaret;
 import static com.google.common.truth.Truth.assertThat;
@@ -41,9 +41,13 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.DumbService;
@@ -62,8 +66,10 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
 import com.intellij.util.ui.UIUtil;
+import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -94,6 +100,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String XLIFF = "resourceRepository/xliff.xml";
   private static final String STRINGS = "resourceRepository/strings.xml";
   private static final String DRAWABLE = "resourceRepository/logo.png";
+  private static final String DRAWABLE_BLUE = "resourceRepository/blue.png";
+  private static final String DRAWABLE_RED = "resourceRepository/red.png";
+  private static final Dimension COLORED_DRAWABLE_SIZE = new Dimension(3, 3);
   private static final String DRAWABLE_ID_SCAN = "resourceRepository/drawable_for_id_scan.xml";
   private static final String COLOR_STATELIST = "resourceRepository/statelist.xml";
 
@@ -4055,6 +4064,37 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "bbb"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "ccc"));
     assertThat(resources.getModificationCount()).named("New modification count").isGreaterThan(timestamp);
+  }
+
+  /**
+   * This test checks that when the content of a bitmap is updated, the resource repository is notified.
+   * <p>
+   * We do that by checking that when an image content is changed from red to blue,
+   * LayoutLib clears its caches.
+   * <p>
+   * b/129668736
+   */
+  public void testBitmapUpdated() throws IOException {
+    VirtualFile logoFile = myFixture.copyFileToProject(DRAWABLE_RED, "res/drawable/logo.png");
+    ResourceFolderRepository resources = createRepository();
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "logo"));
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(logoFile);
+    DrawableRenderer renderer = new DrawableRenderer(myFacet, configuration);
+
+    String bitmapXml = "<adaptive-icon xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+                       "    <background android:drawable=\"@drawable/logo\"/>\n" +
+                       "    <foreground android:drawable=\"@drawable/logo\"/>\n" +
+                       "</adaptive-icon>";
+    int red = renderer.renderDrawable(bitmapXml, COLORED_DRAWABLE_SIZE).join().getRGB(0, 0);
+
+    // We don't check the alpha byte because its value is not FF as expected but
+    // that is not significant for this test.
+    assertEquals("ff0000", Integer.toHexString(red).substring(2));
+
+    byte[] newContent = Files.readAllBytes(new File(myFixture.getTestDataPath(), DRAWABLE_BLUE).toPath());
+    WriteAction.run(() -> logoFile.setBinaryContent(newContent));
+    int blue = renderer.renderDrawable(bitmapXml, COLORED_DRAWABLE_SIZE).join().getRGB(0, 0);
+    assertEquals("0000ff", Integer.toHexString(blue).substring(2));
   }
 
   @Nullable
