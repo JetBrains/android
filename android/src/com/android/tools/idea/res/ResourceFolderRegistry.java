@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.utils.SdkUtils;
 import com.android.utils.concurrency.CacheUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
@@ -40,6 +41,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
@@ -287,6 +289,9 @@ public class ResourceFolderRegistry implements Disposable {
           VFilePropertyChangeEvent renameEvent = (VFilePropertyChangeEvent)event;
           onFileOrDirectoryCreated(renameEvent.getFile().getParent(), (String)renameEvent.getNewValue());
         }
+        else if (event instanceof VFileContentChangeEvent) {
+          onFileContentChanged(((VFileContentChangeEvent)event).getFile());
+        }
       }
     }
 
@@ -332,6 +337,22 @@ public class ResourceFolderRegistry implements Disposable {
           ResourceFolderRepository repository = cache.getIfPresent(dir);
           if (repository != null) {
             repository.onFileOrDirectoryRemoved(file);
+          }
+        }
+      }
+    }
+
+    private void onFileContentChanged(@NotNull VirtualFile file) {
+      if (file.isDirectory()) {
+        return;
+      }
+      if (SdkUtils.hasImageExtension(file.getName())) {
+        for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
+          for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
+            ResourceFolderRepository repository = cache.getIfPresent(dir);
+            if (repository != null) {
+              repository.onBitmapFileUpdated(file);
+            }
           }
         }
       }
