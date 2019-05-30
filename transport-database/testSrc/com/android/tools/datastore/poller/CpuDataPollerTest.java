@@ -398,12 +398,6 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   private static class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
-    private CpuProfilingAppStopResponse.Status myStopProfilingAppStatus;
-
-    private boolean myIsBeingProfiled = false;
-
-    private int myLastCheckBeingProfiledTimestamp = 1;
-
     private List<CpuTraceInfo> myTraceInfoResponses = new ArrayList<>();
 
     @Override
@@ -455,16 +449,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     @Override
     public void stopProfilingApp(CpuProfilingAppStopRequest request,
                                  StreamObserver<CpuProfilingAppStopResponse> responseObserver) {
-      responseObserver.onNext(CpuProfilingAppStopResponse.newBuilder().setTraceId(TRACE_ID).setStatus(myStopProfilingAppStatus).build());
+      responseObserver.onNext(CpuProfilingAppStopResponse.newBuilder().setTraceId(TRACE_ID).build());
       responseObserver.onCompleted();
-    }
-
-    public void setStopProfilingAppStatus(CpuProfilingAppStopResponse.Status stopProfilingAppStatus) {
-      myStopProfilingAppStatus = stopProfilingAppStatus;
-    }
-
-    public void setBeingProfiled(boolean beingProfiled) {
-      myIsBeingProfiled = beingProfiled;
     }
   }
 }
