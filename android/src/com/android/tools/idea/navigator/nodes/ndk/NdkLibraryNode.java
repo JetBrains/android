@@ -27,6 +27,7 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -40,7 +41,6 @@ import java.util.*;
 
 import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
@@ -138,7 +138,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
       File source = sourceFile.getFilePath();
       sourceFiles.add(source);
       for (String extension : HEADER_FILE_EXTENSIONS) {
-        sourceFiles.add(new File(source.getParentFile(), getNameWithoutExtension(source) + "." + extension));
+        sourceFiles.add(new File(source.getParentFile(), FileUtilRt.getNameWithoutExtension(source.getName()) + "." + extension));
       }
     }
 

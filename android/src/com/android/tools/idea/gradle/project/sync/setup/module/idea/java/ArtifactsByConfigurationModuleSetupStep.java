@@ -23,6 +23,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.util.io.FileUtilRt;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -33,7 +34,6 @@ import static com.android.SdkConstants.DOT_JAR;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
 
@@ -53,7 +53,7 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
             continue;
           }
           File buildFolderPath = javaModuleModel.getBuildFolderPath();
-          String artifactName = getNameWithoutExtension(artifact);
+          String artifactName = FileUtilRt.getNameWithoutExtension(artifact.getName());
 
           if (buildFolderPath != null &&
               buildFolderPath.isDirectory() &&
