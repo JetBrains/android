@@ -32,12 +32,11 @@ import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
-import javax.swing.SwingWorker;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ConnectedDevicesWorkerDelegate extends SwingWorker<Collection<ConnectedDevice>, Void> {
+final class ConnectedDevicesWorkerDelegate extends WorkerDelegate<Collection<ConnectedDevice>> {
   @NotNull
   private final Project myProject;
 
@@ -45,13 +44,15 @@ final class ConnectedDevicesWorkerDelegate extends SwingWorker<Collection<Connec
   private final LaunchCompatibilityChecker myChecker;
 
   ConnectedDevicesWorkerDelegate(@NotNull Project project, @Nullable LaunchCompatibilityChecker checker) {
+    super(Collections.emptyList());
+
     myProject = project;
     myChecker = checker;
   }
 
   @NotNull
   @Override
-  protected Collection<ConnectedDevice> doInBackground() {
+  public Collection<ConnectedDevice> construct() {
     File adb = AndroidSdkUtils.getAdb(myProject);
 
     if (adb == null) {

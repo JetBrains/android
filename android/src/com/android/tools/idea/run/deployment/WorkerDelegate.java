@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,41 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.project.Project;
-import java.util.List;
+import com.intellij.util.concurrency.SwingWorker;
 import org.jetbrains.annotations.NotNull;
 
-public interface AsyncDevicesGetter {
+abstract class WorkerDelegate<T> extends SwingWorker {
   @NotNull
-  static AsyncDevicesGetter getService(@NotNull Project project) {
-    return ServiceManager.getService(project, AsyncDevicesGetter.class);
+  private final T myDefaultValue;
+
+  private boolean myFinished;
+
+  WorkerDelegate(@NotNull T defaultValue) {
+    myDefaultValue = defaultValue;
   }
 
   @NotNull
-  List<Device> get();
+  final T getDefault() {
+    return myDefaultValue;
+  }
+
+  final boolean isFinished() {
+    return myFinished;
+  }
+
+  @NotNull
+  @Override
+  public abstract T construct();
+
+  @Override
+  public final void finished() {
+    myFinished = true;
+  }
+
+  @NotNull
+  @Override
+  public final T get() {
+    // noinspection unchecked
+    return (T)super.get();
+  }
 }

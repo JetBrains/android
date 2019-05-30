@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,26 @@ package com.android.tools.idea.run.deployment;
 
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public interface AsyncDevicesGetter {
+final class TestAsyncDevicesGetter implements AsyncDevicesGetter {
   @NotNull
-  static AsyncDevicesGetter getService(@NotNull Project project) {
-    return ServiceManager.getService(project, AsyncDevicesGetter.class);
+  private List<Device> myDevices = Collections.emptyList();
+
+  @NotNull
+  static TestAsyncDevicesGetter getService(@NotNull Project project) {
+    return (TestAsyncDevicesGetter)ServiceManager.getService(project, AsyncDevicesGetter.class);
   }
 
   @NotNull
-  List<Device> get();
+  @Override
+  public List<Device> get() {
+    return myDevices;
+  }
+
+  void set(@NotNull List<Device> devices) {
+    myDevices = devices;
+  }
 }

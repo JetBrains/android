@@ -33,25 +33,26 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.swing.SwingWorker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class VirtualDevicesWorkerDelegate extends SwingWorker<Collection<VirtualDevice>, Void> {
+final class VirtualDevicesWorkerDelegate extends WorkerDelegate<Collection<VirtualDevice>> {
   @Nullable
   private final LaunchCompatibilityChecker myChecker;
 
   VirtualDevicesWorkerDelegate(@Nullable LaunchCompatibilityChecker checker) {
+    super(Collections.emptyList());
     myChecker = checker;
   }
 
   @NotNull
   @Override
-  protected Collection<VirtualDevice> doInBackground() {
+  public Collection<VirtualDevice> construct() {
     return AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false).stream()
       .map(this::newDisconnectedDevice)
       .collect(Collectors.toList());

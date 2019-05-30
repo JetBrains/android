@@ -16,13 +16,13 @@
 package com.android.tools.idea.tests.gui.framework.fixture.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.run.deployment.AsyncDevicesGetter;
 import com.android.tools.idea.run.deployment.Device;
-import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction;
 import com.android.tools.idea.tests.gui.framework.fixture.ComboBoxActionFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
 import java.awt.event.KeyEvent;
 import javax.swing.JButton;
@@ -42,16 +42,16 @@ public final class DeviceSelectorFixture {
   @Nullable
   private final ActionToolbar myToolbar;
 
-  @Nullable
-  private final DeviceAndSnapshotComboBoxAction myAction;
+  @NotNull
+  private final Project myProject;
 
-  public DeviceSelectorFixture(@NotNull Robot robot) {
+  public DeviceSelectorFixture(@NotNull Robot robot, @NotNull Project project) {
     myRobot = robot;
 
     if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
       myComboBox = null;
       myToolbar = null;
-      myAction = null;
+      myProject = null;
 
       return;
     }
@@ -61,7 +61,7 @@ public final class DeviceSelectorFixture {
     myComboBox = new ComboBoxActionFixture(robot, button);
     myToolbar = UIUtil.getParentOfType(ActionToolbar.class, button);
 
-    myAction = (DeviceAndSnapshotComboBoxAction)ActionManager.getInstance().getAction("DeviceAndSnapshotComboBox");
+    myProject = project;
   }
 
   public void selectDevice(@NotNull String deviceName) {
@@ -78,7 +78,7 @@ public final class DeviceSelectorFixture {
     return GuiQuery.get(() -> {
       myToolbar.updateActionsImmediately();
 
-      return myAction.getDevices().stream()
+      return AsyncDevicesGetter.getService(myProject).get().stream()
         .map(Device::getName)
         .anyMatch(name -> name.equals(deviceName));
     });
