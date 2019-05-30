@@ -128,6 +128,8 @@ abstract class PoliteAndroidVirtualFileListener(val project: Project) : VirtualF
 
   override fun fileDeleted(event: VirtualFileEvent) = pendingPossiblyIrrelevantFileChangeComplete(event.file.toPathString())
 
+  override fun contentsChanged(event: VirtualFileEvent) = possiblyIrrelevantFileChanged(event.file)
+
   override fun propertyChanged(event: VirtualFilePropertyEvent) = possiblyIrrelevantFileChanged(event.file)
 
   override fun fileCreated(event: VirtualFileEvent) = possiblyIrrelevantFileChanged(event.file)
