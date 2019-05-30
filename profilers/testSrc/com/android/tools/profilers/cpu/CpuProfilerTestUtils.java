@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
@@ -32,7 +31,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -157,8 +155,8 @@ public class CpuProfilerTestUtils {
     throws InterruptedException {
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     cpuService.setStartProfilingStatus(success
-                                       ? com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS
-                                       : CpuProfiler.CpuProfilingAppStartResponse.Status.FAILURE);
+                                       ? Cpu.TraceStartStatus.Status.SUCCESS
+                                       : Cpu.TraceStartStatus.Status.FAILURE);
     CountDownLatch latch;
     AspectObserver observer = new AspectObserver();
     if (success) {
@@ -206,8 +204,8 @@ public class CpuProfilerTestUtils {
     long traceId = stage.getStudioProfilers().getUpdater().getTimer().getCurrentTimeNs();
     cpuService.setTraceId(traceId);
     cpuService.setStopProfilingStatus(success
-                                      ? CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS
-                                      : CpuProfiler.CpuProfilingAppStopResponse.Status.STOP_COMMAND_FAILED);
+                                      ? Cpu.TraceStopStatus.Status.SUCCESS
+                                      : Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED);
 
     // Wait for the stop request to finish and the CpuProfilerStage calls back on the main thread.
     // TODO: this is currently dependent on the implementation that the stopCapturingCallback is invoked via the main thread, we should
