@@ -22,11 +22,11 @@ import com.google.common.collect.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.uiDesigner.core.AbstractLayout;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -69,7 +69,7 @@ public final class ModulesTable extends JBPanel implements Scrollable {
       else {
         final ModuleImportSettingsPane newPane = new ModuleImportSettingsPane();
         if (!isFirst) {
-          newPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtil.getBorderColor()));
+          newPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, JBColor.border()));
         }
         newPane.addActionListener(new ActionListener() {
           @Override
