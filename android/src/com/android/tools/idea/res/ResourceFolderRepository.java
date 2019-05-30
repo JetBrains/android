@@ -1393,11 +1393,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * Called when a bitmap has been changed/deleted. In that case we need to clear out any caches for that
    * image held by layout lib.
    */
-  private void bitmapUpdated() {
+  private void bitmapUpdated(@NotNull VirtualFile bitmap) {
     Module module = myFacet.getModule();
     ConfigurationManager configurationManager = ConfigurationManager.findExistingInstance(module);
     if (configurationManager != null) {
-      IAndroidTarget target = configurationManager.getTarget();
+      IAndroidTarget target = configurationManager.getConfiguration(bitmap).getTarget();
       if (target != null) {
         AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
         if (targetData != null) {
@@ -2177,7 +2177,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   void onBitmapFileUpdated(@NotNull VirtualFile file) {
     if (ResourceHelper.getFolderType(file) != null) {
-      bitmapUpdated();
+      bitmapUpdated(file);
     }
   }
 
@@ -2229,7 +2229,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (folderType == DRAWABLE) {
         FileType fileType = file.getFileType();
         if (fileType.isBinary() && fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG)) {
-          bitmapUpdated();
+          bitmapUpdated(file);
         }
       }
 
