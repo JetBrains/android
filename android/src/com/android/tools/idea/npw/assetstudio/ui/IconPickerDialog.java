@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import static com.intellij.util.ArrayUtilRt.EMPTY_STRING_ARRAY;
-
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
@@ -32,12 +30,19 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
-import java.awt.Color;
-import java.awt.Component;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -47,17 +52,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.util.ArrayUtilRt.EMPTY_STRING_ARRAY;
 
 /**
  * A dialog to pick a pre-configured material icon in vector format.
@@ -265,7 +261,7 @@ public final class IconPickerDialog extends DialogWrapper {
   static String[] getCategoryNames() {
     return Arrays.stream(ICON_CATEGORIES)
                  .map(category -> category.equals("av") ? "Audio/Video" : StringUtil.capitalize(category))
-                 .collect(Collectors.toList()).toArray(ArrayUtil.EMPTY_STRING_ARRAY);
+                 .collect(Collectors.toList()).toArray(EMPTY_STRING_ARRAY);
   }
 
   private void createUIComponents() {

@@ -17,7 +17,7 @@ package com.android.tools.adtui.treegrid;
 
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ui.SpeedSearchBase;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,12 +63,12 @@ public class TreeGridSpeedSearch<T> extends SpeedSearchBase<TreeGrid<T>> {
   protected Object[] getAllElements() {
     AbstractTreeStructure model = myComponent.getModel();
     if (model == null) {
-      return ArrayUtil.EMPTY_OBJECT_ARRAY;
+      return ArrayUtilRt.EMPTY_OBJECT_ARRAY;
     }
     Object root = model.getRootElement();
     Object[] sections = model.getChildElements(root);
     if (sections == null || sections.length == 0) {
-      return ArrayUtil.EMPTY_OBJECT_ARRAY;
+      return ArrayUtilRt.EMPTY_OBJECT_ARRAY;
     }
     return stream(sections).flatMap(section -> stream(model.getChildElements(section))).toArray();
   }

@@ -10,7 +10,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.OrderedSet;
@@ -509,7 +509,7 @@ public class AndroidJpsUtil {
     for (JpsAndroidModuleExtension depExtension : getAllAndroidDependencies(extension.getModule(), true)) {
       addCompilableResourceDirsForModule(depExtension, withCacheDirs, dataPaths, result, checkExistence);
     }
-    return ArrayUtil.toStringArray(result);
+    return ArrayUtilRt.toStringArray(result);
   }
 
   private static void addCompilableResourceDirsForModule(JpsAndroidModuleExtension extension,

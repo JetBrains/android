@@ -26,7 +26,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ui.JBUI;
@@ -306,7 +306,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         result.add(FileUtil.toSystemDependentName(buildDirectory + '/' + AndroidCompileUtil.getApkName(module)));
       }
     }
-    return ArrayUtil.toStringArray(result);
+    return ArrayUtilRt.toStringArray(result);
   }
 
   @Override

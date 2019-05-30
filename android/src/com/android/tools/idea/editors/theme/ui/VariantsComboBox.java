@@ -21,7 +21,7 @@ import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.PopupMenuListenerAdapter;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
@@ -218,7 +218,7 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
   public Object[] getSelectedObjects() {
     Object selectedObject = myModel.getSelectedItem();
 
-    return selectedObject != null ? new Object[]{selectedObject} : ArrayUtil.EMPTY_OBJECT_ARRAY;
+    return selectedObject != null ? new Object[]{selectedObject} : ArrayUtilRt.EMPTY_OBJECT_ARRAY;
   }
 
   @Override

@@ -73,7 +73,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.WaitFor;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
@@ -1479,7 +1479,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       List<String> commandLineArguments = new ArrayList<>();
       GradleInitScripts initScripts = GradleInitScripts.getInstance();
       initScripts.addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
-      buildLauncher.withArguments(ArrayUtil.toStringArray(commandLineArguments));
+      buildLauncher.withArguments(ArrayUtilRt.toStringArray(commandLineArguments));
       @SuppressWarnings("resource")
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       try {
