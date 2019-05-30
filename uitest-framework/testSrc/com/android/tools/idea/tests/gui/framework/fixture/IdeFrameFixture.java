@@ -52,6 +52,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindo
 import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
+import com.intellij.execution.ExecutionBundle;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -222,12 +223,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    */
   @NotNull
   public ActionButtonFixture findDebugApplicationButton() {
-    return findActionButtonByActionId("Debug");
+    return findActionButtonWithRefresh("Debug");
   }
 
   @NotNull
   public ActionButtonFixture findRunApplicationButton() {
     return findActionButtonWithRefresh("Run");
+  }
+
+  @NotNull
+  public ActionButtonFixture findStopButton() {
+    return findActionButtonWithRefresh(ExecutionBundle.message("run.configuration.stop.action.name"));
   }
 
   @NotNull
@@ -512,13 +518,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   /**
    * IJ doesn't always refresh the state of the toolbar buttons. This forces it to refresh.
    */
-  public static void updateToolbars() {
+  @NotNull
+  public IdeFrameFixture updateToolbars() {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() {
         ActionToolbarImpl.updateAllToolbarsImmediately();
       }
     });
+    return this;
   }
 
   /**
@@ -536,6 +544,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     });
   }
 
+  @NotNull
+  private ActionButtonFixture findActionButtonWithRefresh(@NotNull String actionId) {
+    return findActionButtonWithRefresh(actionId, true);
+  }
   /**
    * Finds the button while jittering the mouse over the IDE frame.
    *
@@ -544,16 +556,16 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * place and update to its final state.
    */
   @NotNull
-  private ActionButtonFixture findActionButtonWithRefresh(@NotNull String actionId) {
+  private ActionButtonFixture findActionButtonWithRefresh(@NotNull String actionId, boolean enabled) {
     Ref<ActionButtonFixture> fixtureRef = new Ref<>();
     Wait.seconds(30)
       .expecting("button to enable")
       .until(() -> {
         updateToolbars();
+        // Actions can somehow get replaced, so we need to re-get the action when we attempt to check its state.
         ActionButtonFixture fixture = locateActionButtonByActionId(actionId);
         fixtureRef.set(fixture);
         if (hasValidWindowAncestor(fixture.target())) {
-          robot().jitter(target()); // Jitter somewhere in the window.
           return execute(new GuiQuery<Boolean>() {
             @Nullable
             @Override
@@ -562,9 +574,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
                 ActionButton button = fixture.target();
                 AnAction action = button.getAction();
                 Presentation presentation = action.getTemplatePresentation();
-                return presentation.isEnabled() &&
-                       presentation.isVisible() &&
-                       button.isEnabled() &&
+                return presentation.isEnabledAndVisible() &&
+                       button.isEnabled() == enabled &&
                        button.isShowing() &&
                        button.isVisible();
               }

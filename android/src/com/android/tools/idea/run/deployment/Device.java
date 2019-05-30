@@ -112,7 +112,7 @@ public abstract class Device {
   abstract Collection<String> getSnapshots();
 
   @NotNull
-  final String getKey() {
+  public final String getKey() {
     return myKey;
   }
 
