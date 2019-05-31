@@ -847,6 +847,20 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getViewBindingOptions().isEnabled());
   }
 
+  public void testProjectSyncIssuesAreCorrectlyReported() throws Exception {
+    loadProject(HELLO_JNI);
+
+    File appBuildFile = getBuildFilePath("app");
+
+    // Set the ndkVersion to something that doesn't exist.
+    appendToFile(appBuildFile, "android.ndkVersion 'i am a good version'");
+
+    String expectedFailure = requestSyncAndGetExpectedFailure();
+
+    assertThat(expectedFailure).isEqualTo("setup project failed: Sync issues found!\n" +
+                                          "Module 'app':\nRequested NDK version 'i am a good version' could not be parsed\n");
+  }
+
   @NotNull
   private List<NativeArtifact> getNativeArtifacts() {
     return NdkModuleModel.get(getModule("app")).getVariants().stream()
