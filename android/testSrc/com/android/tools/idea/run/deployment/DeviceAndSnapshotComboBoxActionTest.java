@@ -133,7 +133,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setKey("Pixel_2_XL_API_28")
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setConnected(true)
       .setSnapshots(ImmutableList.of());
 
     Device device = builder.build();
@@ -201,7 +200,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setKey("Pixel_2_API_Q")
       .setConnectionTime(Instant.parse("2019-04-04T22:54:09.086Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setConnected(true)
       .build();
 
     TestAsyncDevicesGetter.getService(myProject).set(Arrays.asList(pixel3ApiQ, pixel2ApiQ));
