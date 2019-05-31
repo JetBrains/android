@@ -28,6 +28,7 @@ import com.android.tools.property.panel.api.ActionIconButton
 import com.android.tools.property.panel.api.FlagsPropertyItem
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertiesTable
+import org.jetbrains.android.dom.attrs.AttributeDefinition
 
 /**
  * A [NelePropertyItem] where it is possible to edit the name of the property.
@@ -56,6 +57,18 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
       // Give the model a change to hide expanded flag items
       model.firePropertyValueChangeIfNeeded()
     }
+
+  override val type: NelePropertyType
+    get() = delegate?.type ?: NelePropertyType.UNKNOWN
+
+  override val definition: AttributeDefinition?
+    get() = delegate?.definition
+
+  override val componentName: String
+    get() = delegate?.componentName ?: ""
+
+  override val libraryName: String
+    get() = delegate?.libraryName ?: ""
 
   override fun isSameProperty(qualifiedName: String): Boolean {
     val (propertyNamespace, propertyName) = parseName(qualifiedName)

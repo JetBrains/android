@@ -40,7 +40,7 @@ class ThemeGroup(facet: AndroidFacet, properties: PropertiesTable<NelePropertyIt
     get() = themeProperty?.value
 
   override val itemFilter: (NelePropertyItem) -> Boolean
-    get() = { it == themeProperty || (it.definition != null && attrs.contains(it.definition)) }
+    get() = { it == themeProperty || it.definition?.let { def -> attrs.contains(def) } == true }
 
   override val comparator: Comparator<PTableItem>
     get() = FilteredPTableModel.alphabeticalSortOrder
