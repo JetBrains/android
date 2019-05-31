@@ -33,6 +33,7 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeVariantAbi;
+import com.android.builder.model.ProjectSyncIssues;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
@@ -57,6 +58,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -285,7 +287,8 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
 
     AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
     if (androidProject != null) {
-      AndroidModuleModel androidModel = myAndroidModelFactory.createAndroidModel(module, androidProject, moduleModels);
+      ProjectSyncIssues syncIssues = moduleModels.findModel(ProjectSyncIssues.class);
+      AndroidModuleModel androidModel = myAndroidModelFactory.createAndroidModel(module, androidProject, moduleModels, syncIssues);
       setupContextByModuleModel.androidSetupContexts.put(androidModel, context);
       if (androidModel != null) {
         // "Native" projects also both AndroidProject and AndroidNativeProject
@@ -314,7 +317,7 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
         GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
         assert gradleProject != null;
 
-        Collection<SyncIssue> issues = androidProject.getSyncIssues();
+        Collection<SyncIssue> issues = (syncIssues != null) ? syncIssues.getSyncIssues() : ImmutableList.of();
         JavaModuleModel javaModel = myJavaModuleModelFactory.create(gradleProject, androidProject, issues);
         setupContextByModuleModel.javaSetupContexts.put(javaModel, context);
         cachedModels.addModel(javaModel);
