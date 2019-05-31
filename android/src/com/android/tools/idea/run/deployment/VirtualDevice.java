@@ -41,8 +41,6 @@ final class VirtualDevice extends Device {
 
   private static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
 
-  private final boolean myConnected;
-
   /**
    * Snapshot directory names displayed to the developer.
    */
@@ -62,14 +60,11 @@ final class VirtualDevice extends Device {
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(connectedDevice.getAndroidDevice())
-      .setConnected(true)
       .setSnapshots(virtualDevice.mySnapshots)
       .build();
   }
 
   static final class Builder extends Device.Builder {
-    private boolean myConnected;
-
     @NotNull
     private ImmutableCollection<String> mySnapshots;
 
@@ -115,12 +110,6 @@ final class VirtualDevice extends Device {
     }
 
     @NotNull
-    Builder setConnected(boolean connected) {
-      myConnected = connected;
-      return this;
-    }
-
-    @NotNull
     Builder setSnapshots(@NotNull ImmutableCollection<String> snapshots) {
       mySnapshots = snapshots;
       return this;
@@ -135,20 +124,18 @@ final class VirtualDevice extends Device {
 
   private VirtualDevice(@NotNull Builder builder) {
     super(builder);
-
-    myConnected = builder.myConnected;
     mySnapshots = builder.mySnapshots;
   }
 
   @NotNull
   @Override
   Icon getIcon() {
-    return myConnected ? ourConnectedIcon : StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
+    return isConnected() ? ourConnectedIcon : StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
   }
 
   @Override
   boolean isConnected() {
-    return myConnected;
+    return getConnectionTime() != null;
   }
 
   @NotNull
@@ -177,7 +164,7 @@ final class VirtualDevice extends Device {
   void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot) {
     AndroidDevice device = getAndroidDevice();
 
-    if (!myConnected) {
+    if (!isConnected()) {
       device.launch(project, snapshot);
     }
 
@@ -198,7 +185,6 @@ final class VirtualDevice extends Device {
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice()) &&
-           myConnected == device.myConnected &&
            mySnapshots.equals(device.mySnapshots);
   }
 
@@ -211,7 +197,6 @@ final class VirtualDevice extends Device {
       getKey(),
       getConnectionTime(),
       getAndroidDevice(),
-      myConnected,
       mySnapshots);
   }
 }
