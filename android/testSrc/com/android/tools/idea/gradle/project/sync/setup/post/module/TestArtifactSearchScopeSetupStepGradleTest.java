@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.module;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
-import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.Mockito.mock;
 
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes;
+import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
+
 /**
- * Tests for {@link TestArtifactSearchScopeSetupStep}.
+ * Tests for {@link GradleTestArtifactSearchScopeSetupStep}.
  */
-public class TestArtifactSearchScopeSetupStepTest extends IdeaTestCase {
-  private TestArtifactSearchScopeSetupStep mySetupStep;
+public class TestArtifactSearchScopeSetupStepGradleTest extends IdeaTestCase {
+  private GradleTestArtifactSearchScopeSetupStep mySetupStep;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mySetupStep = new TestArtifactSearchScopeSetupStep();
+    mySetupStep = new GradleTestArtifactSearchScopeSetupStep();
   }
 
   public void testSetUpModuleWithAndroidModule() {
@@ -40,11 +40,11 @@ public class TestArtifactSearchScopeSetupStepTest extends IdeaTestCase {
     facet.getConfiguration().setModel(mock(AndroidModuleModel.class));
 
     mySetupStep.setUpModule(myModule, null);
-    assertNotNull(TestArtifactSearchScopes.get(myModule));
+    assertNotNull(GradleTestArtifactSearchScopes.getInstance(myModule));
   }
 
   public void testSetUpModuleWithNonAndroidModule() {
     mySetupStep.setUpModule(myModule, null);
-    assertNull(TestArtifactSearchScopes.get(myModule));
+    assertNull(GradleTestArtifactSearchScopes.getInstance(myModule));
   }
 }

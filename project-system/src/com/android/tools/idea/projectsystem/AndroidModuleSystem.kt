@@ -144,6 +144,9 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
    */
   fun canGeneratePngFromVectorGraphics(): CapabilityStatus
 
+  /** Returns an [TestArtifactSearchScopes] instance for a given module, if multiple test types are supported. */
+  @JvmDefault
+  fun getTestArtifactSearchScopes(module: Module): TestArtifactSearchScopes? = null
 }
 
 /** Types of dependencies that [AndroidModuleSystem.registerDependency] can add */

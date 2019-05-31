@@ -16,15 +16,15 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.module;
 
 import com.android.tools.idea.gradle.project.sync.setup.post.ModuleSetupStep;
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
+import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TestArtifactSearchScopeSetupStep extends ModuleSetupStep {
+public class GradleTestArtifactSearchScopeSetupStep extends ModuleSetupStep {
   @Override
   public void setUpModule(@NotNull Module module, @Nullable ProgressIndicator indicator) {
-    TestArtifactSearchScopes.initializeScope(module);
+    GradleTestArtifactSearchScopes.initializeScope(module);
   }
 }
