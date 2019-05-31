@@ -39,6 +39,8 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
+import com.android.tools.idea.run.ui.ApplyChangesAction;
+import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
@@ -235,6 +237,16 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public ActionButtonFixture findStopButton() {
     return findActionButtonWithRefresh(ExecutionBundle.message("run.configuration.stop.action.name"));
+  }
+
+  @NotNull
+  public ActionButtonFixture findApplyChangesButton(boolean enabled) {
+    return findActionButtonWithRefresh(ApplyChangesAction.ID, enabled);
+  }
+
+  @NotNull
+  public ActionButtonFixture findApplyCodeChangesButton(boolean enabled) {
+    return findActionButtonWithRefresh(CodeSwapAction.ID, enabled);
   }
 
   @NotNull
@@ -532,14 +544,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   /**
-   * Finds the button while jittering the mouse over the IDE frame.
+   * Finds the button while refreshing over the toolbar.
    * <p>
    * Due to IJ refresh policy (will only refresh if it detects mouse movement over its window),
-   * the cursor needs to be intermittently moved before the ActionButton moves into the location
-   * place and update to its final state.
+   * the toolbar needs to be intermittently updated before the ActionButton moves to the target
+   * location and update to its final state.
    */
   @NotNull
-  private ActionButtonFixture findActionButtonWithRefresh(@NotNull String actionId) {
+  private ActionButtonFixture findActionButtonWithRefresh(@NotNull String actionId, boolean enabled) {
     Ref<ActionButtonFixture> fixtureRef = new Ref<>();
     Wait.seconds(30)
       .expecting("button to enable")
@@ -558,7 +570,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
                 AnAction action = button.getAction();
                 Presentation presentation = action.getTemplatePresentation();
                 return presentation.isEnabledAndVisible() &&
-                       button.isEnabled() &&
+                       button.isEnabled() == enabled &&
                        button.isShowing() &&
                        button.isVisible();
               }
@@ -570,6 +582,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         return false;
       });
     return fixtureRef.get();
+  }
+
+  @NotNull
+  private ActionButtonFixture findActionButtonWithRefresh(@NotNull String actionId) {
+    return findActionButtonWithRefresh(actionId, true);
   }
 
   @NotNull

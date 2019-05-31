@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.deploy;
 
+import static com.android.sdklib.AndroidVersion.VersionCodes.O;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -35,12 +36,14 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
+import com.google.common.io.Files;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.ui.RunContentManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -50,11 +53,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -109,7 +113,7 @@ public class DeploymentTest {
     myAdbServer.start();
 
     // Terminate the service if it's already started (it's a UI test, so there might be no shutdown between tests).
-    AdbService.getInstance().dispose();
+    Disposer.dispose(AdbService.getInstance());
 
     // Start ADB with fake server and its port.
     AndroidDebugBridge.enableFakeAdbServerMode(myAdbServer.getPort());
@@ -133,11 +137,11 @@ public class DeploymentTest {
     myProject = null;
 
     if (myAdbServer != null) {
-      boolean status =  myAdbServer.awaitServerTermination(WAIT_TIME, TimeUnit.SECONDS);
+      boolean status = myAdbServer.awaitServerTermination(WAIT_TIME, TimeUnit.SECONDS);
       assertThat(status).isTrue();
     }
 
-    AdbService.getInstance().dispose();
+    Disposer.dispose(AdbService.getInstance());
     AndroidDebugBridge.disableFakeAdbServerMode();
 
     DeployerTestUtils.removeStudioInstaller();
@@ -145,32 +149,44 @@ public class DeploymentTest {
 
   @Test
   public void runOnDevices() throws Exception {
-    setActiveApk(myProject, APK.BASE);
     List<FakeDevice> devices = connectDevices();
-
     IdeFrameFixture ideFrameFixture = myGuiTest.ideFrame();
     List<DeviceState> deviceStates = myAdbServer.getDeviceListCopy().get();
     List<DeviceBinder> deviceBinders = new ArrayList<>(deviceStates.size());
-    DeviceSelectorFixture deviceSelector = new DeviceSelectorFixture(myGuiTest.robot(), ideFrameFixture);
     for (DeviceState state : deviceStates) {
-      DeviceBinder binder = new DeviceBinder(state);
-      deviceBinders.add(binder);
-      deviceSelector.selectDevice(binder.getIDevice()); // Ensure that the combo box has the device.
+      deviceBinders.add(new DeviceBinder(state));
     }
 
-    assertThat(deviceBinders.size()).isEqualTo(devices.size());
+    DeviceSelectorFixture deviceSelector = new DeviceSelectorFixture(myGuiTest.robot(), ideFrameFixture);
+    Map<DeviceBinder, AndroidProcessHandler> binderHandlerMap = new HashMap<>();
 
+    // Run the app on all devices.
+    setActiveApk(myProject, APK.BASE);
     for (DeviceBinder deviceBinder : deviceBinders) {
       deviceSelector.selectDevice(deviceBinder.getIDevice());
-      IDevice iDevice = deviceBinder.getIDevice();
+      ideFrameFixture.updateToolbars();
+
+      ideFrameFixture.findApplyCodeChangesButton(false);
+      ideFrameFixture.findApplyChangesButton(false);
 
       // Run the app and wait for it to be picked up by the AndroidProcessHandler.
       ideFrameFixture.findRunApplicationButton().click();
-      AndroidProcessHandler processHandler = waitForClient(iDevice);
+      binderHandlerMap.put(deviceBinder, waitForClient(deviceBinder.getIDevice()));
+    }
+
+    for (DeviceBinder deviceBinder : deviceBinders) {
+      deviceSelector.selectDevice(deviceBinder.getIDevice());
+      IDevice device = deviceBinder.getIDevice();
+      waitForClient(device);
+
+      // Ensure that the buttons are enabled if on Android version Oreo or above and disabled otherwise.
+      boolean shouldBeEnabled = Integer.parseInt(deviceBinder.getState().getBuildVersionSdk()) >= O;
+      ideFrameFixture.findApplyCodeChangesButton(shouldBeEnabled);
+      ideFrameFixture.findApplyChangesButton(shouldBeEnabled);
 
       // Stop the app and wait for the AndroidProcessHandler termination.
       ideFrameFixture.findStopButton().click();
-      awaitTermination(processHandler, deviceBinder.getIDevice());
+      awaitTermination(binderHandlerMap.remove(deviceBinder), device);
 
       myAdbServer.disconnectDevice(deviceBinder.getState().getDeviceId());
     }
@@ -213,7 +229,7 @@ public class DeploymentTest {
     private final IDevice myTargetDevice;
     private Optional<AndroidProcessHandler> capturedAndroidDeviceHandler = Optional.empty();
 
-    public AndroidProcessHandlerCaptor(Project project, IDevice targetDevice) {
+    AndroidProcessHandlerCaptor(Project project, IDevice targetDevice) {
       myProject = project;
       myTargetDevice = targetDevice;
     }
@@ -236,6 +252,7 @@ public class DeploymentTest {
     }
   }
 
+  @NotNull
   private AndroidProcessHandler waitForClient(@NotNull IDevice iDevice) {
     Wait.seconds(WAIT_TIME)
       .expecting("launched client to appear")
@@ -250,10 +267,10 @@ public class DeploymentTest {
       .expecting("launched client to appear")
       .until(captor);
 
-    return captor.getCapturedAndroidDeviceHandler().get();
+    return captor.getCapturedAndroidDeviceHandler().orElseThrow(() -> new RuntimeException("launched client did not appear"));
   }
 
-  private void awaitTermination(@NotNull AndroidProcessHandler androidProcessHandler, @NotNull IDevice iDevice) {
+  private static void awaitTermination(@NotNull AndroidProcessHandler androidProcessHandler, @NotNull IDevice iDevice) {
     Wait.seconds(WAIT_TIME)
       .expecting("process handler to stop")
       .until(() -> androidProcessHandler.isProcessTerminated());
@@ -266,27 +283,34 @@ public class DeploymentTest {
           PACKAGE_NAME.equals(c.getClientData().getPackageName())));
   }
 
-  private void setActiveApk(@NotNull Project project, @NotNull APK apk) throws IOException {
+  private void setActiveApk(@NotNull Project project, @NotNull APK apk) {
     try {
       VirtualFile baseDir = VfsUtil.findFileByIoFile(new File(project.getBasePath()), true);
       assertThat(baseDir.isDirectory()).isTrue();
 
-      VirtualFile targetApkFile = VfsUtil.refreshAndFindChild(baseDir, DEPLOY_APK_NAME);
-      if (targetApkFile != null && targetApkFile.exists()) {
-        GuiTask.execute(() -> WriteAction.run(() -> targetApkFile.delete(this)));
-        assertThat(targetApkFile.exists()).isFalse();
-      }
-
-      if (apk == APK.NONE) {
-        return;
-      }
-
-      VirtualFile apkFile = VfsUtil.findFileByIoFile(TestUtils.getWorkspaceFile(new File(APKS_LOCATION, apk.myFileName).getPath()), true);
-      ApplicationManager.getApplication().invokeLater(() -> {
+      ApplicationManager.getApplication().invokeAndWait(() -> {
         try {
           WriteAction.run(() -> {
-            VirtualFile targetApkCopy = VfsUtilCore.copyFile(this, apkFile, baseDir, DEPLOY_APK_NAME);
-            assertThat(targetApkCopy.isValid()).isTrue();
+            VirtualFile apkFileToReplace = VfsUtil.refreshAndFindChild(baseDir, DEPLOY_APK_NAME);
+            if (apkFileToReplace != null && apkFileToReplace.exists()) {
+              apkFileToReplace.delete(this);
+              assertThat(apkFileToReplace.exists()).isFalse();
+            }
+
+            if (apk == APK.NONE) {
+              return;
+            }
+
+            VirtualFile apkFileToCopy = VfsUtil.findFileByIoFile(TestUtils.getWorkspaceFile(new File(APKS_LOCATION, apk.myFileName).getPath()), true);
+            if (apkFileToReplace == null || !apkFileToReplace.exists()) {
+              VirtualFile targetApkCopy = VfsUtilCore.copyFile(this, apkFileToCopy, baseDir, DEPLOY_APK_NAME);
+              assertThat(targetApkCopy.isValid()).isTrue();
+            }
+            else {
+              Files.copy(new File(apkFileToCopy.getPath()), new File(apkFileToReplace.getPath()));
+              apkFileToReplace.refresh(false, false);
+              assertThat(apkFileToReplace.isValid()).isTrue();
+            }
             VirtualFileManager.getInstance().syncRefresh();
           });
         } catch (IOException e) {
