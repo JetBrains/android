@@ -239,5 +239,14 @@
     </orderEntry>
     <orderEntry type="library" name="com.android.tools.apkparser:binary-resources" level="project" />
     <orderEntry type="library" name="batik-transcoder" level="project" />
+    <orderEntry type="module-library" scope="RUNTIME">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/aia-manifest-proto-1.0-jarjar.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
