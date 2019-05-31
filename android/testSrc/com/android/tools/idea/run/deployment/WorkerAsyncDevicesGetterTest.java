@@ -95,7 +95,6 @@ public final class WorkerAsyncDevicesGetterTest {
       .setKey("Pixel_3_API_Q")
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
       .setAndroidDevice(pixel3ApiQAndroidDevice)
-      .setConnected(true)
       .build();
 
     Object expectedGooglePixel3Device = new PhysicalDevice.Builder()
