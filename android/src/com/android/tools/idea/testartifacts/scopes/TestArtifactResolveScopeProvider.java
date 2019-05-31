@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.TestSourcesFilter;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -37,19 +40,24 @@ public class TestArtifactResolveScopeProvider extends ResolveScopeProvider {
     if (!TestSourcesFilter.isTestSources(file, project)) {
       return null;
     }
-    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(file, project);
+    Module module = ModuleUtilCore.findModuleForFile(file, project);
+    if (module == null) {
+      return null;
+    }
+
+    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
     if (testScopes == null) {
       return null;
     }
 
-    GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(testScopes.getModule(), true);
+    GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, true);
     GlobalSearchScope excludeScope;
 
     boolean inAndroidTest = testScopes.isAndroidTestSource(file);
     boolean inUnitTest = testScopes.isUnitTestSource(file);
 
     if (inAndroidTest && inUnitTest) {
-      excludeScope = testScopes.getSharedTestsExcludeScope();
+      excludeScope = testScopes.getSharedTestExcludeScope();
     }
     else if (inAndroidTest) {
       excludeScope = testScopes.getAndroidTestExcludeScope();
