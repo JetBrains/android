@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.gradle.projectView;
 
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.intellij.ide.projectView.impl.ProjectRootsUtil.isSourceRoot;
+import static com.intellij.openapi.module.ModuleUtilCore.isModuleDir;
+
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -30,10 +34,6 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
-import static com.intellij.ide.projectView.impl.ProjectRootsUtil.isSourceRoot;
-import static com.intellij.openapi.module.ModuleUtilCore.isModuleDir;
 
 /**
  * Provides custom icons for modules based on the module type.
@@ -60,7 +60,7 @@ public class ModuleNodeIconDecorator implements ProjectViewNodeDecorator {
         data.setIcon(getModuleIcon(module));
       }
       else if (isSourceRoot(folder, project)) {
-        TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+        TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
         if (testScopes != null && testScopes.isAndroidTestSource(folder)) {
           data.setIcon(StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT);
         }

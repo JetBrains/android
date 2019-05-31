@@ -17,8 +17,8 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.run.AndroidRunConfigurationType
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.Location
@@ -116,7 +116,7 @@ private class AndroidTestConfigurator(private val module: Module,
       val location = context.location ?: return null
       val module = AndroidUtils.getAndroidModule(context) ?: return null
       val facet = module.androidFacet ?: return null
-      val testScopes = TestArtifactSearchScopes.get(module) ?: return null
+      val testScopes = TestArtifactSearchScopes.getInstance(module) ?: return null
       val virtualFile = PsiUtilCore.getVirtualFile(location.psiElement) ?: return null
       return AndroidTestConfigurator(module, facet, testScopes, location, virtualFile)
     }

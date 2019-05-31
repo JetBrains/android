@@ -22,7 +22,6 @@ import static com.android.tools.idea.testing.TestProjectPaths.SHARED_TEST_FOLDER
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_MULTIDEPENDENCIES;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
-import static com.android.utils.FileUtils.join;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -36,10 +35,12 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableCollection;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -48,13 +49,14 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.VfsTestUtil;
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
+public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   // Naming scheme follows "Gradle: " + name of the library. See LibraryDependency#setName method
   private static final String GRADLE_PREFIX = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
@@ -127,12 +129,12 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     Library gson = libraryTable.getLibraryByName(GSON); // used by android test
     assertNotNull(gson);
 
-    FileRootSearchScope unitTestExcludeScope = scopes.getUnitTestExcludeScope();
+    GlobalSearchScope unitTestExcludeScope = scopes.getUnitTestExcludeScope();
     assertScopeContainsLibrary(unitTestExcludeScope, guava, true);
     assertScopeContainsLibrary(unitTestExcludeScope, gson, true);
     assertScopeContainsLibrary(unitTestExcludeScope, junit, false);
 
-    FileRootSearchScope androidTestExcludeScope = scopes.getAndroidTestExcludeScope();
+    GlobalSearchScope androidTestExcludeScope = scopes.getAndroidTestExcludeScope();
     assertScopeContainsLibrary(androidTestExcludeScope, junit, true);
     assertScopeContainsLibrary(androidTestExcludeScope, gson, false);
     assertScopeContainsLibrary(androidTestExcludeScope, guava, false);
@@ -140,7 +142,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   public void testNotExcludeLibrariesInMainArtifact() throws Exception {
-    TestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module1");
+    GradleTestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module1");
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
 
@@ -177,7 +179,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     latch.await();
 
     // Now both test should not exclude gson
-    scopes = TestArtifactSearchScopes.get(scopes.getModule());
+    scopes = GradleTestArtifactSearchScopes.getInstance(scopes.getModule());
     assertNotNull(scopes);
     gson = libraryTable.getLibraryByName(GSON);
     assertScopeContainsLibrary(scopes.getUnitTestExcludeScope(), gson, false);
@@ -187,10 +189,10 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   public void testProjectWithSharedTestFolder() throws Exception {
     loadProject(SHARED_TEST_FOLDER);
     Module module = myModules.getAppModule();
-    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);
+    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.getInstance(module);
     assertNotNull(scopes);
 
-    File file = new File(myFixture.getProject().getBasePath(), join("app", "src", "share", "java"));
+    VirtualFile file = VfsTestUtil.createDir(ProjectUtil.guessProjectDir(getProject()), "app/src/share/java");
 
     assertTrue(scopes.getAndroidTestSourceScope().accept(file));
     assertTrue(scopes.getUnitTestSourceScope().accept(file));
@@ -201,13 +203,13 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   public void testResolvedScopeForTestOnlyModuleProject() throws Exception {
     loadProject(TEST_ONLY_MODULE);
     Module testModule = getModule("test");
-    TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.get(testModule);
+    TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(testModule);
     assertNotNull(testArtifactSearchScopes);
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
     Library junit = libraryTable.getLibraryByName(JUNIT);
     assertNotNull(junit);
-    FileRootSearchScope androidTestExcludeScope = testArtifactSearchScopes.getAndroidTestExcludeScope();
+    GlobalSearchScope androidTestExcludeScope = testArtifactSearchScopes.getAndroidTestExcludeScope();
     assertScopeContainsLibrary(androidTestExcludeScope, junit, false);
   }
 
@@ -221,10 +223,10 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   @NotNull
-  private TestArtifactSearchScopes loadMultiProjectAndGetTestScopesForModule(String moduleName) throws Exception {
+  private GradleTestArtifactSearchScopes loadMultiProjectAndGetTestScopesForModule(String moduleName) throws Exception {
     loadProject(SYNC_MULTIPROJECT);
     Module module1 = myModules.getModule(moduleName);
-    TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.get(module1);
+    GradleTestArtifactSearchScopes testArtifactSearchScopes = GradleTestArtifactSearchScopes.getInstance(module1);
     assertNotNull(testArtifactSearchScopes);
     return testArtifactSearchScopes;
   }
@@ -232,7 +234,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   public void testMergeSubmoduleDependencies() throws Exception {
     loadProject(TEST_ARTIFACTS_MULTIDEPENDENCIES);
     Module module = myModules.getModule("module1");
-    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);
+    GradleTestArtifactSearchScopes scopes = GradleTestArtifactSearchScopes.getInstance(module);
     scopes.resolveDependencies();
   }
 
@@ -252,7 +254,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     Module testUtilModule = myModules.getModule("test-util");
     Module libModule = myModules.getModule("lib");
 
-    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(testUtilModule);
+    GradleTestArtifactSearchScopes scopes = GradleTestArtifactSearchScopes.getInstance(testUtilModule);
     scopes.resolveDependencies();
 
     String projectFolder = getProject().getBasePath();
@@ -268,7 +270,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     // verify scope of lib
     // testImplementation project(':test-util')
-    scopes = TestArtifactSearchScopes.get(libModule);
+    scopes = GradleTestArtifactSearchScopes.getInstance(libModule);
     scopes.resolveDependencies();
 
     moduleDependencies = scopes.getMainDependencies().onModules();

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented;
 
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -47,7 +47,7 @@ public class AndroidTestConsoleProperties extends SMTRunnerConsoleProperties {
     Module[] modules = ((ModuleRunProfile)getConfiguration()).getModules();
     for (Module each : modules) {
       // UnitTest scope in each module is excluded from the scope used to find JUnitTests
-      TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.get(each);
+      TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(each);
       if (testArtifactSearchScopes != null) {
         scope = scope.intersectWith(GlobalSearchScope.notScope(testArtifactSearchScopes.getUnitTestSourceScope()));
       }
