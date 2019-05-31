@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sqlite
 
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.controllers.ResultSetController
 import com.android.tools.idea.sqlite.model.SqliteColumn
