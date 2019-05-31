@@ -30,7 +30,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.*
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
-import com.intellij.util.containers.ContainerUtil
 
 /**
  * Project-wide listener which invalidates the [SampleDataResourceRepository] corresponding to
@@ -44,7 +43,6 @@ import com.intellij.util.containers.ContainerUtil
  * the project's [SampleDataListener] is tracking VFS and PSI events.
  */
 internal class SampleDataListener(project: Project) : PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener {
-  private val reposToInvalidate = ContainerUtil.createWeakValueMap<PathString, SampleDataResourceRepository>()
 
   companion object {
     private val LOG = Logger.getInstance(SampleDataListener::class.java)
@@ -86,16 +84,8 @@ internal class SampleDataListener(project: Project) : PoliteAndroidVirtualFileLi
    */
   override fun isPossiblyRelevant(file: VirtualFile) = file.extension.let { it != "java" && it != "xml" }
 
-  override fun fileChanged(file: VirtualFile, facet: AndroidFacet) {
-    SampleDataResourceRepository.getInstance(facet).invalidateBecauseOf(file.toPathString())
-  }
-
-  override fun fileChangePending(path: PathString, facet: AndroidFacet) {
-    reposToInvalidate[path] = SampleDataResourceRepository.getInstance(facet)
-  }
-
-  override fun pendingFileChangeComplete(path: PathString) {
-    reposToInvalidate.remove(path)?.invalidateBecauseOf(path)
+  override fun fileChanged(path: PathString, facet: AndroidFacet) {
+    SampleDataResourceRepository.getInstance(facet).invalidateBecauseOf(path)
   }
 
   // We don't need to respond to VirtualFile content changes, as these will
