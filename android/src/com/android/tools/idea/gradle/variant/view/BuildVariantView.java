@@ -36,6 +36,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -393,7 +394,7 @@ public class BuildVariantView {
           navigateConflicts(true);
         }
       };
-      nextConflictAction.copyFrom(actionManager.getAction(IdeActions.ACTION_NEXT_OCCURENCE));
+      ActionUtil.copyFrom(nextConflictAction, IdeActions.ACTION_NEXT_OCCURENCE);
       group.add(nextConflictAction);
 
       AnAction prevConflictAction = new AnAction() {
@@ -402,7 +403,7 @@ public class BuildVariantView {
           navigateConflicts(false);
         }
       };
-      prevConflictAction.copyFrom(actionManager.getAction(IdeActions.ACTION_PREVIOUS_OCCURENCE));
+      ActionUtil.copyFrom(prevConflictAction, IdeActions.ACTION_PREVIOUS_OCCURENCE);
       group.add(prevConflictAction);
 
       ActionToolbar toolbar = actionManager.createActionToolbar("AndroidBuildVariantViewNotifications", group, true);
