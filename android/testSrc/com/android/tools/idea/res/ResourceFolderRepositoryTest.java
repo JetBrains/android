@@ -61,6 +61,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -4095,6 +4096,43 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     WriteAction.run(() -> logoFile.setBinaryContent(newContent));
     int blue = renderer.renderDrawable(bitmapXml, COLORED_DRAWABLE_SIZE).join().getRGB(0, 0);
     assertEquals("0000ff", Integer.toHexString(blue).substring(2));
+  }
+
+  /**
+   * When the IDE enters or exits dumb mode, the cache mapping the VirtualFile directories to PsiDirectory
+   * ({@link FileManagerImpl#getVFileToPsiDirMap()}) is cleared from the {@link com.intellij.openapi.project.DumbService.DumbModeListener}.
+   * <p>
+   * Dumb mode is entered any time a file is added or deleted.
+   * <p>
+   * When a file is created in a directory that is not cached in this map, {@link com.intellij.psi.impl.file.impl.PsiVFSListener#fileCreated}
+   * will trigger a {@link com.intellij.psi.PsiTreeChangeEvent#PROP_UNLOADED_PSI}
+   * event which is not handled by the {@link com.android.tools.idea.res.ResourceFolderRepository.PsiListener}
+   * so the new file is never added to the repository.
+   * <p>
+   * Instead of relying on the Psi system for file change event, we now rely on the VFS system which does not suffer from this
+   * problem.
+   * <p>
+   * See http://b/130800515
+   */
+  public void testRepositoryUpdatedAfterDumbMode() {
+    ResourceFolderRepository repository = createRepository();
+    VirtualFile dir = myFixture.copyFileToProject(DRAWABLE, "res/drawable/image.png").getParent();
+    VirtualFile file = VfsUtil.findFileByIoFile(new File(myFixture.getTestDataPath(), DRAWABLE), true);
+
+    // Trigger Dumbmode to clear the PsiDirectory cache.
+    ((DumbServiceImpl)DumbService.getInstance(myModule.getProject())).setDumb(true);
+    ((DumbServiceImpl)DumbService.getInstance(myModule.getProject())).setDumb(false);
+    WriteCommandAction.runWriteCommandAction(
+      myModule.getProject(), () -> {
+        try {
+          file.copy(this, dir, "image" + 0 + ".png");
+        }
+        catch (IOException e) {
+          fail(e.getMessage());
+        }
+      }
+    );
+    assertEquals(2, repository.getResources(RES_AUTO, ResourceType.DRAWABLE).size());
   }
 
   @Nullable
