@@ -22,6 +22,7 @@ import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiSearchScopeUtil
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.idea.highlighter.IdeErrorMessages
@@ -45,8 +46,8 @@ class IncorrectScopeInspection : AbstractKotlinInspection() {
           if (expression is KtNameReferenceExpression) {
             expression.references.ifNotEmpty {
               val resolveResult = expression.mainReference.resolve() ?: return
-              val inScope = PsiSearchScopeUtil.isInScope(expression.resolveScope, resolveResult)
-              if (!inScope) {
+              val scope: GlobalSearchScope = expression.resolveScope
+              if (!PsiSearchScopeUtil.isInScope(scope, resolveResult)) {
                 val diagnostic = Errors.UNRESOLVED_REFERENCE.on(expression, expression)
                 val message = IdeErrorMessages.render(diagnostic)
                 holder.registerProblem(expression, message, ProblemHighlightType.ERROR)

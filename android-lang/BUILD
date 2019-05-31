@@ -34,6 +34,7 @@ iml_module(
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/uast/uast-common:intellij.platform.uast[module]",
         "//tools/idea/platform/util:intellij.platform.util[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 

@@ -35,8 +35,10 @@ import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.templates.IdeGoogleMavenRepository
+import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.google.common.base.Predicates
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
@@ -68,10 +70,9 @@ class GradleModuleSystem(
   val module: Module,
   private val projectBuildModelHandler: ProjectBuildModelHandler,
   @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository
-) :
-  AndroidModuleSystem,
-  ClassFileFinder by GradleClassFileFinder(module),
-  SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
+) : AndroidModuleSystem,
+    ClassFileFinder by GradleClassFileFinder(module),
+    SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
   private val groupsWithVersionIdentifyRequirements = listOf(SdkConstants.SUPPORT_LIB_GROUP_ID)
 
@@ -357,6 +358,8 @@ class GradleModuleSystem(
     override fun toString() = "$groupId:$artifactId"
     fun isSameAs(coordinate: GradleCoordinate) = groupId == coordinate.groupId && artifactId == coordinate.artifactId
   }
+
+  override fun getTestArtifactSearchScopes(module: Module): TestArtifactSearchScopes? = GradleTestArtifactSearchScopes.getInstance(module)
 
   /**
    * Specifies a version incompatibility between [conflict1] from [module1] and [conflict2] from [module2].
