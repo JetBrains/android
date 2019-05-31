@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -59,8 +60,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.text.Collator;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 import static com.intellij.ui.TableUtil.scrollSelectionToVisible;
@@ -303,7 +304,7 @@ public class BuildVariantView {
           navigateConflicts(true);
         }
       };
-      nextConflictAction.copyFrom(actionManager.getAction(IdeActions.ACTION_NEXT_OCCURENCE));
+      ActionUtil.copyFrom(nextConflictAction, IdeActions.ACTION_NEXT_OCCURENCE);
       group.add(nextConflictAction);
 
       AnAction prevConflictAction = new AnAction() {
@@ -312,7 +313,7 @@ public class BuildVariantView {
           navigateConflicts(false);
         }
       };
-      prevConflictAction.copyFrom(actionManager.getAction(IdeActions.ACTION_PREVIOUS_OCCURENCE));
+      ActionUtil.copyFrom(prevConflictAction, IdeActions.ACTION_PREVIOUS_OCCURENCE);
       group.add(prevConflictAction);
 
       ActionToolbar toolbar = actionManager.createActionToolbar("AndroidBuildVariantViewNotifications", group, true);
