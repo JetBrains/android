@@ -20,6 +20,7 @@ import static com.android.builder.model.SyncIssue.SEVERITY_WARNING;
 import static com.android.builder.model.SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
 import static com.android.builder.model.SyncIssue.TYPE_DEPENDENCY_INTERNAL_CONFLICT;
 import static com.android.builder.model.SyncIssue.TYPE_DEPRECATED_CONFIGURATION;
+import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION;
 import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
 import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
 import static com.android.builder.model.SyncIssue.TYPE_MIN_SDK_VERSION_IN_MANIFEST;
@@ -209,7 +210,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
-    assertThat(strategies).hasSize(10);
+    assertThat(strategies).hasSize(11);
 
     strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
     assertThat(strategy).isInstanceOf(UnresolvedDependenciesReporter.class);
@@ -249,6 +250,10 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     strategy = strategies.get(TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD);
     assertThat(strategy).isInstanceOf(OutOfDateThirdPartyPluginIssueReporter.class);
+    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
+
+    strategy = strategies.get(TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION);
+    assertThat(strategy).isInstanceOf(CxxConfigurationIssuesReporter.class);
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
   }
 
