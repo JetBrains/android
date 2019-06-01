@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.daemon
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
@@ -53,8 +54,8 @@ class PsLibraryUpdateCheckerDaemon(
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
   private val beingSearchedKeys: MutableSet<PsLibraryKey> = ContainerUtil.newConcurrentSet()
-  private val runningSearches: MutableSet<Future<*>> = mutableSetOf()
-  private val runningLock: Lock = ReentrantLock()
+  @field:GuardedBy("runningLock") private val runningSearches: MutableSet<Future<*>> = mutableSetOf()
+  private val runningLock: Lock = ReentrantLock()  // Guards runningSearches and persistent storage (in memory copy).
 
   fun queueUpdateCheck() {
     mainQueue.queue(RefreshAvailableUpdates())
@@ -126,7 +127,12 @@ class PsLibraryUpdateCheckerDaemon(
     searchResults.forEach {
       beingSearchedKeys.remove(it.first)
     }
-    foundArtifacts.forEach { updateStorage.addOrUpdate(it, currentTimeMillis) }
+    runningLock.withLock {
+      // Under the lock to prevent stop/dispose from exiting while updating storage.
+      if (!isStopped) {
+        foundArtifacts.forEach { updateStorage.addOrUpdate(it, currentTimeMillis) }
+      }
+    }
     resultsUpdaterQueue.queue(UpdatesAvailable())
   }
 
@@ -135,6 +141,7 @@ class PsLibraryUpdateCheckerDaemon(
       val repositories = mutableSetOf<ArtifactRepository>()
       val keys = mutableSetOf<PsLibraryKey>()
       invokeAndWaitIfNeeded(ModalityState.any()) {
+        if (isDisposed || isStopped) return@invokeAndWaitIfNeeded
         project.modules.forEach { module ->
           repositories.addAll(module.getArtifactRepositories())
           keys.addAll(
