@@ -172,6 +172,7 @@ public class StudioIcons {
       public static final Icon START_CONSTRAINT = load("/studio/icons/layout-editor/motion/start-constraint.svg"); // 16x16
       public static final Icon TIMELINE_ADD = load("/studio/icons/layout-editor/motion/timeline-add.svg"); // 16x16
       public static final Icon TIMELINE_END_CONSTRAINT = load("/studio/icons/layout-editor/motion/timeline-end-constraint.svg"); // 16x16
+      public static final Icon TIMELINE_KEYFRAME_HEADER = load("/studio/icons/layout-editor/motion/timeline-keyframe-header.svg"); // 16x16
       public static final Icon TIMELINE_KEYFRAME_SELECTED = load("/studio/icons/layout-editor/motion/timeline-keyframe-selected.svg"); // 16x16
       public static final Icon TIMELINE_KEYFRAME = load("/studio/icons/layout-editor/motion/timeline-keyframe.svg"); // 16x16
       public static final Icon TIMELINE_START_CONSTRAINT_SELECTED = load("/studio/icons/layout-editor/motion/timeline-start-constraint-selected.svg"); // 16x16
