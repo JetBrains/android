@@ -21,9 +21,7 @@ import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
-import junit.framework.Assert.assertTrue
 import org.fest.swing.core.Robot
-import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
@@ -87,17 +85,13 @@ class ProjectStructureDialogFixture(
 fun IdeFrameFixture.openPsd(): ProjectStructureDialogFixture =
   openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
 
-private fun ContainerFixture<*>.isDialogClosed() =
-  !target().isShowing && KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow != target()
-
 internal fun ContainerFixture<*>.clickOkAndWaitDialogDisappear() {
   GuiTests.findAndClickOkButton(this)
   Wait
     .seconds(10)
     .expecting("dialog to disappear")
-    .until { isDialogClosed() }
+    .until { !target().isShowing && KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow != target() }
   waitForIdle()
-  assertTrue(GuiQuery.get { isDialogClosed() } ?: false)
 }
 
 internal fun ContainerFixture<*>.clickCancelAndWaitDialogDisappear() {
@@ -105,9 +99,8 @@ internal fun ContainerFixture<*>.clickCancelAndWaitDialogDisappear() {
   Wait
     .seconds(10)
     .expecting("dialog to disappear")
-    .until { isDialogClosed() }
+    .until { !target().isShowing && KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow != target() }
   waitForIdle()
-  assertTrue(GuiQuery.get { isDialogClosed() } ?: false)
 }
 
 internal fun ContainerFixture<*>.clickButtonAndWaitDialogDisappear(text: String) {
@@ -115,7 +108,6 @@ internal fun ContainerFixture<*>.clickButtonAndWaitDialogDisappear(text: String)
   Wait
     .seconds(10)
     .expecting("dialog to disappear")
-    .until { isDialogClosed() }
+    .until { !target().isShowing && KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow != target() }
   waitForIdle()
-  assertTrue(GuiQuery.get { isDialogClosed() } ?: false)
 }
