@@ -61,6 +61,7 @@ class PsContextImpl constructor(
   private val gradleSyncEventDispatcher = EventDispatcher.create(
     GradleSyncListener::class.java)
   private var disableSync: Boolean = false
+  private var disposed: Boolean = false
 
   override var selectedModule: String? = null; private set
 
@@ -132,6 +133,7 @@ class PsContextImpl constructor(
         gradleSyncEventDispatcher.multicaster.syncFailed(project, ex?.let { e -> ExceptionUtil.getRootCause(e).message }.orEmpty())
       }
       .continueOnEdt {
+        if (disposed) return@continueOnEdt
         LOG.info("PSD fetched (${it.size} Gradle model(s). Refreshing the UI model.")
         this.project.refreshFrom(it)
         gradleSyncEventDispatcher.multicaster.syncSucceeded(project)
@@ -147,7 +149,9 @@ class PsContextImpl constructor(
     selectedModule = moduleName
   }
 
-  override fun dispose() {}
+  override fun dispose() {
+    disposed = true
+  }
 
   /**
    * Gets a [ArtifactRepositorySearchService] that searches the repositories configured for `module`. The results are cached and
