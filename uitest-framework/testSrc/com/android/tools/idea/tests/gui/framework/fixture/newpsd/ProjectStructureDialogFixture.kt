@@ -26,6 +26,7 @@ import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
 import java.awt.Container
+import java.awt.KeyboardFocusManager
 import javax.swing.JDialog
 
 class ProjectStructureDialogFixture(
@@ -86,18 +87,27 @@ fun IdeFrameFixture.openPsd(): ProjectStructureDialogFixture =
 
 internal fun ContainerFixture<*>.clickOkAndWaitDialogDisappear() {
   GuiTests.findAndClickOkButton(this)
-  Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
+  Wait
+    .seconds(10)
+    .expecting("dialog to disappear")
+    .until { !target().isShowing && KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow != target() }
   waitForIdle()
 }
 
 internal fun ContainerFixture<*>.clickCancelAndWaitDialogDisappear() {
   GuiTests.findAndClickCancelButton(this)
-  Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
+  Wait
+    .seconds(10)
+    .expecting("dialog to disappear")
+    .until { !target().isShowing && KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow != target() }
   waitForIdle()
 }
 
 internal fun ContainerFixture<*>.clickButtonAndWaitDialogDisappear(text: String) {
   GuiTests.findAndClickButton(this, text)
-  Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
+  Wait
+    .seconds(10)
+    .expecting("dialog to disappear")
+    .until { !target().isShowing && KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow != target() }
   waitForIdle()
 }
