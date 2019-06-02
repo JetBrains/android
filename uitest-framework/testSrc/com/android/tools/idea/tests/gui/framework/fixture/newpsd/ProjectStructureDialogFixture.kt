@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
-import com.intellij.openapi.wm.IdeFrame
 import junit.framework.Assert.assertTrue
 import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
@@ -89,7 +88,7 @@ fun IdeFrameFixture.openPsd(): ProjectStructureDialogFixture =
   openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
 
 private fun ContainerFixture<*>.isDialogClosed() =
-  !target().isShowing && KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow.let { it === null || it is IdeFrame }
+  !target().isShowing && KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow != target()
 
 internal fun ContainerFixture<*>.clickOkAndWaitDialogDisappear() {
   GuiTests.findAndClickOkButton(this)
