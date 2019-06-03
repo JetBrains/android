@@ -176,8 +176,10 @@ class PsAndroidModule(
 
   fun validateBuildTypeName(name: String): String? = when {
     name.isEmpty() -> "Build type name cannot be empty."
+    name.startsWith("test") -> "Build type name cannot start with 'test'."
     DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Build type name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
     getOrCreateBuildTypeCollection().any { it.name == name } -> "Duplicate build type name: '$name'"
+    getOrCreateProductFlavorCollection().any { it.name == name } -> "Build type name cannot collide with product flavor: '$name'"
     else -> null
   }
 
@@ -199,8 +201,10 @@ class PsAndroidModule(
 
   fun validateProductFlavorName(name: String): String? = when {
     name.isEmpty() -> "Product flavor name cannot be empty."
+    name.startsWith("test") -> "Product flavor name cannot start with 'test'."
     DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Product flavor name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
     getOrCreateProductFlavorCollection().any { it.name == name } -> "Duplicate product flavor name: '$name'"
+    getOrCreateBuildTypeCollection().any { it.name == name } -> "Product flavor name cannot collide with build type: '$name'"
     else -> null
   }
 
