@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.ModuleKind
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
@@ -122,22 +121,21 @@ class PsAndroidModule(
   private fun flavorNamesByDimension(dimension: String) =
     productFlavors.filter { it.effectiveDimension == dimension }.map { it.name }
 
+  private fun buildFlavorCombinations() = when {
+    flavorDimensions.size > 1 -> flavorDimensions
+      .fold(listOf(listOf(""))) { acc, dimension ->
+        flavorNamesByDimension(dimension.name).flatMap { flavor ->
+          acc.map { prefix -> prefix + flavor }
+        }
+      }
+      .map { it.filter { it != "" }.combineAsCamelCase() }
+    else -> listOf()  // There are no additional flavor combinations if there is only one flavor dimension.
+  }
 
   // TODO(solodkyy): Return a collection of PsBuildConfiguration instead of strings.
   override fun getConfigurations(onlyImportantFor: ImportantFor?): List<String> {
 
     fun applicableArtifacts() = listOf("", "test", "androidTest")
-
-    fun buildFlavorCombinations() = when {
-      flavorDimensions.size > 1 -> flavorDimensions
-        .fold(listOf(listOf(""))) { acc, dimension ->
-          flavorNamesByDimension(dimension.name).flatMap { flavor ->
-            acc.map { prefix -> prefix + flavor }
-          }
-        }
-        .map { it.filter { it != "" }.combineAsCamelCase() }
-      else -> listOf()  // There are no additional flavor combinations if there is only one flavor dimension.
-    }
 
     fun applicableProductFlavors() =
       listOf("") +
@@ -174,12 +172,25 @@ class PsAndroidModule(
 
   fun addNewBuildType(name: String): PsBuildType = getOrCreateBuildTypeCollection().addNew(name)
 
+  private fun buildTypeCausesAmbiguity(name: String): Boolean {
+    val flavors = productFlavors.map { it.name } + buildFlavorCombinations()
+    val variants = HashSet<String>()
+    flavors.forEach { flavor ->
+      buildTypes.forEach { buildType ->
+        variants.add(listOf(flavor, buildType.name).combineAsCamelCase())
+      }
+    }
+    val potential = flavors.map { listOf(it, name).combineAsCamelCase() }
+    return potential.any { variants.contains(it) }
+  }
+
   fun validateBuildTypeName(name: String): String? = when {
     name.isEmpty() -> "Build type name cannot be empty."
     name.startsWith("test") -> "Build type name cannot start with 'test'."
     DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Build type name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
     getOrCreateBuildTypeCollection().any { it.name == name } -> "Duplicate build type name: '$name'"
     getOrCreateProductFlavorCollection().any { it.name == name } -> "Build type name cannot collide with product flavor: '$name'"
+    buildTypeCausesAmbiguity(name) -> "Build type name '$name' would cause a configuration name ambiguity."
     else -> null
   }
 
