@@ -167,20 +167,12 @@ public class CpuProfilerTestUtils {
       latch =
         waitForProfilingStateChangeSequence(stage, observer, CpuProfilerStage.CaptureState.STARTING, CpuProfilerStage.CaptureState.IDLE);
     }
+    long traceId = stage.getStudioProfilers().getUpdater().getTimer().getCurrentTimeNs();
+    cpuService.setTraceId(traceId);
     stage.startCapturing();
     latch.await();
 
     if (success) {
-      long traceId = stage.getStudioProfilers().getUpdater().getTimer().getCurrentTimeNs();
-      // Inserts an in-progress trace info object, which the stage will see on the next time update.
-      Cpu.CpuTraceInfo traceInfo = Cpu.CpuTraceInfo.newBuilder()
-        .setTraceId(traceId)
-        .setFromTimestamp(traceId)
-        .setToTimestamp(-1)
-        .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                            .setUserOptions(stage.getProfilerConfigModel().getProfilingConfiguration().toProto()))
-        .build();
-      cpuService.addTraceInfo(traceInfo);
       stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
     }
   }
@@ -202,7 +194,6 @@ public class CpuProfilerTestUtils {
     throws InterruptedException {
     // Trace id is needed for the stop response.
     long traceId = stage.getStudioProfilers().getUpdater().getTimer().getCurrentTimeNs();
-    cpuService.setTraceId(traceId);
     cpuService.setStopProfilingStatus(success
                                       ? Cpu.TraceStopStatus.Status.SUCCESS
                                       : Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED);
@@ -215,17 +206,10 @@ public class CpuProfilerTestUtils {
       stopLatch.countDown();
     });
     stage.stopCapturing();
-    stopLatch.await();
+    if (!stage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      stopLatch.await();
+    }
 
-    // Inserts a trace info object, which the stage will see on the next time update and go through the fetching and parsing logic
-    Cpu.CpuTraceInfo traceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setTraceId(traceId)
-      .setFromTimestamp(traceId)
-      .setToTimestamp(traceId + 1)
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                          .setUserOptions(stage.getProfilerConfigModel().getProfilingConfiguration().toProto()))
-      .build();
-    cpuService.addTraceInfo(traceInfo);
     transportService.addFile(Long.toString(traceId), traceContent);
 
     // If the capture is unsuccessful, stage goes back to IDLE, otherwise STOPPING and wait for the incoming TraceInfo.

@@ -63,6 +63,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
    */
   private Common.Session myStartStopCapturingSession;
 
+  private Cpu.CpuTraceInfo myStartedTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance();
+
   @Override
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
                                 StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> responseObserver) {
@@ -73,6 +75,13 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       status.setErrorMessage("StartProfilingApp error");
     } else {
       myProfilerType = request.getConfiguration().getUserOptions().getTraceType();
+
+      myStartedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+        .setTraceId(myTraceId)
+        .setFromTimestamp(myTraceId)
+        .setToTimestamp(-1)
+        .setConfiguration(request.getConfiguration())
+        .build();
     }
     myStartStopCapturingSession = request.getSession();
 
@@ -87,7 +96,6 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     CpuProfiler.CpuProfilingAppStopResponse.Builder response = CpuProfiler.CpuProfilingAppStopResponse.newBuilder();
     Cpu.TraceStopStatus.Builder status = Cpu.TraceStopStatus.newBuilder();
     status.setStatus(myStopProfilingStatus);
-    response.setTraceId(myTraceId);
     if (!myStopProfilingStatus.equals(Cpu.TraceStopStatus.Status.SUCCESS)) {
       status.setErrorMessage("StopProfilingApp error");
     }
@@ -100,6 +108,10 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     catch (InterruptedException e) { // ignore
     }
 
+
+    response.setTraceId(myStartedTraceInfo.getTraceId());
+    addTraceInfo(myStartedTraceInfo.toBuilder().setToTimestamp(myStartedTraceInfo.getFromTimestamp() + 1).build());
+    myStartedTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance();
 
     response.setStatus(status.build());
     responseObserver.onNext(response.build());
@@ -114,6 +126,9 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     myProfilerType = profilerType;
   }
 
+  /**
+   * Sets the id which will be used as the trace id for the next StartProfilingApp/StopProfilingApp calls.
+   */
   public void setTraceId(long id) {
     myTraceId = id;
   }
@@ -156,6 +171,9 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   public void getTraceInfo(CpuProfiler.GetTraceInfoRequest request, StreamObserver<CpuProfiler.GetTraceInfoResponse> responseObserver) {
     CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
     response.addAllTraceInfo(myTraceInfoMap.values());
+    if (!Cpu.CpuTraceInfo.getDefaultInstance().equals(myStartedTraceInfo)) {
+      response.addTraceInfo(myStartedTraceInfo);
+    }
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
