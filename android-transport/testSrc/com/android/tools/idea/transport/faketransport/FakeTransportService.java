@@ -23,6 +23,8 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.transport.faketransport.commands.BeginSession;
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler;
 import com.android.tools.idea.transport.faketransport.commands.EndSession;
+import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
+import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
@@ -97,6 +99,8 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   private void initializeCommandHandlers() {
     setCommandHandler(Command.CommandType.BEGIN_SESSION, new BeginSession(myTimer));
     setCommandHandler(Command.CommandType.END_SESSION, new EndSession(myTimer));
+    setCommandHandler(Command.CommandType.START_CPU_TRACE, new StartCpuTrace(myTimer));
+    setCommandHandler(Command.CommandType.STOP_CPU_TRACE, new StopCpuTrace(myTimer));
   }
 
   /**

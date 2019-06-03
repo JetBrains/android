@@ -524,23 +524,18 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   @VisibleForTesting
   void stopCapturing() {
+    // We need to send the trace configuration that was used to initiated the capture. Return early if no in-progress trace exists.
+    if (Cpu.CpuTraceInfo.getDefaultInstance().equals(myInProgressTraceInfo)) {
+      return;
+    }
+
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      ProfilingConfiguration config = myProfilerConfigModel.getProfilingConfiguration();
       assert getStudioProfilers().getProcess() != null;
-      Common.Process process = getStudioProfilers().getProcess();
-
-      Cpu.CpuTraceConfiguration configuration = Cpu.CpuTraceConfiguration.newBuilder()
-        .setAppName(process.getName())
-        .setAbiCpuArch(process.getAbiCpuArch())
-        .setInitiationType(TraceInitiationType.INITIATED_BY_UI)
-        .setUserOptions(config.toProto())
-        .build();
-
       Commands.Command stopCommand = Commands.Command.newBuilder()
         .setStreamId(mySession.getStreamId())
         .setPid(mySession.getPid())
         .setType(Commands.Command.CommandType.STOP_CPU_TRACE)
-        .setStopCpuTrace(Cpu.StopCpuTrace.newBuilder().setConfiguration(configuration).build())
+        .setStopCpuTrace(Cpu.StopCpuTrace.newBuilder().setConfiguration(myInProgressTraceInfo.getConfiguration()).build())
         .build();
       getStudioProfilers().getClient().getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
                                                                       .setCommand(stopCommand)
@@ -550,8 +545,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
     else {
       CpuProfilingAppStopRequest request = CpuProfilingAppStopRequest.newBuilder()
-        .setTraceType(myProfilerConfigModel.getProfilingConfiguration().getTraceType())
-        .setTraceMode(myProfilerConfigModel.getProfilingConfiguration().getMode())
+        .setTraceType(myInProgressTraceInfo.getConfiguration().getUserOptions().getTraceType())
+        .setTraceMode(myInProgressTraceInfo.getConfiguration().getUserOptions().getTraceMode())
         .setSession(mySession)
         // This is needed to stop an ongoing trace and should be handled via an explicit stop-trace command in the new pipeline.
         // In the new pipeline, we can potentially pass the same info down via EndSession.
