@@ -49,7 +49,6 @@ class ProductFlavorsPanel(
   treeModel, uiSettings
 ) {
   private val flavorDimensionNameValidator = NameValidator { module.validateFlavorDimensionName(it.orEmpty()) }
-  private val productFlavorNameValidator = NameValidator { module.validateProductFlavorName(it.orEmpty()) }
 
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction(removeTextFor(null), removeDescriptionFor(null), IconUtil.getRemoveIcon()) {
@@ -116,8 +115,7 @@ class ProductFlavorsPanel(
         },
         object : DumbAwareAction("Add Product Flavor", "", IconUtil.getAddIcon()) {
           override fun actionPerformed(e: AnActionEvent) {
-            val selectedObject = selectedConfigurable
-            val currentDimension = when (selectedObject) {
+            val currentDimension = when (val selectedObject = selectedConfigurable) {
               is FlavorDimensionConfigurable -> selectedObject.flavorDimension.name
               is ProductFlavorConfigurable -> selectedObject.model.effectiveDimension
               else -> {
@@ -134,7 +132,7 @@ class ProductFlavorsPanel(
                 "Create New Product Flavor",
                 null,
                 "",
-                NameValidator { module.validateProductFlavorName(it.orEmpty()) }
+                NameValidator { module.validateProductFlavorName(it.orEmpty(), currentDimension) }
               )
             if (newName != null) {
               module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_FLAVORS_PRODUCTFLAVOR_ADD)
@@ -160,23 +158,23 @@ class ProductFlavorsPanel(
       }
 
       override fun actionPerformed(e: AnActionEvent) {
-        when (selectedConfigurable) {
+        when (val selectedObject = selectedConfigurable) {
           is FlavorDimensionConfigurable -> renameWithDialog(
-            "Enter a new name for flavor dimension '${selectedConfigurable?.displayName}':",
+            "Enter a new name for flavor dimension '${selectedObject.displayName}':",
             "Rename Flavor Dimension",
             "Also rename related flavor dimensions",
-            selectedConfigurable?.displayName,
+            selectedObject.displayName,
             flavorDimensionNameValidator
           ) { newName, renameReferences ->
             module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_FLAVORS_DIMENSION_RENAME)
             TODO("Renaming dimensions")
           }
           is ProductFlavorConfigurable -> renameWithDialog(
-            "Enter a new name for product flavor '${selectedConfigurable?.displayName}':",
+            "Enter a new name for product flavor '${selectedObject.displayName}':",
             "Rename Product Flavor",
             "Also rename related product flavors and configurations",
-            selectedConfigurable?.displayName,
-            productFlavorNameValidator
+            selectedObject.displayName,
+            NameValidator { module.validateProductFlavorName(it.orEmpty(), selectedObject.model.effectiveDimension)}
           ) { newName, alsoRenameReferences ->
             module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_FLAVORS_PRODUCTFLAVOR_RENAME)
             if (alsoRenameReferences) TODO("Renaming references")
