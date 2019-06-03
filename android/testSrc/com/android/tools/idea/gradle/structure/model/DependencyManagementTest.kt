@@ -955,6 +955,70 @@ class DependencyManagementTest : DependencyTestCase() {
     appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule.dependencies.findModuleDependency(":mainModule")?.configurationName, equalTo("paidReleaseImplementation"))
   }
+
+  fun testFlavorConfigurationWorkaroundRemoval() {
+    var flavorModule = project.findModuleByName("moduleFlavor") as PsAndroidModule
+    val libspd = flavorModule.dependencies.findJarDependencies("libspd").firstOrNull()
+    assertThat(libspd, notNullValue())
+
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("paidDebugImplementation") }, notNullValue())
+    flavorModule.modifyDependencyConfiguration(libspd!!, "implementation")
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("paidDebugImplementation") }, nullValue())
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    flavorModule = project.findModuleByName("moduleFlavor") as PsAndroidModule
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("paidDebugImplementation") }, nullValue())
+
+    val libspr = flavorModule.dependencies.findJarDependencies("libspr").firstOrNull()
+    assertThat(libspr, notNullValue())
+
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("paidReleaseImplementation") }, notNullValue())
+    flavorModule.modifyDependencyConfiguration(libspr!!, "implementation")
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("paidReleaseImplementation") }, nullValue())
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    flavorModule = project.findModuleByName("moduleFlavor") as PsAndroidModule
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("paidReleaseImplementation") }, nullValue())
+
+    val libsfd = flavorModule.dependencies.findJarDependencies("libsfd").firstOrNull()
+    assertThat(libsfd, notNullValue())
+
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("freeDebugImplementation") }, notNullValue())
+    flavorModule.modifyDependencyConfiguration(libsfd!!, "implementation")
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("freeDebugImplementation") }, notNullValue())
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    flavorModule = project.findModuleByName("moduleFlavor") as PsAndroidModule
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("freeDebugImplementation") }, notNullValue())
+
+    val libsfr = flavorModule.dependencies.findJarDependencies("libsfr").firstOrNull()
+    assertThat(libsfr, notNullValue())
+
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("freeReleaseImplementation") }, notNullValue())
+    flavorModule.modifyDependencyConfiguration(libsfr!!, "implementation")
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("freeReleaseImplementation") }, notNullValue())
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    flavorModule = project.findModuleByName("moduleFlavor") as PsAndroidModule
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("freeReleaseImplementation") }, notNullValue())
+
+    //TODO(b/134372808): test for not removing a configuration with a user-provided comment (and nothing else) in the block
+
+    // Basic configurations don't require an entry in the configurations block
+    assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("implementation") }, nullValue())
+  }
 }
 
 private fun <T> PsDeclaredDependencyCollection<*, T, *, *>.findLibraryDependency(
