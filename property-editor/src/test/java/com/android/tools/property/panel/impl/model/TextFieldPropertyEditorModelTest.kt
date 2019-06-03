@@ -29,6 +29,7 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyZeroInteractions
 
 class TextFieldPropertyEditorModelTest {
 
@@ -69,6 +70,17 @@ class TextFieldPropertyEditorModelTest {
     model.escape()
     assertThat(model.property.value).isEqualTo("hello")
     verify(listener).valueChanged()
+  }
+
+  @Test
+  fun testFocusGainWillReadValueFromModel() {
+    // setup
+    val (model, listener) = createModel()
+    model.text = "#333333"
+    model.focusGained()
+
+    assertThat(model.text).isEqualTo("hello")
+    verifyZeroInteractions(listener)
   }
 
   @Test
