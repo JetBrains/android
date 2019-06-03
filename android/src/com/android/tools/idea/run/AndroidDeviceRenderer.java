@@ -25,6 +25,7 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ThreeState;
 import com.intellij.util.ui.EdtInvocationManager;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -144,7 +145,7 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
   private static Component renderTitledSeparator(@NotNull String title) {
     TitledSeparator separator = new TitledSeparator(title);
     separator.setBackground(UIUtil.getListBackground());
-    separator.setTitleFont(UIUtil.getLabelFont());
+    separator.setTitleFont(StartupUiUtil.getLabelFont());
     return separator;
   }
 

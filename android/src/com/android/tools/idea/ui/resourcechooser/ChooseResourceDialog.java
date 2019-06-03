@@ -1445,13 +1445,13 @@ public class ChooseResourceDialog extends DialogWrapper {
             }
 
             if (isHeader) {
-              setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+              setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
               if (!isSelected) {
                 setBackground(UIUtil.getLabelBackground());
               }
             }
             else {
-              setFont(UIUtil.getLabelFont());
+              setFont(StartupUiUtil.getLabelFont());
               if (!isSelected) {
                 setBackground(table.getBackground());
               }

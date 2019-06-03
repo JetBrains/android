@@ -24,7 +24,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +49,7 @@ public class GotItMessage {
     myTitle = title;
     myMessage =
       "<html><body><div style='font-family: " +
-      UIUtil.getLabelFont().getFontName() +
+      StartupUiUtil.getLabelFont().getFontName() +
       "; font-size: " +
       JBUI.scale(12) +
       "pt; color: " +

@@ -28,13 +28,13 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.xml.stream.events.Characters;
 import java.awt.*;
 import java.awt.event.MouseWheelEvent;
 import java.beans.PropertyChangeListener;
@@ -52,7 +52,7 @@ class FontEditor implements FileEditor {
   private static final float MAX_FONT_SIZE = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUI.scale(30f);
   private static final float MIN_FONT_SIZE = UIUtil.getFontSize(UIUtil.FontSize.MINI);
   private static final Border BORDER = JBUI.Borders.empty(50);
-  private static final Font DEFAULT_FONT = UIUtil.getLabelFont();
+  private static final Font DEFAULT_FONT = StartupUiUtil.getLabelFont();
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   private final JTextArea myTextArea;
@@ -141,7 +141,7 @@ class FontEditor implements FileEditor {
     catch (FontFormatException | IOException e) {
       String message = "Unable to open font " + file.getName();
 
-      myTextArea.setFont(UIUtil.getLabelFont());
+      myTextArea.setFont(StartupUiUtil.getLabelFont());
       myTextArea.setEditable(false);
       myTextArea.setText(message);
       LOG.warn(message ,e);

@@ -26,7 +26,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,7 +82,7 @@ public class WizardStepHeaderPanel extends JPanel {
 
     PropertyChangeListener listener = propertyChangeEvent -> {
       // Force an update of static JBColor.DARK. This is required to show the correct color after a LookAndFeel change.
-      JBColor.setDark(UIUtil.isUnderDarcula());
+      JBColor.setDark(StartupUiUtil.isUnderDarcula());
       panel.setBackground(headerColor);
 
       // The font size was not set correctly after a LookAndFeel change from Darcula to Standard.
