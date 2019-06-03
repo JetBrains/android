@@ -63,13 +63,21 @@ public class EnergyUsagePreprocessor implements TransportEventPreprocessor {
 
   @Override
   public boolean shouldPreprocess(Common.Event event) {
-    // TODO(b/129355112): add location events.
     switch (event.getKind()) {
       case CPU_CORE_CONFIG:
       case CPU_USAGE:
       case NETWORK_TYPE:
       case NETWORK_SPEED:
         return true;
+      case ENERGY_EVENT:
+        switch (event.getEnergyEvent().getMetadataCase()) {
+          case LOCATION_UPDATE_REQUESTED:
+          case LOCATION_CHANGED:
+          case LOCATION_UPDATE_REMOVED:
+            return true;
+          default:
+            return false;
+        }
       default:
         return false;
     }
@@ -77,7 +85,6 @@ public class EnergyUsagePreprocessor implements TransportEventPreprocessor {
 
   @Override
   public Iterable<Common.Event> preprocessEvent(Common.Event event) {
-    // TODO(b/129355112): handle location events.
     switch (event.getKind()) {
       case CPU_CORE_CONFIG:
         myCpuConfig = new CpuConfig(event.getCpuCoreConfig(), myLogService);
@@ -108,6 +115,34 @@ public class EnergyUsagePreprocessor implements TransportEventPreprocessor {
         }
         myBatteryModel.handleEvent(event.getTimestamp(), BatteryModel.Event.NETWORK_USAGE,
                                    new PowerProfile.NetworkStats(myLastNetworkType, rxSpeed, txSpeed));
+        return generateEnergyUsageEvents(event);
+      case ENERGY_EVENT:
+        switch (event.getEnergyEvent().getMetadataCase()) {
+          case LOCATION_UPDATE_REQUESTED:
+            myBatteryModel.handleEvent(
+              event.getTimestamp(),
+              BatteryModel.Event.LOCATION_REGISTER,
+              new PowerProfile.LocationEvent(
+                event.getGroupId(),
+                PowerProfile.LocationType.from(event.getEnergyEvent().getLocationUpdateRequested().getRequest().getProvider())));
+            break;
+          case LOCATION_CHANGED:
+            myBatteryModel.handleEvent(
+              event.getTimestamp(),
+              BatteryModel.Event.LOCATION_UPDATE,
+              new PowerProfile.LocationEvent(
+                event.getGroupId(),
+                PowerProfile.LocationType.from(event.getEnergyEvent().getLocationChanged().getLocation().getProvider())));
+            break;
+          case LOCATION_UPDATE_REMOVED:
+            myBatteryModel.handleEvent(
+              event.getTimestamp(),
+              BatteryModel.Event.LOCATION_UNREGISTER,
+              new PowerProfile.LocationEvent(event.getGroupId(), PowerProfile.LocationType.NONE));
+            break;
+          default:
+            break;
+        }
         return generateEnergyUsageEvents(event);
       default:
         break;
