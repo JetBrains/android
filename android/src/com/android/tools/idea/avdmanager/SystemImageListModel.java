@@ -57,8 +57,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * A table model for a {@link SystemImageList}
@@ -293,7 +293,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
           panel.setForeground(table.getForeground());
         }
         panel.setOpaque(true);
-        Font labelFont = UIUtil.getLabelFont();
+        Font labelFont = StartupUiUtil.getLabelFont();
         if (column == 0) {
           label.setFont(labelFont.deriveFont(Font.BOLD));
         }

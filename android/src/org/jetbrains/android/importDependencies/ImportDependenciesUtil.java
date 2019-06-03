@@ -10,7 +10,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
@@ -215,7 +215,7 @@ public class ImportDependenciesUtil {
             continue;
           }
 
-          final Module module = ModuleUtil.findModuleForFile(sourceRoot, project);
+          final Module module = ModuleUtilCore.findModuleForFile(sourceRoot, project);
           if (module == null) {
             LOG.debug(new Exception("Cannot find module for file " + sourceRoot.getPath()));
             continue;
@@ -288,7 +288,7 @@ public class ImportDependenciesUtil {
                                            @NotNull ModuleProvider moduleProvider,
                                            @NotNull Pair<Properties, VirtualFile> defaultProperties) {
     for (VirtualFile libDir : getLibDirs(defaultProperties)) {
-      final Module depModule = ModuleUtil.findModuleForFile(libDir, project);
+      final Module depModule = ModuleUtilCore.findModuleForFile(libDir, project);
 
       if (depModule != null) {
         if ((allowedDepModule == null || allowedDepModule == depModule) &&

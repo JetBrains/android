@@ -119,13 +119,13 @@ public class CommonMenuUI extends BasicMenuUI {
     MenuItemLayoutHelper.addMaxWidth(layoutHelper.getArrowSize(), 0, result);
 
     // Calculate the result height
-    result.height = CommonMenuLayoutHelper.max(layoutHelper.getCheckSize().getHeight(),
-                                               layoutHelper.getLabelSize().getHeight(),
-                                               layoutHelper.getAccSize().getHeight(),
-                                               layoutHelper.getArrowSize().getHeight(),
-                                               // STUDIO customization
-                                               // Make the menu at least as short as the spec height
-                                               (int)StandardDimensions.INSTANCE.getMENU_HEIGHT());
+    result.height = MenuItemLayoutHelper.max(layoutHelper.getCheckSize().getHeight(),
+                                             layoutHelper.getLabelSize().getHeight(),
+                                             layoutHelper.getAccSize().getHeight(),
+                                             layoutHelper.getArrowSize().getHeight(),
+                                             // STUDIO customization
+                                             // Make the menu at least as short as the spec height
+                                             (int)StandardDimensions.INSTANCE.getMENU_HEIGHT());
 
     // Take into account menu item insets
     Insets insets = layoutHelper.getMenuItem().getInsets();
