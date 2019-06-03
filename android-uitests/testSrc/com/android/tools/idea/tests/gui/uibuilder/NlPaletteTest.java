@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
@@ -93,7 +91,6 @@ public class NlPaletteTest {
     assertThat(itemList.contents()).isEqualTo(new String[]{"SearchView"});
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/132898557
   @Test
   public void testEnterInSearchBoxCausesItemListToGainFocus() throws Exception {
     myGuiTest.importSimpleApplication();
