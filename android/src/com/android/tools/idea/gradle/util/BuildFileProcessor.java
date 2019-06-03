@@ -21,6 +21,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
@@ -42,6 +43,14 @@ public class BuildFileProcessor {
     return ServiceManager.getService(BuildFileProcessor.class);
   }
 
+  /**
+   * Attempts to find and process (using the supplied processor) all build files in the given project.
+   *
+   * The supplied processor will never be given null by this method.
+   *
+   * This method parses the build files and as such is not guaranteed to catch every file. If this is required look at getting the build
+   * files from the model, see {@link GradleModuleModel#getBuildFile()}.
+   */
   public void processRecursively(@NotNull Project project,
                                  @NotNull Processor<? super GradleBuildModel> processor) {
     ApplicationManager.getApplication().runReadAction(() -> {
@@ -63,6 +72,9 @@ public class BuildFileProcessor {
 
       for (String path : settings.modulePaths()) {
         GradleBuildModel buildModel = settings.moduleModel(path);
+        if (buildModel == null) {
+          continue;
+        }
         boolean continueProcessing = processor.process(buildModel);
         if (!continueProcessing) {
           return;
