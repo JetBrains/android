@@ -426,6 +426,7 @@ PROJECT             : testTransitiveDependencies
             JavaSource (test)   : file://<PROJECT>/javalib1/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/javalib1/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/javalib1/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/javalib1/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -486,6 +487,7 @@ PROJECT             : testTransitiveDependencies
             JavaSource (test)   : file://<PROJECT>/javalib2/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/javalib2/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/javalib2/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/javalib2/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>

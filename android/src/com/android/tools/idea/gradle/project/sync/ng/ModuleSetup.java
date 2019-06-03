@@ -81,7 +81,6 @@ public abstract class ModuleSetup<T> {
                                         new CachedProjectModels.Factory(),
                                         new IdeNativeAndroidProjectImpl.FactoryImpl(),
                                         new JavaModuleModelFactory(),
-                                        new ProjectDataNodeSetup(),
                                         new ModuleSetupContext.Factory(),
                                         new ModuleFinder.Factory(),
                                         new CompositeBuildDataSetup(),
