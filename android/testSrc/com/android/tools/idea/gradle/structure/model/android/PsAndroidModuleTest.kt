@@ -258,6 +258,10 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertNotNull(appModule)
 
     assertThat(appModule.validateProductFlavorName("")).isEqualTo("Product flavor name cannot be empty.")
+    assertThat(appModule.validateProductFlavorName("test")).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("testable")).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("specialRelease"))
+      .isEqualTo("Product flavor name cannot collide with build type: 'specialRelease'")
     assertThat(appModule.validateProductFlavorName("paid")).isEqualTo("Duplicate product flavor name: 'paid'")
     assertThat(appModule.validateProductFlavorName("ok")).isNull()
     DISALLOWED_NAME_CHARS.forEach {
@@ -424,6 +428,10 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertNotNull(appModule)
 
     assertThat(appModule.validateBuildTypeName("")).isEqualTo("Build type name cannot be empty.")
+    assertThat(appModule.validateBuildTypeName("test")).isEqualTo("Build type name cannot start with 'test'.")
+    assertThat(appModule.validateBuildTypeName("testable")).isEqualTo("Build type name cannot start with 'test'.")
+    assertThat(appModule.validateBuildTypeName("otherBar"))
+      .isEqualTo("Build type name cannot collide with product flavor: 'otherBar'")
     assertThat(appModule.validateBuildTypeName("specialRelease")).isEqualTo("Duplicate build type name: 'specialRelease'")
     assertThat(appModule.validateBuildTypeName("ok")).isNull()
     DISALLOWED_NAME_CHARS.forEach {
