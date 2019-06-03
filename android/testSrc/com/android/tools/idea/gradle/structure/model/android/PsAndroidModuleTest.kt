@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
+import com.android.tools.idea.testing.TestProjectPaths.PSD_VARIANT_COLLISIONS
 import com.android.tools.idea.testing.TestProjectPaths.SCRIPTED_DIMENSIONS
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -441,6 +442,30 @@ class PsAndroidModuleTest : DependencyTestCase() {
       assertThat(appModule.validateBuildTypeName("'${it}'")).isNotNull()
       assertThat(appModule.validateBuildTypeName("''${it}''")).isNotNull()
     }
+  }
+
+  fun testValidateBuildTypeNameWithCollisions() {
+    loadProject(PSD_VARIANT_COLLISIONS)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assertNotNull(appModule)
+    assertThat(appModule.validateBuildTypeName("release")).isEqualTo("Duplicate build type name: 'release'")
+    assertThat(appModule.validateBuildTypeName("specialRelease")).isEqualTo("Duplicate build type name: 'specialRelease'")
+
+    // "paid" flavor + "littleRelease" buildType = "paidLittle" flavor + "release" buildType
+    assertThat(appModule.validateBuildTypeName("littleRelease"))
+      .isEqualTo("Build type name 'littleRelease' would cause a configuration name ambiguity.")
+
+    val app2Module = moduleWithoutSyncedModel(project, "app2")
+    assertNotNull(app2Module)
+    assertThat(app2Module.validateBuildTypeName("release")).isEqualTo("Duplicate build type name: 'release'")
+    assertThat(app2Module.validateBuildTypeName("specialRelease")).isEqualTo("Duplicate build type name: 'specialRelease'")
+
+    // "paid" flavor + "littleScreen" flavor + "release" buildType = "paidLittle" flavor + "screenRelease" buildType
+    assertThat(app2Module.validateBuildTypeName("screenRelease"))
+      .isEqualTo("Build type name 'screenRelease' would cause a configuration name ambiguity.")
   }
 
   fun testAddBuildType() {
