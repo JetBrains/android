@@ -65,6 +65,7 @@ import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.WaitFor;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
@@ -4094,8 +4095,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     byte[] newContent = Files.readAllBytes(new File(myFixture.getTestDataPath(), DRAWABLE_BLUE).toPath());
     WriteAction.run(() -> logoFile.setBinaryContent(newContent));
+    UIUtil.dispatchAllInvocationEvents();
+    WaitFor waitFor = new WaitFor(10000, 500) {
+      @Override
+      protected boolean condition() {
+        int blue = renderer.renderDrawable(bitmapXml, COLORED_DRAWABLE_SIZE).join().getRGB(0, 0);
+        return "0000ff".equals(Integer.toHexString(blue).substring(2));
+      }
+    };
+
     int blue = renderer.renderDrawable(bitmapXml, COLORED_DRAWABLE_SIZE).join().getRGB(0, 0);
-    assertEquals("0000ff", Integer.toHexString(blue).substring(2));
+    assertTrue("The layout cache has never been cleared in the given timeout duration.\n" +
+               "Current value: " + Integer.toHexString(blue).substring(2),  waitFor.isConditionRealized());
   }
 
   /**
