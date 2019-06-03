@@ -27,24 +27,37 @@ import org.jetbrains.annotations.NotNull;
  * Unit tests for the {@link LauncherLegacyIconGenerator} class.
  */
 public class LauncherLegacyIconGeneratorTest extends AndroidTestCase {
-  private void checkGraphic(@NotNull SourceType sourceType) throws IOException {
+  private void checkGraphic(@NotNull SourceType sourceType, int paddingPercent) throws IOException {
     LauncherLegacyIconGenerator generator = new LauncherLegacyIconGenerator(getProject(), 15, null);
     disposeOnTearDown(generator);
     generator.shape().set(IconGenerator.Shape.CIRCLE);
     generator.backgroundColor().set(new Color(0xFFFF00));
     List<String> expectedFolders = ImmutableList.of("", "mipmap-xxxhdpi", "mipmap-xxhdpi", "mipmap-xhdpi", "mipmap-hdpi", "mipmap-mdpi");
-    IconGeneratorTestUtil.checkGraphic(generator, sourceType, "android_in_circle", 5, expectedFolders, "launcher");
+    IconGeneratorTestUtil.checkGraphic(generator, sourceType, "android_in_circle", paddingPercent, expectedFolders,
+                                       paddingPercent >= 0 ? "launcher" : "launcher_cropped");
   }
 
-  public void testPngCircle() throws Exception {
-    checkGraphic(SourceType.PNG);
+  public void testPngPadded() throws Exception {
+    checkGraphic(SourceType.PNG, 5);
   }
 
-  public void testSvgCircle() throws Exception {
-    checkGraphic(SourceType.SVG);
+  public void testPngCropped() throws Exception {
+    checkGraphic(SourceType.PNG, -10);
   }
 
-  public void testClipart() throws Exception {
-    checkGraphic(SourceType.CLIPART);
+  public void testSvgPadded() throws Exception {
+    checkGraphic(SourceType.SVG, 5);
+  }
+
+  public void testSvgCropped() throws Exception {
+    checkGraphic(SourceType.SVG, -10);
+  }
+
+  public void testClipartPadded() throws Exception {
+    checkGraphic(SourceType.CLIPART, 5);
+  }
+
+  public void testClipartCropped() throws Exception {
+    checkGraphic(SourceType.CLIPART, -10);
   }
 }
