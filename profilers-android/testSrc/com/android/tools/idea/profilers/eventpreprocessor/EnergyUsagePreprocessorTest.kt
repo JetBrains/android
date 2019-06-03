@@ -80,6 +80,37 @@ class EnergyUsagePreprocessorTest {
         .setNetworkSpeed(Network.NetworkSpeedData.getDefaultInstance())
         .setTimestamp(ONE_MS * 400)
         .build())
+    private val LOCATION_EVENTS = arrayOf(
+      Common.Event.newBuilder()
+        .setTimestamp(0)
+        .setPid(PID)
+        .setGroupId(1)
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationChanged(
+          Energy.LocationChanged.newBuilder().setLocation(Energy.Location.newBuilder().setProvider("gps"))
+        ))
+        .build(),
+
+      Common.Event.newBuilder()
+        .setTimestamp(ONE_MS * 200)
+        .setPid(PID)
+        .setGroupId(1)
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationChanged(
+          Energy.LocationChanged.newBuilder().setLocation(Energy.Location.newBuilder().setProvider("gps"))
+        ))
+        .build(),
+
+      Common.Event.newBuilder()
+        .setTimestamp(ONE_MS * 400)
+        .setPid(PID)
+        .setGroupId(1)
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationChanged(
+          Energy.LocationChanged.newBuilder().setLocation(Energy.Location.newBuilder().setProvider("gps"))
+        ))
+        .build()
+    )
   }
 
   private class FakePowerProfile : PowerProfile {
@@ -127,6 +158,7 @@ class EnergyUsagePreprocessorTest {
 
     assertThat(energyUsagePreprocessor.shouldPreprocess(CPU_USAGE_EVENTS[0])).isTrue()
     assertThat(energyUsagePreprocessor.shouldPreprocess(NETWORK_SPEED_EVENTS[0])).isTrue()
+    assertThat(energyUsagePreprocessor.shouldPreprocess(LOCATION_EVENTS[0])).isTrue()
     assertThat(energyUsagePreprocessor.shouldPreprocess(echoEvent)).isFalse()
   }
 
@@ -169,6 +201,27 @@ class EnergyUsagePreprocessorTest {
         .setPid(PID)
         .setKind(Common.Event.Kind.ENERGY_USAGE)
         .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(FakePowerProfile.WIFI_ACTIVE))
+        .setTimestamp(ONE_MS * 200)
+        .build())
+    assertThat(generatedEvents).containsExactlyElementsIn(expectedEnergyUsageEvents)
+  }
+
+  @Test
+  fun preprocessLocationEvents() {
+    val generatedEvents = mutableListOf<Common.Event>()
+    for (event in LOCATION_EVENTS) generatedEvents.addAll(energyUsagePreprocessor.preprocessEvent(event))
+
+    val expectedEnergyUsageEvents = arrayOf(
+      Common.Event.newBuilder()
+        .setPid(PID)
+        .setKind(Common.Event.Kind.ENERGY_USAGE)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(FakePowerProfile.GPS_USAGE))
+        .setTimestamp(0)
+        .build(),
+      Common.Event.newBuilder()
+        .setPid(PID)
+        .setKind(Common.Event.Kind.ENERGY_USAGE)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(FakePowerProfile.GPS_USAGE))
         .setTimestamp(ONE_MS * 200)
         .build())
     assertThat(generatedEvents).containsExactlyElementsIn(expectedEnergyUsageEvents)
