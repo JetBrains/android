@@ -71,6 +71,7 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -383,7 +384,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   public void updateDetails(@Nullable ManifestTreeNode node) {
     HtmlBuilder sb = new HtmlBuilder();
-    Font font = UIUtil.getLabelFont();
+    Font font = StartupUiUtil.getLabelFont();
     sb.addHtml("<html><body style=\"font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt;\">");
     sb.beginUnderline().beginBold();
     sb.add("Manifest Sources");

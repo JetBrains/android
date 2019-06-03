@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.tools.adtui.ImageUtils;
 import com.google.common.base.Verify;
 import com.intellij.util.ImageLoader;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -79,7 +79,7 @@ public class ShadowPainter {
 
     Graphics2D g2 = image.createGraphics();
     //noinspection ConstantConditions
-    UIUtil.drawImage(g2, source, shadowSize, shadowSize, null);
+    StartupUiUtil.drawImage(g2, source, shadowSize, shadowSize, null);
 
     int dstWidth = image.getWidth();
     int dstHeight = image.getHeight();
@@ -162,7 +162,7 @@ public class ShadowPainter {
     }
 
     //noinspection ConstantConditions
-    UIUtil.drawImage(g2, source, null, 0, 0);
+    StartupUiUtil.drawImage(g2, source, null, 0, 0);
     g2.dispose();
 
     return image;
@@ -193,7 +193,7 @@ public class ShadowPainter {
     }
     Graphics g = image.getGraphics();
     //noinspection ConstantConditions
-    UIUtil.drawImage(g, source, 0, 0, null);
+    StartupUiUtil.drawImage(g, source, 0, 0, null);
     drawRectangleShadow(image, 0, 0, width, height);
     g.dispose();
 
@@ -227,7 +227,7 @@ public class ShadowPainter {
 
     Graphics g = image.getGraphics();
     //noinspection ConstantConditions
-    UIUtil.drawImage(g, source, 0, 0, null);
+    StartupUiUtil.drawImage(g, source, 0, 0, null);
     drawSmallRectangleShadow(image, 0, 0, width, height);
     g.dispose();
 
@@ -316,9 +316,9 @@ public class ShadowPainter {
       return;
     }
 
-    UIUtil.drawImage(gc, ShadowBottomLeft, x, y + height, null);
-    UIUtil.drawImage(gc, ShadowBottomRight, x + width, y + height, null);
-    UIUtil.drawImage(gc, ShadowTopRight, x + width, y, null);
+    StartupUiUtil.drawImage(gc, ShadowBottomLeft, x, y + height, null);
+    StartupUiUtil.drawImage(gc, ShadowBottomRight, x + width, y + height, null);
+    StartupUiUtil.drawImage(gc, ShadowTopRight, x + width, y, null);
     ImageUtils.drawDipImage(gc, ShadowBottom, x + ShadowBottomLeft.getWidth(null), y + height, x + width,
                             y + height + ShadowBottom.getHeight(null), 0, 0, ShadowBottom.getWidth(null), ShadowBottom.getHeight(null),
                             null);
@@ -354,9 +354,9 @@ public class ShadowPainter {
       return;
     }
 
-    UIUtil.drawImage(gc, Shadow2BottomLeft, x, y + height, null);
-    UIUtil.drawImage(gc, Shadow2BottomRight, x + width, y + height, null);
-    UIUtil.drawImage(gc, Shadow2TopRight, x + width, y, null);
+    StartupUiUtil.drawImage(gc, Shadow2BottomLeft, x, y + height, null);
+    StartupUiUtil.drawImage(gc, Shadow2BottomRight, x + width, y + height, null);
+    StartupUiUtil.drawImage(gc, Shadow2TopRight, x + width, y, null);
     ImageUtils.drawDipImage(gc, Shadow2Bottom, x + Shadow2BottomLeft.getWidth(null), y + height, x + width,
                             y + height + Shadow2Bottom.getHeight(null), 0, 0, Shadow2Bottom.getWidth(null), Shadow2Bottom.getHeight(null),
                             null);

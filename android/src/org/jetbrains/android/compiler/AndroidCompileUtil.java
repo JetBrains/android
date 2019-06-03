@@ -27,7 +27,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
@@ -40,7 +40,10 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactProperties;
 import com.intellij.packaging.impl.compiler.ArtifactCompileScope;
@@ -528,7 +531,7 @@ public class AndroidCompileUtil {
       return null;
     }
 
-    final String pngCacheDirPath = VfsUtil.urlToPath(projectOutputDirUrl) + '/' + RESOURCES_CACHE_DIR_NAME + '/' + module.getName();
+    final String pngCacheDirPath = VfsUtilCore.urlToPath(projectOutputDirUrl) + '/' + RESOURCES_CACHE_DIR_NAME + '/' + module.getName();
     final String pngCacheDirOsPath = FileUtil.toSystemDependentName(pngCacheDirPath);
 
     final File pngCacheDir = new File(pngCacheDirOsPath);
@@ -746,7 +749,7 @@ public class AndroidCompileUtil {
       return false;
     }
 
-    final Module module = ModuleUtil.findModuleForFile(child, project);
+    final Module module = ModuleUtilCore.findModuleForFile(child, project);
     if (module == null) {
       return true;
     }
