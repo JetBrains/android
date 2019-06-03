@@ -91,7 +91,6 @@ public class NlPreviewTest {
     preview.getConfigToolbar().requireDevice("pixel"); // because it's the most recently configured small screen compatible device
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/132898557
   @Test
   public void editCustomView() throws Exception {
     // Opens the LayoutTest project, opens a layout with a custom view, checks
