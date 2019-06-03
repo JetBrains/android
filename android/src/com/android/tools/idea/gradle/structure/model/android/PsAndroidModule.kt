@@ -121,12 +121,13 @@ class PsAndroidModule(
   private fun flavorNamesByDimension(dimension: String) =
     productFlavors.filter { it.effectiveDimension == dimension }.map { it.name }
 
-  private fun buildFlavorCombinations() = when {
+  private fun buildFlavorCombinations(newFlavorName: String? = null, dimensionName: String? = null) = when {
     flavorDimensions.size > 1 -> flavorDimensions
       .fold(listOf(listOf(""))) { acc, dimension ->
-        flavorNamesByDimension(dimension.name).flatMap { flavor ->
-          acc.map { prefix -> prefix + flavor }
-        }
+        (if (dimensionName == dimension.name) listOf(newFlavorName!!) else flavorNamesByDimension(dimension.name))
+          .flatMap { flavor ->
+            acc.map { prefix -> prefix + flavor }
+          }
       }
       .map { it.filter { it != "" }.combineAsCamelCase() }
     else -> listOf()  // There are no additional flavor combinations if there is only one flavor dimension.
@@ -172,15 +173,16 @@ class PsAndroidModule(
 
   fun addNewBuildType(name: String): PsBuildType = getOrCreateBuildTypeCollection().addNew(name)
 
+  private fun computeCurrentVariants(): Set<String> {
+    return (productFlavors.map { it.name } + buildFlavorCombinations())
+      .flatMap { flavor -> buildTypes.map { buildType -> listOf(flavor, buildType.name).combineAsCamelCase() } }
+      .toSet()
+  }
+
   private fun buildTypeCausesAmbiguity(name: String): Boolean {
-    val flavors = productFlavors.map { it.name } + buildFlavorCombinations()
-    val variants = HashSet<String>()
-    flavors.forEach { flavor ->
-      buildTypes.forEach { buildType ->
-        variants.add(listOf(flavor, buildType.name).combineAsCamelCase())
-      }
-    }
-    val potential = flavors.map { listOf(it, name).combineAsCamelCase() }
+    val variants = computeCurrentVariants()
+    val currentFlavors = productFlavors.map { it.name } + buildFlavorCombinations()
+    val potential = currentFlavors.map { listOf(it, name).combineAsCamelCase() }
     return potential.any { variants.contains(it) }
   }
 
@@ -210,12 +212,22 @@ class PsAndroidModule(
   fun addNewProductFlavor(dimension: String, name: String): PsProductFlavor =
     getOrCreateProductFlavorCollection().addNew(PsProductFlavorKey(dimension, name))
 
-  fun validateProductFlavorName(name: String): String? = when {
+  private fun productFlavorCausesAmbiguity(name: String, dimension: String?): Boolean {
+    if (dimension == null) return false
+    val variants = computeCurrentVariants()
+    val potential = (listOf(name) + buildFlavorCombinations(name, dimension))
+      .flatMap { flavor -> buildTypes.map { listOf(flavor, it.name).combineAsCamelCase() } }
+    return potential.any { variants.contains(it) }
+  }
+
+  fun validateProductFlavorName(name: String, dimension: String?): String? = when {
     name.isEmpty() -> "Product flavor name cannot be empty."
     name.startsWith("test") -> "Product flavor name cannot start with 'test'."
     DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Product flavor name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
     getOrCreateProductFlavorCollection().any { it.name == name } -> "Duplicate product flavor name: '$name'"
     getOrCreateBuildTypeCollection().any { it.name == name } -> "Product flavor name cannot collide with build type: '$name'"
+    productFlavorCausesAmbiguity(name, dimension) ->
+      "Product flavor name '$name' in flavor dimension '$dimension' would cause a configuration name ambiguity."
     else -> null
   }
 

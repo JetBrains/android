@@ -258,20 +258,77 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val appModule = moduleWithoutSyncedModel(project, "app")
     assertNotNull(appModule)
 
-    assertThat(appModule.validateProductFlavorName("")).isEqualTo("Product flavor name cannot be empty.")
-    assertThat(appModule.validateProductFlavorName("test")).isEqualTo("Product flavor name cannot start with 'test'.")
-    assertThat(appModule.validateProductFlavorName("testable")).isEqualTo("Product flavor name cannot start with 'test'.")
-    assertThat(appModule.validateProductFlavorName("specialRelease"))
+    assertThat(appModule.validateProductFlavorName("", "foo")).isEqualTo("Product flavor name cannot be empty.")
+    assertThat(appModule.validateProductFlavorName("", "bar")).isEqualTo("Product flavor name cannot be empty.")
+    assertThat(appModule.validateProductFlavorName("", null)).isEqualTo("Product flavor name cannot be empty.")
+    assertThat(appModule.validateProductFlavorName("test", "foo")).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("test", "bar")).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("test", null)).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("testable", "foo")).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("testable", "bar")).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("testable", null)).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("specialRelease", "foo"))
       .isEqualTo("Product flavor name cannot collide with build type: 'specialRelease'")
-    assertThat(appModule.validateProductFlavorName("paid")).isEqualTo("Duplicate product flavor name: 'paid'")
-    assertThat(appModule.validateProductFlavorName("ok")).isNull()
+    assertThat(appModule.validateProductFlavorName("specialRelease", "bar"))
+      .isEqualTo("Product flavor name cannot collide with build type: 'specialRelease'")
+    assertThat(appModule.validateProductFlavorName("specialRelease", null))
+      .isEqualTo("Product flavor name cannot collide with build type: 'specialRelease'")
+    assertThat(appModule.validateProductFlavorName("paid", "foo")).isEqualTo("Duplicate product flavor name: 'paid'")
+    assertThat(appModule.validateProductFlavorName("paid", "bar")).isEqualTo("Duplicate product flavor name: 'paid'")
+    assertThat(appModule.validateProductFlavorName("paid", null)).isEqualTo("Duplicate product flavor name: 'paid'")
+    assertThat(appModule.validateProductFlavorName("ok", "foo")).isNull()
+    assertThat(appModule.validateProductFlavorName("ok", "bar")).isNull()
+    assertThat(appModule.validateProductFlavorName("ok", null)).isNull()
     DISALLOWED_NAME_CHARS.forEach {
-      assertThat(appModule.validateProductFlavorName("${it}")).isNotNull()
-      assertThat(appModule.validateProductFlavorName("foo${it}")).isNotNull()
-      assertThat(appModule.validateProductFlavorName("foo${it}bar")).isNotNull()
-      assertThat(appModule.validateProductFlavorName("'${it}'")).isNotNull()
-      assertThat(appModule.validateProductFlavorName("''${it}''")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("${it}", "foo")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}", "foo")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}bar", "foo")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("'${it}'", "foo")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("''${it}''", "foo")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("${it}", "bar")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}", "bar")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}bar", "bar")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("'${it}'", "bar")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("''${it}''", "bar")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("${it}", null)).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}", null)).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}bar", null)).isNotNull()
+      assertThat(appModule.validateProductFlavorName("'${it}'", null)).isNotNull()
+      assertThat(appModule.validateProductFlavorName("''${it}''", null)).isNotNull()
     }
+  }
+
+  fun testValidateProductFlavorNameWithCollisions() {
+    loadProject(PSD_VARIANT_COLLISIONS)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assertNotNull(appModule)
+    assertThat(appModule.validateProductFlavorName("paid", "foo")).isEqualTo("Duplicate product flavor name: 'paid'")
+    assertThat(appModule.validateProductFlavorName("paidLittle", "foo")).isEqualTo("Duplicate product flavor name: 'paidLittle'")
+
+    // "paid" product flavor + "specialRelease" build type = "paidSpecial" product flavor + "release" build type
+    assertThat(appModule.validateProductFlavorName("paidSpecial", "foo"))
+      .isEqualTo("Product flavor name 'paidSpecial' in flavor dimension 'foo' would cause a configuration name ambiguity.")
+
+    val app2Module = moduleWithoutSyncedModel(project, "app2")
+
+    // "paid" product flavor + "littleScreen" product flavor + "specialRelease" build type
+    // =
+    // "paidLittle" product flavor + "screenSpecial" product flavor + "release" build type
+    assertThat(app2Module.validateProductFlavorName("screenSpecial", "bar"))
+      .isEqualTo("Product flavor name 'screenSpecial' in flavor dimension 'bar' would cause a configuration name ambiguity.")
+    // but this one is OK
+    assertThat(app2Module.validateProductFlavorName("screenSpecial", "foo")).isNull()
+
+    val app3Module = moduleWithoutSyncedModel(project, "app3")
+
+    // "paid" product flavor + "little" product flavor = "paidLittle" product flavor (whichever dimension)
+    assertThat(app3Module.validateProductFlavorName("paidLittle", "foo"))
+      .isEqualTo("Product flavor name 'paidLittle' in flavor dimension 'foo' would cause a configuration name ambiguity.")
+    assertThat(app3Module.validateProductFlavorName("paidLittle", "bar"))
+      .isEqualTo("Product flavor name 'paidLittle' in flavor dimension 'bar' would cause a configuration name ambiguity.")
   }
 
   fun testAddProductFlavor() {
