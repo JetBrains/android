@@ -41,6 +41,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,8 +52,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
@@ -64,7 +65,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
   private static final int COLUMN_COUNT = 2;
 
   @Nullable private final JComponent myBottomLink;
-  private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
+  private final Font myBoldLabelFont = StartupUiUtil.getLabelFont().deriveFont(Font.BOLD);
   private final GridInspectorPanel myInspector;
   private final SpeedSearchComparator myComparator;
   private final Map<Component, ExpandableGroup> mySource2GroupMap = new IdentityHashMap<>(4);

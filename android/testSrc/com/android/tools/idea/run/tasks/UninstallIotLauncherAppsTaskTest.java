@@ -24,8 +24,8 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.project.Project;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Collections;
@@ -69,14 +69,14 @@ public class UninstallIotLauncherAppsTaskTest {
     when(myChecker.getInstalledIotLauncherApps(myEmbeddedDevice)).thenReturn(Collections.singleton(OTHER_PACKAGE_NAME));
     UninstallIotLauncherAppsTask task = new UninstallIotLauncherAppsTask(PACKAGE_NAME, myChecker, myPrompt);
     task.perform(myEmbeddedDevice, myLaunchStatus, myPrinter);
-    verify(myPrompt).showQuestionPrompt(Mockito.anyString());
+    verify(myPrompt).showQuestionPrompt(ArgumentMatchers.anyString());
   }
 
   @Test
   public void testTaskUninstallsPackagesIfUserSaysYesAndSucceeds() throws Throwable {
     when(myChecker.getInstalledIotLauncherApps(myEmbeddedDevice)).thenReturn(Collections.singleton(OTHER_PACKAGE_NAME));
     // Answer "Yes" to "Do you want to uninstall packages?"
-    when(myPrompt.showQuestionPrompt(Mockito.anyString())).thenReturn(true);
+    when(myPrompt.showQuestionPrompt(ArgumentMatchers.anyString())).thenReturn(true);
     UninstallIotLauncherAppsTask task = new UninstallIotLauncherAppsTask(PACKAGE_NAME, myChecker, myPrompt);
     assertTrue(task.perform(myEmbeddedDevice, myLaunchStatus, myPrinter));
     verify(myEmbeddedDevice).uninstallPackage(OTHER_PACKAGE_NAME);
@@ -86,18 +86,18 @@ public class UninstallIotLauncherAppsTaskTest {
   public void testTaskShowsErrorMessageAndFailsIfUninstallFailed() throws Throwable {
     when(myChecker.getInstalledIotLauncherApps(myEmbeddedDevice)).thenReturn(Collections.singleton(OTHER_PACKAGE_NAME));
     // Answer "Yes" to "Do you want to uninstall packages?"
-    when(myPrompt.showQuestionPrompt(Mockito.anyString())).thenReturn(true);
+    when(myPrompt.showQuestionPrompt(ArgumentMatchers.anyString())).thenReturn(true);
     when(myEmbeddedDevice.uninstallPackage(OTHER_PACKAGE_NAME)).thenThrow(new InstallException("Error"));
     UninstallIotLauncherAppsTask task = new UninstallIotLauncherAppsTask(PACKAGE_NAME, myChecker, myPrompt);
     assertFalse(task.perform(myEmbeddedDevice, myLaunchStatus, myPrinter));
-    verify(myPrompt).showErrorMessage(Mockito.anyString());
+    verify(myPrompt).showErrorMessage(ArgumentMatchers.anyString());
   }
 
   @Test
   public void testTaskFailsIfUserSaysNo() throws Throwable {
     when(myChecker.getInstalledIotLauncherApps(myEmbeddedDevice)).thenReturn(Collections.singleton(OTHER_PACKAGE_NAME));
     // Answer "No" to "Do you want to uninstall packages?"
-    when(myPrompt.showQuestionPrompt(Mockito.anyString())).thenReturn(false);
+    when(myPrompt.showQuestionPrompt(ArgumentMatchers.anyString())).thenReturn(false);
     UninstallIotLauncherAppsTask task = new UninstallIotLauncherAppsTask(PACKAGE_NAME, myChecker, myPrompt);
     assertFalse(task.perform(myEmbeddedDevice, myLaunchStatus, myPrinter));
   }

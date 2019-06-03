@@ -21,6 +21,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.components.BorderLayoutPanel;
 import org.jetbrains.annotations.NotNull;
@@ -111,7 +112,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
 
   @Override
   protected void installDefaults() {
-    padding = JBUI.insets(0, UIUtil.isUnderDarcula() ? DARK_THEME_PADDING : LIGHT_THEME_PADDING, 0, 2);
+    padding = JBUI.insets(0, StartupUiUtil.isUnderDarcula() ? DARK_THEME_PADDING : LIGHT_THEME_PADDING, 0, 2);
     squareButton = false;
   }
 
@@ -203,7 +204,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
       Component c = myRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       BorderLayoutPanel panel = JBUI.Panels.simplePanel(c).withBorder(
         list.getComponentOrientation().isLeftToRight() ? JBUI.Borders.empty(0,
-                                                                            UIUtil.isUnderDarcula()
+                                                                            StartupUiUtil.isUnderDarcula()
                                                                             ? DARK_THEME_PADDING
                                                                             : LIGHT_THEME_PADDING,
                                                                             0, 1)

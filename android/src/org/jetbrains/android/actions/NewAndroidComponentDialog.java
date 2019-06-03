@@ -9,7 +9,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Computable;
@@ -136,7 +136,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     if (element == null) {
       return null;
     }
-    Module module = ModuleUtil.findModuleForFile(directory.getVirtualFile(), project);
+    Module module = ModuleUtilCore.findModuleForFile(directory.getVirtualFile(), project);
     if (module != null) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null;

@@ -24,6 +24,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import org.mockito.Mock;
 
@@ -38,7 +39,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   // Hack to avoid: "java.lang.Error: Cannot load com.apple.laf.AquaLookAndFeel"
   @SuppressWarnings("unused")
-  private static volatile boolean DARK = UIUtil.isUnderDarcula();
+  private static volatile boolean DARK = StartupUiUtil.isUnderDarcula();
 
   @Mock
   private FileEditorManager myEditorManager;

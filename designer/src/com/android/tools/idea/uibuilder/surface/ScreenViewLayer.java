@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -182,7 +183,7 @@ public class ScreenViewLayer extends Layer {
       if (screenShape != null) {
         g.clip(screenShape);
       }
-      UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, null);
+      StartupUiUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, null);
     }
     g.dispose();
   }

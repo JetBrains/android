@@ -31,15 +31,14 @@ import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.*;
-import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.MemoryProfilerStage.LiveAllocationSamplingMode;
+import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.Gray;
@@ -50,7 +49,7 @@ import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -691,7 +690,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
     // The heap dump icon's contrast does not stand out as well as the record icon so we use a higher tones value.
-    Icon heapDumpIcon = UIUtil.isUnderDarcula()
+    Icon heapDumpIcon = StartupUiUtil.isUnderDarcula()
                         ? IconUtil.darker(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6)
                         : IconUtil.brighter(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6);
     RenderInstruction[] instructions;

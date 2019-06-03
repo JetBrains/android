@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPixelSize;
-
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.resources.ResourceResolver;
@@ -42,36 +39,23 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.time.Clock;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
-import javax.swing.KeyStroke;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.time.Clock;
+import java.util.List;
+import java.util.*;
+
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPixelSize;
 
 public class NlReferenceEditor extends BaseComponentEditor {
   private static final int MIN_TEXT_WIDTH = 50;
@@ -141,7 +125,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
     });
     myIconLabel.setBorder(JBUI.Borders.emptyRight(HORIZONTAL_SPACE_AFTER_LABEL));
 
-    Font font = UIUtil.getLabelFont();
+    Font font = StartupUiUtil.getLabelFont();
     FontMetrics metrics = myPanel.getFontMetrics(font);
     int sliderHeight = metrics.getHeight() + 2 * verticalSpacing;
     mySlider = new SliderWithTimeDelay();
