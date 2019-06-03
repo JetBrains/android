@@ -36,7 +36,6 @@ import org.junit.runner.RunWith;
   // https://github.com/bazelbuild/bazel/issues/374
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
-  com.android.tools.idea.gradle.structure.daemon.analysis.PsJavaModuleAnalyzerTest.class,  // b/134190873
   // http://b/35788260
   com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandlerTest.class
 })
