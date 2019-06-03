@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTest;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -27,14 +33,15 @@ import java.util.List;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildFileProcessor.getCompositeBuildFolderPaths;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class BuildFileProcessorTest extends IdeaTestCase {
+public class BuildFileProcessorTest extends GradleSyncIntegrationTest {
   private GradleProjectSettings myProjectSettings;
 
   @Override
-  protected void setUp() throws Exception {
+  public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
 
@@ -48,14 +55,33 @@ public class BuildFileProcessorTest extends IdeaTestCase {
   public void testGetCompositeBuildFolders() {
     // Set current project as included build.
     BuildParticipant participant = new BuildParticipant();
-    participant.setRootPath(myProject.getBasePath());
+    participant.setRootPath(getProject().getBasePath());
 
     GradleProjectSettings.CompositeBuild compositeBuild = new GradleProjectSettings.CompositeBuild();
     compositeBuild.setCompositeParticipants(Collections.singletonList(participant));
     myProjectSettings.setCompositeBuild(compositeBuild);
 
-    List<File> folders = getCompositeBuildFolderPaths(myProject);
+    List<File> folders = getCompositeBuildFolderPaths(getProject());
     assertThat(folders).hasSize(1);
-    assertThat(folders.get(0).getPath()).isEqualTo(myProject.getBasePath());
+    assertThat(folders.get(0).getPath()).isEqualTo(getProject().getBasePath());
+  }
+
+  /**
+   *   This test ensures that any calls to BuildFileProcessor#processRecursively don't pass any null build models to the supplied
+   *   function.
+   */
+  public void testNonExistentModuleDoesNotFailToParse() throws Exception {
+    prepareProjectForImport(SIMPLE_APPLICATION);
+
+    File settingsFile = getSettingsFilePath();
+    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(settingsFile);
+    ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Void, Exception>)() -> {
+      VfsUtil.saveText(virtualFile, VfsUtilCore.loadText(virtualFile) + "\ninclude 'notamodule'");
+      return null;
+    });
+    new BuildFileProcessor().processRecursively(getProject(), (buildModel) -> {
+      assertThat(buildModel).isNotNull();
+      return true;
+    });
   }
 }

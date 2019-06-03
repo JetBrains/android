@@ -141,6 +141,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return buildFilePath;
   }
 
+  @NotNull
+  protected File getSettingsFilePath() {
+    File settingsFilePath = new File(getProjectFolderPath(), FN_SETTINGS_GRADLE);
+    assertAbout(file()).that(settingsFilePath).isFile();
+    return settingsFilePath;
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
