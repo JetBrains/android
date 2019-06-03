@@ -409,6 +409,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaSource (test)   : file://<PROJECT>/jModuleK/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/jModuleK/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleK/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleK/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -469,6 +470,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaSource (test)   : file://<PROJECT>/jModuleL/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/jModuleL/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleL/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleL/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -507,6 +509,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaSource (test)   : file://<PROJECT>/jModuleM/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/jModuleM/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleM/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleM/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -545,6 +548,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaSource (test)   : file://<PROJECT>/jModuleZ/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/jModuleZ/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -2598,6 +2602,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaSource (test)   : file://<PROJECT>/jModuleZ/nestedZ/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/jModuleZ/nestedZ/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
