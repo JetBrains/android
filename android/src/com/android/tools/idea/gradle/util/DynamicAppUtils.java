@@ -36,6 +36,7 @@ import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -295,6 +296,15 @@ public class DynamicAppUtils {
       return true;
     }
 
+    // Instrumented test support for Dynamic Features
+    if (configuration instanceof AndroidTestRunConfiguration) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      if (androidModuleModel != null) {
+        if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE) {
+          return true;
+        }
+      }
+    }
     return false;
   }
 

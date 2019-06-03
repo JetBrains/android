@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
+import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.sdklib.AndroidVersion;
@@ -22,19 +32,10 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.Futures;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
-import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
 
@@ -93,6 +94,24 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
     assertThat(((GradleApkProvider)provider).getOutputKind()).isEqualTo(GradleApkProvider.OutputKind.Default);
+  }
+
+  public void testApkProviderForDynamicFeatureInstrumentedTest() throws Exception {
+    loadProject(DYNAMIC_APP, "feature1");
+
+    AndroidRunConfigurationBase androidTestRunConfiguration =
+      createAndroidTestConfigurationFromClass(getProject(), TEST_APP_CLASS_NAME);
+    assertNotNull(androidTestRunConfiguration);
+
+    List<AndroidDevice> devices = new ArrayList<>();
+    AndroidDevice device = createMockDevice("test", 24);
+    devices.add(device);
+
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, new MyApplicationIdProvider(), devices);
+    assertThat(provider).isNotNull();
+    assertThat(provider).isInstanceOf(GradleApkProvider.class);
+    assertThat(((GradleApkProvider)provider).isTest()).isTrue();
+    assertThat(((GradleApkProvider)provider).getOutputKind()).isEqualTo(GradleApkProvider.OutputKind.AppBundleOutputModel);
   }
 
   @SuppressWarnings("SameParameterValue")

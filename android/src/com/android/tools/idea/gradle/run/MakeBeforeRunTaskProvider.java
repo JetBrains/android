@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.android.builder.model.AndroidProject.PROPERTY_APK_SELECT_CONFIG;
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_ABI;
@@ -59,6 +60,7 @@ import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.PreferGradleMake;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.RunStats;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
@@ -346,7 +348,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
 
     // Some configurations (e.g. native attach) don't require a build while running the configuration
-    if (configuration instanceof RunProfileWithCompileBeforeLaunchOption && ((RunProfileWithCompileBeforeLaunchOption)configuration).isExcludeCompileBeforeLaunchOption()) {
+    if (configuration instanceof RunProfileWithCompileBeforeLaunchOption &&
+        ((RunProfileWithCompileBeforeLaunchOption)configuration).isExcludeCompileBeforeLaunchOption()) {
       return true;
     }
 
@@ -595,31 +598,49 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         GradleVersion version = myGradleVersions.getGradleVersion(myProject);
         if (version != null && version.isAtLeast(3, 5, 0)) {
           // This APIs are supported by Gradle 3.5.0+ only.
+          List<Module> selectedModules = new ArrayList<>();
           Module selectedModule = ((AndroidRunConfigurationBase)configuration).getConfigurationModule().getModule();
-          return GradleTaskRunner.newBuildActionRunner(myProject, new OutputBuildAction(getConcernedGradlePaths(selectedModule)));
+          if (selectedModule != null) {
+            selectedModules.add(selectedModule);
+            // Instrumented test support for Dynamic features: base-app module should be included explicitly,
+            // then corresponding post build models are generated. And in this case, dynamic feature module
+            // retrieved earlier is for test Apk.
+            AndroidModuleModel androidModuleModel = AndroidModuleModel.get(selectedModule);
+            if (configuration instanceof AndroidTestRunConfiguration &&
+                androidModuleModel != null &&
+                androidModuleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE) {
+              selectedModule = DynamicAppUtils.getBaseFeature(selectedModule);
+              if (selectedModule != null) {
+                selectedModules.add(selectedModule);
+              }
+            }
+          }
+          return GradleTaskRunner.newBuildActionRunner(myProject, new OutputBuildAction(getConcernedGradlePaths(selectedModules)));
         }
       }
       return GradleTaskRunner.newRunner(myProject);
     }
 
     /**
-     * Get the gradle paths for the given module and all the tested projects (if it is a test app).
+     * Get the gradle paths for the given list of modules and all the tested projects (if it is a test app).
      * These paths will be used by the BuildAction run after build to know all the needed models.
      */
     @NotNull
-    private static Collection<String> getConcernedGradlePaths(@Nullable Module module) {
-      if (module == null) {
+    private static Collection<String> getConcernedGradlePaths(@NotNull List<Module> modules) {
+      if (modules.isEmpty()) {
         return Collections.emptySet();
       }
-
       Collection<String> gradlePaths = new HashSet<>();
-      gradlePaths.add(getGradlePath(module));
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-      if (androidModel != null) {
-        IdeAndroidProject androidProject = androidModel.getAndroidProject();
-        if (androidProject.getProjectType() == PROJECT_TYPE_TEST) {
-          for (TestedTargetVariant testedVariant : androidModel.getSelectedVariant().getTestedTargetVariants()) {
-            gradlePaths.add(testedVariant.getTargetProjectPath());
+
+      for (Module module : modules) {
+        gradlePaths.add(getGradlePath(module));
+        AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+        if (androidModel != null) {
+          IdeAndroidProject androidProject = androidModel.getAndroidProject();
+          if (androidProject.getProjectType() == PROJECT_TYPE_TEST) {
+            for (TestedTargetVariant testedVariant : androidModel.getSelectedVariant().getTestedTargetVariants()) {
+              gradlePaths.add(testedVariant.getTargetProjectPath());
+            }
           }
         }
       }

@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.run;
 
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.ProjectBuildOutput;
@@ -23,25 +30,23 @@ import com.android.builder.model.VariantBuildOutput;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.google.common.collect.Lists;
 import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetConfiguration;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetConfiguration;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Test methods of {@link GradleApkProvider}.
  */
@@ -108,6 +113,8 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     when(myOutputModelProvider.getPostBuildModel()).thenReturn(myPostBuildModel);
 
     setUpProjectBuildOutputProvider(myAndroidFacet, myVariant.getName(), mainOutputs2, testOutputs2);
+
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(27));
   }
 
   public void testGetApkWithoutModelProvider() throws Exception {

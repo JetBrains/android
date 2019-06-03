@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
@@ -29,6 +30,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.TestedTargetVariant;
 import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -110,6 +112,17 @@ public class GradleTaskFinder {
     Set<Module> allModules = new HashSet<>();
     for (Module module : modules) {
       allModules.addAll(DynamicAppUtils.getModulesToBuild(module));
+    }
+
+    // Instrumented test support for Dynamic Features: base-app module should be added explicitly for gradle tasks
+    for (Module module : modules) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      if (androidModuleModel != null && androidModuleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE) {
+        Module baseAppModule = DynamicAppUtils.getBaseFeature(module);
+        if (baseAppModule != null) {
+          allModules.add(baseAppModule);
+        }
+      }
     }
 
     for (Module module : allModules) {
@@ -208,10 +221,19 @@ public class GradleTaskFinder {
           }
           break;
         case APK_FROM_BUNDLE:
-          // The "ApkFromBundle" task is only valid for base (app) module, not for features, libraries, etc.
+          // The "ApkFromBundle" task is only valid for base (app) module, and for features if it's for instrumented tests
           if (androidModel != null && androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
             String taskName = androidModel.getSelectedVariant().getMainArtifact().getApkFromBundleTaskName();
             addTaskIfSpecified(tasks, gradlePath, taskName);
+          }
+          else if (androidModel != null &&
+                   androidModel.getAndroidProject().getProjectType() == IdeAndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE) {
+            // Instrumented test support for Dynamic Features: Add assembleDebugAndroidTest tasks
+            if (module != TestCompileType.ALL) {
+              for (BaseArtifact artifact : testCompileType.getArtifacts(androidModel.getSelectedVariant())) {
+                addTaskIfSpecified(tasks, gradlePath, artifact.getAssembleTaskName());
+              }
+            }
           }
           break;
         default:
