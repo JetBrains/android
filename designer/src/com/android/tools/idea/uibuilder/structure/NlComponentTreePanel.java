@@ -22,7 +22,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.application.impl.ApplicationImpl;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ScrollPaneFactory;
@@ -82,7 +82,7 @@ public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolConte
   @NotNull
   @Override
   public List<AnAction> getGearActions() {
-    if (!Boolean.getBoolean(ApplicationImpl.IDEA_IS_INTERNAL_PROPERTY)) {
+    if (!ApplicationManager.getApplication().isInternal()) {
       return Collections.emptyList();
     }
     return Collections.singletonList(new ToggleBoundsVisibility(PropertiesComponent.getInstance(), myTree));
