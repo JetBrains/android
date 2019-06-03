@@ -137,6 +137,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @NotNull
   protected File getBuildFilePath(@NotNull String moduleName) {
     File buildFilePath = new File(getProjectFolderPath(), join(moduleName, FN_BUILD_GRADLE));
+    if (!buildFilePath.isFile()) {
+      buildFilePath = new File(getProjectFolderPath(), join(moduleName, FN_BUILD_GRADLE_KTS));
+    }
     assertAbout(file()).that(buildFilePath).isFile();
     return buildFilePath;
   }
@@ -144,6 +147,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @NotNull
   protected File getSettingsFilePath() {
     File settingsFilePath = new File(getProjectFolderPath(), FN_SETTINGS_GRADLE);
+    if (!settingsFilePath.isFile()) {
+      settingsFilePath = new File(getProjectFolderPath(), FN_SETTINGS_GRADLE_KTS);
+    }
     assertAbout(file()).that(settingsFilePath).isFile();
     return settingsFilePath;
   }
