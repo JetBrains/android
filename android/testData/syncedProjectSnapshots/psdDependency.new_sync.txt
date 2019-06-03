@@ -1105,19 +1105,19 @@ PROJECT             : testPsdDependency
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: __local_aars__:<PROJECT>/lib/libsam1-1.1.jar:unspecified@jar
+        LIBRARY             : Gradle: __local_aars__:./lib/libsam1-1.1.jar:unspecified@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:<PROJECT>/lib/libsam1-1.1.jar:unspecified@jar [=]
+            Name                : Gradle: __local_aars__:./lib/libsam1-1.1.jar:unspecified@jar [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
-        LIBRARY             : Gradle: __local_aars__:<PROJECT>/lib/libsam2-1.1.jar:unspecified@jar
+        LIBRARY             : Gradle: __local_aars__:./lib/libsam2-1.1.jar:unspecified@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:<PROJECT>/lib/libsam2-1.1.jar:unspecified@jar [=]
+            Name                : Gradle: __local_aars__:./lib/libsam2-1.1.jar:unspecified@jar [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam2-1.1.jar!/
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
             LibraryLevel        : project
@@ -1463,12 +1463,12 @@ PROJECT             : testPsdDependency
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: __local_aars__:<PROJECT>/lib/libsam1-1.1.jar:unspecified@jar
+        LIBRARY             : Gradle: __local_aars__:./lib/libsam1-1.1.jar:unspecified@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:<PROJECT>/lib/libsam1-1.1.jar:unspecified@jar [=]
+            Name                : Gradle: __local_aars__:./lib/libsam1-1.1.jar:unspecified@jar [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
             LibraryLevel        : project
