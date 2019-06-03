@@ -238,28 +238,15 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
 
     Rectangle targetRect = getTargetRect(launcherOptions.shape, launcherOptions.density);
 
-    // outImage will be our final image. Many intermediate textures will be rendered, in
-    // layers, onto this image.
-    BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
-    Graphics2D gOut = (Graphics2D) outImage.getGraphics();
-    if (shapeImageBack != null) {
-      gOut.drawImage(shapeImageBack, 0, 0, null);
-    }
-
-    // Render the background shape into an intermediate buffer. This lets us set a fill color.
+    // Create an intermediate image filled with the background color.
     BufferedImage tempImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
     Graphics2D gTemp = (Graphics2D) tempImage.getGraphics();
-    if (shapeImageMask != null) {
-      gTemp.drawImage(shapeImageMask, 0, 0, null);
-      gTemp.setComposite(AlphaComposite.SrcAtop);
-      gTemp.setPaint(new Color(launcherOptions.backgroundColor));
-      gTemp.fillRect(0, 0, imageRect.width, imageRect.height);
-    }
+    gTemp.setPaint(new Color(launcherOptions.backgroundColor));
+    gTemp.fillRect(0, 0, imageRect.width, imageRect.height);
 
     AnnotatedImage sourceImage = generateRasterImage(targetRect.getSize(), options);
 
-    // Render the foreground icon onto an intermediate buffer and then render over the
-    // background shape. This lets us override the color of the icon.
+    // Render the foreground icon onto an intermediate image. This lets us override the color of the icon.
     BufferedImage iconImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
     Graphics2D gIcon = (Graphics2D) iconImage.getGraphics();
     if (launcherOptions.crop) {
@@ -267,6 +254,8 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     } else {
       AssetUtil.drawCenterInside(gIcon, sourceImage.getImage(), targetRect);
     }
+
+    // Apply the foreground color if requested.
     AssetUtil.Effect[] effects;
     if (launcherOptions.useForegroundColor) {
       effects = new AssetUtil.Effect[] { new AssetUtil.FillEffect(new Color(launcherOptions.foregroundColor), 1.0) };
@@ -275,10 +264,25 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     }
     AssetUtil.drawEffects(gTemp, iconImage, 0, 0, effects);
 
-    // Finally, render all layers to the output image
+    if (shapeImageMask != null) {
+      // Apply the shape mask to an intermediate image.
+      gTemp.setComposite(AlphaComposite.DstIn);
+      gTemp.drawImage(shapeImageMask, 0, 0, null);
+    }
+
+    // Create the final image..
+    BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+    Graphics2D gOut = (Graphics2D) outImage.getGraphics();
+    if (shapeImageBack != null) {
+      // Render the background shadow to the output image.
+      gOut.drawImage(shapeImageBack, 0, 0, null);
+    }
+
+    // Render the previously combined foreground layer and background color.
     gOut.drawImage(tempImage, 0, 0, null);
+
     if (shapeImageFore != null) {
-      // Useful for some shape effects, like dogear (e.g. folded top right corner)
+      // Apply the foreground shape effects, e.g. dogear (folded top right corner).
       gOut.drawImage(shapeImageFore, 0, 0, null);
     }
 
