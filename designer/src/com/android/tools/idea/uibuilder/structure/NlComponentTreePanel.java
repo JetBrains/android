@@ -20,8 +20,8 @@ import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.idea.IdeaApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
@@ -84,7 +84,7 @@ public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolConte
   @NotNull
   @Override
   public List<AnAction> getGearActions() {
-    if (!Boolean.getBoolean(IdeaApplication.IDEA_IS_INTERNAL_PROPERTY)) {
+    if (!Boolean.getBoolean(PluginManagerCore.IDEA_IS_INTERNAL_PROPERTY)) {
       return Collections.emptyList();
     }
     return Collections.singletonList(new ToggleBoundsVisibility(PropertiesComponent.getInstance(), myTree));
