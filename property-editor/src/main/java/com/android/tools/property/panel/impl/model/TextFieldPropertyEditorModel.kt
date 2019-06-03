@@ -59,6 +59,11 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
     text = value
   }
 
+  override fun focusGained() {
+    super.focusGained()
+    updateValueFromProperty()
+  }
+
   override fun focusLost() {
     super.focusLost()
     commitChange()
