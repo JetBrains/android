@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
+import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
 import com.android.ide.common.repository.GradleVersion;
@@ -22,16 +29,9 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
-
-import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
-import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link GradleApplicationIdProvider}.
@@ -83,7 +83,15 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
     assertEquals("com.example.android.app.testmodule", provider.getTestPackageName());
   }
 
-  private static InstantAppProjectBuildOutput createInstantAppProjectBuildOutputMock(@NotNull String variant, @NotNull String applicationId) {
+  public void testGetPackageNameForDynamicFeatureModule() throws Exception {
+    loadProject(DYNAMIC_APP, "feature1");
+    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    assertEquals("google.simpleapplication", provider.getPackageName());
+    assertEquals("com.example.feature1.test", provider.getTestPackageName());
+  }
+
+  private static InstantAppProjectBuildOutput createInstantAppProjectBuildOutputMock(@NotNull String variant,
+                                                                                     @NotNull String applicationId) {
     InstantAppProjectBuildOutput projectBuildOutput = mock(InstantAppProjectBuildOutput.class);
     InstantAppVariantBuildOutput variantBuildOutput = mock(InstantAppVariantBuildOutput.class);
     when(projectBuildOutput.getInstantAppVariantsBuildOutput()).thenReturn(Collections.singleton(variantBuildOutput));

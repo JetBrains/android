@@ -26,6 +26,7 @@ import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -44,6 +45,12 @@ public class OutputBuildAction implements BuildAction<OutputBuildAction.PostBuil
 
   public OutputBuildAction(@NotNull Collection<String> moduleGradlePaths) {
     myGradlePaths = ImmutableSet.copyOf(moduleGradlePaths);
+  }
+
+  @TestOnly
+  @NotNull
+  Collection<String> getMyGradlePaths() {
+    return myGradlePaths;
   }
 
   @Override

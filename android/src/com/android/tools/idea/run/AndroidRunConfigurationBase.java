@@ -2,8 +2,11 @@
 
 package com.android.tools.idea.run;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 
 import com.android.ddmlib.IDevice;
@@ -143,17 +146,30 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       // Can't proceed.
       return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("no.facet.error", module.getName())));
     }
-    if (!facet.getConfiguration().isAppProject() && facet.getConfiguration().getProjectType() != PROJECT_TYPE_TEST) {
-      if (facet.getConfiguration().isLibraryProject() || facet.getConfiguration().getProjectType() == PROJECT_TYPE_FEATURE) {
+
+    switch (facet.getConfiguration().getProjectType()) {
+      // Supported project types.
+      case PROJECT_TYPE_APP:
+      case PROJECT_TYPE_INSTANTAPP:
+      case PROJECT_TYPE_TEST:
+        break;
+
+      // Project types that need further check for the eligibility.
+      case PROJECT_TYPE_LIBRARY:
+      case PROJECT_TYPE_FEATURE:
+      case PROJECT_TYPE_DYNAMIC_FEATURE:
         Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
         if (!result.getFirst()) {
           errors.add(ValidationError.fatal(result.getSecond()));
         }
-      }
-      else {
+        break;
+
+      // Unsupported types.
+      default:
         errors.add(ValidationError.fatal(AndroidBundle.message("run.error.apk.not.valid")));
-      }
+        return errors;
     }
+
     if (facet.getConfiguration().getAndroidPlatform() == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
