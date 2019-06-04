@@ -35,6 +35,7 @@ import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 public class ChangeLibModSettingsTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * Verify module properties can be modified.

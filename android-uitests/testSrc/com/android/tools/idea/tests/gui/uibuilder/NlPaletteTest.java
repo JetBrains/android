@@ -38,6 +38,8 @@ public class NlPaletteTest {
 
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
+  @Rule
+  public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Test
   public void testTypingKeepsCategorySelectionIfMatchesFound() throws Exception {

@@ -30,6 +30,8 @@ public class RelativeLayoutTest {
 
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
+  @Rule
+  public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Test
   public void testDragFragmentFromPalette() throws Exception {

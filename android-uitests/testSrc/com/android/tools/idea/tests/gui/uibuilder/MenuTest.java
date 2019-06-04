@@ -60,6 +60,8 @@ public final class MenuTest {
 
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
+  @Rule
+  public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   private Path myIcSearchBlack24dpXmlAbsolutePath;
 

@@ -32,6 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class BasicLayoutEditTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * Verifies addition of components to designer screen
