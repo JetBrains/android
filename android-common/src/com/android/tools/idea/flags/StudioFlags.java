@@ -394,10 +394,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOUND_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "compound.sync", "Enable new \"Compound Sync\"",
     "Turns on Compound Sync.", true);
-  public static final Flag<Boolean> SHIPPED_SYNC_ENABLED = Flag.create(
-    GRADLE_IDE, "shipped.sync", "Enable \"Shipped Sync\"",
-    "Use shipped Gradle Sync when possible e.g. in freshly created projects. Allows to avoid running an actual Gradle Sync.",
-    false);
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
     "Makes Gradle use development offline repositories such as /out/repo", isDevBuild());
