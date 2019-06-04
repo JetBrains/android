@@ -28,8 +28,8 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -197,13 +197,13 @@ public class SystemImagePreview {
     if (icon != null) {
       return icon;
     }
-    int size = JBUI.scale(128);
+    int size = JBUIScale.scale(128);
     Image image = UIUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
     Graphics g = image.getGraphics();
     GraphicsUtil.setupAntialiasing(g);
     GraphicsUtil.setupAAPainting(g);
     Font f = StartupUiUtil.getLabelFont();
-    Font font = new Font(f.getName(), f.getStyle() | Font.BOLD, JBUI.scale(100));
+    Font font = new Font(f.getName(), f.getStyle() | Font.BOLD, JBUIScale.scale(100));
     g.setColor(JBColor.background());
     g.fillRect(0, 0, size, size);
     g.setColor(JBColor.foreground());

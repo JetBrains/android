@@ -41,6 +41,7 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.NotNullProducer;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
@@ -71,13 +72,13 @@ public class MoreFontsDialog extends DialogWrapper {
   private static final float FONT_SIZE_IN_LIST = 16f;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 5;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 10;
-  private static final int DEFAULT_HEIGHT = JBUI.scale(400);
-  private static final int DEFAULT_WIDTH = JBUI.scale(600);
-  private static final int MIN_FONT_LIST_HEIGHT = JBUI.scale(200);
-  private static final int MIN_FONT_LIST_WIDTH = JBUI.scale(250);
-  private static final int MIN_FONT_PREVIEW_HEIGHT = JBUI.scale(200);
-  private static final int MIN_FONT_PREVIEW_WIDTH = JBUI.scale(150);
-  private static final int DESCENDER_SPACE = JBUI.scale(4);
+  private static final int DEFAULT_HEIGHT = JBUIScale.scale(400);
+  private static final int DEFAULT_WIDTH = JBUIScale.scale(600);
+  private static final int MIN_FONT_LIST_HEIGHT = JBUIScale.scale(200);
+  private static final int MIN_FONT_LIST_WIDTH = JBUIScale.scale(250);
+  private static final int MIN_FONT_PREVIEW_HEIGHT = JBUIScale.scale(200);
+  private static final int MIN_FONT_PREVIEW_WIDTH = JBUIScale.scale(150);
+  private static final int DESCENDER_SPACE = JBUIScale.scale(4);
 
   private final FontListModel myModel;
   private final DefaultListModel<FontDetail> myDetailModel;
@@ -128,7 +129,7 @@ public class MoreFontsDialog extends DialogWrapper {
     myFontList.setCellRenderer(new FontFamilyRenderer());
     // We want to set fixed cell height and width. This makes the list render much faster.
     myFontList.setFixedCellHeight(computeFontHeightInFontList(myFontList));
-    myFontList.setFixedCellWidth(MIN_FONT_LIST_WIDTH + JBUI.scale(DESCENDER_SPACE));
+    myFontList.setFixedCellWidth(MIN_FONT_LIST_WIDTH + JBUIScale.scale(DESCENDER_SPACE));
     //noinspection unchecked
     myFontList.setModel(myModel);
     myFontListScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -472,7 +473,7 @@ public class MoreFontsDialog extends DialogWrapper {
         setFont(font);
       }
       append(fontFamily.getMenuName());
-      setIconTextGap(JBUI.scale(4));
+      setIconTextGap(JBUIScale.scale(4));
 
       switch (fontFamily.getFontSource()) {
         case SYSTEM:
@@ -689,8 +690,8 @@ public class MoreFontsDialog extends DialogWrapper {
       int height = getHeight() / 2;
       int textWidth = (int)getFontMetrics(getFont()).getStringBounds(getText(), graphics).getWidth();
       graphics.setColor(CONTRAST_BORDER_COLOR);
-      graphics.drawLine(JBUI.scale(5), height, JBUI.scale(30), height);
-      graphics.drawLine(textWidth + JBUI.scale(40), height, width - JBUI.scale(5), height);
+      graphics.drawLine(JBUIScale.scale(5), height, JBUIScale.scale(30), height);
+      graphics.drawLine(textWidth + JBUIScale.scale(40), height, width - JBUIScale.scale(5), height);
     }
   }
 }

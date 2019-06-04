@@ -23,6 +23,7 @@ import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.cpu.ProfilingTechnology;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -77,7 +78,7 @@ abstract class StatusPane extends CapturePane {
     // entire panel area.
     JPanel mainPanel = new JPanel(new TabularLayout("*,300px,*", "*,150px,*"));
     // TODO(b/109661512): Move vgap scale into TabularLayout
-    JPanel statusPanel = new JPanel(new TabularLayout("*,Fit,20px,Fit,*","28px,Fit,Fit,Fit,Fit,*").setVGap(JBUI.scale(5)));
+    JPanel statusPanel = new JPanel(new TabularLayout("*,Fit,20px,Fit,*","28px,Fit,Fit,Fit,Fit,*").setVGap(JBUIScale.scale(5)));
     statusPanel.setBorder(new LineBorder(ProfilerColors.CPU_CAPTURE_STATUS, 1));
 
     JLabel status = createLabel("Status", true);

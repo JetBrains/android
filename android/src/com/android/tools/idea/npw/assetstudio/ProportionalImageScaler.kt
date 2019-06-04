@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.assetstudio
 
 import com.android.annotations.VisibleForTesting
 import com.google.common.base.Verify.verify
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.scale.JBUIScale
 import java.awt.Image
 
 /**
@@ -44,8 +44,8 @@ class ProportionalImageScaler private constructor(private val minHeight: Int, pr
 
     val scaleFactor = determineScaleFactor(height, minHeight, maxHeight, maxAllowedHeight)
 
-    val newWidth = JBUI.scale((width * scaleFactor).toFloat()).toInt()
-    val newHeight = JBUI.scale((height * scaleFactor).toFloat()).toInt()
+    val newWidth = JBUIScale.scale((width * scaleFactor).toFloat()).toInt()
+    val newHeight = JBUIScale.scale((height * scaleFactor).toFloat()).toInt()
     return image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH)
   }
 

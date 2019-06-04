@@ -21,25 +21,16 @@ import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.cpu.CpuProfilerAspect;
-import com.android.tools.profilers.cpu.CpuProfilerStageView;
-import com.android.tools.profilers.cpu.CpuProfilerToolbar;
-import com.android.tools.profilers.cpu.CpuProfilingConfigurationView;
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
-import com.android.tools.profilers.cpu.ProfilingTechnology;
+import com.android.tools.profilers.cpu.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
-import java.awt.BorderLayout;
-import java.awt.FontMetrics;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
+
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * A {@link CapturePane} that contains necessary components to start recording a method trace (e.g "Record" button
@@ -79,7 +70,7 @@ class RecordingInitiatorPane extends CapturePane {
     }
 
     // TODO(b/109661512): Remove |JBUI.scale(10)| once the issue is fixed.
-    JPanel content = new JPanel(new TabularLayout("*,Fit,Fit,*", "*,Fit,Fit,Fit,*").setVGap(JBUI.scale(10)));
+    JPanel content = new JPanel(new TabularLayout("*,Fit,Fit,*", "*,Fit,Fit,Fit,*").setVGap(JBUIScale.scale(10)));
 
     JLabel label = new JLabel("Select CPU Profiling mode");
     label.setFont(ProfilerFonts.H2_FONT);

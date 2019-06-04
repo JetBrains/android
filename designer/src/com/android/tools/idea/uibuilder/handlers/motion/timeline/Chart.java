@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -30,10 +30,10 @@ import java.util.ArrayList;
 public class Chart {
   public float myPlayBackSpeed = 1;
   Gantt myGantt;
-  int myChartLeftInset = JBUI.scale(20);
-  int myChartRightInset = JBUI.scale(20);
-  public int myBottomInsert = JBUI.scale(20);
-  static final int ourViewListWidth = JBUI.scale(150);
+  int myChartLeftInset = JBUIScale.scale(20);
+  int myChartRightInset = JBUIScale.scale(20);
+  public int myBottomInsert = JBUIScale.scale(20);
+  static final int ourViewListWidth = JBUIScale.scale(150);
 
   int myContainerWidth;
   int myContainerHeight;
@@ -64,7 +64,7 @@ public class Chart {
   static Color ourAvgBackground = new JBColor(0xf8f8f8, 0x2f3133);
   static Color ourBorder = new JBColor(0xc9c9c9, 0x242627);
   static Color ourBorderLight = new JBColor(0xe8e6e6, 0x3c3f41);
-  static int ourGraphHeight = JBUI.scale(60);
+  static int ourGraphHeight = JBUIScale.scale(60);
 
   GraphElements myGraphElements;
   private String myDelayedKeyFrameId;

@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 
 import java.awt.*;
 
@@ -93,6 +93,6 @@ public class DrawLinearPlaceholder extends DrawRegion {
       }
       width = highLightSize;
     }
-    list.add(new DrawLinearPlaceholder(x, y, JBUI.scale(width), JBUI.scale(height)));
+    list.add(new DrawLinearPlaceholder(x, y, JBUIScale.scale(width), JBUIScale.scale(height)));
   }
 }

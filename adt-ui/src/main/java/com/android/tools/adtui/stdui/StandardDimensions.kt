@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.stdui
 
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.scale.JBUIScale
 
 /**
  * Standard UI Component Dimensions.
@@ -23,19 +23,19 @@ import com.intellij.util.ui.JBUI
 object StandardDimensions {
   const val OUTER_BORDER_UNSCALED = 2
 
-  val COMBO_LEFT_PADDING = JBUI.scale(7)
-  val HORIZONTAL_PADDING = JBUI.scale(6)
-  val VERTICAL_PADDING = JBUI.scale(1)
-  val INNER_BORDER_WIDTH = JBUI.scale(1f)
-  val OUTER_BORDER_WIDTH = JBUI.scale(OUTER_BORDER_UNSCALED.toFloat())
-  val DROPDOWN_ARROW_WIDTH = JBUI.scale(8f)
-  val DROPDOWN_ARROW_HEIGHT = JBUI.scale(5f)
-  val DROPDOWN_ARROW_HORIZONTAL_PADDING = JBUI.scale(4f)
-  val DROPDOWN_ARROW_VERTICAL_PADDING_TOP = JBUI.scale(7f)
-  val DROPDOWN_ARROW_VERTICAL_PADDING_BOTTOM = JBUI.scale(6f)
-  var MENU_HEIGHT = JBUI.scale(20f)
-  var MENU_LEFT_PADDING = JBUI.scale(6f)
-  var MENU_RIGHT_PADDING = JBUI.scale(10f)
-  var MENU_ICON_TEXT_GAP = JBUI.scale(4f)
-  var MENU_CHECK_ICON_GAP = JBUI.scale(5f)
+  val COMBO_LEFT_PADDING = JBUIScale.scale(7)
+  val HORIZONTAL_PADDING = JBUIScale.scale(6)
+  val VERTICAL_PADDING = JBUIScale.scale(1)
+  val INNER_BORDER_WIDTH = JBUIScale.scale(1f)
+  val OUTER_BORDER_WIDTH = JBUIScale.scale(OUTER_BORDER_UNSCALED.toFloat())
+  val DROPDOWN_ARROW_WIDTH = JBUIScale.scale(8f)
+  val DROPDOWN_ARROW_HEIGHT = JBUIScale.scale(5f)
+  val DROPDOWN_ARROW_HORIZONTAL_PADDING = JBUIScale.scale(4f)
+  val DROPDOWN_ARROW_VERTICAL_PADDING_TOP = JBUIScale.scale(7f)
+  val DROPDOWN_ARROW_VERTICAL_PADDING_BOTTOM = JBUIScale.scale(6f)
+  var MENU_HEIGHT = JBUIScale.scale(20f)
+  var MENU_LEFT_PADDING = JBUIScale.scale(6f)
+  var MENU_RIGHT_PADDING = JBUIScale.scale(10f)
+  var MENU_ICON_TEXT_GAP = JBUIScale.scale(4f)
+  var MENU_CHECK_ICON_GAP = JBUIScale.scale(5f)
 }

@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.tools.adtui.util.GraphicsUtil;
 import com.google.common.collect.ImmutableList;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class ColorPalette extends JComponent implements Scrollable, ItemSelectable {
 
-  private int myColorBoxSize = JBUI.scale(50);
+  private int myColorBoxSize = JBUIScale.scale(50);
   private int myColorBoxPadding = myColorBoxSize / 10;
   private boolean myShowCheckeredBackground = false;
   private ColorPaletteModel myColorListModel;

@@ -43,6 +43,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -204,14 +205,14 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         return releaseDisplayName(systemImage);
       }
     },
-    new SystemImageColumnInfo("API Level", JBUI.scale(100)) {
+    new SystemImageColumnInfo("API Level", JBUIScale.scale(100)) {
       @Nullable
       @Override
       public String valueOf(SystemImageDescription systemImage) {
         return systemImage.getVersion().getApiString();
       }
     },
-    new SystemImageColumnInfo("ABI", JBUI.scale(100)) {
+    new SystemImageColumnInfo("ABI", JBUIScale.scale(100)) {
       @Nullable
       @Override
       public String valueOf(SystemImageDescription systemImage) {

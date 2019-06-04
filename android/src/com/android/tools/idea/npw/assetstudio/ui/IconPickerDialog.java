@@ -29,6 +29,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -78,7 +79,7 @@ public final class IconPickerDialog extends DialogWrapper {
   private static final String ALL_CATEGORY = ICON_CATEGORIES[0];
 
   private static final int COLUMN_NUMBER = 6;
-  private static final int ICON_ROW_HEIGHT = JBUI.scale(48 + 16);
+  private static final int ICON_ROW_HEIGHT = JBUIScale.scale(48 + 16);
 
   /**
    * A mapping of all categories to their target icons.
