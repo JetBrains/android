@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.graphics;
 
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 
 import java.awt.*;
 
@@ -28,7 +28,7 @@ public class NlConstants {
   public static final int RULER_MAJOR_TICK_PX = 19;
   public static final int RULER_MINOR_TICK_PX = 6;
   public static final int RULER_MINOR_TICK_MIN_DIST_PX = 2;
-  public static final int RULER_TICK_DISTANCE = JBUI.scale(20);
+  public static final int RULER_TICK_DISTANCE = JBUIScale.scale(20);
   public static final int BOUNDS_RECT_DELTA = 20;
 
   public static final int DEFAULT_SCREEN_OFFSET_X = 50;
@@ -94,5 +94,5 @@ public class NlConstants {
                                                                     new float[] { 8, 4 }, 0.0f);
   public static final BasicStroke THICK_PATTERN_STROKE = new BasicStroke(2.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
                                                                           new float[] { 8, 4 }, 0.0f);
-  
+
 }

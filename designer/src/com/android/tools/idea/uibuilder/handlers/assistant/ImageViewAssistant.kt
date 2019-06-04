@@ -31,15 +31,18 @@ import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
 import com.android.tools.idea.uibuilder.property.assistant.AssistantPopupPanel
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBCheckBox
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.JBUI.scale
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.util.*
-import javax.swing.*
+import javax.swing.Box
+import javax.swing.DefaultListModel
+import javax.swing.JComboBox
+import javax.swing.JPanel
 
 private const val ITEM_COUNT = 12
 private val IMAGE_SIZE = scale(48)
@@ -109,7 +112,7 @@ class ImageViewAssistant(
     add(ClickableLabel("Browse").apply {
       border = null
       isOpaque = false
-      foreground = JBColor.link()
+      foreground = JBUI.CurrentTheme.Link.linkColor()
       addActionListener { pickFromResourceDialog() }
     })
   }

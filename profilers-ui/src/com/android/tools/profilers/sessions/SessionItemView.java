@@ -23,6 +23,7 @@ import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -32,8 +33,9 @@ import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static com.android.tools.profilers.ProfilerColors.ACTIVE_SESSION_COLOR;
 import static com.android.tools.profilers.ProfilerColors.SESSION_DIVIDER_COLOR;
@@ -156,7 +158,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
    */
   private static class LiveSessionDot extends JComponent {
 
-    private static final int SIZE = JBUI.scale(10);
+    private static final int SIZE = JBUIScale.scale(10);
     private static final Dimension DIMENSION = new Dimension(SIZE, SIZE);
 
     @Override

@@ -27,6 +27,7 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
@@ -49,7 +50,7 @@ class FontEditor implements FileEditor {
   private static final String NAME = "Font";
   private static final String LOREM_TEXT = new LoremGenerator().generate(50, true);
 
-  private static final float MAX_FONT_SIZE = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUI.scale(30f);
+  private static final float MAX_FONT_SIZE = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUIScale.scale(30f);
   private static final float MIN_FONT_SIZE = UIUtil.getFontSize(UIUtil.FontSize.MINI);
   private static final Border BORDER = JBUI.Borders.empty(50);
   private static final Font DEFAULT_FONT = StartupUiUtil.getLabelFont();
@@ -111,7 +112,7 @@ class FontEditor implements FileEditor {
     myFontNameArea = createTextArea();
     myTextArea = createTextArea();
 
-    myCurrentFontSize = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUI.scale(15f);
+    myCurrentFontSize = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUIScale.scale(15f);
 
     try {
       // Derive the font and set it to large

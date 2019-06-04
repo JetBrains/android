@@ -23,17 +23,17 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
-import com.android.tools.profilers.cpu.ProfilingTechnology;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
-import java.awt.event.ItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
+import java.awt.event.ItemEvent;
 
 /**
  * The configuration panel for the Android profiler settings.
@@ -440,7 +440,7 @@ public class CpuProfilingConfigPanel {
     fileSizeLimitPanel.add(myFileSizeLimit, new TabularLayout.Constraint(0, 2));
     myConfigPanel.add(fileSizeLimitPanel);
 
-    myConfigPanel.add(Box.createVerticalStrut(JBUI.scale(6)));
+    myConfigPanel.add(Box.createVerticalStrut(JBUIScale.scale(6)));
 
     myFileSizeLimitDescriptionText.setBorder(JBUI.Borders.emptyTop(8));
     myFileSizeLimitDescriptionText.setForeground(ProfilerColors.CPU_RECORDING_CONFIGURATION_DESCRIPTION);

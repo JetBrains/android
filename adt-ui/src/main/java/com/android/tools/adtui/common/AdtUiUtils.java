@@ -21,6 +21,7 @@ import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -112,7 +113,7 @@ public final class AdtUiUtils {
    * Does the reverse of {@link JBUI#scale(int) }
    */
   public static int unscale(int i) {
-    return Math.round(i / JBUI.scale(1.0f));
+    return Math.round(i / JBUIScale.scale(1.0f));
   }
 
   /**

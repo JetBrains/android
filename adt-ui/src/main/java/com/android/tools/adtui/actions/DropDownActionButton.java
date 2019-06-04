@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.TextAccessor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -40,14 +41,14 @@ import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BU
 public class DropDownActionButton extends ActionButtonWithText implements TextAccessor {
 
   private static final Icon DROP_DOWN_ICON = AllIcons.General.ArrowDown;
-  private static final int ICON_TEXT_SPACE = JBUI.scale(4);
+  private static final int ICON_TEXT_SPACE = JBUIScale.scale(4);
   private static final JBInsets INSETS = JBUI.insets(0, 4, 0, 2);
 
   /**
    * The icon has some padding, this constant is used to compensate the padding
    * so the whole button looks as expected
    */
-  private static final int DROP_DOWN_ICON_SIZE_OFFSET = JBUI.scale(-8);
+  private static final int DROP_DOWN_ICON_SIZE_OFFSET = JBUIScale.scale(-8);
 
   private boolean myIsSelected = false;
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
@@ -35,7 +36,7 @@ import java.text.DecimalFormat;
  */
 public class Gantt extends JPanel implements GanttCommands {
 
-  public static final int HEADER_HEIGHT = JBUI.scale(30);
+  public static final int HEADER_HEIGHT = JBUIScale.scale(30);
   private static final JBDimension SLIDER_DIMENSION = JBUI.size(140, 16);
 
   GanttController myGanttController = new GanttController();
@@ -230,7 +231,7 @@ public class Gantt extends JPanel implements GanttCommands {
   // ==================================TITLE BAR code================================
   private JPanel buildTitleBar() {
     JPanel panel = new JPanel(new BorderLayout());
-    panel.setBorder(JBUI.Borders.empty(0, JBUI.scale(4)));
+    panel.setBorder(JBUI.Borders.empty(0, JBUIScale.scale(4)));
     myTitleLabel = new JLabel("Timeline");
     panel.add(myTitleLabel, BorderLayout.WEST);
     JPanel right = new JPanel();

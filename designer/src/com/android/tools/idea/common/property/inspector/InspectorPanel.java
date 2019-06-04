@@ -36,11 +36,11 @@ import com.intellij.openapi.wm.IdeGlassPaneUtil;
 import com.intellij.ui.AbstractExpandableItemsHandler;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.JBInsets;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +60,7 @@ import static com.android.SdkConstants.*;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
 public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>> extends AdtSecondaryPanel implements KeyEventDispatcher {
-  private static final int MAX_LABEL_WIDTH = JBUI.scale(200);
+  private static final int MAX_LABEL_WIDTH = JBUIScale.scale(200);
   private static final int HORIZONTAL_SPACING = 6;
   private static final int COLUMN_COUNT = 2;
 
