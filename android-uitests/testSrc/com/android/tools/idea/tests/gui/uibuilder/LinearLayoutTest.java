@@ -42,6 +42,8 @@ import static org.junit.Assert.assertEquals;
 public final class LinearLayoutTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
+  @Rule
+  public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   private Path myMainStylePath;
   private Path myNewStylePath;

@@ -40,6 +40,7 @@ public class OpenIncludedLayoutTest {
   public static final String INCLUDED_XML = "inner.xml";
   public static final String OUTER_XML = "app/src/main/res/layout/outer.xml";
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Test
   public void testOpenIncludedLayoutFromComponentTree() throws Exception {

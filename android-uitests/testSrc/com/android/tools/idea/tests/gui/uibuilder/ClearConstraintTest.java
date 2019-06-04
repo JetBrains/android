@@ -38,6 +38,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class ClearConstraintTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * To verify that all the constraints of a widget can be cleared at the click of a button with out affecting constraints of other widgets

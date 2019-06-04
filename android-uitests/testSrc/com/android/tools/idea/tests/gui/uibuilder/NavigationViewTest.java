@@ -36,6 +36,8 @@ import java.util.Objects;
 public final class NavigationViewTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
+  @Rule
+  public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   private EditorFixture myEditor;
   private NlEditorFixture myLayoutEditor;

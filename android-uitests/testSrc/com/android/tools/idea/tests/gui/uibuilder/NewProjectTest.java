@@ -52,6 +52,7 @@ import org.junit.runner.RunWith;
 public class NewProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Test
   public void testNoWarningsInNewProjects() {

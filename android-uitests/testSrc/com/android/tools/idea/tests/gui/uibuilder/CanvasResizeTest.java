@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 public class CanvasResizeTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Test
   public void resizeAndSnap() throws Exception {

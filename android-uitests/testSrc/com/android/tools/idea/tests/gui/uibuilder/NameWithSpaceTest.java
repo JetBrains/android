@@ -32,6 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class NameWithSpaceTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * Verify able to create a new project with name containing a space.
