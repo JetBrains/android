@@ -48,10 +48,10 @@ import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.IconUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.ImageUtil;
-import com.intellij.util.ui.JBUIScale;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Image;
@@ -105,7 +105,7 @@ public class PreviewProvider implements Disposable {
   public ImageAndDimension createPreview(@NotNull JComponent component, @NotNull Palette.Item item) {
     Dimension size;
     Image image;
-    JBUIScale.ScaleContext scaleContext = JBUIScale.ScaleContext.create(component);
+    ScaleContext scaleContext = ScaleContext.create(component);
     Image renderedItem = myDependencyManager.needsLibraryLoad(item) ? null : renderDragImage(item);
 
     if (renderedItem == null) {

@@ -25,8 +25,8 @@ import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.JBUIScale;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -168,7 +168,7 @@ public class ScreenViewLayer extends Layer {
           // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
           // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.
 
-          requestHighQualityScaledImage(JBUIScale.ScaleContext.create(g));
+          requestHighQualityScaledImage(ScaleContext.create(g));
         }
 
         cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(), renderedImage,
@@ -221,7 +221,7 @@ public class ScreenViewLayer extends Layer {
    * @param ctx ScaleContext used to get the scaling of the physical screen this is displayed on.
    *            This is to support HiDPI screens with various scalings.
    */
-  private void requestHighQualityScaledImage(@NotNull JBUIScale.ScaleContext ctx) {
+  private void requestHighQualityScaledImage(@NotNull ScaleContext ctx) {
     if (myLastRenderResult == null) {
       return;
     }
@@ -277,11 +277,11 @@ public class ScreenViewLayer extends Layer {
   private static BufferedImage getRetinaScaledImage(@NotNull BufferedImage original,
                                                     double scaleX,
                                                     double scaleY,
-                                                    @NotNull JBUIScale.ScaleContext ctx,
+                                                    @NotNull ScaleContext ctx,
                                                     boolean fastScaling) {
     // No scaling if very close to 1.0 (we check for 0.5 since we're doubling the output)
-    double xRetinaScale = JBUI.sysScale(ctx) * scaleX;
-    double yRetinaScale = JBUI.sysScale(ctx) * scaleY;
+    double xRetinaScale = JBUIScale.sysScale(ctx) * scaleX;
+    double yRetinaScale = JBUIScale.sysScale(ctx) * scaleY;
 
     if (fastScaling) {
       original = ImageUtils.lowQualityFastScale(original, xRetinaScale, yRetinaScale);
@@ -298,7 +298,7 @@ public class ScreenViewLayer extends Layer {
   static BufferedImage scaleOriginalImage(@NotNull BufferedImage source,
                                           double xScaleFactor,
                                           double yScaleFactor,
-                                          @NotNull JBUIScale.ScaleContext ctx) {
+                                          @NotNull ScaleContext ctx) {
     BufferedImage scaledImage = null;
     if (UIUtil.isJreHiDPI(ctx) && ImageUtils.supportsRetina()) {
       scaledImage = getRetinaScaledImage(source, 1 / xScaleFactor, 1 / yScaleFactor, ctx, false);
@@ -321,14 +321,14 @@ public class ScreenViewLayer extends Layer {
     private BufferedImage mySourceImage;
     private double myXScaleFactor;
     private double myYScaleFactor;
-    private JBUIScale.ScaleContext myScaleContext;
+    private ScaleContext myScaleContext;
 
 
     private RescaleRunnable(@NotNull Consumer<BufferedImage> onReadyCallback) {
       myOnReadyCallback = onReadyCallback;
     }
 
-    public void setSource(@NotNull BufferedImage sourceImage, double xScaleFactor, double yScaleFactor, @NotNull JBUIScale.ScaleContext ctx) {
+    public void setSource(@NotNull BufferedImage sourceImage, double xScaleFactor, double yScaleFactor, @NotNull ScaleContext ctx) {
       synchronized (lock) {
         mySourceImage = sourceImage;
         myXScaleFactor = xScaleFactor;
@@ -342,7 +342,7 @@ public class ScreenViewLayer extends Layer {
       BufferedImage source;
       double xScaleFactor;
       double yScaleFactor;
-      JBUIScale.ScaleContext ctx;
+      ScaleContext ctx;
       synchronized (lock) {
         source = mySourceImage;
         xScaleFactor = myXScaleFactor;
