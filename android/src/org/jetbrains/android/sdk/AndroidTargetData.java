@@ -281,7 +281,9 @@ public class AndroidTargetData {
 
     @Override
     protected boolean isAttributeAcceptable(@NotNull ResourceReference attr) {
-      return attr.getNamespace().equals(ResourceNamespace.ANDROID) && isResourcePublic(ResourceType.ATTR.getName(), attr.getName());
+      return attr.getNamespace().equals(ResourceNamespace.ANDROID)
+             && !attr.getName().startsWith("__removed")
+             && isResourcePublic(ResourceType.ATTR.getName(), attr.getName());
     }
   }
 
