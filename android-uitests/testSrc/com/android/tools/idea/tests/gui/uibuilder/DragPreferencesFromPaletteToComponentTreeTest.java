@@ -32,6 +32,8 @@ import static com.android.tools.idea.tests.gui.uibuilder.Assert.assertPathExists
 public final class DragPreferencesFromPaletteToComponentTreeTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
+  @Rule
+  public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Test
   public void dragAndDrop() throws IOException {
