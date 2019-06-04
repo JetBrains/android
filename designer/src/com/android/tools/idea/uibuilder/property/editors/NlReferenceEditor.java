@@ -38,6 +38,7 @@ import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
@@ -323,10 +324,10 @@ public class NlReferenceEditor extends BaseComponentEditor {
     if (myPropertyHasSlider) {
       int widthBrowsePanel = myBrowsePanel != null ? myBrowsePanel.getPreferredSize().width : 0;
       int widthForEditor = myPanel.getWidth() - mySlider.getPreferredSize().width - widthBrowsePanel;
-      mySlider.setVisible(widthForEditor >= JBUI.scale(MIN_TEXT_WIDTH));
+      mySlider.setVisible(widthForEditor >= JBUIScale.scale(MIN_TEXT_WIDTH));
     }
     else {
-      int iconSize = JBUI.scale(ICON_SIZE);
+      int iconSize = JBUIScale.scale(ICON_SIZE);
       Icon icon = NlDefaultRenderer.getIcon(myProperty, iconSize);
       myIconLabel.setIcon(icon);
       myIconLabel.setVisible(icon != null);

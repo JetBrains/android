@@ -35,7 +35,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,8 +44,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
@@ -83,8 +83,8 @@ public class SessionsView extends AspectObserver {
   @VisibleForTesting static final String NO_DEBUGGABLE_PROCESSES = "No debuggable processes";
 
   // Collapsed width should essentially look like a toolbar.
-  private static final int SESSIONS_COLLAPSED_MIN_WIDTH = JBUI.scale(32);
-  private static final int SESSIONS_EXPANDED_MIN_WIDTH = JBUI.scale(200);
+  private static final int SESSIONS_COLLAPSED_MIN_WIDTH = JBUIScale.scale(32);
+  private static final int SESSIONS_EXPANDED_MIN_WIDTH = JBUIScale.scale(200);
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final SessionsManager mySessionsManager;

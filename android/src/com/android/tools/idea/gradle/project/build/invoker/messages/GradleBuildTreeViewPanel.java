@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
+import com.intellij.ui.ComponentUtil;
 import com.intellij.ui.MultilineTreeCellRenderer;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.containers.Convertor;
@@ -40,7 +41,6 @@ import java.util.Locale;
 
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
-import static com.intellij.util.ui.UIUtil.getParentOfType;
 import static com.intellij.util.ui.tree.TreeUtil.promiseSelectFirst;
 
 /**
@@ -67,7 +67,7 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
     // We need to remove the JTree from the JScrollPane to register a new cell renderer. The reason is that the superclass calls
     // MultilineTreeCellRenderer#installRenderer which installs a new cell renderer, puts the JTree in a JScrollPane and sets the
     // cell renderer over and over when resetting the caches. A simple call to JTree#setCellRenderer does not work because of this.
-    JScrollPane scrollPane = getParentOfType(JScrollPane.class, myTree);
+    JScrollPane scrollPane = ComponentUtil.getParentOfType((Class<? extends JScrollPane>)JScrollPane.class, (Component)myTree);
     assert scrollPane != null;
 
     myTree.getParent().remove(myTree);

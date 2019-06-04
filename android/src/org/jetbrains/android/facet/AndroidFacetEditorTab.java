@@ -26,10 +26,10 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
@@ -211,8 +211,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     final JComboBox apkPathComboBoxComponent = myApkPathCombo.getComboBox();
     apkPathComboBoxComponent.setEditable(true);
     apkPathComboBoxComponent.setModel(new DefaultComboBoxModel(getDefaultApks(module)));
-    apkPathComboBoxComponent.setMinimumSize(new Dimension(JBUI.scale(10), apkPathComboBoxComponent.getMinimumSize().height));
-    apkPathComboBoxComponent.setPreferredSize(new Dimension(JBUI.scale(10), apkPathComboBoxComponent.getPreferredSize().height));
+    apkPathComboBoxComponent.setMinimumSize(new Dimension(JBUIScale.scale(10), apkPathComboBoxComponent.getMinimumSize().height));
+    apkPathComboBoxComponent.setPreferredSize(new Dimension(JBUIScale.scale(10), apkPathComboBoxComponent.getPreferredSize().height));
 
     myApkPathCombo.addBrowseFolderListener(project, new FileChooserDescriptor(true, false, false, false, false, false) {
       @Override

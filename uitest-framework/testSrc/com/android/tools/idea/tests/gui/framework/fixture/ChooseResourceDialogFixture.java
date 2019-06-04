@@ -24,7 +24,7 @@ import com.android.tools.idea.ui.resourcechooser.StateListPicker;
 import com.google.common.collect.Iterables;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.SearchTextField;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.TypeMatcher;
@@ -196,7 +196,7 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
           EmptyBorder emptyBorder = (EmptyBorder)border;
           Insets insets = emptyBorder.getBorderInsets();
           if (insets != null) {
-            for (int x = 0; x < insets.left; x += JBUI.scale(12)) {
+            for (int x = 0; x < insets.left; x += JBUIScale.scale(12)) {
               sb.append(' ');
             }
           }

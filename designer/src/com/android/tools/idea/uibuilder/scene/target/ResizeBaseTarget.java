@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
-import static com.intellij.util.ui.JBUI.scale;
-
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -31,6 +29,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -42,7 +41,7 @@ import java.util.List;
 public abstract class ResizeBaseTarget extends BaseTarget {
 
   protected final Type myType;
-  protected final int mySize = scale(2);
+  protected final int mySize = JBUIScale.scale(2);
 
   @AndroidDpCoordinate protected int myStartX1;
   @AndroidDpCoordinate protected int myStartY1;

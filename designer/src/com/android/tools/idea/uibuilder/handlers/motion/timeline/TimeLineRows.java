@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,7 +26,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons.FORWARD;
 import static com.intellij.openapi.ui.VerticalFlowLayout.TOP;
 
 /**
@@ -39,7 +38,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
   int[] myXPoints = new int[10]; // so that the memory is not allocated on paint
   int[] myYPoints = new int[10]; // so that the memory is not allocated on paint
   ArrayList<ViewRow> myViewRows = new ArrayList<>();
-  public static int ourDiamondSize = JBUI.scale(10);
+  public static int ourDiamondSize = JBUIScale.scale(10);
   private boolean myInStateChange;
   private boolean myDisplayInstructions = true;
   static int ourBaseSelected = (Chart.ourMySelectedLineColor.getRGB() & 0xFFFFFF)|0x77000000;

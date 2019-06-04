@@ -34,6 +34,7 @@ import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
@@ -161,10 +162,10 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
 
     Icon icon = null;
     if (path != null) {
-      icon = myIconFactory.createIconFromPath(height, JBUI.scale(8), false, path);
+      icon = myIconFactory.createIconFromPath(height, JBUIScale.scale(8), false, path);
     }
     if (icon == null) {
-      icon = myIconFactory.createAsyncIconFromResourceValue(height, JBUI.scale(8), false,
+      icon = myIconFactory.createAsyncIconFromResourceValue(height, JBUIScale.scale(8), false,
                                                             item.getResourceValue(),
                                                             EmptyIcon.create(height), iconCallback);
     }
@@ -248,7 +249,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
       .map(text -> "\u21D2 " + text)
       .map(text -> new JBLabel(text))
       .forEach(label -> {
-        label.setBorder(JBUI.Borders.emptyLeft(JBUI.scale(indentCount.incrementAndGet() * 12)));
+        label.setBorder(JBUI.Borders.emptyLeft(JBUIScale.scale(indentCount.incrementAndGet() * 12)));
         resolvedPanel.add(label);
       });
   }

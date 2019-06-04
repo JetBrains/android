@@ -22,7 +22,7 @@ import com.android.tools.profiler.proto.Common;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -36,7 +36,7 @@ import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
 public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends AspectObserver {
 
-  private static final int MINIMUM_MONITOR_HEIGHT = JBUI.scale(50);
+  private static final int MINIMUM_MONITOR_HEIGHT = JBUIScale.scale(50);
 
   @NotNull private final T myMonitor;
 
