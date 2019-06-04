@@ -42,8 +42,8 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.Alarm;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -54,8 +54,8 @@ import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   implements ToolContent<DesignSurface>, DesignSurfaceListener, ModelListener, Disposable {
@@ -102,7 +102,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   private JBLoadingPanel getLoadingPanel() {
     if (myLoadingPanel == null) {
       myLoadingPanel = new JBLoadingPanel(new BorderLayout(), this, START_DELAY_MSECS);
-      myLoadingPanel.setMinimumSize(new Dimension(JBUI.scale(MINIMUM_WIDTH), 0));
+      myLoadingPanel.setMinimumSize(new Dimension(JBUIScale.scale(MINIMUM_WIDTH), 0));
       myLoadingPanel.add(getContentPanel());
     }
     return myLoadingPanel;

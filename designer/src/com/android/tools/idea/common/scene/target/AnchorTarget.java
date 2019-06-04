@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.common.scene.target;
 
-import static com.intellij.util.ui.JBUI.scale;
-
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -27,6 +25,7 @@ import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,8 +40,8 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
 
   private static final boolean DEBUG_RENDERER = false;
 
-  private static final int ANCHOR_SIZE = scale(3);
-  private static final int EXPANDED_SIZE = scale(200);
+  private static final int ANCHOR_SIZE = JBUIScale.scale(3);
+  private static final int EXPANDED_SIZE = JBUIScale.scale(200);
 
   @NotNull protected final Type myType;
   @AndroidDpCoordinate protected int myLastX = -1;

@@ -20,27 +20,24 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.naveditor.model.ActionType
-import com.android.tools.idea.naveditor.model.NavCoordinate
-import com.android.tools.idea.naveditor.model.effectiveDestination
-import com.android.tools.idea.naveditor.model.getActionType
-import com.android.tools.idea.naveditor.model.getEffectiveSource
+import com.android.tools.idea.naveditor.model.*
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
 @SwingCoordinate
-private val ACTION_STROKE_WIDTH = JBUI.scale(3f)
+private val ACTION_STROKE_WIDTH = JBUIScale.scale(3f)
 @SwingCoordinate
-private val DASHED_STROKE_CYCLE = JBUI.scale(5f)
+private val DASHED_STROKE_CYCLE = JBUIScale.scale(5f)
 
 @JvmField
 @NavCoordinate
-val SELF_ACTION_LENGTHS = intArrayOf(JBUI.scale(28), JBUI.scale(26),
-                                     JBUI.scale(60), JBUI.scale(8))
-val SELF_ACTION_RADII = floatArrayOf(JBUI.scale(10f), JBUI.scale(10f),
-                                     JBUI.scale(5f))
+val SELF_ACTION_LENGTHS = intArrayOf(JBUIScale.scale(28), JBUIScale.scale(26),
+                                     JBUIScale.scale(60), JBUIScale.scale(8))
+val SELF_ACTION_RADII = floatArrayOf(JBUIScale.scale(10f), JBUIScale.scale(10f),
+                                     JBUIScale.scale(5f))
 @JvmField
 val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, BasicStroke.CAP_BUTT,
                                 BasicStroke.JOIN_ROUND)
@@ -218,7 +215,7 @@ fun getArrowPoint(context: SceneContext,
                   direction: ConnectionDirection): Point2D.Float {
   @NavCoordinate var shiftY = ACTION_PADDING
   if (direction === ConnectionDirection.TOP) {
-    shiftY += JBUI.scale(HEADER_HEIGHT).toInt()
+    shiftY += JBUIScale.scale(HEADER_HEIGHT).toInt()
   }
   return shiftPoint(getConnectionPoint(rectangle, direction),
                     direction, context.getSwingDimension(shiftY).toFloat())

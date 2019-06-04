@@ -22,8 +22,8 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBRadioButton;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ArrayUtilRt;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -104,7 +104,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
                                                                                return new DeviceNameProperties(null, null, null, null);
                                                                              }
                                                                            }));
-    myDeviceComboBox.setPreferredSize(new Dimension(JBUI.scale(300), myDeviceComboBox.getPreferredSize().height));
+    myDeviceComboBox.setPreferredSize(new Dimension(JBUIScale.scale(300), myDeviceComboBox.getPreferredSize().height));
     myDeviceComboBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {

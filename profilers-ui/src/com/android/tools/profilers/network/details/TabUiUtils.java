@@ -20,8 +20,8 @@ import com.android.tools.adtui.ui.BreakWordWrapHtmlTextPane;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,14 +39,14 @@ import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
  */
 final class TabUiUtils {
 
-  public static final int SCROLL_UNIT = JBUI.scale(10);
+  public static final int SCROLL_UNIT = JBUIScale.scale(10);
   // Padding to be aligned with the tab title on the left.
   public static final int HORIZONTAL_PADDING = 15;
 
   // TODO(b/109661512): Move vgap scale into TabularLayout
-  public static final int TAB_SECTION_VGAP = JBUI.scale(5);
-  public static final int PAGE_VGAP = JBUI.scale(28);
-  public static final int SECTION_VGAP = JBUI.scale(10);
+  public static final int TAB_SECTION_VGAP = JBUIScale.scale(5);
+  public static final int PAGE_VGAP = JBUIScale.scale(28);
+  public static final int SECTION_VGAP = JBUIScale.scale(10);
 
   public static final String SECTION_TITLE_HEADERS = "Headers";
 

@@ -21,8 +21,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneMode
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -197,7 +197,7 @@ public class AttributeTagPanel extends TagPanel {
     if (easing != null) {
       myEasingCurve = new EasingCurve();
       myEasingCurve.setControlPoints(easing);
-      myEasingCurve.setPreferredSize(new Dimension(200, JBUI.scale(200)));
+      myEasingCurve.setPreferredSize(new Dimension(200, JBUIScale.scale(200)));
       myEasingCurve.addActionListener(e -> setEasing(myEasingCurve.getControlPoints()));
       myEasingCurve.addMouseListener(new MouseAdapter() {
         @Override
