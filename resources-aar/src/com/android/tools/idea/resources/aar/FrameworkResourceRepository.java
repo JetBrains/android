@@ -211,55 +211,68 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       Path publicXmlFile = valuesFolder.resolve("public.xml");
 
       try (InputStream stream = new BufferedInputStream(Files.newInputStream(publicXmlFile))) {
-        KXmlParser parser = new KXmlParser();
+        CommentTrackingXmlPullParser parser = new CommentTrackingXmlPullParser();
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
         parser.setInput(stream, UTF_8.name());
 
+        ResourceType groupType = null;
         ResourceType lastType = null;
         String lastTypeName = "";
         while (true) {
-          int event = parser.next();
+          int event = parser.nextToken();
           if (event == XmlPullParser.START_TAG) {
-            // As of API 15 there are a number of "java-symbol" entries here.
-            if (!parser.getName().equals(SdkConstants.TAG_PUBLIC)) {
-              continue;
-            }
+            if (parser.getName().equals(SdkConstants.TAG_PUBLIC)) {
+              String name = null;
+              String typeName = groupType == null ? null : groupType.getName();
+              for (int i = 0, n = parser.getAttributeCount(); i < n; i++) {
+                String attribute = parser.getAttributeName(i);
 
-            String name = null;
-            String typeName = null;
-            for (int i = 0, n = parser.getAttributeCount(); i < n; i++) {
-              String attribute = parser.getAttributeName(i);
-
-              if (attribute.equals(SdkConstants.ATTR_NAME)) {
-                name = parser.getAttributeValue(i);
-                if (typeName != null) {
-                  // Skip id attribute processing.
-                  break;
+                if (attribute.equals(SdkConstants.ATTR_NAME)) {
+                  name = parser.getAttributeValue(i);
+                  if (typeName != null) {
+                    // Skip attributes other than "type" and "name".
+                    break;
+                  }
+                }
+                else if (attribute.equals(SdkConstants.ATTR_TYPE)) {
+                  typeName = parser.getAttributeValue(i);
                 }
               }
-              else if (attribute.equals(SdkConstants.ATTR_TYPE)) {
-                typeName = parser.getAttributeValue(i);
+
+              if (name != null && !name.startsWith("__removed") && (typeName != null || groupType != null) &&
+                  (parser.getLastComment() == null || !parser.getLastComment().startsWith("@hide "))) {
+                ResourceType type;
+                if (groupType != null) {
+                  type = groupType;
+                }
+                else {
+                  if (typeName.equals(lastTypeName)) {
+                    type = lastType;
+                  }
+                  else {
+                    type = ResourceType.fromXmlValue(typeName);
+                    lastType = type;
+                    lastTypeName = typeName;
+                  }
+                }
+
+                if (type != null) {
+                  Set<String> names = myPublicResources.computeIfAbsent(type, t -> new HashSet<>());
+                  names.add(name);
+                }
+                else {
+                  LOG.error("Public resource declaration \"" + name + "\" of type " + typeName + " points to unknown resource type.");
+                }
               }
             }
-
-            if (name != null && typeName != null) {
-              ResourceType type;
-              if (typeName.equals(lastTypeName)) {
-                type = lastType;
-              }
-              else {
-                type = ResourceType.fromXmlValue(typeName);
-                lastType = type;
-                lastTypeName = typeName;
-              }
-
-              if (type != null) {
-                Set<String> names = myPublicResources.computeIfAbsent(type, t -> new HashSet<>());
-                names.add(name);
-              }
-              else {
-                LOG.error("Public resource declaration \"" + name + "\" of type " + typeName + " points to unknown resource type.");
-              }
+            else if (parser.getName().equals(SdkConstants.TAG_PUBLIC_GROUP)) {
+              String typeName = parser.getAttributeValue(null, SdkConstants.ATTR_TYPE);
+              groupType = typeName == null ? null : ResourceType.fromXmlValue(typeName);
+            }
+          }
+          else if (event == XmlPullParser.END_TAG) {
+            if (parser.getName().equals(SdkConstants.TAG_PUBLIC_GROUP)) {
+              groupType = null;
             }
           }
           else if (event == XmlPullParser.END_DOCUMENT) {
@@ -269,7 +282,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       } catch (NoSuchFileException e) {
         // There is no public.xml. This not considered an error.
       } catch (Exception e) {
-        LOG.error("Can't read and parse public attribute list " + publicXmlFile.toString(), e);
+        LOG.error("Can't read and parse " + publicXmlFile.toString(), e);
       }
     }
 
