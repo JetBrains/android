@@ -33,6 +33,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class AndroidVectorDrawableToolTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * Verifies that Asset Studio features work

@@ -34,6 +34,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class CreateBaselineConnectionTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * To verify vertical constraints are removed from a widget when creating a baseline constraint connection

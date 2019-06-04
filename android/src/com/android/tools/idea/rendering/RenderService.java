@@ -547,6 +547,8 @@ public class RenderService implements Disposable {
         withLogger(myService.createLogger(myFacet));
       }
 
+      AllocationStackTrace stackTraceElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
+
       return CompletableFuture.supplyAsync(() -> {
         AndroidPlatform platform = getPlatform(myFacet, myLogger);
         if (platform == null) {
@@ -607,7 +609,7 @@ public class RenderService implements Disposable {
           RenderTask task =
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor);
+                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceElement);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }
