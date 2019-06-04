@@ -24,7 +24,7 @@ import com.intellij.psi.PsiReference
  * A base class for references found within a data binding expression.
  */
 internal abstract class DbExprReference(private val psiElement: PsiElement,
-                               private val resolveTo: PsiElement,
+                               private val resolveTo: PsiElement?,
                                private val textRange: TextRange = TextRange(0, psiElement.textLength))
   : ModelClassResolvable, PsiReference {
 
