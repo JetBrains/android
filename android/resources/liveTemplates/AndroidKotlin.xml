@@ -1,0 +1,76 @@
+<templateSet group="AndroidKotlin">
+  <template name="IntentView" value="val intent = android.content.Intent()&#10;    .setAction(Intent.ACTION_VIEW)&#10;    .setData(android.net.Uri.parse($url$))&#10;    &#10;startActivity(intent)" description="Creates an Intent with ACTION_VIEW" toReformat="true" toShortenFQNames="true">
+    <variable name="url" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+    </context>
+  </template>
+  <template name="key" value="private const val KEY_$value$ = &quot;$value$&quot;" description="Key for a bundle" toReformat="true" toShortenFQNames="true">
+    <variable name="value" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_TOPLEVEL" value="true" />
+      <option name="KOTLIN_OBJECT_DECLARATION" value="true" />
+      <option name="KOTLIN_STATEMENT" value="false" />
+      <option name="KOTLIN_EXPRESSION" value="false" />
+    </context>
+  </template>
+  <template name="newInstance" value="fun newInstance($args$): $fragment$ {&#10;    val args = Bundle()&#10;    $addArgs$&#10;    val fragment = $fragment$()&#10;    fragment.arguments = args&#10;    return fragment&#10;}" description="create a new Fragment instance with arguments" toReformat="true" toShortenFQNames="true">
+    <variable name="args" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="fragment" expression="className()" defaultValue="" alwaysStopAt="true" />
+    <variable name="addArgs" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_TOPLEVEL" value="true" />
+      <option name="KOTLIN_CLASS" value="true" />
+      <option name="KOTLIN_OBJECT_DECLARATION" value="true" />
+     </context>
+  </template>
+  <template name="rgS" value="$resources$.getString(R.string.$stringId$)" description="get a String from resources" toReformat="true" toShortenFQNames="true">
+    <variable name="resources" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="stringId" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+      <option name="KOTLIN_EXPRESSION" value="true" />
+    </context>
+  </template>
+  <template name="rouiT" value="activity.runOnUiThread(java.lang.Runnable() {&#10;    override fun run() {&#10;        $cursor$&#10;    }&#10;})" description="runOnUIThread" toReformat="true" toShortenFQNames="true">
+    <variable name="cursor" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+    </context>s
+  </template>
+  <template name="sbc" value="///////////////////////////////////////////////////////////////////////////&#10;// $blockName$&#10;///////////////////////////////////////////////////////////////////////////" description="block comment for structuring code" toReformat="true" toShortenFQNames="true">
+    <variable name="blockName" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_TOPLEVEL" value="true" />
+      <option name="KOTLIN_CLASS" value="true" />
+    </context>
+  </template>
+  <template name="starter" value="@JvmStatic fun start(context: android.content.Context) {&#10;    val starter = Intent(context, $ACTIVITY$::class.java)&#10;        .putExtra($CURSOR$)&#10;    context.startActivity(starter)&#10;}" description="Creates a static start(...) helper method to start an Activity" toReformat="true" toShortenFQNames="true">
+    <variable name="ACTIVITY" expression="className()" defaultValue="" alwaysStopAt="true" />
+    <variable name="CURSOR" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_TOPLEVEL" value="true" />
+      <option name="KOTLIN_OBJECT_DECLARATION" value="true" />
+    </context>
+  </template>
+  <template name="toast" value="android.widget.Toast.makeText($context$, &quot;$text$&quot;, Toast.LENGTH_SHORT).show()" description="Create a new Toast" toReformat="true" toShortenFQNames="true">
+    <variable name="context" expression="variableOfType(&quot;android.content.Context&quot;)" defaultValue="" alwaysStopAt="true" />
+    <variable name="text" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+    </context>
+  </template>
+  <template name="viewGone" value="$VIEW$.visibility = android.view.View.GONE" description="Set view visibility to GONE" toReformat="true" toShortenFQNames="true">
+    <variable name="VIEW" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+    </context>
+  </template>
+
+  <template name="viewVisible" value="$VIEW$.visibility = android.view.View.VISIBLE" description="Set view visibility to VISIBLE" toReformat="true" toShortenFQNames="true">
+    <variable name="VIEW" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+    </context>
+  </template>
+</templateSet>
