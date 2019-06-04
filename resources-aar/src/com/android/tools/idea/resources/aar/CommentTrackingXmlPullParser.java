@@ -83,9 +83,7 @@ public class CommentTrackingXmlPullParser extends KXmlParser {
 
   @Override
   public int next() throws XmlPullParserException, IOException {
-    int token = super.next();
-    processToken(token);
-    return token;
+    throw new UnsupportedOperationException("Use nextToken() instead of next() for comment tracking to work");
   }
 
   private void processToken(int token) {

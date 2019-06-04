@@ -16,6 +16,8 @@
 package com.android.tools.idea.resources.aar;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.AttrResourceValue;
@@ -28,10 +30,12 @@ import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceItemWithVisibility;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceVisibility;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
@@ -108,6 +112,13 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     throw new AssertionFailedError("Could not find " + FRAMEWORK_RES_JAR_PATH);
   }
 
+  private static void assertVisibility(
+      @NotNull ResourceRepository repository, @NotNull ResourceType type, @NotNull String name, @NotNull ResourceVisibility visibility) {
+    List<ResourceItem> resources = repository.getResources(ResourceNamespace.ANDROID, type, name);
+    assertThat(resources).isNotEmpty();
+    assertThat(((ResourceItemWithVisibility)resources.get(0)).getVisibility()).isEqualTo(visibility);
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -131,16 +142,14 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
 
       long loadTimeFromSources = 0;
       long loadTimeFromCache = 0;
-      // Test loading without cache.
       int count = PRINT_STATS ? 100 : 1;
-      // Test loading from cache.
       for (int i = 0; i < count; ++i) {
         long start = System.currentTimeMillis();
         FrameworkResourceRepository fromSourceFiles =
             FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, false, null);
         loadTimeFromSources += System.currentTimeMillis() - start;
         if (i == 0) {
-          assertFalse(fromSourceFiles.isLoadedFromCache());
+          assertThat(fromSourceFiles.isLoadedFromCache()).isFalse();
           checkContents(fromSourceFiles);
         }
         start = System.currentTimeMillis();
@@ -148,7 +157,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
             FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, true, null);
         loadTimeFromCache += System.currentTimeMillis() - start;
         if (i == 0) {
-          assertTrue(fromCache.isLoadedFromCache());
+          assertThat(fromCache.isLoadedFromCache()).isTrue();
           compareContents(fromSourceFiles, fromCache);
           checkContents(fromCache);
         }
@@ -167,22 +176,20 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     for (boolean withLocaleResources : new boolean[] {true, false}) {
       long loadTimeFromSources = 0;
       long loadTimeFromJar = 0;
-      // Test loading without cache.
       int count = PRINT_STATS ? 100 : 1;
-      // Test loading from cache.
       for (int i = 0; i < count; ++i) {
         long start = System.currentTimeMillis();
         FrameworkResourceRepository fromSourceFiles = FrameworkResourceRepository.create(myResourceFolder, withLocaleResources);
         loadTimeFromSources += System.currentTimeMillis() - start;
         if (i == 0) {
-          assertFalse(fromSourceFiles.isLoadedFromCache());
+          assertThat(fromSourceFiles.isLoadedFromCache()).isFalse();
           checkContents(fromSourceFiles);
         }
         start = System.currentTimeMillis();
         FrameworkResourceRepository fromJar = FrameworkResourceRepository.create(frameworkResJar, withLocaleResources);
         loadTimeFromJar += System.currentTimeMillis() - start;
         if (i == 0) {
-          assertFalse(fromJar.isLoadedFromCache());
+          assertThat(fromJar.isLoadedFromCache()).isFalse();
           compareContents(fromSourceFiles, fromJar);
           checkContents(fromJar);
         }
@@ -217,30 +224,32 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     };
     expectedItems.sort(comparator);
     actualItems.sort(comparator);
-    TestCase.assertEquals(expectedItems.size(), actualItems.size());
+    assertThat(actualItems.size()).isEqualTo(expectedItems.size());
     for (int i = 0; i < expectedItems.size(); i++) {
       ResourceItem expectedItem = expectedItems.get(i);
       ResourceItem actualItem = actualItems.get(i);
-      TestCase.assertTrue("Different ResourceItem at position " + i, areEquivalent(expectedItem, actualItem));
-      TestCase.assertEquals("Different FolderConfiguration at position " + i, expectedItem.getConfiguration(), actualItem.getConfiguration());
+      assertWithMessage("Different ResourceItem at position " + i).that(areEquivalent(expectedItem, actualItem)).isTrue();
+      assertWithMessage("Different FolderConfiguration at position " + i)
+          .that(actualItem.getConfiguration()).isEqualTo(expectedItem.getConfiguration());
       ResourceValue expectedValue = expectedItem.getResourceValue();
       ResourceValue actualValue = actualItem.getResourceValue();
       if (!areEquivalentResourceValues(expectedValue, actualValue)) {
-        TestCase.assertEquals("Different ResourceValue at position " + i, expectedValue, actualValue);
+        assertWithMessage("Different ResourceValue at position " + i).that(actualValue).isEqualTo(expectedValue);
       }
     }
 
     for (ResourceType type : ResourceType.values()) {
       List<ResourceItem> expectedPublic = new ArrayList<>(expected.getPublicResources(ResourceNamespace.ANDROID, type));
       List<ResourceItem> actualPublic = new ArrayList<>(actual.getPublicResources(ResourceNamespace.ANDROID, type));
-      TestCase.assertEquals("Number of public resources doesn't match for type " + type.getName(), expectedPublic.size(), actualPublic.size());
+      assertWithMessage("Number of public resources doesn't match for type " + type.getName())
+          .that(actualPublic.size()).isEqualTo(expectedPublic.size());
       expectedPublic.sort(comparator);
       actualPublic.sort(comparator);
       for (int i = 0; i < expectedPublic.size(); i++) {
         ResourceItem expectedItem = expectedPublic.get(i);
         ResourceItem actualItem = actualPublic.get(i);
-        TestCase
-          .assertTrue("Public resource difference at position " + i + " for type " + type.getName(), areEquivalent(expectedItem, actualItem));
+        assertWithMessage("Public resource difference at position " + i + " for type " + type.getName())
+            .that(areEquivalent(expectedItem, actualItem)).isTrue();
       }
     }
   }
@@ -440,7 +449,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   }
 
   private static void checkContents(@NotNull ResourceRepository repository) {
-    checkPublicResourcesCount(repository);
+    checkPublicResources(repository);
     checkAttributes(repository);
     checkIdResources(repository);
   }
@@ -482,11 +491,11 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     assertThat(items).hasSize(1);
   }
 
-  private static void checkPublicResourcesCount(@NotNull ResourceRepository repository) {
+  private static void checkPublicResources(@NotNull ResourceRepository repository) {
     List<ResourceItem> resourceItems = repository.getAllResources();
-    TestCase.assertTrue("Too few resources: " + resourceItems.size(), resourceItems.size() >= 10000);
+    assertWithMessage("Too few resources: " + resourceItems.size()).that(resourceItems.size()).isAtLeast(10000);
     for (ResourceItem item : resourceItems) {
-      TestCase.assertEquals(ResourceNamespace.ANDROID, item.getNamespace());
+      assertThat(item.getNamespace()).isEqualTo(ResourceNamespace.ANDROID);
     }
     ImmutableMap<ResourceType, Integer> expectations = ImmutableMap.of(
       ResourceType.STYLE, 700,
@@ -499,8 +508,15 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
       Collection<ResourceItem> publicItems = repository.getPublicResources(ResourceNamespace.ANDROID, type);
       Integer minExpected = expectations.get(type);
       if (minExpected != null) {
-        TestCase.assertTrue("Too few public resources of type " + type.getName(), publicItems.size() >= minExpected);
+        assertWithMessage("Too few public resources of type " + type.getName()).that(publicItems.size()).isAtLeast(minExpected);
       }
     }
+
+    // Not mentioned in public.xml.
+    assertVisibility(repository, ResourceType.STRING, "byteShort", ResourceVisibility.PRIVATE);
+    // Defined at top level.
+    assertVisibility(repository, ResourceType.STYLE, "Widget.DeviceDefault.Button.Colored", ResourceVisibility.PUBLIC);
+    assertVisibility(repository, ResourceType.ATTR, "isVrOnly", ResourceVisibility.PRIVATE); // Due to the @hide comment
+    assertVisibility(repository, ResourceType.ATTR, "__removed2", ResourceVisibility.PRIVATE); // Due to the naming convention
   }
 }
