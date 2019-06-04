@@ -618,7 +618,6 @@ open class GradleSyncState(
     invokeLaterIfProjectAlive(project) { block.invoke(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)) }
 
   private fun getSyncType(): GradleSyncStats.GradleSyncType = when {
-    NewGradleSync.isShippedSync(project) -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SHIPPED
     // Check in implied order (Compound requires SVS requires New Sync)
     NewGradleSync.isCompoundSync(project) -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_COMPOUND
     NewGradleSync.isSingleVariantSync(project) -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT
