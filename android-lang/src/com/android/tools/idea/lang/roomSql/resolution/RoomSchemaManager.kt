@@ -84,10 +84,11 @@ class RoomSchemaManager(val module: Module, private val cachedValuesManager: Cac
   private fun buildSchema(module: Module, scopeType: ScopeType): RoomSchema? {
     val scope = module.getModuleSystem().getResolveScope(scopeType)
 
-    val psiFacade = JavaPsiFacade.getInstance(module.project) ?: return null
-    if (!isRoomPresent(psiFacade, scope)) return null
+    if (!isRoomPresentInScope(scope)) return null
 
     LOG.debug { "Recalculating Room schema for module ${module.name} for scope ${scopeType}" }
+
+    val psiFacade = JavaPsiFacade.getInstance(module.project) ?: return null
 
     // Some of this logic is repeated in [RoomReferenceSearchExecutor], make sure to keep them in sync.
     val entities = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.ENTITY) { createTable(it, RoomTable.Type.ENTITY) }
@@ -96,15 +97,6 @@ class RoomSchemaManager(val module: Module, private val cachedValuesManager: Cac
     val daos = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.DAO) { Dao(pointerManager.createSmartPsiElementPointer(it)) }
 
     return RoomSchema(databases, entities + views, daos)
-  }
-
-  private fun isRoomPresent(psiFacade: JavaPsiFacade, scope: GlobalSearchScope): Boolean {
-    RoomAnnotations.ENTITY.bothNames { name ->
-      if (psiFacade.findClass(name, scope) != null) {
-        return true
-      }
-    }
-    return false
   }
 
   /**
