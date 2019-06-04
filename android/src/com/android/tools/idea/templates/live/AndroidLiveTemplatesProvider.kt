@@ -21,14 +21,19 @@ import com.intellij.codeInsight.template.impl.DefaultLiveTemplatesProvider
  * Provides available live templates bundled with the plugin.
  */
 class AndroidLiveTemplatesProvider : DefaultLiveTemplatesProvider {
-  override fun getDefaultLiveTemplateFiles() = arrayOf(
-    "liveTemplates/Android",
-    "liveTemplates/AndroidComments",
-    "liveTemplates/AndroidLog",
-    "liveTemplates/AndroidParcelable",
-    "liveTemplates/AndroidTesting",
-    "liveTemplates/AndroidXML"
-  )
+  override fun getDefaultLiveTemplateFiles(): Array<String> {
+    return arrayOf(
+      "liveTemplates/Android",
+      "liveTemplates/AndroidKotlin",
+      "liveTemplates/AndroidComments",
+      "liveTemplates/AndroidCommentsKotlin",
+      "liveTemplates/AndroidLog",
+      "liveTemplates/AndroidLogKotlin",
+      "liveTemplates/AndroidParcelable",
+      "liveTemplates/AndroidTesting",
+      "liveTemplates/AndroidXML"
+    )
+  }
 
   override fun getHiddenLiveTemplateFiles(): Array<String>? = null
 }
