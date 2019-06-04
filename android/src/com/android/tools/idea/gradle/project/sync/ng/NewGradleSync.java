@@ -98,10 +98,6 @@ public class NewGradleSync implements GradleSync {
     return StudioFlags.COMPOUND_SYNC_ENABLED.get() && isEnabled(project) && isSingleVariantSync(project);
   }
 
-  public static boolean isShippedSync(@NotNull Project project) {
-    return StudioFlags.SHIPPED_SYNC_ENABLED.get() && isEnabled(project) && GradleProjectInfo.getInstance(project).isNewProject();
-  }
-
   public NewGradleSync(@NotNull Project project) {
     this(project, GradleSyncMessages.getInstance(project), new SyncExecutor(project), new SyncResultHandler(project),
          new ProjectBuildFileChecksums.Loader(), new CachedProjectModels.Loader(), new SyncExecutionCallback.Factory());
