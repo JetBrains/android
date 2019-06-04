@@ -25,10 +25,10 @@ import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
 import static java.awt.RenderingHints.VALUE_RENDER_SPEED;
 
 import com.android.annotations.concurrency.Slow;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.JBUIScale;
 import com.intellij.util.ui.UIUtil;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -155,14 +155,14 @@ public class ImageUtils {
    * If ctx is null, get the scale from the system.
    */
   @Nullable
-  public static BufferedImage convertToRetina(@NotNull BufferedImage image, @Nullable JBUIScale.ScaleContext ctx) {
+  public static BufferedImage convertToRetina(@NotNull BufferedImage image, @Nullable ScaleContext ctx) {
     if (image.getWidth() < RETINA_SCALE || image.getHeight() < RETINA_SCALE) {
       // Can't convert to Retina; see issue 65676
       return null;
     }
 
     try {
-      Image retina = RetinaImage.createFrom(image, JBUI.sysScale(ctx), null);
+      Image retina = RetinaImage.createFrom(image, JBUIScale.sysScale(ctx), null);
 
       if (!(retina instanceof BufferedImage)) {
         // Don't try this again

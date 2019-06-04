@@ -70,7 +70,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -495,7 +495,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   public float getScreenScalingFactor() {
-    return JBUI.sysScale(this);
+    return JBUIScale.sysScale(this);
   }
 
   @NotNull
