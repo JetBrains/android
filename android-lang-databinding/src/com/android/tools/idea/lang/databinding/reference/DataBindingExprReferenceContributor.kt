@@ -24,9 +24,11 @@ import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.lang.databinding.model.PsiModelField
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
+import com.android.tools.idea.lang.databinding.psi.DbTokenTypes
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbId
+import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.res.DataBindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -41,6 +43,7 @@ import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
+import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.ProcessingContext
 import org.jetbrains.android.dom.converters.DataBindingVariableTypeConverter
@@ -57,6 +60,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbRefExpr::class.java), RefExprReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbCallExpr::class.java), CallExprReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbFunctionRefExpr::class.java), FunctionRefExprReferenceProvider())
+    registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbLiteralExpr::class.java), LiteralExprReferenceProvider())
   }
 
   /**
@@ -238,6 +242,43 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       return psiModelClass.findMethods(methodExpr.text, staticOnly = false)
         .map { modelMethod -> PsiMethodReference(element, modelMethod) }
         .toTypedArray()
+    }
+  }
+
+  /**
+   * Provide references for when the user's caret is pointing at PSI for a literal expression.
+   *
+   * From db.bnf:
+   *
+   * ```
+   * private literal
+   *  ::= INTEGER_LITERAL
+   *  |   FLOAT_LITERAL
+   *  |   LONG_LITERAL
+   *  |   DOUBLE_LITERAL
+   *  |   TRUE | FALSE
+   *  |   NULL
+   *  |   CHARACTER_LITERAL
+   *  |   STRING_LITERAL
+   * ```
+   *
+   * Example: true, false, 123, `str`
+   */
+  private class LiteralExprReferenceProvider : PsiReferenceProvider() {
+    override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+      val literalExpr = element as PsiDbLiteralExpr
+      val psiType = when (literalExpr.node.firstChildNode.elementType) {
+        DbTokenTypes.INTEGER_LITERAL -> PsiType.INT
+        DbTokenTypes.FLOAT_LITERAL -> PsiType.FLOAT
+        DbTokenTypes.LONG_LITERAL -> PsiType.LONG
+        DbTokenTypes.DOUBLE_LITERAL -> PsiType.DOUBLE
+        DbTokenTypes.TRUE, DbTokenTypes.FALSE -> PsiType.BOOLEAN
+        DbTokenTypes.NULL -> PsiType.NULL
+        DbTokenTypes.CHARACTER_LITERAL -> PsiType.CHAR
+        DbTokenTypes.STRING_LITERAL -> DataBindingUtil.parsePsiType("String", element.project, null) ?: return arrayOf()
+        else -> return arrayOf()
+      }
+      return arrayOf(PsiLiteralReference(element, psiType))
     }
   }
 
