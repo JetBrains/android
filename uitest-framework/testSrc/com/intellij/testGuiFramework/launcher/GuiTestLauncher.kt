@@ -136,7 +136,7 @@ object GuiTestLauncher {
       "-Djava.net.preferIPv4Stack=true",
       "-Djna.nosys=true",
       "-Djna.boot.library.path=",
-      "-XX:MaxJavaStackTraceDepth=-1",
+      "-XX:MaxJavaStackTraceDepth=10000",
       "-XX:+HeapDumpOnOutOfMemoryError",
       "-XX:-OmitStackTraceInFastThrow",
       "-ea",
