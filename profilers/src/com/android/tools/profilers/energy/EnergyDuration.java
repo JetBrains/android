@@ -276,16 +276,29 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
   }
 
   /**
-   * Returns the first non-empty trace id from the events list, if absent returns empty string.
+   * The raw callstack data looks like "package.Class.method(File: Line number)", so we truncate the data before the line metadata
+   * in the first line, for example, "com.AlarmManager.method(Class line: 50)" results in "com.AlarmManager.method".
+   *
+   * @return the first non-empty callstack from the events list, if absent returns empty string.
    */
   @NotNull
-  public String getCalledByTraceId() {
-    return getEventList().stream()
-      .filter(e -> !e.getEnergyEvent().getTraceId().isEmpty())
-      .map(e -> e.getEnergyEvent().getTraceId())
-      .findFirst()
-      .orElse("");
+  public String getCalledBy() {
+    if (myCalledBy == null) {
+      myCalledBy = getEventList().stream()
+        .filter(e -> !e.getEnergyEvent().getCallstack().isEmpty())
+        .map(e -> e.getEnergyEvent().getCallstack().split("\\(", 2))
+        .filter(splitResult -> splitResult.length > 0)
+        .map(splitResult -> splitResult[0])
+        .findFirst()
+        .orElse("");
+    }
+    return myCalledBy;
   }
+
+  /**
+   * Caches the called-by string to save finding it in the event list.
+   */
+  private String myCalledBy = null;
 
   @Override
   public boolean equals(Object o) {
