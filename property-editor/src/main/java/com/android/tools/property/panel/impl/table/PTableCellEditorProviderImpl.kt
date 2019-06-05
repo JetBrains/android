@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.impl.table
 
+import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
@@ -31,6 +32,8 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Component
+import java.awt.KeyboardFocusManager
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.Border
@@ -111,8 +114,15 @@ class PTableCellEditorImpl : PTableCellEditor {
   }
 
   override fun cancelEditing(): Boolean {
+    val editor = focusOwner as? CommonTextField<*>
+    if (editor?.escapeInLookup() == true) {
+      return false // Do NOT remove the table cell editor from the table.
+    }
     return model?.cancelEditing() ?: true
   }
+
+  private val focusOwner: Component?
+    get() = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
 
   override fun close(oldTable: PTable) {
     if (table == oldTable) {
