@@ -48,7 +48,7 @@ class HistogramVisitor(private val classStore: ClassStore) : HProfVisitor() {
     val classDefinition = classStore.getClassForPrimitiveArray(elementType)!!
     classToHistogramEntryInternal.getOrPut(classDefinition) {
       InternalHistogramEntry(classDefinition)
-    }.addInstance(numberOfElements * elementType.size + 16)
+    }.addInstance(numberOfElements * elementType.size + ClassDefinition.ARRAY_PREAMBLE_SIZE)
   }
 
   override fun visitClassDump(classId: Long,
@@ -63,7 +63,7 @@ class HistogramVisitor(private val classStore: ClassStore) : HProfVisitor() {
     val classDefinition = classStore.classClass
     classToHistogramEntryInternal.getOrPut(classDefinition) {
       InternalHistogramEntry(classDefinition)
-    }.addInstance(16)
+    }.addInstance(classDefinition.instanceSize.toLong() + ClassDefinition.OBJECT_PREAMBLE_SIZE)
   }
 
   override fun visitObjectArrayDump(arrayObjectId: Long, stackTraceSerialNumber: Long, arrayClassObjectId: Long, objects: LongArray) {
@@ -71,7 +71,7 @@ class HistogramVisitor(private val classStore: ClassStore) : HProfVisitor() {
     val classDefinition = classStore[arrayClassObjectId]
     classToHistogramEntryInternal.getOrPut(classDefinition) {
       InternalHistogramEntry(classDefinition)
-    }.addInstance(objects.size.toLong() * visitorContext.idSize + 16)
+    }.addInstance(objects.size.toLong() * visitorContext.idSize + ClassDefinition.ARRAY_PREAMBLE_SIZE)
   }
 
   override fun visitInstanceDump(objectId: Long, stackTraceSerialNumber: Long, classObjectId: Long, bytes: ByteBuffer) {
@@ -79,7 +79,7 @@ class HistogramVisitor(private val classStore: ClassStore) : HProfVisitor() {
     val classDefinition = classStore[classObjectId]
     classToHistogramEntryInternal.getOrPut(classDefinition) {
       InternalHistogramEntry(classDefinition)
-    }.addInstance(classDefinition.instanceSize.toLong() + 16)
+    }.addInstance(classDefinition.instanceSize.toLong() + ClassDefinition.OBJECT_PREAMBLE_SIZE)
   }
 
   override fun postVisit() {
@@ -90,10 +90,9 @@ class HistogramVisitor(private val classStore: ClassStore) : HProfVisitor() {
     assert(completed)
     val result = ArrayList<HistogramEntry>(classToHistogramEntryInternal.size)
 
-    classToHistogramEntryInternal.forEach { _, internalEntry ->
+    classToHistogramEntryInternal.forEach { (_, internalEntry) ->
       result.add(internalEntry.asHistogramEntry())
     }
-    // Add java/lang/Class entry
     result.sortByDescending { e -> e.totalInstances }
     return Histogram(result, instanceCount)
   }
