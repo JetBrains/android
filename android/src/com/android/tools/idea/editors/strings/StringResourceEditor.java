@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -50,11 +51,17 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
 
   @NotNull
   public static Font getFont(@NotNull String text, @NotNull Font defaultFont) {
-    if (!StudioFlags.TRANSLATIONS_EDITOR_USE_LOGICAL_FONT.get()) {
+    return getFont(text, defaultFont, StudioFlags.TRANSLATIONS_EDITOR_USE_LOGICAL_FONT.get());
+  }
+
+  @NotNull
+  @VisibleForTesting
+  static Font getFont(@NotNull String text, @NotNull Font defaultFont, boolean useLogicalFont) {
+    if (!useLogicalFont) {
       return FontUtil.getFontAbleToDisplay(text, defaultFont);
     }
 
-    return JBFont.create(new Font(Font.DIALOG, Font.PLAIN, defaultFont.getSize()));
+    return JBFont.create(new Font(Font.DIALOG, Font.PLAIN, defaultFont.getSize()), !(defaultFont instanceof JBFont));
   }
 
   @NotNull
