@@ -79,7 +79,7 @@ public class AndroidGradleModuleUtils {
       if (!gradlewFile.isFile()) {
         throw new IOException("Could not find gradle wrapper. Command line builds may not work properly.");
       }
-      FileUtil.setExecutableAttribute(gradlewFile.getPath(), true);
+      FileUtil.setExecutable(gradlewFile);
     }
   }
 
