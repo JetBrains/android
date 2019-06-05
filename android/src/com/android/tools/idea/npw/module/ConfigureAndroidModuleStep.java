@@ -49,6 +49,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.ContextHelpLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,6 +84,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   private JPanel myPanel;
   private JTextField myAppName;
   private LabelWithEditButton myPackageName;
+  private JLabel myModuleNameLabel;
 
   @NotNull private RenderTemplateModel myRenderModel;
 
@@ -236,6 +238,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   private void createUIComponents() {
     myApiLevelCombo = new AndroidApiLevelComboBox();
     myLanguageCombo = new LanguageComboProvider().createComponent();
+    myModuleNameLabel = ContextHelpLabel.create(message("android.wizard.module.help.name"));
   }
 
   @Override
