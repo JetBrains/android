@@ -52,7 +52,6 @@ import java.util.Collections;
 import javax.swing.JTextField;
 import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.data.TableCell;
-import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -111,10 +110,6 @@ public final class TranslationsEditorTest {
       "Hebrew (iw)",
       "Tamil (ta)");
     assertEquals(expected, translationsEditor.locales());
-
-    JTableCellFixture cancel = table.cell(TableCell.row(3).column(CHINESE_IN_CHINA_COLUMN)); // Cancel in zh-rCN
-    assertEquals("取消", cancel.value());
-    assertEquals(-1, cancel.font().target().canDisplayUpTo("取消")); // requires DroidSansFallbackFull.ttf
   }
 
   @Test
