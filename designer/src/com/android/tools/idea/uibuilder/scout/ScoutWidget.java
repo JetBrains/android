@@ -1217,7 +1217,12 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   public boolean isConnected(Direction direction, ScoutWidget to) {
     Anchor anchor = getAnchor(direction);
     if (anchor.isConnected()) {
-      return anchor.getTarget().getOwner() == to;
+      Anchor target = anchor.getTarget();
+      if (target == null) {
+        return false;
+      }
+
+      return target.getOwner() == to;
     }
     return false;
   }
