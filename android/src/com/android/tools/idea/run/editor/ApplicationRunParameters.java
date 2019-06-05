@@ -344,6 +344,9 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     Module currentModule = myModuleSelector.getModule();
 
     if (currentModule == null) {
+      // Disable and deselect instant deploy checkbox if <no module> is selected.
+      myInstantAppDeployCheckBox.setEnabled(false);
+      myInstantAppDeployCheckBox.setSelected(false);
       return;
     }
 
@@ -357,6 +360,10 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     else {
       // Enable instant app deploy checkbox if module is instant enabled
       myInstantAppDeployCheckBox.setEnabled(model != null && model.getSelectedVariant().isInstantAppCompatible());
+      // If the module is not instant-eligible, uncheck the checkbox.
+      if (model == null || !model.getSelectedVariant().isInstantAppCompatible()) {
+        myInstantAppDeployCheckBox.setSelected(false);
+      }
 
       myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
     }
