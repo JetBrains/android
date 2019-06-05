@@ -94,6 +94,7 @@ public class NewProjectModel extends WizardModel {
   private static final String PROPERTIES_CPP_SUPPORT_KEY = "SAVED_PROJECT_CPP_SUPPORT";
   private static final String EXAMPLE_DOMAIN = "example.com";
   private static final Pattern DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]");
+  private static final Pattern MODULE_NAME_GROUP = Pattern.compile(".*:"); // Anything before ":" belongs to the module parent name
 
   private final StringProperty myApplicationName = new StringValueProperty(message("android.wizard.module.config.new.application"));
   private final StringProperty myCompanyDomain = new StringValueProperty(getInitialDomain(true));
@@ -327,6 +328,7 @@ public class NewProjectModel extends WizardModel {
   @NotNull
   public static String nameToJavaPackage(@NotNull String name) {
     String res = name.replace('-', '_');
+    res = MODULE_NAME_GROUP.matcher(res).replaceAll("");
     res = DISALLOWED_IN_DOMAIN.matcher(res).replaceAll("").toLowerCase(Locale.US);
     if (!res.isEmpty() && AndroidUtils.isReservedKeyword(res) != null) {
       res = StringUtil.fixVariableNameDerivedFromPropertyName(res).toLowerCase(Locale.US);
