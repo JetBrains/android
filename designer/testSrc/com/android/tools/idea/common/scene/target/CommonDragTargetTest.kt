@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import com.intellij.testFramework.UsefulTestCase
 
 class CommonDragTargetTest : SceneTest() {
 
@@ -230,6 +231,59 @@ class CommonDragTargetTest : SceneTest() {
 
     assertTrue(x == textView.drawX)
     assertTrue(y == textView.drawY)
+  }
+
+  fun testFinalSelection() {
+    val textView = myScreen.get("@id/textView").sceneComponent!!
+    val textView2 = myScreen.get("@id/textView2").sceneComponent!!
+
+    val target = CommonDragTarget(textView)
+    val target2 = CommonDragTarget(textView2)
+
+    run {
+      // Click textView should select only textView
+      myScene.select(listOf(textView, textView2))
+      target.mouseDown(10, 10)
+      target.mouseRelease(11, 10, listOf())
+      val newSelection = target.newSelection()
+      assertEquals(1, newSelection.size)
+      assertEquals(textView, newSelection[0])
+    }
+
+    run {
+      // Click textView2 should select only textView2
+      myScene.select(listOf(textView, textView2))
+      target2.mouseDown(10, 10)
+      target2.mouseRelease(11, 10, listOf())
+      val newSelection = target2.newSelection()
+      assertEquals(1, newSelection.size)
+      assertEquals(textView2, newSelection[0])
+    }
+
+    run {
+      // Drag textView should select both
+      myScene.select(listOf(textView, textView2))
+      target.mouseDown(10, 10)
+      target.mouseDrag(11, 11, listOf())
+      target.mouseRelease(12, 12, listOf())
+      val newSelection = target.newSelection()
+      assertEquals(2, newSelection.size)
+      assertEquals(textView, newSelection[0])
+      assertEquals(textView2, newSelection[1])
+    }
+
+    // Select 2
+    run {
+      // Drag textView2 should select both
+      myScene.select(listOf(textView, textView2))
+      target2.mouseDown(10, 10)
+      target2.mouseDrag(11, 11, listOf())
+      target2.mouseRelease(12, 12, listOf())
+      val newSelection = target2.newSelection()
+      assertEquals(2, newSelection.size)
+      assertEquals(textView2, newSelection[0])
+      assertEquals(textView, newSelection[1])
+    }
   }
 
   private fun setAutoConnection(component: SceneComponent, on: Boolean) {
