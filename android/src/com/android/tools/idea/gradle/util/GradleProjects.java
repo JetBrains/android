@@ -19,7 +19,6 @@ import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImport
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
-import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
 import static java.lang.Boolean.TRUE;
 
@@ -29,7 +28,6 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
@@ -159,11 +157,25 @@ public final class GradleProjects {
    * @return {@code true} if the given module is the one that represents the project, {@code false} otherwise.
    */
   public static boolean isGradleProjectModule(@NotNull Module module) {
+    return ":".equals(getGradleModulePath(module));
+  }
+
+  /**
+   * Returns the gradle path of a module, for example ":app" or ":lib:mylib"
+   * @param module the give module
+   * @return the gradle path or {@code null} if not a gradle module or can't find the path.
+   */
+  @Nullable
+  public static String getGradleModulePath(@NotNull Module module) {
     if (!isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) {
-      return false;
+      return null;
     }
-    ExternalSystemModulePropertyManager externalSystemModulePropertyManager = ExternalSystemModulePropertyManager.getInstance(module);
-    return !Strings.nullToEmpty(externalSystemModulePropertyManager.getLinkedProjectId()).startsWith(":");
+    String linkedProjectId = ExternalSystemModulePropertyManager.getInstance(module).getLinkedProjectId();
+    if (linkedProjectId == null) {
+      return null;
+    }
+
+    return linkedProjectId.startsWith(":") ? linkedProjectId : ":";
   }
 
   /**
