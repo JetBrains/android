@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,6 +72,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   private final FakeTimer myTimer;
   private boolean myThrowErrorOnGetDevices;
   private Common.AgentData myAgentStatus;
+  private final AtomicInteger myNextCommandId = new AtomicInteger();
 
   public FakeTransportService(@NotNull FakeTimer timer) {
     this(timer, true);
@@ -297,6 +299,10 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     return ((BeginSession)myCommandHandlers.get(Command.CommandType.BEGIN_SESSION)).getAgentAttachCalled();
   }
 
+  public CommandHandler getRegisteredCommand(Command.CommandType commandType) {
+    return myCommandHandlers.get(commandType);
+  }
+
   /**
    * Helper method for appending to the event list of a stream.
    */
@@ -317,9 +323,9 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   public void execute(Transport.ExecuteRequest request, StreamObserver<Transport.ExecuteResponse> responseObserver) {
     assertThat(myCommandHandlers.containsKey(request.getCommand().getType()))
       .named("Missing command handler for: %s", request.getCommand().getType().toString()).isTrue();
-    myCommandHandlers.get(request.getCommand().getType())
-      .handleCommand(request.getCommand(), getListForStream(request.getCommand().getStreamId()));
-    responseObserver.onNext(Transport.ExecuteResponse.getDefaultInstance());
+    Command command = request.getCommand().toBuilder().setCommandId(myNextCommandId.incrementAndGet()).build();
+    myCommandHandlers.get(command.getType()).handleCommand(command, getListForStream(command.getStreamId()));
+    responseObserver.onNext(Transport.ExecuteResponse.newBuilder().setCommandId(command.getCommandId()).build());
     responseObserver.onCompleted();
   }
 

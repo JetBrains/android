@@ -33,7 +33,9 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterModel;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.commands.BeginSession;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.idea.protobuf.ByteString;
@@ -87,6 +89,8 @@ import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
 public final class CpuProfilerStageTest extends AspectObserver {
+  private static final int FAKE_PID = 20;
+
   @Parameterized.Parameters
   public static Collection<Boolean> useNewEventPipelineParameter() {
     return Arrays.asList(false, true);
@@ -141,14 +145,11 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     // Start a successful capture
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true, CpuProfilerTestUtils.readValidTrace());
 
-    // TODO b/119261457 handle command failures in new pipeline.
     // Start a failing capture
-    if (!myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      CpuProfilerTestUtils.startCapturing(myStage, myCpuService, false);
-    }
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, false);
   }
 
   @Test
@@ -159,16 +160,13 @@ public final class CpuProfilerStageTest extends AspectObserver {
                                                                      Cpu.CpuTraceType.ART,
                                                                      Cpu.CpuTraceMode.INSTRUMENTED);
     myStage.getProfilerConfigModel().setProfilingConfiguration(instrumented);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
   }
 
   @Test
   public void testStopCapturingFailure() throws InterruptedException {
-    // TODO b/119261457 handle command failures in new pipeline.
-    Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
-
     // Start a successful capture
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
 
     // We expect two state changes, first is stopping and the other is IDLE after the stop request returns failure
     AspectObserver observer = new AspectObserver();
@@ -185,7 +183,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     // Start a successful capture
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
 
     // Complete a capture successfully, but with an empty trace
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true, ByteString.EMPTY);
@@ -205,7 +203,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(timeline.isStreaming()).isFalse();
 
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
     assertThat(timeline.isStreaming()).isTrue();
   }
@@ -690,7 +688,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
 
     // Start capturing
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     // Increment 3 seconds on data range
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS * 3);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
@@ -705,7 +703,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     long traceStartTime = (long)dataRange.getMax();
     myTimer.setCurrentTimeNs(TimeUnit.MICROSECONDS.toNanos(traceStartTime));
     // Start capturing again, this time for 10 seconds
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS * 10);
 
     // Check that we're capturing for 10 seconds.
@@ -721,7 +719,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myTimer.setCurrentTimeNs(TimeUnit.MICROSECONDS.toNanos((long)currentMax));
 
     // Start capturing
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
 
     // Increment 3 seconds
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS * 3);
@@ -752,7 +750,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myStage.getProfilerConfigModel().setProfilingConfiguration(FakeIdeProfilerServices.ART_SAMPLED_CONFIG);
     // Start capturing with ART
     myTimer.setCurrentTimeNs(1); // Update the timer to give the second trace a different trace id.
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     // Change the profiling configurations in the middle of the capture and stop capturing
     myStage.getProfilerConfigModel().setProfilingConfiguration(FakeIdeProfilerServices.SIMPLEPERF_CONFIG);
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true, CpuProfilerTestUtils.readValidTrace());
@@ -783,7 +781,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void exitingStageAndEnteringAgainShouldPreserveCaptureState() throws InterruptedException, IOException {
     myStage.getProfilerConfigModel().setProfilingConfiguration(FakeIdeProfilerServices.SIMPLEPERF_CONFIG);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
 
     // Go back to monitor stage and go back to a new Cpu profiler stage
     myStage.getStudioProfilers().setStage(new StudioMonitorStage(myStage.getStudioProfilers()));
@@ -799,14 +797,11 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(stage.getCapture().getType()).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF);
 
-    // TODO b/119261457 handle metrics in the new pipeline.
-    if (!myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      // Make sure we tracked the correct configuration
-      ProfilingConfiguration trackedConfig =
-        ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata().getProfilingConfiguration();
-      assertThat(trackedConfig.getTraceType()).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF);
-      assertThat(trackedConfig.getMode()).isEqualTo(Cpu.CpuTraceMode.SAMPLED);
-    }
+    // Make sure we tracked the correct configuration
+    ProfilingConfiguration trackedConfig =
+      ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata().getProfilingConfiguration();
+    assertThat(trackedConfig.getTraceType()).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF);
+    assertThat(trackedConfig.getMode()).isEqualTo(Cpu.CpuTraceMode.SAMPLED);
   }
 
   @Test
@@ -873,6 +868,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     assertThat(myStage.getStudioProfilers().getStage()).isEqualTo(myStage);
     myServices.enableCpuCaptureStage(true);
+    myTimer.setCurrentTimeNs(1);  // Update the timer to generate a different trace id for the second trace.
     // Don't pass a capture to the test utils for now as we don't want to block on parsing.
     CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, null);
     // Force a flush of the UI event queue.
@@ -885,7 +881,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
                                                                    Cpu.CpuTraceType.SIMPLEPERF,
                                                                    Cpu.CpuTraceMode.SAMPLED);
     myStage.getProfilerConfigModel().setProfilingConfiguration(testConfig);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     assertThat(myStage.getProfilerConfigModel().getProfilingConfiguration()).isEqualTo(testConfig);
     myStage.exit();
 
@@ -1000,7 +996,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Invoke enter to update the profiling configuration model
     myStage.getStudioProfilers().setStage(myStage);
     myTimer.setCurrentTimeNs(2);  // Update the timer to generate a different trace id for the second trace.
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
 
     // Select the previous capture
     AspectObserver observer = new AspectObserver();
@@ -1032,9 +1028,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void cpuMetadataSuccessfulCapture() throws InterruptedException, IOException {
-    // TODO b/119261457 handle metrics in the new pipeline.
-    Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
-
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                Cpu.CpuTraceType.ART,
                                                                Cpu.CpuTraceMode.SAMPLED);
@@ -1052,7 +1045,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadataConfig.getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
     assertThat(metadataConfig.getMode()).isEqualTo(Cpu.CpuTraceMode.SAMPLED);
     assertThat(metadata.getParsingTimeMs()).isGreaterThan(0L);
-    assertThat(metadata.getStoppingTimeMs()).isGreaterThan(0);
     assertThat(metadata.getRecordDurationMs()).isGreaterThan(0L);
     assertThat(metadata.getCaptureDurationMs()).isGreaterThan(0L);
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
@@ -1060,9 +1052,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void cpuMetadataFailureStopCapture() throws InterruptedException {
-    // TODO b/119261457 handle metrics in the new pipeline.
-    Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
-
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                Cpu.CpuTraceType.ART,
@@ -1071,12 +1060,11 @@ public final class CpuProfilerStageTest extends AspectObserver {
     config.setProfilingBufferSizeInMb(15);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    long captureStartTime = (long)myStage.getStudioProfilers().getTimeline().getDataRange().getMax();
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
 
-    // Increment 3 seconds on data range to simulate this time has passed
-    Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
-    long elapsedTimeUs = TimeUnit.SECONDS.toMicros(3);
-    dataRange.setMax(dataRange.getMax() + elapsedTimeUs);
+    // Increment 3 seconds on data range to simulate time has passed.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
@@ -1088,7 +1076,17 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadataConfig.getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
     assertThat(metadataConfig.getMode()).isEqualTo(Cpu.CpuTraceMode.SAMPLED);
     // Capture duration is calculated from the elapsed time since recording has started.
-    assertThat(metadata.getCaptureDurationMs()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(elapsedTimeUs));
+    long captureDuration;
+    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      captureDuration = (long)myStage.getStudioProfilers().getTimeline().getDataRange().getMax() - captureStartTime;
+    }
+    else {
+      // The legacy pipeline gets the error status from the StopProfilingApp rpc right away and does not wait for the extra tick to
+      // process the metadata, hence we minus 1 second from the total amount of time passed on data range.
+      captureDuration =
+        (long)myStage.getStudioProfilers().getTimeline().getDataRange().getMax() - captureStartTime - TimeUnit.SECONDS.toMicros(1);
+    }
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(captureDuration));
     // Trace was not generated, so trace size, parsing time and recording duration should be 0 (unset)
     assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(0);
@@ -1097,9 +1095,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void cpuMetadataFailureParsing() throws InterruptedException, IOException {
-    // TODO b/119261457 handle metrics in the new pipeline.
-    Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
-
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                Cpu.CpuTraceType.ART,
@@ -1108,14 +1103,11 @@ public final class CpuProfilerStageTest extends AspectObserver {
     config.setProfilingBufferSizeInMb(15);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
-    // Increment 3 seconds on data range to simulate this time has passed
-    Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
-    long elapsedTimeUs = TimeUnit.SECONDS.toMicros(3);
-    dataRange.setMax(dataRange.getMax() + elapsedTimeUs);
-
-    CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true,
-                                       CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
+    // Simulate a 3 second capture.
+    CpuProfilerTestUtils
+      .stopCapturing(myStage, myCpuService, myTransportService, true, CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"),
+                     TimeUnit.SECONDS.toNanos(3));
 
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
     assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
@@ -1127,7 +1119,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
     // Capture duration is calculated from the elapsed time since recording has started.
-    assertThat(metadata.getCaptureDurationMs()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(elapsedTimeUs));
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(TimeUnit.SECONDS.toMillis(3));
     // Trace was not parsed correctly, so parsing time and recording duration should be 0 (unset)
     assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(0);
@@ -1135,27 +1127,19 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void cpuMetadataFailureUserAbort() throws InterruptedException {
-    // TODO b/119261457 handle metrics in the new pipeline.
-    Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
-
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                Cpu.CpuTraceType.ART,
                                                                Cpu.CpuTraceMode.SAMPLED);
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
-    myCpuService.setStopProfilingStatus(Cpu.TraceStopStatus.Status.SUCCESS);
     ByteString largeTraceFile = ByteString.copyFrom(new byte[CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1]);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     myServices.setShouldParseLongTraces(false);
 
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
-    // Increment 3 seconds on data range to simulate this time has passed
-    Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
-    long elapsedTimeUs = TimeUnit.SECONDS.toMicros(3);
-    dataRange.setMax(dataRange.getMax() + elapsedTimeUs);
-
-    CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true, largeTraceFile);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
+    // Simulate a 3 second capture.
+    CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true, largeTraceFile, TimeUnit.SECONDS.toNanos(3));
 
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
     assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
@@ -1168,7 +1152,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
     // Capture duration is calculated from the elapsed time since recording has started.
-    assertThat(metadata.getCaptureDurationMs()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(elapsedTimeUs));
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(TimeUnit.SECONDS.toMillis(3));
     // Trace was not parsed at all, so parsing time and recording duration should be 0 (unset)
     assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(0);
@@ -1176,9 +1160,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void cpuMetadataFailurePreProcess() throws InterruptedException, IOException {
-    // TODO b/119261457 handle metrics in the new pipeline.
-    Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
-
     // Enable SIMPLEPERF_HOST flag to make sure we'll preprocess the trace
     myServices.enableSimpleperfHost(true);
     // Make sure the TracePreProcessor fails to pre-process the trace
@@ -1189,7 +1170,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
                                                                Cpu.CpuTraceMode.SAMPLED);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     // Use a trace that is not a raw simpleperf trace. That should cause pre-process to return a failure.
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true,
                                        CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
@@ -1210,7 +1191,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     config.setProfilingBufferSizeInMb(15);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     // Force the return of a simpleperf. As we started an ART capture, the capture parsing should fail.
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true,
                                        CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
     // As parsing has failed, capture should be null.
@@ -1227,14 +1208,14 @@ public final class CpuProfilerStageTest extends AspectObserver {
     timeline.setStreaming(false);
     assertThat(timeline.isStreaming()).isFalse();
 
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     assertThat(timeline.isStreaming()).isTrue();
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true, CpuProfilerTestUtils.readValidTrace());
     assertThat(timeline.isStreaming()).isFalse();
 
     // Sanity test to check that start recording sets streaming again to true
     myTimer.setCurrentTimeNs(1);  // update the timer to generate a different trace id for the second trace.
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     assertThat(timeline.isStreaming()).isTrue();
   }
 
@@ -1295,20 +1276,17 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public void testHasUserUsedCapture() throws InterruptedException {
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
     assertThat(myStage.hasUserUsedCpuCapture()).isFalse();
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedCpuCapture()).isTrue();
   }
 
   @Test
   public void startCapturingFailureShowsErrorBalloon() throws IOException, ExecutionException, InterruptedException {
-    // TODO b/119261457 handle metrics in the new pipeline.
-    Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
-
     myStage.setCapture(CpuProfilerTestUtils.getValidCapture());
     assertThat(myStage.getCapture()).isNotNull();
     // Start a failing capture
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, false);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, false);
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.CAPTURE_START_FAILURE);
@@ -1317,9 +1295,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void stopCapturingFailureShowsErrorBalloon() throws IOException, ExecutionException, InterruptedException {
-    // TODO b/119261457 handle metrics in the new pipeline.
-    Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
-
     myStage.setCapture(CpuProfilerTestUtils.getValidCapture());
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
@@ -1327,7 +1302,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
                                                                Cpu.CpuTraceMode.SAMPLED);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     assertThat(myStage.getCapture()).isNotNull();
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
     // Sanity check to see if we reached the final capture state
@@ -1342,7 +1317,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
                                                                Cpu.CpuTraceType.ART,
                                                                Cpu.CpuTraceMode.SAMPLED);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
 
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true,
@@ -1365,7 +1340,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Use a trace that is not a raw simpleperf trace. That should cause pre-process to return a failure.
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true,
                                        CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
 
@@ -1443,7 +1418,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public void abortParsingRecordedTraceFileShowsABalloon() throws InterruptedException {
     myServices.setShouldParseLongTraces(false);
     ByteString largeTraceFile = ByteString.copyFrom(new byte[CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1]);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true, largeTraceFile);
 
     // We should show a balloon saying the parsing was aborted, because FakeParserCancelParsing emulates a cancelled parsing task
@@ -1566,9 +1541,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void testMemoryLiveAllocationIsDisabledIfApplicable() throws InterruptedException {
-    // TODO b/119261457 handle command failures in new pipeline.
-    Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
-
     // Initialize all conditions to false.
     myServices.getPersistentProfilerPreferences().setInt(MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, 1);
     myServices.enableLiveAllocationsSampling(false);
@@ -1581,7 +1553,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myTransportService.setAgentStatus(Common.AgentData.getDefaultInstance());
 
     // Live allocation sampling rate should remain the same.
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
     assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
@@ -1590,28 +1562,37 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Live allocation sampling rate should still remain the same.
     myServices.enableLiveAllocationsSampling(true);
     myTimer.setCurrentTimeNs(10);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
-    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
-    CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
-    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
-
-    // Set agent status to ATTACHED.
-    // Live allocation sampling rate should still remain the same.
-    myTransportService.setAgentStatus(Common.AgentData.newBuilder()
-                                        .setStatus(Common.AgentData.Status.ATTACHED)
-                                        .build());
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myTimer.setCurrentTimeNs(20);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
     assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
 
     // Set an O+ device.
     // Live allocation sampling rate should still remain the same.
-    addAndSetDevice(AndroidVersion.VersionCodes.O, "FOO");
+    addAndSetDevice(AndroidVersion.VersionCodes.O, "FOO2");
+    myTimer.setCurrentTimeNs(20);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+
+    // Set agent status to ATTACHED.
+    // Live allocation sampling rate should still remain the same.
+    Common.AgentData agentData = Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build();
+    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      long sessionStreamId =
+        ((BeginSession)myTransportService.getRegisteredCommand(Commands.Command.CommandType.BEGIN_SESSION)).getNextSessionId();
+      myTransportService.addEventToStream(sessionStreamId, Common.Event.newBuilder()
+        .setPid(FAKE_PID)
+        .setKind(Common.Event.Kind.AGENT)
+        .setAgentData(agentData)
+        .build());
+    }
+    else {
+      myTransportService.setAgentStatus(agentData);
+    }
     myTimer.setCurrentTimeNs(30);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
     assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
@@ -1619,9 +1600,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Set profiling config to true.
     // Now all conditions are met, live allocation should be disabled during capture and re-enabled after capture is stopped.
     config.setDisableLiveAllocation(true);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     myTimer.setCurrentTimeNs(40);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, true);
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     assertThat(myMemoryService.getSamplingRate()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue());
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
     assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
@@ -1680,7 +1662,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
       .setSerial(serial)
       .setState(Common.Device.State.ONLINE).build();
     Common.Process process = Common.Process.newBuilder()
-      .setPid(20)
+      .setPid(FAKE_PID)
       .setDeviceId(deviceId)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
@@ -1690,7 +1672,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myTransportService.addProcess(device, process);
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new device to be picked up
-    myStage.getStudioProfilers().setProcess(device, null);
+    myStage.getStudioProfilers().setProcess(device, process);
     // Setting the device will change the stage. We need to go back to CpuProfilerStage
     myStage.getStudioProfilers().setStage(myStage);
   }

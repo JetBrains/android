@@ -21,6 +21,8 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 
 class StartCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
+  var startStatus: Cpu.TraceStartStatus = Cpu.TraceStartStatus.getDefaultInstance()
+
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     val traceId = timer.currentTimeNs
     // Inserts an in-progress trace info object, which the stage will see on the next time update.
@@ -29,18 +31,32 @@ class StartCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
       .setFromTimestamp(traceId)
       .setToTimestamp(-1)
       .setConfiguration(command.startCpuTrace.configuration)
+      .setStartStatus(startStatus)
       .build()
 
     events.add(Common.Event.newBuilder().apply {
       groupId = traceId
       pid = command.pid
-      kind = Common.Event.Kind.CPU_TRACE
+      kind = Common.Event.Kind.CPU_TRACE_STATUS
       timestamp = timer.currentTimeNs
-      cpuTrace = Cpu.CpuTraceData.newBuilder().apply {
-        traceStarted = Cpu.CpuTraceData.TraceStarted.newBuilder().apply {
-          traceInfo = info
-        }.build()
+      commandId = command.commandId
+      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().apply {
+        traceStartStatus = startStatus
       }.build()
     }.build())
+
+    if (startStatus.status == Cpu.TraceStartStatus.Status.SUCCESS) {
+      events.add(Common.Event.newBuilder().apply {
+        groupId = traceId
+        pid = command.pid
+        kind = Common.Event.Kind.CPU_TRACE
+        timestamp = timer.currentTimeNs
+        cpuTrace = Cpu.CpuTraceData.newBuilder().apply {
+          traceStarted = Cpu.CpuTraceData.TraceStarted.newBuilder().apply {
+            traceInfo = info
+          }.build()
+        }.build()
+      }.build())
+    }
   }
 }
