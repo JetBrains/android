@@ -40,7 +40,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;
 
 /**
@@ -240,7 +239,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
               }
 
               if (name != null && !name.startsWith("__removed") && (typeName != null || groupType != null) &&
-                  (parser.getLastComment() == null || !parser.getLastComment().startsWith("@hide "))) {
+                  (parser.getLastComment() == null || !containsWord(parser.getLastComment(), "@hide"))) {
                 ResourceType type;
                 if (groupType != null) {
                   type = groupType;
@@ -283,6 +282,24 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
         // There is no public.xml. This not considered an error.
       } catch (Exception e) {
         LOG.error("Can't read and parse " + publicXmlFile.toString(), e);
+      }
+    }
+
+    /**
+     * Checks if the given text contains contains the given word.
+     */
+    private static boolean containsWord(@NotNull String text, @SuppressWarnings("SameParameterValue") @NotNull String word) {
+      int end = 0;
+      while (true) {
+        int start = text.indexOf(word, end);
+        if (start < 0) {
+          return false;
+        }
+        end = start + word.length();
+        if ((start == 0 || Character.isWhitespace(text.charAt(start))) &&
+            (end == text.length() || Character.isWhitespace(text.charAt(end)))) {
+          return true;
+        }
       }
     }
 
