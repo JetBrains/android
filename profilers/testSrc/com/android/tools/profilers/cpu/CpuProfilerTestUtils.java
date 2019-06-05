@@ -21,6 +21,9 @@ import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
+import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.idea.protobuf.ByteString;
@@ -138,7 +141,7 @@ public class CpuProfilerTestUtils {
                                   FakeTransportService transportService,
                                   ByteString traceContent) throws InterruptedException {
     // Start a successful capture
-    startCapturing(stage, cpuService, true);
+    startCapturing(stage, cpuService, transportService, true);
     stopCapturing(stage, cpuService, transportService, true, traceContent);
     assertThat(stage.getCapture()).isNotNull();
   }
@@ -151,12 +154,21 @@ public class CpuProfilerTestUtils {
    * is called repeatedly in a single test, it is up to the caller to make sure to update the timestamp to not override the previously added
    * trace info.
    */
-  static void startCapturing(CpuProfilerStage stage, FakeCpuService cpuService, boolean success)
+  static void startCapturing(CpuProfilerStage stage, FakeCpuService cpuService, FakeTransportService transportService, boolean success)
     throws InterruptedException {
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    cpuService.setStartProfilingStatus(success
-                                       ? Cpu.TraceStartStatus.Status.SUCCESS
-                                       : Cpu.TraceStartStatus.Status.FAILURE);
+    if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      ((StartCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.START_CPU_TRACE))
+        .setStartStatus(Cpu.TraceStartStatus.newBuilder()
+                          .setStatus(success ? Cpu.TraceStartStatus.Status.SUCCESS : Cpu.TraceStartStatus.Status.FAILURE)
+                          .build());
+    }
+    else {
+      cpuService.setStartProfilingStatus(success
+                                         ? Cpu.TraceStartStatus.Status.SUCCESS
+                                         : Cpu.TraceStartStatus.Status.FAILURE);
+    }
+
     CountDownLatch latch;
     AspectObserver observer = new AspectObserver();
     if (success) {
@@ -170,11 +182,9 @@ public class CpuProfilerTestUtils {
     long traceId = stage.getStudioProfilers().getUpdater().getTimer().getCurrentTimeNs();
     cpuService.setTraceId(traceId);
     stage.startCapturing();
+    // Trigger the TransportEventPoller to run and the CpuProfilerStage to pick up the in-progress trace.
+    stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
     latch.await();
-
-    if (success) {
-      stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
-    }
   }
 
   /**
@@ -190,46 +200,59 @@ public class CpuProfilerTestUtils {
                             FakeCpuService cpuService,
                             FakeTransportService transportService,
                             boolean success,
-                            ByteString traceContent)
+                            ByteString traceContent,
+                            long traceDurationNs)
     throws InterruptedException {
     // Trace id is needed for the stop response.
     long traceId = stage.getStudioProfilers().getUpdater().getTimer().getCurrentTimeNs();
-    cpuService.setStopProfilingStatus(success
-                                      ? Cpu.TraceStopStatus.Status.SUCCESS
-                                      : Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED);
-
-    // Wait for the stop request to finish and the CpuProfilerStage calls back on the main thread.
-    // TODO: this is currently dependent on the implementation that the stopCapturingCallback is invoked via the main thread, we should
-    // investigate if there is a better way to wait based on state changes.
-    CountDownLatch stopLatch = new CountDownLatch(1);
-    ((FakeIdeProfilerServices)stage.getStudioProfilers().getIdeServices()).setOnExecute(() -> {
-      stopLatch.countDown();
-    });
-    stage.stopCapturing();
-    if (!stage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      stopLatch.await();
+    if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      StopCpuTrace stopTraceCommand = (StopCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
+      stopTraceCommand.setStopStatus(
+        Cpu.TraceStopStatus.newBuilder()
+          .setStatus(success ? Cpu.TraceStopStatus.Status.SUCCESS : Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED).build());
+      stopTraceCommand.setTraceDurationNs(traceDurationNs);
     }
+    else {
+      cpuService.setStopProfilingStatus(success
+                                        ? Cpu.TraceStopStatus.Status.SUCCESS
+                                        : Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED);
+      cpuService.setTraceDurationNs(traceDurationNs);
+    }
+
+    CountDownLatch stopLatch;
+    AspectObserver stopObserver = new AspectObserver();
+    if (success) {
+      stopLatch = waitForProfilingStateChangeSequence(stage, stopObserver, CpuProfilerStage.CaptureState.STOPPING);
+    }
+    else {
+      stopLatch = waitForProfilingStateChangeSequence(stage, stopObserver, CpuProfilerStage.CaptureState.STOPPING,
+                                                      CpuProfilerStage.CaptureState.IDLE);
+    }
+    stage.stopCapturing();
 
     transportService.addFile(Long.toString(traceId), traceContent);
-
-    // If the capture is unsuccessful, stage goes back to IDLE, otherwise STOPPING and wait for the incoming TraceInfo.
-    if (!success) {
-      assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-      assertThat(stage.getCapture()).isNull();
-    }
-    else {
-      assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.STOPPING);
-    }
-
+    AspectObserver parseObserver = new AspectObserver();
+    CountDownLatch parsingLatch = new CountDownLatch(0);
     // If the trace is empty, then parsing will not happen.
-    if (traceContent == null || traceContent.isEmpty()) {
-      stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
+    if (traceContent != null && !traceContent.isEmpty()) {
+      parsingLatch = waitForParsingStartFinish(stage, parseObserver);
     }
-    else {
-      AspectObserver observer = new AspectObserver();
-      CountDownLatch parsingLatch = waitForParsingStartFinish(stage, observer);
-      stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
-      parsingLatch.await();
-    }
+    // Trigger the TransportEventPoller to run and the CpuTraceInfo to be picked up by the CpuProfilerStage.
+    stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
+    stopLatch.await();
+    parsingLatch.await();
+  }
+
+  /**
+   * Identical to {@link #stopCapturing(CpuProfilerStage, FakeCpuService, FakeTransportService, boolean, ByteString, long)} but defaults
+   * to a 1-nanosecond capture for convenience.
+   */
+  static void stopCapturing(CpuProfilerStage stage,
+                            FakeCpuService cpuService,
+                            FakeTransportService transportService,
+                            boolean success,
+                            ByteString traceContent) throws InterruptedException {
+    // Defaults to a 1-second capture.
+    stopCapturing(stage, cpuService, transportService, success, traceContent, 1);
   }
 }

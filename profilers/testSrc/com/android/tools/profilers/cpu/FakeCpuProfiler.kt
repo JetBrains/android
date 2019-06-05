@@ -52,9 +52,13 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
     stage.studioProfilers.stage = stage
   }
 
+  override fun after() {
+    stage.studioProfilers.stop()
+  }
+
   fun startCapturing(success: Boolean = true) {
     assertThat(stage.captureState).isEqualTo(CpuProfilerStage.CaptureState.IDLE)
-    CpuProfilerTestUtils.startCapturing(stage, cpuService, success)
+    CpuProfilerTestUtils.startCapturing(stage, cpuService, transportService, success)
     assertThat(stage.captureState).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING)
   }
 

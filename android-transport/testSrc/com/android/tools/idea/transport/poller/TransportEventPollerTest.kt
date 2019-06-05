@@ -60,6 +60,7 @@ class TransportEventPollerTest {
       callback = { event ->
         assertThat(event.stream.streamConnected.stream.streamId).isEqualTo(FakeTransportService.FAKE_DEVICE_ID)
         latch.countDown()
+        false
       },
       executor = MoreExecutors.directExecutor(),
       filter = { event -> event.stream.hasStreamConnected() })
@@ -72,6 +73,7 @@ class TransportEventPollerTest {
         assertThat(event.process.processStarted.process.pid).isEqualTo(1)
         assertThat(event.process.processStarted.process.deviceId).isEqualTo(FakeTransportService.FAKE_DEVICE_ID)
         latch.countDown()
+        false
       }, executor = MoreExecutors.directExecutor(),
       filter = { event -> event.process.hasProcessStarted() })
     transportEventPoller.registerListener(processStartedListener)
@@ -115,6 +117,7 @@ class TransportEventPollerTest {
                                                 assertThat(event).isEqualTo(expectedEvents.removeAt(0))
                                                 waitLatch.countDown()
                                                 eventLatch.countDown()
+                                                false
                                               },
                                               executor = MoreExecutors.directExecutor())
     transportEventPoller.registerListener(echoListener)
@@ -154,6 +157,66 @@ class TransportEventPollerTest {
       e.printStackTrace()
       fail("Test interrupted")
     }
+  }
+
+  /**
+   * Tests that a registered listener is removed when the callback returns true;
+   */
+  @Test
+  fun testRemoveEventListener() {
+    val transportClient = TransportClient(grpcServer.name)
+    val transportEventPoller = TransportEventPoller.createPoller(
+      transportClient.transportStub,
+      TimeUnit.MILLISECONDS.toNanos(250))
+
+    // First event exists before listener is registered
+    val echoEvent = Common.Event.newBuilder()
+      .setTimestamp(0)
+      .setKind(Common.Event.Kind.ECHO)
+      .build()
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, echoEvent)
+
+    // Create listener for ECHO event that should remove itself after 3 callbacks.
+    val eventLatch1 = CountDownLatch(3)
+    var receivedEventsCount1 = 0;
+    val echoListener1 = TransportEventListener(eventKind = Common.Event.Kind.ECHO,
+                                               startTime = { 0L },
+                                               endTime = { 1L },
+                                               callback = { event ->
+                                                 assertThat(event).isEqualTo(echoEvent)
+                                                 eventLatch1.countDown()
+                                                 receivedEventsCount1++
+                                                 eventLatch1.count == 0L
+                                               },
+                                               executor = MoreExecutors.directExecutor())
+    val eventLatch2 = CountDownLatch(5)
+    var receivedEventsCount2 = 0;
+    val echoListener2 = TransportEventListener(eventKind = Common.Event.Kind.ECHO,
+                                               startTime = { 0L },
+                                               endTime = { 1L },
+                                               callback = { event ->
+                                                 assertThat(event).isEqualTo(echoEvent)
+                                                 eventLatch2.countDown()
+                                                 receivedEventsCount2++
+                                                 false
+                                               },
+                                               executor = MoreExecutors.directExecutor())
+    transportEventPoller.registerListener(echoListener1)
+    transportEventPoller.registerListener(echoListener2)
+
+    // Wait until both latches are done.
+    try {
+      eventLatch1.await()
+      eventLatch2.await()
+    }
+    catch (e: InterruptedException) {
+      e.printStackTrace()
+      fail("Test interrupted")
+    }
+
+    // we should have stopped triggering the callback after 3 counts.
+    assertThat(receivedEventsCount1).isEqualTo(3)
+    assertThat(receivedEventsCount2).isEqualTo(5)
   }
 
   /**
@@ -197,6 +260,7 @@ class TransportEventPollerTest {
         assertThat(event.groupId).isEqualTo(realGroupId)
         assertThat(event.kind).isEqualTo(realEventKind)
         positiveLatch.countDown()
+        false
       },
       executor = MoreExecutors.directExecutor())
     transportEventPoller.registerListener(positiveEventListener)
@@ -211,6 +275,7 @@ class TransportEventPollerTest {
         assertThat(event.groupId).isEqualTo(otherGroupId)
         assertThat(event.kind).isEqualTo(otherEventKind)
         negativeLatch.countDown()
+        false
       },
       executor = MoreExecutors.directExecutor())
     transportEventPoller.registerListener(negativeEventListener)
@@ -286,6 +351,7 @@ class TransportEventPollerTest {
       callback = { event ->
         assertThat(event.echo.data).isEqualTo("blah")
         latch.countDown()
+        false
       },
       executor = MoreExecutors.directExecutor())
     transportEventPoller.registerListener(positiveEventListener)
