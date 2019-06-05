@@ -64,10 +64,16 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
       }
 
       ChooseModuleTypeStep chooseModuleTypeStep =
-        ChooseModuleTypeStep.createWithDefaultGallery(project, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
+        ChooseModuleTypeStep.createWithDefaultGallery(project, getModulePath(e), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
       ModelWizard wizard = new ModelWizard.Builder().addStep(chooseModuleTypeStep).build();
 
       new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).setUxStyle(INSTANT_APP).build().show();
     }
+  }
+
+  @Nullable
+  protected String getModulePath(@NotNull AnActionEvent e) {
+    // Overwritten by subclasses to return the module path
+    return null;
   }
 }

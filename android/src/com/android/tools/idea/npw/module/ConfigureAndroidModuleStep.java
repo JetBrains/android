@@ -111,7 +111,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     NewModuleModel moduleModel = getModel();
     Project project = moduleModel.getProject().getValue();
 
-    Expression<String> computedModuleName = new AppNameToModuleNameExpression(project, model.getApplicationName());
+    Expression<String> computedModuleName = new AppNameToModuleNameExpression(project, model.getApplicationName(), model.getModuleParent());
     BoolProperty isModuleNameSynced = new BoolValueProperty(true);
     myBindings.bind(moduleNameText, computedModuleName, isModuleNameSynced);
     myBindings.bind(model.getModuleName(), moduleNameText);
