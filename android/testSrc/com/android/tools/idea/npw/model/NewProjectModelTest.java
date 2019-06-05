@@ -45,6 +45,14 @@ public final class NewProjectModelTest {
   }
 
   @Test
+  public void nameToPackageIgnoresParentModule() {
+    assertEquals("lib", nameToJavaPackage(":lib"));
+    assertEquals("lib", nameToJavaPackage("libs:lib"));
+    assertEquals("lib", nameToJavaPackage(":libs:lib"));
+    assertEquals("lib", nameToJavaPackage("::libs:lib"));
+  }
+
+  @Test
   public void initialLanguage() {
     // We have 3 variables, with values:
     // Already saved Language => {Kotlin, Java, null}
