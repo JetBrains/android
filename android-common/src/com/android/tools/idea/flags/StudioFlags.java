@@ -550,6 +550,15 @@ public final class StudioFlags {
     "If enabled, a visual editor will be available for Android themes.",
     false);
 
+  private static final FlagGroup TRANSLATIONS_EDITOR = new FlagGroup(FLAGS, "translations.editor", "Translations Editor");
+
+  public static final Flag<Boolean> TRANSLATIONS_EDITOR_USE_LOGICAL_FONT = Flag.create(
+    TRANSLATIONS_EDITOR,
+    "translations.editor.use.logical.font",
+    "Use a logical font",
+    "Use a logical font to display translations. See https://docs.oracle.com/javase/tutorial/2d/text/fonts.html#logical-fonts",
+    true);
+
   private static final FlagGroup NDK_SIDE_BY_SIDE = new FlagGroup(FLAGS, "ndk.sxs", "NDK Side by Side");
   public static final Flag<Boolean> NDK_SIDE_BY_SIDE_ENABLED = Flag.create(
     NDK_SIDE_BY_SIDE, "ndk.sxs.enabled", "Enable side by side NDK support",

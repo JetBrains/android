@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.adtui.font.FontUtil;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Caret;
@@ -25,11 +24,10 @@ import com.intellij.openapi.editor.actions.BasePasteHandler;
 import com.intellij.openapi.editor.actions.TextComponentEditorAction;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.util.TextRange;
+import java.awt.Component;
+import javax.swing.text.JTextComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.text.JTextComponent;
-import java.awt.*;
 
 /**
  * This is a copy of {@link com.intellij.openapi.editor.actions.PasteAction} with handling for languages that can't be displayed by the
@@ -60,7 +58,7 @@ final class TranslationsEditorPasteAction extends TextComponentEditorAction {
       Component component = editor.getComponent();
 
       if (component instanceof JTextComponent) {
-        component.setFont(FontUtil.getFontAbleToDisplay(((JTextComponent)component).getText(), component.getFont()));
+        component.setFont(StringResourceEditor.getFont(((JTextComponent)component).getText(), component.getFont()));
       }
     }
   }
