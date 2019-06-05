@@ -29,13 +29,13 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
-import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.Lists;
+import com.intellij.ui.ContextHelpLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +43,7 @@ import javax.swing.*;
 import java.util.Collection;
 
 import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 
 public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleModel> {
@@ -55,6 +56,7 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
   private JTextField myLibraryName;
   private LabelWithEditButton myPackageName;
   private JTextField myClassName;
+  private JLabel myLibraryNameLabel;
 
   public ConfigureJavaModuleStep(@NotNull NewJavaModuleModel model, String title) {
     super(model, title);
@@ -113,5 +115,9 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
   public void dispose() {
     myBindings.releaseAll();
     myListeners.releaseAll();
+  }
+
+  private void createUIComponents() {
+    myLibraryNameLabel = ContextHelpLabel.create(message("android.wizard.module.help.name"));
   }
 }

@@ -118,7 +118,7 @@
           <name value="baseComboBox"/>
         </properties>
       </component>
-      <component id="b07f9" class="javax.swing.JLabel">
+      <component id="b07f9" class="javax.swing.JLabel" binding="myModuleNameLabel" custom-create="true">
         <constraints>
           <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
             <preferred-size width="-1" height="24"/>
@@ -126,6 +126,7 @@
         </constraints>
         <properties>
           <font style="0"/>
+          <horizontalTextPosition value="2"/>
           <labelFor value="9116"/>
           <text value="&amp;Module name"/>
           <verticalAlignment value="0"/>
