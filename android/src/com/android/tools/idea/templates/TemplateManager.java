@@ -519,7 +519,7 @@ public class TemplateManager {
                                                                       .message("android.wizard.activity.add", FormFactor.MOBILE.id),
                                                                     projectSyncInvoker, true);
 
-          NewModuleModel moduleModel = new NewModuleModel(project, projectSyncInvoker);
+          NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker);
           ChooseActivityTypeStep chooseActivityTypeStep =
             new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
           ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
