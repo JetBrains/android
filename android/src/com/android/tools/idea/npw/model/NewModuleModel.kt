@@ -47,6 +47,7 @@ class NewModuleModel : WizardModel {
   val renderTemplateValues: OptionalProperty<MutableMap<String, Any>> = OptionalValueProperty()
   val templateValues: MutableMap<String, Any> = hashMapOf()
   val project: OptionalProperty<Project>
+  val moduleParent: String?
   val projectSyncInvoker: ProjectSyncInvoker
   val multiTemplateRenderer: MultiTemplateRenderer
 
@@ -71,8 +72,10 @@ class NewModuleModel : WizardModel {
   }
 
   constructor(project: Project,
+              moduleParent: String?,
               projectSyncInvoker: ProjectSyncInvoker) {
     this.project = OptionalValueProperty(project)
+    this.moduleParent = moduleParent
     this.projectSyncInvoker = projectSyncInvoker
     projectPackageName = packageName
     createInExistingProject = true
@@ -87,6 +90,7 @@ class NewModuleModel : WizardModel {
 
   constructor(projectModel: NewProjectModel, templateFile: File) {
     project = projectModel.project()
+    this.moduleParent = null
     projectPackageName = projectModel.packageName()
     projectSyncInvoker = projectModel.projectSyncInvoker
     createInExistingProject = false

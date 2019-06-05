@@ -35,12 +35,14 @@ import java.util.Locale;
 public class AppNameToModuleNameExpression extends Expression<String> {
   @Nullable private final Project myProject;
   @NotNull private final StringProperty myApplicationName;
+  @Nullable private final String myModuleParent;
 
-  public AppNameToModuleNameExpression(@Nullable Project project, @NotNull StringProperty applicationName) {
+  public AppNameToModuleNameExpression(@Nullable Project project, @NotNull StringProperty applicationName, @Nullable String moduleParent) {
     super(applicationName);
 
     myProject = project;
     myApplicationName = applicationName;
+    myModuleParent = moduleParent;
   }
 
   @NotNull
@@ -48,7 +50,7 @@ public class AppNameToModuleNameExpression extends Expression<String> {
   public String get() {
     String moduleName = myApplicationName.get()
       .toLowerCase(Locale.US)
-      .replaceAll("\\s", "");;
+      .replaceAll("\\s", "");
 
     int i = 2;
     String uniqueModuleName = moduleName;
@@ -57,7 +59,7 @@ public class AppNameToModuleNameExpression extends Expression<String> {
       i++;
     }
 
-    return uniqueModuleName;
+    return myModuleParent == null ? uniqueModuleName : String.format(":%s:%s", myModuleParent, uniqueModuleName);
   }
 
   /**
