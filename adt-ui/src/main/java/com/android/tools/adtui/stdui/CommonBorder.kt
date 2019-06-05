@@ -22,6 +22,7 @@ import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.adtui.stdui.StandardDimensions.INNER_BORDER_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.OUTER_BORDER_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.VERTICAL_PADDING
+import com.intellij.ui.JreHiDpiUtil
 import com.intellij.util.IJSwingUtilities
 import com.intellij.util.ui.UIUtil
 import java.awt.*
@@ -109,7 +110,7 @@ class CommonBorder(private val cornerRadius: Float,
                               stroke: Float,
                               cornerRadius: Float,
                               backgroundColor: Color = UIUtil.TRANSPARENT_COLOR) {
-    val builder = PathBuilder(UIUtil.isJreHiDPI(g2), rect, stroke, cornerRadius, padding)
+    val builder = PathBuilder(JreHiDpiUtil.isJreHiDPI(g2), rect, stroke, cornerRadius, padding)
 
     if (backgroundColor != UIUtil.TRANSPARENT_COLOR) {
       g2.color = backgroundColor
