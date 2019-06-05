@@ -56,8 +56,8 @@ import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
 import com.android.ide.common.resources.PatternBasedFileFilter;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceNameKeyedMap;
 import com.android.ide.common.resources.ResourceVisitor;
+import com.android.ide.common.resources.ResourcesUtil;
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.DensityQualifier;
@@ -1394,7 +1394,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     @NotNull
     protected String getKeyForVisibilityLookup(@NotNull String resourceName) {
       // In public.txt all resource names are transformed by replacing dots, colons and dashes with underscores.
-      return ResourceNameKeyedMap.flattenResourceName(resourceName);
+      return ResourcesUtil.flattenResourceName(resourceName);
     }
 
     @NotNull

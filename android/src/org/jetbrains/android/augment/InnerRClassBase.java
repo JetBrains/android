@@ -1,6 +1,6 @@
 package org.jetbrains.android.augment;
 
-import static com.android.ide.common.resources.ResourceNameKeyedMap.flattenResourceName;
+import static com.android.ide.common.resources.ResourcesUtil.flattenResourceName;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
