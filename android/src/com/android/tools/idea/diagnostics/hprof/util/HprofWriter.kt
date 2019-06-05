@@ -23,7 +23,6 @@ import com.android.tools.idea.diagnostics.hprof.parser.StaticFieldEntry
 import com.android.tools.idea.diagnostics.hprof.parser.Type
 import gnu.trove.TLongObjectHashMap
 import gnu.trove.TObjectLongHashMap
-import org.jetbrains.kotlin.idea.core.util.writeString
 import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.DataOutput
@@ -39,40 +38,35 @@ class HprofWriter(
     if (idSize != 4 && idSize != 8) {
       throw IllegalArgumentException("idSize can only be 4 or 8")
     }
-    dos.writeString("JAVA PROFILE 1.0.1")
-    dos.write(idSize)
+    dos.writeNullTerminatedString("JAVA PROFILE 1.0.1")
+    dos.writeInt(idSize)
     dos.writeLong(timestamp)
   }
 
   private val stringToIdMap = TObjectLongHashMap<String>()
   private val idToStringMap = TLongObjectHashMap<String>()
   private var nextStringId = 1L
-  private var inHeapDumpTag = false
   private val subtagsBaos = ByteArrayOutputStream()
   private var subtagsStream = DataOutputStream(subtagsBaos)
 
   override fun close() {
+    flushHeapObjects()
     dos.close()
-    assert(!inHeapDumpTag)
   }
 
-  fun DataOutput.writeNullTerminatedString(s: String) {
+  private fun DataOutput.writeNullTerminatedString(s: String) {
     this.write(s.toByteArray())
     this.write(0)
   }
 
   fun writeStringInUTF8(id: Long, s: String) {
-    assert(!inHeapDumpTag)
-    val recordType = RecordType.StringInUTF8
     val bytes = s.toByteArray()
-    writeRecordHeader(recordType, bytes.size + 4)
+    writeRecordHeader(RecordType.StringInUTF8, bytes.size + idSize)
     dos.writeId(id)
     dos.write(bytes)
   }
 
-  fun writeLoadClass(serialNumber: Int, classObjectId: Long, stackTraceSerialNumber: Int, className: String) {
-    assert(!inHeapDumpTag)
-    val classNameId = getOrCreateStringId(className)
+  fun writeLoadClass(serialNumber: Int, classObjectId: Long, stackTraceSerialNumber: Int, classNameId: Long) {
     writeRecordHeader(RecordType.LoadClass, 8 + idSize * 2)
     dos.writeInt(serialNumber)
     dos.writeId(classObjectId)
@@ -80,29 +74,24 @@ class HprofWriter(
     dos.writeId(classNameId)
   }
 
-  fun beginHeapDump() {
-    assert(!inHeapDumpTag)
-    inHeapDumpTag = true
-  }
-
-  fun endHeapDump() {
-    assert(inHeapDumpTag)
-    inHeapDumpTag = false
+  fun flushHeapObjects() {
     writeHeapDumpRecords()
   }
 
   private fun writeHeapDumpRecords() {
-    subtagsStream.close()
-    writeRecordHeader(RecordType.HeapDump, subtagsBaos.size())
-    subtagsBaos.writeTo(dos)
-    subtagsBaos.reset()
-    subtagsStream = DataOutputStream(subtagsBaos)
+    if (subtagsBaos.size() > 0) {
+      subtagsStream.close()
+      writeRecordHeader(RecordType.HeapDump, subtagsBaos.size())
+      subtagsBaos.writeTo(dos)
+      subtagsBaos.reset()
+      subtagsStream = DataOutputStream(subtagsBaos)
+      writeRecordHeader(RecordType.HeapDumpEnd, 0)
+    }
   }
 
-  private fun writeRootUnknown(id: Long) {
-    assert(inHeapDumpTag)
-    with (subtagsStream) {
-      write(HeapDumpRecordType.RootUnknown.value)
+  fun writeRootUnknown(id: Long) {
+    with(subtagsStream) {
+      writeHeapDumpRecordHeader(HeapDumpRecordType.RootUnknown)
       writeId(id)
     }
   }
@@ -119,8 +108,8 @@ class HprofWriter(
     staticFields: Array<StaticFieldEntry>,
     instanceFields: Array<InstanceFieldEntry>
   ) {
-    assert(inHeapDumpTag)
     with(subtagsStream) {
+      writeHeapDumpRecordHeader(HeapDumpRecordType.ClassDump)
       writeId(classObjectId)
       writeInt(stackTraceSerialNumber)
       writeId(superClassObjectId)
@@ -156,8 +145,8 @@ class HprofWriter(
     classObjectId: Long,
     bytes: ByteArray
   ) {
-    assert(inHeapDumpTag)
     with(subtagsStream) {
+      writeHeapDumpRecordHeader(HeapDumpRecordType.InstanceDump)
       writeId(objectId)
       writeInt(stackTraceSerialNumber)
       writeId(classObjectId)
@@ -172,8 +161,8 @@ class HprofWriter(
     arrayClassObjectId: Long,
     elementIds: LongArray
   ) {
-    assert(inHeapDumpTag)
     with(subtagsStream) {
+      writeHeapDumpRecordHeader(HeapDumpRecordType.ObjectArrayDump)
       writeId(arrayObjectId)
       writeInt(stackTraceSerialNumber)
       writeInt(elementIds.count())
@@ -191,8 +180,8 @@ class HprofWriter(
     elements: ByteArray,
     elementsCount: Int
   ) {
-    assert(inHeapDumpTag)
     with(subtagsStream) {
+      writeHeapDumpRecordHeader(HeapDumpRecordType.PrimitiveArrayDump)
       writeId(arrayObjectId)
       writeInt(stackTraceSerialNumber)
       writeInt(elementsCount)
@@ -217,11 +206,24 @@ class HprofWriter(
 
 
   private fun writeRecordHeader(recordType: RecordType, length: Int) {
-    assert(!inHeapDumpTag)
-    with (dos) {
-      write(recordType.value)
+    with(dos) {
+      writeByte(recordType.value)
       writeInt(0) // timestamp, not supported
       writeInt(length)
+    }
+  }
+
+  private fun writeHeapDumpRecordHeader(heapDumpRecordType: HeapDumpRecordType) {
+    with(subtagsStream) {
+      writeByte(heapDumpRecordType.value)
+    }
+  }
+
+  fun writeRootGlobalJNI(objectId: Long, jniGlobalRefId: Long) {
+    with(subtagsStream) {
+      writeHeapDumpRecordHeader(HeapDumpRecordType.RootGlobalJNI)
+      writeId(objectId)
+      writeId(jniGlobalRefId)
     }
   }
 
