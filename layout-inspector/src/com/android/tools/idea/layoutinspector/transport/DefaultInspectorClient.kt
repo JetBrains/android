@@ -99,6 +99,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
         callback(it.layoutInspectorEvent)
         lastResponseTimePerGroup[it.groupId] = it.timestamp
       }
+      false
     })
   }
 
@@ -122,6 +123,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
         isConnected = false
         endListeners.forEach { it() }
       }
+      false
     })
   }
 
@@ -238,6 +240,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
 
       // TODO: verify that capture started successfully
       transportPoller.unregisterListener(listener)
+      false
     }
     transportPoller.registerListener(listener)
 

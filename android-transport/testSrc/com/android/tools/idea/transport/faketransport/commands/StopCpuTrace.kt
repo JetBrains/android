@@ -19,17 +19,33 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
+import java.util.concurrent.TimeUnit
 
 class StopCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
+  var stopStatus: Cpu.TraceStopStatus = Cpu.TraceStopStatus.getDefaultInstance()
+  var traceDurationNs: Long = TimeUnit.SECONDS.toNanos(1)
+
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     val traceId = timer.currentTimeNs
-    val endTimestamp = traceId + 1
+    val endTimestamp = traceId + traceDurationNs
     val info = Cpu.CpuTraceInfo.newBuilder()
       .setTraceId(traceId)
       .setFromTimestamp(traceId)
       .setToTimestamp(endTimestamp)
       .setConfiguration(command.stopCpuTrace.configuration)
+      .setStopStatus(stopStatus)
       .build()
+
+    events.add(Common.Event.newBuilder().apply {
+      groupId = traceId
+      pid = command.pid
+      kind = Common.Event.Kind.CPU_TRACE_STATUS
+      timestamp = timer.currentTimeNs
+      commandId = command.commandId
+      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().apply {
+        traceStopStatus = stopStatus
+      }.build()
+    }.build())
 
     // Only inserts a stop event if there is a matching start event with the same trace id
     events.find { it.groupId == traceId }?.let {
