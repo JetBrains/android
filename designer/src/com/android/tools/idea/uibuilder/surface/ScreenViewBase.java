@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
@@ -31,6 +32,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,13 +76,13 @@ abstract class ScreenViewBase extends SceneView {
 
   @Override
   @Nullable
-  public Cursor getCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+  public Cursor getCursor(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifier) {
     Rectangle resizeZone =
       new Rectangle(getX() + getSize().width, getY() + getSize().height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
     if (resizeZone.contains(x, y) && getSurface().isResizeAvailable()) {
       return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
     }
-    return super.getCursor(x, y);
+    return super.getCursor(x, y, modifier);
   }
 
   @NotNull
