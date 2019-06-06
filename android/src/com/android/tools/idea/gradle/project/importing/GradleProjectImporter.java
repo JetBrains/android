@@ -60,12 +60,6 @@ public class GradleProjectImporter {
   @NotNull private final NewProjectSetup myNewProjectSetup;
   @NotNull private final ProjectFolder.Factory myProjectFolderFactory;
 
-  /**
-   * Flag used by unit tests to selectively disable code which requires an open project or UI updates; this is used
-   * by unit tests that do not run all of IntelliJ (e.g. do not extend the IdeaTestCase base)
-   */
-  @SuppressWarnings("StaticNonFinalField") public static boolean ourSkipSetupFromTest;
-
   @NotNull
   public static GradleProjectImporter getInstance() {
     return ServiceManager.getService(GradleProjectImporter.class);
