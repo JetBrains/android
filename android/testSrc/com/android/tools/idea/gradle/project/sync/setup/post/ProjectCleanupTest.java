@@ -63,28 +63,9 @@ public class ProjectCleanupTest extends IdeaTestCase {
     verify(myStep2, never()).cleanUpProject(project, myModelsProvider, myIndicator);
   }
 
-  public void testCleanUpProjectWithSyncSkipped() {
-    // Only step2 can run when sync is skipped.
-    when(myStep2.invokeOnSkippedSync()).thenReturn(true);
-
-    // sync successful.
-    when(mySyncState.lastSyncFailed()).thenReturn(false);
-    // sync skipped.
-    when(mySyncState.isSyncSkipped()).thenReturn(true);
-
-    Project project = getProject();
-    myProjectCleanup.cleanUpProject(project, myModelsProvider, myIndicator);
-
-    // Only step2 should have called.
-    verify(myStep1, never()).cleanUpProject(project, myModelsProvider, myIndicator);
-    verify(myStep2, times(1)).cleanUpProject(project, myModelsProvider, myIndicator);
-  }
-
   public void testCleanUpProject() {
     // sync successful.
     when(mySyncState.lastSyncFailed()).thenReturn(false);
-    // sync not skipped.
-    when(mySyncState.isSyncSkipped()).thenReturn(false);
 
     Project project = getProject();
     myProjectCleanup.cleanUpProject(project, myModelsProvider, myIndicator);

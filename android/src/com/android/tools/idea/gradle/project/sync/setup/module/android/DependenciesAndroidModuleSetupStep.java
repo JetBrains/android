@@ -253,9 +253,4 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
   public boolean invokeOnBuildVariantChange() {
     return true;
   }
-
-  @Override
-  public boolean invokeOnSkippedSync() {
-    return true;
-  }
 }

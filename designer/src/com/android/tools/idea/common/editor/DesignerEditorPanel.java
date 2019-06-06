@@ -139,7 +139,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
         mySurface.goingToSetModel(model).join();
 
         if (exception == null) {
-          myWorkBench.setLoadingText("Waiting for build to finish...");
+          myWorkBench.setLoadingText("`Waiting for build to finish...");
           SyncUtil.runWhenSmartAndSyncedOnEdt(myProject, this, result -> {
             if (result.isSuccessful()) {
               initNeleModelOnEventDispatchThread(model);
