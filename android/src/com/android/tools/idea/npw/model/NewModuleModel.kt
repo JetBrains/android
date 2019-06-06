@@ -24,12 +24,10 @@ import com.android.tools.idea.observable.BatchInvoker.INVOKE_IMMEDIATELY_STRATEG
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
-import com.android.tools.idea.observable.core.ObservableString
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
-import com.android.tools.idea.observable.expressions.string.StringExpression
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateUtils
