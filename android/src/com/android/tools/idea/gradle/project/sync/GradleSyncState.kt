@@ -179,9 +179,6 @@ open class GradleSyncState(
   private var areSyncNotificationsEnabled = false
     get() = lock.withLock { return field }
     private set(value) = lock.withLock { field = value }
-  open var isSyncSkipped = false
-    get() = lock.withLock { return field }
-    set(value) = lock.withLock { field = value }
   open var isSyncInProgress = false
     get() = lock.withLock { return field }
     set(value) = lock.withLock { field = value }
@@ -236,7 +233,6 @@ open class GradleSyncState(
         return false
       }
 
-      isSyncSkipped = request.useCachedGradleModels
       isSyncInProgress = true
     }
 
@@ -506,7 +502,6 @@ open class GradleSyncState(
 
     lock.withLock {
       isSyncInProgress = false
-      isSyncSkipped = false
       externalSystemTaskId = null
 
       areSyncNotificationsEnabled = true

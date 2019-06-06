@@ -34,7 +34,6 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeVariantAbi;
 import com.android.builder.model.SyncIssue;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
@@ -238,7 +237,7 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     }
     // Then, setup the ModuleModels based on the module types.
     setupModuleModels(setupContextByModuleModel, myGradleModuleSetup, myNdkModuleSetup, myAndroidModuleSetup, myJavaModuleSetup,
-                      myExtraModelsManager, false /* not skipped */);
+                      myExtraModelsManager);
     // Setup BuildScript classpath.
     myBuildScriptClasspathSetup.setupBuildScriptClassPath(projectModels, myProject);
   }

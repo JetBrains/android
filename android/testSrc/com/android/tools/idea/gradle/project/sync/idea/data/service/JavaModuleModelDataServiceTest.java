@@ -83,8 +83,7 @@ public class JavaModuleModelDataServiceTest extends IdeaTestCase {
     when(myModuleSetupContextFactory.create(appModule, myModelsProvider)).thenReturn(myModuleSetupContext);
     myService.importData(dataNodes, null, getProject(), myModelsProvider);
 
-    verify(mySyncState).isSyncSkipped();
-    verify(myModuleSetup).setUpModule(myModuleSetupContext, model, false);
+    verify(myModuleSetup).setUpModule(myModuleSetupContext, model);
   }
 
   public void testOnModelsNotFound() {

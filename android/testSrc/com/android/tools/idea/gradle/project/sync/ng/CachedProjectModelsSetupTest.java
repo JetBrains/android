@@ -114,14 +114,14 @@ public class CachedProjectModelsSetupTest extends IdeaTestCase {
 
     // Verify that the modules were set up from the models in the cache.
     verify(myGradleModuleSetup).setUpModule(appModule, myModelsProvider, appGradleModel);
-    verify(myAndroidModuleSetup).setUpModule(any(), eq(appAndroidModel), eq(true));
+    verify(myAndroidModuleSetup).setUpModule(any(), eq(appAndroidModel));
 
     verify(myGradleModuleSetup).setUpModule(cppModule, myModelsProvider, cppGradleModel);
-    verify(myAndroidModuleSetup).setUpModule(any(), eq(appAndroidModel), eq(true));
-    verify(myNdkModuleSetup).setUpModule(any(), eq(cppNdkModel), eq(true));
+    verify(myAndroidModuleSetup).setUpModule(any(), eq(appAndroidModel));
+    verify(myNdkModuleSetup).setUpModule(any(), eq(cppNdkModel));
 
     verify(myGradleModuleSetup).setUpModule(javaModule, myModelsProvider, javaGradleModel);
-    verify(myJavaModuleSetup).setUpModule(any(), eq(javaModel), eq(true));
+    verify(myJavaModuleSetup).setUpModule(any(), eq(javaModel));
   }
 
   private static void makeGradleModule(@NotNull Module module) {
