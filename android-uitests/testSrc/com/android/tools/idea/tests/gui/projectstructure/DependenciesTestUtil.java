@@ -50,6 +50,8 @@ public class DependenciesTestUtil {
   protected static final String CLASS_NAME_1 = "ModuleA";
   protected static final String CLASS_NAME_2 = "ModuleB";
   protected static final String ANDROID_LIBRARY = "Android Library";
+  protected static final String LANGUAGE_JAVA = "Java";
+  protected static final String LANGUAGE_KOTLIN = "Kotlin";
 
   @Before
   public void setUp() {
@@ -64,7 +66,8 @@ public class DependenciesTestUtil {
   @NotNull
   protected static IdeFrameFixture createNewProject(@NotNull GuiTestRule guiTest,
                                                     @NotNull String appName,
-                                                    @NotNull String minSdk) {
+                                                    @NotNull String minSdk,
+                                                    @NotNull String language) {
     guiTest
       .welcomeFrame()
       .createNewProject()
@@ -76,6 +79,7 @@ public class DependenciesTestUtil {
       .enterName(appName)
       .enterPackageName("android.com.app")
       .selectMinimumSdkApi(minSdk)
+      .setSourceLanguage(language)
       .wizard()
       .clickFinish();
 

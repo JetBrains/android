@@ -19,6 +19,7 @@ apis
 appbar
 app's
 appcompat
+appinvite
 appwidget
 appwidgets
 argb
@@ -118,6 +119,7 @@ fallbacks
 filenames
 filepath
 fillrate
+firebase
 focusability
 focusable
 fqcn
@@ -239,6 +241,7 @@ mipmapped
 mipmapping
 mipmaps
 mkdirs
+mobilesdk
 modeless
 monad
 monoalphabetic

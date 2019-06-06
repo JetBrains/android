@@ -520,9 +520,6 @@ public class AndroidVersionsInfo {
         else if (target == null || target.isPlatform()){
           return SdkVersionInfo.getAndroidName(featureLevel);
         }
-        else if (!isEmptyOrSpaces(target.getDescription())) {
-          return String.format(Locale.US, "API %1$d: %2$s", featureLevel, target.getDescription());
-        }
         else {
           return AndroidTargetHash.getTargetHashString(target);
         }

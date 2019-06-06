@@ -69,7 +69,7 @@ public class RelativeLayoutTest {
 
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myGuiTest.robot());
     assertThat(dialog.getTitle()).isEqualTo("Resources");
-    dialog.expandList("Project").getList("Project").selectItem("ic_launcher");
+    dialog.expandList("Project (1)").getList("Project (1)").selectItem("ic_launcher");
 
     dialog.clickOK();
 

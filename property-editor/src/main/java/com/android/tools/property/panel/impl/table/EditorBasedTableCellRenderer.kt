@@ -15,20 +15,24 @@
  */
 package com.android.tools.property.panel.impl.table
 
+import com.android.tools.property.panel.api.ControlType
+import com.android.tools.property.panel.api.ControlTypeProvider
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.impl.ui.PropertyComboBox
+import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableCellRenderer
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.panel.api.*
-import com.android.tools.property.panel.impl.ui.CellPanel
-import com.android.tools.property.panel.impl.ui.PropertyComboBox
-import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
 import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.border.Border
 
 /**
@@ -58,14 +62,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     val key = ControlKey(controlType, hasBrowseButton)
     val (model, editor) = componentCache[key] ?: createEditor(key, property, column, depth, table.gridLineColor)
     model.property = property
-    if (isSelected && hasFocus) {
-      editor.foreground = UIUtil.getTreeSelectionForeground(true)
-      editor.background = UIUtil.getTreeSelectionBackground(true)
-    }
-    else {
-      editor.foreground = table.foregroundColor
-      editor.background = table.backgroundColor
-    }
+    model.isUsedInRendererWithSelection = isSelected && hasFocus
     return editor
   }
 
@@ -80,9 +77,10 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
                            depth: Int,
                            gridLineColor: Color): Pair<PropertyEditorModel, JComponent> {
     val (model, editor) = editorProvider.createEditor(property, asTableCellEditor = true)
-    val panel = CellPanel()
+    val panel = JPanel(BorderLayout())
     panel.add(editor, BorderLayout.CENTER)
     panel.border = createBorder(column, depth, editor, gridLineColor)
+    panel.background = UIUtil.TRANSPARENT_COLOR
     editor.font = UIUtil.getLabelFont(fontSize)
 
     val result = Pair(model, panel)

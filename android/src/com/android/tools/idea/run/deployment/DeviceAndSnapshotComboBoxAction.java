@@ -142,8 +142,11 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @NotNull
-  private List<Device> getDevices(@NotNull Project project) {
-    return myDevicesGetterGetter.apply(project).get();
+  public List<Device> getDevices(@NotNull Project project) {
+    List<Device> devices = myDevicesGetterGetter.apply(project).get();
+    devices.sort(new DeviceComparator());
+
+    return devices;
   }
 
   @Nullable
@@ -166,10 +169,6 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     Device selectedDevice = optionalSelectedDevice.get();
-
-    if (selectedDevice.isConnected()) {
-      return selectedDevice;
-    }
 
     Optional<Device> optionalConnectedDevice = devices.stream()
       .filter(Device::isConnected)
@@ -366,8 +365,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     presentation.setVisible(true);
     updatePresentation(presentation, RunManager.getInstance(project).getSelectedConfiguration());
 
-    List<Device> devices = getDevices(project);
-    devices.sort(new DeviceComparator());
+    Collection<Device> devices = getDevices(project);
 
     if (devices.isEmpty()) {
       presentation.setIcon(null);

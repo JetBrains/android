@@ -79,6 +79,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -102,6 +103,7 @@ import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 
 /**
  * Base class for unit tests that operate on Gradle projects
@@ -137,8 +139,21 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @NotNull
   protected File getBuildFilePath(@NotNull String moduleName) {
     File buildFilePath = new File(getProjectFolderPath(), join(moduleName, FN_BUILD_GRADLE));
+    if (!buildFilePath.isFile()) {
+      buildFilePath = new File(getProjectFolderPath(), join(moduleName, FN_BUILD_GRADLE_KTS));
+    }
     assertAbout(file()).that(buildFilePath).isFile();
     return buildFilePath;
+  }
+
+  @NotNull
+  protected File getSettingsFilePath() {
+    File settingsFilePath = new File(getProjectFolderPath(), FN_SETTINGS_GRADLE);
+    if (!settingsFilePath.isFile()) {
+      settingsFilePath = new File(getProjectFolderPath(), FN_SETTINGS_GRADLE_KTS);
+    }
+    assertAbout(file()).that(settingsFilePath).isFile();
+    return settingsFilePath;
   }
 
   @Override
@@ -149,13 +164,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     if (createDefaultProject()) {
       TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
-        IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
+        IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName(), true /* .idea directory based project */);
       myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
       myFixture.setUp();
       myFixture.setTestDataPath(getTestDataPath());
       ensureSdkManagerAvailable();
 
       Project project = getProject();
+      FileUtil.ensureExists(new File(toSystemDependentName(project.getBasePath())));
+      LocalFileSystem.getInstance().refreshAndFindFileByPath(project.getBasePath());
       setUpSdks(project);
       myModules = new Modules(project);
     }
@@ -349,7 +366,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
 
     Project project = myFixture.getProject();
-    File projectRoot = virtualToIoFile(project.getBaseDir());
+    File projectRoot = new File(toSystemDependentName(project.getBasePath()));
 
     List<String> buildNames = new ArrayList<>(Arrays.asList(includedBuilds));
     if (includedBuilds.length == 0) {
@@ -614,8 +631,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected Module createModule(@NotNull String name, @NotNull ModuleType type) {
-    VirtualFile projectRootFolder = getProject().getBaseDir();
-    File moduleFile = new File(virtualToIoFile(projectRootFolder), name + ModuleFileType.DOT_DEFAULT_EXTENSION);
+    @SystemIndependent String projectRootFolder = getProject().getBasePath();
+    File moduleFile = new File(toSystemDependentName(projectRootFolder), name + ModuleFileType.DOT_DEFAULT_EXTENSION);
     createIfDoesntExist(moduleFile);
 
     VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);

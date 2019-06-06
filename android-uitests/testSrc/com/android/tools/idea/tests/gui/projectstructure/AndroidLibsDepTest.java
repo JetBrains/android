@@ -78,7 +78,7 @@ public class AndroidLibsDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveDependenciesWithMultiAndroidLibraries() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK, DependenciesTestUtil.LANGUAGE_JAVA);
 
     DependenciesTestUtil.createAndroidLibrary(ideFrame, LIB_NAME_1);
     DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_1, "app", "IMPLEMENTATION");

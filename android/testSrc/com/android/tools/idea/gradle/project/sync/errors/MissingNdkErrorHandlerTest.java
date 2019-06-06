@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerNullMessageSyncErrorToSimulate;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.gradle.project.sync.errors.MissingNdkErrorHandlerKt.tryExtractPreferredNdkDownloadVersion;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -47,6 +48,11 @@ public class MissingNdkErrorHandlerTest extends AndroidGradleTestCase {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
+  }
+
+  public void testNullErrorMessage() throws Exception {
+    registerNullMessageSyncErrorToSimulate();
+    loadProjectAndExpectNullNotification();
   }
 
   public void testPatterns() {
@@ -93,6 +99,13 @@ public class MissingNdkErrorHandlerTest extends AndroidGradleTestCase {
     registerSyncErrorToSimulate("NDK location not found. Define location with ndk.dir in the local.properties file " +
                                 "or with an ANDROID_NDK_HOME environment variable.");
     loadProjectAndExpectMissingNdkError("NDK not configured.", ImmutableList.of(), NDK_NOT_CONFIGURED);
+  }
+
+  private void loadProjectAndExpectNullNotification() throws Exception {
+    loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
+
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    assertThat(notificationUpdate).isNull();
   }
 
   private void loadProjectAndExpectMissingNdkError(@NotNull String expected,

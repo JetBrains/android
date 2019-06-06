@@ -39,6 +39,7 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
+import kotlin.io.FilesKt;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +48,9 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemDependent;
+import org.jetbrains.annotations.SystemIndependent;
 
 import static com.android.SdkConstants.FD_JARS;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
@@ -59,6 +63,8 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
+  private static final String GRADLE_LOCAL_LIBRARY_PREFIX = "Gradle: __local_aars__:";
+
   @NotNull private final DependenciesExtractor myDependenciesExtractor;
   @NotNull private final AndroidModuleDependenciesSetup myDependenciesSetup;
 
@@ -146,6 +152,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
                                       @NotNull LibraryDependency dependency,
                                       @NotNull AndroidModuleModel moduleModel) {
     String name = dependency.getName();
+    name = maybeAdjustLocalLibraryName(name, module.getProject().getBasePath());
     DependencyScope scope = dependency.getScope();
     myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, dependency.getArtifactPath(),
                                                dependency.getBinaryPaths(), getExported(moduleModel));
@@ -166,6 +173,29 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
         }
       }
     }
+  }
+
+  /**
+   * Attempts to shorten the library name by making paths relative and makes paths system independent.
+   * <p>Name shortening is required becasue the maximum allowed file name length is 256 characters and .jar files located in deep
+   * directories in CI environments may exceed this limit.
+   */
+  @NotNull
+  @VisibleForTesting
+  static String maybeAdjustLocalLibraryName(String name, @Nullable @SystemIndependent String basePath) {
+    if (name.startsWith(GRADLE_LOCAL_LIBRARY_PREFIX)) {
+      @SystemDependent String prefixStripped = name.substring(GRADLE_LOCAL_LIBRARY_PREFIX.length());
+      File artifactFile = new File(prefixStripped);
+      if (basePath != null) {
+        File root = new File(toSystemDependentName(basePath));
+        File maybeRelative = FilesKt.relativeToOrSelf(artifactFile, root);
+        if (!filesEqual(maybeRelative, artifactFile)) {
+          artifactFile = new File("." + File.separator + maybeRelative.toString());
+        }
+      }
+      name = GRADLE_LOCAL_LIBRARY_PREFIX + toSystemIndependentName(artifactFile.getPath());
+    }
+    return name;
   }
 
   /**

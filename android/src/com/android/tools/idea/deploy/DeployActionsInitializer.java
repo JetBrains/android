@@ -32,6 +32,9 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunManagerListener;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetManagerAdapter;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Constraints;
@@ -44,7 +47,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,7 +75,8 @@ public class DeployActionsInitializer {
       .subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
         @Override
         public void projectOpened(@NotNull Project project) {
-          project.getMessageBus().connect(project).subscribe(RunManagerListener.TOPIC, new RunManagerListener() {
+          MessageBusConnection projectConnection = project.getMessageBus().connect(project);
+          projectConnection.subscribe(RunManagerListener.TOPIC, new RunManagerListener() {
             @Override
             public void runConfigurationSelected() {
               updateDeployableProvider(project, RunManager.getInstance(project).getSelectedConfiguration());
@@ -96,13 +102,32 @@ public class DeployActionsInitializer {
             }
           });
 
+          projectConnection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerAdapter() {
+            @Override
+            public void beforeFacetRemoved(@NotNull Facet facet) {
+              RunnerAndConfigurationSettings selectedConfiguration = RunManager.getInstance(project).getSelectedConfiguration();
+              if (facet instanceof AndroidFacet && facet.getModule() == getModule(getAndroidRunConfigurationbase(selectedConfiguration))) {
+                updateDeployableProvider(project, null);
+              }
+            }
+
+            @Override
+            public void facetAdded(@NotNull Facet facet) {
+              RunnerAndConfigurationSettings selectedConfiguration = RunManager.getInstance(project).getSelectedConfiguration();
+              if (facet instanceof AndroidFacet && facet.getModule() == getModule(getAndroidRunConfigurationbase(selectedConfiguration))) {
+                updateDeployableProvider(project, selectedConfiguration);
+              }
+            }
+          });
+
           updateDeployableProvider(project, RunManager.getInstance(project).getSelectedConfiguration());
         }
       });
   }
 
+  @Contract("null -> null")
   @Nullable
-  private static DeployableProvider getDeployTargetProvider(@Nullable RunnerAndConfigurationSettings configSettings) {
+  private static AndroidRunConfigurationBase getAndroidRunConfigurationbase(@Nullable RunnerAndConfigurationSettings configSettings) {
     if (configSettings == null) {
       return null; // No valid config settings available.
     }
@@ -110,9 +135,20 @@ public class DeployActionsInitializer {
     if (!(config instanceof AndroidRunConfigurationBase)) {
       return null; // CodeSwap is enabled for non-Gradle-based Android, but isn't supported.
     }
-    AndroidRunConfigurationBase androidRunConfig = (AndroidRunConfigurationBase)config;
+    return (AndroidRunConfigurationBase)config;
+  }
 
-    Module module = androidRunConfig.getConfigurationModule().getModule();
+  @Contract("null -> null")
+  @Nullable
+  private static Module getModule(@Nullable AndroidRunConfigurationBase androidRunConfigurationBase) {
+    return androidRunConfigurationBase == null ? null : androidRunConfigurationBase.getConfigurationModule().getModule();
+  }
+
+  @Contract("null -> null")
+  @Nullable
+  private static DeployableProvider getDeployTargetProvider(@Nullable RunnerAndConfigurationSettings configSettings) {
+    AndroidRunConfigurationBase androidRunConfig = getAndroidRunConfigurationbase(configSettings);
+    Module module = getModule(androidRunConfig);
     if (module == null) {
       return null; // We only support projects with Android facets, which needs to be in a module.
     }

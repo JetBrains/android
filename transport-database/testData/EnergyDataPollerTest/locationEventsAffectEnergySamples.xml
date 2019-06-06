@@ -179,25 +179,31 @@ end_timestamp: 3000000000
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.EnergyService/GetEvents" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyEventsResponse">
         <Message>events {
-  location_changed {
-    location {
-      provider: "gps"
+  energy_event {
+    location_changed {
+      location {
+        provider: "gps"
+      }
     }
   }
 }
 events {
   timestamp: 1000000000
-  location_changed {
-    location {
-      provider: "gps"
+  energy_event {
+    location_changed {
+      location {
+        provider: "gps"
+      }
     }
   }
 }
 events {
   timestamp: 2000000000
-  location_changed {
-    location {
-      provider: "gps"
+  energy_event {
+    location_changed {
+      location {
+        provider: "gps"
+      }
     }
   }
 }
@@ -205,25 +211,31 @@ events {
         <clazz>class com.android.tools.profiler.proto.EnergyProfiler$EnergyEventsResponse</clazz>
         <functionCalled>profiler.proto.EnergyService/GetEvents</functionCalled>
         <message>events {
-  location_changed {
-    location {
-      provider: "gps"
+  energy_event {
+    location_changed {
+      location {
+        provider: "gps"
+      }
     }
   }
 }
 events {
   timestamp: 1000000000
-  location_changed {
-    location {
-      provider: "gps"
+  energy_event {
+    location_changed {
+      location {
+        provider: "gps"
+      }
     }
   }
 }
 events {
   timestamp: 2000000000
-  location_changed {
-    location {
-      provider: "gps"
+  energy_event {
+    location_changed {
+      location {
+        provider: "gps"
+      }
     }
   }
 }

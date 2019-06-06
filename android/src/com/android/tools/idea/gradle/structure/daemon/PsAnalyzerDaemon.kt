@@ -142,7 +142,8 @@ class PsAnalyzerDaemon(
     if (!isStopped) {
       assert(analyzer.supportedModelType.isInstance(model))
       invokeAndWaitIfNeeded(ModalityState.any()) {
-        val newIssues = if (!analyzer.disposed) analyzer.analyze(analyzer.supportedModelType.cast(model)).toList() else emptyList()
+        val newIssues =
+          if (!isStopped && !analyzer.disposed) analyzer.analyze(analyzer.supportedModelType.cast(model)).toList() else emptyList()
         addAll(newIssues, now = false)
       }
     }

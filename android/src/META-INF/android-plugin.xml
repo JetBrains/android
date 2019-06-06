@@ -439,6 +439,7 @@
     <moduleBuilder builderClass="com.android.tools.idea.npw.ideahost.AndroidModuleBuilder"/>
 
     <defaultLiveTemplatesProvider implementation="com.android.tools.idea.templates.live.AndroidLiveTemplatesProvider"/>
+    <liveTemplateContext implementation="com.android.tools.idea.templates.live.XmlAttributeContextType"/>
 
     <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaCompletionContributor" order="first"/>
     <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.inspections.ResourceTypeCompletionContributor"
@@ -518,6 +519,7 @@
 
     <globalInspection hasStaticDescription="true" shortName="PermissionUsageInspection" displayName="Permission Check for Location APIs" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.experimental.PermissionUsageInspection"/>
 
+    <predefinedCodeStyle implementation="org.jetbrains.android.formatter.AndroidJavaPredefinedCodeStyle"/>
 
     <colorSettingsPage implementation="com.android.tools.idea.logcat.AndroidLogcatColorPage"/>
     <findUsagesHandlerFactory implementation="org.jetbrains.android.AndroidFindUsagesHandlerFactory"/>
@@ -720,6 +722,7 @@
     <spellchecker.support language="TEXT" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>
     <spellchecker.support language="Properties" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
+    <spellchecker.support language="JSON" implementationClass="org.jetbrains.android.spellchecker.GoogleServicesJsonSpellcheckingStrategy" order="first"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
     <junitPatcher implementation="com.android.tools.idea.testartifacts.scopes.AndroidJunitPatcher" />
 
@@ -940,10 +943,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>
-
-    <projectService serviceInterface="com.android.tools.idea.run.deployment.AsyncDevicesGetter"
-                    serviceImplementation="com.android.tools.idea.run.deployment.WorkerAsyncDevicesGetter"
-                    testServiceImplementation="com.android.tools.idea.run.deployment.TestAsyncDevicesGetter"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.deployment.AsyncDevicesGetter"/>
   </extensions>
 
   <!-- End new deployment target selection -->

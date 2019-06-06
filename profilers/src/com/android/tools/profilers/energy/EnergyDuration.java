@@ -15,13 +15,17 @@
  */
 package com.android.tools.profilers.energy;
 
-import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Energy;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Encapsulate a sequence of related energy events into a single class.
@@ -40,7 +44,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
     LOCATION("Location");
 
     @NotNull
-    public static Kind from(@NotNull EnergyProfiler.EnergyEvent event) {
+    public static Kind from(@NotNull Energy.EnergyEventData event) {
       switch (event.getMetadataCase()) {
         case WAKE_LOCK_ACQUIRED:
         case WAKE_LOCK_RELEASED:
@@ -81,9 +85,9 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
   }
 
   // Non-empty event list that the events share the same id in time order.
-  @NotNull private final ImmutableList<EnergyProfiler.EnergyEvent> myEventList;
+  @NotNull private final ImmutableList<Common.Event> myEventList;
 
-  public EnergyDuration(@NotNull List<EnergyProfiler.EnergyEvent> eventList) {
+  public EnergyDuration(@NotNull List<Common.Event> eventList) {
     assert !eventList.isEmpty();
     myEventList = ImmutableList.copyOf(eventList);
   }
@@ -113,13 +117,13 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
     String namePart = "";
     switch (kind) {
       case WAKE_LOCK:
-        if (getEventList().get(0).hasWakeLockAcquired()) {
-          namePart = getWakeLockLevelName(getEventList().get(0).getWakeLockAcquired().getLevel());
+        if (getEventList().get(0).getEnergyEvent().hasWakeLockAcquired()) {
+          namePart = getWakeLockLevelName(getEventList().get(0).getEnergyEvent().getWakeLockAcquired().getLevel());
         }
         break;
       case ALARM:
-        if (getEventList().get(0).hasAlarmSet()) {
-          namePart = getAlarmTypeName(getEventList().get(0).getAlarmSet().getType());
+        if (getEventList().get(0).getEnergyEvent().hasAlarmSet()) {
+          namePart = getAlarmTypeName(getEventList().get(0).getEnergyEvent().getAlarmSet().getType());
         }
         break;
       case LOCATION:
@@ -145,20 +149,20 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
   public String getDescription() {
     switch (getKind()) {
       case WAKE_LOCK:
-        if (getEventList().get(0).hasWakeLockAcquired()) {
-          return getEventList().get(0).getWakeLockAcquired().getTag();
+        if (getEventList().get(0).getEnergyEvent().hasWakeLockAcquired()) {
+          return getEventList().get(0).getEnergyEvent().getWakeLockAcquired().getTag();
         }
         break;
       case ALARM:
-        if (getEventList().get(0).hasAlarmSet()) {
-          EnergyProfiler.AlarmSet alarmSet = getEventList().get(0).getAlarmSet();
+        if (getEventList().get(0).getEnergyEvent().hasAlarmSet()) {
+          Energy.AlarmSet alarmSet = getEventList().get(0).getEnergyEvent().getAlarmSet();
           return alarmSet.hasOperation() ? alarmSet.getOperation().getCreatorPackage()
                                          : alarmSet.hasListener() ? alarmSet.getListener().getTag() : "";
         }
         break;
       case JOB:
-        if (getEventList().get(0).hasJobScheduled()) {
-          EnergyProfiler.JobInfo job = getEventList().get(0).getJobScheduled().getJob();
+        if (getEventList().get(0).getEnergyEvent().hasJobScheduled()) {
+          Energy.JobInfo job = getEventList().get(0).getEnergyEvent().getJobScheduled().getJob();
           return String.format("%d:%s", job.getJobId(), job.getServiceName());
         }
         break;
@@ -170,11 +174,11 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
 
   @NotNull
   public Kind getKind() {
-    return Kind.from(myEventList.get(0));
+    return Kind.from(myEventList.get(0).getEnergyEvent());
   }
 
   @NotNull
-  public ImmutableList<EnergyProfiler.EnergyEvent> getEventList() {
+  public ImmutableList<Common.Event> getEventList() {
     return myEventList;
   }
 
@@ -185,16 +189,16 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
    * two events at 1200ms and 1300ms, third duration includes two events at 1400ms and 1600ms.
    */
   @NotNull
-  public static List<EnergyDuration> groupById(@NotNull List<EnergyProfiler.EnergyEvent> events) {
-    Map<Integer, List<EnergyProfiler.EnergyEvent>> durationMap = new LinkedHashMap<>();
-    for (EnergyProfiler.EnergyEvent event : events) {
-      if (durationMap.containsKey(event.getEventId())) {
-        durationMap.get(event.getEventId()).add(event);
+  public static List<EnergyDuration> groupById(@NotNull List<Common.Event> events) {
+    Map<Long, List<Common.Event>> durationMap = new LinkedHashMap<>();
+    for (Common.Event event : events) {
+      if (durationMap.containsKey(event.getGroupId())) {
+        durationMap.get(event.getGroupId()).add(event);
       }
       else {
-        List<EnergyProfiler.EnergyEvent> list = new ArrayList<>();
+        List<Common.Event> list = new ArrayList<>();
         list.add(event);
-        durationMap.put(event.getEventId(), list);
+        durationMap.put(event.getGroupId(), list);
       }
     }
     return durationMap.values().stream().map(list -> new EnergyDuration(list)).collect(Collectors.toList());
@@ -206,7 +210,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
   }
 
   @NotNull
-  public static String getWakeLockLevelName(@NotNull EnergyProfiler.WakeLockAcquired.Level level) {
+  public static String getWakeLockLevelName(@NotNull Energy.WakeLockAcquired.Level level) {
     switch (level) {
       case FULL_WAKE_LOCK:
         return "Full";
@@ -224,7 +228,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
   }
 
   @NotNull
-  public static String getAlarmTypeName(@NotNull EnergyProfiler.AlarmSet.Type type) {
+  public static String getAlarmTypeName(@NotNull Energy.AlarmSet.Type type) {
     switch (type) {
       case RTC:
         return "RTC";
@@ -240,7 +244,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
   }
 
   @NotNull
-  public static String getMetadataName(EnergyProfiler.EnergyEvent.MetadataCase metadataCase) {
+  public static String getMetadataName(Energy.EnergyEventData.MetadataCase metadataCase) {
     switch (metadataCase) {
       case WAKE_LOCK_ACQUIRED:
         return "Acquired";
@@ -276,7 +280,11 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
    */
   @NotNull
   public String getCalledByTraceId() {
-    return getEventList().stream().filter(e -> !e.getTraceId().isEmpty()).map(e -> e.getTraceId()).findFirst().orElse("");
+    return getEventList().stream()
+      .filter(e -> !e.getEnergyEvent().getTraceId().isEmpty())
+      .map(e -> e.getEnergyEvent().getTraceId())
+      .findFirst()
+      .orElse("");
   }
 
   @Override

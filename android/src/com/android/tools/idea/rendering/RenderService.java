@@ -53,7 +53,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -191,7 +190,7 @@ public class RenderService implements Disposable {
       try {
         return platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
       }
-      catch (RenderingException | IOException e) {
+      catch (RenderingException e) {
         // Ignore.
       }
     }
@@ -209,7 +208,7 @@ public class RenderService implements Disposable {
           return library.supports(capability);
         }
       }
-      catch (RenderingException | IOException e) {
+      catch (RenderingException e) {
         // Ignore: if service can't be found, that capability isn't available
       }
     }
@@ -585,11 +584,6 @@ public class RenderService implements Disposable {
           myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
           return null;
         }
-        catch (IOException e) {
-          final String message = e.getMessage();
-          myLogger.error(null, "I/O error: " + (message != null ? ": " + message : ""), e, null, null);
-          return null;
-        }
 
         if (myPsiFile != null &&
             TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(myPsiFile)) &&
@@ -642,6 +636,7 @@ public class RenderService implements Disposable {
      * Builds a new {@link RenderTask}.
      * @deprecated Use {@link RenderTaskBuilder#build}
      */
+    @Deprecated
     @Nullable
     public RenderTask buildSynchronously() {
       return Futures.getUnchecked(build());

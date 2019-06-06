@@ -72,7 +72,7 @@ public class AndroidDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveDependenciesResolve() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK, DependenciesTestUtil.LANGUAGE_JAVA);
 
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")

@@ -654,6 +654,7 @@ PROJECT             : testPsdSample
             JavaSource (test)   : file://<PROJECT>/jav/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/jav/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jav/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jav/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -1480,6 +1481,7 @@ PROJECT             : testPsdSample
             BuildFolderPath     : <PROJECT>/nested2/trans/build [-]
         CONENT_ENTRY        : file://<PROJECT>/nested2/trans
             EXCLUDE_FOLDER      : file://<PROJECT>/nested2/trans/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/trans/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>

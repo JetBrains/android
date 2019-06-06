@@ -268,11 +268,6 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  public String getDescription() {
-    return getName();
-  }
-
-  @Override
   @NotNull
   public List<OptionalLibrary> getOptionalLibraries() {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);

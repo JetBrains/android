@@ -39,13 +39,14 @@ class SqliteEvaluatorController(
 ) : Disposable {
 
   private var currentQueryResultSetController: ResultSetController? = null
+  private val sqliteEvaluatorViewListener = SqliteEvaluatorViewListenerImpl()
 
   init {
     Disposer.register(parentDisposable, this)
   }
 
   fun setUp() {
-    view.addListener(SqliteEvaluatorListener())
+    view.addListener(sqliteEvaluatorViewListener)
     view.show()
   }
 
@@ -53,41 +54,11 @@ class SqliteEvaluatorController(
     view.requestFocus()
   }
 
-  override fun dispose() { }
-
-  private fun executeQuery(sqlQueryCommand: String, doOnFailure: (Throwable) -> Unit) {
-    edtExecutor.addCallback(service.executeQuery(sqlQueryCommand), object : FutureCallback<SqliteResultSet> {
-      override fun onSuccess(sqliteResultSet: SqliteResultSet?) {
-        if(sqliteResultSet == null) return
-
-        currentQueryResultSetController = ResultSetController(
-          this@SqliteEvaluatorController,
-          view, null, sqliteResultSet,
-          edtExecutor
-        ).also { it.setUp() }
-        currentQueryResultSetController
-      }
-
-      override fun onFailure(t: Throwable) {
-        doOnFailure(t)
-      }
-    })
+  override fun dispose() {
+    view.removeListener(sqliteEvaluatorViewListener)
   }
 
-  private fun executeUpdate(sqlUpdateCommand: String) {
-    edtExecutor.addCallback(service.executeUpdate(sqlUpdateCommand), object : FutureCallback<Int> {
-      override fun onSuccess(result: Int?) {
-        // TODO do we want to update the UI of the dialog?
-        view.resetView()
-      }
-
-      override fun onFailure(t: Throwable) {
-        view.reportErrorRelatedToTable(null, "Error executing update", t)
-      }
-    })
-  }
-
-  private inner class SqliteEvaluatorListener : SqliteEvaluatorViewListener {
+  private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorViewListener {
     override fun evaluateSqlActionInvoked(sqlInstruction: String) {
       // TODO after introducing the SQL parser this bit should become a bit nicer (?)
       when {
@@ -104,6 +75,38 @@ class SqliteEvaluatorController(
     }
 
     override fun sessionClosed() {
+    }
+
+    private fun executeUpdate(sqlUpdateCommand: String) {
+      edtExecutor.addCallback(service.executeUpdate(sqlUpdateCommand), object : FutureCallback<Int> {
+        override fun onSuccess(result: Int?) {
+          // TODO do we want to update the UI of the dialog?
+          view.resetView()
+        }
+
+        override fun onFailure(t: Throwable) {
+          view.reportErrorRelatedToTable(null, "Error executing update", t)
+        }
+      })
+    }
+
+    private fun executeQuery(sqlQueryCommand: String, doOnFailure: (Throwable) -> Unit) {
+      edtExecutor.addCallback(service.executeQuery(sqlQueryCommand), object : FutureCallback<SqliteResultSet> {
+        override fun onSuccess(sqliteResultSet: SqliteResultSet?) {
+          if(sqliteResultSet == null) return
+
+          currentQueryResultSetController = ResultSetController(
+            this@SqliteEvaluatorController,
+            view, null, sqliteResultSet,
+            edtExecutor
+          ).also { it.setUp() }
+          currentQueryResultSetController
+        }
+
+        override fun onFailure(t: Throwable) {
+          doOnFailure(t)
+        }
+      })
     }
   }
 }

@@ -6,7 +6,7 @@ PROJECT             : testLoadPlainJavaProject
         LinkedProjectId     : testLoadPlainJavaProject
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testLoadPlainJavaProject.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/testLoadPlainJavaProject.iml [-]
         ModuleTypeName      : JAVA_MODULE
         CONENT_ENTRY        : file://<PROJECT>
             JavaSource          : file://<PROJECT>/src/main/java

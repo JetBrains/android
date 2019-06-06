@@ -37,4 +37,7 @@ open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<A
 
   override fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency> =
     throw UnsupportedOperationException()
+
+  override fun maybeAddConfiguration(configurationName: String) = throw UnsupportedOperationException()
+  override fun maybeRemoveConfiguration(configurationName: String) = throw UnsupportedOperationException()
 }

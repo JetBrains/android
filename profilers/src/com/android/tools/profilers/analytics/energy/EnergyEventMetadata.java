@@ -15,8 +15,7 @@
  */
 package com.android.tools.profilers.analytics.energy;
 
-import com.android.tools.profiler.proto.EnergyProfiler;
-
+import com.android.tools.profiler.proto.Common;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,13 +24,13 @@ import java.util.List;
  * Class with metadata related to an energy duration event.
  */
 public final class EnergyEventMetadata {
-  private final List<EnergyProfiler.EnergyEvent> mySubevents = new ArrayList<>();
+  private final List<Common.Event> mySubevents = new ArrayList<>();
 
-  public EnergyEventMetadata(Collection<EnergyProfiler.EnergyEvent> subevents) {
+  public EnergyEventMetadata(Collection<Common.Event> subevents) {
     mySubevents.addAll(subevents);
   }
 
-  public List<EnergyProfiler.EnergyEvent> getSubevents() {
+  public List<Common.Event> getSubevents() {
     return mySubevents;
   }
 }

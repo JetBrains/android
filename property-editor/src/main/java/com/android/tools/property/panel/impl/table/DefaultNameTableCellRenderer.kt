@@ -15,9 +15,14 @@
  */
 package com.android.tools.property.panel.impl.table
 
-import com.android.tools.property.ptable2.*
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.ui.PropertyTooltip
+import com.android.tools.property.ptable2.PTable
+import com.android.tools.property.ptable2.PTableCellRenderer
+import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable2.PTableItem
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -55,7 +60,7 @@ class DefaultNameTableCellRenderer : SimpleColoredComponent(), PTableCellRendere
         iconTextGap = max(iconWidth - icon.iconWidth, minSpacing)
       }
       item is PropertyItem && item.namespaceIcon != null -> {
-        icon = item.namespaceIcon
+        icon = item.namespaceIcon?.let { if (isSelected && hasFocus) ColoredIconGenerator.generateWhiteIcon(it) else it }
         iconTextGap = max(iconWidth - icon.iconWidth, minSpacing)
       }
       else -> indent += iconWidth + minSpacing

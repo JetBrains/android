@@ -409,6 +409,7 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource (test)   : file://<PROJECT>/jModuleK/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/jModuleK/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleK/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleK/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -469,6 +470,7 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource (test)   : file://<PROJECT>/jModuleL/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/jModuleL/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleL/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleL/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -507,6 +509,7 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource (test)   : file://<PROJECT>/jModuleM/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/jModuleM/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleM/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleM/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -545,6 +548,7 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource (test)   : file://<PROJECT>/jModuleZ/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/jModuleZ/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -1105,19 +1109,19 @@ PROJECT             : testPsdDependencyDeleteModule
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: __local_aars__:<PROJECT>/lib/libsam1-1.1.jar:unspecified@jar
+        LIBRARY             : Gradle: __local_aars__:./lib/libsam1-1.1.jar:unspecified@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:<PROJECT>/lib/libsam1-1.1.jar:unspecified@jar [=]
+            Name                : Gradle: __local_aars__:./lib/libsam1-1.1.jar:unspecified@jar [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
-        LIBRARY             : Gradle: __local_aars__:<PROJECT>/lib/libsam2-1.1.jar:unspecified@jar
+        LIBRARY             : Gradle: __local_aars__:./lib/libsam2-1.1.jar:unspecified@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:<PROJECT>/lib/libsam2-1.1.jar:unspecified@jar [=]
+            Name                : Gradle: __local_aars__:./lib/libsam2-1.1.jar:unspecified@jar [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam2-1.1.jar!/
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
             LibraryLevel        : project
@@ -1463,12 +1467,12 @@ PROJECT             : testPsdDependencyDeleteModule
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: __local_aars__:<PROJECT>/lib/libsam1-1.1.jar:unspecified@jar
+        LIBRARY             : Gradle: __local_aars__:./lib/libsam1-1.1.jar:unspecified@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:<PROJECT>/lib/libsam1-1.1.jar:unspecified@jar [=]
+            Name                : Gradle: __local_aars__:./lib/libsam1-1.1.jar:unspecified@jar [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
             LibraryLevel        : project
@@ -2058,6 +2062,149 @@ PROJECT             : testPsdDependencyDeleteModule
             Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
+    MODULE              : moduleFlavor
+        - ModuleGroupPath   : testPsdDependencyDeleteModule
+        - ModuleGroupPath   : moduleFlavor
+        LinkedProjectId     : :moduleFlavor
+        LinkedProjectPath   : <PROJECT>/moduleFlavor
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/moduleFlavor/moduleFlavor.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android
+            TypeId              : android
+            SelectedBuildVariant          : freeDebug
+            AssembleTaskName    : assembleFreeDebug
+            CompileJavaTaskName : compileFreeDebugSources
+            - AfterSyncTask     : generateFreeDebugSources
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            UseCustomCompilerManifest     : false
+            ProjectType         : 1
+            RunProcessResourcesMavenTask  : true
+            PackTestCode        : false
+            RunProguard         : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing     : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex      : false
+            MinimalMainDex      : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :moduleFlavor
+        CONENT_ENTRY        : file://<PROJECT>/moduleFlavor
+            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/aidl_source_output_dir/freeDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/aidl_source_output_dir/freeDebugAndroidTest/out [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/ap_generated_sources/freeDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/ap_generated_sources/freeDebugAndroidTest/out [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/ap_generated_sources/freeDebugUnitTest/out [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/renderscript_source_output_dir/freeDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/out [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/build/generated/res/rs/androidTest/free/debug [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/build/generated/res/rs/free/debug [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/androidTest/free/debug [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/free/debug [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/aidl [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/assets [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/java [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/res [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/resources [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/rs [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/aidl [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFree/assets [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/java [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFree/res [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFree/resources [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/rs [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/shaders [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/aidl [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/debug/assets [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/java [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/debug/res [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/debug/resources [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/rs [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/shaders [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/free/aidl [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/free/assets [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/free/java [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/free/res [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/free/resources [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/free/rs [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/free/shaders [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/aidl [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/freeDebug/assets [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/java [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/freeDebug/res [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/freeDebug/resources [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/rs [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/shaders [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/main/aidl [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/main/assets [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/main/java [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/main/res [-]
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/main/resources [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/main/rs [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/main/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/aidl [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/test/assets [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/java [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/test/res [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/test/resources [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/rs [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/aidl [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFree/assets [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/java [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFree/res [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFree/resources [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/rs [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/shaders [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleFlavor/build [-]
+        JDK                 : <NAME_CUT> Android SDK
+        *isInherited        : false
+            SdkType             : Android SDK
+            HomePath            : <ANDROID_SDK>
+            VersionString       : java version "<JDK_VERSION>"
+        ORDER_ENTRY         : <Module source>
     MODULE              : modulePlus
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : modulePlus
@@ -2455,6 +2602,7 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource (test)   : file://<PROJECT>/jModuleZ/nestedZ/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/jModuleZ/nestedZ/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>

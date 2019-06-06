@@ -83,12 +83,12 @@ public class MemoryUsageTest {
       Truth.assertThat(series.get(i).value).isEqualTo(i * 10);
     }
 
-    // Request negative to mid range
+    // Request mid to high range
     range.set(TimeUnit.SECONDS.toMicros(45), TimeUnit.SECONDS.toMicros(200));
     series = rangedSeries.getSeries();
-    Truth.assertThat(series.size()).isEqualTo(5);
+    Truth.assertThat(series.size()).isEqualTo(6);
     for (int i = 0; i < series.size(); i++) {
-      Truth.assertThat(series.get(i).value).isEqualTo((i + 5) * 10);
+      Truth.assertThat(series.get(i).value).isEqualTo((i + 4) * 10);
     }
   }
 }
