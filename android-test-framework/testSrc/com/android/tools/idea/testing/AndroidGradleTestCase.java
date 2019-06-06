@@ -35,10 +35,8 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
@@ -50,8 +48,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.idea.IdeaTestApplication;
@@ -69,8 +65,6 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Disposer;
@@ -172,45 +166,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       Project project = getProject();
       FileUtil.ensureExists(new File(toSystemDependentName(project.getBasePath())));
       LocalFileSystem.getInstance().refreshAndFindFileByPath(project.getBasePath());
-      setUpSdks(project);
+      AndroidGradleTests.setUpSdks(myFixture, findSdkPath());
       myModules = new Modules(project);
-    }
-  }
-
-  protected void setUpSdks(@NotNull Project project) {
-    // We seem to have two different locations where the SDK needs to be specified.
-    // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
-    // Gradle import will fail if the global one isn't set.
-    File androidSdkPath = findSdkPath();
-
-    IdeSdks ideSdks = IdeSdks.getInstance();
-    runWriteCommandAction(project, () -> {
-      if (IdeInfo.getInstance().isAndroidStudio()) {
-        ideSdks.setUseEmbeddedJdk();
-        LOG.info("Set JDK to " + ideSdks.getJdkPath());
-      }
-
-      Sdks.allowAccessToSdk(myFixture.getProjectDisposable());
-      ideSdks.setAndroidSdkPath(androidSdkPath, project);
-      IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
-
-      LOG.info("Set IDE Sdk Path to " + androidSdkPath);
-    });
-
-    Sdk currentJdk = ideSdks.getJdk();
-    assertNotNull(currentJdk);
-    assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), Jdks.getInstance().isApplicableJdk(currentJdk, JDK_1_8));
-
-    // IntelliJ uses project jdk for gradle import by default, see GradleProjectSettings.myGradleJvm
-    // Android Studio overrides GradleInstallationManager.getGradleJdk() using AndroidStudioGradleInstallationManager
-    // so it doesn't require the Gradle JDK setting to be defined
-    if (!IdeInfo.getInstance().isAndroidStudio()) {
-      new WriteAction() {
-        @Override
-        protected void run(@NotNull Result result) {
-          ProjectRootManager.getInstance(project).setProjectSdk(currentJdk);
-        }
-      }.execute();
     }
   }
 
