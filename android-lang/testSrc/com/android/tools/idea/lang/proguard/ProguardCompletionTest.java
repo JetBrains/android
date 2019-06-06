@@ -80,12 +80,52 @@ public class ProguardCompletionTest extends LightCodeInsightFixtureTestCase {
     assertTrue("Expected no highlights", highlights.isEmpty());
   }
 
-  public void testIncludeCompletion()  throws Throwable {
+  private void performTestFilenameCompletion(String completionFile, String otherFile) throws Throwable {
+    assert !completionFile.startsWith("z");
     myFixture.addFileToProject("zzz.pro", "");
-    myFixture.addFileToProject("ijklk.pro", "");
-    performTestCompletionVariants("includecompletion.pro", "includecompletion.pro", "ijklk.pro");
+    myFixture.addFileToProject(otherFile, "");
+    performTestCompletionVariants(completionFile, completionFile, otherFile);
   }
 
+  public void testIncludeCompletion() throws Throwable {
+    performTestFilenameCompletion("includecompletion.pro", "ijklk.pro");
+  }
+
+  public void testApplyMappingCompletion() throws Throwable {
+    performTestFilenameCompletion("applymappingcompletion.pro", "abc.pro");
+  }
+
+  public void testObfuscationDictionaryCompletion() throws Throwable {
+    performTestFilenameCompletion("obfuscationdictionarycompletion.pro", "obvs.pro");
+  }
+
+  public void testClassObfuscationDictionaryCompletion() throws Throwable {
+    performTestFilenameCompletion("classobfuscationdictionarycompletion.pro", "cat.pro");
+  }
+
+  public void testPackageObfuscationDictionaryCompletion() throws Throwable {
+    performTestFilenameCompletion("packageobfuscationdictionarycompletion.pro", "pi.pro");
+  }
+
+  public void testPrintSeedsCompletion() throws Throwable {
+    performTestFilenameCompletion("printseedscompletion.pro", "pi.pro");
+  }
+
+  public void testPrintUsageCompletion() throws Throwable {
+    performTestFilenameCompletion("printusagecompletion.pro", "pi.pro");
+  }
+
+  public void testPrintMappingCompletion() throws Throwable {
+    performTestFilenameCompletion("printmappingcompletion.pro", "pi.pro");
+  }
+
+  public void testPrintConfigurationCompletion() throws Throwable {
+    performTestFilenameCompletion("printconfigurationcompletion.pro", "pi.pro");
+  }
+
+  public void testDumpCompletion() throws Throwable {
+    performTestFilenameCompletion("dumpcompletion.pro", "dog.pro");
+  }
   /**
    * Tests basic completion on the input file {@code fileBefore} at caret position, comparing it
    * against the contents of the file {@code fileAfter}.

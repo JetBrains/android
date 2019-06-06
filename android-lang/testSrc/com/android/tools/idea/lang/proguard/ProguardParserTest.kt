@@ -62,21 +62,81 @@ abstract class ProguardParserTest : ParsingTestCase("no_data_path_needed",
     }
     fail()
   }
+
+  protected fun checkFilenameFlag(flag: String, mandatory: Boolean, spaceRequired: Boolean = true) {
+    check("${flag} general.pro")
+    if (spaceRequired) {
+      // TODO(b/72461769): The lexer is too lax for this to fail
+      // checkNot("${flag}general.pro")
+    } else {
+      check("${flag}general.pro")
+    }
+    check("${flag} general.pro # with comment")
+    check("${flag} 'name with spaces.pro'")
+    check("${flag} \"name with spaces.pro\"")
+
+    checkNot("${flag} one.pro two.pro")
+    if(mandatory) {
+      checkNot("${flag}")
+      checkNot("${flag} ")
+      checkNot("${flag} # with comment")
+    } else {
+      check("${flag}")
+      check("${flag} ")
+      check("${flag} # with comment")
+    }
+    checkNot("${flag}'")
+    checkNot("${flag} '")
+    checkNot("${flag}\"")
+    checkNot("${flag} \"")
+    checkNot("${flag} ' # not a comment")
+    checkNot("${flag} \" # not a comment")
+  }
+
 }
 
 class MiscParserTest : ProguardParserTest() {
   fun testCommercialAt() {
-    check("@ general.pro")
-    check("@general.pro")
-    check("@ general.pro # with comment")
-    check("@ 'name with spaces.pro'")
-    check("@ \"name with spaces.pro\"")
+    checkFilenameFlag("@", true, spaceRequired = false)
+  }
 
-    checkNot("@ one.pro two.pro")
-    checkNot("@")
-    checkNot("@'")
-    checkNot("@ \"")
-    checkNot("@ ' # not a comment")
-    checkNot("@\" # not a comment")
+  fun testInclude() {
+    checkFilenameFlag("-include", true)
+  }
+
+  fun testApplyMapping() {
+    checkFilenameFlag("-applymapping", true)
+  }
+
+  fun testObfuscationDictionary() {
+    checkFilenameFlag("-obfuscationdictionary", true)
+  }
+
+  fun testClassObfuscationDictionary() {
+    checkFilenameFlag("-classobfuscationdictionary", true)
+  }
+
+  fun testPackageObfuscationDictionary() {
+    checkFilenameFlag("-packageobfuscationdictionary", true)
+  }
+
+  fun testPrintSeeds() {
+    checkFilenameFlag("-printseeds", false)
+  }
+
+  fun testPrintUsage() {
+    checkFilenameFlag("-printusage", false)
+  }
+
+  fun testPrintMapping() {
+    checkFilenameFlag("-printmapping", false)
+  }
+
+  fun testPrintConfiguration() {
+    checkFilenameFlag("-printconfiguration", false)
+  }
+
+  fun testDump() {
+    checkFilenameFlag("-dump", false)
   }
 }
