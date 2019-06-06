@@ -51,9 +51,9 @@ public class MemoryUsageTest {
 
     // insert memory data for new pipeline.
     for (int i = 0; i < 10; i++) {
-      myService.addEventToEventGroup(STREAM_ID,
-                                     // Space out the data by 10 seconds to work around the 1 second buffer in UnifiedEventDataSeries.
-                                     ProfilersTestData.generateMemoryUsageData(
+      myService.addEventToStream(STREAM_ID,
+                                 // Space out the data by 10 seconds to work around the 1 second buffer in UnifiedEventDataSeries.
+                                 ProfilersTestData.generateMemoryUsageData(
                                        TimeUnit.SECONDS.toMicros(i * 10),
                                        Memory.MemoryUsageData.newBuilder().setTotalMem(i * 10).build()).build());
     }
@@ -78,7 +78,7 @@ public class MemoryUsageTest {
     // Request negative to mid range
     range.set(TimeUnit.SECONDS.toMicros(-50), TimeUnit.SECONDS.toMicros(45));
     series = rangedSeries.getSeries();
-    Truth.assertThat(series.size()).isEqualTo(5);
+    Truth.assertThat(series.size()).isEqualTo(6);
     for (int i = 0; i < series.size(); i++) {
       Truth.assertThat(series.get(i).value).isEqualTo(i * 10);
     }

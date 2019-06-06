@@ -107,7 +107,7 @@ class TransportEventPollerTest {
       .setGroupId(123)
       .build()
     expectedEvents.add(echoEvent)
-    transportService.addEventToEventGroup(FakeTransportService.FAKE_DEVICE_ID, echoEvent)
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, echoEvent)
 
     // Create listener for ECHO event
     val echoListener = TransportEventListener(eventKind = Common.Event.Kind.ECHO,
@@ -135,7 +135,7 @@ class TransportEventPollerTest {
       .setGroupId(456)
       .build()
     expectedEvents.add(echoEvent2)
-    transportService.addEventToEventGroup(FakeTransportService.FAKE_DEVICE_ID, echoEvent2)
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, echoEvent2)
 
     // Third event with the same group ID
     val echoEvent3 = Common.Event.newBuilder()
@@ -144,7 +144,7 @@ class TransportEventPollerTest {
       .setGroupId(456)
       .build()
     expectedEvents.add(echoEvent3)
-    transportService.addEventToEventGroup(FakeTransportService.FAKE_DEVICE_ID, echoEvent3)
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, echoEvent3)
 
     // Receive the last 2 events
     try {
@@ -240,10 +240,10 @@ class TransportEventPollerTest {
       .setGroupId(otherGroupId)
       .setPid(otherProcessId)
 
-    transportService.addEventToEventGroup(1L, positiveEvent1Builder.build())
-    transportService.addEventToEventGroup(1L, negativeEvent1Builder.build())
-    transportService.addEventToEventGroup(1L, positiveEvent2Builder.build())
-    transportService.addEventToEventGroup(1L, negativeEvent2Builder.build())
+    transportService.addEventToStream(1L, positiveEvent1Builder.build())
+    transportService.addEventToStream(1L, negativeEvent1Builder.build())
+    transportService.addEventToStream(1L, positiveEvent2Builder.build())
+    transportService.addEventToStream(1L, negativeEvent2Builder.build())
 
     assertThat(positiveLatch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
     assertThat(negativeLatch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
@@ -311,10 +311,10 @@ class TransportEventPollerTest {
       .setEcho(Echo.EchoData.newBuilder().setData("blah"))
 
 
-    transportService.addEventToEventGroup(1L, positiveEvent1Builder.build())
-    transportService.addEventToEventGroup(1L, negativeEvent1Builder.build())
-    transportService.addEventToEventGroup(1L, negativeEvent2Builder.build())
-    transportService.addEventToEventGroup(1L, positiveEvent2Builder.build())
+    transportService.addEventToStream(1L, positiveEvent1Builder.build())
+    transportService.addEventToStream(1L, negativeEvent1Builder.build())
+    transportService.addEventToStream(1L, negativeEvent2Builder.build())
+    transportService.addEventToStream(1L, positiveEvent2Builder.build())
 
     assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
   }

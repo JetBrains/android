@@ -18,15 +18,12 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Energy
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertWithMessage
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeUnit.SECONDS
 
 
 class EnergyEventsCountDataSeriesTest {
@@ -102,7 +99,7 @@ class EnergyEventsCountDataSeriesTest {
 
   @Test
   fun testEventsCount() {
-    eventList.forEach { event -> myTransportService.addEventToEventGroup(STREAM_ID, event) }
+    eventList.forEach { event -> myTransportService.addEventToStream(STREAM_ID, event) }
     val locationCountSeries = EnergyEventsCountDataSeries(myProfilerClient.transportClient, STREAM_ID, PID, locationPredicate)
     val wakeLockCountSeries = EnergyEventsCountDataSeries(myProfilerClient.transportClient, STREAM_ID, PID, wakelockPredicate)
     val alarmAndJobCountSeries = EnergyEventsCountDataSeries(myProfilerClient.transportClient, STREAM_ID, PID, alarmAndJobPredicate)
