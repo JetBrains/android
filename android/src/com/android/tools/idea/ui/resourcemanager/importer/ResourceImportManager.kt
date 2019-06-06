@@ -31,6 +31,10 @@ import java.nio.file.InvalidPathException
 import javax.swing.JComponent
 import kotlin.streams.asSequence
 
+/**
+ * Constant used in the file chooser to save the last used location and re-open
+ * it the next time the chooser is used.
+ */
 private const val PREFERENCE_LAST_SELECTED_DIRECTORY = "resourceExplorer.lastChosenDirectory"
 
 /**

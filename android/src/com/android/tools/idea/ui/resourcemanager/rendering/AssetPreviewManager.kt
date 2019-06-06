@@ -26,7 +26,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 
 /**
- * An [AssetPreviewManager] is used to manage [AssetIconProvider] and return the
+ * An [AssetPreviewManager] is used to manage [AssetIconProvider] and returns the
  * correct one for a given [ResourceType].
  * @see AssetPreviewManagerImpl
  */
@@ -57,6 +57,7 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) :
    * Returns an [AssetIconProvider] for [ResourceType.COLOR], [ResourceType.DRAWABLE], [ResourceType.LAYOUT]
    */
   override fun getPreviewProvider(resourceType: ResourceType): AssetIconProvider =
+    // TODO Use a more flexible approach to also support String and dimens.
     when (resourceType) {
       ResourceType.COLOR -> colorPreviewProvider
       ResourceType.DRAWABLE,
