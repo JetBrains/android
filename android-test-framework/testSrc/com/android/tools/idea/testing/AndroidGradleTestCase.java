@@ -156,6 +156,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   public void setUp() throws Exception {
     super.setUp();
 
+    IdeaTestApplication.getInstance();
+    ensureSdkManagerAvailable();
+    // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
+    ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
+
     if (createDefaultProject()) {
       TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
         IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName(), true /* .idea directory based project */);
@@ -170,15 +175,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       setUpSdks(project);
       myModules = new Modules(project);
     }
-    else {
-      // This is necessary when we don't create a default project,
-      // to ensure that the LocalFileSystemHolder is initialized.
-      IdeaTestApplication.getInstance();
-
-      ensureSdkManagerAvailable();
-    }
-    // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
-    ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
   }
 
   protected void setUpSdks(@NotNull Project project) {
