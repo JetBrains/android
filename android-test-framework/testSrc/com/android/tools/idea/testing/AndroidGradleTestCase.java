@@ -35,9 +35,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static com.intellij.testFramework.PlatformTestCase.synchronizeTempDirVfs;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.tools.idea.IdeInfo;
@@ -50,8 +48,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -308,44 +304,17 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     Project project = getProject();
     importProject(project.getName(), getBaseDirPath(project));
 
+    prepareProjectForTest(project, chosenModuleName);
+  }
+
+  private void prepareProjectForTest(Project project, @Nullable String chosenModuleName) {
     AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(project);
     assertTrue(androidProjectInfo.requiresAndroidModel());
     assertFalse(androidProjectInfo.isLegacyIdeaAndroidProject());
 
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    Module[] modules = moduleManager.getModules();
+    Module[] modules = ModuleManager.getInstance(project).getModules();
 
-    // if module name is specified, find it
-    if (chosenModuleName != null) {
-      for (Module module : modules) {
-        if (chosenModuleName.equals(module.getName())) {
-          myAndroidFacet = AndroidFacet.getInstance(module);
-          break;
-        }
-      }
-    }
-
-    if (myAndroidFacet == null) {
-      // then try and find a non-lib facet
-      for (Module module : modules) {
-        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet != null && androidFacet.getConfiguration().isAppProject()) {
-          myAndroidFacet = androidFacet;
-          break;
-        }
-      }
-    }
-
-    // then try and find ANY android facet
-    if (myAndroidFacet == null) {
-      for (Module module : modules) {
-        myAndroidFacet = AndroidFacet.getInstance(module);
-        if (myAndroidFacet != null) {
-          break;
-        }
-      }
-    }
-    refreshProjectFiles();
+    myAndroidFacet = AndroidGradleTests.findAndroidFacetForTests(modules, chosenModuleName);
   }
 
   /**
@@ -484,14 +453,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void createGradleWrapper(@NotNull File projectRoot) throws IOException {
-    createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
-  }
-
-  protected void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
-    GradleWrapper wrapper = GradleWrapper.create(projectRoot);
-    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
-    assertAbout(file()).that(path).named("Gradle distribution path").isFile();
-    wrapper.updateDistributionUrl(path);
+    AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
   }
 
   protected void importProject(@NotNull String projectName,
@@ -543,6 +505,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     if (syncListener.failureMessage != null) {
       fail(syncListener.failureMessage);
     }
+    refreshProjectFiles();
   }
 
   @NotNull

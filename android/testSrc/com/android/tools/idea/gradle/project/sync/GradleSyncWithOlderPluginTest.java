@@ -39,6 +39,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
 import static org.mockito.Mockito.mock;
 
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -92,7 +93,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
 
   @Override
   protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
-    createGradleWrapper(projectRoot, myTestSettings.gradleVersion);
+    AndroidGradleTests.createGradleWrapper(projectRoot, myTestSettings.gradleVersion);
   }
 
   @Override

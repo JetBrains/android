@@ -113,7 +113,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     });
   }
 
-  public void refreshProjectFiles() {
+  public static void refreshProjectFiles() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
       // With IJ14 code base, we run tests with NO_FS_ROOTS_ACCESS_CHECK turned on. I'm not sure if that
       // is the cause of the issue, but not all files inside a project are seen while running unit tests.
