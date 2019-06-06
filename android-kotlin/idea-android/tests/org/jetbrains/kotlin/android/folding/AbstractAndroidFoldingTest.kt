@@ -25,7 +25,6 @@ abstract class AbstractAndroidResourceFoldingTest : KotlinAndroidTestCase() {
     fun doTest(path: String) {
         val testFile = File(path)
         myFixture.copyFileToProject("${testFile.parent}/values.xml", "res/values/values.xml")
-        myFixture.copyFileToProject("${testFile.parent}/R.java", "gen/com/myapp/R.java")
         myFixture.testFoldingWithCollapseStatus("$testDataPath/$path", "${myFixture.tempDirPath}/src/main.kt")
     }
 }
