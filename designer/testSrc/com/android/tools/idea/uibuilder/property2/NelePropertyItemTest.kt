@@ -54,6 +54,8 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.command.impl.UndoManagerImpl
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -76,6 +78,7 @@ import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.Color
 
@@ -559,13 +562,39 @@ class NelePropertyItemTest {
     componentStack!!.registerComponentImplementation(FileEditorManager::class.java, fileManager)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
     Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
-      .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
+      .thenReturn(listOf(mock(FileEditor::class.java)))
 
     property.helpSupport.browse()
     Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
     val descriptor = file.value
     assertThat(descriptor.file.name).isEqualTo("styles_material.xml")
     assertThat(findLineAtOffset(descriptor.file, descriptor.offset)).isEqualTo("<style name=\"TextAppearance.Material.Display2\">")
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSetValueIgnoredDuringUndo() {
+    val undoManager = mock(UndoManagerImpl::class.java)
+    componentStack!!.registerComponentImplementation(UndoManager::class.java, undoManager)
+    `when`(undoManager.isUndoInProgress).thenReturn(true)
+
+    val util = SupportTestUtil(projectRule, createTextView())
+    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
+    property.value = HELLO_WORLD
+    assertThat(property.value).isEqualTo("@string/demo")
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSetValueIgnoredDuringRedo() {
+    val undoManager = mock(UndoManagerImpl::class.java)
+    componentStack!!.registerComponentImplementation(UndoManager::class.java, undoManager)
+    `when`(undoManager.isRedoInProgress).thenReturn(true)
+
+    val util = SupportTestUtil(projectRule, createTextView())
+    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
+    property.value = HELLO_WORLD
+    assertThat(property.value).isEqualTo("@string/demo")
   }
 
   private fun createTextView(): ComponentDescriptor =
