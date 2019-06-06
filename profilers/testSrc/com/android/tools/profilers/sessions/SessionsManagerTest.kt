@@ -369,7 +369,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
     myMemoryService.setMemoryData(allocationInfos)
     if (useUnifiedEvents) {
-      myTransportService.addEventToEventGroup(device.deviceId, Common.Event.newBuilder()
+      myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
         .setGroupId(session1Timestamp + cpuTraceTimestamp)
         .setPid(session1.getPid())
         .setKind(Common.Event.Kind.CPU_TRACE)
@@ -378,7 +378,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
         .setCpuTrace(Cpu.CpuTraceData.newBuilder()
                        .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
         .build())
-      myTransportService.addEventToEventGroup(device.deviceId, Common.Event.newBuilder()
+      myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
         .setGroupId(session2Timestamp + cpuTraceTimestamp)
         .setPid(session2.getPid())
         .setKind(Common.Event.Kind.CPU_TRACE)
@@ -471,7 +471,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     val cpuTraceTimestamp = 20L
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
     if (useUnifiedEvents) {
-      myTransportService.addEventToEventGroup(device.deviceId, Common.Event.newBuilder()
+      myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
         .setGroupId(cpuTraceTimestamp)
         .setPid(process1.getPid())
         .setKind(Common.Event.Kind.CPU_TRACE)
