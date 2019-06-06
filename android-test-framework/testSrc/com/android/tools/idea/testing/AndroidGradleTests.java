@@ -16,17 +16,27 @@
 package com.android.tools.idea.testing;
 
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.ui.UIUtil;
+import junit.framework.TestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,9 +57,12 @@ import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
 public class AndroidGradleTests {
+  private static final Logger LOG = Logger.getInstance(AndroidGradleTests.class);
   private static final Pattern REPOSITORIES_PATTERN = Pattern.compile("repositories[ ]+\\{");
   private static final Pattern GOOGLE_REPOSITORY_PATTERN = Pattern.compile("google\\(\\)");
   private static final Pattern JCENTER_REPOSITORY_PATTERN = Pattern.compile("jcenter\\(\\)");
@@ -294,5 +307,42 @@ public class AndroidGradleTests {
       }
     }
     return testAndroidFacet;
+  }
+
+  public static void setUpSdks(@NotNull JavaCodeInsightTestFixture fixture, @NotNull File androidSdkPath) {
+    @NotNull Project project = fixture.getProject();
+    // We seem to have two different locations where the SDK needs to be specified.
+    // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
+    // Gradle import will fail if the global one isn't set.
+
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    runWriteCommandAction(project, () -> {
+      if (IdeInfo.getInstance().isAndroidStudio()) {
+        ideSdks.setUseEmbeddedJdk();
+        LOG.info("Set JDK to " + ideSdks.getJdkPath());
+      }
+
+      Sdks.allowAccessToSdk(fixture.getProjectDisposable());
+      ideSdks.setAndroidSdkPath(androidSdkPath, project);
+      IdeSdks.removeJdksOn(fixture.getProjectDisposable());
+
+      LOG.info("Set IDE Sdk Path to " + androidSdkPath);
+    });
+
+    Sdk currentJdk = ideSdks.getJdk();
+    TestCase.assertNotNull(currentJdk);
+    TestCase.assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), Jdks.getInstance().isApplicableJdk(currentJdk, JDK_1_8));
+
+    // IntelliJ uses project jdk for gradle import by default, see GradleProjectSettings.myGradleJvm
+    // Android Studio overrides GradleInstallationManager.getGradleJdk() using AndroidStudioGradleInstallationManager
+    // so it doesn't require the Gradle JDK setting to be defined
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      new WriteAction() {
+        @Override
+        protected void run(@NotNull Result result) {
+          ProjectRootManager.getInstance(project).setProjectSdk(currentJdk);
+        }
+      }.execute();
+    }
   }
 }
