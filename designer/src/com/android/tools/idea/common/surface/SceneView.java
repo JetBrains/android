@@ -34,6 +34,7 @@ import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -205,9 +206,10 @@ public abstract class SceneView {
   }
 
   @Nullable
-  public Cursor getCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
-    SceneContext.get(this).setMouseLocation(x, y);
-    getScene().mouseHover(SceneContext.get(this), Coordinates.getAndroidXDip(this, x), Coordinates.getAndroidYDip(this, y));
+  public Cursor getCursor(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifier) {
+    SceneContext context = SceneContext.get(this);
+    context.setMouseLocation(x, y);
+    getScene().mouseHover(context, Coordinates.getAndroidXDip(this, x), Coordinates.getAndroidYDip(this, y), modifier);
     return getScene().getMouseCursor();
   }
 
