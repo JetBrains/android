@@ -21,19 +21,19 @@ import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Transport.EventGroup
 
 /**
- * This class handles end session commands by finding the group a begin session command created then adding a session ended event to that
- * group.
+ * This class handles end session commands by finding the begin session event created then adding a session ended event to to list.
  */
 class EndSession(timer: FakeTimer) : CommandHandler(timer) {
-  override fun handleCommand(command: Command, events: MutableList<EventGroup.Builder>) {
-    val group = events.find { it.groupId == command.endSession.sessionId }!!
-    val previous_pid = group.getEvents(0).pid
-    group.addEvents(Common.Event.newBuilder().apply {
-      pid = previous_pid
-      groupId = command.endSession.sessionId
-      kind = Common.Event.Kind.SESSION
-      isEnded = true
-      timestamp = timer.currentTimeNs
-    })
+  override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
+    val beginEvent = events.find { it.groupId == command.endSession.sessionId && it.kind == Common.Event.Kind.SESSION }
+    beginEvent?.let {
+      events.add(Common.Event.newBuilder().apply {
+        pid = it.pid
+        groupId = command.endSession.sessionId
+        kind = Common.Event.Kind.SESSION
+        isEnded = true
+        timestamp = timer.currentTimeNs
+      }.build())
+    }
   }
 }

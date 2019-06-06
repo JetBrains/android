@@ -55,9 +55,9 @@ public class DetailedMemoryUsageTest {
 
     // insert memory data for new pipeline.
     for (int i = 0; i < 10; i++) {
-      myService.addEventToEventGroup(STREAM_ID,
-                                     // Space out the data by 10 seconds to work around the 1 second buffer in UnifiedEventDataSeries.
-                                     ProfilersTestData.generateMemoryUsageData(
+      myService.addEventToStream(STREAM_ID,
+                                 // Space out the data by 10 seconds to work around the 1 second buffer in UnifiedEventDataSeries.
+                                 ProfilersTestData.generateMemoryUsageData(
                                        TimeUnit.SECONDS.toMicros(i * 10),
                                        Memory.MemoryUsageData.newBuilder()
                                          .setTotalMem(i * 10)
@@ -100,7 +100,7 @@ public class DetailedMemoryUsageTest {
     range.set(TimeUnit.SECONDS.toMicros(-50), TimeUnit.SECONDS.toMicros(45));
     for (int i = 0; i < allSeries.size(); i++) {
       List<SeriesData<Long>> series = allSeries.get(i).getSeries();
-      Truth.assertThat(series.size()).isEqualTo(5);
+      Truth.assertThat(series.size()).isEqualTo(6);
       for (int j = 0; j < series.size(); j++) {
         Truth.assertThat(series.get(j).value).isEqualTo(j * 10 + i);
       }

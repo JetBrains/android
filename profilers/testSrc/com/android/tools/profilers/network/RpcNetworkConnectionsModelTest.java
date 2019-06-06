@@ -115,11 +115,11 @@ public class RpcNetworkConnectionsModelTest {
         // Add the http connection events
         EventGroup group = generateNetworkConnectionData(data).build();
         for (Common.Event event : group.getEventsList()) {
-          myTransportService.addEventToEventGroup(0, event);
+          myTransportService.addEventToStream(0, event);
         }
 
         // Add the thread data associated with the connection events.
-        myTransportService.addEventToEventGroup(0, generateNetworkThreadData(data).build());
+        myTransportService.addEventToStream(0, generateNetworkThreadData(data).build());
       }
     }
     else {
