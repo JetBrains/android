@@ -27,6 +27,7 @@ import com.android.tools.property.panel.impl.support.TextEditorFocusListener
 import com.intellij.ide.actions.UndoRedoAction
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.EventQueue
@@ -36,6 +37,7 @@ import java.awt.event.MouseEvent
 import javax.swing.ComboBoxEditor
 import javax.swing.JComponent
 import javax.swing.JList
+import javax.swing.JPanel
 import javax.swing.ListCellRenderer
 import javax.swing.SwingUtilities
 import javax.swing.event.PopupMenuEvent
@@ -47,10 +49,11 @@ import javax.swing.plaf.basic.ComboPopup
  *
  * This control will act as a ComboBox or a DropDown depending on the model.
  */
-class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Boolean): CellPanel() {
+class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Boolean): JPanel(BorderLayout()) {
   private val comboBox = WrappedComboBox(model, asTableCellEditor)
 
   init {
+    background = secondaryPanelBackground
     add(comboBox, BorderLayout.CENTER)
   }
 
@@ -128,6 +131,8 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
   override fun updateFromModel() {
     super.updateFromModel()
     isVisible = model.visible
+    foreground = model.displayedForeground(UIUtil.getLabelForeground())
+    background = model.displayedBackground(secondaryPanelBackground)
     if (model.focusRequest && !isFocusOwner) {
       requestFocusInWindow()
     }

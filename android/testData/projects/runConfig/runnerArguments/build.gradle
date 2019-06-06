@@ -2,6 +2,12 @@ buildscript {
   dependencies {
     classpath 'com.android.tools.build:gradle:2.2.0'
   }
+
+  allprojects {
+    repositories {
+      // This will be populated by AndroidGradleTestCase
+    }
+  }
 }
 
 apply plugin: 'com.android.application'
@@ -16,4 +22,8 @@ android {
     targetSdkVersion 23
     testInstrumentationRunnerArguments size:"medium", foo:"bar"
   }
+}
+
+dependencies {
+  androidTestImplementation 'junit:junit:4.12'
 }

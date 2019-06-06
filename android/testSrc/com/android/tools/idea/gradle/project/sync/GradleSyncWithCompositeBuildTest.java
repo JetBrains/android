@@ -74,7 +74,7 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
   // Copy included projects, update wrapper and gradle files for included projects.
   private void prepareCompositeProject() throws IOException {
     File testDataRoot = new File(getTestDataPath(), toSystemDependentName(COMPOSITE_BUILD));
-    File projectRoot = virtualToIoFile(myFixture.getProject().getBaseDir());
+    File projectRoot = new File(toSystemDependentName(myFixture.getProject().getBasePath()));
 
     List<String> includedProjects = asList("TestCompositeLib1", "TestCompositeLib2", "TestCompositeLib3", "TestCompositeLib4");
     for (String includedProject : includedProjects) {

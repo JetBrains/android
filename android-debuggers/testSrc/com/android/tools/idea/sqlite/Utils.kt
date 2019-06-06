@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 object Utils {
   fun <V> pumpEventsAndWaitForFuture(future: ListenableFuture<V>): V {
     try {
-      return FutureUtils.pumpEventsAndWaitForFuture(future, ResultSetControllerTest.TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+      return FutureUtils.pumpEventsAndWaitForFuture(future, SqliteJdbcServiceTest.TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     }
     catch (e: Exception) {
       throw RuntimeException(e)
@@ -32,7 +32,7 @@ object Utils {
 
   fun <V> pumpEventsAndWaitForFutureException(future: ListenableFuture<V>): Throwable {
     try {
-      FutureUtils.pumpEventsAndWaitForFuture(future, ResultSetControllerTest.TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+      FutureUtils.pumpEventsAndWaitForFuture(future, SqliteJdbcServiceTest.TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
       throw RuntimeException("Expected ExecutionException from future, got value instead")
     }
     catch (e: ExecutionException) {

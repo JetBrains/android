@@ -22,6 +22,7 @@ import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileListener
 import com.intellij.openapi.vfs.VirtualFileMoveEvent
 import com.intellij.openapi.vfs.VirtualFilePropertyEvent
+import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -36,18 +37,16 @@ import org.jetbrains.android.facet.AndroidFacet
  *     determining which [AndroidFacet] the affected file corresponds to. It then passes the file
  *     and facet to [isRelevant], which definitively determines whether or not the event was relevant.
  *
- * If an event passes through both filters, the listener responds by passing the affected file and
- * corresponding [AndroidFacet] to [fileChanged].
+ * If an event passes through both filters, the listener responds by passing the path of the affected
+ * file and corresponding [AndroidFacet] to [fileChanged].
  *
- * For VFS events corresponding to file moves or deletions, it can be difficult to determine information
- * about the event after the fact (e.g. if a [VirtualFile] has already been deleted, it's difficult to
- * obtain the [AndroidFacet] it was associated with before the deletion). Instead of calling [fileChanged]
- * in such cases, the listener will call [fileChangePending] before the relevant event takes place to give
- * implementing classes the opportunity to compute and cache any information they need, and then calls
- * [pendingFileChangeComplete] to respond to the pending event once it has completed.
+ * For VFS events corresponding to file moves or deletions, it is difficult to determine which [AndroidFacet]
+ * the file originally belonged to after the event has happened. [PoliteAndroidVirtualFileListener] addresses
+ * this by determining and caching the relevant [AndroidFacet] while such changes are still pending and then
+ * passing the cached facet to [fileChanged] once the pending changes have completed.
  */
 abstract class PoliteAndroidVirtualFileListener(val project: Project) : VirtualFileListener {
-  private val relevantPendingFiles = hashSetOf<PathString>()
+  private val relevantPendingFilesToFacet = ContainerUtil.createWeakValueMap<PathString, AndroidFacet>()
 
   /**
    * Used to fail fast when we can quickly tell that a file has nothing to do with this listener
@@ -65,27 +64,12 @@ abstract class PoliteAndroidVirtualFileListener(val project: Project) : VirtualF
    */
   protected abstract fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean
 
-  /** Handles a relevant virtual file change *after* it's already taken place.*/
-  protected abstract fun fileChanged(file: VirtualFile, facet: AndroidFacet)
-
   /**
-   * Prepares the listener for a relevant virtual file change *before* the change happens.
-   * This function is called in situations where it would be difficult to determine information
-   * about the changed [VirtualFile] after the [VirtualFileEvent] has already taken place. For example,
-   * a [VirtualFile] will no longer be associated with an [AndroidFacet] after it's been deleted,
-   * making it difficult to determine the affected [AndroidFacet] after the fact.
-   *
-   * Implementing classes can use this function to compute and cache such information so that it's
-   * available in [pendingFileChangeComplete] once the virtual file has actually changed.
+   * Handles a relevant virtual file change *after* it's already taken place. Note that
+   * [facet] is the one that was associated with the affected file *before* the change
+   * took place.
    */
-  protected abstract fun fileChangePending(path: PathString, facet: AndroidFacet)
-
-  /**
-   * Called *after* a virtual file change if that change was determined to be relevant before it
-   * actually took place. This function is always preceded by a call to [fileChangePending] for
-   * the same [path].
-   */
-  protected abstract fun pendingFileChangeComplete(path: PathString)
+  protected abstract fun fileChanged(path: PathString, facet: AndroidFacet)
 
   /**
    * Handles a virtual file change *after* it's already taken place if the event was relevant.
@@ -93,25 +77,23 @@ abstract class PoliteAndroidVirtualFileListener(val project: Project) : VirtualF
    */
   protected fun possiblyIrrelevantFileChanged(file: VirtualFile) = runIfRelevant(file, this::fileChanged)
 
-  private inline fun runIfRelevant(file: VirtualFile, block: (VirtualFile, AndroidFacet) -> Unit) {
+  private inline fun runIfRelevant(file: VirtualFile, block: (PathString, AndroidFacet) -> Unit) {
     if (!isPossiblyRelevant(file)) return
     val facet = AndroidFacet.getInstance(file, project) ?: return
     if (isRelevant(file, facet)) {
-      block(file, facet)
+      block(file.toPathString(), facet)
     }
   }
 
   private fun possiblyIrrelevantFileChangePending(file: VirtualFile) {
-    runIfRelevant(file) { _, facet ->
-      val path = file.toPathString()
-      relevantPendingFiles.add(path)
-      fileChangePending(path, facet)
+    runIfRelevant(file) { path, facet ->
+      relevantPendingFilesToFacet[path] = facet
     }
   }
 
   private fun pendingPossiblyIrrelevantFileChangeComplete(path: PathString) {
-    if (relevantPendingFiles.remove(path)) {
-      pendingFileChangeComplete(path)
+    relevantPendingFilesToFacet.remove(path)?.let { facet ->
+      fileChanged(path, facet)
     }
   }
 
@@ -127,6 +109,8 @@ abstract class PoliteAndroidVirtualFileListener(val project: Project) : VirtualF
   override fun beforeFileDeletion(event: VirtualFileEvent) = possiblyIrrelevantFileChangePending(event.file)
 
   override fun fileDeleted(event: VirtualFileEvent) = pendingPossiblyIrrelevantFileChangeComplete(event.file.toPathString())
+
+  override fun contentsChanged(event: VirtualFileEvent) = possiblyIrrelevantFileChanged(event.file)
 
   override fun propertyChanged(event: VirtualFilePropertyEvent) = possiblyIrrelevantFileChanged(event.file)
 

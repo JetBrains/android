@@ -94,6 +94,7 @@ public class NavSceneManager extends SceneManager {
   private final NavScreenTargetProvider myScreenTargetProvider;
   private final NavigationTargetProvider myNavigationTargetProvider;
   private final NavActionTargetProvider myNavActionTargetProvider;
+  private final HitProvider myNavActionSourceHitProvider = new NavActionSourceHitProvider();
   private final HitProvider myNavDestinationHitProvider = new NavDestinationHitProvider();
   private final HitProvider myHorizontalActionHitProvider = new NavHorizontalActionHitProvider();
 
@@ -714,12 +715,13 @@ public class NavSceneManager extends SceneManager {
   @Override
   public HitProvider getHitProvider(@NotNull NlComponent component) {
     if (NavComponentHelperKt.getSupportsActions(component)) {
-      return myNavDestinationHitProvider;
+      return myNavActionSourceHitProvider;
     }
     else if (isHorizontalAction(component)) {
       return myHorizontalActionHitProvider;
     }
-    return super.getHitProvider(component);
+
+    return myNavDestinationHitProvider;
   }
 
   public void performUndoablePositionAction(@NotNull NlComponent component) {

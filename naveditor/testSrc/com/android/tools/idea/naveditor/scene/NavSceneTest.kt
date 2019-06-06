@@ -80,14 +80,14 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
-      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
+      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawNestedGraph,580.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "DrawHeader,580.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
+      "DrawNestedGraph,580.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "\n" +
-      "DrawActivity,400.0x400.0x76.5x128.0,404.0x404.0x68.5x111.0,0.5,ffa7a7a7,1.0,ffa7a7a7\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,activity,false,false\n" +
+      "DrawActivity,400.0x400.0x76.5x128.0,404.0x404.0x68.5x111.0,0.5,ffa7a7a7,1.0,ffa7a7a7\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -115,11 +115,11 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
+      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,navigation.xml,ffa7a7a7\n" +
       "DrawHeader,490.0x389.0x70.0x11.0,0.5,nav,false,false\n" +
+      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,navigation.xml,ffa7a7a7\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -150,14 +150,14 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1127,1128\n" +
-      "DrawFragment,500.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,500.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
+      "DrawFragment,500.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,400.0x500.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x489.0x76.5x11.0,0.5,fragment2,false,false\n" +
+      "DrawFragment,400.0x500.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,650.0x600.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,650.0x589.0x76.5x11.0,0.5,fragment3,false,false\n" +
+      "DrawFragment,650.0x600.0x76.5x128.0,0.5,null\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -188,14 +188,14 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1127,1128\n" +
-      "DrawFragment,500.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,500.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
+      "DrawFragment,500.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,400.0x500.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x489.0x76.5x11.0,0.5,fragment2,false,false\n" +
+      "DrawFragment,400.0x500.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,650.0x600.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,650.0x589.0x76.5x11.0,0.5,fragment3,false,false\n" +
+      "DrawFragment,650.0x600.0x76.5x128.0,0.5,null\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -234,14 +234,14 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
-      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
+      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment2,true,false\n" +
+      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,580.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,580.0x389.0x76.5x11.0,0.5,fragment3,false,false\n" +
+      "DrawFragment,580.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -271,9 +271,9 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,877,928\n" +
+      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,480.5x461.0x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -291,11 +291,11 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
-      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
+      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment2,true,false\n" +
+      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -343,15 +343,15 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,490.0x400.0x76.5x128.0,580.0x400.0x76.5x128.0,b2a7a7a7\n" +
       "DrawArrow,0,RIGHT,571.0x461.0x5.0x6.0,b2a7a7a7\n" +
       "\n" +
-      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
+      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
+      "DrawHeader,580.0x389.0x76.5x11.0,0.5,fragment2,true,false\n" +
       "DrawFragment,580.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,660.5x461.0x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,580.0x389.0x76.5x11.0,0.5,fragment2,true,false\n" +
       "\n" +
-      "DrawNestedGraph,400.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "DrawHeader,400.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
+      "DrawNestedGraph,400.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -372,12 +372,12 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
-      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment3,false,false\n" +
+      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
+      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment4,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,480.5x461.0x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment4,false,false\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -397,8 +397,8 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,877,928\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
+      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -455,11 +455,11 @@ class NavSceneTest : NavTestCase() {
       "\n" +
       "DrawArrow,0,UP,457.5x532.0x6.0x5.0,b2a7a7a7\n" +
       "DrawSelfAction,476.5x464.0,460.5x536.0,b2a7a7a7\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
+      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "DrawHeader,490.0x389.0x70.0x11.0,0.5,nav1,false,false\n" +
+      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -481,8 +481,8 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,877,928\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,true\n" +
+      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -512,12 +512,12 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "DrawHeader,490.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
+      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "\n" +
+      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,384.0x461.0x12.0x6.0,ff1886f7,false\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -531,13 +531,13 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
+      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,384.0x461.0x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
       "\n" +
+      "DrawHeader,490.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
       "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ff1886f7,2.0,Nested Graph,ff1886f7\n" +
       "DrawActionHandle,560.0x409.5,0.0,3.5,0.0,2.5,127,ff1886f7,fff5f5f5\n" +
-      "DrawHeader,490.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -551,13 +551,13 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
+      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,ff1886f7\n" +
       "DrawHorizontalAction,384.0x461.0x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
       "\n" +
+      "DrawHeader,490.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
       "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ff1886f7,2.0,Nested Graph,ff1886f7\n" +
       "DrawActionHandle,560.0x409.5,3.5,0.0,2.5,0.0,127,ff1886f7,fff5f5f5\n" +
-      "DrawHeader,490.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -590,13 +590,13 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
+      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,ffa7a7a7\n" +
       "DrawHorizontalAction,384.0x461.0x12.0x6.0,b2a7a7a7,false\n" +
       "DrawActionHandle,478.5x464.0,0.0,3.5,0.0,2.5,127,ffa7a7a7,fff5f5f5\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "DrawHeader,490.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
+      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -610,13 +610,13 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
+      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,384.0x461.0x12.0x6.0,b2a7a7a7,false\n" +
       "DrawActionHandle,478.5x464.0,3.5,0.0,2.5,0.0,127,ffa7a7a7,fff5f5f5\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "DrawHeader,490.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
+      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -630,12 +630,12 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
+      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,384.0x461.0x12.0x6.0,ffa7a7a7,false\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "DrawHeader,490.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
+      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -663,9 +663,9 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,877,928\n" +
+      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,ffa7a7a7\n" +
       "DrawActionHandle,478.5x464.0,0.0,5.5,0.0,4.0,200,ffa7a7a7,fff5f5f5\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -710,13 +710,13 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ff1886f7,2.0,Nested Graph,ffa7a7a7\n" +
       "DrawHeader,490.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
+      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ff1886f7,2.0,Nested Graph,ffa7a7a7\n" +
       "\n" +
+      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,ff1886f7\n" +
       "DrawHorizontalAction,384.0x461.0x12.0x6.0,b2a7a7a7,false\n" +
       "DrawActionHandleDrag,478.5x464.0,0.0,3.5,2.5,127\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -808,22 +808,22 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,580.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
+      "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,474.0x461.0x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "\n" +
       "DrawArrow,0,UP,637.5x532.0x6.0x5.0,b2a7a7a7\n" +
       "DrawSelfAction,656.5x464.0,640.5x536.0,b2a7a7a7\n" +
+      "DrawHeader,580.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
       "DrawFragment,580.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,564.0x452.0x12.0x6.0,b2a7a7a7,false\n" +
       "DrawHorizontalAction,564.0x461.0x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,580.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
       "\n" +
+      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment3,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,384.0x443.0x12.0x6.0,b2a7a7a7,false\n" +
       "DrawHorizontalAction,384.0x452.0x12.0x6.0,b2a7a7a7,false\n" +
       "DrawHorizontalAction,384.0x470.0x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment3,false,false\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -853,11 +853,11 @@ class NavSceneTest : NavTestCase() {
       "DrawArrow,0,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7\n" +
       "DrawIcon,478.0x453.0x8.0x8.0,POP_ACTION,b2a7a7a7\n" +
       "\n" +
-      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
+      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
+      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -916,30 +916,30 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,400.0x520.0x76.5x128.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,525.25x532.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
+      "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,570.5x461.0x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
       "\n" +
+      "DrawHeader,580.0x389.0x76.5x11.0,0.5,fragment3,false,false\n" +
       "DrawFragment,580.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,660.5x452.0x12.0x6.0,b2a7a7a7,false\n" +
       "DrawHorizontalAction,660.5x461.0x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,580.0x389.0x76.5x11.0,0.5,fragment3,false,false\n" +
       "\n" +
+      "DrawHeader,400.0x509.0x76.5x11.0,0.5,fragment4,false,false\n" +
       "DrawFragment,400.0x520.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,480.5x563.0x12.0x6.0,b2a7a7a7,false\n" +
       "DrawHorizontalAction,480.5x572.0x12.0x6.0,b2a7a7a7,false\n" +
       "DrawHorizontalAction,480.5x590.0x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,400.0x509.0x76.5x11.0,0.5,fragment4,false,false\n" +
       "\n" +
       "DrawArrow,0,UP,547.5x682.0x6.0x5.0,b2a7a7a7\n" +
       "DrawSelfAction,566.5x614.0,550.5x686.0,b2a7a7a7\n" +
+      "DrawHeader,490.0x539.0x76.5x11.0,0.5,fragment5,false,false\n" +
       "DrawFragment,490.0x550.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,570.5x602.0x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,490.0x539.0x76.5x11.0,0.5,fragment5,false,false\n" +
       "\n" +
+      "DrawHeader,400.0x389.0x70.0x11.0,0.5,nav2,false,false\n" +
       "DrawNestedGraph,400.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "DrawHorizontalAction,474.0x406.5x12.0x6.0,b2a7a7a7,false\n" +
-      "DrawHeader,400.0x389.0x70.0x11.0,0.5,nav2,false,false\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -1054,17 +1054,17 @@ class NavSceneTest : NavTestCase() {
       "DrawAction,490.0x400.0x76.5x128.0,400.0x430.0x70.0x19.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,432.0x453.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
-      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
+      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,580.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,580.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
+      "DrawFragment,580.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawNestedGraph,400.0x430.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "DrawHeader,400.0x419.0x70.0x11.0,0.5,nav1,false,false\n" +
+      "DrawNestedGraph,400.0x430.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "\n" +
-      "DrawNestedGraph,400.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "DrawHeader,400.0x389.0x70.0x11.0,0.5,nav2,false,false\n" +
+      "DrawNestedGraph,400.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -1104,8 +1104,8 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,877,928\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
+      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -1124,24 +1124,24 @@ class NavSceneTest : NavTestCase() {
 
   fun testZoomIn() {
     zoomTest(3.0, "Clip,0,0,5259,5568\n" +
-                  "DrawFragment,2400.0x2400.0x459.0x768.0,3.0,null\n" +
                   "DrawHeader,2400.0x2334.0x459.0x66.0,3.0,fragment1,false,false\n" +
+                  "DrawFragment,2400.0x2400.0x459.0x768.0,3.0,null\n" +
                   "\n" +
                   "UNClip\n")
   }
 
   fun testZoomOut() {
     zoomTest(0.25, "Clip,0,0,438,464\n" +
-                   "DrawFragment,200.0x200.0x38.25x64.0,0.25,null\n" +
                    "DrawHeader,200.0x194.5x38.25x5.5,0.25,fragment1,false,false\n" +
+                   "DrawFragment,200.0x200.0x38.25x64.0,0.25,null\n" +
                    "\n" +
                    "UNClip\n")
   }
 
   fun testZoomToFit() {
     zoomTest(1.0, "Clip,0,0,1753,1856\n" +
-                  "DrawFragment,800.0x800.0x153.0x256.0,1.0,null\n" +
                   "DrawHeader,800.0x778.0x153.0x22.0,1.0,fragment1,false,false\n" +
+                  "DrawFragment,800.0x800.0x153.0x256.0,1.0,null\n" +
                   "\n" +
                   "UNClip\n")
   }
@@ -1161,8 +1161,8 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,877,928\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
+      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -1205,8 +1205,8 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,877,928\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,customComponent,false,false\n" +
+      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )

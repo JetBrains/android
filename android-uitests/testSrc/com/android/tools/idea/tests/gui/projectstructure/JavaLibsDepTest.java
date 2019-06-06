@@ -76,7 +76,7 @@ public class JavaLibsDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void multiJavaLibraries() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK, DependenciesTestUtil.LANGUAGE_JAVA);
 
     DependenciesTestUtil.createJavaModule(ideFrame); // default name: lib
     DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_1, "app", "API");

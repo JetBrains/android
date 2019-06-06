@@ -15,13 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.tools.idea.common.model.NlComponent;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
 /**
  * Types of fill behavior that views can state that they prefer.
  */
@@ -43,13 +36,6 @@ public enum FillPolicy {
   WIDTH_IN_VERTICAL,
   /** This view wants to fill vertically, but only in a horizontal context */
   HEIGHT_IN_HORIZONTAL;
-
-  static final Map<String, FillPolicy> ourNameToPolicy = new HashMap<String, FillPolicy>();
-  static {
-    for (FillPolicy pref : FillPolicy.values()) {
-      ourNameToPolicy.put(pref.toString().toLowerCase(Locale.US), pref);
-    }
-  }
 
   /**
    * Returns true if this view wants to fill horizontally, if the context is
@@ -73,28 +59,5 @@ public enum FillPolicy {
    */
   public boolean fillVertically(boolean inVerticalContext) {
     return (this == BOTH || this == HEIGHT || (!inVerticalContext && (this == OPPOSITE || this == HEIGHT_IN_HORIZONTAL)));
-  }
-
-  public static FillPolicy get(String fill) {
-    FillPolicy fillPolicy = null;
-    if (!fill.isEmpty()) {
-      fillPolicy = ourNameToPolicy.get(fill);
-    }
-    if (fillPolicy == null) {
-      fillPolicy = NONE;
-    }
-
-    return fillPolicy;
-  }
-
-  /**
-   * Returns the {@link com.android.tools.idea.designer.ResizePolicy} for the given component
-   *
-   * @param component the component to look up a resize policy for
-   * @return a suitable {@linkplain com.android.tools.idea.designer.ResizePolicy}
-   */
-  @NotNull
-  public static FillPolicy getFillPreference(@NotNull NlComponent component) {
-    return BOTH;
   }
 }

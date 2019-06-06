@@ -332,11 +332,6 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     }
 
     @Override
-    public String getDescription() {
-      return null;
-    }
-
-    @Override
     public String getFullName() {
       return null;
     }

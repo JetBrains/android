@@ -16,8 +16,10 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.LerpEllipse
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
@@ -113,5 +115,11 @@ fun makeCircleLerp(center: Point2D.Float, initialRadius: Float, finalRadius: Flo
   val initialCircle = makeCircle(center, initialRadius)
   val finalCircle = makeCircle(center, finalRadius)
   return LerpEllipse(initialCircle, finalCircle, duration)
+}
+
+@SwingCoordinate
+fun getHeaderRect(view: SceneView, rectangle: Rectangle2D.Float): Rectangle2D.Float {
+  @SwingCoordinate val height = Coordinates.getSwingDimensionDip(view, HEADER_HEIGHT)
+  return Rectangle2D.Float(rectangle.x, rectangle.y - height, rectangle.width, height)
 }
 

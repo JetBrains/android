@@ -20,6 +20,13 @@ import static com.android.tools.idea.gradle.project.sync.ng.ModuleNameGenerator.
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.TASK;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.isIdeaTask;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
+import static org.jetbrains.plugins.gradle.util.GradleUtil.getConfigPath;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
@@ -51,20 +58,32 @@ import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
+import com.intellij.openapi.externalSystem.model.internal.InternalExternalProjectInfo;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.GradleTask;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -84,7 +103,6 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
   @NotNull private final JavaModuleModelFactory myJavaModuleModelFactory;
   @NotNull private final ExtraGradleSyncModelsManager myExtraModelsManager;
   @NotNull private final IdeDependenciesFactory myDependenciesFactory;
-  @NotNull private final ProjectDataNodeSetup myProjectDataNodeSetup;
   @NotNull private final ModuleFinder.Factory myModuleFinderFactory;
   @NotNull private final CompositeBuildDataSetup myCompositeBuildDataSetup;
   @NotNull private final BuildScriptClasspathSetup myBuildScriptClasspathSetup;
@@ -107,7 +125,6 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
                          @NotNull CachedProjectModels.Factory cachedProjectModelsFactory,
                          @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                          @NotNull JavaModuleModelFactory javaModuleModelFactory,
-                         @NotNull ProjectDataNodeSetup projectDataNodeSetup,
                          @NotNull ModuleSetupContext.Factory moduleSetupFactory,
                          @NotNull ModuleFinder.Factory moduleFinderFactory,
                          @NotNull CompositeBuildDataSetup compositeBuildDataSetup,
@@ -127,7 +144,6 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     myJavaModuleModelFactory = javaModuleModelFactory;
     myExtraModelsManager = extraModelsManager;
     myDependenciesFactory = dependenciesFactory;
-    myProjectDataNodeSetup = projectDataNodeSetup;
     myModuleFinderFactory = moduleFinderFactory;
     myCompositeBuildDataSetup = compositeBuildDataSetup;
     myBuildScriptClasspathSetup = buildScriptClasspathSetup;
@@ -147,7 +163,6 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     // Ensure unique module names.
     deduplicateModuleNames(projectModels, myProject);
     createAndSetUpModules(projectModels, cache);
-    myProjectDataNodeSetup.setupProjectDataNode(projectModels, myProject);
     myAndroidModuleProcessor.processAndroidModels(myAndroidModules);
     myProjectCleanup.cleanUpProject(myProject, myModelsProvider, indicator);
     myModuleDisposer.disposeObsoleteModules(indicator);
@@ -179,10 +194,16 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     List<ModuleSetupInfo> moduleSetupInfos = new ArrayList<>();
 
     String projectRootFolderPath = nullToEmpty(myProject.getBasePath());
+    ProjectData projectData = new ProjectData(SYSTEM_ID, myProject.getName(), projectRootFolderPath, projectRootFolderPath);
+    DataNode<ProjectData> projectDataNode = new DataNode<>(ProjectKeys.PROJECT, projectData, null);
 
     ModuleFinder moduleFinder = myModuleFinderFactory.create(myProject);
     for (GradleModuleModels moduleModels : projectModels.getModuleModels()) {
       Module module = myModuleFactory.createModule(moduleModels);
+      DataNode<ModuleData> moduleData = createModuleDataNode(moduleModels, projectDataNode, myProject);
+      createTaskDataNode(moduleModels, moduleData);
+      ExternalSystemModulePropertyManager.getInstance(module)
+        .setExternalOptions(moduleData.getData().getOwner(), moduleData.getData(), projectDataNode.getData());
 
       // This is needed by GradleOrderEnumeratorHandler#addCustomModuleRoots. Without this option, sync will fail.
       //noinspection deprecation
@@ -203,6 +224,12 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
       moduleFinder.addModule(module, gradleProject.getPath());
       moduleSetupInfos.add(new ModuleSetupInfo(module, moduleModels, cachedModels));
     }
+
+    // Link to external project.
+    InternalExternalProjectInfo projectInfo = new InternalExternalProjectInfo(SYSTEM_ID, projectRootFolderPath, projectDataNode);
+    //noinspection deprecation
+    ProjectDataManager.getInstance().updateExternalProjectData(myProject, projectInfo);
+
 
     SetupContextByModuleModel setupContextByModuleModel = new SetupContextByModuleModel();
     // First, create all ModuleModels based on GradleModuleModels.
@@ -330,5 +357,51 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
 
   private void removeNdkFacetFrom(@NotNull Module module) {
     removeAllFacets(myModelsProvider.getModifiableFacetModel(module), NdkFacet.getFacetTypeId());
+  }
+
+  @NotNull
+  private static DataNode<ModuleData> createModuleDataNode(@NotNull GradleModuleModels moduleModels,
+                                                           @NotNull DataNode<ProjectData> projectDataNode,
+                                                           @NotNull Project project) {
+    GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
+    assert gradleProject != null;
+
+    String moduleConfigPath;
+    try {
+      moduleConfigPath = toCanonicalPath(gradleProject.getProjectDirectory().getCanonicalPath());
+    }
+    catch (IOException e) {
+      moduleConfigPath = getConfigPath(gradleProject, projectDataNode.getData().getLinkedExternalProjectPath());
+    }
+
+    String moduleName = moduleModels.getModuleName();
+    String gradlePath = gradleProject.getPath();
+    String moduleId = isEmpty(gradlePath) || ":".equals(gradlePath) ? moduleName : gradlePath;
+    String typeId = StdModuleTypes.JAVA.getId();
+    ModuleData moduleData = new ModuleData(moduleId, SYSTEM_ID, typeId, moduleName, moduleConfigPath, moduleConfigPath);
+    moduleData.setDescription(gradleProject.getDescription());
+    return projectDataNode.createChild(MODULE, moduleData);
+  }
+
+  private static void createTaskDataNode(@NotNull GradleModuleModels moduleModels,
+                                         @NotNull DataNode<ModuleData> moduleData) {
+    GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
+    assert gradleProject != null;
+    for (GradleTask task : gradleProject.getTasks()) {
+      String taskName = task.getName();
+      String taskGroup;
+      try {
+        taskGroup = task.getGroup();
+      }
+      catch (UnsupportedMethodException e) {
+        taskGroup = null;
+      }
+      if (taskName == null || taskName.trim().isEmpty() || isIdeaTask(taskName, taskGroup)) {
+        continue;
+      }
+      TaskData taskData = new TaskData(SYSTEM_ID, taskName, moduleData.getData().getLinkedExternalProjectPath(), task.getDescription());
+      taskData.setGroup(taskGroup);
+      moduleData.createChild(TASK, taskData);
+    }
   }
 }

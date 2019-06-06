@@ -15,26 +15,27 @@
  */
 package com.android.tools.profilers.energy;
 
-import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.chart.statechart.StateChart;
-import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.profilers.ProfilerColors;
-import com.intellij.ui.ColorUtil;
-import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
+
+import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.ProfilerColors;
+import com.intellij.ui.ColorUtil;
+import java.awt.BorderLayout;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
 
 public final class EnergyEventMinibar {
   @NotNull private final JComponent myComponent;
 
   public EnergyEventMinibar(@NotNull EnergyProfilerStageView stageView) {
-    StateChart<EnergyProfiler.EnergyEvent> chart = EnergyEventStateChart.create(stageView.getStage().getEventModel());
+    StateChart<Common.Event> chart = EnergyEventStateChart.create(stageView.getStage().getEventModel());
     myComponent = createUi(chart);
   }
 
@@ -44,7 +45,7 @@ public final class EnergyEventMinibar {
   }
 
   @NotNull
-  private JPanel createUi(@NotNull StateChart<EnergyProfiler.EnergyEvent> eventChart) {
+  private JPanel createUi(@NotNull StateChart<Common.Event> eventChart) {
     JPanel root = new JPanel(new TabularLayout("Fit,*", "*"));
     root.setBorder(MONITOR_BORDER);
 

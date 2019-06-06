@@ -17,15 +17,14 @@ package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profiler.proto.EnergyProfiler
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent
-import com.android.tools.profiler.proto.EnergyProfiler.JobScheduled
-import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Energy
+import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.android.tools.profilers.StudioProfilers
@@ -40,54 +39,54 @@ import javax.swing.JPanel
 import javax.swing.JTextPane
 
 class EnergyDetailsViewTest {
-  private val wakeLockAcquired = EnergyProfiler.WakeLockAcquired.newBuilder()
+  private val wakeLockAcquired = Energy.WakeLockAcquired.newBuilder()
     .setTag("wakeLockTag")
-    .setLevel(EnergyProfiler.WakeLockAcquired.Level.SCREEN_DIM_WAKE_LOCK)
-    .addFlags(EnergyProfiler.WakeLockAcquired.CreationFlag.ACQUIRE_CAUSES_WAKEUP)
+    .setLevel(Energy.WakeLockAcquired.Level.SCREEN_DIM_WAKE_LOCK)
+    .addFlags(Energy.WakeLockAcquired.CreationFlag.ACQUIRE_CAUSES_WAKEUP)
     .build()
-  private val wakeLockAcquireEvent = EnergyEvent.newBuilder()
+  private val wakeLockAcquireEvent = Common.Event.newBuilder()
     .setTimestamp(TimeUnit.MILLISECONDS.toNanos(200))
-    .setWakeLockAcquired(wakeLockAcquired)
-    .setEventId(123)
+    .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(wakeLockAcquired))
+    .setGroupId(123)
     .build()
-  private val wakeLockReleased = EnergyProfiler.WakeLockReleased.newBuilder().setIsHeld(false).build()
-  private val wakeLockReleaseEvent = EnergyEvent.newBuilder()
+  private val wakeLockReleased = Energy.WakeLockReleased.newBuilder().setIsHeld(false).build()
+  private val wakeLockReleaseEvent = Common.Event.newBuilder()
     .setTimestamp(TimeUnit.MILLISECONDS.toNanos(400))
-    .setWakeLockReleased(wakeLockReleased)
-    .setEventId(123)
-    .setIsTerminal(true)
+    .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(wakeLockReleased))
+    .setGroupId(123)
+    .setIsEnded(true)
     .build()
   private val callstackText = "android.os.PowerManager\$WakeLock.acquire(PowerManager.java:32)\n"
 
-  private val alarmSet = EnergyProfiler.AlarmSet.newBuilder()
+  private val alarmSet = Energy.AlarmSet.newBuilder()
     .setTriggerMs(1000)
     .setIntervalMs(100)
     .setWindowMs(200)
-    .setType(EnergyProfiler.AlarmSet.Type.ELAPSED_REALTIME_WAKEUP)
-    .setOperation(EnergyProfiler.PendingIntent.newBuilder().setCreatorPackage("package").setCreatorUid(1234).build())
+    .setType(Energy.AlarmSet.Type.ELAPSED_REALTIME_WAKEUP)
+    .setOperation(Energy.PendingIntent.newBuilder().setCreatorPackage("package").setCreatorUid(1234).build())
     .build()
-  private val alarmSetEvent = EnergyEvent.newBuilder()
+  private val alarmSetEvent = Common.Event.newBuilder()
     .setTimestamp(TimeUnit.MILLISECONDS.toNanos(600))
-    .setAlarmSet(alarmSet)
+    .setEnergyEvent(Energy.EnergyEventData.newBuilder().setAlarmSet(alarmSet))
     .build()
-  private val alarmCancelled = EnergyProfiler.AlarmCancelled.newBuilder()
-    .setListener(EnergyProfiler.AlarmListener.newBuilder().setTag("cancelledTag").build())
+  private val alarmCancelled = Energy.AlarmCancelled.newBuilder()
+    .setListener(Energy.AlarmListener.newBuilder().setTag("cancelledTag").build())
     .build()
-  private val alarmCancelledEvent = EnergyEvent.newBuilder()
+  private val alarmCancelledEvent = Common.Event.newBuilder()
     .setTimestamp(TimeUnit.MILLISECONDS.toNanos(900))
-    .setAlarmCancelled(alarmCancelled)
-    .setIsTerminal(true)
+    .setEnergyEvent(Energy.EnergyEventData.newBuilder().setAlarmCancelled(alarmCancelled))
+    .setIsEnded(true)
     .build()
 
-  private val periodicJob = EnergyProfiler.JobInfo.newBuilder()
+  private val periodicJob = Energy.JobInfo.newBuilder()
     .setJobId(1111)
     .setServiceName("ServiceNameValue")
-    .setBackoffPolicy(EnergyProfiler.JobInfo.BackoffPolicy.BACKOFF_POLICY_LINEAR)
+    .setBackoffPolicy(Energy.JobInfo.BackoffPolicy.BACKOFF_POLICY_LINEAR)
     .setInitialBackoffMs(1L)
     .setIsPeriodic(true)
     .setFlexMs(2L)
     .setIntervalMs(3L)
-    .setNetworkType(EnergyProfiler.JobInfo.NetworkType.NETWORK_TYPE_METERED)
+    .setNetworkType(Energy.JobInfo.NetworkType.NETWORK_TYPE_METERED)
     .addAllTriggerContentUris(Arrays.asList("url1", "url2"))
     .setTriggerContentMaxDelay(4L)
     .setTriggerContentUpdateDelay(5L)
@@ -95,12 +94,12 @@ class EnergyDetailsViewTest {
     .setIsRequireDeviceIdle(true)
     .setExtras("ExtrasValue")
     .setTransientExtras("TransientExtrasValue").build()
-  private val nonPeriodicJob = EnergyProfiler.JobInfo.newBuilder(periodicJob)
+  private val nonPeriodicJob = Energy.JobInfo.newBuilder(periodicJob)
     .setIsPeriodic(false)
     .setMinLatencyMs(10L)
     .setMaxExecutionDelayMs(20L)
     .build()
-  private val jobParams = EnergyProfiler.JobParameters.newBuilder()
+  private val jobParams = Energy.JobParameters.newBuilder()
     .setJobId(3333)
     .addAllTriggeredContentAuthorities(Arrays.asList("auth1", "auth2"))
     .setIsOverrideDeadlineExpired(true)
@@ -173,7 +172,8 @@ class EnergyDetailsViewTest {
 
   @Test
   fun callstackIsProperlyRendered() {
-    val eventWithTrace = wakeLockAcquireEvent.toBuilder().setTraceId("traceId").build()
+    val eventWithTrace = wakeLockAcquireEvent.toBuilder().setEnergyEvent(
+      wakeLockAcquireEvent.energyEvent.toBuilder().setTraceId("traceId")).build()
     transportService.addFile("traceId", ByteString.copyFromUtf8(callstackText))
     view.setDuration(EnergyDuration(Arrays.asList(eventWithTrace)))
     val nonEmptyView = TreeWalker(view).descendants().filterIsInstance<EnergyCallstackView>().first()
@@ -185,8 +185,11 @@ class EnergyDetailsViewTest {
 
   @Test
   fun periodicJobScheduledIsProperlyRendered() {
-    val jobScheduled = JobScheduled.newBuilder().setJob(periodicJob).setResult(JobScheduled.Result.RESULT_SUCCESS).build()
-    val event = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(100)).setJobScheduled(jobScheduled).build()
+    val jobScheduled = Energy.JobScheduled.newBuilder().setJob(periodicJob).setResult(Energy.JobScheduled.Result.RESULT_SUCCESS).build()
+    val event = Common.Event.newBuilder()
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(100))
+      .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobScheduled(jobScheduled))
+      .build()
     view.setDuration(EnergyDuration(Arrays.asList(event)))
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {
@@ -202,8 +205,11 @@ class EnergyDetailsViewTest {
 
   @Test
   fun nonPeriodicJobScheduleIsProperlyRendered() {
-    val jobScheduled = JobScheduled.newBuilder().setJob(nonPeriodicJob).setResult(JobScheduled.Result.RESULT_FAILURE).build()
-    val event = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(200)).setJobScheduled(jobScheduled).build()
+    val jobScheduled = Energy.JobScheduled.newBuilder().setJob(nonPeriodicJob).setResult(Energy.JobScheduled.Result.RESULT_FAILURE).build()
+    val event = Common.Event.newBuilder()
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(200))
+      .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobScheduled(jobScheduled))
+      .build()
     view.setDuration(EnergyDuration(Arrays.asList(event)))
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {
@@ -219,11 +225,17 @@ class EnergyDetailsViewTest {
 
   @Test
   fun jobFinishedAndDurationIsProperlyRendered() {
-    val jobScheduled = JobScheduled.newBuilder().setJob(periodicJob).setResult(JobScheduled.Result.RESULT_SUCCESS).build()
-    val scheduled = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(100)).setJobScheduled(jobScheduled).build()
-    val jobFinished = EnergyProfiler.JobFinished.newBuilder().setParams(jobParams).build()
-    val finished = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(500)).setJobFinished(jobFinished).setIsTerminal(
-      true).build()
+    val jobScheduled = Energy.JobScheduled.newBuilder().setJob(periodicJob).setResult(Energy.JobScheduled.Result.RESULT_SUCCESS).build()
+    val scheduled = Common.Event.newBuilder()
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(100))
+      .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobScheduled(jobScheduled))
+      .build()
+    val jobFinished = Energy.JobFinished.newBuilder().setParams(jobParams).build()
+    val finished = Common.Event.newBuilder()
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(500))
+      .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(jobFinished))
+      .setIsEnded(true)
+      .build()
     view.setDuration(EnergyDuration(Arrays.asList(scheduled, finished)))
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {
@@ -235,18 +247,20 @@ class EnergyDetailsViewTest {
 
   @Test
   fun locationUpdateRequestedIsProperlyRendered() {
-    val locationRequest = EnergyProfiler.LocationRequest.newBuilder()
+    val locationRequest = Energy.LocationRequest.newBuilder()
       .setProvider("ProviderValue")
-      .setPriority(EnergyProfiler.LocationRequest.Priority.BALANCED)
+      .setPriority(Energy.LocationRequest.Priority.BALANCED)
       .setIntervalMs(100)
       .setFastestIntervalMs(200)
       .setSmallestDisplacementMeters(0.1f)
       .build()
-    val requested = EnergyProfiler.LocationUpdateRequested.newBuilder()
-      .setIntent(EnergyProfiler.PendingIntent.newBuilder().setCreatorUid(1).setCreatorPackage("package"))
+    val requested = Energy.LocationUpdateRequested.newBuilder()
+      .setIntent(Energy.PendingIntent.newBuilder().setCreatorUid(1).setCreatorPackage("package"))
       .setRequest(locationRequest)
       .build()
-    val eventBuilder = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(10)).setLocationUpdateRequested(requested)
+    val eventBuilder = Common.Event.newBuilder()
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(10))
+      .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationUpdateRequested(requested))
     view.setDuration(EnergyDuration(Arrays.asList(eventBuilder.build())))
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {

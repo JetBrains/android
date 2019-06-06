@@ -146,7 +146,11 @@ public class AndroidRunState implements RunProfileState {
         // Destroy the previous content and detach the previous process handler so that we don't end up with 2 run tabs
         // for the same launch (the existing one and the new one).
         if (previousDescriptor != null) {
-          manager.removeRunContent(executor, previousDescriptor);
+          if (!manager.removeRunContent(executor, previousDescriptor)) {
+            // In case there's an existing handler, it could pop up a dialog prompting the user to confirm. If the user
+            // cancels, removeRunContent will return false. In such case, stop the run.
+            return null;
+          }
         }
         previousSessionProcessHandler.detachProcess();
       }

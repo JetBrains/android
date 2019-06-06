@@ -60,6 +60,7 @@ public final class FreemarkerUtils {
     paramMap.put("getAppManifestDir", new FmGetAppManifestDirMethod(paramMap));
     paramMap.put("isAndroidxEnabled", new FmIsAndroidxEnabledMethod(paramMap));
     paramMap.put("getConfigurationName", new FmGetConfigurationNameMethod(paramMap));
+    paramMap.put("resolveDependency", new FmResolveDependencyMethod());
     paramMap.put("getMaterialComponentName", new FmGetMaterialComponentNameMethod());
     paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));
     paramMap.put("layoutToActivity", new FmLayoutToActivityMethod());

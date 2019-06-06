@@ -15,57 +15,70 @@
  */
 package com.android.tools.profilers.energy
 
-import com.android.tools.profiler.proto.EnergyProfiler
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Energy
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import java.util.*
+import java.util.Arrays
 
 class EnergyEventsViewTest {
   @Test
   fun testWakeLockColumnValues() {
-    val wakeLockAcquired = EnergyProfiler.WakeLockAcquired.newBuilder()
-      .setLevel(EnergyProfiler.WakeLockAcquired.Level.PARTIAL_WAKE_LOCK)
+    val wakeLockAcquired = Energy.WakeLockAcquired.newBuilder()
+      .setLevel(Energy.WakeLockAcquired.Level.PARTIAL_WAKE_LOCK)
       .setTag("wakeLockTag")
       .build()
-    val duration = EnergyDuration(Arrays.asList(EnergyProfiler.EnergyEvent.newBuilder().setWakeLockAcquired(wakeLockAcquired).build()))
+    val duration = EnergyDuration(Arrays.asList(
+      Common.Event.newBuilder()
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(wakeLockAcquired))
+        .build()))
     assertThat(EnergyEventsView.Column.EVENT.getValueFrom(duration)).isEqualTo("Wake Lock: Partial")
     assertThat(EnergyEventsView.Column.DESCRIPTION.getValueFrom(duration)).isEqualTo("wakeLockTag")
   }
 
   @Test
   fun testAlarmColumnValuesWithPendingIntent() {
-    val alarmSet = EnergyProfiler.AlarmSet.newBuilder()
-      .setType(EnergyProfiler.AlarmSet.Type.RTC)
-      .setOperation(EnergyProfiler.PendingIntent.newBuilder().setCreatorPackage("package").setCreatorUid(123).build())
+    val alarmSet = Energy.AlarmSet.newBuilder()
+      .setType(Energy.AlarmSet.Type.RTC)
+      .setOperation(Energy.PendingIntent.newBuilder().setCreatorPackage("package").setCreatorUid(123).build())
       .build()
-    val duration = EnergyDuration(Arrays.asList(EnergyProfiler.EnergyEvent.newBuilder().setAlarmSet(alarmSet).build()))
+    val duration = EnergyDuration(Arrays.asList(
+      Common.Event.newBuilder()
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setAlarmSet(alarmSet))
+        .build()))
     assertThat(EnergyEventsView.Column.EVENT.getValueFrom(duration)).isEqualTo("Alarm: RTC")
     assertThat(EnergyEventsView.Column.DESCRIPTION.getValueFrom(duration)).isEqualTo("package")
   }
 
   @Test
   fun testAlarmColumnValuesWithListener() {
-    val alarmSetWithListener = EnergyProfiler.AlarmSet.newBuilder()
-      .setType(EnergyProfiler.AlarmSet.Type.ELAPSED_REALTIME_WAKEUP)
-      .setListener(EnergyProfiler.AlarmListener.newBuilder().setTag("listener").build()).build()
-    val duration = EnergyDuration(Arrays.asList(EnergyProfiler.EnergyEvent.newBuilder().setAlarmSet(alarmSetWithListener).build()))
+    val alarmSetWithListener = Energy.AlarmSet.newBuilder()
+      .setType(Energy.AlarmSet.Type.ELAPSED_REALTIME_WAKEUP)
+      .setListener(Energy.AlarmListener.newBuilder().setTag("listener").build()).build()
+    val duration = EnergyDuration(Arrays.asList(
+      Common.Event.newBuilder()
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setAlarmSet(alarmSetWithListener))
+        .build()))
     assertThat(EnergyEventsView.Column.EVENT.getValueFrom(duration)).isEqualTo("Alarm: Elapsed Realtime Wakeup")
     assertThat(EnergyEventsView.Column.DESCRIPTION.getValueFrom(duration)).isEqualTo("listener")
   }
 
   @Test
   fun testJobColumnValues() {
-    val jobScheduled = EnergyProfiler.JobScheduled.newBuilder()
-      .setJob(EnergyProfiler.JobInfo.newBuilder().setJobId(111).setServiceName("service").build())
+    val jobScheduled = Energy.JobScheduled.newBuilder()
+      .setJob(Energy.JobInfo.newBuilder().setJobId(111).setServiceName("service").build())
       .build()
-    val duration = EnergyDuration(Arrays.asList(EnergyProfiler.EnergyEvent.newBuilder().setJobScheduled(jobScheduled).build()))
+    val duration = EnergyDuration(Arrays.asList(
+      Common.Event.newBuilder()
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobScheduled(jobScheduled))
+        .build()))
     assertThat(EnergyEventsView.Column.EVENT.getValueFrom(duration)).isEqualTo("Job")
     assertThat(EnergyEventsView.Column.DESCRIPTION.getValueFrom(duration)).isEqualTo("111:service")
   }
 
   @Test
   fun testUnknownColumnValues() {
-    val duration = EnergyDuration(Arrays.asList(EnergyProfiler.EnergyEvent.newBuilder().build()))
+    val duration = EnergyDuration(Arrays.asList(Common.Event.newBuilder().build()))
     assertThat(EnergyEventsView.Column.EVENT.getValueFrom(duration)).isEqualTo("N/A")
     assertThat(EnergyEventsView.Column.DESCRIPTION.getValueFrom(duration)).isEqualTo("N/A")
   }

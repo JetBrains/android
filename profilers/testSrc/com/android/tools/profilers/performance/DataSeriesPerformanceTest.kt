@@ -24,7 +24,6 @@ import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.datastore.DataStoreService
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.poller.PollRunner
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.perflogger.Benchmark
@@ -34,20 +33,17 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuUsage
 import com.android.tools.profilers.cpu.CpuUsageDataSeries
-import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.cpu.LegacyCpuThreadCountDataSeries
 import com.android.tools.profilers.cpu.LegacyCpuThreadStateDataSeries
 import com.android.tools.profilers.energy.EnergyDuration
-import com.android.tools.profilers.energy.EnergyEventsDataSeries
 import com.android.tools.profilers.energy.EnergyUsageDataSeries
-import com.android.tools.profilers.energy.MergedEnergyEventsDataSeries
+import com.android.tools.profilers.energy.LegacyEnergyEventsDataSeries
+import com.android.tools.profilers.energy.LegacyMergedEnergyEventsDataSeries
 import com.android.tools.profilers.event.LifecycleEventDataSeries
 import com.android.tools.profilers.event.UserEventDataSeries
 import com.android.tools.profilers.memory.AllocStatsDataSeries
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.GcStatsDataSeries
 import com.android.tools.profilers.memory.MemoryDataSeries
 import com.android.tools.profilers.memory.MemoryProfilerStage
@@ -55,10 +51,8 @@ import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
 import com.android.tools.profilers.network.NetworkOpenConnectionsDataSeries
 import com.android.tools.profilers.network.NetworkTrafficDataSeries
 import com.google.common.util.concurrent.MoreExecutors
-import io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
 import java.util.concurrent.TimeUnit
@@ -113,8 +107,9 @@ class DataSeriesPerformanceTest {
                                  Pair("Event-Interactions", UserEventDataSeries(studioProfilers)),
                                  Pair("Energy-Usage", EnergyUsageDataSeries(client, session)),
                                  Pair("Energy-Events",
-                                      MergedEnergyEventsDataSeries(EnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
-                                                                   EnergyDuration.Kind.JOB)),
+                                      LegacyMergedEnergyEventsDataSeries(
+                                        LegacyEnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
+                                        EnergyDuration.Kind.JOB)),
                                  Pair("Cpu-Usage",
                                       CpuUsageDataSeries(client.cpuClient, session) { dataList -> CpuUsage.extractData(dataList, false) }),
                                  Pair("Cpu-Thread-Count",

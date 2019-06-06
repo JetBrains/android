@@ -66,6 +66,9 @@ public class ResourceChooserGroups {
     (item) -> item.getContentType() == SampleDataResourceItem.ContentType.IMAGE;
   private static final Predicate<SampleDataResourceItem> NOT_IMAGES_FILTER = ONLY_IMAGES_FILTER.negate();
 
+  private static final String SAMPLE_DATA_LABEL = "Sample data";
+  private static final String THEME_ATTRIBUTES_LABEL = "Theme attributes";
+
   private ResourceChooserGroups() {
   }
 
@@ -154,7 +157,9 @@ public class ResourceChooserGroups {
       }
     }
 
-    return new ResourceChooserGroup(label, type, ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items.build()));
+    ImmutableList<ResourceChooserItem> itemList = ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items.build());
+    String fullLabel = label + " (" + itemList.size() + ")";
+    return new ResourceChooserGroup(fullLabel, type, itemList);
   }
 
   @NotNull
@@ -176,8 +181,9 @@ public class ResourceChooserGroups {
       }
       items.add(new ResourceChooserItem.AttrItem(type, framework, simpleName));
     }
-
-    return new ResourceChooserGroup("Theme attributes", type, ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items));
+    ImmutableList<ResourceChooserItem> itemList = ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items);
+    String fullLabel = THEME_ATTRIBUTES_LABEL + " (" + itemList.size() + ")";
+    return new ResourceChooserGroup(fullLabel, type, itemList);
   }
 
   @NotNull
@@ -192,6 +198,8 @@ public class ResourceChooserGroups {
                     .filter(filter)
                     .map(item -> new ResourceChooserItem.SampleDataItem(item))
                     .collect(ImmutableList.toImmutableList());
-    return new ResourceChooserGroup("Sample data", ResourceType.SAMPLE_DATA, ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items));
+    ImmutableList<ResourceChooserItem> itemList = ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items);
+    String fullLabel = SAMPLE_DATA_LABEL + " (" + itemList.size() + ")";
+    return new ResourceChooserGroup(fullLabel, type, itemList);
   }
 }

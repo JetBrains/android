@@ -6,7 +6,6 @@ import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
-import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.completion.CompletionType
@@ -14,6 +13,7 @@ import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.codeInsight.template.impl.LiveTemplateCompletionContributor
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection
 import com.intellij.lang.documentation.DocumentationProvider
@@ -385,6 +385,48 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     UsefulTestCase.assertSameElements(
       lookupElementStrings, "android:layout_above", "android:layout_alignBaseline",
       "android:layout_alignBottom", "android:layout_alignEnd", "android:layout_alignLeft")
+  }
+
+  fun testLiveTemplateAttributeCompletion() {
+    LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)
+    val virtualFile = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                ${caret}
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+        </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(virtualFile)
+    myFixture.type("too")
+    myFixture.completeBasic()
+    val lookupElementStrings = myFixture.lookupElementStrings
+    assertThat(lookupElementStrings).contains("toolsNs")
+  }
+
+  fun testLiveTemplateTagCompletion() {
+    LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)
+    val virtualFile = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                ${caret}
+        </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(virtualFile)
+    myFixture.type("too")
+    myFixture.completeBasic()
+    val lookupElementStrings = myFixture.lookupElementStrings
+    assertThat(lookupElementStrings).doesNotContain("toolsNs")
   }
 
   fun testOpenDrawerAttributeNameCompletion() {
@@ -1366,26 +1408,6 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     val virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(true) + ".java")
     doCreateFileResourceFromUsage(virtualFile)
     myFixture.checkResultByFile("res/layout/unknown.xml", myTestFolder + '/'.toString() + getTestName(true) + "_layout_after.xml", true)
-  }
-
-  fun testAndroidPrefixCompletion1() {
-    doTestAndroidPrefixCompletion("android:")
-  }
-
-  fun testAndroidPrefixCompletion2() {
-    doTestAndroidPrefixCompletion("android:")
-  }
-
-  fun testAndroidPrefixCompletion3() {
-    doTestAndroidPrefixCompletion(null)
-  }
-
-  fun testAndroidPrefixCompletion4() {
-    doTestAndroidPrefixCompletion("andr:")
-  }
-
-  fun testAndroidPrefixCompletion5() {
-    doTestAndroidPrefixCompletion(null)
   }
 
   fun testCreateResourceFromUsage1() {
