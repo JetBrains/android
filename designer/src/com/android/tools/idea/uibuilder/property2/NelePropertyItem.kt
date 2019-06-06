@@ -57,6 +57,7 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
@@ -108,6 +109,12 @@ open class NelePropertyItem(
       return if (model.showResolvedValues) resolveValue(rawValue) else rawValue
     }
     set(value) {
+      val undoManager = UndoManager.getInstance(project)
+      if (undoManager.isUndoInProgress || undoManager.isRedoInProgress) {
+        // b/134522901: Avoid updating the property during undo/redo
+        return
+      }
+
       model.setPropertyValue(this, value)
     }
 
