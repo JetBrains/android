@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.scene.target
 
 import com.android.SdkConstants
+import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.flags.StudioFlags
@@ -23,7 +24,8 @@ import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
-import com.intellij.testFramework.UsefulTestCase
+import java.awt.Cursor
+import java.awt.event.InputEvent
 
 class CommonDragTargetTest : SceneTest() {
 
@@ -282,6 +284,26 @@ class CommonDragTargetTest : SceneTest() {
       assertEquals(2, newSelection.size)
       assertEquals(textView2, newSelection[0])
       assertEquals(textView, newSelection[1])
+    }
+  }
+
+  fun testMouseCursor() {
+    val textView = myScreen.get("@id/textView").sceneComponent!!
+
+    run {
+      // If component is not selected, the ALT_MASK doesn't change the cursor.
+      myScene.select(listOf())
+      val target = CommonDragTarget(textView)
+      assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(0))
+      assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(InputEvent.ALT_MASK))
+    }
+
+    run {
+      // If component is selected, the ALT_MASK changes the cursor.
+      myScene.select(listOf(textView))
+      val target = CommonDragTarget(textView)
+      assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(0))
+      assertEquals(AdtUiCursors.MOVE, target.getMouseCursor(InputEvent.ALT_MASK))
     }
   }
 

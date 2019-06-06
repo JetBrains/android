@@ -58,8 +58,8 @@ class EmptyDesignerTargetTest : NavTestCase() {
     val x = drawRect.x + drawRect.width / 2
     val y = drawRect.y + drawRect.height / 2
 
-    scene.mouseDown(SceneContext.get(model.surface.currentSceneView), x, y)
-    scene.mouseRelease(SceneContext.get(model.surface.currentSceneView), x, y)
+    scene.mouseDown(SceneContext.get(model.surface.currentSceneView), x, y, 0)
+    scene.mouseRelease(SceneContext.get(model.surface.currentSceneView), x, y, 0)
 
     verify(menu).show()
   }
