@@ -11,7 +11,8 @@ import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.impl.light.LightIdentifier;
 import com.intellij.psi.impl.light.LightModifierList;
 import com.intellij.psi.javadoc.PsiDocComment;
-import com.intellij.ui.RowIcon;
+import com.intellij.ui.IconManager;
+import com.intellij.ui.icons.RowIcon;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PlatformIcons;
@@ -178,7 +179,8 @@ public class AndroidLightField extends LightElement implements PsiField, PsiVari
 
   @Override
   public Icon getElementIcon(final int flags) {
-    final RowIcon baseIcon = ElementPresentationUtil.createLayeredIcon(PlatformIcons.FIELD_ICON, this, false);
+    final RowIcon baseIcon =
+      IconManager.getInstance().createLayeredIcon(this, PlatformIcons.FIELD_ICON, ElementPresentationUtil.getFlags(this, false));
     return ElementPresentationUtil.addVisibilityIcon(this, flags, baseIcon);
   }
 }
