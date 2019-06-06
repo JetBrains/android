@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.impl.model.TextFieldWithLeftButtonEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
@@ -70,7 +71,8 @@ open class PropertyTextFieldWithLeftButton(
 
   private fun setFromModel() {
     isVisible = editorModel.visible
-    leftButton?.icon = editorModel.leftButtonIcon
+    leftButton?.icon = editorModel.displayedIcon(editorModel.leftButtonIcon)
+    background = editorModel.displayedBackground(secondaryPanelBackground)
     toolTipText = editorModel.tooltip
   }
 

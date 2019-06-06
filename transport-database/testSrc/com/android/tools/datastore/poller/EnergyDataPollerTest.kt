@@ -22,6 +22,7 @@ import com.android.tools.datastore.TestGrpcService
 import com.android.tools.datastore.energy.BatteryModel
 import com.android.tools.datastore.energy.PowerProfile
 import com.android.tools.datastore.service.EnergyService
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.CpuServiceGrpc
@@ -159,7 +160,7 @@ class EnergyDataPollerTest : DataStorePollerTest() {
   }
 
   private class FakeEnergyService : EnergyServiceGrpc.EnergyServiceImplBase() {
-    var eventList = ArrayList<EnergyProfiler.EnergyEvent>()
+    var eventList = ArrayList<Common.Event>()
 
     override fun startMonitoringApp(
       request: EnergyProfiler.EnergyStartRequest,
@@ -444,26 +445,20 @@ class EnergyDataPollerTest : DataStorePollerTest() {
   @Test
   fun locationEventsAffectEnergySamples() {
     fakeEnergyService.eventList = Lists.newArrayList(
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(0)
-        .setLocationChanged(
-          EnergyProfiler.LocationChanged.newBuilder()
-            .setLocation(EnergyProfiler.Location.newBuilder().setProvider("gps").build())
-            .build())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationChanged(
+          Energy.LocationChanged.newBuilder().setLocation(Energy.Location.newBuilder().setProvider("gps"))))
         .build(),
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(5 * SAMPLE_INTERVAL_NS)
-        .setLocationChanged(
-          EnergyProfiler.LocationChanged.newBuilder()
-            .setLocation(EnergyProfiler.Location.newBuilder().setProvider("gps").build())
-            .build())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationChanged(
+          Energy.LocationChanged.newBuilder().setLocation(Energy.Location.newBuilder().setProvider("gps"))))
         .build(),
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(10 * SAMPLE_INTERVAL_NS)
-        .setLocationChanged(
-          EnergyProfiler.LocationChanged.newBuilder()
-            .setLocation(EnergyProfiler.Location.newBuilder().setProvider("gps").build())
-            .build())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationChanged(
+          Energy.LocationChanged.newBuilder().setLocation(Energy.Location.newBuilder().setProvider("gps"))))
         .build()
     )
     fastForward(3 * ONE_SEC_NS)
@@ -559,28 +554,28 @@ class EnergyDataPollerTest : DataStorePollerTest() {
 
   @Test
   fun eventsArePassedThrough() {
-    val wakeLock1Acquire = EnergyProfiler.EnergyEvent.newBuilder()
+    val wakeLock1Acquire = Common.Event.newBuilder()
       .setTimestamp(0)
-      .setEventId(1)
-      .setWakeLockAcquired(EnergyProfiler.WakeLockAcquired.getDefaultInstance())
+      .setGroupId(1)
+      .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
       .build()
 
-    val wakeLock2Acquire = EnergyProfiler.EnergyEvent.newBuilder()
+    val wakeLock2Acquire = Common.Event.newBuilder()
       .setTimestamp(ONE_FOURTH_SEC_NS)
-      .setEventId(2)
-      .setWakeLockAcquired(EnergyProfiler.WakeLockAcquired.getDefaultInstance())
+      .setGroupId(2)
+      .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
       .build()
 
-    val wakeLock1Release = EnergyProfiler.EnergyEvent.newBuilder()
+    val wakeLock1Release = Common.Event.newBuilder()
       .setTimestamp(ONE_HALF_SEC_NS)
-      .setEventId(1)
-      .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance())
+      .setGroupId(1)
+      .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
       .build()
 
-    val wakeLock2Release = EnergyProfiler.EnergyEvent.newBuilder()
+    val wakeLock2Release = Common.Event.newBuilder()
       .setTimestamp(THREE_FOURTH_SEC_NS)
-      .setEventId(2)
-      .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance())
+      .setGroupId(2)
+      .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
       .build()
 
     fakeEnergyService.eventList = Lists.newArrayList(

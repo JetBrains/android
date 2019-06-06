@@ -43,16 +43,11 @@ import javax.swing.JComponent
 import javax.swing.KeyStroke
 import kotlin.math.max
 
-private val DEFAULT_HORIZONTAL_PADDING = JBUI.scale(5)
-private val DEFAULT_VERTICAL_PADDING = JBUI.scale(5)
+private const val PADDING = 5
 
 private val KNOB_COLOR = Color(255, 255, 255)
 private val KNOB_BORDER_COLOR = JBColor(Color(100, 100, 100), Color(64, 64, 64))
 private val KNOB_BORDER_STROKE = BasicStroke(1.5f)
-private const val KNOB_WIDTH = 5
-private const val KNOB_CORNER_ARC = 5
-private const val FOCUS_BORDER_CORNER_ARC = 5
-private const val FOCUS_BORDER_WIDTH = 3
 
 private const val ACTION_SLIDE_LEFT = "actionSlideLeft"
 private const val ACTION_SLIDE_LEFT_STEP = "actionSlideLeftStep"
@@ -61,10 +56,15 @@ private const val ACTION_SLIDE_RIGHT_STEP = "actionSlideRightStep"
 
 abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
 
-  protected val leftPadding = DEFAULT_HORIZONTAL_PADDING
-  protected val rightPadding = DEFAULT_HORIZONTAL_PADDING
-  protected val topPadding = DEFAULT_VERTICAL_PADDING
-  protected val bottomPadding = DEFAULT_VERTICAL_PADDING
+  private val knobWidth = JBUI.scale(5)
+  private val knobCornerArc = JBUI.scale(5)
+  private val focusBorderWidth = JBUI.scale(3)
+  private val focusBorderCornerArc = JBUI.scale(5)
+
+  protected val leftPadding = JBUI.scale(PADDING)
+  protected val rightPadding = JBUI.scale(PADDING)
+  protected val topPadding = JBUI.scale(PADDING)
+  protected val bottomPadding = JBUI.scale(PADDING)
 
   private var _knobPosition: Int = 0
   var knobPosition: Int
@@ -211,12 +211,12 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
   override fun paintComponent(g: Graphics) {
     val g2d = g as Graphics2D
     if (isFocusOwner) {
-      g2d.color = UIUtil.getFocusedFillColor() ?: Color.BLUE.brighter()
-      val left = leftPadding - FOCUS_BORDER_WIDTH
-      val top = topPadding - FOCUS_BORDER_WIDTH
-      val width = width - left - rightPadding + FOCUS_BORDER_WIDTH
-      val height = height - top - bottomPadding + FOCUS_BORDER_WIDTH
-      g2d.fillRoundRect(left, top, width, height, FOCUS_BORDER_CORNER_ARC, FOCUS_BORDER_CORNER_ARC)
+      g2d.color = UIUtil.getFocusedFillColor()
+      val left = leftPadding - focusBorderWidth
+      val top = topPadding - focusBorderWidth
+      val width = width - left - rightPadding + focusBorderWidth
+      val height = height - top - bottomPadding + focusBorderWidth
+      g2d.fillRoundRect(left, top, width, height, focusBorderCornerArc, focusBorderCornerArc)
     }
     paintSlider(g2d)
     drawKnob(g2d, leftPadding + valueToKnobPosition(value))
@@ -230,16 +230,16 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
 
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
-    val knobLeft = x - KNOB_WIDTH / 2
+    val knobLeft = x - knobWidth / 2
     val knobTop = topPadding / 2
-    val knobWidth = KNOB_WIDTH
+    val knobWidth = knobWidth
     val knobHeight = height - (topPadding + bottomPadding) / 2
 
     g2d.color = KNOB_COLOR
-    g2d.fillRoundRect(knobLeft, knobTop, knobWidth, knobHeight, KNOB_CORNER_ARC, KNOB_CORNER_ARC)
+    g2d.fillRoundRect(knobLeft, knobTop, knobWidth, knobHeight, knobCornerArc, knobCornerArc)
     g2d.color = KNOB_BORDER_COLOR
     g2d.stroke = KNOB_BORDER_STROKE
-    g2d.drawRoundRect(knobLeft, knobTop, knobWidth, knobHeight, KNOB_CORNER_ARC, KNOB_CORNER_ARC)
+    g2d.drawRoundRect(knobLeft, knobTop, knobWidth, knobHeight, knobCornerArc, knobCornerArc)
 
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, originalAntialiasing)
     g2d.stroke = originalStroke

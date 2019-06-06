@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2018 The Android Open Source Project
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -18,31 +18,32 @@ package com.android.tools.profilers.energy
 import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.Range
-import com.android.tools.profiler.proto.EnergyProfiler
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Energy
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 class EnergyEventsTableTooltipInfoComponentTest {
-  private val modelRange = Range(0.0, 0.0);
-  private val model = EnergyEventsTableTooltipInfoModel(modelRange, TimeUnit.MINUTES.toMillis(5));
+  private val modelRange = Range(0.0, 0.0)
+  private val model = EnergyEventsTableTooltipInfoModel(modelRange, TimeUnit.MINUTES.toMillis(5))
   private val component = EnergyEventsTableTooltipInfoComponent(model)
 
   @Test
   fun wakeLockIsProperlyRendered() {
-    val eventList = ImmutableList.of<EnergyProfiler.EnergyEvent>(
-      EnergyProfiler.EnergyEvent.newBuilder()
+    val eventList = ImmutableList.of<Common.Event>(
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(1))
-        .setWakeLockAcquired(EnergyProfiler.WakeLockAcquired.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
         .build(),
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(3))
-        .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance())
-        .setIsTerminal(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
+        .setIsEnded(true)
         .build()
     )
-    val duration = EnergyDuration(eventList);
+    val duration = EnergyDuration(eventList)
 
     var timestampUs = 0.0
     model.update(duration, Range(timestampUs, timestampUs))
@@ -85,13 +86,13 @@ class EnergyEventsTableTooltipInfoComponentTest {
 
   @Test
   fun incompleteWakeLockIsProperlyRendered() {
-    val eventList = ImmutableList.of<EnergyProfiler.EnergyEvent>(
-      EnergyProfiler.EnergyEvent.newBuilder()
+    val eventList = ImmutableList.of<Common.Event>(
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(1))
-        .setWakeLockAcquired(EnergyProfiler.WakeLockAcquired.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
         .build()
     )
-    val duration = EnergyDuration(eventList);
+    val duration = EnergyDuration(eventList)
 
     var timestampUs = 0.0
     model.update(duration, Range(timestampUs, timestampUs))
@@ -114,22 +115,22 @@ class EnergyEventsTableTooltipInfoComponentTest {
 
   @Test
   fun alarmIsProperlyRendered() {
-    val eventList = ImmutableList.of<EnergyProfiler.EnergyEvent>(
-      EnergyProfiler.EnergyEvent.newBuilder()
+    val eventList = ImmutableList.of<Common.Event>(
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(1))
-        .setAlarmSet(EnergyProfiler.AlarmSet.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setAlarmSet(Energy.AlarmSet.getDefaultInstance()))
         .build(),
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(3))
-        .setAlarmFired(EnergyProfiler.AlarmFired.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setAlarmFired(Energy.AlarmFired.getDefaultInstance()))
         .build(),
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(4))
-        .setAlarmCancelled(EnergyProfiler.AlarmCancelled.getDefaultInstance())
-        .setIsTerminal(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setAlarmCancelled(Energy.AlarmCancelled.getDefaultInstance()))
+        .setIsEnded(true)
         .build()
     )
-    val duration = EnergyDuration(eventList);
+    val duration = EnergyDuration(eventList)
 
     val dateString = model.getDateFormattedString(0)
     var timestampUs = 0.0
@@ -183,26 +184,26 @@ class EnergyEventsTableTooltipInfoComponentTest {
 
   @Test
   fun jobIsProperlyRendered() {
-    val eventList = ImmutableList.of<EnergyProfiler.EnergyEvent>(
-      EnergyProfiler.EnergyEvent.newBuilder()
+    val eventList = ImmutableList.of<Common.Event>(
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(1))
-        .setJobScheduled(EnergyProfiler.JobScheduled.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobScheduled(Energy.JobScheduled.getDefaultInstance()))
         .build(),
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(3))
-        .setJobStarted(EnergyProfiler.JobStarted.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStarted(Energy.JobStarted.getDefaultInstance()))
         .build(),
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(4))
-        .setJobStopped(EnergyProfiler.JobStopped.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStopped(Energy.JobStopped.getDefaultInstance()))
         .build(),
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(5))
-        .setJobFinished(EnergyProfiler.JobFinished.getDefaultInstance())
-        .setIsTerminal(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(Energy.JobFinished.getDefaultInstance()))
+        .setIsEnded(true)
         .build()
     )
-    val duration = EnergyDuration(eventList);
+    val duration = EnergyDuration(eventList)
 
     var timestampUs = 0.0
     model.update(duration, Range(timestampUs, timestampUs))
@@ -265,21 +266,21 @@ class EnergyEventsTableTooltipInfoComponentTest {
 
   @Test
   fun incompleteJobIsProperlyRendered() {
-    val eventList = ImmutableList.of<EnergyProfiler.EnergyEvent>(
-      EnergyProfiler.EnergyEvent.newBuilder()
+    val eventList = ImmutableList.of<Common.Event>(
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(1))
-        .setJobScheduled(EnergyProfiler.JobScheduled.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobScheduled(Energy.JobScheduled.getDefaultInstance()))
         .build(),
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(3))
-        .setJobStarted(EnergyProfiler.JobStarted.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStarted(Energy.JobStarted.getDefaultInstance()))
         .build(),
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(4))
-        .setJobStopped(EnergyProfiler.JobStopped.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobStopped(Energy.JobStopped.getDefaultInstance()))
         .build()
     )
-    val duration = EnergyDuration(eventList);
+    val duration = EnergyDuration(eventList)
 
     var timestampUs = 0.0
     model.update(duration, Range(timestampUs, timestampUs))
@@ -323,27 +324,29 @@ class EnergyEventsTableTooltipInfoComponentTest {
 
   @Test
   fun locationIsProperlyRendered() {
-    val eventList = ImmutableList.of<EnergyProfiler.EnergyEvent>(
-      EnergyProfiler.EnergyEvent.newBuilder()
+    val eventList = ImmutableList.of<Common.Event>(
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(1))
-        .setLocationUpdateRequested(EnergyProfiler.LocationUpdateRequested.newBuilder()
-                                      .setRequest(EnergyProfiler.LocationRequest.newBuilder()
-                                                    .setPriority(EnergyProfiler.LocationRequest.Priority.LOW_POWER)
-                                                    .setIntervalMs(1000)
-                                                    .build())
-                                      .build())
+        .setEnergyEvent(
+          Energy.EnergyEventData.newBuilder()
+            .setLocationUpdateRequested(
+              Energy.LocationUpdateRequested.newBuilder()
+                .setRequest(
+                  Energy.LocationRequest.newBuilder()
+                    .setPriority(Energy.LocationRequest.Priority.LOW_POWER)
+                    .setIntervalMs(1000))))
         .build(),
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(3))
-        .setLocationChanged(EnergyProfiler.LocationChanged.getDefaultInstance())
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationChanged(Energy.LocationChanged.getDefaultInstance()))
         .build(),
-      EnergyProfiler.EnergyEvent.newBuilder()
+      Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(4))
-        .setLocationUpdateRemoved(EnergyProfiler.LocationUpdateRemoved.getDefaultInstance())
-        .setIsTerminal(true)
+        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationUpdateRemoved(Energy.LocationUpdateRemoved.getDefaultInstance()))
+        .setIsEnded(true)
         .build()
     )
-    val duration = EnergyDuration(eventList);
+    val duration = EnergyDuration(eventList)
     var timestampUs = 0.0
     model.update(duration, Range(timestampUs, timestampUs))
     assertThat(component.instructions).isEmpty()

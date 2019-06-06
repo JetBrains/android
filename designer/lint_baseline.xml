@@ -617,4 +617,12 @@
             line="221"/>
     </issue>
 
+    <issue
+        id="WrongThread"
+        message="Method getPalette is slow and thus should run on a worker thread, yet the currently inferred thread is the UI thread">
+        <location
+            file="src/com/android/tools/idea/uibuilder/palette/DataModel.java"
+            line="230"/>
+    </issue>
+
 </issues>

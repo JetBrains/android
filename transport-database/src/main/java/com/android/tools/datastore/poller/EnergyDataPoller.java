@@ -118,28 +118,29 @@ public final class EnergyDataPoller extends PollRunner {
   }
 
   private void addLatestEvents(@NotNull EnergyProfiler.EnergyRequest request) {
-    for (EnergyProfiler.EnergyEvent event : myEnergyService.getEvents(request).getEventsList()) {
+    for (Common.Event event : myEnergyService.getEvents(request).getEventsList()) {
       // Location-related events.
-      if (event.hasLocationUpdateRequested()) {
+      if (event.getEnergyEvent().hasLocationUpdateRequested()) {
         myBatteryModel.handleEvent(
           event.getTimestamp(),
           BatteryModel.Event.LOCATION_REGISTER,
           new PowerProfile.LocationEvent(
-            event.getEventId(), PowerProfile.LocationType.from(event.getLocationUpdateRequested().getRequest().getProvider())));
+            event.getGroupId(),
+            PowerProfile.LocationType.from(event.getEnergyEvent().getLocationUpdateRequested().getRequest().getProvider())));
       }
-      if (event.hasLocationChanged()) {
+      if (event.getEnergyEvent().hasLocationChanged()) {
         myBatteryModel.handleEvent(
           event.getTimestamp(),
           BatteryModel.Event.LOCATION_UPDATE,
           new PowerProfile.LocationEvent(
-            event.getEventId(), PowerProfile.LocationType.from(event.getLocationChanged().getLocation().getProvider())));
+            event.getGroupId(), PowerProfile.LocationType.from(event.getEnergyEvent().getLocationChanged().getLocation().getProvider())));
       }
-      if (event.hasLocationUpdateRemoved()) {
+      if (event.getEnergyEvent().hasLocationUpdateRemoved()) {
         myBatteryModel.handleEvent(
           event.getTimestamp(),
           BatteryModel.Event.LOCATION_UNREGISTER,
           new PowerProfile.LocationEvent(
-            event.getEventId(), PowerProfile.LocationType.NONE));
+            event.getGroupId(), PowerProfile.LocationType.NONE));
       }
 
       myEnergyTable.insertOrReplace(mySession, event);

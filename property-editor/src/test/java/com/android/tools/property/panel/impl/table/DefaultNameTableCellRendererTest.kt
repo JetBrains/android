@@ -18,13 +18,19 @@ package com.android.tools.property.panel.impl.table
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.ui.PropertyTooltip
 import com.android.tools.property.ptable2.PTable
+import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.item.PTableTestModel
 import com.android.tools.property.testing.ApplicationRule
+import com.android.tools.property.testing.IconTester
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.IdeTooltipManager
+import com.intellij.openapi.util.IconLoader
+import com.intellij.ui.SimpleColoredComponent
+import icons.StudioIcons
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -68,9 +74,22 @@ class DefaultNameTableCellRendererTest {
     assertThat(tip.text).isEqualTo("<html>Help on id</html>")
   }
 
+  @Test
+  fun testNamespaceIcon() {
+    IconLoader.activate()
+    val renderer = DefaultNameTableCellRenderer()
+    val table = createTable() as PTable
+    val item = table.item(1)
+    val unselected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false) as SimpleColoredComponent
+    assertThat(unselected.icon).isSameAs(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE)
+
+    val selected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, true, true) as SimpleColoredComponent
+    assertThat(IconTester.hasOnlyWhiteColors(selected.icon)).isTrue()
+  }
+
   private fun createTable(): JTable {
     val property1 = FakePropertyItem(ANDROID_URI, ATTR_ID, "@id/text1")
-    val property2 = FakePropertyItem(ANDROID_URI, ATTR_TEXT, "Hello")
+    val property2 = FakePropertyItem(TOOLS_URI, ATTR_TEXT, "Hello")
     val model = PTableTestModel(property1, property2)
     property1.tooltipForName = "Help on id"
     property1.tooltipForValue = "Help on id value"

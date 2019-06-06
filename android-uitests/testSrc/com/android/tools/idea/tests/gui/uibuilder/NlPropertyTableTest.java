@@ -26,8 +26,6 @@ import static java.awt.event.KeyEvent.VK_PAGE_UP;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CompletionFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -78,7 +76,6 @@ public class NlPropertyTableTest {
     StudioFlags.NELE_NEW_PROPERTY_PANEL.clearOverride();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/132898557
   @Test
   public void testScrollWhenNavigating() {
     NlEditorFixture layout = myFrame.getEditor()

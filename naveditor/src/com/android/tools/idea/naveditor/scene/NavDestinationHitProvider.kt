@@ -16,23 +16,29 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.AndroidDpCoordinate
-import com.android.tools.idea.common.scene.*
-import com.android.tools.idea.naveditor.model.isFragment
+import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.scene.DefaultHitProvider
+import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.ScenePicker
 
-class NavDestinationHitProvider : DefaultHitProvider() {
+/*
+  Augments the hit region for destinations to include the header above the destination
+ */
+open class NavDestinationHitProvider : DefaultHitProvider() {
   override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
     super.addHit(component, sceneTransform, picker)
 
-    @AndroidDpCoordinate val rect = component.fillRect(null)
+    val sceneView = sceneTransform.surface?.currentSceneView ?: return
+    @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
 
-    @SwingCoordinate var x = sceneTransform.getSwingXDip((rect.x + rect.width).toFloat())
-    if (component.nlComponent.isFragment) {
-      x += sceneTransform.getSwingDimension(ACTION_HANDLE_OFFSET)
-    }
+    val headerRect = getHeaderRect(sceneView, drawRectangle)
 
-    @SwingCoordinate val y = sceneTransform.getSwingYDip(rect.y + rect.height / 2f)
-    @SwingCoordinate val r = sceneTransform.getSwingDimensionDip(OUTER_RADIUS_LARGE.toFloat())
-    picker.addCircle(component, 0, x, y, r)
+    val x1 = headerRect.x
+    val x2 = x1 + headerRect.width
+    val y1 = headerRect.y
+    val y2 = y1 + headerRect.height
+
+    picker.addRect(component, 0, x1.toInt(), y1.toInt(), x2.toInt(), y2.toInt())
   }
 }

@@ -20,6 +20,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
@@ -52,6 +53,7 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull private final File myBuildFile;
 
   @NotNull private final JavaCompileOptionsStub myJavaCompileOptions = new JavaCompileOptionsStub();
+  @NotNull private final ViewBindingOptionsStub myViewBindingOptions = new ViewBindingOptionsStub();
 
   @NotNull private String myModelVersion = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
   @Nullable private VariantStub myFirstVariant;
@@ -359,6 +361,12 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   public Collection<String> getDynamicFeatures() {
     return ImmutableList.of();
+  }
+
+  @NonNull
+  @Override
+  public ViewBindingOptions getViewBindingOptions() {
+    return myViewBindingOptions;
   }
 
   public AndroidProjectStub setPluginGeneration(int pluginGeneration) {

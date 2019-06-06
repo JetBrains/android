@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
-import com.android.builder.model.Version;
+import com.android.Version;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.IdeaTestCase;

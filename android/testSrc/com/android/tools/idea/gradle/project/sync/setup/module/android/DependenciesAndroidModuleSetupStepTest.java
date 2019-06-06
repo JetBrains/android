@@ -15,6 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
+import static com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep.isSelfDependencyByTest;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.TEST;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.util.PathUtil.toSystemDependentName;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -34,24 +47,13 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep.isSelfDependencyByTest;
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.DependencyScope.TEST;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link DependenciesAndroidModuleSetupStep}.
@@ -77,6 +79,17 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
 
   public void testUpdateLibraryDependencyWithPlugin3dot0() throws IOException {
     updateLibraryDependency("3.0.0", false);
+  }
+
+  public void testMaybeAdjustLocalLibraryName() {
+    assertEquals("Gradle: __local_aars__:" + toSystemDependentName("./kml/xyz.jar:unspecified@jar"),
+                 DependenciesAndroidModuleSetupStep
+                   .maybeAdjustLocalLibraryName("Gradle: __local_aars__:" + toSystemDependentName("/abc/kml/xyz.jar:unspecified@jar"),
+                                                toSystemDependentName("/abc")));
+    assertEquals("Gradle: __local_aars__:" + toSystemDependentName("/abc/kml/xyz.jar:unspecified@jar"),
+                 DependenciesAndroidModuleSetupStep
+                   .maybeAdjustLocalLibraryName("Gradle: __local_aars__:" + toSystemDependentName("/abc/kml/xyz.jar:unspecified@jar"),
+                                                null));
   }
 
   private void updateLibraryDependency(@NotNull String modelVersion, boolean exported) throws IOException {

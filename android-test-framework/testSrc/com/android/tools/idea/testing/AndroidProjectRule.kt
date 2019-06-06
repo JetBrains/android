@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing
 
+import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetConfiguration
 import com.intellij.facet.FacetManager
@@ -24,11 +25,13 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.*
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.runner.Description
@@ -149,6 +152,11 @@ class AndroidProjectRule private constructor(
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
     mocks = IdeComponents(fixture)
+
+    // Apply Android Studio code style settings (tests running as the Android plugin in IDEA should behave the same)
+    val settings = CodeStyle.getSettings(project).clone()
+    applyAndroidCodeStyleSettings(settings)
+    CodeStyleSettingsManager.getInstance(project).setTemporarySettings(settings)
   }
 
   private fun createLightFixture(): CodeInsightTestFixture {
@@ -205,6 +213,7 @@ class AndroidProjectRule private constructor(
       }
       ApplicationManager.getApplication().runWriteAction { facetModel.commit() }
       facets.clear()
+      CodeStyleSettingsManager.getInstance(project).dropTemporarySettings()
     }
     fixture.tearDown()
   }

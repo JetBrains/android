@@ -74,21 +74,21 @@ class EnergyTableTest {
       for (i in 0 until numWakeLockGroups) {
         val timeAcquired = (wakeLockPeriod * i).toLong()
         val timeReleased = timeAcquired + wakeLockLength
-        val eventId = i + 1
+        val eventId = (i + 1).toLong()
         table.insertOrReplace(
-          session, EnergyProfiler.EnergyEvent.newBuilder()
-          .setEventId(eventId)
+          session, Common.Event.newBuilder()
+          .setGroupId(eventId)
           .setTimestamp(timeAcquired)
-          .setWakeLockAcquired(EnergyProfiler.WakeLockAcquired.getDefaultInstance())
+          .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
           .build()
         )
 
         table.insertOrReplace(
-          session, EnergyProfiler.EnergyEvent.newBuilder()
-          .setEventId(eventId)
+          session, Common.Event.newBuilder()
+          .setGroupId(eventId)
           .setTimestamp(timeReleased)
-          .setIsTerminal(true)
-          .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance())
+          .setIsEnded(true)
+          .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockReleased(Energy.WakeLockReleased.getDefaultInstance()))
           .build()
         )
       }
@@ -120,7 +120,7 @@ class EnergyTableTest {
     .setEndTimestamp(t1)
     .build()
 
-  private fun newEnergyGroupRequest(eventId: Int, session: Common.Session = MAIN_SESSION) =
+  private fun newEnergyGroupRequest(eventId: Long, session: Common.Session = MAIN_SESSION) =
     EnergyProfiler.EnergyEventGroupRequest.newBuilder()
       .setSession(session)
       .setEventId(eventId)
@@ -181,30 +181,30 @@ class EnergyTableTest {
     //  [---|---]          |
     with(table.getEvents(newEnergyRequest(1250, 1750))) {
       assertThat(this).hasSize(2)
-      assertThat(this[0].hasWakeLockAcquired()).isTrue()
-      assertThat(this[1].hasWakeLockReleased()).isTrue()
+      assertThat(this[0].energyEvent.hasWakeLockAcquired()).isTrue()
+      assertThat(this[1].energyEvent.hasWakeLockReleased()).isTrue()
     }
 
     //     t0              t1
     //      |   [------]   |
     with(table.getEvents(newEnergyRequest(750, 1750))) {
       assertThat(this).hasSize(2)
-      assertThat(this[0].hasWakeLockAcquired()).isTrue()
-      assertThat(this[1].hasWakeLockReleased()).isTrue()
+      assertThat(this[0].energyEvent.hasWakeLockAcquired()).isTrue()
+      assertThat(this[1].energyEvent.hasWakeLockReleased()).isTrue()
     }
 
     //     t0              t1
     //      |          [---|---]
     with(table.getEvents(newEnergyRequest(750, 1250))) {
       assertThat(this).hasSize(1)
-      assertThat(this[0].hasWakeLockAcquired()).isTrue()
+      assertThat(this[0].energyEvent.hasWakeLockAcquired()).isTrue()
     }
 
     //     t0              t1
     //  [---|--------------|---]
     with(table.getEvents(newEnergyRequest(1100, 1450))) {
       assertThat(this).hasSize(1)
-      assertThat(this[0].hasWakeLockAcquired()).isTrue()
+      assertThat(this[0].energyEvent.hasWakeLockAcquired()).isTrue()
     }
 
     with(table.getEvents(newEnergyRequest(Long.MIN_VALUE, Long.MAX_VALUE, ANOTHER_SESSION))) {
@@ -218,12 +218,12 @@ class EnergyTableTest {
     TablePopulator().setWakeLockEventValues(10, 1000, 500).populate(table, MAIN_SESSION)
 
     for (id in 1..10) {
-      with(table.getEventGroup(newEnergyGroupRequest(id))!!) {
+      with(table.getEventGroup(newEnergyGroupRequest(id.toLong()))) {
         assertWithMessage("Event group with ID ${id} is not empty").that(this).hasSize(2) // 2 events per event group
-        this.forEach { energyEvent -> assertThat(energyEvent.eventId).isEqualTo(id) }
+        this.forEach { energyEvent -> assertThat(energyEvent.groupId).isEqualTo(id) }
       }
 
-      with(table.getEventGroup(newEnergyGroupRequest(id, ANOTHER_SESSION))!!) {
+      with(table.getEventGroup(newEnergyGroupRequest(id.toLong(), ANOTHER_SESSION))) {
         assertThat(this).isEmpty()
       }
     }

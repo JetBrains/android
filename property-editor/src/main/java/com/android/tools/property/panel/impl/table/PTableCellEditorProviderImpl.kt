@@ -15,24 +15,27 @@
  */
 package com.android.tools.property.panel.impl.table
 
-import com.android.tools.property.ptable2.DefaultPTableCellEditor
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableCellEditor
-import com.android.tools.property.ptable2.PTableCellEditorProvider
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.api.PropertyItem
-import com.android.tools.property.panel.impl.ui.CellPanel
+import com.android.tools.property.ptable2.DefaultPTableCellEditor
+import com.android.tools.property.ptable2.PTable
+import com.android.tools.property.ptable2.PTableCellEditor
+import com.android.tools.property.ptable2.PTableCellEditorProvider
+import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableItem
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Component
+import java.awt.KeyboardFocusManager
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.border.Border
 
 /**
@@ -111,8 +114,15 @@ class PTableCellEditorImpl : PTableCellEditor {
   }
 
   override fun cancelEditing(): Boolean {
+    val editor = focusOwner as? CommonTextField<*>
+    if (editor?.escapeInLookup() == true) {
+      return false // Do NOT remove the table cell editor from the table.
+    }
     return model?.cancelEditing() ?: true
   }
+
+  private val focusOwner: Component?
+    get() = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
 
   override fun close(oldTable: PTable) {
     if (table == oldTable) {
@@ -141,7 +151,7 @@ class PTableCellEditorImpl : PTableCellEditor {
 }
 
 @VisibleForTesting
-class EditorPanel(val editor: JComponent, withBorder: Border, backgroundColor: Color?): CellPanel() {
+class EditorPanel(val editor: JComponent, withBorder: Border, backgroundColor: Color?): JPanel(BorderLayout()) {
 
   init {
     add(editor, BorderLayout.CENTER)

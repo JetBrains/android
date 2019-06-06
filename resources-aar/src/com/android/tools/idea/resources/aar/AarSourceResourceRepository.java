@@ -141,7 +141,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
    * Increment when making changes that may affect content of repository cache files.
    * Used together with CachingData.codeVersion. Important for developer builds.
    */
-  static final String CACHE_FILE_FORMAT_VERSION = "1";
+  static final String CACHE_FILE_FORMAT_VERSION = "2";
   private static final byte[] CACHE_FILE_HEADER = "Resource cache".getBytes(UTF_8);
   private static final Logger LOG = Logger.getInstance(AarSourceResourceRepository.class);
 

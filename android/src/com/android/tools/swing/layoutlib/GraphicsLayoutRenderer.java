@@ -63,7 +63,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -160,9 +159,6 @@ public class GraphicsLayoutRenderer implements Disposable {
     catch (RenderingException e) {
       throw new InitializationException(e);
     }
-    catch (IOException e) {
-      throw new InitializationException(e);
-    }
 
     if (layoutLib.getApiLevel() < MIN_LAYOUTLIB_API_VERSION) {
       throw new UnsupportedLayoutlibException("GraphicsLayoutRenderer requires at least layoutlib version " + MIN_LAYOUTLIB_API_VERSION);
@@ -210,7 +206,7 @@ public class GraphicsLayoutRenderer implements Disposable {
     assert device != null;
     HardwareConfigHelper hardwareConfigHelper = new HardwareConfigHelper(device);
     DynamicHardwareConfig hardwareConfig = new DynamicHardwareConfig(hardwareConfigHelper.getConfig());
-    List<ResourceValue> resourceLookupChain = new ArrayList<ResourceValue>();
+    List<ResourceValue> resourceLookupChain = new ArrayList<>();
     ResourceResolver resourceResolver =  ResourceResolver.copy(configuration.getResourceResolver());
     assert resourceResolver != null;
     // Create a resource resolver that will save the lookups on the passed List<>
@@ -465,8 +461,8 @@ public class GraphicsLayoutRenderer implements Disposable {
    */
   @NotNull
   public Set<String> getUsedAttrs() {
-    HashSet<String> usedAttrs = new HashSet<String>();
-    for(ResourceValue value : myResourceLookupChain) {
+    HashSet<String> usedAttrs = new HashSet<>();
+    for (ResourceValue value : myResourceLookupChain) {
       if (!(value instanceof StyleItemResourceValue) || ((StyleItemResourceValue)value).getAttrName() == null) {
         // Only selects resources that are also attributes
         continue;
@@ -564,6 +560,7 @@ public class GraphicsLayoutRenderer implements Disposable {
     return modelToView(myImageFactory.getRequestedWidth(), myImageFactory.getRequestedHeight());
   }
 
+  @Override
   public void dispose() {
     // We could get the readLock here first to check myRenderSession but this is a method that is rarely called
     // so we can optimistically get the writeLock.
@@ -584,16 +581,16 @@ public class GraphicsLayoutRenderer implements Disposable {
   }
 
   /**
-   * {@link HardwareConfig} that allows changing the screen size of the device on the fly.
+   * A {@link HardwareConfig} that allows changing the screen size of the device on the fly.
    * <p/>
    * <p/>This allows to pass the HardwareConfig to the LayoutLib and then dynamically modify the size
    * for every render call.
    */
-  static class DynamicHardwareConfig extends HardwareConfig {
+  private static class DynamicHardwareConfig extends HardwareConfig {
     private int myWidth;
     private int myHeight;
 
-    public DynamicHardwareConfig(HardwareConfig delegate) {
+    DynamicHardwareConfig(HardwareConfig delegate) {
       super(delegate.getScreenWidth(), delegate.getScreenHeight(), delegate.getDensity(), delegate.getXdpi(), delegate.getYdpi(),
             delegate.getScreenSize(), delegate.getOrientation(), delegate.getScreenRoundness(), delegate.hasSoftwareButtons());
 

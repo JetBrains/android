@@ -15,6 +15,33 @@
  */
 package com.android.tools.idea.templates.recipe;
 
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.DOT_FTL;
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
+import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APPLICATION_PACKAGE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_DIR;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
+import static com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable;
+import static com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing;
+import static com.android.tools.idea.templates.TemplateUtils.hasExtension;
+import static com.android.tools.idea.templates.TemplateUtils.readTextFromDisk;
+import static com.android.tools.idea.templates.TemplateUtils.readTextFromDocument;
+import static com.android.tools.idea.templates.TemplateUtils.writeTextFile;
+import static com.android.utils.XmlUtils.XML_PROLOG;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.XmlElement;
 import com.android.resources.ResourceFolderType;
@@ -46,31 +73,13 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.LineSeparator;
 import freemarker.template.Configuration;
-import freemarker.template.TemplateException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Predicate;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.flags.StudioFlags.MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED;
-import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
-import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.templates.TemplateUtils.*;
-import static com.android.tools.idea.util.DependencyManagementUtil.dependsOnOldSupportLib;
-import static com.android.utils.XmlUtils.XML_PROLOG;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Executor support for recipe instructions.
@@ -368,7 +377,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
       myReferences.addSourceFile(sourceFile);
       myReferences.addTargetFile(targetFile);
     }
-    catch (IOException | TemplateException e) {
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -456,7 +465,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
    * Returns the absolute path to the file which will get written to.
    */
   @NotNull
-  private File getTargetFile(@NotNull File file) throws IOException {
+  private File getTargetFile(@NotNull File file) {
     if (file.isAbsolute()) {
       return file;
     }
@@ -596,7 +605,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
       }
       else {
         myIO.copyFile(this, file, target);
-        myReferences.addSourceFile(VfsUtilCore.virtualToIoFile(file));
+        myReferences.addSourceFile(virtualToIoFile(file));
         myReferences.addTargetFile(target);
       }
     }
@@ -616,7 +625,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
   private String readTextFile(@NotNull VirtualFile file) {
     // TODO: Rename ATTR_IS_NEW_PROJECT to ATTR_IS_NEW_MODULE since that is what it means...
     if (Boolean.TRUE.equals(myContext.getParamMap().get(TemplateMetadata.ATTR_IS_NEW_PROJECT))) {
-      return readTextFromDisk(VfsUtilCore.virtualToIoFile(file));
+      return readTextFromDisk(virtualToIoFile(file));
     }
     else {
       return readTextFromDocument(myContext.getProject(), file);

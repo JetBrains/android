@@ -58,6 +58,13 @@ interface PropertyEditorModel {
   val hasFocus: Boolean
 
   /**
+   * Controls the visuals of the editor.
+   *
+   * The editor should display itself as being a selected table cell renderer.
+   */
+  var isUsedInRendererWithSelection: Boolean
+
+  /**
    * Request focus to be placed on this editor.
    */
   fun requestFocus()

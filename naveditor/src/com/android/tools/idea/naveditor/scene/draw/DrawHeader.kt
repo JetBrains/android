@@ -17,7 +17,7 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
-import com.android.tools.idea.common.scene.draw.DrawCommand.TARGET_LEVEL
+import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
@@ -28,14 +28,15 @@ import com.android.tools.idea.naveditor.scene.HEADER_TEXT_HEIGHT
 import com.android.tools.idea.naveditor.scene.HEADER_TEXT_PADDING
 import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.scaledFont
+import com.google.common.annotations.VisibleForTesting
 import java.awt.Font
 import java.awt.geom.Rectangle2D
 
-class DrawHeader(private val rectangle: Rectangle2D.Float,
-                 private val scale: Float,
-                 private val text: String,
-                 private val isStart: Boolean,
-                 private val hasDeepLink: Boolean) : CompositeDrawCommand(TARGET_LEVEL) {
+class DrawHeader(@VisibleForTesting val rectangle: Rectangle2D.Float,
+                 @VisibleForTesting val scale: Float,
+                 @VisibleForTesting val text: String,
+                 @VisibleForTesting val isStart: Boolean,
+                 @VisibleForTesting val hasDeepLink: Boolean) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 5))
 

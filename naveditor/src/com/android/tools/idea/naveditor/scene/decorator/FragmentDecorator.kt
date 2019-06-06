@@ -32,8 +32,8 @@ object FragmentDecorator : NavScreenDecorator() {
     super.addContent(list, time, sceneContext, component)
 
     val sceneView = sceneContext.surface?.currentSceneView ?: return
-
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
+    addHeader(list, sceneView, drawRectangle, component)
 
     val scale = sceneContext.scale.toFloat()
     val highlightColor = if (isHighlighted(component)) frameColor(component) else null

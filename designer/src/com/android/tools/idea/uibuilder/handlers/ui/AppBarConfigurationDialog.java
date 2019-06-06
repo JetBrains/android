@@ -65,110 +65,9 @@ import java.util.*;
 import java.util.concurrent.Future;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationUtilKt.formatNamespaces;
 
 public class AppBarConfigurationDialog extends JDialog {
-  // TODO: Remove the hardcoded AppBar height (192dp) and ID (appbar).
-  private static final String TAG_COORDINATOR_LAYOUT =              // 1 = Prefix for android namespace
-    "<android.support.design.widget.CoordinatorLayout\n" +          // 2 = Prefix for auto namespace
-    "%3$s" +                                                        // 3 = Namespace declarations
-    "%4$s" +                                                        // 4 = FitsSystemWindows
-    "    %1$s:layout_width=\"match_parent\"\n" +
-    "    %1$s:layout_height=\"match_parent\">\n" +
-    "  <android.support.design.widget.AppBarLayout\n" +
-    "      %1$s:id=\"@+id/appbar\"\n" +
-    "%4$s" +                                                        // 4 = FitsSystemWindows
-    "      %1$s:layout_height=\"192dp\"\n" +
-    "      %1$s:layout_width=\"match_parent\">\n" +
-    "    <android.support.design.widget.CollapsingToolbarLayout\n" +
-    "        %1$s:layout_width=\"match_parent\"\n" +
-    "        %1$s:layout_height=\"match_parent\"\n" +
-    "        %2$s:toolbarId=\"@+id/toolbar\"\n" +
-    "        %2$s:layout_scrollFlags=\"%5$s\"\n" +                  // 5 = ScrollFlags in CollapsingToolbarLayout
-    "%6$s" +                                                        // 6 = ScrollInterpolator
-    "        %2$s:contentScrim=\"?attr/colorPrimary\">\n" +
-    "%7$s" +                                                        // 7 = Optional background image
-    "      <android.support.v7.widget.Toolbar\n" +
-    "          %1$s:id=\"@+id/toolbar\"\n" +
-    "          %1$s:layout_height=\"?attr/actionBarSize\"\n" +
-    "          %1$s:layout_width=\"match_parent\">\n" +
-    "      </android.support.v7.widget.Toolbar>\n" +
-    "    </android.support.design.widget.CollapsingToolbarLayout>\n" +
-    "  </android.support.design.widget.AppBarLayout>\n" +
-    "  <android.support.v4.widget.NestedScrollView\n" +
-    "      %1$s:layout_width=\"match_parent\"\n" +
-    "      %1$s:layout_height=\"match_parent\"\n" +
-    "%8$s" +                                                        // 8 = behavior_overlapTop
-    "%9$s" +                                                        // 9 = scrollY position
-    "      %2$s:layout_behavior=\"android.support.design.widget.AppBarLayout$ScrollingViewBehavior\">\n" +
-    "%10$s" +                                                       //10 = Page content as xml
-    "  </android.support.v4.widget.NestedScrollView>\n" +
-    "%11$s" +                                                       //11 = Optional FAB
-    "</android.support.design.widget.CoordinatorLayout>\n";
-
-  private static final String TAG_COORDINATOR_WITH_TABS_LAYOUT =    // 1 = Prefix for android namespace
-    "<android.support.design.widget.CoordinatorLayout\n" +          // 2 = Prefix for auto namespace
-    "%3$s" +                                                        // 3 = Namespace declarations
-    "    %1$s:layout_width=\"match_parent\"\n" +
-    "    %1$s:layout_height=\"match_parent\">\n" +
-    "  <android.support.design.widget.AppBarLayout\n" +
-    "      %1$s:id=\"@+id/appbar\"\n" +
-    "      %1$s:layout_height=\"wrap_content\"\n" +
-    "      %1$s:layout_width=\"match_parent\">\n" +
-    "    <android.support.v7.widget.Toolbar\n" +
-    "        %1$s:layout_height=\"?attr/actionBarSize\"\n" +
-    "        %1$s:layout_width=\"match_parent\"\n" +
-    "        %2$s:layout_scrollFlags=\"scroll|enterAlways\">\n" +
-    "    </android.support.v7.widget.Toolbar>\n" +
-    "    <android.support.design.widget.TabLayout\n" +
-    "        %1$s:id=\"@+id/tabs\"\n" +
-    "        %1$s:layout_width=\"match_parent\"\n" +
-    "        %1$s:layout_height=\"wrap_content\"\n" +
-    "%4$s" +                                                        // 4 = ScrollFlags for TabLayout
-    "        %2$s:tabMode=\"scrollable\">\n" +
-    "%5$s" +                                                        // 5 = TabItems
-    "    </android.support.design.widget.TabLayout>\n" +
-    "  </android.support.design.widget.AppBarLayout>\n" +
-    "  <android.support.v4.widget.NestedScrollView\n" +
-    "      %1$s:layout_width=\"match_parent\"\n" +
-    "      %1$s:layout_height=\"match_parent\"\n" +
-    "%6$s" +                                                        // 6 = scrollY position
-    "      %2$s:layout_behavior=\"android.support.design.widget.AppBarLayout$ScrollingViewBehavior\">\n" +
-    "    %7$s\n" +                                                  // 7 = Page content as xml
-    "  </android.support.v4.widget.NestedScrollView>\n" +
-    "%8$s" +                                                        // 8 = Optional FAB
-    "</android.support.design.widget.CoordinatorLayout>\n";
-
-  private static final String TAG_FLOATING_ACTION_BUTTON =          // 1 = Prefix for android namespace
-    "<android.support.design.widget.FloatingActionButton\n" +       // 2 = Prefix for auto namespace
-    "    %1$s:layout_height=\"wrap_content\"\n" +
-    "    %1$s:layout_width=\"wrap_content\"\n" +
-    "    %1$s:src=\"%3$s\"\n" +                                     // 3 = Image location
-    "    %1$s:layout_gravity=\"bottom|end\"\n" +
-    "    %1$s:layout_margin=\"16dp\"\n" +
-    "    %1$s:clickable=\"true\"/>\n";
-
-  private static final String TAG_IMAGE_VIEW =                      // 1 = Prefix for android namespace
-    "<ImageView\n" +
-    "    %1$s:id=\"@+id/app_bar_image\"\n" +
-    "    %1$s:layout_width=\"match_parent\"\n" +
-    "    %1$s:layout_height=\"match_parent\"\n" +
-    "%2$s" +                                                        // 2 = Collapse mode
-    "    %1$s:src=\"%3$s\"\n" +                                     // 3 = Image src
-    "    %1$s:scaleType=\"centerCrop\"/>\n";
-
-  private static final String TAG_TEXT_VIEW =
-    "<TextView\n" +
-    "    android:layout_width=\"match_parent\"\n" +
-    "    android:layout_height=\"wrap_content\"\n" +
-    "    android:text=\"%1$s\"\n" +                                 // 1 = Text in the TextView
-    "    android:padding=\"16dp\"/>";
-
-  private static final String TAG_TAB_ITEM =
-    "<android.support.design.widget.TabItem\n" +
-    "    %1$s:layout_height=\"wrap_content\"\n" +                   // 1 = Prefix for android namespace
-    "    %1$s:layout_width=\"wrap_content\"\n" +
-    "    %1$s:text=\"%2$s\"/>\n";                                   // 2 = Text attribute
-
   private static final String DIALOG_TITLE = "Configure App Bar";
   private static final String DEFAULT_BACKGROUND_IMAGE = "@android:drawable/sym_def_app_icon";
   private static final String DEFAULT_FAB_IMAGE = "@android:drawable/ic_input_add";
@@ -400,6 +299,10 @@ public class AppBarConfigurationDialog extends JDialog {
     Disposer.dispose(myDisposable);
   }
 
+  @NotNull
+  private Project getProject() {
+    return myEditor.getModel().getProject();
+  }
 
   private void updateControls() {
     myTabCount.setEnabled(myWithTabs.isSelected());
@@ -420,11 +323,11 @@ public class AppBarConfigurationDialog extends JDialog {
     myCollapsedPreviewFuture = cancel(myCollapsedPreviewFuture);
     Application application = ApplicationManager.getApplication();
     myExpandedPreviewFuture = application.executeOnPooledThread(() -> {
-      DumbService.getInstance(myEditor.getModel().getProject()).waitForSmartMode();
+      DumbService.getInstance(getProject()).waitForSmartMode();
       updateExpandedImage(expandedFile);
     });
     myCollapsedPreviewFuture = application.executeOnPooledThread(() -> {
-      DumbService.getInstance(myEditor.getModel().getProject()).waitForSmartMode();
+      DumbService.getInstance(getProject()).waitForSmartMode();
       updateCollapsedImage(collapsedFile);
     });
   }
@@ -442,11 +345,10 @@ public class AppBarConfigurationDialog extends JDialog {
     for (int i = 0; i < DUMMY_REPETITION; i++) {
       text.append(DUMMY_TEXT);
     }
-    String content = String.format(TAG_TEXT_VIEW, text.toString());
-
     Map<String, String> namespaces = getNameSpaces(null, collapsed);
+    String content = Templates.getTextView(namespaces.get(ANDROID_URI), text.toString());
     String xml = getXml(content, collapsed, namespaces);
-    Project project = myEditor.getModel().getProject();
+    Project project = getProject();
     return PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
   }
 
@@ -479,8 +381,8 @@ public class AppBarConfigurationDialog extends JDialog {
 
   @NotNull
   private String getXmlWithoutTabs(@NotNull String content, boolean collapsed, @NotNull Map<String, String> namespaces) {
-    return String.format(
-      TAG_COORDINATOR_LAYOUT,
+    return Templates.getCoordinatorLayout(
+      getProject(),
       namespaces.get(ANDROID_URI),
       namespaces.get(AUTO_URI),
       formatNamespaces(namespaces),
@@ -496,8 +398,8 @@ public class AppBarConfigurationDialog extends JDialog {
 
   @NotNull
   private String getXmlWithTabs(@NotNull String content, boolean collapsed, @NotNull Map<String, String> namespaces) {
-    return String.format(
-      TAG_COORDINATOR_WITH_TABS_LAYOUT,
+    return Templates.getCoordinatorLayoutWithTabs(
+      getProject(),
       namespaces.get(ANDROID_URI),
       namespaces.get(AUTO_URI),
       formatNamespaces(namespaces),
@@ -535,8 +437,8 @@ public class AppBarConfigurationDialog extends JDialog {
   private String getTabItems(@NotNull Map<String, String> namespaces) {
     StringBuilder builder = new StringBuilder();
     for (int index = 0; index < (Integer)myTabCount.getValue(); index++) {
-      builder.append(String.format(
-        TAG_TAB_ITEM,
+      builder.append(Templates.getTabItem(
+        getProject(),
         namespaces.get(ANDROID_URI),
         "Tab" + (index + 1)));
     }
@@ -558,7 +460,7 @@ public class AppBarConfigurationDialog extends JDialog {
     if (!myShowBackgroundImage.isSelected()) {
       return "";
     }
-    return String.format(TAG_IMAGE_VIEW,
+    return Templates.getImageView(
                          namespaces.get(ANDROID_URI),
                          getBackgroundImageCollapseMode(namespaces),
                          myBackgroundImage);
@@ -597,9 +499,7 @@ public class AppBarConfigurationDialog extends JDialog {
     if (!myFloatingActionButton.isSelected()) {
       return "";
     }
-    return String.format(TAG_FLOATING_ACTION_BUTTON, namespaces.get(ANDROID_URI),
-                         namespaces.get(AUTO_URI),
-                         myFloatingActionButtonImage);
+    return Templates.getTagFloatingActionButton(getProject(), namespaces.get(ANDROID_URI), myFloatingActionButtonImage);
   }
 
   @NotNull
@@ -621,16 +521,6 @@ public class AppBarConfigurationDialog extends JDialog {
       reverse.put(TOOLS_URI, TOOLS_PREFIX);
     }
     return reverse;
-  }
-
-  @NotNull
-  private static String formatNamespaces(@NotNull Map<String, String> namespaces) {
-    StringBuilder result = new StringBuilder();
-    for (String ns : namespaces.keySet()) {
-      String prefix = namespaces.get(ns);
-      result.append(String.format("    xmlns:%1$s=\"%2$s\"\n", prefix, ns));
-    }
-    return result.toString();
   }
 
   // If AppBarLayout is applied a second time it should replace the current AppBarLayout:
@@ -703,18 +593,23 @@ public class AppBarConfigurationDialog extends JDialog {
 
   private BufferedImage renderImage(@NotNull PsiFile xmlFile) {
     AndroidFacet facet = myEditor.getModel().getFacet();
-    RenderService renderService = RenderService.getInstance(myEditor.getModel().getProject());
+    RenderService renderService = RenderService.getInstance(getProject());
     RenderLogger logger = renderService.createLogger(facet);
     final RenderTask task = renderService.taskBuilder(facet, myEditor.getConfiguration())
                                          .withLogger(logger)
                                          .withPsiFile(xmlFile)
                                          .buildSynchronously();
     RenderResult result = null;
-    if (task != null) {
-      task.setRenderingMode(SessionParams.RenderingMode.NORMAL);
-      task.getContext().setFolderType(ResourceFolderType.LAYOUT);
-      result = Futures.getUnchecked(task.render());
-      task.dispose();
+    try {
+      if (task != null) {
+        task.setRenderingMode(SessionParams.RenderingMode.NORMAL);
+        task.getContext().setFolderType(ResourceFolderType.LAYOUT);
+        result = Futures.getUnchecked(task.render());
+      }
+    } finally {
+      if (task != null) {
+        task.dispose();
+      }
     }
 
     if (result == null || !result.hasImage()) {

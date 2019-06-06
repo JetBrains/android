@@ -131,6 +131,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
           knownValueRenderers = possibleValues
           knownValues to possibleValues
         }.invokeLater { (knownValues, possibleValues) ->
+          if (disposed) return@invokeLater
           setKnownValues(
             (possibleValues.keys.toList().map { it.annotated() } +
              availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty()

@@ -102,12 +102,12 @@ PROJECT             : testTransitiveDependencies
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: __local_aars__:<PROJECT>/library2/libs/fakelib.jar:unspecified@jar
+        LIBRARY             : Gradle: __local_aars__:./library2/libs/fakelib.jar:unspecified@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:<PROJECT>/library2/libs/fakelib.jar:unspecified@jar [=]
+            Name                : Gradle: __local_aars__:./library2/libs/fakelib.jar:unspecified@jar [=]
             *CLASSES            : jar://<PROJECT>/library2/libs/fakelib.jar!/
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
             LibraryLevel        : project
@@ -426,6 +426,7 @@ PROJECT             : testTransitiveDependencies
             JavaSource (test)   : file://<PROJECT>/javalib1/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/javalib1/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/javalib1/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/javalib1/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -486,6 +487,7 @@ PROJECT             : testTransitiveDependencies
             JavaSource (test)   : file://<PROJECT>/javalib2/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/javalib2/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/javalib2/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/javalib2/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -1033,12 +1035,12 @@ PROJECT             : testTransitiveDependencies
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: __local_aars__:<PROJECT>/library2/libs/fakelib.jar:unspecified@jar
+        LIBRARY             : Gradle: __local_aars__:./library2/libs/fakelib.jar:unspecified@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:<PROJECT>/library2/libs/fakelib.jar:unspecified@jar [=]
+            Name                : Gradle: __local_aars__:./library2/libs/fakelib.jar:unspecified@jar [=]
             *CLASSES            : jar://<PROJECT>/library2/libs/fakelib.jar!/
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
             LibraryLevel        : project

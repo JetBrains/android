@@ -23,7 +23,7 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerCompone
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.HORIZONTAL_MARGIN_TO_PICKER_BORDER
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_COLOR
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_PREFERRED_WIDTH
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.COLOR_PICKER_WIDTH
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.JBColor
@@ -48,24 +48,12 @@ import javax.swing.JPanel
 private const val COLOR_BUTTON_ROW = 2
 private const val COLOR_BUTTON_COLUMN = 8
 
-private val PALETTE_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 120)
-private val PALETTE_BORDER = JBUI.Borders.empty(5, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 10, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
-
-private val COMBO_BOX_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 35)
-private val COMBO_BOX_BORDER = JBUI.Borders.empty(0, 2, 8, 2)
-
-private val COLOR_BUTTON_PREFERRED_SIZE = JBUI.size(34)
-private val COLOR_BUTTON_BORDER = JBUI.Borders.empty(6)
-/**
- * This value is not adjusted by component size.
- */
-private const val COLOR_BUTTON_FOCUS_BORDER_WIDTH = 3
+private const val PANEL_HEIGHT = 120
 
 /**
  * The border of color block which provides the constraint to background color.
  */
-private val COLOR_BUTTON_INNER_BORDER = JBColor(Color(0, 0, 0, 26), Color(255, 255, 255, 26))
-private const val COLOR_BUTTON_ROUND_CORNER_ARC = 5
+private val COLOR_BUTTON_INNER_BORDER_COLOR = JBColor(Color(0, 0, 0, 26), Color(255, 255, 255, 26))
 
 class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel() {
 
@@ -79,13 +67,13 @@ class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel()
 
   init {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    border = PALETTE_BORDER
-    preferredSize = PALETTE_PREFERRED_SIZE
+    border = JBUI.Borders.empty(5, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 10, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
+    preferredSize = JBUI.size(COLOR_PICKER_WIDTH, PANEL_HEIGHT)
     background = PICKER_BACKGROUND_COLOR
 
     val comboBoxPanel = JPanel(GridLayout(1, 1)).apply {
-      preferredSize = COMBO_BOX_PREFERRED_SIZE
-      border = COMBO_BOX_BORDER
+      preferredSize = JBUI.size(COLOR_PICKER_WIDTH, 35)
+      border = JBUI.Borders.empty(0, 2, 8, 2)
       background = PICKER_BACKGROUND_COLOR
     }
     val boxModel = MyComboBoxModel(MaterialColors.Category.values())
@@ -138,13 +126,16 @@ private class MyComboBoxModel(colorCategories: Array<MaterialColors.Category>)
 
 class ColorButton(var color: Color = Color.WHITE): JButton() {
 
+  private val FOCUS_BORDER_WIDTH = JBUI.scale(3)
+  private val ROUND_CORNER_ARC = JBUI.scale(5)
+
   enum class Status { NORMAL, HOVER, PRESSED }
 
   var status = Status.NORMAL
 
   init {
-    preferredSize = COLOR_BUTTON_PREFERRED_SIZE
-    border = COLOR_BUTTON_BORDER
+    preferredSize = JBUI.size(34)
+    border = JBUI.Borders.empty(6)
     isRolloverEnabled = true
     hideActionText = true
     background = PICKER_BACKGROUND_COLOR
@@ -198,17 +189,17 @@ class ColorButton(var color: Color = Color.WHITE): JButton() {
       val w = width - l - insets.right / 2
       val h = height - t - insets.bottom / 2
 
-      val focusColor = UIUtil.getFocusedBoundsColor() ?: Color.LIGHT_GRAY
+      val focusColor = UIUtil.getFocusedBoundsColor()
       g.color = if (status == Status.HOVER) focusColor else focusColor.darker()
       g2d.fillRoundRect(l, t, w, h, 7, 7)
     }
     else if (isFocusOwner) {
-      val l = insets.left - COLOR_BUTTON_FOCUS_BORDER_WIDTH
-      val t = insets.top - COLOR_BUTTON_FOCUS_BORDER_WIDTH
-      val w = width - l - insets.right + COLOR_BUTTON_FOCUS_BORDER_WIDTH
-      val h = height - t - insets.bottom + COLOR_BUTTON_FOCUS_BORDER_WIDTH
+      val l = insets.left - FOCUS_BORDER_WIDTH
+      val t = insets.top - FOCUS_BORDER_WIDTH
+      val w = width - l - insets.right + FOCUS_BORDER_WIDTH
+      val h = height - t - insets.bottom + FOCUS_BORDER_WIDTH
 
-      g.color = UIUtil.getFocusedFillColor() ?: Color.BLUE.brighter()
+      g.color = UIUtil.getFocusedFillColor()
       g2d.fillRoundRect(l, t, w, h, 7, 7)
     }
 
@@ -217,9 +208,9 @@ class ColorButton(var color: Color = Color.WHITE): JButton() {
     val brickWidth = width - insets.left - insets.right
     val brickHeight = height - insets.top - insets.bottom
     g.color = color
-    g2d.fillRoundRect(left, top, brickWidth, brickHeight, COLOR_BUTTON_ROUND_CORNER_ARC, COLOR_BUTTON_ROUND_CORNER_ARC)
-    g.color = COLOR_BUTTON_INNER_BORDER
-    g2d.drawRoundRect(left, top, brickWidth, brickHeight, COLOR_BUTTON_ROUND_CORNER_ARC, COLOR_BUTTON_ROUND_CORNER_ARC)
+    g2d.fillRoundRect(left, top, brickWidth, brickHeight, ROUND_CORNER_ARC, ROUND_CORNER_ARC)
+    g.color = COLOR_BUTTON_INNER_BORDER_COLOR
+    g2d.drawRoundRect(left, top, brickWidth, brickHeight, ROUND_CORNER_ARC, ROUND_CORNER_ARC)
 
     g.color = originalColor
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, originalAntialiasing)

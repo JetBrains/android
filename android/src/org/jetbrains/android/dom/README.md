@@ -137,7 +137,6 @@ completion, one with the wrong insert handler.
 > **TODO:** Add more lookup strings in other file types, e.g. preferences.  
 > **TODO:** Class names in tags are provided by DOM, `getVariants` in `AndroidXmlReferenceProvider.MyClassOrPackageReference`,
         `AndroidXmlCompletionContributor` and `AndroidLayoutXmlTagNameProvider`.  
-> **TODO:** Remove the "namespace prefix" completion from `AndroidXmlCompletionContributor`, since all attributes are suggested anyway.  
 > **TODO:** Can we make `AndroidXmlCompletionContributor` not specialized to only work on layouts?
 
 When a new tag is inserted, `XmlTagInsertHandler` uses information from `AndroidXmlTagDescriptor` to add required attributes and subtags

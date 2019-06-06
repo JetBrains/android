@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.property.panel.api.PropertiesTable
@@ -88,6 +90,10 @@ class NeleNewPropertyItemTest {
 
     property.value = "Hello"
     assertThat(property.value).isEqualTo("Hello")
+    assertThat(property.type).isEqualTo(NelePropertyType.STRING)
+    assertThat(property.definition!!.resourceReference).isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_TEXT))
+    assertThat(property.componentName).isEqualTo(FQCN_TEXT_VIEW)
+    assertThat(property.libraryName).isEqualTo("android")
     assertThat(property.resolvedValue).isEqualTo("Hello")
     assertThat(property.isReference).isFalse()
     assertThat(property.tooltipForName).isEqualTo(EXPECTED_TEXT_TOOLTIP)
@@ -173,7 +179,7 @@ class NeleNewPropertyItemTest {
   }
 
   private fun createTable(): PropertiesTable<NelePropertyItem> {
-    val descriptor = ComponentDescriptor(IMAGE_BUTTON)
+    val descriptor = ComponentDescriptor(TEXT_VIEW)
       .withBounds(0, 0, 1000, 1000)
       .wrapContentWidth()
       .wrapContentHeight()
@@ -186,8 +192,13 @@ class NeleNewPropertyItemTest {
     val property4 = util.makeProperty(AUTO_URI, ATTR_SRC_COMPAT, NelePropertyType.DRAWABLE)
     val property5 = util.makeProperty(ANDROID_URI, ATTR_GRAVITY, NelePropertyType.ENUM)
     val table: Table<String, String, NelePropertyItem> = HashBasedTable.create()
+
+    // Override property1 such that componentName and library name is set for the delegate test above:
+    val textProperty = with(property1) {
+      NelePropertyItem(namespace, name, type, definition, FQCN_TEXT_VIEW, "android", model, optionalValue, components)
+    }
     add(table, property0)
-    add(table, property1)
+    add(table, textProperty)
     add(table, property2)
     add(table, property3)
     add(table, property4)

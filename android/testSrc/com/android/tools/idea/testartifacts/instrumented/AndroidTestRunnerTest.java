@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.GradleApplicationIdProvider;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
@@ -31,13 +33,6 @@ import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.execution.process.NopProcessHandler;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * Tests for the Android Test Runner related things
@@ -56,8 +51,8 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
       createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.ApplicationTest");
     assertNotNull(androidTestRunConfiguration);
 
-    AndroidRunConfigurationEditor<AndroidTestRunConfiguration> editor =
-      (AndroidRunConfigurationEditor<AndroidTestRunConfiguration>)androidTestRunConfiguration.getConfigurationEditor();
+    AndroidRunConfigurationEditor<?> editor =
+      (AndroidRunConfigurationEditor<?>)androidTestRunConfiguration.getConfigurationEditor();
 
     TestRunParameters testRunParameters = (TestRunParameters)editor.getConfigurationSpecificEditor();
     testRunParameters.resetFrom(androidTestRunConfiguration);
@@ -66,67 +61,49 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
 
   public void testRunnerArgumentsSet() throws Exception {
     loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS);
-    Map<String, String> expectedArguments = new HashMap<>();
-    expectedArguments.put("size", "medium");
-    expectedArguments.put("foo", "bar");
 
-    Map<String, String> runnerArguments = AndroidTestRunConfiguration.getRunnerArguments(myAndroidFacet);
-    assertEquals(expectedArguments, runnerArguments);
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("com.android.runnerarguments.ExampleInstrumentationTest");
+    assertThat(runner.getAmInstrumentCommand()).contains("-e size medium");
+    assertThat(runner.getAmInstrumentCommand()).contains("-e foo bar");
   }
 
   public void testRunnerComponentsShouldBeObtainedFromGradleProjects() throws Exception {
     loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
 
-    AndroidTestRunConfiguration androidTestRunConfiguration =
-      createAndroidTestConfigurationFromClass(getProject(), "google.testapplication.ApplicationTest");
-    assertNotNull(androidTestRunConfiguration);
-
-    assertThat(androidTestRunConfiguration.INSTRUMENTATION_RUNNER_CLASS).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("google.testapplication.ApplicationTest");
+    assertThat(runner.getRunnerName()).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
   }
 
   public void testRunnerAtoNotUsed() throws Exception {
     loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
-    AndroidTestRunConfiguration.MyApplicationLaunchTask task = createLaunchTask("google.testapplication.ApplicationTest");
-    IDevice device = mock(IDevice.class);
-
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myAndroidFacet);
-    assertNotNull(androidModuleModel);
-    IdeAndroidArtifact artifact = androidModuleModel.getSelectedVariant().getMainArtifact();
-    assertInstanceOf(task.getRemoteAndroidTestRunner(artifact, device), RemoteAndroidTestRunner.class);
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("google.testapplication.ApplicationTest");
+    assertThat(runner).isInstanceOf(RemoteAndroidTestRunner.class);
   }
 
   public void testRunnerAtoUsed() throws Exception {
     loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR);
-    AndroidTestRunConfiguration.MyApplicationLaunchTask task = createLaunchTask("google.testapplication.ApplicationTest");
-    IDevice device = mock(IDevice.class);
-
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myAndroidFacet);
-    assertNotNull(androidModuleModel);
-    IdeAndroidArtifact artifact = androidModuleModel.getSelectedVariant().getAndroidTestArtifact();
-    assertInstanceOf(task.getRemoteAndroidTestRunner(artifact, device), AndroidTestOrchestratorRemoteAndroidTestRunner.class);
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("google.testapplication.ApplicationTest");
+    assertThat(runner).isInstanceOf(AndroidTestOrchestratorRemoteAndroidTestRunner.class);
   }
 
   public void testRunnerCorrectForTestOnlyModule() throws Exception {
     loadProject(TestProjectPaths.TEST_ONLY_MODULE);
-    AndroidTestRunConfiguration.MyApplicationLaunchTask task = createLaunchTask("com.example.android.app.ExampleTest");
-    IDevice device = mock(IDevice.class);
-
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myAndroidFacet);
-    assertNotNull(androidModuleModel);
-    IdeAndroidArtifact artifact = androidModuleModel.getSelectedVariant().getMainArtifact();
-    assertInstanceOf(task.getRemoteAndroidTestRunner(artifact, device), RemoteAndroidTestRunner.class);
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("com.example.android.app.ExampleTest");
+    assertThat(runner).isInstanceOf(RemoteAndroidTestRunner.class);
   }
 
-  private AndroidTestRunConfiguration.MyApplicationLaunchTask createLaunchTask(@NotNull String className) {
+  private RemoteAndroidTestRunner createRemoteAndroidTestRunner(@NotNull String className) {
+    return createLaunchTask(className).createRemoteAndroidTestRunner(mock(IDevice.class));
+  }
+
+  private AndroidTestApplicationLaunchTask createLaunchTask(@NotNull String className) {
     ApplicationIdProvider applicationIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
     LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(new NopProcessHandler());
 
-    AndroidTestRunConfiguration androidTestRunConfiguration =
-      createAndroidTestConfigurationFromClass(getProject(), className);
+    AndroidTestRunConfiguration androidTestRunConfiguration = createAndroidTestConfigurationFromClass(getProject(), className);
     assertNotNull(androidTestRunConfiguration);
 
-
-    return (AndroidTestRunConfiguration.MyApplicationLaunchTask)androidTestRunConfiguration
+    return (AndroidTestApplicationLaunchTask)androidTestRunConfiguration
       .getApplicationLaunchTask(applicationIdProvider, myAndroidFacet, "",
                                 false, launchStatus);
   }
