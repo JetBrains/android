@@ -43,8 +43,9 @@ import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -163,7 +164,7 @@ public class AndroidTargetData {
   }
 
   @Nullable
-  public synchronized LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException, IOException {
+  public synchronized LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
@@ -280,7 +281,9 @@ public class AndroidTargetData {
 
     @Override
     protected boolean isAttributeAcceptable(@NotNull ResourceReference attr) {
-      return attr.getNamespace().equals(ResourceNamespace.ANDROID) && isResourcePublic(ResourceType.ATTR.getName(), attr.getName());
+      return attr.getNamespace().equals(ResourceNamespace.ANDROID)
+             && !attr.getName().startsWith("__removed")
+             && isResourcePublic(ResourceType.ATTR.getName(), attr.getName());
     }
   }
 
@@ -402,7 +405,7 @@ public class AndroidTargetData {
 
     @Nullable
     private Set<String> collectValues(int pathId) {
-      try (BufferedReader reader = new BufferedReader(new FileReader(myTarget.getPath(pathId)))) {
+      try (BufferedReader reader = Files.newBufferedReader(Paths.get(myTarget.getPath(pathId)))) {
         Set<String> result = new HashSet<>();
         String line;
         while ((line = reader.readLine()) != null) {

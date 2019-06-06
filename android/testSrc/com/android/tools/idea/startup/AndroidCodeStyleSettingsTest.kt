@@ -15,25 +15,19 @@
  */
 package com.android.tools.idea.startup
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.util.AppPropertiesComponentImpl
-import com.intellij.ide.util.PropertiesComponent
+import com.intellij.application.options.CodeStyle
 import com.intellij.lang.xml.XMLLanguage
-import com.intellij.psi.codeStyle.CodeStyleScheme
-import com.intellij.psi.codeStyle.CodeStyleSchemes
 import com.intellij.psi.codeStyle.CodeStyleSettings
-import com.intellij.psi.codeStyle.arrangement.ArrangementSettings
-import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle
-import org.junit.Before
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings.REARRANGE_ALWAYS
+import com.intellij.psi.codeStyle.JavaCodeStyleSettings
+import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito
-
-private const val DEFAULT_RIGHT_MARGIN = 100
-private const val CUSTOM_RIGHT_MARGIN = 90
 
 @RunWith(JUnit4::class)
 class AndroidCodeStyleSettingsTest {
@@ -41,71 +35,23 @@ class AndroidCodeStyleSettingsTest {
   @JvmField
   val myRule = AndroidProjectRule.inMemory()
 
-  private lateinit var mySchemes: CodeStyleSchemes
-  private lateinit var myScheme: CodeStyleScheme
-  private lateinit var myProperties: PropertiesComponent
-
-  @Before
-  fun mockSchemes() {
-    mySchemes = Mockito.mock(CodeStyleSchemes::class.java)
-  }
-
-  @Before
-  fun mockScheme() {
-    myScheme = Mockito.mock(CodeStyleScheme::class.java)
-    Mockito.`when`(myScheme.codeStyleSettings).thenReturn(CodeStyleSettings())
-  }
-
-  @Before
-  fun initProperties() {
-    myProperties = AppPropertiesComponentImpl()
-  }
-
   @Test
-  fun initializeDefaults() {
-    Mockito.`when`(mySchemes.defaultScheme).thenReturn(myScheme)
+  fun initializedDefaultsInRealProjectInStudio() {
+    // Note: this test is intentionally not an AndroidTestCase, because that applies the Android code style to all tests anyway.
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      val newSettings = CodeStyleSettings()
+      assertThat(AndroidXmlCodeStyleSettings.getInstance(newSettings).USE_CUSTOM_SETTINGS).isTrue()
+      assertThat(newSettings.getCustomSettings(JavaCodeStyleSettings::class.java).CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND)
+        .isEqualTo(99)
+      assertThat(newSettings.getCommonSettings(XMLLanguage.INSTANCE).FORCE_REARRANGE_MODE).isEqualTo(REARRANGE_ALWAYS)
 
-    val defaultScheme = mySchemes.defaultScheme
-    val defaultSettings = defaultScheme.codeStyleSettings
-
-    myProperties.setValue(AndroidCodeStyleSettings.CONFIG_V1, false)
-    AndroidCodeStyleSettings.initializeDefaults(mySchemes, myProperties)
-    assertThat(defaultSettings.defaultRightMargin).isEqualTo(DEFAULT_RIGHT_MARGIN)
-
-    defaultSettings.defaultRightMargin = CUSTOM_RIGHT_MARGIN
-    assertThat(defaultSettings.defaultRightMargin).isEqualTo(CUSTOM_RIGHT_MARGIN)
-
-    AndroidCodeStyleSettings.initializeDefaults(mySchemes, myProperties)
-    assertThat(defaultScheme.codeStyleSettings.defaultRightMargin).isEqualTo(CUSTOM_RIGHT_MARGIN)
-
-    myProperties.setValue(AndroidCodeStyleSettings.CONFIG_V1, false)
-    AndroidCodeStyleSettings.initializeDefaults(mySchemes, myProperties)
-    assertThat(defaultSettings.defaultRightMargin).isEqualTo(DEFAULT_RIGHT_MARGIN)
+      // CodeInsightTestFixtureImpl will instantiate a temporary code style for each test. This test only needs to verify the code style
+      // defaults for the project, so we can drop the temporary settings early as we're not going to make any changes.
+      CodeStyle.dropTemporarySettings(myRule.project)
+      val projectSettings = CodeStyle.getSettings(myRule.project)
+      assertThat(AndroidXmlCodeStyleSettings.getInstance(projectSettings).USE_CUSTOM_SETTINGS).isTrue()
+      assertThat(JavaCodeStyleSettings.getInstance(myRule.project).CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND).isEqualTo(99)
+      assertThat(projectSettings.getCommonSettings(XMLLanguage.INSTANCE).FORCE_REARRANGE_MODE).isEqualTo(REARRANGE_ALWAYS)
+    }
   }
-
-  @Test
-  fun setArrangementSettingsToVersion3() {
-    // Arrange
-    Mockito.`when`(mySchemes.currentScheme).thenReturn(myScheme)
-
-    // Act
-    AndroidCodeStyleSettings.setArrangementSettingsToVersion3(mySchemes, myProperties)
-
-    // Assert
-    val settings = getArrangementSettings(mySchemes)
-    assertThat(settings).isEqualTo(AndroidXmlPredefinedCodeStyle.createVersion3Settings())
-
-    // Act
-    // An arbitrary change to the arrangement settings
-    settings?.sections?.removeAt(6)
-
-    AndroidCodeStyleSettings.setArrangementSettingsToVersion3(mySchemes, myProperties)
-
-    // Assert
-    assertThat(getArrangementSettings(mySchemes)).isEqualTo(settings)
-  }
-}
-
-private fun getArrangementSettings(schemes: CodeStyleSchemes): ArrangementSettings? {
-  return schemes.currentScheme.codeStyleSettings.getCommonSettings(XMLLanguage.INSTANCE).arrangementSettings
 }

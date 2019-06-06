@@ -95,11 +95,11 @@ class ActionTargetTest : NavTestCase() {
                               "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,%1\$s\n" +
                               "DrawArrow,0,UP,435.25x532.0x6.0x5.0,%1\$s\n" +
                               "\n" +
-                              "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
                               "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
+                              "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
                               "\n" +
-                              "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
                               "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
+                              "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
                               "\n" +
                               "UNClip\n"
 
@@ -171,23 +171,23 @@ class ActionTargetTest : NavTestCase() {
       "DrawAction,900.0x900.0x76.5x128.0,650.0x650.0x76.5x128.0,b2a7a7a7\n" +
       "DrawArrow,0,UP,685.25x782.0x6.0x5.0,b2a7a7a7\n" +
       "\n" +
-      "DrawFragment,650.0x650.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,650.0x639.0x76.5x11.0,0.5,fragment1,true,false\n" +
+      "DrawFragment,650.0x650.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,650.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,650.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
+      "DrawFragment,650.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,900.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,900.0x389.0x76.5x11.0,0.5,fragment3,false,false\n" +
+      "DrawFragment,900.0x400.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,400.0x650.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,400.0x639.0x76.5x11.0,0.5,fragment4,false,false\n" +
+      "DrawFragment,400.0x650.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,650.0x900.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,650.0x889.0x76.5x11.0,0.5,fragment5,false,false\n" +
+      "DrawFragment,650.0x900.0x76.5x128.0,0.5,null\n" +
       "\n" +
-      "DrawFragment,900.0x900.0x76.5x128.0,0.5,null\n" +
       "DrawHeader,900.0x889.0x76.5x11.0,0.5,fragment6,false,false\n" +
+      "DrawFragment,900.0x900.0x76.5x128.0,0.5,null\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )

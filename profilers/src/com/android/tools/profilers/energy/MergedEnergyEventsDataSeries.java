@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,24 @@
  */
 package com.android.tools.profilers.energy;
 
+import com.android.annotations.NonNull;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
 
 /**
  * A data series where multiple, separate series are merged into one.
- *
+ * <p>
  * For example, events like so:
  *
  * <pre>
@@ -35,38 +42,49 @@ import java.util.*;
  *                               [==]
  *                                      [========]
  * </pre>
- *
+ * <p>
  * would be collapsed into:
  *
  * <pre>
  *    [===============]     [=======]   [========]
  * </pre>
  */
-public final class MergedEnergyEventsDataSeries implements DataSeries<EnergyEvent> {
+public class MergedEnergyEventsDataSeries implements DataSeries<Common.Event> {
+  @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myClient;
+  private final long myStreamId;
+  private final int myPid;
+  @NonNull private final Predicate<EnergyDuration.Kind> myKindPredicate;
 
-  @NotNull private final EnergyEventsDataSeries myDelegateSeries;
-  private final List<EnergyDuration.Kind> myKindsFilter;
-
-  /**
-   * @param delegateSeries A source series whose events will be read from and then merged
-   * @param kindsFilter A list of one or more event kinds to merge into a single bar
-   */
-  public MergedEnergyEventsDataSeries(@NotNull EnergyEventsDataSeries delegateSeries, @NotNull EnergyDuration.Kind... kindsFilter) {
-    myDelegateSeries = delegateSeries;
-    myKindsFilter = Arrays.asList(kindsFilter);
+  public MergedEnergyEventsDataSeries(@NotNull TransportServiceGrpc.TransportServiceBlockingStub client,
+                                      long streamId,
+                                      int pid,
+                                      @NotNull Predicate<EnergyDuration.Kind> kindPredicate) {
+    myClient = client;
+    myStreamId = streamId;
+    myPid = pid;
+    myKindPredicate = kindPredicate;
   }
 
   @Override
-  public List<SeriesData<EnergyEvent>> getDataForXRange(Range xRange) {
-    List<SeriesData<EnergyEvent>> sourceData = myDelegateSeries.getDataForXRange(xRange);
-    List<SeriesData<EnergyEvent>> destData = new ArrayList<>();
-    Set<Integer> activeEventGroups = new HashSet<>();
+  public List<SeriesData<Common.Event>> getDataForXRange(Range xRange) {
+    long minNs = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
+    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
+    List<SeriesData<Common.Event>> destData = new ArrayList<>();
+    Set<Long> activeEventGroups = new HashSet<>();
 
-    for (SeriesData<EnergyEvent> eventData : sourceData) {
-      if (!myKindsFilter.contains(EnergyDuration.Kind.from(eventData.value))) {
+    Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
+      .setStreamId(myStreamId)
+      .setPid(myPid)
+      .setKind(Common.Event.Kind.ENERGY_EVENT)
+      .setFromTimestamp(minNs)
+      .setToTimestamp(maxNs)
+      .build();
+    Transport.GetEventGroupsResponse response = myClient.getEventGroups(request);
+
+    for (Transport.EventGroup group : response.getGroupsList()) {
+      if (!myKindPredicate.test(EnergyDuration.Kind.from(group.getEvents(0).getEnergyEvent()))) {
         continue;
       }
-
       // Here, we are going to combine separate event groups into one. We basically loop through
       // all events (which are in sorted order), and create new, fake event groups on the fly that
       // are a superset of those groups. We keep track of all active event groups (those that have
@@ -79,16 +97,18 @@ public final class MergedEnergyEventsDataSeries implements DataSeries<EnergyEven
       //    |             [=========]    <- Active t3 - t5
       //    |                       |
       //  start                    end
-      if (!eventData.value.getIsTerminal()) {
-        if (activeEventGroups.isEmpty()) {
-          destData.add(eventData);
+      for (Common.Event event : group.getEventsList()) {
+        if (!event.getIsEnded()) {
+          if (activeEventGroups.isEmpty()) {
+            destData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp()), event));
+          }
+          activeEventGroups.add(group.getGroupId());
         }
-        activeEventGroups.add(eventData.value.getEventId());
-      }
-      else {
-        activeEventGroups.remove(eventData.value.getEventId());
-        if (activeEventGroups.isEmpty()) {
-          destData.add(eventData);
+        else {
+          activeEventGroups.remove(group.getGroupId());
+          if (activeEventGroups.isEmpty()) {
+            destData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp()), event));
+          }
         }
       }
     }

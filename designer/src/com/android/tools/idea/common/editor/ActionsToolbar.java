@@ -263,6 +263,9 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   @Override
   public void modelDerivedDataChanged(@NotNull NlModel model) {
     ApplicationManager.getApplication().invokeLater(() -> {
+      if (mySurface.getProject().isDisposed()) {
+        return;
+      }
       if (model.getComponents().size() == 1) {
         updateActions();
       }

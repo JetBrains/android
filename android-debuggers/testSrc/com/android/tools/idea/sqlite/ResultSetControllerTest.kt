@@ -15,171 +15,126 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.tools.idea.editors.sqlite.SqliteTestUtil
-import com.android.tools.idea.editors.sqlite.SqliteViewer
-import com.android.tools.idea.sqlite.Utils.pumpEventsAndWaitForFuture
-import com.android.tools.idea.sqlite.Utils.pumpEventsAndWaitForFutureException
-import com.android.tools.idea.sqlite.jdbc.SqliteJdbcService
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.refEq
+import com.android.tools.idea.concurrent.FutureCallbackExecutor
+import com.android.tools.idea.sqlite.controllers.ResultSetController
+import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteResultSet
-import com.android.tools.idea.sqlite.model.SqliteTable
-import com.google.common.truth.Truth
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.idea.sqlite.ui.ResultSetView
+import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
-import org.jetbrains.ide.PooledThreadExecutor
+import com.intellij.util.concurrency.EdtExecutorService
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.ArgumentMatchers.isNull
+import org.mockito.InOrder
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.inOrder
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 import java.sql.JDBCType
 
+//TODO(b/131589065) write tests for listOfSqliteColumns of different sizes, to handle all paths of ResultSetController.fetchRowBatch()
 class ResultSetControllerTest : UsefulTestCase() {
-  private lateinit var sqliteUtil: SqliteTestUtil
-  private var previouslyEnabled: Boolean = false
 
-  @Throws(Exception::class)
+  private lateinit var resultSetView: ResultSetView
+  private lateinit var sqliteResultSet: SqliteResultSet
+  private lateinit var edtExecutor: FutureCallbackExecutor
+  private lateinit var resultSetController: ResultSetController
+  private lateinit var orderVerifier: InOrder
+
+  private val listOfSqliteColumns = listOf(
+    SqliteColumn("col1", JDBCType.VARCHAR),
+    SqliteColumn("col2", JDBCType.ARRAY),
+    SqliteColumn("col2", JDBCType.CHAR)
+  )
+
   override fun setUp() {
     super.setUp()
-    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
-    sqliteUtil.setUp()
-    previouslyEnabled = SqliteViewer.enableFeature(true)
+    resultSetView = mock(ResultSetView::class.java)
+    sqliteResultSet = mock(SqliteResultSet::class.java)
+    edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+
+    orderVerifier = inOrder(sqliteResultSet, resultSetView)
   }
 
-  @Throws(Exception::class)
-  override fun tearDown() {
-    try {
-      sqliteUtil.tearDown()
-      SqliteViewer.enableFeature(previouslyEnabled)
-    }
-    finally {
-      super.tearDown()
-    }
-  }
-
-  @Throws(Exception::class)
-  fun testReadSchemaReturnsTablesAndColumns() {
+  fun testSetUp() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    `when`(sqliteResultSet.columns()).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
+    resultSetController = ResultSetController(testRootDisposable, resultSetView, "tableName", sqliteResultSet, edtExecutor)
 
     // Act
-    val schema = pumpEventsAndWaitForFuture(service.readSchema())
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    Truth.assertThat(schema.tables.count()).isEqualTo(2)
-    val authorTable = schema.tables.find { it.name == "Author" }
-    Truth.assertThat(authorTable).isNotNull()
-    Truth.assertThat(authorTable?.columns?.count()).isEqualTo(3)
-    Truth.assertThat(authorTable?.hasColumn("author_id", JDBCType.INTEGER)).isTrue()
-    Truth.assertThat(authorTable?.hasColumn("first_name", JDBCType.VARCHAR)).isTrue()
-    Truth.assertThat(authorTable?.hasColumn("last_name", JDBCType.VARCHAR)).isTrue()
+    orderVerifier.verify(resultSetView).startTableLoading("tableName")
+    orderVerifier.verify(resultSetView).showTableColumns(listOfSqliteColumns)
+    orderVerifier.verify(resultSetView).stopTableLoading()
 
-    val bookTable = schema.tables.find { it.name == "Book" }
-    Truth.assertThat(bookTable).isNotNull()
-    Truth.assertThat(bookTable?.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
-    Truth.assertThat(bookTable?.hasColumn("title", JDBCType.VARCHAR)).isTrue()
-    Truth.assertThat(bookTable?.hasColumn("isbn", JDBCType.VARCHAR)).isTrue()
-    Truth.assertThat(bookTable?.hasColumn("author_id", JDBCType.INTEGER)).isTrue()
-
-    service.closeDatabase()
+    verify(sqliteResultSet).rowBatchSize = anyInt()
+    verify(sqliteResultSet).columns()
   }
 
-  @Throws(Exception::class)
-  fun testCloseUnlocksFile() {
+  fun testSetUpTableNameIsNull() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    `when`(sqliteResultSet.columns()).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
+    resultSetController = ResultSetController(testRootDisposable, resultSetView, null, sqliteResultSet, edtExecutor)
 
     // Act
-    pumpEventsAndWaitForFuture(service.closeDatabase())
-    ApplicationManager.getApplication().runWriteAction {
-      file.delete(this)
-    }
+    resultSetController.setUp()
 
     // Assert
-    Truth.assertThat(file.exists()).isFalse()
+    verify(resultSetView).startTableLoading(isNull())
   }
 
-  @Throws(Exception::class)
-  fun testReadTableReturnsResultSet() {
+  fun testSetUpError() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    val throwable = Throwable()
+    `when`(sqliteResultSet.columns()).thenReturn(Futures.immediateFailedFuture(throwable))
+    resultSetController = ResultSetController(testRootDisposable, resultSetView, "tableName", sqliteResultSet, edtExecutor)
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(service.readTable(SqliteTable("Book", listOf())))
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    resultSet.hasColumn("book_id", JDBCType.INTEGER)
-    resultSet.hasColumn("title", JDBCType.VARCHAR)
-    resultSet.hasColumn("isbn", JDBCType.VARCHAR)
-    resultSet.hasColumn("author_id", JDBCType.INTEGER)
-
-    // Act
-    resultSet.rowBatchSize = 3
-    var rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
-
-    // Assert
-    Truth.assertThat(rows.count()).isEqualTo(3)
-
-    // Act
-    rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
-
-    // Assert
-    Truth.assertThat(rows.count()).isEqualTo(1)
-
-    // Act
-    rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
-
-    // Assert
-    Truth.assertThat(rows.count()).isEqualTo(0)
-
-    service.closeDatabase()
+    orderVerifier.verify(resultSetView).startTableLoading("tableName")
+    orderVerifier.verify(resultSetView)
+      .reportErrorRelatedToTable(eq("tableName"), eq("Error retrieving contents of tableName"), refEq(throwable))
+    orderVerifier.verify(resultSetView).stopTableLoading()
   }
 
-  @Throws(Exception::class)
-  fun testResultSetThrowsAfterDisposed() {
+  fun testSetUpIsDisposed() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    `when`(sqliteResultSet.columns()).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
+    resultSetController = ResultSetController(testRootDisposable, resultSetView, "tableName", sqliteResultSet, edtExecutor)
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(service.readTable(SqliteTable("Book", listOf())))
-    Disposer.dispose(resultSet)
-    val error = pumpEventsAndWaitForFutureException(resultSet.nextRowBatch())
+    resultSetController.setUp()
+    Disposer.dispose(resultSetController)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    Truth.assertThat(error).isNotNull()
-
-    service.closeDatabase()
+    verify(resultSetView).startTableLoading("tableName")
+    verifyNoMoreInteractions(resultSetView)
   }
 
-  @Throws(Exception::class)
-  fun testReadTableFailsWhenIncorrectTableName() {
+  fun testSetUpErrorIsDisposed() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    `when`(sqliteResultSet.columns()).thenReturn(Futures.immediateFailedFuture(Throwable()))
+    resultSetController = ResultSetController(testRootDisposable, resultSetView, "tableName", sqliteResultSet, edtExecutor)
 
     // Act
-    val error = pumpEventsAndWaitForFutureException(service.readTable(SqliteTable("IncorrectTableName", listOf())))
+    Disposer.dispose(resultSetController)
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    Truth.assertThat(error).isNotNull()
-
-    service.closeDatabase()
-  }
-
-  private fun SqliteResultSet.hasColumn(name: String, type: JDBCType) : Boolean {
-    return pumpEventsAndWaitForFuture(this.columns()).find { it.name == name }?.type?.equals(type) ?: false
-  }
-
-  private fun SqliteTable.hasColumn(name: String, type: JDBCType) : Boolean {
-    return this.columns.find { it.name == name }?.type?.equals(type) ?: false
-  }
-
-  companion object {
-    const val TIMEOUT_MILLISECONDS: Long = 30000
+    verify(resultSetView).startTableLoading("tableName")
+    verifyNoMoreInteractions(resultSetView)
   }
 }

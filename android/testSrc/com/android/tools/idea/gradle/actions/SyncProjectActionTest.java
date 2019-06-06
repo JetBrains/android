@@ -56,7 +56,7 @@ public class SyncProjectActionTest extends IdeaTestCase {
   public void testDoPerform() {
     Project project = getProject();
     BuildVariantView buildVariantView = mock(BuildVariantView.class);
-    new IdeComponents(project).replaceProjectService(BuildVariantView.class, buildVariantView);
+    new IdeComponents(project, getTestRootDisposable()).replaceProjectService(BuildVariantView.class, buildVariantView);
 
     myAction.doPerform(myEvent, project);
 
@@ -67,7 +67,7 @@ public class SyncProjectActionTest extends IdeaTestCase {
 
   public void testDoUpdateWithSyncInProgress() {
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
+    new IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncState.class, mySyncState);
     when(mySyncState.isSyncInProgress()).thenReturn(true);
 
     myAction.doUpdate(myEvent, project);
@@ -77,7 +77,7 @@ public class SyncProjectActionTest extends IdeaTestCase {
 
   public void testDoUpdateWithSyncNotInProgress() {
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
+    new IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncState.class, mySyncState);
     when(mySyncState.isSyncInProgress()).thenReturn(false);
 
     myAction.doUpdate(myEvent, project);

@@ -25,16 +25,15 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import org.jetbrains.ide.PooledThreadExecutor
 import java.sql.JDBCType
 
-class SqliteJdbcServiceTest : UsefulTestCase() {
+class SqliteJdbcServiceTest : PlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
   private var previouslyEnabled: Boolean = false
 
-  @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
@@ -42,7 +41,6 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     previouslyEnabled = SqliteViewer.enableFeature(true)
   }
 
-  @Throws(Exception::class)
   override fun tearDown() {
     try {
       sqliteUtil.tearDown()
@@ -53,7 +51,6 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     }
   }
 
-  @Throws(Exception::class)
   fun testReadSchemaFailsIfDatabaseNotOpened() {
     // Prepare
     val file = sqliteUtil.createTestSqliteDatabase()
@@ -68,7 +65,6 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     service.closeDatabase()
   }
 
-  @Throws(Exception::class)
   fun testReadSchemaReturnsTablesAndColumns() {
     // Prepare
     val file = sqliteUtil.createTestSqliteDatabase()
@@ -80,14 +76,14 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
 
     // Assert
     assertThat(schema.tables.count()).isEqualTo(2)
-    val authorTable = schema.tables.find { it.name.equals("Author") }
+    val authorTable = schema.tables.find { it.name == "Author" }
     assertThat(authorTable).isNotNull()
     assertThat(authorTable?.columns?.count()).isEqualTo(3)
     assertThat(authorTable?.hasColumn("author_id", JDBCType.INTEGER)).isTrue()
     assertThat(authorTable?.hasColumn("first_name", JDBCType.VARCHAR)).isTrue()
     assertThat(authorTable?.hasColumn("last_name", JDBCType.VARCHAR)).isTrue()
 
-    val bookTable = schema.tables.find { it.name.equals("Book") }
+    val bookTable = schema.tables.find { it.name == "Book" }
     assertThat(bookTable).isNotNull()
     assertThat(bookTable?.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
     assertThat(bookTable?.hasColumn("title", JDBCType.VARCHAR)).isTrue()
@@ -97,7 +93,6 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     service.closeDatabase()
   }
 
-  @Throws(Exception::class)
   fun testCloseUnlocksFile() {
     // Prepare
     val file = sqliteUtil.createTestSqliteDatabase()
@@ -114,7 +109,6 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     assertThat(file.exists()).isFalse()
   }
 
-  @Throws(Exception::class)
   fun testReadTableReturnsResultSet() {
     // Prepare
     val file = sqliteUtil.createTestSqliteDatabase()
@@ -152,7 +146,6 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     service.closeDatabase()
   }
 
-  @Throws(Exception::class)
   fun testExecuteQuerySelectAllReturnsResultSet() {
     // Prepare
     val file = sqliteUtil.createTestSqliteDatabase()
@@ -190,7 +183,6 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     service.closeDatabase()
   }
 
-  @Throws(Exception::class)
   fun testExecuteQuerySelectColumnReturnsResultSet() {
     // Prepare
     val file = sqliteUtil.createTestSqliteDatabase()
@@ -228,7 +220,6 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     service.closeDatabase()
   }
 
-  @Throws(Exception::class)
   fun testExecuteUpdateDropTable() {
     // Prepare
     val file = sqliteUtil.createTestSqliteDatabase()
@@ -245,7 +236,6 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     service.closeDatabase()
   }
 
-  @Throws(Exception::class)
   fun testResultSetThrowsAfterDisposed() {
     // Prepare
     val file = sqliteUtil.createTestSqliteDatabase()
@@ -263,7 +253,6 @@ class SqliteJdbcServiceTest : UsefulTestCase() {
     service.closeDatabase()
   }
 
-  @Throws(Exception::class)
   fun testReadTableFailsWhenIncorrectTableName() {
     // Prepare
     val file = sqliteUtil.createTestSqliteDatabase()

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,15 @@ package com.android.tools.profilers.energy;
 
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
-import org.jetbrains.annotations.NotNull;
-
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
+import com.android.tools.profilers.UnifiedEventDataSeries;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 /**
  * A data series to count how many energy events are merged into one.
@@ -47,46 +47,45 @@ import java.util.Set;
  *   011112222211111110000001111121100001111111110
  * </pre>
  */
-public final class EnergyEventsCountDataSeries implements DataSeries<Long> {
-
-  @NotNull private final RangedSeries<EnergyEvent> myDelegateSeries;
-
-  private final List<EnergyDuration.Kind> myKindsFilter;
+public class EnergyEventsCountDataSeries implements DataSeries<Long> {
+  private final TransportServiceGrpc.TransportServiceBlockingStub myClient;
+  private final long myStreamId;
+  private final int myPid;
+  private final Predicate<EnergyDuration.Kind> myKindFilter;
 
   /**
-   * @param delegateSeries A source series whose events will be read from and then counted
-   * @param kindsFilter    A list of one or more event kinds to merge into a single bar
+   * @param kindFilter only count event for which the kind predicate evaluates to true.
    */
-  public EnergyEventsCountDataSeries(@NotNull RangedSeries<EnergyEvent> delegateSeries,
-                                     @NotNull EnergyDuration.Kind... kindsFilter) {
-    myDelegateSeries = delegateSeries;
-    myKindsFilter = Arrays.asList(kindsFilter);
+  public EnergyEventsCountDataSeries(TransportServiceGrpc.TransportServiceBlockingStub client,
+                                     long streamId,
+                                     int pid,
+                                     Predicate<EnergyDuration.Kind> kindFilter) {
+    myClient = client;
+    myStreamId = streamId;
+    myPid = pid;
+    myKindFilter = kindFilter;
   }
 
   @Override
   public List<SeriesData<Long>> getDataForXRange(Range xRange) {
-    List<SeriesData<EnergyEvent>> sourceData = myDelegateSeries.getSeries();
-    long position = (long)xRange.getMax();
-    Set<Integer> activeEventGroups = new HashSet<>();
+    long minUs = (long)xRange.getMin();
+    long maxUs = (long)xRange.getMax();
+    long minNs = TimeUnit.MICROSECONDS.toNanos(minUs);
+    long maxNs = TimeUnit.MICROSECONDS.toNanos(maxUs);
 
-    for (SeriesData<EnergyEvent> eventData : sourceData) {
-      if (!myKindsFilter.contains(EnergyDuration.Kind.from(eventData.value))) {
-        continue;
-      }
-      if (eventData.x > position) {
-        break;
-      }
-      if (!eventData.value.getIsTerminal()) {
-        activeEventGroups.add(eventData.value.getEventId());
-      }
-      else {
-        activeEventGroups.remove(eventData.value.getEventId());
-      }
-    }
-    return Arrays.asList(new SeriesData(position, Long.valueOf(activeEventGroups.size())));
-  }
+    Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
+      .setStreamId(myStreamId)
+      .setPid(myPid)
+      .setKind(Common.Event.Kind.ENERGY_EVENT)
+      .setGroupId(UnifiedEventDataSeries.DEFAULT_GROUP_ID)
+      .setFromTimestamp(minNs)
+      .setToTimestamp(maxNs)
+      .build();
+    Transport.GetEventGroupsResponse response = myClient.getEventGroups(request);
 
-  public List<EnergyDuration.Kind> getKindsFilter() {
-    return myKindsFilter;
+    long count = response.getGroupsList().stream()
+      .filter(group -> myKindFilter.test(EnergyDuration.Kind.from(group.getEvents(0).getEnergyEvent())))
+      .count();
+    return Arrays.asList(new SeriesData<>(minUs, count), new SeriesData<>(maxUs, count));
   }
 }

@@ -30,7 +30,6 @@ iml_module(
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
@@ -50,6 +49,7 @@ iml_module(
         "//tools/idea/java/execution/openapi:intellij.java.execution[module]",
         "//tools/idea/platform/smRunner:intellij.platform.smRunner[module]",
         "//tools/idea/plugins/junit:intellij.junit[module]",
+        "//tools/idea/json:intellij.json[module]",
         "//tools/idea/plugins/maven:intellij.maven[module]",
         "//tools/idea:intellij.java.impl[module]",
         "//tools/idea/plugins/properties:intellij.properties[module]",
@@ -125,7 +125,6 @@ iml_module(
         "//tools/adt/idea/android/lib:pepk",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/idea/.idea/libraries:HdrHistogram",
@@ -180,7 +179,7 @@ iml_module(
         "//tools/base/templates",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/data-binding:data_binding_runtime.zip",
-        "//tools/external/gradle:gradle-distrib-2.4",
+        "//tools/external/gradle:gradle-distrib-2.6",
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
@@ -200,7 +199,6 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/databinding:intellij.android.databinding",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/json:intellij.json",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
@@ -278,7 +276,6 @@ iml_module(
         "//tools/adt/idea/android/lib:pepk[test]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar[test]",
         "//tools/idea/.idea/libraries:jimfs[test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
@@ -341,14 +338,6 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-filegroup(
-    name = "nosyncbuilder-artifacts",
-    srcs = [
-        "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar.jar",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 # Various artifacts that the ANT and within-idea studio build depend on.
 filegroup(
     name = "artifacts",
@@ -356,7 +345,6 @@ filegroup(
         ":aia-artifacts",
         ":analytics-artifacts",
         ":deploy-artifacts",
-        ":nosyncbuilder-artifacts",
         ":profiler-artifacts",
         "//tools/adt/idea/resources-aar:framework_res.jar",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",

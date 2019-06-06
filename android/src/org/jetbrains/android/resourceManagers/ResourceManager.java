@@ -35,8 +35,8 @@ import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ArrayUtil;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -58,12 +58,6 @@ public abstract class ResourceManager {
   protected ResourceManager(@NotNull Project project) {
     myProject = project;
   }
-
-  /**
-   * Returns the resource repository associated with this resource manager.
-   */
-  @NotNull
-  protected abstract ResourceRepository getResourceRepository();
 
   /** Returns true if the given directory is a resource directory in this module. */
   public abstract boolean isResourceDir(@NotNull VirtualFile dir);
@@ -106,11 +100,6 @@ public abstract class ResourceManager {
     return folderType == null ? null : folderType.getName();
   }
 
-  @NotNull
-  private Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
-    return getResourceRepository().getLeafResourceRepositories();
-  }
-
   /**
    * Searches only declarations such as "@+id/...".
    */
@@ -146,7 +135,7 @@ public abstract class ResourceManager {
     return findIdUsagesFromFiles(files, attributeValue -> {
       if (AndroidResourceUtil.isConstraintReferencedIds(attributeValue)) {
         String ids = attributeValue.getValue();
-        return Arrays.asList(ids.split(",")).contains(id);
+        return ArrayUtil.indexOf(ids.split(","), id) >= 0;
       }
       return false;
     });
@@ -227,7 +216,7 @@ public abstract class ResourceManager {
         elements.addAll(findIdDeclarations(namespace, resName));
       }
       else if (FolderTypeRelationship.getNonValuesRelatedFolder(resourceType) != null) {
-        List<ResourceItem> resources = getResourceRepository().getResources(namespace, resourceType, resName);
+        List<ResourceItem> resources = getResources(namespace, resourceType, resName);
         for (ResourceItem resource : resources) {
           if (resource.isFileBased()) {
             VirtualFile file = ResourceHelper.getSourceAsVirtualFile(resource);
@@ -307,4 +296,11 @@ public abstract class ResourceManager {
   private static boolean isValueResourceFile(@NotNull VirtualFile file) {
     return ResourceFolderType.getFolderType(file.getParent().getName()) == ResourceFolderType.VALUES;
   }
+
+  @NotNull
+  protected abstract Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories();
+
+  @NotNull
+  protected abstract List<ResourceItem> getResources(
+      @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, @NotNull String resName);
 }

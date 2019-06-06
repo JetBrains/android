@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
@@ -89,6 +90,9 @@ abstract class PsModule protected constructor(
   protected abstract fun resetDependencies()
   protected abstract fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency>
 
+  protected abstract fun maybeAddConfiguration(configurationName: String)
+  protected abstract fun maybeRemoveConfiguration(configurationName: String)
+
   fun addLibraryDependency(library: ParsedValue.Set.Parsed<String>, configurationName: String) {
     // Update/reset the "parsed" model.
     val compactNotation =
@@ -102,6 +106,7 @@ abstract class PsModule protected constructor(
       }
 
     addLibraryDependencyToParsedModel(configurationName, compactNotation)
+    maybeAddConfiguration(configurationName)
 
     resetDependencies()
 
@@ -113,6 +118,7 @@ abstract class PsModule protected constructor(
 
   fun addJarFileDependency(filePath: String, configurationName: String) {
     addJarFileDependencyToParsedModel(configurationName, filePath)
+    maybeAddConfiguration(configurationName)
 
     resetDependencies()
 
@@ -127,6 +133,7 @@ abstract class PsModule protected constructor(
     configurationName: String
   ) {
     addJarFileTreeDependencyToParsedModel(configurationName, dirPath, includes, excludes)
+    maybeAddConfiguration(configurationName)
 
     resetDependencies()
 
@@ -137,6 +144,7 @@ abstract class PsModule protected constructor(
   fun addModuleDependency(modulePath: String, configurationName: String) {
     // Update/reset the "parsed" model.
     addModuleDependencyToParsedModel(configurationName, modulePath)
+    maybeAddConfiguration(configurationName)
 
     resetDependencies()
 
@@ -146,6 +154,7 @@ abstract class PsModule protected constructor(
   }
 
   fun removeDependency(dependency: PsDeclaredDependency) {
+    maybeRemoveConfiguration(dependency.configurationName)
     removeDependencyFromParsedModel(dependency)
 
     resetDependencies()
@@ -155,7 +164,9 @@ abstract class PsModule protected constructor(
   }
 
   fun modifyDependencyConfiguration(dependency: PsDeclaredDependency, newConfigurationName: String) {
+    maybeRemoveConfiguration(dependency.configurationName)
     dependency.parsedModel.setConfigurationName(newConfigurationName)
+    maybeAddConfiguration(newConfigurationName)
 
     fireDependencyModifiedEvent(lazy { dependency } )
     isModified = true

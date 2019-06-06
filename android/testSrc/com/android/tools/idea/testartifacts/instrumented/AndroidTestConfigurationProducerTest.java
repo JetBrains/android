@@ -96,7 +96,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     AndroidTestRunConfiguration androidRunConfig = (AndroidTestRunConfiguration) runConfig;
     assertEmpty(androidRunConfig.checkConfiguration(myAndroidFacet));
     assertThat(androidRunConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_METHOD);
-    assertThat(androidRunConfig.INSTRUMENTATION_RUNNER_CLASS).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
+    assertThat(androidRunConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty();
     assertThat(androidRunConfig.PACKAGE_NAME).isEmpty();
     assertThat(androidRunConfig.CLASS_NAME).isEqualTo("com.example.android.kotlin.ExampleInstrumentedTest");
     assertThat(androidRunConfig.METHOD_NAME).isEqualTo("useAppContext");
@@ -109,7 +109,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
     assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_CLASS);
-    assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
+    assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty();
     assertThat(runConfig.PACKAGE_NAME).isEmpty();
     assertThat(runConfig.CLASS_NAME).isEqualTo("com.example.android.kotlin.ExampleInstrumentedTest");
     assertThat(runConfig.METHOD_NAME).isEmpty();
@@ -122,7 +122,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
     assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE);
-    assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
+    assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty();
     assertThat(runConfig.PACKAGE_NAME).isEqualTo("com.example.android.kotlin");
     assertThat(runConfig.CLASS_NAME).isEmpty();
     assertThat(runConfig.METHOD_NAME).isEmpty();
@@ -135,7 +135,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
     assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_ALL_IN_MODULE);
-    assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
+    assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty();
     assertThat(runConfig.PACKAGE_NAME).isEmpty();
     assertThat(runConfig.CLASS_NAME).isEmpty();
     assertThat(runConfig.METHOD_NAME).isEmpty();

@@ -33,8 +33,8 @@ class DefaultValueTableCellRenderer : SimpleColoredComponent(), PTableCellRender
     font = table.activeFont
     append(item.value.orEmpty())
     if (isSelected && hasFocus) {
-      foreground = UIUtil.getTreeSelectionForeground()
-      background = UIUtil.getTreeSelectionBackground()
+      foreground = UIUtil.getTableForeground(true, true)
+      background = UIUtil.getTableBackground(true, true)
     }
     else {
       foreground = table.foregroundColor

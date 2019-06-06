@@ -98,8 +98,8 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
     execute(EventStatements.INSERT_SAMPLE, session.getSessionId(), sample.getTimestamp(), sample.toByteArray());
   }
 
-  public void insertOrReplace(@NotNull Common.Session session, @NotNull EnergyProfiler.EnergyEvent event) {
-    execute(EventStatements.INSERT_EVENT, session.getSessionId(), event.getEventId(), event.getTimestamp(), event.getIsTerminal(),
+  public void insertOrReplace(@NotNull Common.Session session, @NotNull Common.Event event) {
+    execute(EventStatements.INSERT_EVENT, session.getSessionId(), event.getGroupId(), event.getTimestamp(), event.getIsEnded(),
             event.toByteArray());
   }
 
@@ -135,7 +135,7 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
    * @return The list of matching events given the {@code request} parameter. This will be empty if there's a SQL-related error.
    */
   @NotNull
-  public List<EnergyProfiler.EnergyEvent> getEvents(@NotNull EnergyProfiler.EnergyRequest request) {
+  public List<Common.Event> getEvents(@NotNull EnergyProfiler.EnergyRequest request) {
     try {
       ResultSet results = executeQuery(
         EventStatements.QUERY_EVENT,
@@ -161,7 +161,7 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
    * @return The list of matching events given the {@code request} parameter. This will be empty if there's a SQL-related error.
    */
   @NotNull
-  public List<EnergyProfiler.EnergyEvent> getEventGroup(@NotNull EnergyProfiler.EnergyEventGroupRequest request) {
+  public List<Common.Event> getEventGroup(@NotNull EnergyProfiler.EnergyEventGroupRequest request) {
     try {
       ResultSet results = executeQuery(EventStatements.QUERY_EVENT_GROUP, request.getSession().getSessionId(), request.getEventId());
       return getEventsFromResultSet(results);
@@ -189,11 +189,11 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
   }
 
   @NotNull
-  private static List<EnergyProfiler.EnergyEvent> getEventsFromResultSet(@NotNull ResultSet results) {
-    List<EnergyProfiler.EnergyEvent> events = new ArrayList<>();
+  private static List<Common.Event> getEventsFromResultSet(@NotNull ResultSet results) {
+    List<Common.Event> events = new ArrayList<>();
     try {
       while (results.next()) {
-        EnergyProfiler.EnergyEvent.Builder eventBuilder = EnergyProfiler.EnergyEvent.newBuilder();
+        Common.Event.Builder eventBuilder = Common.Event.newBuilder();
         eventBuilder.mergeFrom(results.getBytes(1));
         events.add(eventBuilder.build());
       }

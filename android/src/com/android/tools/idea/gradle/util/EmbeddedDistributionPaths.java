@@ -69,15 +69,6 @@ public class EmbeddedDistributionPaths {
       repoPaths.add(localOfflineRepoPath);
     }
 
-    if (StudioFlags.SHIPPED_SYNC_ENABLED.get()) {
-      // Add a repo generated from/for New Project Wizard projects
-      File npwRepoPath = new File(PathManager.getHomePath() +
-                                  toSystemDependentName("/../adt/idea/android/testData/nosyncbuilder/offline_repo"));
-      if (npwRepoPath.isDirectory()) {
-        repoPaths.add(npwRepoPath);
-      }
-    }
-
     return ImmutableList.copyOf(repoPaths);
   }
 

@@ -21,6 +21,7 @@
     <orderEntry type="module" module-name="intellij.platform.smRunner" />
     <orderEntry type="module" module-name="intellij.junit" />
     <orderEntry type="module" module-name="intellij.java.ui" />
+    <orderEntry type="module" module-name="intellij.json" />
     <orderEntry type="module" module-name="intellij.maven" />
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="module" module-name="intellij.properties" />
@@ -153,15 +154,6 @@
     </orderEntry>
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="module-library">
-      <library name="nosyncbuilder-jarjar">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-genfiles/tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto/nosyncbuilder-jarjar.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="android.sdktools.deployer" />
     <orderEntry type="library" name="HdrHistogram" level="project" />

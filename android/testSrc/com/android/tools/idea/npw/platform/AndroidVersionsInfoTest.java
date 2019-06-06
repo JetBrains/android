@@ -143,22 +143,6 @@ public final class AndroidVersionsInfoTest {
 
   /**
    * If an Android Target is not an Android Platform, then its an Android SDK add-on, and it should be displayed using the
-   * add-on Description instead of the Android Target name.
-   */
-  @Test
-  public void nonPlatformTargetShouldReturnAddonDescription() {
-    AndroidVersion androidVersion = new AndroidVersion(HIGHEST_KNOWN_API, null /*codename*/);
-    IAndroidTarget androidTarget = mock(IAndroidTarget.class);
-    when(androidTarget.getVersion()).thenReturn(androidVersion);
-    when(androidTarget.isPlatform()).thenReturn(false);
-    when(androidTarget.getDescription()).thenReturn("Addon Title");
-
-    AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(androidTarget);
-    assertEquals("API " + HIGHEST_KNOWN_API + ": Addon Title", versionItem.getLabel());
-  }
-
-  /**
-   * If an Android Target is not an Android Platform, then its an Android SDK add-on, and it should be displayed using the
    * add-on Vendor/Name values instead of the Android Target name (if add-on description is missing).
    */
   @Test

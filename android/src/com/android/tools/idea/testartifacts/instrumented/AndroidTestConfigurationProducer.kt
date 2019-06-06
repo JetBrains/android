@@ -124,7 +124,7 @@ private class AndroidTestConfigurator(private val module: Module,
     /**
      * Returns true if a given [method] is a test method otherwise false.
      */
-    private inline fun isTestMethod(method: PsiMethod): Boolean {
+    private fun isTestMethod(method: PsiMethod): Boolean {
       val testClass = method.containingClass ?: return false
       return JUnitUtil.isTestClass(testClass) && JUnitUtil.TestMethodFilter(testClass).value(method)
     }
@@ -151,8 +151,6 @@ private class AndroidTestConfigurator(private val module: Module,
       configuration.deployTargetContext.targetSelectionMode = targetSelectionMode
     }
 
-    configuration.INSTRUMENTATION_RUNNER_CLASS = AndroidTestRunConfiguration.findInstrumentationRunner(facet).orEmpty()
-
     // Try to create run configuration from the most specific one to the broader.
     return when {
       tryMethodTestConfiguration(configuration, sourceElementRef) -> true
@@ -170,7 +168,7 @@ private class AndroidTestConfigurator(private val module: Module,
       if (isTestMethod(elementMethod)) {
         sourceElementRef.set(elementMethod)
         configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_METHOD
-        configuration.CLASS_NAME = JavaExecutionUtil.getRuntimeQualifiedName(elementMethod.containingClass!!)
+        configuration.CLASS_NAME = JavaExecutionUtil.getRuntimeQualifiedName(elementMethod.containingClass!!)?: ""
         configuration.METHOD_NAME = elementMethod.name
         configuration.setGeneratedName()
         return true
@@ -203,7 +201,7 @@ private class AndroidTestConfigurator(private val module: Module,
       }
       sourceElementRef.set(psiClass)
       configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_CLASS
-      configuration.CLASS_NAME = JavaExecutionUtil.getRuntimeQualifiedName(psiClass)
+      configuration.CLASS_NAME = JavaExecutionUtil.getRuntimeQualifiedName(psiClass) ?: ""
       configuration.setGeneratedName()
       return true
     }

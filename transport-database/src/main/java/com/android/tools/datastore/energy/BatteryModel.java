@@ -72,8 +72,8 @@ public final class BatteryModel {
   private long myReceivingBps;
   private long mySendingBps;
 
-  private Map<Integer, Long> myGpsLockonMap = new HashMap<>(); // event ID -> initial GPS location request timestamp
-  private Map<Integer, EnergySample> myLocationSmoothingMap = new HashMap<>(); // event ID -> event/smoothing start sample
+  private Map<Long, Long> myGpsLockonMap = new HashMap<>(); // event ID -> initial GPS location request timestamp
+  private Map<Long, EnergySample> myLocationSmoothingMap = new HashMap<>(); // event ID -> event/smoothing start sample
   private long myLastNetworkLocationOffTime = 0;
   private final long mySmoothingEndDeltaTime;
   private long myLastGpsOffTime = 0;

@@ -30,28 +30,27 @@ import java.lang.RuntimeException
 
 class MissingNdkErrorHandler : BaseSyncErrorHandler() {
   override fun findErrorMessage(rootCause: Throwable, project: Project): String? {
+    val message = rootCause.message ?: return null
     return when {
-      tryExtractPreferredNdkDownloadVersion(rootCause.message!!) != null -> {
+      tryExtractPreferredNdkDownloadVersion(message) != null -> {
         SyncErrorHandler.updateUsageTracker(project, NDK_NOT_CONFIGURED)
-        rootCause.message!!
+        message
       }
-      matchesNdkNotConfigured(rootCause.message!!) -> {
+      matchesNdkNotConfigured(message) -> {
         SyncErrorHandler.updateUsageTracker(project, NDK_NOT_CONFIGURED)
         "NDK not configured."
       }
-      matchesKnownLocatorIssue(rootCause.message!!) -> {
+      matchesKnownLocatorIssue(message) -> {
         SyncErrorHandler.updateUsageTracker(project, NDK_NOT_CONFIGURED)
-        rootCause.message!!
+        message
       }
-      matchesTriedInstall(rootCause.message!!) -> {
+      matchesTriedInstall(message) -> {
         SyncErrorHandler.updateUsageTracker(project, FAILED_TO_INSTALL_NDK_BUNDLE)
-        rootCause.message!!
+        message
       }
       else -> null
     }
   }
-
-
 
   /**
    * @param errorMessage first line of the error message
@@ -85,7 +84,7 @@ class MissingNdkErrorHandler : BaseSyncErrorHandler() {
 
   override fun getQuickFixHyperlinks(project: Project, text: String): List<NotificationHyperlink> {
     val hyperlinks = mutableListOf<NotificationHyperlink>()
-    val gradleBuildFiles = ModuleManager.getInstance(project).modules.map { getGradleBuildFile(it)!! }
+    val gradleBuildFiles = ModuleManager.getInstance(project).modules.mapNotNull { getGradleBuildFile(it) }
     val preferredVersion = tryExtractPreferredNdkDownloadVersion(text)
     if (preferredVersion != null) {
       val localNdk = IdeSdks.getInstance().getSpecificLocalPackage(preferredVersion)
