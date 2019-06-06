@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.scene.target
 
+import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.NonPlaceholderDragTarget
@@ -37,11 +38,13 @@ import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
+import org.intellij.lang.annotations.JdkConstants
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.Stroke
+import java.awt.event.InputEvent
 import kotlin.math.abs
 
 private const val DEBUG_RENDERER = false
@@ -424,11 +427,15 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
   override fun newSelection(): List<SceneComponent> = newSelectedComponents
 
-  override fun getMouseCursor(): Cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+  override fun getMouseCursor(@JdkConstants.InputEventMask modifier: Int): Cursor? {
+    return if ((modifier and InputEvent.ALT_MASK) != 0 && myComponent.isSelected) AdtUiCursors.MOVE
+           else Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+  }
 
   override fun isHittable() = if (myComponent.isSelected) myComponent.canShowBaseline() || !myComponent.isDragging else true
 
   companion object {
+
     /**
      * Determine if the [Target] could be replaced by [CommonDragTarget]
      */

@@ -77,6 +77,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import org.intellij.lang.annotations.JdkConstants;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -322,7 +323,7 @@ public class InteractionManager {
       myCurrentInteraction = null;
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourLastStateMask = 0;
-      updateCursor(x, y);
+      updateCursor(x, y, modifiers);
       mySurface.repaint();
     }
   }
@@ -336,11 +337,11 @@ public class InteractionManager {
    * <li>Otherwise, show the default arrow cursor
    * </ul>
    */
-  void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+  void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifier) {
     Cursor cursor = null;
     SceneView sceneView = mySurface.getSceneView(x, y);
     if (sceneView != null) {
-      cursor = sceneView.getCursor(x, y);
+      cursor = sceneView.getCursor(x, y, modifier);
     }
     mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
   }
@@ -442,7 +443,7 @@ public class InteractionManager {
         mySurface.repaint();
       }
       if (myCurrentInteraction == null) {
-        updateCursor(x, y);
+        updateCursor(x, y, modifiers);
       }
       else {
         finishInteraction(x, y, modifiers, false);
@@ -476,7 +477,7 @@ public class InteractionManager {
       int xDip = getAndroidXDip(sceneView, x);
       int yDip = getAndroidYDip(sceneView, y);
       Scene scene = sceneView.getScene();
-      Target clickedTarget = scene.findTarget(context, xDip, yDip);
+      Target clickedTarget = scene.findTarget(context, xDip, yDip, ourLastStateMask);
       SceneComponent clicked;
       if (clickedTarget != null) {
         clicked = clickedTarget.getComponent();
@@ -556,13 +557,14 @@ public class InteractionManager {
         return;
       }
 
+      int modifiers = event.getModifiers();
       if (myCurrentInteraction != null) {
         myLastMouseX = x;
         myLastMouseY = y;
         //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourLastStateMask = event.getModifiers();
+        ourLastStateMask = modifiers;
         myCurrentInteraction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
-        updateCursor(x, y);
+        updateCursor(x, y, modifiers);
         mySurface.getLayeredPane().scrollRectToVisible(
           new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
                         2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
@@ -571,7 +573,6 @@ public class InteractionManager {
       else {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
         y = myLastMouseY;
-        int modifiers = event.getModifiers();
         //noinspection AssignmentToStaticFieldFromInstanceMethod
         ourLastStateMask = modifiers;
         SceneView sceneView = mySurface.getSceneView(x, y);
@@ -615,7 +616,7 @@ public class InteractionManager {
         if (interaction != null) {
           startInteraction(x, y, interaction, modifiers);
         }
-        updateCursor(x, y);
+        updateCursor(x, y, modifiers);
       }
 
       myHoverTimer.restart();
@@ -632,8 +633,9 @@ public class InteractionManager {
         handlePanInteraction(x, y);
         return;
       }
+      int modifier = event.getModifiers();
       //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourLastStateMask = event.getModifiers();
+      ourLastStateMask = modifier;
 
       mySurface.hover(x, y);
       if ((ourLastStateMask & InputEvent.BUTTON1_DOWN_MASK) != 0) {
@@ -643,7 +645,7 @@ public class InteractionManager {
         }
       }
       else {
-        updateCursor(x, y);
+        updateCursor(x, y, modifier);
       }
 
       myHoverTimer.restart();
@@ -731,7 +733,7 @@ public class InteractionManager {
 
       if (event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode()) {
         setPanning(false);
-        updateCursor(myLastMouseX, myLastMouseY);
+        updateCursor(myLastMouseX, myLastMouseY, ourLastStateMask);
       }
     }
 

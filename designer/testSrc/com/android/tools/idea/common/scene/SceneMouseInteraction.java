@@ -21,8 +21,6 @@ import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
-import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -31,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -174,6 +173,7 @@ public class SceneMouseInteraction {
    * @param componentId the id of the component we want to click on
    * @param offsetX     x offset from the center of the component
    * @param offsetY     y offset from the center of the component
+   * @param modifier    modifier of input event
    */
   public void mouseDown(String componentId, float offsetX, float offsetY) {
     SceneComponent component = myScene.getSceneComponent(componentId);
@@ -183,10 +183,14 @@ public class SceneMouseInteraction {
   }
 
   public void mouseDown(float x, float y) {
+    mouseDown(x, y, 0);
+  }
+
+  public void mouseDown(float x, float y, @JdkConstants.InputEventMask int modifier) {
     myLastX = x;
     myLastY = y;
     SceneContext transform = SceneContext.get();
-    myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
+    myScene.mouseDown(transform, (int)myLastX, (int)myLastY, modifier);
     repaint();
   }
 
@@ -208,12 +212,12 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     if (deltaX != 0 || deltaY != 0) {
       for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag(transform, (int)dx, (int)dy);
+        myScene.mouseDrag(transform, (int)dx, (int)dy, 0);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
         dx += deltaX;
         dy += deltaY;
       }
-      myScene.mouseDrag(transform, (int)x, (int)y);
+      myScene.mouseDrag(transform, (int)x, (int)y, 0);
     }
     myLastX = x;
     myLastY = y;
@@ -339,14 +343,14 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     if (deltaX != 0 || deltaY != 0) {
       for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag(transform, (int)dx, (int)dy);
+        myScene.mouseDrag(transform, (int)dx, (int)dy, 0);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
         dx += deltaX;
         dy += deltaY;
       }
-      myScene.mouseDrag(transform, (int)x, (int)y);
+      myScene.mouseDrag(transform, (int)x, (int)y, 0);
     }
-    myScene.mouseRelease(transform, (int)x, (int)y);
+    myScene.mouseRelease(transform, (int)x, (int)y, 0);
     repaint();
   }
 
@@ -368,12 +372,12 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     if (deltaX != 0 || deltaY != 0) {
       for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag(transform, (int)dx, (int)dy);
+        myScene.mouseDrag(transform, (int)dx, (int)dy, 0);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
         dx += deltaX;
         dy += deltaY;
       }
-      myScene.mouseDrag(transform, (int)x, (int)y);
+      myScene.mouseDrag(transform, (int)x, (int)y, 0);
     }
     myScene.mouseCancel();
     repaint();

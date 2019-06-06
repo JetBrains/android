@@ -37,8 +37,6 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
 
 /**
  * Tests for the nav editor Scene.
@@ -582,7 +580,7 @@ class NavSceneTest : NavTestCase() {
     val list = DisplayList()
     val transform = SceneContext.get(model.surface.currentSceneView)
     scene.layout(0, transform)
-    scene.mouseHover(transform, 150, 30)
+    scene.mouseHover(transform, 150, 30, 0)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     assertEquals(
@@ -601,7 +599,7 @@ class NavSceneTest : NavTestCase() {
       "UNClip\n", list.generateSortedDisplayList()
     )
 
-    scene.mouseHover(transform, 552, 440)
+    scene.mouseHover(transform, 552, 440, 0)
     list.clear()
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
@@ -621,7 +619,7 @@ class NavSceneTest : NavTestCase() {
       "UNClip\n", list.generateSortedDisplayList()
     )
 
-    scene.mouseHover(transform, 120, 148)
+    scene.mouseHover(transform, 120, 148, 0)
     list.clear()
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
@@ -658,7 +656,7 @@ class NavSceneTest : NavTestCase() {
 
     // If rectangle extends from (20, 20) to (173, 276), then the handle should be at (173, 148)
     // Hover over a point to the right of that so that we're over the handle but not the rectangle
-    scene.mouseHover(transform, 177, 148)
+    scene.mouseHover(transform, 177, 148, 0)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     assertEquals(
@@ -698,10 +696,10 @@ class NavSceneTest : NavTestCase() {
     `when`(surface.interactionManager).thenReturn(interactionManager)
 
     val drawRect1 = scene.getSceneComponent("fragment1")!!
-    scene.mouseDown(sceneContext, drawRect1.drawX + drawRect1.drawWidth, drawRect1.centerY)
+    scene.mouseDown(sceneContext, drawRect1.drawX + drawRect1.drawWidth, drawRect1.centerY, 0)
 
     val drawRect2 = scene.getSceneComponent("subnav")!!
-    scene.mouseDrag(sceneContext, drawRect2.centerX, drawRect2.centerY)
+    scene.mouseDrag(sceneContext, drawRect2.centerX, drawRect2.centerY, 0)
 
     scene.buildDisplayList(list, 0, NavView(surface as NavDesignSurface, scene.sceneManager))
 
@@ -970,19 +968,19 @@ class NavSceneTest : NavTestCase() {
     assertEquals(SceneComponent.DrawState.NORMAL, fragment2.drawState)
     var version = scene.displayListVersion
 
-    scene.mouseHover(transform, 150, 150)
+    scene.mouseHover(transform, 150, 150, 0)
     assertEquals(SceneComponent.DrawState.HOVER, fragment1.drawState)
     assertEquals(SceneComponent.DrawState.NORMAL, fragment2.drawState)
     assertTrue(version < scene.displayListVersion)
     version = scene.displayListVersion
 
-    scene.mouseHover(transform, 1050, 1050)
+    scene.mouseHover(transform, 1050, 1050, 0)
     assertEquals(SceneComponent.DrawState.NORMAL, fragment1.drawState)
     assertEquals(SceneComponent.DrawState.HOVER, fragment2.drawState)
     assertTrue(version < scene.displayListVersion)
     version = scene.displayListVersion
 
-    scene.mouseHover(transform, 0, 0)
+    scene.mouseHover(transform, 0, 0, 0)
     assertEquals(SceneComponent.DrawState.NORMAL, fragment1.drawState)
     assertEquals(SceneComponent.DrawState.NORMAL, fragment2.drawState)
     assertTrue(version < scene.displayListVersion)
@@ -1002,14 +1000,14 @@ class NavSceneTest : NavTestCase() {
     val transform = SceneContext.get(view)!!
     val action1 = scene.getSceneComponent("a1")!!
 
-    scene.mouseHover(transform, -8, 125)
+    scene.mouseHover(transform, -8, 125, 0)
     assertEquals(SceneComponent.DrawState.NORMAL, action1.drawState)
 
     WriteCommandAction.runWriteCommandAction(project) {
       action1.nlComponent.popUpTo = "fragment1"
     }
 
-    scene.mouseHover(transform, -8, 125)
+    scene.mouseHover(transform, -8, 125, 0)
     assertEquals(SceneComponent.DrawState.HOVER, action1.drawState)
   }
 

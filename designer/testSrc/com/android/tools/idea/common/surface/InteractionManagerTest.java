@@ -281,7 +281,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getCenterX()),
-                         Coordinates.getSwingYDip(screenView, textView.getCenterY()));
+                         Coordinates.getSwingYDip(screenView, textView.getCenterY()),
+                         0);
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
   }
 
@@ -294,7 +295,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
     textView.layout(SceneContext.get(screenView), 0);
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth()),
-                         Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight()));
+                         Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight()),
+                         0);
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
   }
 
@@ -304,7 +306,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawHeight() + textView.getDrawY() + 20),
-                         Coordinates.getSwingYDip(screenView, textView.getCenterY()));
+                         Coordinates.getSwingYDip(screenView, textView.getCenterY()),
+                         0);
     Mockito.verify(surface).setCursor(null);
   }
 
@@ -314,7 +317,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     when(((NlDesignSurface)surface).isResizeAvailable()).thenReturn(true);
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getSize().width,
-                         screenView.getY() + screenView.getSize().height);
+                         screenView.getY() + screenView.getSize().height,
+                         0);
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
   }
 
@@ -348,7 +352,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getCenterX()),
-                         Coordinates.getSwingYDip(screenView, textView.getCenterY()));
+                         Coordinates.getSwingYDip(screenView, textView.getCenterY()),
+                         0);
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
   }
 
@@ -361,7 +366,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
     textView.layout(SceneContext.get(screenView), 0);
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth()),
-                         Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight()));
+                         Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight()),
+                         0);
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
   }
 
@@ -371,7 +377,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawHeight() + textView.getDrawY() + 20),
-                         Coordinates.getSwingYDip(screenView, textView.getCenterY()));
+                         Coordinates.getSwingYDip(screenView, textView.getCenterY()),
+                         0);
     Mockito.verify(surface).setCursor(null);
   }
 
@@ -381,7 +388,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     when(((NlDesignSurface)surface).isResizeAvailable()).thenReturn(true);
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getSize().width,
-                         screenView.getY() + screenView.getSize().height);
+                         screenView.getY() + screenView.getSize().height,
+                         0);
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
   }
 
