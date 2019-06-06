@@ -55,7 +55,6 @@ abstract class AbstractAndroidGutterIconTest : KotlinAndroidTestCase() {
                 }
 
                 copyResourceDirectoryForTest(path)
-                myFixture.copyFileToProject(File(path).parent + "/R.java", "gen/${COM_MYAPP_PACKAGE_PATH}R.java")
 
                 val sourceFile = myFixture.copyFileToProject(path, "src/${PathUtil.getFileName(path)}")
                 myFixture.configureFromExistingVirtualFile(sourceFile)
