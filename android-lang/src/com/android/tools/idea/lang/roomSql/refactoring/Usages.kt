@@ -50,6 +50,11 @@ import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.util.CommonProcessors
 import com.intellij.util.Processor
+import org.jetbrains.kotlin.asJava.toLightClass
+import org.jetbrains.kotlin.asJava.toLightElements
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
 /**
  * No-op [FindUsagesProvider] that provides the right [WordsScanner] for SQL.
@@ -100,8 +105,12 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
       val definesSqlSchema = when (element) {
         is PsiElementForFakeColumn -> true
         is PsiClass -> element.definesSqlTable()
-        is PsiField -> {
-          val psiClass = element.containingClass
+        is PsiField, is KtProperty -> {
+          val psiClass: PsiClass? = if (element is PsiField) {
+            element.containingClass
+          } else {
+            (element as KtProperty).containingClass()?.toLightClass()
+          }
           // A subclass can be annotated with `@Entity`, making fields into SQL column definitions.
           !(psiClass == null || psiClass.hasModifier(JvmModifier.FINAL) && !psiClass.definesSqlTable())
         }
@@ -191,6 +200,13 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
           .findTable(element.tablePsiElement)
           ?.columns
           ?.find { PsiManager.getInstance(element.project).areElementsEquivalent(it.definingElement, element) }
+      }
+      is KtProperty -> {
+        val lightField = element.toLightElements().firstIsInstanceOrNull<PsiField>()
+        schema
+          .findTable(element.containingClass()?.toLightClass() ?: return null)
+          ?.columns
+          ?.find { it.definingElement == lightField }
       }
       else -> null
     }
