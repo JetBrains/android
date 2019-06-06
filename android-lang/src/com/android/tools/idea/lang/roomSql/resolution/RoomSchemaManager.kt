@@ -16,6 +16,9 @@
 package com.android.tools.idea.lang.roomSql.resolution
 
 import com.android.support.AndroidxName
+import com.android.tools.idea.kotlin.findAnnotation
+import com.android.tools.idea.kotlin.findArgumentExpression
+import com.android.tools.idea.kotlin.tryEvaluateConstant
 import com.android.tools.idea.lang.roomSql.RoomAnnotations
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -24,7 +27,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiArrayInitializerMemberValue
@@ -45,6 +47,9 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiUtil
+import org.jetbrains.kotlin.asJava.elements.KtLightField
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtExpression
 
 private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
 
@@ -103,7 +108,7 @@ class RoomSchemaManager(val module: Module, private val cachedValuesManager: Cac
    * Finds classes annotated with the given annotation (both old and new names) and processes them using the supplied [processor] function,
    * gathering non-null results.
    */
-  private fun <T: Any> processAnnotatedClasses(
+  private fun <T : Any> processAnnotatedClasses(
     psiFacade: JavaPsiFacade,
     scope: GlobalSearchScope,
     annotation: AndroidxName,
@@ -206,9 +211,9 @@ class RoomSchemaManager(val module: Module, private val cachedValuesManager: Cac
     currentPrefix: String
   ): Sequence<RoomFieldColumn> {
     val newPrefix = embeddedAnnotation.findAttributeValue("prefix")
-      ?.let { constantEvaluationHelper.computeConstantExpression(it) }
-      ?.toString()
-        ?: ""
+                      ?.let { constantEvaluationHelper.computeConstantExpression(it) }
+                      ?.toString()
+                    ?: ""
 
     val embeddedClass = PsiUtil.resolveClassInClassTypeOnly(embeddedField.type) ?: return emptySequence()
 
@@ -236,24 +241,68 @@ class RoomSchemaManager(val module: Module, private val cachedValuesManager: Cac
     annotationName: AndroidxName,
     annotationAttributeName: String
   ): Pair<String, PsiElement>?
-      where T : PsiModifierListOwner,
-            T : PsiNamedElement {
-    val nameAttribute = element.modifierList
+    where T : PsiModifierListOwner,
+          T : PsiNamedElement {
+    // First look for the annotation that can override the name:
+    return getAnnotationAndAnnotationName(element, annotationName, annotationAttributeName)
+           // Fall back to the name used in code:
+           ?: element.name?.let { it to element }
+  }
+
+  private fun KtLightField.getPropertyAnnotationExpression(
+    annotationName: AndroidxName,
+    annotationAttributeName: String
+  ): KtExpression? {
+    val annotationEntry = kotlinOrigin?.annotationEntries?.findAnnotation(annotationName) ?: return null
+    // Property annotation it is annotation without target
+    return if (annotationEntry.useSiteTarget == null) {
+      annotationEntry.findArgumentExpression(annotationAttributeName)
+    } else {
+      null
+    }
+  }
+
+  /**
+   * Returns annotation PsiElement and override name from it
+   *
+   * if there is no correct annotation returns null
+   */
+  private fun <T> getAnnotationAndAnnotationName(
+    element: T,
+    annotationName: AndroidxName,
+    annotationAttributeName: String
+  ): Pair<String, PsiElement>?
+    where T : PsiModifierListOwner,
+          T : PsiNamedElement {
+    var annotation: PsiElement? = element.modifierList
       ?.findAnnotation(annotationName)
       ?.findDeclaredAttributeValue(annotationAttributeName)
+    var name: String? = annotation?.let { constantEvaluationHelper.computeConstantExpression(it)?.toString() }
 
-    val name = nameAttribute
-      ?.let { constantEvaluationHelper.computeConstantExpression(it) }
-      ?.toString()
-        ?: element.name
-        ?: return null
+    // There is special case for KtLightField when we have annotation without target (property annotation) e.g @ColumnInfo(name = 'override_name')
+    // In that case element.modifierList.findAnnotation(annotationName) returns null because it searches only for annotation with FIELD target
+    if (name == null && element is KtLightField) {
+      val ktExpression = element.getPropertyAnnotationExpression(annotationName, annotationAttributeName)
+      name = ktExpression?.let { tryEvaluateConstant(it) }
+      if (name != null) annotation = ktExpression as PsiElement
+    }
 
-    return Pair(name, nameAttribute ?: element)
+    return name?.let { it to annotation!! }
   }
 
   private inline fun AndroidxName.bothNames(f: (String) -> Unit) {
     f(oldName())
     f(newName())
+  }
+
+  fun List<KtAnnotationEntry>.findAnnotation(qualifiedName: AndroidxName): KtAnnotationEntry? {
+    qualifiedName.bothNames { name ->
+      val result = findAnnotation(name)
+      if (result != null) {
+        return result
+      }
+    }
+    return null
   }
 
   fun PsiModifierList.findAnnotation(qualifiedName: AndroidxName): PsiAnnotation? {
