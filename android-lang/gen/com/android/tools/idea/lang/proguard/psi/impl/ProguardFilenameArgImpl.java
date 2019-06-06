@@ -29,14 +29,14 @@ import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguard.psi.*;
 import com.intellij.psi.PsiReference;
 
-public class ProguardIncludeArgImpl extends ASTWrapperPsiElement implements ProguardIncludeArg {
+public class ProguardFilenameArgImpl extends ASTWrapperPsiElement implements ProguardFilenameArg {
 
-  public ProguardIncludeArgImpl(@NotNull ASTNode node) {
+  public ProguardFilenameArgImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ProguardVisitor visitor) {
-    visitor.visitIncludeArg(this);
+    visitor.visitFilenameArg(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

@@ -1,0 +1,2 @@
+-classobfuscationdictionary c<caret>
+

@@ -28,14 +28,14 @@ import static com.android.tools.idea.lang.proguard.psi.ProguardTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguard.psi.*;
 
-public class ProguardIncludeFlagImpl extends ASTWrapperPsiElement implements ProguardIncludeFlag {
+public class ProguardFilenameFlagImpl extends ASTWrapperPsiElement implements ProguardFilenameFlag {
 
-  public ProguardIncludeFlagImpl(@NotNull ASTNode node) {
+  public ProguardFilenameFlagImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ProguardVisitor visitor) {
-    visitor.visitIncludeFlag(this);
+    visitor.visitFilenameFlag(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -44,9 +44,9 @@ public class ProguardIncludeFlagImpl extends ASTWrapperPsiElement implements Pro
   }
 
   @Override
-  @NotNull
-  public ProguardIncludeArg getIncludeArg() {
-    return findNotNullChildByClass(ProguardIncludeArg.class);
+  @Nullable
+  public ProguardFilenameArg getFilenameArg() {
+    return findChildByClass(ProguardFilenameArg.class);
   }
 
 }

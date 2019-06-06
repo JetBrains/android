@@ -34,7 +34,8 @@ public class ProguardSyntaxHighlighter extends SyntaxHighlighterBase {
   private static final TextAttributesKey COMMENT = createTextAttributesKey("COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
   private static final TextAttributesKey[] COMMENTS_KEY = new TextAttributesKey[]{COMMENT};
 
-  private static final TextAttributesKey BAD_CHAR = createTextAttributesKey("BAD_CHAR", DefaultLanguageHighlighterColors.INVALID_STRING_ESCAPE);
+  private static final TextAttributesKey BAD_CHAR =
+    createTextAttributesKey("BAD_CHAR", DefaultLanguageHighlighterColors.INVALID_STRING_ESCAPE);
   private static final TextAttributesKey[] BAD_CHARS_KEY = new TextAttributesKey[]{BAD_CHAR};
 
   private static final TextAttributesKey OPERATOR = createTextAttributesKey("OPERATOR", DefaultLanguageHighlighterColors.BRACES);
@@ -46,7 +47,8 @@ public class ProguardSyntaxHighlighter extends SyntaxHighlighterBase {
   private static final TextAttributesKey FLAG_ARG = createTextAttributesKey("FLAG_ARG", DefaultLanguageHighlighterColors.PARAMETER);
   private static final TextAttributesKey[] FLAG_ARG_KEY = new TextAttributesKey[]{FLAG_ARG};
 
-  private static final TextAttributesKey CLASS_SPEC = createTextAttributesKey("CLASS_SPEC", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
+  private static final TextAttributesKey CLASS_SPEC =
+    createTextAttributesKey("CLASS_SPEC", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
   private static final TextAttributesKey[] CLASS_SPEC_KEY = new TextAttributesKey[]{CLASS_SPEC};
 
   @NotNull
@@ -71,10 +73,12 @@ public class ProguardSyntaxHighlighter extends SyntaxHighlighterBase {
     if (tokenType.equals(ProguardTypes.CLOSE_BRACE) || tokenType.equals(ProguardTypes.OPEN_BRACE)) {
       return OPERATOR_KEY;
     }
-    if (tokenType.equals(ProguardTypes.FLAG_NAME) || tokenType.equals(ProguardTypes.INCLUDE_FLAG_NAME)) {
+    if (tokenType.equals(ProguardTypes.FLAG_NAME) ||
+        tokenType.equals(ProguardTypes.MANDATORY_FILENAME_FLAG_NAME) ||
+        tokenType.equals(ProguardTypes.OPTIONAL_FILENAME_FLAG_NAME)) {
       return FLAG_NAME_KEY;
     }
-    if (tokenType.equals(ProguardTypes.FLAG_ARG) || tokenType.equals(ProguardTypes.INCLUDE_FLAG_ARG)) {
+    if (tokenType.equals(ProguardTypes.FLAG_ARG) || tokenType.equals(ProguardTypes.FILENAME_FLAG_ARG)) {
       return FLAG_ARG_KEY;
     }
 
