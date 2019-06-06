@@ -42,7 +42,7 @@ public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase
   @Override
   protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
     // Force test to use Gradle 4.10.1.
-    createGradleWrapper(projectRoot, "4.10.1");
+    AndroidGradleTests.createGradleWrapper(projectRoot, "4.10.1");
   }
 
   @Override

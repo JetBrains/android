@@ -16,10 +16,18 @@
 package com.android.tools.idea.testing;
 
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +44,9 @@ import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.write;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 public class AndroidGradleTests {
@@ -234,5 +244,55 @@ public class AndroidGradleTests {
       contents = contents.substring(0, matcher.start(1)) + value + contents.substring(matcher.end(1));
     }
     return contents;
+  }
+
+  /**
+   * Creates a gradle wrapper for use in tests under the {@code projectRoot}.
+   * @throws IOException
+   */
+  public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
+    GradleWrapper wrapper = GradleWrapper.create(projectRoot);
+    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
+    assertAbout(file()).that(path).named("Gradle distribution path").isFile();
+    wrapper.updateDistributionUrl(path);
+  }
+
+  /**
+   * Finds the AndroidFacet to be used by the test.
+   */
+  @Nullable
+  public static AndroidFacet findAndroidFacetForTests(Module[] modules, @Nullable String chosenModuleName) {
+    AndroidFacet testAndroidFacet = null;
+    // if module name is specified, find it
+    if (chosenModuleName != null) {
+      for (Module module : modules) {
+        if (chosenModuleName.equals(module.getName())) {
+          testAndroidFacet = AndroidFacet.getInstance(module);
+          break;
+        }
+      }
+    }
+
+    if (testAndroidFacet == null) {
+      // then try and find a non-lib facet
+      for (Module module : modules) {
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet != null && androidFacet.getConfiguration().isAppProject()) {
+          testAndroidFacet = androidFacet;
+          break;
+        }
+      }
+    }
+
+    // then try and find ANY android facet
+    if (testAndroidFacet == null) {
+      for (Module module : modules) {
+        testAndroidFacet = AndroidFacet.getInstance(module);
+        if (testAndroidFacet != null) {
+          break;
+        }
+      }
+    }
+    return testAndroidFacet;
   }
 }
