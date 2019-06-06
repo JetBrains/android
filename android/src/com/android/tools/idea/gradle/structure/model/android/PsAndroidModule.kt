@@ -193,8 +193,8 @@ class PsAndroidModule(
     name == "main" -> "Build type name cannot be 'main'."
     name == "lint" -> "Build type name cannot be 'lint'."
     DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Build type name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
-    getOrCreateBuildTypeCollection().any { it.name == name } -> "Duplicate build type name: '$name'"
-    getOrCreateProductFlavorCollection().any { it.name == name } -> "Build type name cannot collide with product flavor: '$name'"
+    getOrCreateBuildTypeCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } -> "Duplicate build type name: '$name'"
+    getOrCreateProductFlavorCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } -> "Build type name cannot collide with product flavor: '$name'"
     buildTypeCausesAmbiguity(name) -> "Build type name '$name' would cause a configuration name ambiguity."
     else -> null
   }
@@ -230,8 +230,8 @@ class PsAndroidModule(
     name == "main" -> "Product flavor name cannot be 'main'."
     name == "lint" -> "Product flavor name cannot be 'lint'."
     DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Product flavor name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
-    getOrCreateProductFlavorCollection().any { it.name == name } -> "Duplicate product flavor name: '$name'"
-    getOrCreateBuildTypeCollection().any { it.name == name } -> "Product flavor name cannot collide with build type: '$name'"
+    getOrCreateProductFlavorCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } -> "Duplicate product flavor name: '$name'"
+    getOrCreateBuildTypeCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } -> "Product flavor name cannot collide with build type: '$name'"
     productFlavorCausesAmbiguity(name, dimension) ->
       "Product flavor name '$name' in flavor dimension '$dimension' would cause a configuration name ambiguity."
     else -> null
