@@ -527,7 +527,7 @@ public final class StudioProfilersTest {
                           .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP))
       .build();
     if (myNewEventPipeline) {
-      myTransportService.addEventToEventGroup(device.getDeviceId(), Common.Event.newBuilder()
+      myTransportService.addEventToStream(device.getDeviceId(), Common.Event.newBuilder()
         .setGroupId(myTimer.getCurrentTimeNs())
         .setPid(process.getPid())
         .setKind(Common.Event.Kind.CPU_TRACE)
