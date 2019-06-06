@@ -54,8 +54,7 @@ class CommonDragTargetTest : SceneTest() {
     assertEquals(1, myScreen.screen.selectionModel.selection.size)
   }
 
-  // b/129681462
-  fun ignore_testDragComponentInConstraintLayoutWithSnapping() {
+  fun testDragComponentInConstraintLayoutWithSnapping() {
     val textView2 = myScreen.get("@id/textView2").sceneComponent!!
     val constraintLayout = myScreen.get("@id/constraint").sceneComponent!!
 
