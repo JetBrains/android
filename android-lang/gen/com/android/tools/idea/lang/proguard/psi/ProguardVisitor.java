@@ -28,11 +28,11 @@ public class ProguardVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitIncludeArg(@NotNull ProguardIncludeArg o) {
+  public void visitFilenameArg(@NotNull ProguardFilenameArg o) {
     visitPsiElement(o);
   }
 
-  public void visitIncludeFlag(@NotNull ProguardIncludeFlag o) {
+  public void visitFilenameFlag(@NotNull ProguardFilenameFlag o) {
     visitPsiElement(o);
   }
 

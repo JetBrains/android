@@ -22,10 +22,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ProguardIncludeFlagArg extends PsiElement {
+public interface ProguardFilenameFlag extends PsiElement {
 
-  //WARNING: getReference(...) is skipped
-  //matching getReference(ProguardIncludeFlagArg, ...)
-  //methods are not found in null
+  @Nullable
+  ProguardFilenameArg getFilenameArg();
 
 }
