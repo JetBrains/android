@@ -57,7 +57,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   private lateinit var defaultTestDialog: TestDialog
 
-  private fun contextFor(project: PsProject) = object: PsContext {
+  private fun contextFor(project: PsProject) = object : PsContext {
     override val analyzerDaemon: PsAnalyzerDaemon get() = throw UnsupportedOperationException()
     override val project: PsProject = project
     override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon get() = throw UnsupportedOperationException()
@@ -76,7 +76,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   override fun setUp() {
     super.setUp()
-    defaultTestDialog = Messages.setTestDialog(object: TestDialog {
+    defaultTestDialog = Messages.setTestDialog(object : TestDialog {
       override fun show(message: String?): Int = Messages.YES
     })
 
@@ -595,6 +595,78 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
     val newVariableNode = newAppNode.children().asSequence().find { "newVariable" == (it as VariableNode).toString() } as VariableNode
     assertThat(newVariableNode.getUnresolvedValue(false), equalTo("new value".asParsed<Any>()))
+  }
+
+  fun testAddAndEditSimpleVariable() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val variablesTable = VariablesTable(project, contextFor(psProject), psProject, testRootDisposable)
+
+    val buildScriptNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find { it.toString() == "app" } as ModuleNode
+    assertThat(buildScriptNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newVariable")))
+
+    //create variable
+    variablesTable.selectNode(buildScriptNode)
+    variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
+    variablesTable.simulateTextInput("newVariable")
+
+    setVariableValue(buildScriptNode, "newVariable", "new value 1")
+    psProject.applyAllChanges()
+
+    assertVariableValue(psProject, "newVariable", "new value 1") { it.toString() == "app" }
+
+    // Second change
+    assertThat(buildScriptNode.children().asSequence().map { it.toString() }.toSet(), hasItem("newVariable"))
+
+    setVariableValue(buildScriptNode, "newVariable", "new value 2")
+    psProject.applyAllChanges()
+    assertVariableValue(psProject, "newVariable", "new value 2") { it.toString() == "app" }
+
+    // Emulate opening PSD again and check value was applied
+    val psProject2 = PsProjectImpl(project)
+    assertVariableValue(psProject2, "newVariable", "new value 2") { it.toString() == "app" }
+  }
+
+  fun testAddAndEditBuildscriptSimpleVariable() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val variablesTable = VariablesTable(project, contextFor(psProject), psProject, testRootDisposable)
+
+    val buildScriptNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find { it.toString().contains("(build script)") } as ModuleNode
+    assertThat(buildScriptNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newVariable")))
+
+    //create variable
+    variablesTable.selectNode(buildScriptNode)
+    variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
+    variablesTable.simulateTextInput("newVariable")
+
+    setVariableValue(buildScriptNode, "newVariable", "new value 1")
+    psProject.applyAllChanges()
+
+    assertVariableValue(psProject, "newVariable", "new value 1") { it.toString().contains("(build script)") }
+
+    // Second change
+    assertThat(buildScriptNode.children().asSequence().map { it.toString() }.toSet(), hasItem("newVariable"))
+
+    setVariableValue(buildScriptNode, "newVariable", "new value 2")
+    psProject.applyAllChanges()
+    assertVariableValue(psProject, "newVariable", "new value 2") { it.toString().contains("(build script)") }
+
+    // Emulate opening PSD again and check value was applied
+    val psProject2 = PsProjectImpl(project)
+    assertVariableValue(psProject2, "newVariable", "new value 2") { it.toString().contains("(build script)") }
+  }
+
+  private fun setVariableValue(node: ModuleNode , name: String, value: String) {
+    val variableNode = node.children().asSequence().find { name == (it as VariableNode).toString() } as VariableNode
+    variableNode.setValue(value.asParsed())
+  }
+
+  private fun assertVariableValue(psProject: PsProject, name: String, value: String, moduleSelector: (Any) -> Boolean) {
+    val newTableModel1 = VariablesTable(project, contextFor(psProject), psProject, testRootDisposable).tableModel
+    val newModuleNode1 = (newTableModel1.root as DefaultMutableTreeNode).children().asSequence().find(moduleSelector) as ModuleNode
+    val newVariableNode1 = newModuleNode1.children().asSequence().find { name == (it as VariableNode).toString() } as VariableNode
+    assertThat(newVariableNode1.getUnresolvedValue(false), equalTo(value.asParsed<Any>()))
   }
 
   fun testAddList() {
