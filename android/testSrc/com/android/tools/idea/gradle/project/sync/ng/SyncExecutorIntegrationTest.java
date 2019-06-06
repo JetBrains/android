@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProj
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels.VariantOnlyModuleModel;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -267,7 +268,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     // Use plugin 1.5.0 and Gradle 2.4.0
     prepareProjectForImport(PROJECT_WITH1_DOT5);
     File projectFolderPath = getProjectFolderPath();
-    createGradleWrapper(projectFolderPath, "2.6");
+    AndroidGradleTests.createGradleWrapper(projectFolderPath, "2.6");
 
     File topBuildFilePath = new File(projectFolderPath, "build.gradle");
     String contents = Files.asCharSource(topBuildFilePath, Charsets.UTF_8).read();
