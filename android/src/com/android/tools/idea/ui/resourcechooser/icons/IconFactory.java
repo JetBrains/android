@@ -26,6 +26,7 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.IconManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -151,7 +152,7 @@ public class IconFactory {
           }
           colorIcons[i] = new ResourceChooserColorIcon(sectionSize, size, colors.get(i), checkerboardSize);
         }
-        icon = new com.intellij.ui.RowIcon(colorIcons);
+        icon = IconManager.getInstance().createRowIcon(colorIcons);
       }
     }
 
