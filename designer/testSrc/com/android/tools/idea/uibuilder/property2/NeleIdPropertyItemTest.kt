@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
+import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT
@@ -34,15 +35,19 @@ import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
 import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor.RefactoringChoice
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.command.impl.UndoManagerImpl
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
+import org.jetbrains.android.ComponentStack
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 
 @RunsInEdt
 class NeleIdPropertyItemTest {
@@ -52,14 +57,19 @@ class NeleIdPropertyItemTest {
   @JvmField @Rule
   val edtRule = EdtRule()
 
+  private var componentStack: ComponentStack? = null
+
   @Before
   fun setUp() {
     NeleIdRenameProcessor.choiceForNextRename = RefactoringChoice.ASK
+    componentStack = ComponentStack(projectRule.project)
   }
 
   @After
   fun tearDown() {
     NeleIdRenameProcessor.choiceForNextRename = RefactoringChoice.ASK
+    componentStack!!.restoreComponents()
+    componentStack = null
   }
 
   @Test
@@ -214,6 +224,32 @@ class NeleIdPropertyItemTest {
     assertThat(property.editingSupport.validation("@id/hello")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(property.editingSupport.validation("@string/hello")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(property.editingSupport.validation("hello")).isEqualTo(EDITOR_NO_ERROR)
+  }
+
+  @Test
+  fun testSetValueIgnoredDuringUndo() {
+    val undoManager = Mockito.mock(UndoManagerImpl::class.java)
+    componentStack!!.registerComponentImplementation(UndoManager::class.java, undoManager)
+    Mockito.`when`(undoManager.isUndoInProgress).thenReturn(true)
+
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
+    val property = util.makeIdProperty()
+    NeleIdRenameProcessor.dialogProvider = { _, _, _, _ -> RefactoringChoice.YES }
+    property.value = "other"
+    assertThat(property.value).isEqualTo("textView")
+  }
+
+  @Test
+  fun testSetValueIgnoredDuringRedo() {
+    val undoManager = Mockito.mock(UndoManagerImpl::class.java)
+    componentStack!!.registerComponentImplementation(UndoManager::class.java, undoManager)
+    Mockito.`when`(undoManager.isRedoInProgress).thenReturn(true)
+
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
+    val property = util.makeIdProperty()
+    NeleIdRenameProcessor.dialogProvider = { _, _, _, _ -> RefactoringChoice.YES }
+    property.value = "other"
+    assertThat(property.value).isEqualTo("textView")
   }
 
   private fun createTestLayout(): ComponentDescriptor =
