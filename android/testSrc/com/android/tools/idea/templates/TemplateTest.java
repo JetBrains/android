@@ -86,6 +86,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.checks.ManifestDetector;
@@ -1435,7 +1436,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
       Project project = myFixture.getProject();
       new IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
-      setUpSdks(project);
+      AndroidGradleTests.setUpSdks(myFixture, findSdkPath());
       projectDir = Projects.getBaseDirPath(project);
       moduleState.put(ATTR_TOP_OUT, projectDir.getPath());
 
