@@ -41,13 +41,13 @@ proguardFile ::= (comment CRLF | flag CRLF | WS? CRLF)*
 comment ::= LINE_CMT
 
 // A flag can be either single line or multiline (in case it includes a Java spec).
-private flag ::= (multiLineFlag | includeFlag comment? | singleLineFlag comment?)
+private flag ::= (multiLineFlag | filenameFlag comment? | singleLineFlag comment?)
 
 multiLineFlag ::= FLAG_NAME FLAG_ARG* javaSection
 
-includeFlag ::= INCLUDE_FLAG_NAME includeArg
+filenameFlag ::= (MANDATORY_FILENAME_FLAG_NAME filenameArg | OPTIONAL_FILENAME_FLAG_NAME filenameArg?)
 
-includeArg ::= INCLUDE_FLAG_ARG { methods=[getReferences] }
+filenameArg ::= FILENAME_FLAG_ARG { methods=[getReferences] }
 
 singleLineFlag ::= FLAG_NAME FLAG_ARG*
 

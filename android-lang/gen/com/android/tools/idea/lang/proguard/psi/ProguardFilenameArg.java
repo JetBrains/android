@@ -23,7 +23,7 @@ import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 
-public interface ProguardIncludeArg extends PsiElement {
+public interface ProguardFilenameArg extends PsiElement {
 
   PsiReference[] getReferences();
 

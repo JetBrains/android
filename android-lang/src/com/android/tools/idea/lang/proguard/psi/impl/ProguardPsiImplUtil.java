@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.lang.proguard.psi.impl;
 
-import com.android.tools.idea.lang.proguard.psi.ProguardIncludeArg;
+import com.android.tools.idea.lang.proguard.psi.ProguardFilenameArg;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReference;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferenceSet;
 
 public class ProguardPsiImplUtil {
-  public static PsiReference[] getReferences(ProguardIncludeArg arg) {
+  public static PsiReference[] getReferences(ProguardFilenameArg arg) {
     return new FileReferenceSet(arg).getAllReferences();
   }
 }
