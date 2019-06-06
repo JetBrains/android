@@ -517,4 +517,24 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
       )
     )
   }
+
+  fun testSchemaForKotlinFileWithAnnotation() {
+    myFixture.configureByText("User.kt",
+                              """
+        package com.example
+
+        import androidx.room.ColumnInfo
+        import androidx.room.Entity
+
+        @Entity
+        class User() {
+          const val name = "override_name"
+          @ColumnInfo(name = name) val origi<caret>nalName: String?
+        }
+    """.trimIndent())
+
+    val element = myFixture.elementAtCaret;
+
+    assertThat(getSchema(element).tables.iterator().next().columns.find{it.name =="override_name"}).isNotNull()
+  }
 }
