@@ -37,7 +37,7 @@ public class AndroidModuleSetup extends BaseSetup<AndroidModuleSetupStep, Androi
   }
 
   @Override
-  protected void beforeSetup(@NotNull ModuleSetupContext context, @Nullable AndroidModuleModel model, boolean syncSkipped) {
+  protected void beforeSetup(@NotNull ModuleSetupContext context, @Nullable AndroidModuleModel model) {
     // Before we run any of the setup code, register the modules sync issues so they can be reported.
     if (model != null) {
       SyncIssues.registerSyncIssues(context.getModule(), model.getAndroidProject().getSyncIssues());

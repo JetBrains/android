@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
+
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -42,8 +44,6 @@ import com.intellij.openapi.project.Project;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
 
 public abstract class ModuleSetup<T> {
   @NotNull protected final Project myProject;
@@ -126,20 +126,19 @@ public abstract class ModuleSetup<T> {
                                    @NotNull NdkModuleSetup ndkModuleSetup,
                                    @NotNull AndroidModuleSetup androidModuleSetup,
                                    @NotNull JavaModuleSetup javaModuleSetup,
-                                   @NotNull ExtraGradleSyncModelsManager extraModelsManager,
-                                   boolean syncSkipped) {
+                                   @NotNull ExtraGradleSyncModelsManager extraModelsManager) {
     // Setup GradleModuleModels.
     for (Map.Entry<GradleModuleModel, ModuleSetupContext> entry : setupContextByModuleModel.gradleSetupContexts.entrySet()) {
       gradleModuleSetup.setUpModule(entry.getValue().getModule(), entry.getValue().getIdeModelsProvider(), entry.getKey());
     }
     // Setup NdkModuleModels.
     for (Map.Entry<NdkModuleModel, ModuleSetupContext> entry : setupContextByModuleModel.ndkSetupContexts.entrySet()) {
-      ndkModuleSetup.setUpModule(entry.getValue(), entry.getKey(), syncSkipped);
+      ndkModuleSetup.setUpModule(entry.getValue(), entry.getKey());
     }
     // Setup AndroidModuleModels.
     for (Map.Entry<AndroidModuleModel, ModuleSetupContext> entry : setupContextByModuleModel.androidSetupContexts.entrySet()) {
       ModuleSetupContext setupContext = entry.getValue();
-      androidModuleSetup.setUpModule(entry.getValue(), entry.getKey(), syncSkipped);
+      androidModuleSetup.setUpModule(entry.getValue(), entry.getKey());
       GradleModuleModels gradleModels = setupContext.getGradleModels();
       if (gradleModels != null) {
         extraModelsManager.applyAndroidModelsToModule(setupContext.getGradleModels(), setupContext.getModule(), myModelsProvider);
@@ -148,7 +147,7 @@ public abstract class ModuleSetup<T> {
     // Setup JavaModuleModels.
     for (Map.Entry<JavaModuleModel, ModuleSetupContext> entry : setupContextByModuleModel.javaSetupContexts.entrySet()) {
       ModuleSetupContext setupContext = entry.getValue();
-      javaModuleSetup.setUpModule(setupContext, entry.getKey(), syncSkipped);
+      javaModuleSetup.setUpModule(setupContext, entry.getKey());
       GradleModuleModels gradleModels = setupContext.getGradleModels();
       if (gradleModels != null) {
         extraModelsManager.applyJavaModelsToModule(gradleModels, setupContext.getModule(), myModelsProvider);

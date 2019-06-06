@@ -52,9 +52,4 @@ public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
     }
     facet.setNdkModuleModel(model);
   }
-
-  @Override
-  public boolean invokeOnSkippedSync() {
-    return true;
-  }
 }
