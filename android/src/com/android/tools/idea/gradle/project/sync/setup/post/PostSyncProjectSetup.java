@@ -256,7 +256,7 @@ public class PostSyncProjectSetup {
     }
 
     FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), "successful", result);
-    ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
+    ServiceManager.getService(myProject, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
   }
 
   public static void finishFailedSync(@Nullable ExternalSystemTaskId taskId, @NotNull Project project) {
@@ -265,7 +265,7 @@ public class PostSyncProjectSetup {
       messages.showEvents(taskId);
       FailureResultImpl failureResult = new FailureResultImpl();
       FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), "failed", failureResult);
-      ServiceManager.getService(project, SyncViewManager.class).onEvent(finishBuildEvent);
+      ServiceManager.getService(project, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
     }
   }
 
@@ -424,7 +424,7 @@ public class PostSyncProjectSetup {
     String workingDir = toCanonicalPath(getBaseDirPath(project).getPath());
     DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Project setup", workingDir, currentTimeMillis());
     SyncViewManager syncManager = ServiceManager.getService(project, SyncViewManager.class);
-    syncManager.onEvent(new StartBuildEventImpl(buildDescriptor, "reading from cache...").withContentDescriptorSupplier(
+    syncManager.onEvent(taskId, new StartBuildEventImpl(buildDescriptor, "reading from cache...").withContentDescriptorSupplier(
       () -> {
         AndroidGradleSyncTextConsoleView consoleView = new AndroidGradleSyncTextConsoleView(project);
         return new RunContentDescriptor(consoleView, null, consoleView.getComponent(), "Gradle Sync");
