@@ -173,17 +173,17 @@ class PsAndroidModule(
 
   fun addNewBuildType(name: String): PsBuildType = getOrCreateBuildTypeCollection().addNew(name)
 
-  private fun computeCurrentVariants(): Set<String> {
+  private fun computeCurrentVariantSuffixes(): Set<String> {
     return (productFlavors.map { it.name } + buildFlavorCombinations())
-      .flatMap { flavor -> buildTypes.map { buildType -> listOf(flavor, buildType.name).combineAsCamelCase() } }
+      .flatMap { flavor -> buildTypes.map { buildType -> listOf(flavor, buildType.name).combineAsCamelCase().usLocaleCapitalize() } }
       .toSet()
   }
 
   private fun buildTypeCausesAmbiguity(name: String): Boolean {
-    val variants = computeCurrentVariants()
+    val variantSuffixes = computeCurrentVariantSuffixes()
     val currentFlavors = productFlavors.map { it.name } + buildFlavorCombinations()
-    val potential = currentFlavors.map { listOf(it, name).combineAsCamelCase() }
-    return potential.any { variants.contains(it) }
+    val potential = currentFlavors.map { listOf(it, name).combineAsCamelCase().usLocaleCapitalize() }
+    return potential.any { variantSuffixes.contains(it) }
   }
 
   fun validateBuildTypeName(name: String): String? = when {
@@ -217,10 +217,10 @@ class PsAndroidModule(
 
   private fun productFlavorCausesAmbiguity(name: String, dimension: String?): Boolean {
     if (dimension == null) return false
-    val variants = computeCurrentVariants()
+    val variantSuffixes = computeCurrentVariantSuffixes()
     val potential = (listOf(name) + buildFlavorCombinations(name, dimension))
-      .flatMap { flavor -> buildTypes.map { listOf(flavor, it.name).combineAsCamelCase() } }
-    return potential.any { variants.contains(it) }
+      .flatMap { flavor -> buildTypes.map { listOf(flavor, it.name).combineAsCamelCase().usLocaleCapitalize() } }
+    return potential.any { variantSuffixes.contains(it) }
   }
 
   fun validateProductFlavorName(name: String, dimension: String?): String? = when {
