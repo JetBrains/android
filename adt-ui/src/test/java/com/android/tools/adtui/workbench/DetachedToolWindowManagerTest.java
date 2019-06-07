@@ -39,7 +39,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   // Hack to avoid: "java.lang.Error: Cannot load com.apple.laf.AquaLookAndFeel"
   @SuppressWarnings("unused")
-  private static volatile boolean DARK = StartupUiUtil.isUnderDarcula();
+  private static volatile boolean DARK = UIUtil.isUnderDarcula();
 
   @Mock
   private FileEditorManager myEditorManager;
