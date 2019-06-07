@@ -50,7 +50,7 @@ public class GradleNameElement {
   public static final Pattern INDEX_PATTERN = Pattern.compile("\\[(.+?)\\]|(.+?)(?=\\[)");
 
   @NotNull
-  private final Pattern SPACES = Pattern.compile("\\s+");
+  private static final Pattern SPACES = Pattern.compile("\\s+");
 
   @Nullable
   private PsiElement myNameElement;
