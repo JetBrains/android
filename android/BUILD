@@ -141,6 +141,7 @@ iml_module(
         "//tools/idea/.idea/libraries:NanoXML",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:perfetto-proto",
+        "//tools/base/wizard/template-plugin:intellij.android.wizard.template.plugin[module]",
     ],
 )
 
