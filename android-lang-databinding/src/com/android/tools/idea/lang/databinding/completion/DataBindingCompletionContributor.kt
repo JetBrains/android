@@ -100,7 +100,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
 
         val tracker = DataBindingTracker.getInstance(parameters.editor.project!!)
 
-        var position = parameters.originalPosition ?: parameters.position
+        val position = parameters.originalPosition ?: parameters.position
 
         val parent = position.parent
         if (position.parent.references.isEmpty()) {
