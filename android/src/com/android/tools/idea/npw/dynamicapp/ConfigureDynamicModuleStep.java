@@ -19,7 +19,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.gradle.util.DynamicAppUtils.baseIsInstantEnabled;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static java.lang.String.format;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
@@ -109,7 +109,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
       @NotNull
       @Override
       public String get() {
-        return format("%s.%s", basePackage, toPackagePart(model.moduleName().get()));
+        return format("%s.%s", basePackage, nameToJavaPackage(model.moduleName().get()));
       }
     };
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
@@ -168,7 +168,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     String basePackage = new DomainToPackageExpression(companyDomain, new StringValueProperty("")).get();
 
     Expression<String> computedPackageName = modelName
-      .transform(appName -> format("%s.%s", basePackage, toPackagePart(appName)));
+      .transform(appName -> format("%s.%s", basePackage, nameToJavaPackage(appName)));
     TextProperty packageNameText = new TextProperty(myPackageName);
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(getModel().packageName(), packageNameText);

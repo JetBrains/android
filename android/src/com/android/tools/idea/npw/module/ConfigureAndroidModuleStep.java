@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.TestOnly;
 
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -99,7 +99,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
       @NotNull
       @Override
       public String get() {
-        return String.format("%s.%s", basePackage, toPackagePart(model.getModuleName().get()));
+        return String.format("%s.%s", basePackage, nameToJavaPackage(model.getModuleName().get()));
       }
     };
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
