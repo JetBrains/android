@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.palette;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
+import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.workbench.ToolContent;
@@ -330,12 +331,14 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
 
   @NotNull
   @VisibleForTesting
+  @AnyThread
   public CategoryList getCategoryList() {
     return myCategoryList;
   }
 
   @NotNull
   @VisibleForTesting
+  @AnyThread
   public ItemList getItemList() {
     return myItemList;
   }
