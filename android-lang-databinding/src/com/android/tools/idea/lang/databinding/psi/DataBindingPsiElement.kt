@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.databinding.psi;
+package com.android.tools.idea.lang.databinding.psi
 
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.extapi.psi.ASTWrapperPsiElement
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiReference
+import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry
 
-public class DataBindingPsiElement extends ASTWrapperPsiElement {
-  public DataBindingPsiElement(@NotNull ASTNode node) {
-    super(node);
+open class DataBindingPsiElement(node: ASTNode) : ASTWrapperPsiElement(node) {
+
+  override fun getReferences(): Array<PsiReference> {
+    return ReferenceProvidersRegistry.getReferencesFromProviders(this)
   }
 
-  @NotNull
-  @Override
-  public PsiReference[] getReferences() {
-    return ReferenceProvidersRegistry.getReferencesFromProviders(this);
+  override fun getReference(): PsiReference? {
+    return references.firstOrNull()
   }
 }
