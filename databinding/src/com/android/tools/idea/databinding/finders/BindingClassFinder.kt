@@ -23,6 +23,7 @@ import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
@@ -36,8 +37,8 @@ import com.intellij.psi.search.GlobalSearchScope
  *
  * See [LightBindingClass]
  */
-class BindingClassFinder(private val dataBindingComponent: DataBindingProjectComponent) : PsiElementFinder() {
-
+class BindingClassFinder(project: Project) : PsiElementFinder() {
+  private val dataBindingComponent = project.getComponent(DataBindingProjectComponent::class.java)
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
     return ModuleManager.getInstance(dataBindingComponent.project).modules
       .mapNotNull { it.androidFacet }
