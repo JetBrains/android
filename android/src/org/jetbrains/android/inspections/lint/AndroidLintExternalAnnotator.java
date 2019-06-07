@@ -48,7 +48,7 @@ import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.xml.util.XmlStringUtil;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -342,7 +342,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
     String link = " <a "
         +"href=\"#lint/" + issue.getId() + "\""
-        + (StartupUiUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
+        + (UIUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
         +">" + DaemonBundle.message("inspection.extended.description")
         +"</a> " + getShowMoreShortCut();
     String tooltip = XmlStringUtil.wrapInHtml(RAW.convertTo(message, HTML) + link);
