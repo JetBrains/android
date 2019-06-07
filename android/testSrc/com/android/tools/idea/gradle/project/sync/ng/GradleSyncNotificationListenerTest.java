@@ -87,7 +87,7 @@ public class GradleSyncNotificationListenerTest extends JavaProjectTestCase {
     verify(myIndicator).setText("Gradle Sync: Execution 2");
 
     // Sync view only shows execution event
-    verify(myBuildEventDispatcher, times(2)).onEvent(myEventCaptor.capture());
+    verify(myBuildEventDispatcher, times(2)).onEvent(myTaskId, myEventCaptor.capture());
     List<BuildEvent> capturedEvents = myEventCaptor.getAllValues();
     assertThat(capturedEvents).hasSize(2);
     assertThat(capturedEvents.get(0).getMessage()).isEqualTo("Execution 1");
@@ -109,7 +109,7 @@ public class GradleSyncNotificationListenerTest extends JavaProjectTestCase {
     myListener.onCancel(myTaskId);
     verify(myBuildEventDispatcher).close();
 
-    verify(myBuildEventDispatcher).onEvent(myEventCaptor.capture());
+    verify(myBuildEventDispatcher).onEvent(myTaskId, myEventCaptor.capture());
     List<BuildEvent> capturedEvents = myEventCaptor.getAllValues();
     assertThat(capturedEvents).hasSize(1);
     assertThat(capturedEvents.get(0)).isInstanceOf(FinishBuildEvent.class);

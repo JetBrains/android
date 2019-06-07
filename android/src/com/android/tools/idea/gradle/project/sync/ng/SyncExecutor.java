@@ -177,7 +177,7 @@ class SyncExecutor {
           AndroidGradleSyncTextConsoleView consoleView = new AndroidGradleSyncTextConsoleView(myProject);
           return new RunContentDescriptor(consoleView, null, consoleView.getComponent(), "Gradle Sync");
         });
-      eventDispatcher.onEvent(startEvent);
+      eventDispatcher.onEvent(id, startEvent);
       try {
         boolean forceFullVariantsSync = request != null && request.forceFullVariantsSync;
         if (isInTestingMode()) {
@@ -257,8 +257,8 @@ class SyncExecutor {
       //noinspection IOResourceOpenedButNotSafelyClosed
       buildEventDispatcher = new BuildEventDispatcher() {
         @Override
-        public void onEvent(@NotNull BuildEvent event) {
-          syncViewManager.onEvent(event);
+        public void onEvent(@NotNull Object buildId, @NotNull BuildEvent event) {
+          syncViewManager.onEvent(buildId, event);
         }
       };
     }
@@ -394,7 +394,7 @@ class SyncExecutor {
       if (project == null) {
         return;
       }
-      myBuildEventDispatcher.onEvent(buildEvent);
+      myBuildEventDispatcher.onEvent(myTaskId, buildEvent);
     }
 
     @Override
@@ -409,7 +409,7 @@ class SyncExecutor {
       if (project != null) {
         // Cause build view to show as skipped all pending tasks (b/73397414)
         FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, currentTimeMillis(), "cancelled", new SkippedResultImpl());
-        myBuildEventDispatcher.onEvent(event);
+        myBuildEventDispatcher.onEvent(id, event);
       }
       closeOutputReader();
     }
