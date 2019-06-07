@@ -32,12 +32,12 @@ public class AndroidGradleSyncTextConsoleView extends BuildTextConsoleView {
   }
 
   @Override
-  public void onEvent(BuildEvent event) {
+  public void onEvent(@NotNull Object buildId, @NotNull BuildEvent event) {
     if (event instanceof AndroidSyncIssueOutputEvent) {
       BuildConsoleUtils.printDetails(this, ((AndroidSyncIssueOutputEvent)event).getFailure(), event.getMessage());
     }
     else {
-      super.onEvent(event);
+      super.onEvent(buildId, event);
     }
   }
 }
