@@ -406,23 +406,20 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void importProject() throws Exception {
     Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project));
+    importProject(project);
   }
 
-  protected void importProject(@NotNull String projectName,
-                               @NotNull File projectRoot) throws Exception {
+  protected void importProject(@NotNull Project project) throws Exception {
     Ref<Throwable> throwableRef = new Ref<>();
     SyncListener syncListener = new SyncListener();
     Disposable subscriptionDisposable = Disposer.newDisposable();
     try {
-      Project project = getProject();
-
       ApplicationManager.getApplication().invokeAndWait(() -> {
         try {
           // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
           // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
           GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
-          Project newProject = GradleProjectImporter.getInstance().importProjectNoSync(projectName, projectRoot, request);
+          Project newProject = GradleProjectImporter.getInstance().importProjectNoSync(project.getName(), getBaseDirPath(project), request);
 
           // It is essential to subscribe to notifications via [newProject] which may be different from the current project if
           // a new project was requested.
