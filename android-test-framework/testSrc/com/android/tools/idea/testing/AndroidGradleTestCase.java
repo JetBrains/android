@@ -71,6 +71,7 @@ import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
@@ -148,18 +149,54 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
 
     if (createDefaultProject()) {
-      TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
-        IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName(), true /* .idea directory based project */);
-      myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-      myFixture.setUp();
-      myFixture.setTestDataPath(getTestDataPath());
-      ensureSdkManagerAvailable();
+      setUpFixture();
+    }
+  }
 
-      Project project = getProject();
-      FileUtil.ensureExists(new File(toSystemDependentName(project.getBasePath())));
-      LocalFileSystem.getInstance().refreshAndFindFileByPath(project.getBasePath());
-      AndroidGradleTests.setUpSdks(myFixture, findSdkPath());
-      myModules = new Modules(project);
+  public void setUpFixture() throws Exception {
+    TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
+      IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName(), true /* .idea directory based project */);
+    IdeaProjectTestFixture projectFixture = projectBuilder.getFixture();
+    setUpFixture(projectFixture);
+  }
+
+  public void setUpFixture(IdeaProjectTestFixture projectFixture) throws Exception {
+    JavaCodeInsightTestFixture fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectFixture);
+    fixture.setUp();
+    fixture.setTestDataPath(getTestDataPath());
+    ensureSdkManagerAvailable();
+
+    Project project = fixture.getProject();
+    FileUtil.ensureExists(new File(toSystemDependentName(project.getBasePath())));
+    LocalFileSystem.getInstance().refreshAndFindFileByPath(project.getBasePath());
+    AndroidGradleTests.setUpSdks(fixture, findSdkPath());
+    myFixture = fixture;
+    myModules = new Modules(project);
+  }
+
+  public void tearDownFixture() {
+    myModules = null;
+    myAndroidFacet = null;
+    if (myFixture != null) {
+      try {
+        Project project = myFixture.getProject();
+        // Since we don't really open the project, but we manually register listeners in the gradle importer
+        // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
+        // that here, otherwise the testsuite will leak
+        if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+          AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(project);
+          projectComponent.projectClosed();
+        }
+      }
+      finally {
+        try {
+          myFixture.tearDown();
+        }
+        catch (Throwable e) {
+          LOG.warn("Failed to tear down " + myFixture.getClass().getSimpleName(), e);
+        }
+        myFixture = null;
+      }
     }
   }
 
@@ -170,31 +207,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
-    myModules = null;
-    myAndroidFacet = null;
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
-      if (myFixture != null) {
-        try {
-          Project project = myFixture.getProject();
-          // Since we don't really open the project, but we manually register listeners in the gradle importer
-          // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
-          // that here, otherwise the testsuite will leak
-          if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
-            AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(project);
-            projectComponent.projectClosed();
-          }
-        }
-        finally {
-          try {
-            myFixture.tearDown();
-          }
-          catch (Throwable e) {
-            LOG.warn("Failed to tear down " + myFixture.getClass().getSimpleName(), e);
-          }
-          myFixture = null;
-        }
-      }
+      tearDownFixture();
 
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();
