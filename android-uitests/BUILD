@@ -1479,40 +1479,6 @@ java_test(
 
 # fast test
 java_test(
-    name = "AddInstantModuleTest",
-    data = COMMON_DATA + [
-        "//tools/adt/idea/resources-aar:framework_res",
-    ] + glob([
-        "testData/SimpleOldInstantApp/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.AddInstantModuleTest"],
-    tags = COMMON_TAGS + [
-        "no_psq",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# fast test
-java_test(
-    name = "AddFeatureModuleTest",
-    data = COMMON_DATA + [
-        "//tools/adt/idea/resources-aar:framework_res",
-    ] + glob([
-        "testData/SimpleOldInstantApp/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.AddFeatureModuleTest"],
-    tags = COMMON_TAGS + [
-        "no_psq",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# fast test
-java_test(
     name = "NoGradleSyncForProjectReimportTest",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
