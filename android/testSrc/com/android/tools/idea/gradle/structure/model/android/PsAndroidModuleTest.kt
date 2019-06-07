@@ -350,6 +350,11 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .isEqualTo("Product flavor name 'paidLittle' in flavor dimension 'foo' would cause a configuration name ambiguity.")
     assertThat(app3Module.validateProductFlavorName("paidLittle", "bar"))
       .isEqualTo("Product flavor name 'paidLittle' in flavor dimension 'bar' would cause a configuration name ambiguity.")
+
+    assertThat(app3Module.validateProductFlavorName("PaidLittle", "foo"))
+      .isEqualTo("Product flavor name 'PaidLittle' in flavor dimension 'foo' would cause a configuration name ambiguity.")
+    assertThat(app3Module.validateProductFlavorName("PaidLittle", "bar"))
+      .isEqualTo("Product flavor name 'PaidLittle' in flavor dimension 'bar' would cause a configuration name ambiguity.")
   }
 
   fun testAddProductFlavor() {
