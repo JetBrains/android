@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.benchmark;
 
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
 import static com.android.tools.idea.npw.model.RenderTemplateModel.getInitialSourceLanguage;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
