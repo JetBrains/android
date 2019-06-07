@@ -108,8 +108,7 @@ abstract class GradleSyncProjectComparisonTest(
   private fun importSyncAndDumpProject(projectDir: String, patch: ((projectRootPath: File) -> Unit)? = null): String {
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
-    val project = this.project
-    importProject(project.name, getBaseDirPath(project))
+    importProject()
     val dumper = ProjectDumper(androidSdk = TestUtils.getSdk(), offlineRepos = getOfflineM2Repositories())
     dumper.dump(project)
     return dumper.toString()
