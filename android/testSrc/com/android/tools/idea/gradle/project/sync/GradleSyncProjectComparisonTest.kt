@@ -356,13 +356,8 @@ abstract class GradleSyncProjectComparisonTest(
   }
 
   fun testWithCompositeBuild() {
-    prepareMultipleProjectsForImport(
-      TestProjectPaths.COMPOSITE_BUILD, "TestCompositeApp", "TestCompositeLib1", "TestCompositeLib3", "TestCompositeLib2",
-      "TestCompositeLib4")
-    importProject()
-    val snapshot = dumpProject()
-    assertIsEqualToSnapshot(snapshot)
-
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPOSITE_BUILD)
+    assertIsEqualToSnapshot(text)
   }
 
   private fun createEmptyGradleSettingsFile() {

@@ -22,10 +22,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import java.nio.file.Path;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +36,6 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
@@ -63,26 +60,6 @@ import static java.util.stream.Collectors.toList;
  * TestCompositeLib4 :           -> java
  */
 public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestCase {
-  @NotNull private static final String COMPOSITE_BUILD_ROOT_PROJECT = COMPOSITE_BUILD + "/TestCompositeApp";
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    prepareCompositeProject();
-  }
-
-  // Copy included projects, update wrapper and gradle files for included projects.
-  private void prepareCompositeProject() throws IOException {
-    File testDataRoot = new File(getTestDataPath(), toSystemDependentName(COMPOSITE_BUILD));
-    File projectRoot = new File(toSystemDependentName(myFixture.getProject().getBasePath()));
-
-    List<String> includedProjects = asList("TestCompositeLib1", "TestCompositeLib2", "TestCompositeLib3", "TestCompositeLib4");
-    for (String includedProject : includedProjects) {
-      File srcRoot = new File(testDataRoot, includedProject);
-      File includedProjectRoot = new File(projectRoot, includedProject);
-      prepareProjectForImport(srcRoot, includedProjectRoot);
-    }
-  }
 
   @Override
   protected boolean useNewSyncInfrastructure() {
@@ -100,7 +77,7 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
   }
 
   public void testModulesCreatedForIncludedProjects() throws Exception {
-    loadProject(COMPOSITE_BUILD_ROOT_PROJECT);
+    loadProject(COMPOSITE_BUILD);
     List<Module> modules = new ArrayList<>();
     ApplicationManager.getApplication().runReadAction(() -> {
       modules.addAll(asList(ModuleManager.getInstance(getProject()).getModules()));
@@ -118,7 +95,7 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
   }
 
   public void testModuleDependenciesWithRootAppModule() throws Exception {
-    loadProject(COMPOSITE_BUILD_ROOT_PROJECT);
+    loadProject(COMPOSITE_BUILD);
     String projectName = getProject().getName();
     String rootAppModuleName = projectName + "-app";
     Module rootAppModule = myModules.getModule(rootAppModuleName);
@@ -131,7 +108,7 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
   }
 
   public void testModuleDependenciesWithIncludedAppModule() throws Exception {
-    loadProject(COMPOSITE_BUILD_ROOT_PROJECT);
+    loadProject(COMPOSITE_BUILD);
     String appModuleName = "TestCompositeLib1-app";
     Module appModule = myModules.getModule(appModuleName);
     // Verify that app module has dependency on direct and transitive lib modules.
@@ -142,7 +119,7 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
   }
 
   public void testGetAssembleTasks() throws Exception {
-    loadProject(COMPOSITE_BUILD_ROOT_PROJECT);
+    loadProject(COMPOSITE_BUILD);
     Module[] modules = new Module[]{
       myModules.getModule("TestCompositeLib1-app"),
       myModules.getModule("TestCompositeLib3-app"),
@@ -161,7 +138,7 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
   }
 
   public void testGetSourceGenerationTasks() throws Exception {
-    loadProject(COMPOSITE_BUILD_ROOT_PROJECT);
+    loadProject(COMPOSITE_BUILD);
     Module[] modules = new Module[]{
       myModules.getModule("TestCompositeLib1-app"),
       myModules.getModule("composite2"),
