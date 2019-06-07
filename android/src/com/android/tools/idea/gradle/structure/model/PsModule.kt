@@ -76,9 +76,6 @@ abstract class PsModule protected constructor(
     this.parsedModel = parsedModel
     this.parentModule = parentModule
 
-    myParsedDependencies?.let {
-      fireDependenciesReloadedEvent()
-    }
     myParsedDependencies = null
     myVariables?.refresh()
   }
@@ -314,7 +311,7 @@ abstract class PsModule protected constructor(
     dependenciesChangeEventDispatcher.multicaster.dependencyChanged(DependencyAddedEvent(dependency))
   }
 
-  private fun fireDependenciesReloadedEvent() {
+  fun fireDependenciesReloadedEvent() {
     dependenciesChangeEventDispatcher.multicaster.dependencyChanged(DependenciesReloadedEvent())
   }
 
