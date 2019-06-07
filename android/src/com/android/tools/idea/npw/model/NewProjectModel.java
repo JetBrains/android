@@ -250,7 +250,7 @@ public class NewProjectModel extends WizardModel {
 
     // TODO: Figure out if this legacy behaviour, of including User Name, can be removed.
     String userName = includeUserName ? System.getProperty("user.name") : null;
-    return userName == null ? EXAMPLE_DOMAIN : toPackagePart(userName) + '.' + EXAMPLE_DOMAIN;
+    return userName == null ? EXAMPLE_DOMAIN : nameToJavaPackage(userName) + '.' + EXAMPLE_DOMAIN;
   }
 
   /**
@@ -316,18 +316,22 @@ public class NewProjectModel extends WizardModel {
   }
 
   @NotNull
-  public static String toPackagePart(@NotNull String s) {
-    s = s.replace('-', '_');
-    String name = DISALLOWED_IN_DOMAIN.matcher(s).replaceAll("").toLowerCase(Locale.US);
-    if (!name.isEmpty() && AndroidUtils.isReservedKeyword(name) != null) {
-      name = StringUtil.fixVariableNameDerivedFromPropertyName(name).toLowerCase(Locale.US);
-    }
-    return name;
-  }
-
-  @NotNull
   public static String sanitizeApplicationName(@NotNull String s) {
     return DISALLOWED_IN_DOMAIN.matcher(s).replaceAll("");
+  }
+
+  /**
+   * Converts the name of a Module, Application or User to a valid java package name segment.
+   * Invalid characters are removed, and reserved Java language names are converted to valid values.
+   */
+  @NotNull
+  public static String nameToJavaPackage(@NotNull String name) {
+    String res = name.replace('-', '_');
+    res = DISALLOWED_IN_DOMAIN.matcher(res).replaceAll("").toLowerCase(Locale.US);
+    if (!res.isEmpty() && AndroidUtils.isReservedKeyword(res) != null) {
+      res = StringUtil.fixVariableNameDerivedFromPropertyName(res).toLowerCase(Locale.US);
+    }
+    return res;
   }
 
   @Override
