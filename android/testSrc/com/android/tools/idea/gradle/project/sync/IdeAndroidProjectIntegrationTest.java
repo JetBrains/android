@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
+import com.android.tools.idea.testing.TestGradleSyncListener;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -52,7 +53,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
 
       GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
       request.useCachedGradleModels = true;
-      SyncListener syncListener = requestSync(request);
+      TestGradleSyncListener syncListener = requestSync(request);
       assertTrue(syncListener.isSyncSkipped());
 
       IdeAndroidProject cached = getAndroidProjectInApp();
