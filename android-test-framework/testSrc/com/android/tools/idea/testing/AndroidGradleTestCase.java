@@ -235,7 +235,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected String loadProjectAndExpectSyncError(@NotNull String relativePath,
                                                  @NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
-    prepareMultipleProjectsForImport(relativePath);
+    prepareProjectForImport(relativePath);
     return requestSyncAndGetExpectedFailure(requestConfigurator);
   }
 
@@ -269,18 +269,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     myAndroidFacet = AndroidGradleTests.findAndroidFacetForTests(modules, chosenModuleName);
   }
 
-  /**
-   * Prepares multiple projects for import.
-   *
-   * @param relativePath   the relative path of the projects from the the test data directory
-   * @param includedBuilds names of all builds to be included (as well as the main project) these names must
-   *                       all be folders within the {@param relativePath}. If empty imports a single project
-   *                       with the root given by {@param relativePath}. The first path will be used as the main
-   *                       project and copied to the main directory, every other path will be copied to a subfolder.
-   * @return root of the imported project or projects.
-   */
+  protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
+  }
+
   @NotNull
-  protected final File prepareMultipleProjectsForImport(@NotNull String relativePath, @NotNull String... includedBuilds) throws IOException {
+  protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
     File root = new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
@@ -289,28 +282,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     Project project = myFixture.getProject();
     File projectRoot = new File(toSystemDependentName(project.getBasePath()));
 
-    List<String> buildNames = new ArrayList<>(Arrays.asList(includedBuilds));
-    if (includedBuilds.length == 0) {
-      buildNames.add(".");
-    }
+    prepareProjectForImport(root, projectRoot);
 
-    prepareProjectForImport(new File(root, buildNames.remove(0)), projectRoot);
-
-    for (String buildName : buildNames) {
-      File includedBuildRoot = new File(root, buildName);
-      File projectBuildRoot = new File(projectRoot, buildName);
-      prepareProjectForImport(includedBuildRoot, projectBuildRoot);
-    }
     patchPreparedProject(projectRoot);
     return projectRoot;
-  }
-
-  protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
-  }
-
-  @NotNull
-  protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
-    return prepareMultipleProjectsForImport(relativePath);
   }
 
   @NotNull

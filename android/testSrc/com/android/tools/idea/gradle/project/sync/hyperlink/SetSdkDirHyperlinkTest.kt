@@ -28,7 +28,7 @@ import javax.swing.event.HyperlinkEvent
 class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
   @Test
   fun testSdkDirHyperlinkUpdatesOnePropertiesFile() {
-    prepareProjectForImport("$COMPOSITE_BUILD/TestCompositeApp")
+    prepareProjectForImport(COMPOSITE_BUILD)
 
     // Delete the main local.properties file
     val localPropertiesPath = File(projectFolderPath, FN_LOCAL_PROPERTIES)
@@ -43,7 +43,7 @@ class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
 
   @Test
   fun testSdkDirHyperlinkUpdatesMultiplePropertiesFiles() {
-    prepareMultipleProjectsForImport(COMPOSITE_BUILD, "TestCompositeApp", "TestCompositeLib1", "TestCompositeLib3")
+    prepareProjectForImport(COMPOSITE_BUILD)
 
     // Delete all the properties files we want to re-create
     val localPropertiesPath = File(projectFolderPath, FN_LOCAL_PROPERTIES)
