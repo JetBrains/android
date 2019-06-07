@@ -17,26 +17,32 @@ package com.android.tools.idea.testing;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
-import com.intellij.util.ui.UIUtil;
 import junit.framework.TestCase;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,6 +60,7 @@ import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
@@ -344,5 +351,58 @@ public class AndroidGradleTests {
         }
       }.execute();
     }
+  }
+
+  /**
+   * Imports {@code project}, requests sync and waits for sync to complete.
+   */
+  public static void importProject(@NotNull Project project) throws Exception {
+    Ref<Throwable> throwableRef = new Ref<>();
+    TestGradleSyncListener syncListener = new TestGradleSyncListener();
+    Disposable subscriptionDisposable = Disposer.newDisposable();
+    try {
+      ApplicationManager.getApplication().invokeAndWait(() -> {
+        try {
+          // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
+          // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
+          GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
+          Project newProject = GradleProjectImporter.getInstance().importProjectNoSync(project.getName(), getBaseDirPath(project), request);
+
+          // It is essential to subscribe to notifications via [newProject] which may be different from the current project if
+          // a new project was requested.
+          GradleSyncState.subscribe(newProject, syncListener, subscriptionDisposable);
+
+          GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.testRequest();
+          syncRequest.generateSourcesOnSuccess = false;
+          GradleSyncInvoker.getInstance().requestProjectSync(newProject, syncRequest, null);
+        }
+        catch (Throwable e) {
+          throwableRef.set(e);
+        }
+      });
+
+      Throwable throwable = throwableRef.get();
+      if (throwable != null) {
+        if (throwable instanceof IOException) {
+          throw (IOException)throwable;
+        }
+        else if (throwable instanceof ConfigurationException) {
+          throw (ConfigurationException)throwable;
+        }
+        else {
+          throw new RuntimeException(throwable);
+        }
+      }
+      // NOTE: The following await does nothing since we request sync on the EDT thread and in tests sync runs synchronously and
+      //       requestProjectSync() does not exit until sync completes.
+      syncListener.await();
+    }
+    finally {
+      Disposer.dispose(subscriptionDisposable);
+    }
+    if (syncListener.failureMessage != null) {
+      TestCase.fail(syncListener.failureMessage);
+    }
+    AndroidTestBase.refreshProjectFiles();
   }
 }
