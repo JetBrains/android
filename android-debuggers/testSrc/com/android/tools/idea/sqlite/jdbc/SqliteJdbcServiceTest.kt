@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite
+package com.android.tools.idea.sqlite.jdbc
 
 import com.android.tools.idea.editors.sqlite.SqliteTestUtil
 import com.android.tools.idea.editors.sqlite.SqliteViewer
 import com.android.tools.idea.sqlite.Utils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.Utils.pumpEventsAndWaitForFutureException
-import com.android.tools.idea.sqlite.jdbc.SqliteJdbcService
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.truth.Truth.assertThat
