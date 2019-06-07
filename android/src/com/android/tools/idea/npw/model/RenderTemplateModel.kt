@@ -159,7 +159,7 @@ class RenderTemplateModel private constructor(
 
     @UiThread
     override fun finish() {
-      if (!renderSuccess && shouldOpenFiles) {
+      if (renderSuccess && shouldOpenFiles) {
         TemplateUtils.openEditors(project.value, createdFiles, true)
       }
     }
