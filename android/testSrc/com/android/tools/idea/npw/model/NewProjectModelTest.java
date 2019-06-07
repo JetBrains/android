@@ -19,7 +19,7 @@ import static com.android.tools.idea.npw.model.NewProjectModel.PROPERTIES_ANDROI
 import static com.android.tools.idea.npw.model.NewProjectModel.PROPERTIES_KOTLIN_SUPPORT_KEY;
 import static com.android.tools.idea.npw.model.NewProjectModel.PROPERTIES_NPW_ASKED_LANGUAGE_KEY;
 import static com.android.tools.idea.npw.model.NewProjectModel.PROPERTIES_NPW_LANGUAGE_KEY;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.Language.JAVA;
 import static com.android.tools.idea.npw.platform.Language.KOTLIN;
 import static org.junit.Assert.assertEquals;
@@ -37,11 +37,11 @@ import org.junit.Test;
 public final class NewProjectModelTest {
   @Test
   public void nameToPackageReturnsSanitizedPackageName() {
-    assertEquals("", toPackagePart("#"));
-    assertEquals("aswitch", toPackagePart("switch"));
-    assertEquals("aswitch", toPackagePart("Switch"));
-    assertEquals("myapplication", toPackagePart("#My $AppLICATION"));
-    assertEquals("myapplication", toPackagePart("My..\u2603..APPLICATION"));
+    assertEquals("", nameToJavaPackage("#"));
+    assertEquals("aswitch", nameToJavaPackage("switch"));
+    assertEquals("aswitch", nameToJavaPackage("Switch"));
+    assertEquals("myapplication", nameToJavaPackage("#My $AppLICATION"));
+    assertEquals("myapplication", nameToJavaPackage("My..\u2603..APPLICATION"));
   }
 
   @Test

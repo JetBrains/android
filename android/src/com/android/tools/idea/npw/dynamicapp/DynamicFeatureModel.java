@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.dynamicapp;
 
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_FUSING;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY;
@@ -151,7 +151,7 @@ public class DynamicFeatureModel extends WizardModel {
       .setBaseFeature(baseApplication().getValue());
 
     myTemplateValues.put(ATTR_IS_DYNAMIC_FEATURE, true);
-    myTemplateValues.put(ATTR_MODULE_SIMPLE_NAME, toPackagePart(moduleName().get()));
+    myTemplateValues.put(ATTR_MODULE_SIMPLE_NAME, nameToJavaPackage(moduleName().get()));
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_TITLE, featureTitle().get());
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_ON_DEMAND, featureOnDemand().get());
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_FUSING, featureFusing().get());
