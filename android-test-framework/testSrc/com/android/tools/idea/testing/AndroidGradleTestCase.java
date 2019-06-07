@@ -250,10 +250,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   protected void loadProject(@NotNull String relativePath,
                              @Nullable String chosenModuleName) throws Exception {
     prepareProjectForImport(relativePath);
-    Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project));
+    importProject();
 
-    prepareProjectForTest(project, chosenModuleName);
+    prepareProjectForTest(getProject(), chosenModuleName);
   }
 
   private void prepareProjectForTest(Project project, @Nullable String chosenModuleName) {
@@ -403,6 +402,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void createGradleWrapper(@NotNull File projectRoot) throws IOException {
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
+  }
+
+  protected void importProject() throws Exception {
+    Project project = getProject();
+    importProject(project.getName(), getBaseDirPath(project));
   }
 
   protected void importProject(@NotNull String projectName,

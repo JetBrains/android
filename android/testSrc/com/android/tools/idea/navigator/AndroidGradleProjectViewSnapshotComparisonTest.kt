@@ -117,8 +117,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   ): String {
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
-    val project = this.project!!
-    importProject(project.name, Projects.getBaseDirPath(project))
+    importProject()
 
     return project.dumpAndroidProjectView(projectViewSettings, initialState, filter)
   }
