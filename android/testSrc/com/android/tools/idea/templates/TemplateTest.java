@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.SdkConstants.FD_TEMPLATES;
 import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
@@ -1432,10 +1433,10 @@ public class TemplateTest extends AndroidGradleTestCase {
       myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
       myFixture.setUp();
 
-      Project project = myFixture.getProject();
+      Project project = getProject();
       new IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
       AndroidGradleTests.setUpSdks(myFixture, findSdkPath());
-      projectDir = Projects.getBaseDirPath(project);
+      projectDir = getBaseDirPath(project);
       moduleState.put(ATTR_TOP_OUT, projectDir.getPath());
 
       System.out.println("Checking project " + projectName + " in " + project.getBaseDir());
@@ -1598,7 +1599,9 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     refreshProjectFiles();
     if (syncProject) {
-      importProject(moduleState.getString(ATTR_MODULE_NAME), projectRoot);
+      assertEquals(moduleState.getString(ATTR_MODULE_NAME), getProject().getName());
+      assertEquals(projectRoot, getBaseDirPath(getProject()));
+      importProject();
     }
   }
 
