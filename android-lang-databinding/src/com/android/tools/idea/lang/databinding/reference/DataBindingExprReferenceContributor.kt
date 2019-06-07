@@ -27,7 +27,6 @@ import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.DbTokenTypes
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
-import com.android.tools.idea.lang.databinding.psi.PsiDbId
 import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.res.BindingLayoutInfo
@@ -56,7 +55,6 @@ import org.jetbrains.android.facet.AndroidFacet
 class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   // TODO: Support generics
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
-    registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbId::class.java), IdReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbRefExpr::class.java), RefExprReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbCallExpr::class.java), CallExprReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbFunctionRefExpr::class.java), FunctionRefExprReferenceProvider())
@@ -64,28 +62,17 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   }
 
   /**
-   * Provide references for when the user's caret is pointing at PSI for an identifier.
+   * Provides references for [PsiDbRefExpr].
+   * There are two kinds of reference expressions:
+   * Simple ref expression only contains an identifier.
+   * Qualified ref expression is in the form of `a.b.c.d`
    *
-   * From db.bnf: `id ::= IDENTIFIER`
+   * From db.bnf:
+   * `fake refExpr ::= expr? '.' id`
+   * `simpleRefExpr ::= id {extends=refExpr elementType=refExpr}`
+   * `qualRefExpr ::= expr '.' id {extends=refExpr elementType=refExpr}`
    *
-   * (where `IDENTIFIER` means anything that looks like a variable name)
-   *
-   * Example: `mo<caret>del.doSomething()`
-   */
-  private inner class IdReferenceProvider : PsiReferenceProvider() {
-    override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-      val idName = element.text ?: return PsiReference.EMPTY_ARRAY
-      return getReferencesBySimpleName(element, idName)
-    }
-  }
-
-  /**
-   * Provide references for when the user's caret is pointing at PSI for an ref expression, which
-   * is, essentially, anything that looks like a fully qualified name.
-   *
-   * From db.bnf: `refExpr ::= (expr .)? id`
-   *
-   * Example: `com.exam<caret>ple.databinding.Model`
+   * Example: `com.example.databinding.Model`, `model` in `model.doSomething()`
    */
   private inner class RefExprReferenceProvider : PsiReferenceProvider() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
@@ -143,7 +130,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     }
 
     /**
-     * Given an expression like `a.b.c.e.MyClass`, return all matching references to it,
+     * Given an expression like `a.b.c.e.MyClass`, returns all matching references to it.
      */
     private fun findFullyQualifiedReference(refExpr: PsiDbRefExpr): Array<PsiReference> {
       val qualifiedExpr = refExpr.expr!!
@@ -181,9 +168,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   }
 
   /**
-   * Provide references for when the user's caret is pointing at PSI for an call expression, or
-   * essentially, any part of a method call.
-   *
+   * Provides references for [PsiDbCallExpr]
    * From db.bnf:
    *
    * ```
@@ -191,7 +176,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
    * expressionList ::= expr (',' expr)*
    * ```
    *
-   * Example: `model.do<caret>Something()`
+   * Example: `model.doSomething()`
    */
   private class CallExprReferenceProvider : PsiReferenceProvider() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
@@ -220,17 +205,15 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   }
 
   /**
-   * Provide references for when the user's caret is pointing at PSI for a method reference
-   * expression.
-   *
+   * Provides references for [PsiDbFunctionRefExpr]
    * From db.bnf:
    *
    * ```
    * functionRefExpr ::= expr '::' id
    * ```
    *
-   * Example: `Model::do<caret>StaticSomething`
-   * Example: `modelInstance::do<caret>Something`
+   * Example: `Model::doStaticSomething`
+   * Example: `modelInstance::doSomething`
    */
   private class FunctionRefExprReferenceProvider : PsiReferenceProvider() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
@@ -246,7 +229,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   }
 
   /**
-   * Provide references for when the user's caret is pointing at PSI for a literal expression.
+   * Provides references for [PsiDbLiteralExpr]
    *
    * From db.bnf:
    *
@@ -283,7 +266,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   }
 
   /**
-   * Return the parent XML layout info for the target [element], or `null` if that isn't possible
+   * Returns the parent XML layout info for the target [element], or `null` if that isn't possible
    * (e.g. databinding isn't enabled for this module)
    */
   private fun getParentLayoutInfo(module: Module, element: PsiElement): BindingLayoutInfo? {
@@ -303,9 +286,8 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   }
 
   /**
-   * Given a [PsiElement] and its simpleName (e.g. name without any qualified prefix), attempt to find
-   * a reference for it. This code is shared by the reference contributors for ID expressions and
-   * qualified ID (refExpr) expressions.
+   * Given a [PsiElement] and its [simpleName] (e.g. name without any qualified prefix), attempts to find
+   * a reference for it.
    */
   private fun getReferencesBySimpleName(element: PsiElement, simpleName: String): Array<PsiReference> {
     val module = ModuleUtilCore.findModuleForPsiElement(element) ?: return PsiReference.EMPTY_ARRAY
