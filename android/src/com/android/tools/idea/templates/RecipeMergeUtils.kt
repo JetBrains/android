@@ -31,7 +31,6 @@ import com.android.utils.XmlUtils
 import com.google.common.base.Charsets
 import com.google.common.base.Splitter
 import com.google.common.collect.Lists.newArrayList
-import com.google.common.collect.Maps
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -50,7 +49,6 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStream
-import java.util.LinkedList
 
 /**
  * Utility methods to support the recipe.xml merge instruction.
@@ -103,56 +101,41 @@ fun mergeGradleSettingsFile(source: String, dest: String): String {
  * @return the resulting xml if it still needs to be written to targetFile or null if the file has already been/doesn't need to be updated.
  */
 fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, targetFile: File): String {
-  val ok: Boolean
   val fileName = targetFile.name
-  var contents: String?
   var errors: String? = null
-  if (fileName == FN_ANDROID_MANIFEST_XML) {
+
+  fun mergeManifest(): String? {
     XmlUtils.parseDocumentSilently(targetXml, true) ?: error("$targetXml failed to parse")
     XmlUtils.parseDocumentSilently(sourceXml, true) ?: error("$sourceXml failed to parse")
-    val report = mergeManifest(context.moduleRoot, targetFile, targetXml, sourceXml)
-    if (report != null && report.result.isSuccess) {
-      contents = report.getMergedDocument(MergingReport.MergedManifestKind.MERGED)
+    val report = mergeManifest(context.moduleRoot, targetFile, targetXml, sourceXml) ?: return null
+    if (report.result.isSuccess) {
+      return report.getMergedDocument(MergingReport.MergedManifestKind.MERGED)
     }
-    else {
-      contents = null
-      if (report != null) {
-        // report.reportString isn't useful, it just says to look at the logs
-        // Also, some of the warnings are misleading -- e.g. "missing package declaration";
-        // that's deliberate. Users only have to deal with errors to get the manifest merge to succeed.
-        errors = report.loggingRecords.asSequence()
-          .filter { it.severity == MergingReport.Record.Severity.ERROR }
-          .joinToString("") { "* ${it.message}\n\n" }
-          .replace("AndroidManifest.xml", "current AndroidManifest.xml") // Error messages may refer to our internal temp name for the target manifest file
-          .replace("nevercreated.xml", "template AndroidManifest.xml")
-          .trim()
-      }
-    }
-
-    ok = contents != null
+    // report.reportString isn't useful, it just says to look at the logs
+    // Also, some of the warnings are misleading -- e.g. "missing package declaration";
+    // that's deliberate. Users only have to deal with errors to get the manifest merge to succeed.
+    errors = report.loggingRecords.asSequence()
+      .filter { it.severity == MergingReport.Record.Severity.ERROR }
+      .joinToString("") { "* ${it.message}\n\n" }
+      .replace("AndroidManifest.xml", "current AndroidManifest.xml") // Error messages may refer to our internal temp name for the target manifest file
+      .replace("nevercreated.xml", "template AndroidManifest.xml")
+      .trim()
+    return null
   }
-  else {
-    // Merge plain XML files
+
+  fun mergePlainXml(): String {
     val parentFolderName = targetFile.parentFile.name
     val folderType = ResourceFolderType.getFolderType(parentFolderName)
-    // mergeResourceFile handles the file updates itself, so no content is returned in this case.
-    contents = mergeResourceFile(context, targetXml, sourceXml, fileName, folderType)
-    ok = true
+    // mergeResourceFile handles the file updates itself
+    return mergeResourceFile(context, targetXml, sourceXml, fileName, folderType)
   }
 
-  // Finally write out the merged file
-  if (!ok) {
-    // Just insert into file along with comment, using the "standard" conflict
-    // syntax that many tools and editors recognize.
-
-    contents = wrapWithMergeConflict(targetXml, sourceXml)
-
-    // Report the conflict as a warning:
-    context.warnings.add(String.format(
-      "Merge conflict for: %1\$s\nThis file must be fixed by hand. The errors " + "encountered during the merge are:\n\n%2\$s",
-      targetFile.name, errors))
-  }
-  return contents!!
+  return (if (fileName == FN_ANDROID_MANIFEST_XML) mergeManifest() else mergePlainXml())
+         ?: // Just insert into file along with comment, using the "standard" conflict syntax that many tools and editors recognize.
+         wrapWithMergeConflict(targetXml, sourceXml).also {
+           context.warnings.add(
+             "Merge conflict for: ${targetFile.name}\nThis file must be fixed by hand. Errors encountered during the merge:\n\n$errors")
+         }
 }
 
 /**
@@ -183,11 +166,8 @@ fun mergeResourceFile(context: RenderingContext,
   val prependElements = newArrayList<XmlTagChild>()
   var indent: XmlText? = null
   // Try to merge items of the same name
-  val old = Maps.newHashMap<String, XmlTag>()
-  for (newSibling in root.subTags) {
-    old[getResourceId(newSibling)] = newSibling
-  }
-  for (child in sourcePsiFile.rootTag!!.children) {
+  val old = root.subTags.associateBy { getResourceId(it) }
+  loop@ for (child in sourcePsiFile.rootTag!!.children) {
     when (child) {
       is XmlComment -> {
         if (indent != null) {
@@ -203,54 +183,47 @@ fun mergeResourceFile(context: RenderingContext,
         // remove the space left by the deleted attribute
         CodeStyleManager.getInstance(context.project).reformat(subTag)
         val name = getResourceId(subTag)
-        val replace = if (name != null) old[name] else null
-        if (replace != null) {
-          // There is an existing item with the same id. Either replace it
-          // or preserve it depending on the "templateMergeStrategy" attribute.
-          // If that attribute does not exist, default to preserving it.
-
-          // Let's say you've used the activity wizard once, and it
-          // emits some configuration parameter as a resource that
-          // it depends on, say "padding". Then the user goes and
-          // tweaks the padding to some other number.
-          // Now running the wizard a *second* time for some new activity,
-          // we should NOT go and set the value back to the template's
-          // default!
-          when {
-            MERGE_ATTR_STRATEGY_REPLACE == mergeStrategy -> {
-              val newChild = replace.replace(child)
-              // When we're replacing, the line is probably already indented. Skip the initial indent
-              if (newChild.prevSibling is XmlText && prependElements[0] is XmlText) {
-                prependElements.removeAt(0)
-                // If we're adding something we'll need a newline/indent after it
-                if (prependElements.isNotEmpty()) {
-                  prependElements.add(indent)
-                }
-              }
-              for (element in prependElements) {
-                root.addBefore(element, newChild)
-              }
-            }
-            MERGE_ATTR_STRATEGY_PRESERVE == mergeStrategy -> {
-              // Preserve the existing value.
-            }
-            replace.text.trim { it <= ' ' } == child.getText().trim { it <= ' ' } -> {
-              // There are no differences, do not issue a warning.
-            }
-            else -> // No explicit directive given, preserve the original value by default.
-              context.warnings.add(String.format(
-                "Ignoring conflict for the value: %1\$s wanted: \"%2\$s\" but it already is: \"%3\$s\" in the file: %4\$s", name,
-                child.getText(), replace.text, fileName))
-          }
-        }
-        else {
+        val replace = if (name == null) null else old[name]
+        if (replace == null) {
           if (indent != null) {
             prependElements.add(indent)
           }
           subTag = root.addSubTag(subTag, false)
-          for (element in prependElements) {
-            root.addBefore(element, subTag)
+          prependElements.forEach {
+            root.addBefore(it, subTag)
           }
+          prependElements.clear()
+          continue@loop
+        }
+        // There is an existing item with the same id. Either replace it  or preserve it depending on the "templateMergeStrategy" attribute.
+        // If that attribute does not exist, default to preserving it.
+
+        // Let's say you've used the activity wizard once, and it  emits some configuration parameter as a resource that
+        // it depends on, say "padding". Then the user goes and  tweaks the padding to some other number.
+        // Now running the wizard a *second* time for some new activity, we should NOT go and set the value back to the template's default!
+        when {
+          MERGE_ATTR_STRATEGY_REPLACE == mergeStrategy -> {
+            val newChild = replace.replace(child)
+            // When we're replacing, the line is probably already indented. Skip the initial indent
+            if (newChild.prevSibling is XmlText && prependElements[0] is XmlText) {
+              prependElements.removeAt(0)
+              // If we're adding something we'll need a newline/indent after it
+              if (prependElements.isNotEmpty()) {
+                prependElements.add(indent)
+              }
+            }
+            for (element in prependElements) {
+              root.addBefore(element, newChild)
+            }
+          }
+          MERGE_ATTR_STRATEGY_PRESERVE == mergeStrategy -> {
+            // Preserve the existing value.
+          }
+          replace.text.trim() == child.text.trim() -> {
+            // There are no differences, do not issue a warning.
+          }
+          else -> // No explicit directive given, preserve the original value by default.
+            context.warnings.add("Ignoring conflict for the value: $name wanted: \"%${child.text}\" but it already is: \"%${replace.text}\" in the file: $fileName")
         }
         prependElements.clear()
       }
