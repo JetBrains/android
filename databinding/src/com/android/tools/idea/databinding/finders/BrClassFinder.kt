@@ -19,6 +19,7 @@ import com.android.tools.idea.databinding.DataBindingProjectComponent
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBrClass
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
@@ -32,7 +33,8 @@ import com.intellij.psi.util.CachedValuesManager
  *
  * See [LightBrClass]
  */
-class BrClassFinder(private val component: DataBindingProjectComponent) : PsiElementFinder() {
+class BrClassFinder(project: Project) : PsiElementFinder() {
+  private val component = project.getComponent(DataBindingProjectComponent::class.java)
   private val classByPackageCache: CachedValue<Map<String, PsiClass>>
 
   init {
