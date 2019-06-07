@@ -423,7 +423,7 @@ public class GradleBuildInvoker {
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
     // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
     //noinspection resource, IOResourceOpenedButNotSafelyClosed
-    BuildOutputInstantReaderImpl buildOutputInstantReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager,
+    BuildOutputInstantReaderImpl buildOutputInstantReader = new BuildOutputInstantReaderImpl(request.myTaskId, request.myTaskId, buildViewManager,
                                                                                              Collections
                                                                                                .unmodifiableList(
                                                                                                  buildOutputParsersWrappers));
@@ -446,7 +446,7 @@ public class GradleBuildInvoker {
               myReader.close();
               myBuildFailed = false;
               buildOutputParsersWrappers.forEach(BuildOutputParserWrapper::reset);
-              myReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager,
+              myReader = new BuildOutputInstantReaderImpl(request.myTaskId, request.myTaskId, buildViewManager,
                                                           Collections.unmodifiableList(buildOutputParsersWrappers));
               executeTasks(request);
             }
