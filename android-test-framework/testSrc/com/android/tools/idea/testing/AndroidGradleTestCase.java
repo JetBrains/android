@@ -25,10 +25,8 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
-import static com.android.utils.TraceUtils.getCurrentStack;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.util.io.FileUtil.join;
@@ -41,17 +39,13 @@ import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.idea.IdeaTestApplication;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
@@ -61,13 +55,11 @@ import com.intellij.openapi.module.EmptyModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -406,56 +398,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void importProject() throws Exception {
     Project project = getProject();
-    importProject(project);
-  }
-
-  protected void importProject(@NotNull Project project) throws Exception {
-    Ref<Throwable> throwableRef = new Ref<>();
-    SyncListener syncListener = new SyncListener();
-    Disposable subscriptionDisposable = Disposer.newDisposable();
-    try {
-      ApplicationManager.getApplication().invokeAndWait(() -> {
-        try {
-          // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
-          // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
-          GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
-          Project newProject = GradleProjectImporter.getInstance().importProjectNoSync(project.getName(), getBaseDirPath(project), request);
-
-          // It is essential to subscribe to notifications via [newProject] which may be different from the current project if
-          // a new project was requested.
-          GradleSyncState.subscribe(newProject, syncListener, subscriptionDisposable);
-
-          GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.testRequest();
-          syncRequest.generateSourcesOnSuccess = false;
-          GradleSyncInvoker.getInstance().requestProjectSync(newProject, syncRequest, null);
-        }
-        catch (Throwable e) {
-          throwableRef.set(e);
-        }
-      });
-
-      Throwable throwable = throwableRef.get();
-      if (throwable != null) {
-        if (throwable instanceof IOException) {
-          throw (IOException)throwable;
-        }
-        else if (throwable instanceof ConfigurationException) {
-          throw (ConfigurationException)throwable;
-        }
-        else {
-          throw new RuntimeException(throwable);
-        }
-      }
-
-      syncListener.await();
-    }
-    finally {
-      Disposer.dispose(subscriptionDisposable);
-    }
-    if (syncListener.failureMessage != null) {
-      fail(syncListener.failureMessage);
-    }
-    refreshProjectFiles();
+    AndroidGradleTests.importProject(project);
   }
 
   @NotNull
@@ -485,16 +428,16 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
-    SyncListener syncListener = requestSync(request);
+    TestGradleSyncListener syncListener = requestSync(request);
     checkStatus(syncListener);
   }
 
   protected void requestSyncAndWait() throws Exception {
-    SyncListener syncListener = requestSync(request -> { });
+    TestGradleSyncListener syncListener = requestSync(request -> { });
     checkStatus(syncListener);
   }
 
-  private static void checkStatus(@NotNull SyncListener syncListener) {
+  private static void checkStatus(@NotNull TestGradleSyncListener syncListener) {
     if (!syncListener.success) {
       String cause =
         !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
@@ -509,7 +452,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected String requestSyncAndGetExpectedFailure(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
-    SyncListener syncListener = requestSync(requestConfigurator);
+    TestGradleSyncListener syncListener = requestSync(requestConfigurator);
     assertFalse(syncListener.success);
     String message = syncListener.failureMessage;
     assertNotNull(message);
@@ -517,7 +460,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  private SyncListener requestSync(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
+  private TestGradleSyncListener requestSync(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.generateSourcesOnSuccess = false;
     requestConfigurator.consume(request);
@@ -525,8 +468,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  protected SyncListener requestSync(@NotNull GradleSyncInvoker.Request request) throws Exception {
-    SyncListener syncListener = new SyncListener();
+  protected TestGradleSyncListener requestSync(@NotNull GradleSyncInvoker.Request request) throws Exception {
+    TestGradleSyncListener syncListener = new TestGradleSyncListener();
     refreshProjectFiles();
 
     Project project = getProject();
@@ -570,48 +513,5 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         result.setResult(module);
       }
     }.execute().getResultObject();
-  }
-
-  public static class SyncListener implements GradleSyncListener {
-    @NotNull private final CountDownLatch myLatch;
-
-    boolean syncSkipped;
-    boolean success;
-    @Nullable String failureMessage;
-
-    SyncListener() {
-      myLatch = new CountDownLatch(1);
-    }
-
-    @Override
-    public void syncSkipped(@NotNull Project project) {
-      syncSucceeded(project);
-      syncSkipped = true;
-    }
-
-    @Override
-    public void syncSucceeded(@NotNull Project project) {
-      success = true;
-      myLatch.countDown();
-    }
-
-    @Override
-    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-      success = false;
-      failureMessage = !errorMessage.isEmpty() ? errorMessage : "No errorMessage at:\n" + getCurrentStack();
-      myLatch.countDown();
-    }
-
-    void await() throws InterruptedException {
-      myLatch.await(5, MINUTES);
-    }
-
-    public boolean isSyncSkipped() {
-      return syncSkipped;
-    }
-
-    public boolean isSyncFinished() {
-      return success || failureMessage != null;
-    }
   }
 }
