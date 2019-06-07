@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.util.ToolWindows.activateProjectView;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
 import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
+import static com.intellij.ide.impl.ProjectUtil.getBaseDir;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
@@ -37,6 +39,7 @@ import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.containers.ContainerUtilRt;
@@ -53,6 +56,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
  */
 public class GradleProjectImporter {
+  private static final Logger LOG = Logger.getInstance(GradleProjectImporter.class);
   // A copy of a private constant from GradleJvmStartupActivity.
   @NonNls private static final String SHOW_UNLINKED_GRADLE_POPUP = "show.inlinked.gradle.project.popup";
   @NotNull private final SdkSync mySdkSync;
@@ -160,8 +164,18 @@ public class GradleProjectImporter {
 
   @NotNull
   public Project importProjectNoSync(@NotNull String projectName,
-                                      @NotNull File projectFolderPath,
-                                      @NotNull Request request) throws IOException {
+                                     @NotNull File projectFolderPath,
+                                     @NotNull Request request) throws IOException {
+    if (request.project != null) {
+      File projectBasePath = getBaseDirPath(request.project).getAbsoluteFile();
+      File requestedProjectPath = projectFolderPath.getAbsoluteFile();
+      if (0 != FileUtil.compareFiles(requestedProjectPath, projectBasePath)) {
+        LOG.error(
+          String.format("Requested project folder path %s differs from the actual project path %s", requestedProjectPath, projectBasePath),
+          new Throwable());
+      }
+    }
+
     ProjectFolder projectFolder = myProjectFolderFactory.create(projectFolderPath);
     projectFolder.createTopLevelBuildFile();
     projectFolder.createIdeaProjectFolder();

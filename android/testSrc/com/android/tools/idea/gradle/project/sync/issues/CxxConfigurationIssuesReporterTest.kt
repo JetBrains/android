@@ -82,7 +82,7 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
     syncMessages.removeAllMessages()
     prepareMultipleProjectsForImport(COMPOSITE_BUILD, "TestCompositeApp", "TestCompositeLib1", "TestCompositeLib3", "TestCompositeLib2",
                                      "TestCompositeLib4")
-    importProject(project.name, File(COMPOSITE_BUILD))
+    importProject()
 
     val syncIssueOne = setUpMockSyncIssue("19.1.2")
     val syncIssueTwo = setUpMockSyncIssue("19.1.1")
