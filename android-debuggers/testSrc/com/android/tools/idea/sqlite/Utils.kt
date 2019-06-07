@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite
 
+import com.android.tools.idea.sqlite.jdbc.SqliteJdbcServiceTest
 import com.android.tools.idea.util.FutureUtils
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.ExecutionException
