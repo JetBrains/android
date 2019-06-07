@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite
+package com.android.tools.idea
 
-import com.android.tools.idea.SqliteFileHandler
 import com.android.tools.idea.editors.sqlite.SqliteFileType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VirtualFile
