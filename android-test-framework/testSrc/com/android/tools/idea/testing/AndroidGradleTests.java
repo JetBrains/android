@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
@@ -40,7 +41,9 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import com.intellij.util.ThrowableRunnable;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -65,7 +68,9 @@ import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
 public class AndroidGradleTests {
@@ -185,6 +190,13 @@ public class AndroidGradleTests {
       }
     }
     return contents;
+  }
+
+  public static void updateLocalProperties(@NotNull File projectRoot, @NotNull File sdkPath) throws IOException {
+    LocalProperties localProperties = new LocalProperties(projectRoot);
+    assertAbout(file()).that(sdkPath).named("Android SDK path").isDirectory();
+    localProperties.setAndroidSdkPath(sdkPath.getPath());
+    localProperties.save();
   }
 
   @NotNull
@@ -404,5 +416,26 @@ public class AndroidGradleTests {
       TestCase.fail(syncListener.failureMessage);
     }
     AndroidTestBase.refreshProjectFiles();
+  }
+
+  @NotNull
+  public static File prepareProjectForImportCore(@NotNull File srcRoot,
+                                                 @NotNull File projectRoot,
+                                                 @NotNull File sdkPath,
+                                                 @NotNull ThrowableRunnable<IOException> patcher)
+    throws IOException {
+    TestCase.assertTrue(srcRoot.getPath(), srcRoot.exists());
+
+    copyDir(srcRoot, projectRoot);
+
+    // Override settings just for tests (e.g. sdk.dir)
+    updateLocalProperties(projectRoot, sdkPath);
+
+    patcher.run();
+
+    // Refresh project dir to have files under of the project.getBaseDir() visible to VFS.
+    // Do it in a slower but reliable way.
+    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectRoot, true));
+    return projectRoot;
   }
 }

@@ -41,7 +41,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.ModuleFileType;
@@ -63,7 +62,6 @@ import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -75,7 +73,6 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
-import com.intellij.util.ThrowableRunnable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -318,8 +315,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected final File prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
-    return prepareProjectCoreForImport(
-      srcRoot, projectRoot, () -> {
+    return AndroidGradleTests.prepareProjectForImportCore(
+      srcRoot, projectRoot, findSdkPath(), () -> {
         File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
         File build = new File(srcRoot, FN_BUILD_GRADLE);
         File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
@@ -333,26 +330,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
         updateVersionAndDependencies(projectRoot);
       });
-  }
-
-  @NotNull
-  protected final File prepareProjectCoreForImport(@NotNull File srcRoot,
-                                                   @NotNull File projectRoot,
-                                                   @NotNull ThrowableRunnable<IOException> patcher)
-    throws IOException {
-    assertTrue(srcRoot.getPath(), srcRoot.exists());
-
-    copyDir(srcRoot, projectRoot);
-
-    // Override settings just for tests (e.g. sdk.dir)
-    updateLocalProperties(projectRoot);
-
-    patcher.run();
-
-    // Refresh project dir to have files under of the project.getBaseDir() visible to VFS.
-    // Do it in a slower but reliable way.
-    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectRoot, true));
-    return projectRoot;
   }
 
   protected void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
@@ -397,14 +374,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     GradleInvocationResult result = resultRef.get();
     assert result != null;
     return result;
-  }
-
-  private void updateLocalProperties(@NotNull File projectRoot) throws IOException {
-    LocalProperties localProperties = new LocalProperties(projectRoot);
-    File sdkPath = findSdkPath();
-    assertAbout(file()).that(sdkPath).named("Android SDK path").isDirectory();
-    localProperties.setAndroidSdkPath(sdkPath.getPath());
-    localProperties.save();
   }
 
   protected void createGradleWrapper(@NotNull File projectRoot) throws IOException {
