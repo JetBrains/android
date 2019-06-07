@@ -21,19 +21,9 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.EmptyAction;
-import com.intellij.psi.codeStyle.CodeStyleScheme;
-import com.intellij.psi.codeStyle.CodeStyleSchemes;
-import com.intellij.psi.codeStyle.arrangement.ArrangementSettings;
-import com.intellij.psi.codeStyle.arrangement.match.StdArrangementMatchRule;
-import com.intellij.psi.codeStyle.arrangement.std.StdArrangementSettings;
-import com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Order;
-import java.util.Collections;
-import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
-import org.jetbrains.android.formatter.AndroidXmlRearranger;
 
 /**
  * Tests for {@link GradleSpecificInitializer}
