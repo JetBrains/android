@@ -85,7 +85,7 @@ class PsAndroidModule(
     flavorDimensionCollection?.refresh()
     productFlavorCollection?.refresh()
     resolvedVariantCollection?.refresh()
-    dependencyCollection?.refresh()
+    dependencyCollection?.let { it.refresh(); fireDependenciesReloadedEvent() }
     signingConfigCollection?.refresh()
   }
 
