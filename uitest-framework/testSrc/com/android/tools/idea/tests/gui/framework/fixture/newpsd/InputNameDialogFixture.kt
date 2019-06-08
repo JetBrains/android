@@ -41,6 +41,7 @@ class InputNameDialogFixture(
 
   override fun target(): JDialog = container
   override fun robot(): Robot = ideFrameFixture.robot()
+  override fun maybeRestoreLostFocus() = Unit
 
   fun type(text: String) {
     JTextComponentFixture(robot(), robot ().finder().findByType<JTextField>(container)).setText(text)
