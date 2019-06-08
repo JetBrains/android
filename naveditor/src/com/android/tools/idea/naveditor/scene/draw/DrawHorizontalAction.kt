@@ -37,18 +37,18 @@ import java.awt.geom.Line2D
 import java.awt.geom.Rectangle2D
 
 data class DrawHorizontalAction(@SwingCoordinate private val rectangle: Rectangle2D.Float,
+                                private val scale: Float,
                                 private val color: Color,
                                 private val isPopAction: Boolean) : CompositeDrawCommand(COMPONENT_LEVEL) {
   private constructor(tokens: Array<String>)
-    : this(stringToRect2D(tokens[0]), stringToColor(tokens[1]), tokens[2].toBoolean())
+    : this(stringToRect2D(tokens[0]), tokens[1].toFloat(), stringToColor(tokens[2]), tokens[3].toBoolean())
 
-  constructor(serialized: String) : this(parse(serialized, 3))
+  constructor(serialized: String) : this(parse(serialized, 4))
 
   override fun serialize(): String = buildString(javaClass.simpleName, rect2DToString(rectangle),
-                                                 colorToString(color), isPopAction)
+                                                 scale, colorToString(color), isPopAction)
 
   override fun buildCommands(): List<DrawCommand> {
-    val scale = rectangle.height / ACTION_ARROW_PERPENDICULAR
     val arrowWidth = ACTION_ARROW_PARALLEL * scale
     val lineLength = Math.max(0f, rectangle.width - arrowWidth)
 
