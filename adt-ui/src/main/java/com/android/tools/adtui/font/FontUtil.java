@@ -19,7 +19,7 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.FontPreferences;
 import com.intellij.openapi.editor.impl.ComplementaryFontsRegistry;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -28,7 +28,7 @@ import java.util.Set;
 public class FontUtil {
   @NotNull
   public static Font getFontAbleToDisplay(@NotNull String s, @NotNull Font defaultFont) {
-    if (SystemInfo.isMac          // On Macs, all fonts can display all the characters because the system renders using fallback fonts.
+    if (SystemInfoRt.isMac          // On Macs, all fonts can display all the characters because the system renders using fallback fonts.
         || isExtendedAscii(s)) {  // Assume that default font can handle ASCII
       return defaultFont;
     }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.psi.PsiClass;
 
 public class TestArtifactsRenameTest extends TestArtifactsTestCase {
@@ -24,7 +24,7 @@ public class TestArtifactsRenameTest extends TestArtifactsTestCase {
   @Override
   protected boolean shouldRunTest() {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    return !SystemInfo.isWindows && super.shouldRunTest();
+    return !SystemInfoRt.isWindows && super.shouldRunTest();
   }
 
   @Override

@@ -24,7 +24,7 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -61,7 +61,7 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
         indicator.setIndeterminate(true);
 
         Path ideHome = Paths.get(PathManager.getHomePath());
-        LicensesLocator locator = new LicensesLocator(ideHome, SystemInfo.isMac);
+        LicensesLocator locator = new LicensesLocator(ideHome, SystemInfoRt.isMac);
         CompletableFuture<String> cf = new LicenseTextCollector(ideHome, locator.getLicenseFiles()).getLicenseText();
 
         while (!indicator.isCanceled()) {

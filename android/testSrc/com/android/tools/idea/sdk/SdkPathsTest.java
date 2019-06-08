@@ -16,7 +16,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.Nullable;
@@ -121,7 +121,7 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testNoPlatformsNdkDirectory() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }
@@ -137,7 +137,7 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testNoToolchainsNdkDirectory() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }
@@ -155,7 +155,7 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testValidNdkDirectory() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }

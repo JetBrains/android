@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.editor;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -39,7 +38,7 @@ public class GradleFileEditorProvider implements FileEditorProvider, DumbAware {
     if (!ENABLED) {
       return false;
     }
-    return FileTypeRegistry.getInstance().isFileOfType(file, GroovyFileType.GROOVY_FILE_TYPE) && file.getPath().endsWith(DOT_GRADLE);
+    return file.getFileType() == GroovyFileType.GROOVY_FILE_TYPE && file.getPath().endsWith(DOT_GRADLE);
   }
 
   @NotNull

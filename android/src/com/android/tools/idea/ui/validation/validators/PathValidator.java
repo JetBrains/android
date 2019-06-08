@@ -26,7 +26,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import net.jcip.annotations.Immutable;
@@ -382,7 +382,7 @@ public final class PathValidator implements Validator<File> {
     @NotNull
     public Builder withCommonRules() {
       withCommonTestRules();
-      if(SystemInfo.isWindows) {
+      if(SystemInfoRt.isWindows) {
         withRule(PATH_TOO_LONG, Severity.ERROR);
       }
       return this;
@@ -398,9 +398,9 @@ public final class PathValidator implements Validator<File> {
     public Builder withCommonTestRules() {
       withRule(INVALID_SLASHES, Severity.ERROR);
       withRule(ILLEGAL_CHARACTER, Severity.ERROR);
-      withRule(ILLEGAL_WINDOWS_FILENAME, SystemInfo.isWindows ? Severity.ERROR : Severity.WARNING);
+      withRule(ILLEGAL_WINDOWS_FILENAME, SystemInfoRt.isWindows ? Severity.ERROR : Severity.WARNING);
       withRule(WHITESPACE, Severity.WARNING);
-      withRule(NON_ASCII_CHARS, SystemInfo.isWindows ? Severity.ERROR : Severity.WARNING);
+      withRule(NON_ASCII_CHARS, SystemInfoRt.isWindows ? Severity.ERROR : Severity.WARNING);
       withRule(PARENT_DIRECTORY_NOT_WRITABLE, Severity.ERROR);
       withRule(LOCATION_IS_A_FILE, Severity.ERROR);
       withRule(LOCATION_IS_ROOT, Severity.ERROR);

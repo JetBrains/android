@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import org.mockito.Mock;
 
 import java.nio.file.FileSystems;
@@ -52,7 +52,7 @@ public class MockupFileHelperTest extends MockupTestCase {
   }
 
   public void testGetFullFilePathAbsolute() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }
@@ -69,7 +69,7 @@ public class MockupFileHelperTest extends MockupTestCase {
   }
 
   public void testGetXMLFilePath() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }
@@ -82,7 +82,7 @@ public class MockupFileHelperTest extends MockupTestCase {
   }
 
   public void testGetXMLFilePathInnerDir() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }
@@ -95,7 +95,7 @@ public class MockupFileHelperTest extends MockupTestCase {
   }
 
   public void testGetXMLFilePathOuterDir() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }
@@ -109,7 +109,7 @@ public class MockupFileHelperTest extends MockupTestCase {
   }
 
   public void testGetXMLFilePathAbsoluteOutside() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }
@@ -123,7 +123,7 @@ public class MockupFileHelperTest extends MockupTestCase {
   }
 
   public void testGetXMLFilePathAbsoluteInside() throws Exception {
-    if (SystemInfo.isWindows) {
+    if (SystemInfoRt.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }
