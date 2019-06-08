@@ -49,20 +49,22 @@ data class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float,
     POP_ACTION
   }
 
-  private val image: Image
+  private var image: Image? = null
 
   init {
-    var icon = when (iconType) {
-      DrawIcon.IconType.START_DESTINATION -> START_DESTINATION
-      DrawIcon.IconType.DEEPLINK -> DEEPLINK
-      DrawIcon.IconType.POP_ACTION -> POP_ACTION
-    }
+    if (rectangle.width > 0 && rectangle.height > 0) {
+      var icon = when (iconType) {
+        IconType.START_DESTINATION -> START_DESTINATION
+        IconType.DEEPLINK -> DEEPLINK
+        IconType.POP_ACTION -> POP_ACTION
+      }
 
-    if (color != null) {
-      icon = ColoredIconGenerator.generateColoredIcon(icon, color.rgb)
-    }
+      if (color != null) {
+        icon = ColoredIconGenerator.generateColoredIcon(icon, color.rgb)
+      }
 
-    image = iconToImage(icon).getScaledInstance(rectangle.width.toInt(), rectangle.height.toInt(), Image.SCALE_SMOOTH)
+      image = iconToImage(icon).getScaledInstance(rectangle.width.toInt(), rectangle.height.toInt(), Image.SCALE_SMOOTH)
+    }
   }
 
   private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), IconType.valueOf(tokens[1]),
@@ -75,7 +77,9 @@ data class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float,
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
-    g.setRenderingHints(HQ_RENDERING_HINTS)
-    g.drawImage(image, rectangle.x.toInt(), rectangle.y.toInt(), null)
+    if (image != null) {
+      g.setRenderingHints(HQ_RENDERING_HINTS)
+      g.drawImage(image, rectangle.x.toInt(), rectangle.y.toInt(), null)
+    }
   }
 }
