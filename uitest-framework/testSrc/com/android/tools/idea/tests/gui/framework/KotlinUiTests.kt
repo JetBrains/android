@@ -25,6 +25,7 @@ import javax.swing.JComponent
 interface IdeFrameContainerFixture {
   val ideFrameFixture: IdeFrameFixture
   val container: Container
+  fun maybeRestoreLostFocus() = ideFrameFixture.requestFocusIfLost()
 }
 
 fun IdeFrameContainerFixture.robot() = ideFrameFixture.robot()
