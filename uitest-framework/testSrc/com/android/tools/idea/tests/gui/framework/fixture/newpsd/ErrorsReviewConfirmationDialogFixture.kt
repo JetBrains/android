@@ -30,6 +30,7 @@ class ErrorsReviewConfirmationDialogFixture(
 
   override fun target(): JDialog = container
   override fun robot(): Robot = ideFrameFixture.robot()
+  override fun maybeRestoreLostFocus() = Unit
 
   fun clickReview() = clickButtonAndWaitDialogDisappear("Review")
 

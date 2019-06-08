@@ -43,6 +43,7 @@ class AddLibraryDependencyDialogFixture private constructor(
 
   override fun target(): JDialog = container
   override fun robot(): Robot = ideFrameFixture.robot()
+  override fun maybeRestoreLostFocus() = Unit
 
   fun findSearchQueryTextBox(): JTextComponentFixture =
     JTextComponentFixture(robot(), robot().finder().findByType<JBTextField>(container))

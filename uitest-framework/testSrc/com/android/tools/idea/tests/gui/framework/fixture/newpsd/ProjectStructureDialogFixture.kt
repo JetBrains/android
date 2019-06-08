@@ -26,7 +26,6 @@ import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
 import java.awt.Container
-import java.awt.KeyboardFocusManager
 import javax.swing.JDialog
 
 class ProjectStructureDialogFixture(
@@ -85,29 +84,30 @@ class ProjectStructureDialogFixture(
 fun IdeFrameFixture.openPsd(): ProjectStructureDialogFixture =
   openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
 
-internal fun ContainerFixture<*>.clickOkAndWaitDialogDisappear() {
+internal fun <T> T.clickOkAndWaitDialogDisappear()
+  where T : IdeFrameContainerFixture, T : ContainerFixture<*> {
   GuiTests.findAndClickOkButton(this)
-  Wait
-    .seconds(10)
-    .expecting("dialog to disappear")
-    .until { !target().isShowing && KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow != target() }
-  waitForIdle()
+  waitForDialogToClose()
 }
 
-internal fun ContainerFixture<*>.clickCancelAndWaitDialogDisappear() {
+internal fun <T> T.clickCancelAndWaitDialogDisappear()
+  where T : IdeFrameContainerFixture, T : ContainerFixture<*> {
   GuiTests.findAndClickCancelButton(this)
-  Wait
-    .seconds(10)
-    .expecting("dialog to disappear")
-    .until { !target().isShowing && KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow != target() }
-  waitForIdle()
+  waitForDialogToClose()
 }
 
-internal fun ContainerFixture<*>.clickButtonAndWaitDialogDisappear(text: String) {
+internal fun <T> T.clickButtonAndWaitDialogDisappear(text: String)
+  where T : IdeFrameContainerFixture, T : ContainerFixture<*> {
   GuiTests.findAndClickButton(this, text)
+  waitForDialogToClose()
+}
+
+internal fun <T> T.waitForDialogToClose()
+  where T : IdeFrameContainerFixture, T : ContainerFixture<*> {
   Wait
     .seconds(10)
     .expecting("dialog to disappear")
-    .until { !target().isShowing && KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow != target() }
+    .until { !target().isShowing }
   waitForIdle()
+  maybeRestoreLostFocus()
 }
