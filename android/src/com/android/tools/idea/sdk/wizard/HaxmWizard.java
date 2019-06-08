@@ -28,7 +28,7 @@ import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +45,7 @@ public class HaxmWizard extends DynamicWizard {
   private static final String SDK_PACKAGE_CLEANUP_FAILED =
     "HAXM installer cleanup failed. The status of the package in the SDK manager may " +
     "be reflected incorrectly. Reinstalling the package may solve the issue" +
-    (SystemInfo.isWindows ? " (is the SDK folder opened in another program?)" : ".");
+    (SystemInfoRt.isWindows ? " (is the SDK folder opened in another program?)" : ".");
 
   HaxmPath myHaxmPath;
   boolean myInvokedToUninstall;

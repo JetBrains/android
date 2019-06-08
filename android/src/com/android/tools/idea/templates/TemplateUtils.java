@@ -33,7 +33,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -391,7 +390,7 @@ public class TemplateUtils {
    */
   public static boolean openEditor(@NotNull Project project, @NotNull VirtualFile vFile) {
     OpenFileDescriptor descriptor;
-    if (FileTypeRegistry.getInstance().isFileOfType(vFile, StdFileTypes.XML) && AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
+    if (vFile.getFileType() == StdFileTypes.XML && AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
       descriptor = new OpenFileDescriptor(project, vFile, 0);
     }
     else {

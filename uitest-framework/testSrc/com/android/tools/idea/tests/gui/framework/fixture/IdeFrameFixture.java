@@ -50,7 +50,7 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.StripeButton;
@@ -679,7 +679,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       // and we want to make sure to keep going until the focus is held by a stable component.
       Component focusOwner = keyboardFocusManager.getFocusOwner();
       if (focusOwner == null || !focusOwner.isShowing()) {
-        if (SystemInfo.isMac) {
+        if (SystemInfoRt.isMac) {
           robot().click(target(), new Point(1, 1)); // Simulate title bar click
         }
         GuiTask.execute(() -> target().requestFocus());
@@ -690,7 +690,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   public void selectPreviousEditor() {
-    robot().pressAndReleaseKey(KeyEvent.VK_E, SystemInfo.isMac ? META_MASK : CTRL_MASK);
+    robot().pressAndReleaseKey(KeyEvent.VK_E, SystemInfoRt.isMac ? META_MASK : CTRL_MASK);
     GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
       @Override
       protected boolean isMatching(@NotNull JLabel header) {

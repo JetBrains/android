@@ -12,7 +12,6 @@ import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.UndoUtil;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -212,7 +211,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
     for (VirtualFile subdir : subdirs) {
       for (VirtualFile child : subdir.getChildren()) {
-        if (FileTypeRegistry.getInstance().isFileOfType(child, XmlFileType.INSTANCE) &&
+        if (child.getFileType() == XmlFileType.INSTANCE &&
             (myFileToScan == null || myFileToScan.equals(child))) {
           filesToProcess.add(child);
         }

@@ -13,6 +13,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="android.sdktools.layoutinspector" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.images" />
     <orderEntry type="module" module-name="intellij.android.common" />
@@ -30,6 +31,5 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools.ddms:ddmlib" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
-    <orderEntry type="library" scope="TEST" name="org.jetbrains.intellij.deps.android.tools:layoutInspector" level="project" />
   </component>
 </module>

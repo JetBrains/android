@@ -24,7 +24,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.*;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -126,7 +126,7 @@ public class SelectNdkDialog extends DialogWrapper {
       }
     };
 
-    if (SystemInfo.isMac) {
+    if (SystemInfoRt.isMac) {
       descriptor.withShowHiddenFiles(true);
     }
     descriptor.setTitle("Choose Android NDK Location");

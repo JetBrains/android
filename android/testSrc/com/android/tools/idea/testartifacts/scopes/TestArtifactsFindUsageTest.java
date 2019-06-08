@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.usageView.UsageInfo;
@@ -35,7 +35,7 @@ public class TestArtifactsFindUsageTest extends TestArtifactsTestCase {
   @Override
   protected boolean shouldRunTest() {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    return !SystemInfo.isWindows && super.shouldRunTest();
+    return !SystemInfoRt.isWindows && super.shouldRunTest();
   }
 
   @Override

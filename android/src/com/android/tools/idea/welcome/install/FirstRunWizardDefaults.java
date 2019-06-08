@@ -24,7 +24,7 @@ import com.google.common.collect.Iterables;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -81,13 +81,13 @@ public class FirstRunWizardDefaults {
 
     if (Strings.isNullOrEmpty(path)) {
       String userHome = System.getProperty("user.home");
-      if (SystemInfo.isWindows) {
+      if (SystemInfoRt.isWindows) {
         path = FileUtil.join(userHome, "AppData", "Local", "Android", "Sdk");
       }
-      else if (SystemInfo.isMac) {
+      else if (SystemInfoRt.isMac) {
         path = FileUtil.join(userHome, "Library", "Android", "sdk");
       }
-      else if (SystemInfo.isLinux) {
+      else if (SystemInfoRt.isLinux) {
         path = FileUtil.join(userHome, "Android", "Sdk");
       }
       else {

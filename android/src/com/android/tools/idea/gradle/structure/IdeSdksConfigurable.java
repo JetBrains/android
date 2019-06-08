@@ -43,7 +43,7 @@ import com.intellij.openapi.ui.DetailsComponent;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.ActionCallback;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkAdapter;
@@ -425,7 +425,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
         }
       }
     };
-    if (SystemInfo.isMac) {
+    if (SystemInfoRt.isMac) {
       descriptor.withShowHiddenFiles(true);
     }
     descriptor.setTitle(title);
@@ -700,7 +700,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     if (checkForJdk(file)) {
       return file;
     }
-    if (SystemInfo.isMac) {
+    if (SystemInfoRt.isMac) {
       File potentialPath = new File(file, MAC_JDK_CONTENT_PATH);
       if (potentialPath.isDirectory() && checkForJdk(potentialPath)) {
         myJdkLocationTextField.setText(potentialPath.getPath());

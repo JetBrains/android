@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.annotations.NonNull;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.*;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.*;
@@ -96,15 +96,15 @@ public enum AccelerationErrorCode {
       case  3: return NO_CPU_SUPPORT;
       case  4: return NO_CPU_VTX_SUPPORT;
       case  5: return NO_CPU_NX_SUPPORT;
-      case  6: return SystemInfo.isLinux ? ACCELERATION_NOT_INSTALLED_LINUX : ACCELERATION_NOT_INSTALLED_WIN_MAC;
+      case  6: return SystemInfoRt.isLinux ? ACCELERATION_NOT_INSTALLED_LINUX : ACCELERATION_NOT_INSTALLED_WIN_MAC;
       case  7: return ACCELERATION_OBSOLETE;
       case  8: return DEV_NOT_FOUND;
       case  9: return VT_DISABLED;
       case 10: return NX_DISABLED;
-      case 11: return SystemInfo.isLinux ? DEV_PERMISSION_LINUX : DEV_PERMISSION_WIN_MAC;
-      case 12: return SystemInfo.isLinux ? DEV_OPEN_FAILED_LINUX : DEV_OPEN_FAILED_WIN_MAC;
-      case 13: return SystemInfo.isLinux ? DEV_IOCTL_FAILED_LINUX : DEV_IOCTL_FAILED_WIN_MAC;
-      case 14: return SystemInfo.isLinux ? DEV_OBSOLETE_LINUX : DEV_OBSOLETE_WIN_MAC;
+      case 11: return SystemInfoRt.isLinux ? DEV_PERMISSION_LINUX : DEV_PERMISSION_WIN_MAC;
+      case 12: return SystemInfoRt.isLinux ? DEV_OPEN_FAILED_LINUX : DEV_OPEN_FAILED_WIN_MAC;
+      case 13: return SystemInfoRt.isLinux ? DEV_IOCTL_FAILED_LINUX : DEV_IOCTL_FAILED_WIN_MAC;
+      case 14: return SystemInfoRt.isLinux ? DEV_OBSOLETE_LINUX : DEV_OBSOLETE_WIN_MAC;
       case 15: return HYPER_V_ENABLED;
       default: return UNKNOWN_ERROR;
     }

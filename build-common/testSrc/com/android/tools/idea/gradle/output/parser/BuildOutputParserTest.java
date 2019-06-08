@@ -24,7 +24,7 @@ import com.android.testutils.TestResources;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
@@ -88,7 +88,7 @@ public class BuildOutputParserTest {
   @Test
   public void parseParsedBuildIssue() throws IOException {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    assumeFalse(SystemInfo.isWindows);
+    assumeFalse(SystemInfoRt.isWindows);
 
     String output = "AGPBI: {\"kind\":\"ERROR\",\"text\":\"" +
                     "No resource identifier found for attribute \\u0027a\\u0027 in package" +
@@ -402,7 +402,7 @@ public class BuildOutputParserTest {
   @Test
   public void redirectValueLinksOutput() throws Exception {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    assumeFalse(SystemInfo.isWindows);
+    assumeFalse(SystemInfoRt.isWindows);
 
     TestResources.getFileInDirectory(
       getClass(), "/values.xml", "src/test/resources/testData/resources/baseSet/values/values.xml");
@@ -525,7 +525,7 @@ public class BuildOutputParserTest {
   @Test
   public void redirectFileLinksOutput() throws Exception {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    assumeFalse(SystemInfo.isWindows);
+    assumeFalse(SystemInfoRt.isWindows);
 
     // Need file to be named (exactly) values.xml
     File tempDir = Files.createTempDir();
@@ -741,7 +741,7 @@ public class BuildOutputParserTest {
   @Test
   public void buildCommandFailed() {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    assumeFalse(SystemInfo.isWindows);
+    assumeFalse(SystemInfoRt.isWindows);
 
     String output =
       ":app:externalNativeBuildDebug\n" +
@@ -1904,7 +1904,7 @@ public class BuildOutputParserTest {
   @Test
   public void ndkWarningOutputUnix() throws Exception {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    assumeFalse(SystemInfo.isWindows);
+    assumeFalse(SystemInfoRt.isWindows);
 
     createTempXmlFile();
     String output =
@@ -2067,7 +2067,7 @@ public class BuildOutputParserTest {
   @Test
   public void newManifestMergeError() throws Exception {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    assumeFalse(SystemInfo.isWindows);
+    assumeFalse(SystemInfoRt.isWindows);
 
     createTempFile(DOT_XML);
     String output =
@@ -2112,7 +2112,7 @@ public class BuildOutputParserTest {
   @Test
   public void manifestMergeWindowsError() throws Exception {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    assumeFalse(SystemInfo.isWindows);
+    assumeFalse(SystemInfoRt.isWindows);
 
     createTempFile(DOT_XML);
     String output =
@@ -2554,7 +2554,7 @@ public class BuildOutputParserTest {
   public void duplicateMessages() {
 
     // Do not run test on Windows (see b/69619617)
-    assumeFalse(SystemInfo.isWindows);
+    assumeFalse(SystemInfoRt.isWindows);
 
     String output =
       ":app:externalNativeBuildDebug\n" +

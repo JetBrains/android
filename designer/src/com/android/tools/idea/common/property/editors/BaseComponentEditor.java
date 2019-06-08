@@ -17,7 +17,7 @@ package com.android.tools.idea.common.property.editors;
 
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
@@ -32,7 +32,7 @@ public abstract class BaseComponentEditor implements NlComponentEditor, BrowsePa
   protected static final JBColor CHANGED_VALUE_TEXT_COLOR = JBColor.BLUE;
 
   /** Horizontal gap between editor control and {@link BrowsePanel} */
-  protected static final int HORIZONTAL_COMPONENT_GAP = SystemInfo.isMac ? 0 : 2;
+  protected static final int HORIZONTAL_COMPONENT_GAP = SystemInfoRt.isMac ? 0 : 2;
 
   /** Horizontal spacing between label and editor in inspector */
   public static final int HORIZONTAL_SPACING = 4;

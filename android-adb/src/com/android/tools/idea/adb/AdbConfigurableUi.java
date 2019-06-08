@@ -17,7 +17,7 @@ package com.android.tools.idea.adb;
 
 import com.intellij.openapi.options.ConfigurableUi;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -49,6 +49,6 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
 
   public static boolean shouldShow() {
     // Currently, the libusb backend is only supported on Linux & Mac
-    return SystemInfo.isMac || SystemInfo.isLinux;
+    return SystemInfoRt.isMac || SystemInfoRt.isLinux;
   }
 }

@@ -19,7 +19,7 @@ import com.android.tools.idea.rendering.webp.ConvertToWebpAction.WebpConversionT
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -242,7 +242,7 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
     myPrevAction.setEnabled(false);
     myNextAction.setEnabled(myFiles.size() > 1);
 
-    if (SystemInfo.isMac) {
+    if (SystemInfoRt.isMac) {
       return new Action[]{getCancelAction(), myPrevAction, myNextAction, myAcceptAll};
     }
 
