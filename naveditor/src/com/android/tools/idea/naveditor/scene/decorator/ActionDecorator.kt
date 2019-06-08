@@ -41,7 +41,7 @@ const val HIGHLIGHTED_CLIENT_PROPERTY = "actionHighlighted"
 object ActionDecorator : NavBaseDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     val nlComponent = component.nlComponent
-    val color = actionColor(sceneContext, component)
+    val color = actionColor(component)
     val view = component.scene.designSurface.currentSceneView ?: return
     val actionType = nlComponent.getActionType(component.scene.root?.nlComponent)
     val isPopAction = nlComponent.popUpTo != null
@@ -49,7 +49,8 @@ object ActionDecorator : NavBaseDecorator() {
       ActionType.NONE -> return
       ActionType.GLOBAL, ActionType.EXIT -> {
         @SwingCoordinate val drawRect = Coordinates.getSwingRectDip(view, component.fillDrawRect2D(0, null))
-        list.add(DrawHorizontalAction(drawRect, color, isPopAction))
+        val scale = sceneContext.scale.toFloat()
+        list.add(DrawHorizontalAction(drawRect, scale, color, isPopAction))
       }
       else -> {
         val scene = component.scene
@@ -72,7 +73,7 @@ object ActionDecorator : NavBaseDecorator() {
     }
   }
 
-  private fun actionColor(context: SceneContext, component: SceneComponent): Color {
+  private fun actionColor(component: SceneComponent): Color {
     return when {
       component.isSelected || component.nlComponent.getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY) == true -> SELECTED
       component.drawState == SceneComponent.DrawState.HOVER || component.targets.any { it.isMouseHovered } -> HIGHLIGHTED_ACTION
