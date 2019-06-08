@@ -33,6 +33,7 @@ open class SuggestionGroupFixture(val dialog: JDialog,
                                   override val container: JPanel
 ) : IdeFrameContainerFixture {
 
+  override fun maybeRestoreLostFocus() = Unit
   fun title(): String? = GuiQuery.get<String> { (container.border as? TitledBorder)?.title }
 
   fun findMessageMatching(pattern: String): SuggestionFixture? {
