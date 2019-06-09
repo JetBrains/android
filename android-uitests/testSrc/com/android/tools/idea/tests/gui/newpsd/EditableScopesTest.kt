@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.waitForDialogToClose
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -78,6 +79,7 @@ class EditableScopesTest {
           }
         }
       }
+      waitForDialogToClose()
     }
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -154,6 +156,7 @@ class EditableScopesTest {
           }
         }
       }
+      waitForDialogToClose()
     }
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -232,6 +235,7 @@ class EditableScopesTest {
           }
         }
       }
+      waitForDialogToClose()
     }
     ide.openPsd().run {
       selectDependenciesConfigurable().run {

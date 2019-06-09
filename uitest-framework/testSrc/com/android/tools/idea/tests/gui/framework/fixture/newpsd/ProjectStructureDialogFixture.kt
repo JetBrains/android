@@ -102,7 +102,7 @@ internal fun <T> T.clickButtonAndWaitDialogDisappear(text: String)
   waitForDialogToClose()
 }
 
-internal fun <T> T.waitForDialogToClose()
+fun <T> T.waitForDialogToClose()
   where T : IdeFrameContainerFixture, T : ContainerFixture<*> {
   Wait
     .seconds(10)
