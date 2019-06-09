@@ -89,7 +89,6 @@ open class StateChangeNotification(private val project: Project) {
           LOG.info("Failed to update editor notifications for file '${toSystemDependentName(file.path)}'", e)
         }
       }
-      BuildVariantView.getInstance(project).updateContents()
     }
   }
 }
