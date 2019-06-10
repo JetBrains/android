@@ -43,7 +43,10 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import com.intellij.util.Consumer;
+import com.intellij.util.ThrowableConsumer;
 import com.intellij.util.ThrowableRunnable;
+import java.util.concurrent.Callable;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -421,7 +424,7 @@ public class AndroidGradleTests {
   public static void prepareProjectForImportCore(@NotNull File srcRoot,
                                                  @NotNull File projectRoot,
                                                  @NotNull File sdkPath,
-                                                 @NotNull ThrowableRunnable<IOException> patcher)
+                                                 @NotNull ThrowableConsumer<File, IOException> patcher)
     throws IOException {
     TestCase.assertTrue(srcRoot.getPath(), srcRoot.exists());
 
@@ -430,7 +433,7 @@ public class AndroidGradleTests {
     // Override settings just for tests (e.g. sdk.dir)
     updateLocalProperties(projectRoot, sdkPath);
 
-    patcher.run();
+    patcher.consume(projectRoot);
 
     // Refresh project dir to have files under of the project.getBaseDir() visible to VFS.
     // Do it in a slower but reliable way.

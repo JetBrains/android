@@ -73,11 +73,9 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
+import com.intellij.util.ThrowableConsumer;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -270,10 +268,17 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
+    defaultPatchPreparedProject(projectRoot);
   }
 
   @NotNull
   protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
+    return prepareProjectForImport(relativePath, this::patchPreparedProject);
+  }
+
+  @NotNull
+  private File prepareProjectForImport(@NotNull String relativePath, ThrowableConsumer<File, IOException> projectPatcher)
+    throws IOException {
     File root = new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
@@ -282,28 +287,30 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     Project project = myFixture.getProject();
     File projectRoot = new File(toSystemDependentName(project.getBasePath()));
 
-    prepareProjectForImport(root, projectRoot);
+    prepareProjectForImport(root, projectRoot, projectPatcher);
 
-    patchPreparedProject(projectRoot);
     return projectRoot;
   }
 
-  private void prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
-    AndroidGradleTests.prepareProjectForImportCore(
-      srcRoot, projectRoot, findSdkPath(), () -> {
-        File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
-        File build = new File(srcRoot, FN_BUILD_GRADLE);
-        File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
-        File ktsBuild = new File(srcRoot, FN_BUILD_GRADLE_KTS);
-        assertTrue("Couldn't find build.gradle(.kts) or settings.gradle(.kts) in " + srcRoot.getPath(),
-                   settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
+  private void prepareProjectForImport(@NotNull File srcRoot,
+                                       @NotNull File projectRoot,
+                                       ThrowableConsumer<File, IOException> projectPatcher) throws IOException {
+    File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
+    File build = new File(srcRoot, FN_BUILD_GRADLE);
+    File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
+    File ktsBuild = new File(srcRoot, FN_BUILD_GRADLE_KTS);
+    assertTrue("Couldn't find build.gradle(.kts) or settings.gradle(.kts) in " + srcRoot.getPath(),
+               settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
 
-        // We need the wrapper for import to succeed
-        createGradleWrapper(projectRoot);
+    AndroidGradleTests.prepareProjectForImportCore(srcRoot, projectRoot, findSdkPath(), projectPatcher);
+  }
 
-        // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-        updateVersionAndDependencies(projectRoot);
-      });
+  protected final void defaultPatchPreparedProject(@NotNull File projectRoot) throws IOException {
+    // We need the wrapper for import to succeed
+    createGradleWrapper(projectRoot);
+
+    // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
+    updateVersionAndDependencies(projectRoot);
   }
 
   protected void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
@@ -350,7 +357,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return result;
   }
 
-  protected void createGradleWrapper(@NotNull File projectRoot) throws IOException {
+  protected static void createGradleWrapper(@NotNull File projectRoot) throws IOException {
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
   }
 
