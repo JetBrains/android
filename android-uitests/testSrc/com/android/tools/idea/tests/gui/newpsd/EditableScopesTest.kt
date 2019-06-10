@@ -80,6 +80,7 @@ class EditableScopesTest {
         }
       }
       waitForDialogToClose()
+      waitForSyncToFinish()
     }
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -157,6 +158,7 @@ class EditableScopesTest {
         }
       }
       waitForDialogToClose()
+      waitForSyncToFinish()
     }
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -236,6 +238,7 @@ class EditableScopesTest {
         }
       }
       waitForDialogToClose()
+      waitForSyncToFinish()
     }
     ide.openPsd().run {
       selectDependenciesConfigurable().run {

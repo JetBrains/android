@@ -16,65 +16,39 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.tests.gui.framework.findByType
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
-import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.ui.table.TableView
+import org.fest.swing.core.Robot
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.fixture.JTableFixture
-import org.fest.swing.timing.Wait
 import java.awt.Container
-import java.awt.event.KeyEvent.VK_ENTER
 import javax.swing.JComboBox
 
 class DependenciesFixture(
-  override val ideFrameFixture: IdeFrameFixture,
-  override val container: Container
+  val robot: Robot,
+  val container: Container
 ) : ConfigPanelFixture() {
+
+  override fun target(): Container = container
+  override fun robot(): Robot= robot
 
   fun findDependenciesTable(): JTableFixture =
     JTableFixture(robot(), robot().finder().findByType<TableView<*>>(container))
 
   fun findConfigurationCombo(): JComboBoxFixture =
-    object : JComboBoxFixture(robot(), robot().finder().findByName("configuration", JComboBox::class.java, true)) {
-      override fun selectAllText(): JComboBoxFixture {
-        super.selectAllText()
-        waitForIdle()
-        return this
-      }
-
-      override fun replaceText(text: String): JComboBoxFixture {
-        super.replaceText(text)
-        waitForIdle()
-        return this
-      }
-
-      override fun pressAndReleaseKeys(vararg keyCodes: Int): JComboBoxFixture {
-        val enterIndex = keyCodes.indexOfFirst { it == VK_ENTER }
-        assert(enterIndex == -1 || enterIndex == keyCodes.lastIndex)
-        val psd = ProjectStructureDialogFixture.find(ideFrameFixture)
-        super.pressAndReleaseKeys(*keyCodes)
-        if (enterIndex != -1) {
-          Wait.seconds(10).expecting("dialog to disappear").until { !psd.target().isShowing }
-          waitForIdle()
-          ideFrameFixture.waitForGradleProjectSyncToFinish()
-        }
-        waitForIdle()
-        return this
-      }
-    }
+    JComboBoxFixture(robot(), robot().finder().findByName("configuration", JComboBox::class.java, true))
 
   fun clickAddLibraryDependency(): AddLibraryDependencyDialogFixture {
     clickToolButton("Add Dependency")
     val listFixture = JListFixture(robot(), getList())
     listFixture.clickItem(0 /* 1 Library Dependency */)  // Search by title does not work here.
-    return AddLibraryDependencyDialogFixture.find(ideFrameFixture, "Add Library Dependency")
+    return AddLibraryDependencyDialogFixture.find(robot(), "Add Library Dependency")
   }
 
   fun clickAddModuleDependency(): AddModuleDependencyDialogFixture {
     clickToolButton("Add Dependency")
     val listFixture = JListFixture(robot(), getList())
     listFixture.clickItem(2 /* 3 Module Dependency */)  // Search by title does not work here.
-    return AddModuleDependencyDialogFixture.find(ideFrameFixture, "Add Module Dependency")
+    return AddModuleDependencyDialogFixture.find(robot(), "Add Module Dependency")
   }
 }

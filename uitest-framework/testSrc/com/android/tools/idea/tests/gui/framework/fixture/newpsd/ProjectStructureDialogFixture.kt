@@ -16,36 +16,40 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.structure.dialog.SidePanel
+import com.android.tools.idea.tests.gui.framework.DialogContainerFixture
 import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import org.fest.swing.core.Robot
-import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
 import java.awt.Container
 import javax.swing.JDialog
 
 class ProjectStructureDialogFixture(
-    override val container: JDialog,
-    override val ideFrameFixture: IdeFrameFixture
-) : IdeFrameContainerFixture, ContainerFixture<JDialog> {
+  val container: JDialog,
+  private val ideFrameFixture: IdeFrameFixture
+) : DialogContainerFixture {
 
+  private val robot = ideFrameFixture.robot().fixupWaiting()
   override fun target(): JDialog = container
-  override fun robot(): Robot = ideFrameFixture.robot()
+  override fun robot(): Robot = robot
 
-  fun clickOk(): IdeFrameFixture {
+  override fun maybeRestoreLostFocus() {
+    ideFrameFixture.requestFocusIfLost()
+  }
+
+  fun clickOk() {
     clickOkAndWaitDialogDisappear()
     // Changing the project structure can cause a Gradle build and Studio re-indexing.
-    return ideFrameFixture.waitForGradleProjectSyncToFinish().also { waitForIdle() }
+    waitForSyncToFinish()
   }
 
   fun clickOkExpectConfirmation(): ErrorsReviewConfirmationDialogFixture {
     GuiTests.findAndClickOkButton(this)
     // Changing the project structure can cause a Gradle build and Studio re-indexing.
-    return ErrorsReviewConfirmationDialogFixture.find(ideFrameFixture, "Problems Found")
+    return ErrorsReviewConfirmationDialogFixture.find(robot, "Problems Found")
   }
 
   fun clickCancel(): IdeFrameFixture {
@@ -53,10 +57,14 @@ class ProjectStructureDialogFixture(
     return ideFrameFixture
   }
 
-  fun clickOk(waitForSync: Wait): IdeFrameFixture {
+  fun clickOk(waitForSync: Wait) {
     clickOkAndWaitDialogDisappear()
     // Changing the project structure can cause a Gradle build and Studio re-indexing.
-    return ideFrameFixture.waitForGradleProjectSyncToFinish(waitForSync).also { waitForIdle() }
+    ideFrameFixture.waitForGradleProjectSyncToFinish(waitForSync).also { waitForIdle() }
+  }
+
+  fun waitForSyncToFinish() {
+    ideFrameFixture.waitForGradleProjectSyncToFinish().also { waitForIdle() }
   }
 
   fun selectConfigurable(viewName: String): ProjectStructureDialogFixture {
@@ -81,29 +89,27 @@ class ProjectStructureDialogFixture(
   }
 }
 
+private fun Robot.fixupWaiting() = ReliableRobot(this)
+
 fun IdeFrameFixture.openPsd(): ProjectStructureDialogFixture =
   openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
 
-internal fun <T> T.clickOkAndWaitDialogDisappear()
-  where T : IdeFrameContainerFixture, T : ContainerFixture<*> {
+internal fun DialogContainerFixture.clickOkAndWaitDialogDisappear() {
   GuiTests.findAndClickOkButton(this)
   waitForDialogToClose()
 }
 
-internal fun <T> T.clickCancelAndWaitDialogDisappear()
-  where T : IdeFrameContainerFixture, T : ContainerFixture<*> {
+internal fun DialogContainerFixture.clickCancelAndWaitDialogDisappear() {
   GuiTests.findAndClickCancelButton(this)
   waitForDialogToClose()
 }
 
-internal fun <T> T.clickButtonAndWaitDialogDisappear(text: String)
-  where T : IdeFrameContainerFixture, T : ContainerFixture<*> {
+internal fun DialogContainerFixture.clickButtonAndWaitDialogDisappear(text: String) {
   GuiTests.findAndClickButton(this, text)
   waitForDialogToClose()
 }
 
-fun <T> T.waitForDialogToClose()
-  where T : IdeFrameContainerFixture, T : ContainerFixture<*> {
+fun DialogContainerFixture.waitForDialogToClose() {
   Wait
     .seconds(10)
     .expecting("dialog to disappear")
