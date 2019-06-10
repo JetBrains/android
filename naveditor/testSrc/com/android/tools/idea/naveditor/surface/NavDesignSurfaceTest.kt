@@ -96,7 +96,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     StudioFlags.NELE_SPLIT_EDITOR.override(false)
     val model = model("nav.xml") { navigation() }
     val file = model.virtualFile
-    val fileEditorManager = FileEditorManagerImpl(project, DockManager.getInstance(project))
+    val fileEditorManager = FileEditorManagerImpl(project)
     (project as ComponentManagerImpl).registerComponentInstance(FileEditorManager::class.java, fileEditorManager)
 
     val editors = fileEditorManager.openFile(file, true)
