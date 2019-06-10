@@ -88,13 +88,11 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   }
 
   fun testJpsWithQualifiedNames() {
+    val srcPath = File(myFixture.testDataPath, toSystemDependentName(TestProjectPaths.JPS_WITH_QUALIFIED_NAMES))
     // Prepare project in a different directory (_jps) to avoid closing the currently opened project.
-    val projectPath =
-      AndroidGradleTests.prepareProjectForImportCore(
-        File(myFixture.testDataPath, toSystemDependentName(TestProjectPaths.JPS_WITH_QUALIFIED_NAMES)),
-        File(toSystemDependentName(project.basePath + "_jps")),
-        findSdkPath(),
-        { /* Do nothing. */ })
+    val projectPath = File(toSystemDependentName(project.basePath + "_jps"))
+
+    AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath, findSdkPath()) { /* Do nothing. */ }
 
     val project = ProjectUtil.openProject(projectPath.absolutePath, null, false)!!
     val text = project.dumpAndroidProjectView()
