@@ -19,7 +19,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.PluginPathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,7 +90,7 @@ public class WebpNativeLibHelper {
   public static String getLibName() {
     String baseName = SystemInfo.is64Bit ? "webp_jni64" : "webp_jni";
     String fileName = System.mapLibraryName(baseName);
-    if (SystemInfoRt.isMac) {
+    if (SystemInfo.isMac) {
       fileName = fileName.replace(".jnilib", ".dylib");
     }
     return fileName;
@@ -110,9 +110,9 @@ public class WebpNativeLibHelper {
   }
 
   private static String getPlatformName() {
-    if (SystemInfoRt.isWindows) return "win";
-    else if (SystemInfoRt.isMac) return "mac";
-    else if (SystemInfoRt.isLinux) return "linux";
+    if (SystemInfo.isWindows) return "win";
+    else if (SystemInfo.isMac) return "mac";
+    else if (SystemInfo.isLinux) return "linux";
     else return "";
   }
 }

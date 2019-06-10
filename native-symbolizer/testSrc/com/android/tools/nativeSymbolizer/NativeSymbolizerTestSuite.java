@@ -18,7 +18,7 @@ package com.android.tools.nativeSymbolizer;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.TestUtils;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -36,13 +36,13 @@ public class NativeSymbolizerTestSuite extends IdeaTestSuiteBase {
     symlinkToIdeaHome("tools/adt/idea/native-symbolizer/testData");
     String lldbPrebuiltDir = "";
 
-    if (SystemInfoRt.isLinux) {
+    if (SystemInfo.isLinux) {
       lldbPrebuiltDir = "prebuilts/tools/linux-x86_64/lldb";
     }
-    else if (SystemInfoRt.isMac) {
+    else if (SystemInfo.isMac) {
       lldbPrebuiltDir = "prebuilts/tools/darwin-x86_64/lldb";
     }
-    else if (SystemInfoRt.isWindows) {
+    else if (SystemInfo.isWindows) {
       lldbPrebuiltDir = "prebuilts/tools/windows-x86_64/lldb";
     }
     symlinkToIdeaHome(lldbPrebuiltDir, "tools/idea/bin/lldb/");

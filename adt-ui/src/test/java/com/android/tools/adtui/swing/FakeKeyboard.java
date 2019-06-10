@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.swing;
 
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -31,7 +31,7 @@ import java.util.List;
  * Do not instantiate directly - use {@link FakeUi#keyboard} instead.
  */
 public final class FakeKeyboard {
-  public static final Key MENU_KEY = SystemInfoRt.isMac ? Key.META : Key.CTRL;
+  public static final Key MENU_KEY = SystemInfo.isMac ? Key.META : Key.CTRL;
 
   private final List<Key> myPressedKeys = new ArrayList<>();
   @Nullable private Component myFocus;

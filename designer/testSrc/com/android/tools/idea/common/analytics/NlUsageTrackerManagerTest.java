@@ -43,7 +43,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.*;
 import com.intellij.mock.MockModule;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
@@ -130,7 +130,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     LayoutEditorState state = studioEvent.getLayoutEditorEvent().getState();
     assertEquals(LayoutEditorState.Type.LAYOUT, state.getType());
     assertEquals(LayoutEditorState.Surfaces.BOTH, state.getSurfaces());
-    assertEquals(SystemInfoRt.isMac && UIUtil.isRetina() ? 100 : 50, state.getConfigZoomLevel());
+    assertEquals(SystemInfo.isMac && UIUtil.isRetina() ? 100 : 50, state.getConfigZoomLevel());
     assertEquals("mock", state.getConfigApiLevel());
     assertEquals(LayoutEditorState.Orientation.PORTRAIT, state.getConfigOrientation());
     usageTracker.getUsages().clear();

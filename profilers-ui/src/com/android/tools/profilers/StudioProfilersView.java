@@ -41,7 +41,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.openapi.wm.IdeGlassPaneUtil;
@@ -73,7 +73,7 @@ import static java.awt.event.InputEvent.META_DOWN_MASK;
 public class StudioProfilersView extends AspectObserver implements Disposable {
   private final static String LOADING_VIEW_CARD = "LoadingViewCard";
   private final static String STAGE_VIEW_CARD = "StageViewCard";
-  private static final int SHORTCUT_MODIFIER_MASK_NUMBER = SystemInfoRt.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
+  private static final int SHORTCUT_MODIFIER_MASK_NUMBER = SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
   @NotNull public static final String ATTACH_LIVE = "Attach to live";
   @NotNull public static final String DETACH_LIVE = "Detach live";
   @NotNull public static final String ZOOM_IN = "Zoom in";
