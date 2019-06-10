@@ -34,7 +34,6 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Set;
 
@@ -99,7 +98,10 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   }
 
   @Override
-  protected void updateVersionAndDependencies(@NotNull File file) throws IOException {
+  protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
+    // We need the wrapper for import to succeed
+    createGradleWrapper(projectRoot);
+
     //Update build.gradle in root directory
     updateBuildFile();
 

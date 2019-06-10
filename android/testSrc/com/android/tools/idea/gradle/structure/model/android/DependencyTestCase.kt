@@ -26,7 +26,10 @@ import org.jetbrains.android.AndroidTestBase
 import java.io.File
 
 abstract class DependencyTestCase : AndroidGradleTestCase() {
-  override fun updateVersionAndDependencies(projectRoot: File) {
+  override fun patchPreparedProject(projectRoot: File) {
+    // We need the wrapper for import to succeed
+    createGradleWrapper(projectRoot)
+
     val localRepositories = getLocalRepositoriesForGroovy()
     val testRepositoryPath = File(AndroidTestBase.getTestDataPath(), toSystemDependentName(PSD_SAMPLE_REPO)).absolutePath!!
     val repositories = """
