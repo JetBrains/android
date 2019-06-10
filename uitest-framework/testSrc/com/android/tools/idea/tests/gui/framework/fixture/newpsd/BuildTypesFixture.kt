@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import org.fest.swing.core.Robot
 import java.awt.Container
 
 open class BuildTypesFixture constructor(
-  override val ideFrameFixture: IdeFrameFixture,
-  override val container: Container
+  val robot: Robot,
+  val container: Container
 ) : ConfigPanelFixture() {
+
+  override fun target(): Container = container
+  override fun robot(): Robot = robot
 
   fun clickAdd(): InputNameDialogFixture {
     clickToolButton("Add Build Type")
-    return InputNameDialogFixture.find(ideFrameFixture, "Create New Build Type") {
+    return InputNameDialogFixture.find(robot, "Create New Build Type") {
       Thread.sleep(500) // MasterDetailsComponent has up to 500ms delay before acting on selection change.
       waitForIdle()
     }
