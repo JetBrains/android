@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions.license;
 
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.AndroidTestBase;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ public class LicenseTextCollectorTest {
       "------------ License file: plugins/android/lib/licenses/antlr4-runtime-4.5.3.jar-NOTICE------------<br><br>antlr4<br><br>" +
       "------------ License file: plugins/android/lib/licenses/asm-5.0.3-NOTICE------------<br><br>asm5<br><br>";
 
-    if (SystemInfoRt.isWindows) {
+    if (SystemInfo.isWindows) {
       expected = expected.replace('/', '\\');
     }
 

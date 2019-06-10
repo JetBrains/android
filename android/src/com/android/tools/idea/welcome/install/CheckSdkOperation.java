@@ -24,7 +24,7 @@ import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +44,7 @@ public class CheckSdkOperation extends InstallOperation<File, File> {
   private static final String ERROR_CANT_RUN_TOOL;
   private static final String URL_MISSING_LIBRARIES = "https://developer.android.com/studio/troubleshoot.html#linux-libraries";
   private static final String LINK_MISSING_LIBRARIES = "Show Android SDK web page";
-  private static final String TOOL_NAME = "mksdcard" + (SystemInfoRt.isWindows ? ".exe" : "");
+  private static final String TOOL_NAME = "mksdcard" + (SystemInfo.isWindows ? ".exe" : "");
 
   static {
     ERROR_CANT_RUN_TOOL = "Unable to run " + TOOL_NAME + " SDK tool.";
@@ -56,7 +56,7 @@ public class CheckSdkOperation extends InstallOperation<File, File> {
   }
 
   private static Iterable<?> getUnableToRunMessage() {
-    boolean isLinux64 = SystemInfoRt.isLinux && SystemInfo.is64Bit;
+    boolean isLinux64 = SystemInfo.isLinux && SystemInfo.is64Bit;
 
     String likelyReason = isLinux64
                           ? "One common reason for this is missing 32 bit compatibility libraries."
@@ -84,7 +84,7 @@ public class CheckSdkOperation extends InstallOperation<File, File> {
       return true;
     }
     else {
-      return SystemInfoRt.isUnix && executable.setExecutable(true);
+      return SystemInfo.isUnix && executable.setExecutable(true);
     }
   }
 

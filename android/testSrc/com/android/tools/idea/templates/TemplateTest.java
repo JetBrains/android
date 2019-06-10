@@ -63,7 +63,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -174,7 +174,7 @@ public class TemplateTest extends AndroidGradleTestCase {
    */
   private static boolean isBroken(@NotNull String templateName) {
     // See http://b.android.com/253296
-    if (SystemInfoRt.isWindows) {
+    if (SystemInfo.isWindows) {
       if ("AidlFile".equals(templateName)) return true;
     }
     if ("WatchFaceService".equals(templateName)) return true; // See https://b.corp.google.com/issues/65062154
@@ -1498,7 +1498,7 @@ public class TemplateTest extends AndroidGradleTestCase {
         // Windows work-around: After closing the gradle connection, it's possible that some files (eg local.properties) are locked
         // for a bit of time. It is also possible that there are Virtual Files that are still syncronizing to the File System, this will
         // break tear-down, when it tries to delete the project.
-        if (SystemInfoRt.isWindows) {
+        if (SystemInfo.isWindows) {
           System.out.println("Windows: Attempting to delete project Root - " + projectRoot);
           new WaitFor(60000) {
             @Override
@@ -1535,7 +1535,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   private static String getModifiedProjectName(@NotNull String projectName, @Nullable TestTemplateWizardState activityState) {
-    if (SystemInfoRt.isWindows) {
+    if (SystemInfo.isWindows) {
       return "app";
     }
 

@@ -19,7 +19,7 @@ import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.StartupUiUtil;
@@ -141,7 +141,7 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return !SystemInfoRt.isLinux &&
+    return !SystemInfo.isLinux &&
            Boolean.TRUE.equals(myState.get(myKeyCustomInstall)) &&
            !Boolean.FALSE.equals(myState.get(myKeyInstallHaxm));
   }

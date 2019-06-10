@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.project;
 
 
 import com.android.SdkConstants;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +40,7 @@ public class AndroidGradleUtilsTest {
 
   @Test
   public void gradleWrapperExecutable() throws IOException {
-    Assume.assumeTrue(SystemInfoRt.isUnix);
+    Assume.assumeTrue(SystemInfo.isUnix);
 
     File basePath = myFolder.newFolder();
     File gradleFile = new File(basePath, SdkConstants.FN_GRADLE_WRAPPER_UNIX);
@@ -53,7 +53,7 @@ public class AndroidGradleUtilsTest {
 
   @Test
   public void gradleWrapperExecutableNoFile() throws IOException{
-    Assume.assumeTrue(SystemInfoRt.isUnix);
+    Assume.assumeTrue(SystemInfo.isUnix);
 
     try {
       File missingDir = new File(myFolder.getRoot(), "missing");
