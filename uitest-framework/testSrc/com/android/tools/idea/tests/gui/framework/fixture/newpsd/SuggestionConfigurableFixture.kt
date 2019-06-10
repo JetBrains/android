@@ -18,10 +18,9 @@ package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 import com.android.tools.idea.gradle.structure.configurables.suggestions.AndroidModuleSuggestionsConfigurable
 import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.finder
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher
-import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.ui.components.JBLabel
+import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JLabelFixture
 import org.fest.swing.timing.Wait
@@ -31,15 +30,15 @@ import javax.swing.JPanel
 import javax.swing.border.TitledBorder
 
 open class SuggestionConfigurableFixture(
-    val dialog: JDialog,
-    ideFrameFixture: IdeFrameFixture,
-    container: Container
-) : BasePerspectiveConfigurableFixture(ideFrameFixture, container) {
+  val dialog: JDialog,
+  robot: Robot,
+  container: Container
+) : BasePerspectiveConfigurableFixture(robot, container) {
 
   private fun suggestionGroups() =
       finder()
           .findAll(container, matcher<JPanel> { isMessageGroup(it) })
-          .map { SuggestionGroupFixture(dialog, ideFrameFixture, it) }
+        .map { SuggestionGroupFixture(dialog, robot(), it) }
 
   fun noSuggestionsLabel(): JLabelFixture =
       JLabelFixture(robot(), finder().findByType(container, JBLabel::class.java, false))
@@ -88,8 +87,8 @@ fun ProjectStructureDialogFixture.selectSuggestionsConfigurable(): SuggestionCon
 
 fun ProjectStructureDialogFixture.findSuggestionsConfigurable(): SuggestionConfigurableFixture {
   return SuggestionConfigurableFixture(
-      container,
-      ideFrameFixture,
-      findConfigurable(AndroidModuleSuggestionsConfigurable.SUGGESTIONS_VIEW))
+    container,
+    robot(),
+    findConfigurable(AndroidModuleSuggestionsConfigurable.SUGGESTIONS_VIEW))
 }
 

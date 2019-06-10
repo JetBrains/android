@@ -15,38 +15,30 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
-import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.findByType
-import com.android.tools.idea.tests.gui.framework.matcher
-import com.android.tools.idea.tests.gui.framework.robot
-import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.ui.components.JBList
 import com.intellij.ui.treeStructure.Tree
-import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.edt.GuiQuery
+import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JTreeFixture
 import java.awt.Container
 import javax.swing.JComponent
 import javax.swing.JTree
 
 abstract class ConfigPanelFixture protected constructor(
-) : IdeFrameContainerFixture {
+) : ContainerFixture<Container> {
 
   protected fun findEditor(label: String): PropertyEditorFixture {
-    val component = robot().finder().findByLabel<JComponent>(container, label, JComponent::class.java, false)
+    val component = robot().finder().findByLabel<JComponent>(target(), label, JComponent::class.java, false)
     GuiQuery.get {
       val checkBoxRect = component.bounds
       component.scrollRectToVisible(checkBoxRect)
     }
-    return PropertyEditorFixture(ideFrameFixture, component)
+    return PropertyEditorFixture(robot(), component)
   }
 
   fun selectItemByPath(path: String) {
-    val tree = JTreeFixture(robot(), robot().finder().findByType<JTree>(container))
+    val tree = JTreeFixture(robot(), robot().finder().findByType<JTree>(target()))
     tree.selectPath(path)
-    waitForIdle()
   }
 }
 
@@ -54,7 +46,7 @@ abstract class ConfigPanelFixture protected constructor(
  * Returns the text of all the items in the tree. Nested items are prefixed with '-'.
  */
 fun ConfigPanelFixture.items(): List<String> =
-  JTreeFixture(robot(), robot().finder().findByType<Tree>(container)).items()
+  JTreeFixture(robot(), robot().finder().findByType<Tree>(target())).items()
 
 private fun JTreeFixture.items(): List<String> {
   val treeModel = target().model
