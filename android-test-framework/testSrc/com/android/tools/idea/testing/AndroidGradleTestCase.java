@@ -291,9 +291,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return projectRoot;
   }
 
-  private void prepareProjectForImport(@NotNull File srcRoot,
-                                       @NotNull File projectRoot,
-                                       ThrowableConsumer<File, IOException> projectPatcher) throws IOException {
+  private static void prepareProjectForImport(@NotNull File srcRoot,
+                                              @NotNull File projectRoot,
+                                              ThrowableConsumer<File, IOException> projectPatcher) throws IOException {
     File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
     File build = new File(srcRoot, FN_BUILD_GRADLE);
     File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
@@ -301,10 +301,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     assertTrue("Couldn't find build.gradle(.kts) or settings.gradle(.kts) in " + srcRoot.getPath(),
                settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
 
-    AndroidGradleTests.prepareProjectForImportCore(srcRoot, projectRoot, findSdkPath(), projectPatcher);
+    AndroidGradleTests.prepareProjectForImportCore(srcRoot, projectRoot, projectPatcher);
   }
 
-  protected static void defaultPatchPreparedProject(@NotNull File projectRoot) throws IOException {
+  protected final void defaultPatchPreparedProject(@NotNull File projectRoot) throws IOException {
+
+    // Override settings just for tests (e.g. sdk.dir)
+    AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
     // We need the wrapper for import to succeed
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
 
