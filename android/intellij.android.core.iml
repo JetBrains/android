@@ -38,7 +38,6 @@
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="intellij.groovy" />
-    <orderEntry type="module" module-name="android.sdktools.perflib" />
     <orderEntry type="library" name="swingx" level="project" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.properties.psi" />
@@ -249,5 +248,33 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
+    <orderEntry type="library" name="org.jetbrains.intellij.deps.android.tools:perflib" level="project" />
+    <orderEntry type="module-library" scope="RUNTIME">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/d8-master.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="RUNTIME">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/libdeploy_java_proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="RUNTIME">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/libjava_version.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
