@@ -51,7 +51,7 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.lint:lint-api" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools:sdklib" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="org.jetbrains.intellij.deps.android.tools:layoutInspector" level="project" />
+    <orderEntry type="library" scope="TEST" name="org.jetbrains.intellij.deps.android.tools:perf-logger-tests" level="project" />
   </component>
 </module>
