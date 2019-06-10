@@ -20,10 +20,21 @@
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="com.android.tools.analytics-library:tracker" level="project" />
     <orderEntry type="library" name="com.android.tools.analytics-library:protos" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.usb-devices" />
     <orderEntry type="library" name="com.android.tools:annotations" level="project" />
     <orderEntry type="library" name="com.android.tools:common" level="project" />
     <orderEntry type="library" name="com.android.tools.ddms:ddmlib" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="module-library">
+      <library name="org.jetbrains.intellij.deps.android.tools:usb-devices" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:usb-devices:26.3.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/usb-devices/26.3.0/usb-devices-26.3.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/usb-devices/26.3.0/usb-devices-26.3.0-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>
