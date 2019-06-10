@@ -92,6 +92,14 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       status.setErrorMessage("StopProfilingApp error");
     }
     myStartStopCapturingSession = request.getSession();
+    // Sleep for 1 ms to make sure CpuProfilerStageTest.cpuMetadataSuccessfulCapture() tracks a stopping time
+    // longer than 0 ms.
+    try {
+      Thread.sleep(1);
+    }
+    catch (InterruptedException e) { // ignore
+    }
+
 
     response.setStatus(status.build());
     responseObserver.onNext(response.build());
