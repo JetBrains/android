@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.DOT_GRADLE;
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy;
@@ -93,12 +92,9 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
 
   @Override
   protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
+    // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
+    updateVersionAndDependencies(projectRoot);
     AndroidGradleTests.createGradleWrapper(projectRoot, myTestSettings.gradleVersion);
-  }
-
-  @Override
-  protected void createGradleWrapper(@NotNull File projectRoot) {
-    // Do not create the Gradle wrapper automatically. Let each test method create it with the version of Gradle needed.
   }
 
   @Override
