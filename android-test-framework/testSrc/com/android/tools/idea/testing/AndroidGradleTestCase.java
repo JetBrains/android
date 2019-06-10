@@ -288,9 +288,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return projectRoot;
   }
 
-  @NotNull
-  protected final File prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
-    return AndroidGradleTests.prepareProjectForImportCore(
+  private void prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
+    AndroidGradleTests.prepareProjectForImportCore(
       srcRoot, projectRoot, findSdkPath(), () -> {
         File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
         File build = new File(srcRoot, FN_BUILD_GRADLE);

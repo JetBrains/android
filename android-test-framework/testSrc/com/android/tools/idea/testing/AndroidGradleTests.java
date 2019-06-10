@@ -418,8 +418,7 @@ public class AndroidGradleTests {
     AndroidTestBase.refreshProjectFiles();
   }
 
-  @NotNull
-  public static File prepareProjectForImportCore(@NotNull File srcRoot,
+  public static void prepareProjectForImportCore(@NotNull File srcRoot,
                                                  @NotNull File projectRoot,
                                                  @NotNull File sdkPath,
                                                  @NotNull ThrowableRunnable<IOException> patcher)
@@ -436,6 +435,5 @@ public class AndroidGradleTests {
     // Refresh project dir to have files under of the project.getBaseDir() visible to VFS.
     // Do it in a slower but reliable way.
     VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectRoot, true));
-    return projectRoot;
   }
 }
