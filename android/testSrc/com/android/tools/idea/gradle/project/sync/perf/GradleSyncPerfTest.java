@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -100,7 +101,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   @Override
   protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
     // We need the wrapper for import to succeed
-    createGradleWrapper(projectRoot);
+    AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
 
     //Update build.gradle in root directory
     updateBuildFile();
