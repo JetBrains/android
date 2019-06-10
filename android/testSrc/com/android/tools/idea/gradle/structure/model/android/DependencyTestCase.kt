@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.AndroidGradleTests.createGradleWrapper
 import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_REPO
 import com.intellij.util.PathUtil.toSystemDependentName
@@ -28,7 +30,7 @@ import java.io.File
 abstract class DependencyTestCase : AndroidGradleTestCase() {
   override fun patchPreparedProject(projectRoot: File) {
     // We need the wrapper for import to succeed
-    createGradleWrapper(projectRoot)
+    createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION)
 
     val localRepositories = getLocalRepositoriesForGroovy()
     val testRepositoryPath = File(AndroidTestBase.getTestDataPath(), toSystemDependentName(PSD_SAMPLE_REPO)).absolutePath!!
