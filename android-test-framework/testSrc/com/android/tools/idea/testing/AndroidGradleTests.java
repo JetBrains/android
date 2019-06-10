@@ -419,15 +419,11 @@ public class AndroidGradleTests {
 
   public static void prepareProjectForImportCore(@NotNull File srcRoot,
                                                  @NotNull File projectRoot,
-                                                 @NotNull File sdkPath,
                                                  @NotNull ThrowableConsumer<File, IOException> patcher)
     throws IOException {
     TestCase.assertTrue(srcRoot.getPath(), srcRoot.exists());
 
     copyDir(srcRoot, projectRoot);
-
-    // Override settings just for tests (e.g. sdk.dir)
-    updateLocalProperties(projectRoot, sdkPath);
 
     patcher.consume(projectRoot);
 
