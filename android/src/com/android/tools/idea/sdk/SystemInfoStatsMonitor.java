@@ -37,7 +37,7 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -138,7 +138,7 @@ public class SystemInfoStatsMonitor {
       mySdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     }
 
-    if (SystemInfoRt.isWindows) {
+    if (SystemInfo.isWindows) {
       updateHyperVState();
     }
     updateCpuInfo();

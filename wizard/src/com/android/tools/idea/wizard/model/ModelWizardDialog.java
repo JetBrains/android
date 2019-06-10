@@ -32,7 +32,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -184,14 +184,14 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     getHelpAction().setEnabled(myHelpUrl != null);
 
     if (myHelpUrl == null) {
-      if (SystemInfoRt.isMac) {
+      if (SystemInfo.isMac) {
         return new Action[]{cancelAction, prevAction, nextAction, finishAction};
       }
 
       return new Action[]{prevAction, nextAction, cancelAction, finishAction};
     }
     else {
-      if (SystemInfoRt.isMac) {
+      if (SystemInfo.isMac) {
         return new Action[]{getHelpAction(), cancelAction, prevAction, nextAction, finishAction};
       }
       return new Action[]{prevAction, nextAction, cancelAction, finishAction, getHelpAction()};

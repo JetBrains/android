@@ -12,7 +12,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +37,7 @@ public class IdeaITNProxy {
       params.add(Pair.create("user.password", password));
     }
 
-    params.add(Pair.create("os.name", SystemInfoRt.OS_NAME));
+    params.add(Pair.create("os.name", SystemInfo.OS_NAME));
     params.add(Pair.create("java.version", SystemInfo.JAVA_VERSION));
     params.add(Pair.create("java.vm.vendor", SystemInfo.JAVA_VENDOR));
 

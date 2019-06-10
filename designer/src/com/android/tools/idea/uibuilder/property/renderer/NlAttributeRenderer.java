@@ -22,7 +22,7 @@ import com.android.tools.adtui.ptable.PTableCellRenderer;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
 import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -36,7 +36,7 @@ public abstract class NlAttributeRenderer extends PTableCellRenderer {
 
   public NlAttributeRenderer() {
     myBrowsePanel = new BrowsePanel();
-    myPanel = new AdtSecondaryPanel(new BorderLayout(SystemInfoRt.isMac ? 0 : 2, 0));
+    myPanel = new AdtSecondaryPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
     myPanel.add(this, BorderLayout.CENTER);
     myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
   }
