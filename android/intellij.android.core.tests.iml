@@ -137,6 +137,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="org.jetbrains.intellij.deps.android.tools:perf-logger-tests" level="project" />
+    <orderEntry type="library" scope="TEST" name="org.jetbrains.intellij.deps.android.tools:perf-logger-tests" level="project" />
   </component>
 </module>
