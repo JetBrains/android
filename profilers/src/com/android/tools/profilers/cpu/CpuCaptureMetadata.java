@@ -127,6 +127,11 @@ public class CpuCaptureMetadata {
   private long myParsingTimeMs;
 
   /**
+   * How much time (in milliseconds) taken to stop the recording.
+   */
+  private int myStoppingTimeMs;
+
+  /**
    * {@link ProfilingConfiguration} used to start the capture.
    */
   private @NotNull ProfilingConfiguration myProfilingConfiguration;
@@ -157,6 +162,14 @@ public class CpuCaptureMetadata {
 
   public void setCaptureDurationMs(long captureDurationMs) {
     myCaptureDurationMs = captureDurationMs;
+  }
+
+  public int getStoppingTimeMs() {
+    return myStoppingTimeMs;
+  }
+
+  public void setStoppingTimeMs(int stoppingTimeMs) {
+    myStoppingTimeMs = stoppingTimeMs;
   }
 
   public long getParsingTimeMs() {
