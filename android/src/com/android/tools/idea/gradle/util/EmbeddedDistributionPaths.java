@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.download.AndroidProfilerDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -187,7 +187,7 @@ public class EmbeddedDistributionPaths {
   public File getEmbeddedJdkPath() {
     String ideHomePath = getIdeHomePath();
 
-    File jdkRootPath = new File(ideHomePath, SystemInfoRt.isMac ? join("jre", "jdk") : "jre");
+    File jdkRootPath = new File(ideHomePath, SystemInfo.isMac ? join("jre", "jdk") : "jre");
     if (jdkRootPath.isDirectory()) {
       // Release build.
       return getSystemSpecificJdkPath(jdkRootPath);
@@ -204,13 +204,13 @@ public class EmbeddedDistributionPaths {
     String jdkDevPath = System.getProperty("studio.dev.jdk", ideHomePath + "/../../prebuilts/studio/jdk");
     String relativePath = toSystemDependentName(jdkDevPath);
     jdkRootPath = new File(toCanonicalPath(relativePath));
-    if (SystemInfoRt.isWindows) {
+    if (SystemInfo.isWindows) {
       jdkRootPath = new File(jdkRootPath, "win64");
     }
-    else if (SystemInfoRt.isLinux) {
+    else if (SystemInfo.isLinux) {
       jdkRootPath = new File(jdkRootPath, "linux");
     }
-    else if (SystemInfoRt.isMac) {
+    else if (SystemInfo.isMac) {
       jdkRootPath = new File(jdkRootPath, "mac");
     }
     return getSystemSpecificJdkPath(jdkRootPath);
@@ -218,7 +218,7 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   private static File getSystemSpecificJdkPath(File jdkRootPath) {
-    if (SystemInfoRt.isMac) {
+    if (SystemInfo.isMac) {
       jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
     }
     if (!jdkRootPath.isDirectory()) {

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.TreeBuilderSpeedSearch;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -61,11 +61,11 @@ public final class UiUtil {
   }
 
   public static boolean isMetaOrCtrlKeyPressed(@NotNull KeyEvent e) {
-    return e.getKeyCode() == (SystemInfoRt.isMac ? VK_META : VK_CONTROL);
+    return e.getKeyCode() == (SystemInfo.isMac ? VK_META : VK_CONTROL);
   }
 
   public static boolean isMetaOrCtrlKeyPressed(@NotNull MouseEvent e) {
     int modifiers = e.getModifiers();
-    return isSet(modifiers, SystemInfoRt.isMac ? META_MASK : CTRL_MASK);
+    return isSet(modifiers, SystemInfo.isMac ? META_MASK : CTRL_MASK);
   }
 }

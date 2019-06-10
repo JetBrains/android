@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import org.mockito.Mock;
 
 import java.awt.*;
@@ -199,7 +199,7 @@ public class MockupTest extends MockupTestCase {
   }
 
   public void testFilePathRelative() {
-    if (SystemInfoRt.isWindows) {
+    if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }

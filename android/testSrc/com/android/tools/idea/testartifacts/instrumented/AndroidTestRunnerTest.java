@@ -29,7 +29,7 @@ import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.execution.process.NopProcessHandler;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -45,7 +45,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
   @Override
   protected boolean shouldRunTest() {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    return !SystemInfoRt.isWindows && super.shouldRunTest();
+    return !SystemInfo.isWindows && super.shouldRunTest();
   }
 
   public void testRunnerComponentsHiddenWhenGradleProject() throws Exception {

@@ -35,7 +35,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PsiNavigationSupport;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
@@ -420,7 +420,7 @@ public class InteractionManager {
         mySurface.getActionManager().showPopup(event, selected);
         return;
       }
-      else if (event.getButton() > 1 || SystemInfoRt.isMac && event.isControlDown()) {
+      else if (event.getButton() > 1 || SystemInfo.isMac && event.isControlDown()) {
         // mouse release from a popup click (the popup menu was posted on
         // the mousePressed event
         return;
@@ -894,7 +894,7 @@ public class InteractionManager {
       // If some scrolling imprecision happens for other scroll interaction, it might be good
       // to do the filtering at a higher level
       if (!e.isShiftDown()
-          && (SystemInfoRt.isMac && e.isMetaDown()
+          && (SystemInfo.isMac && e.isMetaDown()
               || e.isControlDown())) {
         if (scrollAmount < 0) {
           mySurface.zoom(ZoomType.IN, x, y);
@@ -973,7 +973,7 @@ public class InteractionManager {
    */
   boolean interceptPanInteraction(@NotNull MouseEvent event, int x, int y) {
     int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
-                          (SystemInfoRt.isMac ? InputEvent.META_DOWN_MASK
+                          (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
                                               : InputEvent.CTRL_DOWN_MASK);
     if (myIsPanning
         || (event.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0

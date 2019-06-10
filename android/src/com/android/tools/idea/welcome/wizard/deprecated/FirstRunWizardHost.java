@@ -32,7 +32,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.OptionAction;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.IdeBorderFactory;
@@ -86,7 +86,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   private static void setMargin(JButton button) {
     // Aqua LnF does a good job of setting proper margin between buttons. Setting them specifically causes them be 'square' style instead of
     // 'rounded', which is expected by apple users.
-    if (!SystemInfoRt.isMac && BUTTON_MARGINS != null) {
+    if (!SystemInfo.isMac && BUTTON_MARGINS != null) {
       button.setMargin(BUTTON_MARGINS);
     }
   }
@@ -254,7 +254,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   }
 
   private Action[] createActions() {
-    if (SystemInfoRt.isMac) {
+    if (SystemInfo.isMac) {
       return new Action[]{myCancelAction, myPreviousAction, myNextAction, myFinishAction};
     }
     else {
@@ -305,7 +305,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
     JButton button = new JButton(action);
     String text = button.getText();
 
-    if (SystemInfoRt.isMac) {
+    if (SystemInfo.isMac) {
       button.putClientProperty("JButton.buttonType", "text");
     }
 

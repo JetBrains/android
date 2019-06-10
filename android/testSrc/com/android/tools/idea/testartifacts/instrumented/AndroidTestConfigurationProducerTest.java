@@ -17,7 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.io.Files;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 
@@ -36,7 +36,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
   @Override
   protected boolean shouldRunTest() {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    return !SystemInfoRt.isWindows && super.shouldRunTest();
+    return !SystemInfo.isWindows && super.shouldRunTest();
   }
 
   public void testCanCreateAndroidTestConfigurationFromAndroidTestClass() throws Exception {
