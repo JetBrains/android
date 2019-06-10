@@ -27,7 +27,6 @@ import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -305,15 +304,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     AndroidGradleTests.prepareProjectForImportCore(srcRoot, projectRoot, findSdkPath(), projectPatcher);
   }
 
-  protected final void defaultPatchPreparedProject(@NotNull File projectRoot) throws IOException {
+  protected static void defaultPatchPreparedProject(@NotNull File projectRoot) throws IOException {
     // We need the wrapper for import to succeed
-    createGradleWrapper(projectRoot);
+    AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
 
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    updateVersionAndDependencies(projectRoot);
-  }
-
-  protected final void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
     AndroidGradleTests.updateGradleVersions(projectRoot);
   }
 

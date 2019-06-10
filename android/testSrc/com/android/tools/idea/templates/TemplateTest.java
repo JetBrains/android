@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.SdkConstants.FD_TEMPLATES;
 import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
@@ -66,7 +67,6 @@ import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
@@ -1588,7 +1588,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     // Update to latest plugin / gradle and sync model
     File projectRoot = new File(moduleState.getString(ATTR_TOP_OUT));
     assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
-    createGradleWrapper(projectRoot);
+    AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
 
     File gradleFile = new File(projectRoot, SdkConstants.FN_BUILD_GRADLE);
     String origContent = com.google.common.io.Files.toString(gradleFile, UTF_8);
