@@ -92,15 +92,9 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
 
   @Override
   protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
-    // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    updateVersionAndDependencies(projectRoot);
-    AndroidGradleTests.createGradleWrapper(projectRoot, myTestSettings.gradleVersion);
-  }
-
-  @Override
-  protected void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
     // In this overriden version we don't update versions of the Android plugin and use the one specified in the test project.
     updateVersionAndDependencies(projectRoot, getLocalRepositoriesForGroovy());
+    AndroidGradleTests.createGradleWrapper(projectRoot, myTestSettings.gradleVersion);
   }
 
   private static void resetActivityMain(@NotNull File path) throws IOException {

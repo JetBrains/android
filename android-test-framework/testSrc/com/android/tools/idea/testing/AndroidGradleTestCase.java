@@ -313,7 +313,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     updateVersionAndDependencies(projectRoot);
   }
 
-  protected void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
+  protected final void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
     AndroidGradleTests.updateGradleVersions(projectRoot);
   }
 
