@@ -92,7 +92,10 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     // Prepare project in a different directory (_jps) to avoid closing the currently opened project.
     val projectPath = File(toSystemDependentName(project.basePath + "_jps"))
 
-    AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath, findSdkPath()) { /* Do nothing. */ }
+    AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
+      // Override settings just for tests (e.g. sdk.dir)
+      AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath())
+    }
 
     val project = ProjectUtil.openProject(projectPath.absolutePath, null, false)!!
     val text = project.dumpAndroidProjectView()
