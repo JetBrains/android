@@ -66,8 +66,6 @@ class TargetAndroidArtifactNode internal constructor(
 
   override fun getText(): String = name
 
-  override fun customize(renderer: HtmlListCellRenderer<*>) {}
-
   override fun customize(component: SimpleColoredComponent) {
     if (!isEmpty(myVersion)) {
       component.append(" ")
