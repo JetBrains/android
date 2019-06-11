@@ -18,8 +18,6 @@ package com.android.tools.idea.res.binding;
 import static com.android.SdkConstants.TAG_LAYOUT;
 
 import com.android.ide.common.resources.DataBindingResourceType;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.res.binding.MergedBindingLayoutInfo;
 import com.android.tools.idea.res.PsiResourceFile;
@@ -33,12 +31,14 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * Binding info for a single, target layout XML file.
@@ -191,31 +191,6 @@ public class DefaultBindingLayoutInfo implements BindingLayoutInfo {
   public Map<String, PsiDataBindingResourceItem> getItems(@NotNull DataBindingResourceType type) {
     Map<String, PsiDataBindingResourceItem> itemsByName = myItems.get(type);
     return itemsByName == null ? Collections.emptyMap() : itemsByName;
-  }
-
-  @Override
-  @NotNull
-  public List<ViewWithId> getViewsWithIds() {
-    List<ViewWithId> result = new ArrayList<>();
-    for (ResourceItem item : myPsiResourceFile) {
-      if (!ResourceType.ID.equals(item.getType())) {
-        continue;
-      }
-      if (!(item instanceof PsiResourceItem)) {
-        continue;
-      }
-      PsiResourceItem psiResourceItem = (PsiResourceItem)item;
-      XmlTag tag = psiResourceItem.getTag();
-      if (tag == null) {
-        continue;
-      }
-      String name = item.getName();
-      if (StringUtil.isEmpty(name)) {
-        continue;
-      }
-      result.add(new ViewWithId(DataBindingUtil.convertToJavaFieldName(name.trim()), tag));
-    }
-    return result;
   }
 
   @Override

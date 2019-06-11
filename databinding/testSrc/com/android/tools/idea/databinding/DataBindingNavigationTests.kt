@@ -118,6 +118,41 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       }
       catch (ignored: IncorrectOperationException) {}
     }
+  }
 
+  @Test
+  fun canNavigateToXmlFromGeneratedViewFieldInLightClass() {
+    fixture.addFileToProject("res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="strValue" type="String"/>
+          <variable name="intValue" type="Integer"/>
+        </data>
+        <LinearLayout
+            android:id="@+id/test_id"
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+          </LinearLayout>
+      </layout>
+    """.trimIndent())
+
+    val editors = FileEditorManager.getInstance(fixture.project)
+    assertThat(editors.selectedFiles).isEmpty()
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding") as LightBindingClass
+    val field = binding.fields[0]
+    field.navigate(true)
+    assertThat(editors.selectedFiles[0].name).isEqualTo("activity_main.xml")
+    fixture.openFileInEditor(editors.selectedFiles[0])
+    val element = fixture.file.findElementAt(fixture.editor.caretModel.offset)
+    assertThat(element!!.parent.text).isEqualTo("""
+      <LinearLayout
+            android:id="@+id/test_id"
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+          </LinearLayout>
+    """.trimIndent())
   }
 }
