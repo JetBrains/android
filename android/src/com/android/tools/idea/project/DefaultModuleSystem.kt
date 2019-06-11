@@ -163,4 +163,7 @@ class DefaultModuleSystem(val module: Module) :
   override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
     return CapabilityNotSupported()
   }
+
+  override fun getModuleWithDependenciesAndLibrariesScope(includeTests: Boolean) = module.getModuleWithDependenciesAndLibrariesScope(
+    includeTests)
 }
