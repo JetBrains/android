@@ -85,7 +85,7 @@ class PsAndroidModule(
     flavorDimensionCollection?.refresh()
     productFlavorCollection?.refresh()
     resolvedVariantCollection?.refresh()
-    dependencyCollection = null
+    dependencyCollection?.refresh()
     signingConfigCollection?.refresh()
   }
 
@@ -354,6 +354,6 @@ class PsAndroidModule(
   }
 
   private fun resetDeclaredDependencies() {
-    dependencyCollection = null
+    dependencyCollection?.refresh()
   }
 }
