@@ -79,7 +79,7 @@
             </constraints>
             <properties/>
           </component>
-          <component id="302b9" class="com.intellij.ui.RawCommandLineEditor" binding="myHttpProxyExceptions">
+          <component id="302b9" class="com.intellij.ui.RawCommandLineEditor" binding="myHttpProxyExceptions" custom-create="true">
             <constraints>
               <grid row="2" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -187,7 +187,7 @@
             </constraints>
             <properties/>
           </component>
-          <component id="7483b" class="com.intellij.ui.RawCommandLineEditor" binding="myHttpsProxyExceptions">
+          <component id="7483b" class="com.intellij.ui.RawCommandLineEditor" binding="myHttpsProxyExceptions" custom-create="true">
             <constraints>
               <grid row="2" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>

@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.intellij.util.net.HttpConfigurable;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
-import java.util.Properties;
-
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
+import com.intellij.util.net.HttpConfigurable;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ProxySettings {
   @NonNls public static final String HTTP_PROXY_TYPE = "http";
@@ -73,7 +76,30 @@ public class ProxySettings {
       myUser = ideProxySettings.getProxyLogin();
       myPassword = ideProxySettings.getPlainProxyPassword();
     }
-    myExceptions = ideProxySettings.PROXY_EXCEPTIONS;
+    // Multiple proxy exceptions are handled as comma separated list in he IDE while Gradle uses pipes
+    // See b/131991567
+    myExceptions = replaceCommasWithPipesAndClean(ideProxySettings.PROXY_EXCEPTIONS);
+  }
+
+  @NotNull
+  public static String replaceCommasWithPipesAndClean(@Nullable String exceptions) {
+    return replaceSeparatorAndCleanList(exceptions, ",", "|");
+  }
+
+  @NotNull
+  public static String replacePipesWithCommasAndClean(@Nullable String exceptions) {
+    return replaceSeparatorAndCleanList(exceptions, "|", ", ");
+  }
+
+  @NotNull
+  private static String replaceSeparatorAndCleanList(@Nullable String list, @NotNull String separator, @NotNull String replacement) {
+    if (isEmpty(list)) {
+      return "";
+    }
+    return Arrays.stream(list.replace(separator, replacement).split(Pattern.quote(replacement.trim())))
+      .map(String::trim)
+      .filter(StringUtils::isNotEmpty)
+      .collect(Collectors.joining(replacement));
   }
 
   public void applyProxySettings(@NotNull Properties properties) {
