@@ -567,7 +567,7 @@
                           <toolTipText value="&lt;html&gt;The amount of non-removable space available to store data on the device.&lt;/html&gt;"/>
                         </properties>
                       </component>
-                      <grid id="8050e" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                      <grid id="8050e" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="0" bottom="0" right="0"/>
                         <constraints>
                           <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -608,6 +608,15 @@
                             <properties>
                               <toolTipText value="&lt;html&gt;Choose a file path to an existing SD Card image. Using an external SD Card is useful when sharing SD Card data (pictures, media, files, etc.) between Android Virtual Devices. See http://d.android.com/tools/help/mksdcard.html for more details. &lt;/html&gt;"/>
                               <visible value="true"/>
+                            </properties>
+                          </component>
+                          <component id="ee4c1" class="javax.swing.JRadioButton" binding="myNoSDCardRadioButton" default-binding="true">
+                            <constraints>
+                              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <text value="No SDCard"/>
+                              <toolTipText value="&lt;html&gt;No SDCard available on this device. The amount of removeable space is 0 on this device. &lt;/html&gt;"/>
                             </properties>
                           </component>
                         </children>
@@ -803,6 +812,7 @@
     <group name="mySdCardButtonGroup">
       <member id="ba4f4"/>
       <member id="7d926"/>
+      <member id="ee4c1"/>
     </group>
     <group name="myBootOptionRadioButtonGroup">
       <member id="66a1c"/>

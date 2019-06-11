@@ -183,6 +183,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private StorageField myBuiltInSdCardStorage;
   private JRadioButton myBuiltInRadioButton;
   private JRadioButton myExternalRadioButton;
+  private JRadioButton myNoSDCardRadioButton;
   private ASGallery<ScreenOrientation> myOrientationToggle;
   private JButton myChangeDeviceButton;
   private JButton myChangeSystemImageButton;
@@ -499,9 +500,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       myBuiltInSdCardStorage.setEnabled(false);
       myExternalSdCard.setEnabled(true);
     }
-    else {
+    else if (getModel().useBuiltInSdCard().get()) {
       myBuiltInSdCardStorage.setEnabled(true);
       myExternalSdCard.setEnabled(false);
+    } else {
+      myExternalSdCard.setEnabled(false);
+      myBuiltInSdCardStorage.setEnabled(false);
     }
     myModel.ensureMinimumMemory();
     // Set 'myOriginalSdCard' so we don't warn the user about making this change
@@ -541,8 +545,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myDeviceFrameCheckbox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Enable device frame");
     myBuiltInRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Built-in SD Card Size");
     myEnableComputerKeyboard.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Enable keyboard input");
-    myExternalSdCard.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Location of external SD card image");
-    myExternalRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Location of external SD card image");
+    myExternalSdCard.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Location of external SD Card image");
+    myExternalRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Location of external SD Card image");
+    myNoSDCardRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "No SD Card");
   }
 
   private void initComponents() {
@@ -605,6 +610,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       public void actionPerformed(ActionEvent e) {
         myExternalSdCard.setEnabled(false);
         myBuiltInSdCardStorage.setEnabled(true);
+      }
+    });
+    myNoSDCardRadioButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myExternalSdCard.setEnabled(false);
+        myBuiltInSdCardStorage.setEnabled(false);
       }
     });
 
@@ -952,6 +964,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(new SelectedProperty(myEnableComputerKeyboard), getModel().enableHardwareKeyboard());
     myBindings.bindTwoWay(new SelectedProperty(myExternalRadioButton), getModel().useExternalSdCard());
     myBindings.bindTwoWay(new SelectedProperty(myBuiltInRadioButton), getModel().useBuiltInSdCard());
+    myBindings.bind(new SelectedProperty(myNoSDCardRadioButton), getModel().useBuiltInSdCard().not().and(getModel().useExternalSdCard().not()));
   }
 
   // TODO: jameskaye Add unit tests for these validators. (b.android.com/230192)
@@ -1171,6 +1184,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myVmHeapStorage.setEnabled(enable);
     myBuiltInRadioButton.setEnabled(enable);
     myExternalRadioButton.setEnabled(enable);
+    myNoSDCardRadioButton.setEnabled(enable);
     Device device = getModel().device().getValueOrNull();
     if (device != null && device.getDefaultHardware().getScreen().isFoldable()) {
       mySkinComboBox.setEnabled(false);
