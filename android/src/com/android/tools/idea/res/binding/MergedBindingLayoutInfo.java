@@ -24,14 +24,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,8 +42,6 @@ public class MergedBindingLayoutInfo implements BindingLayoutInfo {
 
   private PsiClass myPsiClass;
 
-  @NotNull private final CachedValue<List<ViewWithId>> myViewWithIdsCache;
-
   @NotNull private final CachedValue<Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>>> myResourceItemCache;
 
   public MergedBindingLayoutInfo(@NotNull List<DefaultBindingLayoutInfo> infoList) {
@@ -54,24 +49,10 @@ public class MergedBindingLayoutInfo implements BindingLayoutInfo {
     myBaseInfo = selectBaseInfo();
     CachedValuesManager cacheManager = CachedValuesManager.getManager(myBaseInfo.getProject());
 
-    myViewWithIdsCache = cacheManager.createCachedValue(() -> {
-      Set<String> used = new HashSet<>();
-      List<ViewWithId> result = new ArrayList<>();
-      for (BindingLayoutInfo info : myInfoList) {
-        info.getViewsWithIds().forEach(viewWithId -> {
-          if (used.add(viewWithId.name)) {
-            result.add(viewWithId);
-          }
-        });
-      }
-      return CachedValueProvider.Result.create(result, myInfoList);
-    }, false);
-
     myResourceItemCache = cacheManager.createCachedValue(() -> {
       Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>> result = new EnumMap<>(DataBindingResourceType.class);
       for (BindingLayoutInfo info : myInfoList) {
         for (DataBindingResourceType type : DataBindingResourceType.values()) {
-          Set<String> used = new HashSet<>();
           Map<String, PsiDataBindingResourceItem> itemsByName = info.getItems(type);
           for (Map.Entry<String, PsiDataBindingResourceItem> entry : itemsByName.entrySet()) {
             Map<String, PsiDataBindingResourceItem> resultItemsByName = result.computeIfAbsent(type, t -> new HashMap<>());
@@ -150,12 +131,6 @@ public class MergedBindingLayoutInfo implements BindingLayoutInfo {
   }
 
   @Override
-  @NotNull
-  public List<ViewWithId> getViewsWithIds() {
-    return myViewWithIdsCache.getValue();
-  }
-
-  @Override
   @Nullable
   public Module getModule() {
     return myBaseInfo.getModule();
@@ -185,5 +160,10 @@ public class MergedBindingLayoutInfo implements BindingLayoutInfo {
   @Nullable
   public BindingLayoutInfo getMergedInfo() {
     return null;
+  }
+
+  @NotNull
+  public List<DefaultBindingLayoutInfo> getInfos() {
+    return myInfoList;
   }
 }

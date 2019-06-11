@@ -766,6 +766,7 @@
     <projectImportBuilder implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectImportProvider$AndroidGradleImportBuilder"/>
     <consoleFilterProvider implementation="com.android.tools.idea.gradle.project.build.output.GenericFileFilterProvider"
                            order="first"/>
+    <fileBasedIndex implementation="com.android.tools.idea.databinding.index.BindingXmlIndex"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
