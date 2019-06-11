@@ -58,22 +58,29 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule)
   parent
 ), PsAndroidDependencyCollection<PsDeclaredLibraryAndroidDependency, PsDeclaredJarAndroidDependency, PsDeclaredModuleAndroidDependency> {
 
-  override fun createLibraryDependency(artifactDependencyModel: ArtifactDependencyModel): PsDeclaredLibraryAndroidDependency {
-    return PsDeclaredLibraryAndroidDependency(parent, artifactDependencyModel)
-  }
+  override fun createOrUpdateLibraryDependency(
+    existing: PsDeclaredLibraryAndroidDependency?,
+    artifactDependencyModel: ArtifactDependencyModel
+  ): PsDeclaredLibraryAndroidDependency =
+    (existing ?: PsDeclaredLibraryAndroidDependency(parent)).apply {init(artifactDependencyModel)}
 
-  override fun createJarFileDependency(fileDependencyModel: FileDependencyModel): PsDeclaredJarAndroidDependency {
-    return PsDeclaredJarAndroidDependency(parent, fileDependencyModel)
-  }
+  override fun createOrUpdateJarFileDependency(
+    existing: PsDeclaredJarAndroidDependency?,
+    fileDependencyModel: FileDependencyModel
+  ): PsDeclaredJarAndroidDependency =
+    (existing ?: PsDeclaredJarAndroidDependency(parent)).apply {init(fileDependencyModel)}
 
-  override fun createJarFileTreeDependency(fileTreeDependencyModel: FileTreeDependencyModel): PsDeclaredJarAndroidDependency {
-    return PsDeclaredJarAndroidDependency(parent, fileTreeDependencyModel)
-  }
+  override fun createOrUpdateJarFileTreeDependency(
+    existing: PsDeclaredJarAndroidDependency?,
+    fileTreeDependencyModel: FileTreeDependencyModel
+  ): PsDeclaredJarAndroidDependency =
+    (existing ?: PsDeclaredJarAndroidDependency(parent)).apply {init(fileTreeDependencyModel)}
 
-  override fun createModuleDependency(moduleDependencyModel: ModuleDependencyModel): PsDeclaredModuleAndroidDependency {
-    val gradlePath = moduleDependencyModel.path().forceString()
-    return PsDeclaredModuleAndroidDependency(parent, gradlePath, moduleDependencyModel)
-  }
+  override fun createOrUpdateModuleDependency(
+    existing: PsDeclaredModuleAndroidDependency?,
+    moduleDependencyModel: ModuleDependencyModel
+  ): PsDeclaredModuleAndroidDependency =
+    (existing ?: PsDeclaredModuleAndroidDependency(parent)).apply {init(moduleDependencyModel)}
 
   private fun buildArtifactsByConfigurations(): Map<String, List<PsAndroidArtifact>> {
     val artifactsByConfigurationNames = mutableMapOf<String, MutableList<PsAndroidArtifact>>()
