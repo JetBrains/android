@@ -344,6 +344,12 @@ public final class StudioFlags {
     "Support Actionbar in property panel",
     false);
 
+  private static final FlagGroup NAV_EDITOR = new FlagGroup(FLAGS, "nav", "Navigation Editor");
+  public static final Flag<Boolean> NAV_NEW_PROPERTY_PANEL = Flag.create(
+    NAV_EDITOR, "new.property", "Enable the new Property Panel",
+    "Enable the new Property Panel",
+    false);
+
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
