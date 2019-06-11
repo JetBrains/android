@@ -29,14 +29,13 @@ import com.android.tools.idea.gradle.structure.model.meta.getValue
 
 class PsDeclaredJarAndroidDependency private constructor(
   parent: PsAndroidModule,
-  containers: Collection<PsAndroidArtifact>,
   override val parsedModel: DependencyModel
-) : PsJarAndroidDependency(parent, containers), PsDeclaredJarDependency {
+) : PsJarAndroidDependency(parent), PsDeclaredJarDependency {
 
-  constructor (parent: PsAndroidModule, containers: Collection<PsAndroidArtifact>, parsedModel: FileDependencyModel)
-    : this(parent, containers, parsedModel as DependencyModel)
-  constructor (parent: PsAndroidModule, containers: Collection<PsAndroidArtifact>, parsedModel: FileTreeDependencyModel)
-    : this(parent, containers, parsedModel as DependencyModel)
+  constructor (parent: PsAndroidModule, parsedModel: FileDependencyModel)
+    : this(parent, parsedModel as DependencyModel)
+  constructor (parent: PsAndroidModule, parsedModel: FileTreeDependencyModel)
+    : this(parent, parsedModel as DependencyModel)
 
   override val descriptor by PsDeclaredJarAndroidDependency.Descriptor
   override val kind: PsJarDependency.Kind = when (parsedModel) {
@@ -84,14 +83,13 @@ class PsResolvedJarAndroidDependency(
   override val filePath: String,
   val artifact: PsAndroidArtifact,
   override val declaredDependencies: List<PsDeclaredJarAndroidDependency>
-): PsJarAndroidDependency(parent, listOf(artifact)), PsResolvedJarDependency {
+): PsJarAndroidDependency(parent), PsResolvedJarDependency {
   override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
 }
 
 abstract class PsJarAndroidDependency internal constructor(
-  parent: PsAndroidModule,
-  containers: Collection<PsAndroidArtifact>
-) : PsAndroidDependency(parent, containers), PsJarDependency {
+  parent: PsAndroidModule
+) : PsAndroidDependency(parent), PsJarDependency {
 
   override val name: String get() = filePath
 

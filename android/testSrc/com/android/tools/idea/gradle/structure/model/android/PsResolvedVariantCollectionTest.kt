@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import org.hamcrest.CoreMatchers
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
 
@@ -45,22 +44,5 @@ class PsResolvedVariantCollectionTest : AndroidGradleTestCase() {
       PsVariantKey("release", listOf("basic", "otherBar")),
       PsVariantKey("specialRelease", listOf("basic", "otherBar"))
     )))
-  }
-
-  fun testArtifactsCanBeFound() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-
-    project.modules.forEach { module ->
-      if (module is PsAndroidModule) {
-        module.dependencies.items.forEach { dependency ->
-          dependency.containers.forEach { artifactKey ->
-            assertThat("Artifact key $artifactKey cannot be resolved in $module", artifactKey.findArtifact(module),
-                       CoreMatchers.notNullValue())
-          }
-        }
-      }
-    }
   }
 }

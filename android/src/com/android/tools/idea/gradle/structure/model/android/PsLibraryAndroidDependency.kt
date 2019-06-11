@@ -39,9 +39,8 @@ import kotlin.reflect.KProperty
 
 open class PsDeclaredLibraryAndroidDependency(
   parent: PsAndroidModule,
-  containers: Collection<PsAndroidArtifact>,
   final override val parsedModel: ArtifactDependencyModel
-) : PsLibraryAndroidDependency(parent, containers),
+) : PsLibraryAndroidDependency(parent),
     PsDeclaredDependency, PsDeclaredLibraryDependency {
   override val descriptor by Descriptor
   private val nameResolvedProperty = parsedModel.name()
@@ -110,7 +109,7 @@ open class PsResolvedLibraryAndroidDependency(
   override val spec: PsArtifactDependencySpec,
   val artifact: PsAndroidArtifact,
   override val declaredDependencies: List<PsDeclaredLibraryAndroidDependency>
-) : PsLibraryAndroidDependency(parent, listOf(artifact)), PsResolvedDependency, PsResolvedLibraryDependency {
+) : PsLibraryAndroidDependency(parent), PsResolvedDependency, PsResolvedLibraryDependency {
   internal val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
   override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
 
@@ -129,9 +128,8 @@ open class PsResolvedLibraryAndroidDependency(
 }
 
 abstract class PsLibraryAndroidDependency internal constructor(
-  parent: PsAndroidModule,
-  containers: Collection<PsAndroidArtifact>
-) : PsAndroidDependency(parent, containers), PsLibraryDependency {
+  parent: PsAndroidModule
+) : PsAndroidDependency(parent), PsLibraryDependency {
 
   override val name: String get() = spec.name
 
