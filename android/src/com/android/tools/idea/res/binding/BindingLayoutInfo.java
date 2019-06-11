@@ -16,20 +16,16 @@
 package com.android.tools.idea.res.binding;
 
 import com.android.ide.common.resources.DataBindingResourceType;
-import com.android.utils.HashCodes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlTag;
+import java.util.Map;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * An interface for binding related information that can be extracted from a layout xml file.
@@ -68,9 +64,6 @@ public interface BindingLayoutInfo extends ModificationTracker {
   @NotNull
   Map<String, PsiDataBindingResourceItem> getItems(@NotNull DataBindingResourceType type);
 
-  @NotNull
-  List<ViewWithId> getViewsWithIds();
-
   @Nullable
   Module getModule();
 
@@ -97,42 +90,11 @@ public interface BindingLayoutInfo extends ModificationTracker {
    * tags.
    *
    * When both are enabled, data binding layouts will be of type {@link DATA_BINDING_LAYOUT}, the rest will be {@link VIEW_BINDING_LAYOUT}.
+   *
+   * Note: This enum is used by DataBindingXmlIndex and is serialized and de-serialized. Please only append.
    */
   enum LayoutType {
     VIEW_BINDING_LAYOUT,
     DATA_BINDING_LAYOUT
-  }
-
-  class ViewWithId {
-    @NotNull
-    public final String name;
-    @NotNull
-    public final XmlTag tag;
-
-    public ViewWithId(@NotNull String name, @NotNull XmlTag tag) {
-      this.name = name;
-      this.tag = tag;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (!(o instanceof ViewWithId)) return false;
-      ViewWithId id = (ViewWithId)o;
-      return name.equals(id.name) && tag.equals(id.tag);
-    }
-
-    @Override
-    public int hashCode() {
-      return HashCodes.mix(name.hashCode(), tag.hashCode());
-    }
-
-    @Override
-    public String toString() {
-      return "ViewWithId{" +
-             "name='" + name + '\'' +
-             ", tag=" + tag +
-             '}';
-    }
   }
 }
