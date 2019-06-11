@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.profilers.cpu.FakeCpuService.FAKE_STOPPING_TIME_MS;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.testutils.TestUtils;
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -209,7 +211,9 @@ public class CpuProfilerTestUtils {
       StopCpuTrace stopTraceCommand = (StopCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
       stopTraceCommand.setStopStatus(
         Cpu.TraceStopStatus.newBuilder()
-          .setStatus(success ? Cpu.TraceStopStatus.Status.SUCCESS : Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED).build());
+          .setStatus(success ? Cpu.TraceStopStatus.Status.SUCCESS : Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED)
+          .setStoppingTimeNs(TimeUnit.MILLISECONDS.toNanos(FAKE_STOPPING_TIME_MS))
+          .build());
       stopTraceCommand.setTraceDurationNs(traceDurationNs);
     }
     else {
