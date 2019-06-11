@@ -18,7 +18,8 @@ package com.android.tools.idea.databinding.analytics
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
-import com.android.tools.idea.databinding.index.DataBindingXmlIndex
+import com.android.tools.idea.databinding.index.BindingXmlIndex.Companion.NAME
+import com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.androidFacet
 import com.google.common.annotations.VisibleForTesting
@@ -28,10 +29,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.getProjectCacheFileName
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.indexing.FileBasedIndex
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 
 
 /**
@@ -91,16 +90,19 @@ open class DataBindingTracker constructor(private val project: Project) : DataBi
         val index = FileBasedIndex.getInstance()
 
         index.processAllKeys(
-          DataBindingXmlIndex.NAME,
+          NAME,
           { key ->
             index.processValues(
-              DataBindingXmlIndex.NAME,
+              NAME,
               key,
               null,
               { _, layoutInfo ->
-                layoutCount++
-                importCount += layoutInfo.importCount
-                variableCount += layoutInfo.variableCount
+                // TODO(b/137047493): track VIEW_BINDING_LAYOUT type layouts
+                if (layoutInfo.layoutType == DATA_BINDING_LAYOUT) {
+                  layoutCount++
+                  importCount += layoutInfo.importCount
+                  variableCount += layoutInfo.variableCount
+                }
                 true
               },
               GlobalSearchScope.projectScope(project)
