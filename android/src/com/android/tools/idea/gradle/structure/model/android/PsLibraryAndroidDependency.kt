@@ -38,20 +38,22 @@ import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import kotlin.reflect.KProperty
 
 open class PsDeclaredLibraryAndroidDependency(
-  parent: PsAndroidModule,
-  final override val parsedModel: ArtifactDependencyModel
+  parent: PsAndroidModule
 ) : PsLibraryAndroidDependency(parent),
     PsDeclaredDependency, PsDeclaredLibraryDependency {
+  final override lateinit var parsedModel: ArtifactDependencyModel ; private set
   override val descriptor by Descriptor
-  private val nameResolvedProperty = parsedModel.name()
-  private val groupResolvedProperty = parsedModel.group()
-  private val versionResolvedProperty = parsedModel.version()
   override val spec: PsArtifactDependencySpec
     get() = PsArtifactDependencySpec.create(
-      groupResolvedProperty.toString(),
-      nameResolvedProperty.forceString(),
-      versionResolvedProperty.toString()
+      parsedModel.group().toString(),
+      parsedModel.name().forceString(),
+      parsedModel.version().toString()
     )
+
+  fun init(parsedModel: ArtifactDependencyModel) {
+    this.parsedModel = parsedModel
+  }
+
   override val isDeclared: Boolean = true
   final override val configurationName: String get() = parsedModel.configurationName()
   override val joinedConfigurationNames: String get() = configurationName
