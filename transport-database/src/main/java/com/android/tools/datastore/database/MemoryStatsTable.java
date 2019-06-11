@@ -38,9 +38,9 @@ import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatem
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.values;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
+import com.android.tools.profiler.proto.Memory.AllocatedClass;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
