@@ -57,32 +57,22 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule)
   : PsDeclaredDependencyCollection<PsAndroidModule, PsDeclaredLibraryAndroidDependency, PsDeclaredJarAndroidDependency, PsDeclaredModuleAndroidDependency>(
   parent
 ), PsAndroidDependencyCollection<PsDeclaredLibraryAndroidDependency, PsDeclaredJarAndroidDependency, PsDeclaredModuleAndroidDependency> {
-  private var artifactsByConfigurationNames: Map<String, List<PsAndroidArtifact>> = mapOf()
-  override fun initParsedDependencyCollection() {
-    artifactsByConfigurationNames = buildArtifactsByConfigurations()
-  }
 
   override fun createLibraryDependency(artifactDependencyModel: ArtifactDependencyModel): PsDeclaredLibraryAndroidDependency {
-    val artifacts = artifactsByConfigurationNames[artifactDependencyModel.configurationName()] ?: listOf()
-    return PsDeclaredLibraryAndroidDependency(parent, artifacts, artifactDependencyModel)
+    return PsDeclaredLibraryAndroidDependency(parent, artifactDependencyModel)
   }
 
   override fun createJarFileDependency(fileDependencyModel: FileDependencyModel): PsDeclaredJarAndroidDependency {
-    val artifacts = artifactsByConfigurationNames[fileDependencyModel.configurationName()] ?: listOf()
-    return PsDeclaredJarAndroidDependency(parent, artifacts, fileDependencyModel)
+    return PsDeclaredJarAndroidDependency(parent, fileDependencyModel)
   }
 
   override fun createJarFileTreeDependency(fileTreeDependencyModel: FileTreeDependencyModel): PsDeclaredJarAndroidDependency {
-    val artifacts = artifactsByConfigurationNames[fileTreeDependencyModel.configurationName()] ?: listOf()
-    return PsDeclaredJarAndroidDependency(parent, artifacts, fileTreeDependencyModel)
+    return PsDeclaredJarAndroidDependency(parent, fileTreeDependencyModel)
   }
 
   override fun createModuleDependency(moduleDependencyModel: ModuleDependencyModel): PsDeclaredModuleAndroidDependency {
     val gradlePath = moduleDependencyModel.path().forceString()
-    val artifacts = artifactsByConfigurationNames[moduleDependencyModel.configurationName()] ?: listOf()
-    return PsDeclaredModuleAndroidDependency(
-      parent, gradlePath, artifacts.toList(),
-      moduleDependencyModel)
+    return PsDeclaredModuleAndroidDependency(parent, gradlePath, moduleDependencyModel)
   }
 
   private fun buildArtifactsByConfigurations(): Map<String, List<PsAndroidArtifact>> {
