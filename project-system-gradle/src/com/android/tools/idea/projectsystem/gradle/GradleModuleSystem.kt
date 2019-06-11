@@ -359,6 +359,9 @@ class GradleModuleSystem(
     fun isSameAs(coordinate: GradleCoordinate) = groupId == coordinate.groupId && artifactId == coordinate.artifactId
   }
 
+  override fun getModuleWithDependenciesAndLibrariesScope(includeTests: Boolean) = module.getModuleWithDependenciesAndLibrariesScope(
+    includeTests)
+
   override fun getTestArtifactSearchScopes(module: Module): TestArtifactSearchScopes? = GradleTestArtifactSearchScopes.getInstance(module)
 
   /**
