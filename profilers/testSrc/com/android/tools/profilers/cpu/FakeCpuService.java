@@ -37,6 +37,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   public static final long FAKE_TRACE_ID = 6L;
 
+  public static final int FAKE_STOPPING_TIME_MS = 123;
+
   private Cpu.TraceStartStatus.Status myStartProfilingStatus = Cpu.TraceStartStatus.Status.SUCCESS;
 
   private Cpu.TraceStopStatus.Status myStopProfilingStatus = Cpu.TraceStopStatus.Status.SUCCESS;
@@ -100,6 +102,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     CpuProfiler.CpuProfilingAppStopResponse.Builder response = CpuProfiler.CpuProfilingAppStopResponse.newBuilder();
     Cpu.TraceStopStatus.Builder status = Cpu.TraceStopStatus.newBuilder();
     status.setStatus(myStopProfilingStatus);
+    status.setStoppingTimeNs(TimeUnit.MILLISECONDS.toNanos(FAKE_STOPPING_TIME_MS));
     if (!myStopProfilingStatus.equals(Cpu.TraceStopStatus.Status.SUCCESS)) {
       status.setErrorMessage("StopProfilingApp error");
     }

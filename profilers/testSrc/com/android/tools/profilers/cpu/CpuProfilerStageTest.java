@@ -1045,6 +1045,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadataConfig.getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
     assertThat(metadataConfig.getMode()).isEqualTo(Cpu.CpuTraceMode.SAMPLED);
     assertThat(metadata.getParsingTimeMs()).isGreaterThan(0L);
+    assertThat(metadata.getStoppingTimeMs()).isEqualTo(FakeCpuService.FAKE_STOPPING_TIME_MS);
     assertThat(metadata.getRecordDurationMs()).isGreaterThan(0L);
     assertThat(metadata.getCaptureDurationMs()).isGreaterThan(0L);
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
