@@ -24,7 +24,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
@@ -43,8 +42,9 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
     return project.getComponent(AnalysisResultsManager.class);
   }
 
-  protected AnalysisResultsManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
-    super(project, fileEditorManager);
+  protected AnalysisResultsManager(@NotNull Project project) {
+    super(project);
+
     myContent = new AnalysisResultsContent();
     Disposer.register(this, () -> myContent.dispose());
   }
