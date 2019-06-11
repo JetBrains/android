@@ -799,6 +799,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
           .setRecordDurationMs(myCpuCaptureMetadata.getRecordDurationMs())
           .setTraceFileSizeBytes(myCpuCaptureMetadata.getTraceFileSizeBytes())
           .setParsingTimeMs(myCpuCaptureMetadata.getParsingTimeMs())
+          .setStoppingTimeMs(myCpuCaptureMetadata.getStoppingTimeMs())
           .setCaptureStatus(
             CPU_CAPTURE_STATUS_MAP.getOrDefault(myCpuCaptureMetadata.getStatus(), CpuCaptureMetadata.CaptureStatus.SUCCESS));
 
