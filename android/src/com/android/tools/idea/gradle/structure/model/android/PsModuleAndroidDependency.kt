@@ -23,10 +23,9 @@ import javax.swing.Icon
 class PsDeclaredModuleAndroidDependency internal constructor(
   parent: PsAndroidModule,
   gradlePath: String,
-  artifacts: Collection<PsAndroidArtifact>,
   override val parsedModel: ModuleDependencyModel
 ) : PsModuleAndroidDependency(
-  parent, gradlePath, artifacts
+  parent, gradlePath
 ), PsDeclaredModuleDependency {
   override val name: String get() = parsedModel.name()
   override val isDeclared: Boolean = true
@@ -42,7 +41,7 @@ class PsResolvedModuleAndroidDependency internal constructor(
   targetModule: PsModule,
   override val declaredDependencies: List<PsDeclaredDependency>
 ) : PsModuleAndroidDependency(
-  parent, gradlePath, listOf(artifact)
+  parent, gradlePath
 ), PsResolvedModuleDependency {
   override val name: String = targetModule.name
   override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
@@ -50,9 +49,8 @@ class PsResolvedModuleAndroidDependency internal constructor(
 
 abstract class PsModuleAndroidDependency internal constructor(
   parent: PsAndroidModule,
-  final override val gradlePath: String,
-  artifacts: Collection<PsAndroidArtifact>
-) : PsAndroidDependency(parent, artifacts), PsModuleDependency {
+  final override val gradlePath: String
+) : PsAndroidDependency(parent), PsModuleDependency {
   override fun toText(): String = name
   override val icon: Icon = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: LIBRARY_ICON
 }
