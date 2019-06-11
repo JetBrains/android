@@ -48,7 +48,7 @@ public class NewProjectSetupTest extends IdeaTestCase {
     assertNotNull(compilerProjectExtension);
     assertNull(compilerProjectExtension.getCompilerOutputUrl());
 
-    ProjectTypeService.setProjectType(project, null);
+    ProjectTypeService.clearFieldsForLightProjectInTests(project);
 
     myNewProjectSetup = new NewProjectSetup(myTopLevelModuleFactory);
   }

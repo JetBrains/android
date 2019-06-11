@@ -286,6 +286,7 @@ public class AndroidCompileUtil {
       for (VirtualFile existingRoot : model.getSourceRoots()) {
         if (Comparing.equal(existingRoot, root)) {
           markedAsSource = true;
+          break;
         }
       }
 
