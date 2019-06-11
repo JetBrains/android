@@ -17,8 +17,9 @@ package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.FakeLogService;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory.*;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack.StackFrame;
+import com.android.tools.profiler.proto.Memory.AllocationStack.StackFrame;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -27,7 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF;
+import static com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF;
 import static com.google.common.truth.Truth.assertThat;
 
 public class MemoryLiveAllocationTableTest extends DatabaseTest<MemoryLiveAllocationTable> {

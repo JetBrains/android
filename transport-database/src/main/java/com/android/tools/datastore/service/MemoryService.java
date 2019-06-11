@@ -31,8 +31,8 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.BatchAllocationSample;
-import com.android.tools.profiler.proto.MemoryProfiler.BatchJNIGlobalRefEvent;
+import com.android.tools.profiler.proto.Memory.BatchAllocationSample;
+import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
