@@ -16,6 +16,7 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory.*;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
@@ -239,7 +240,7 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
 
     LegacyAllocationContextsRequest request =
       LegacyAllocationContextsRequest.newBuilder().setSession(VALID_SESSION).addClassIds(classId1)
-                                     .addStackIds(stackId4).build();
+        .addStackIds(stackId4).build();
     AllocationContextsResponse response = getTable().getLegacyAllocationContexts(request);
     assertThat(response.getAllocatedClassesCount()).isEqualTo(1);
     assertThat(response.getAllocationStacksCount()).isEqualTo(1);
@@ -247,7 +248,7 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     assertThat(response.getAllocationStacks(0)).isEqualTo(stack2);
 
     request = LegacyAllocationContextsRequest.newBuilder().setSession(VALID_SESSION).addClassIds(classId2)
-                                             .addStackIds(stackId3).build();
+      .addStackIds(stackId3).build();
     response = getTable().getLegacyAllocationContexts(request);
     assertThat(response.getAllocatedClassesCount()).isEqualTo(1);
     assertThat(response.getAllocationStacksCount()).isEqualTo(1);

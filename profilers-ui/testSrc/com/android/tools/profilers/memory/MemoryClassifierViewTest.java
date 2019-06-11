@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import static com.android.tools.profiler.proto.Memory.AllocationStack;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
