@@ -122,7 +122,6 @@ abstract class PsDeclaredDependencyCollection<out ModuleT, LibraryDependencyT, J
         ModuleDependencyT : PsDeclaredDependency,
         ModuleDependencyT : PsModuleDependency
 {
-  open fun initParsedDependencyCollection() {}
   abstract fun createLibraryDependency(artifactDependencyModel: ArtifactDependencyModel): LibraryDependencyT
   abstract fun createJarFileDependency(fileDependencyModel: FileDependencyModel): JarDependencyT
   abstract fun createJarFileTreeDependency(fileTreeDependencyModel: FileTreeDependencyModel): JarDependencyT
@@ -133,7 +132,6 @@ abstract class PsDeclaredDependencyCollection<out ModuleT, LibraryDependencyT, J
   }
 
   private fun collectParsedDependencies() {
-    initParsedDependencyCollection()
     collectParsedDependencies(parent.parsedDependencies)
   }
 
@@ -182,5 +180,5 @@ fun <T : PsDeclaredJarDependency> PsResolvedDependencyCollection<*, *, *, *, *>.
     val probleFile = File(probe.filePath)
     val resolvedProbe = parent.resolveFile(probleFile)
     val caninicalResolvedProbe = resolvedProbe.canonicalFile
-    caninicalResolvedProbe?.let { artifactCanonicalFile.startsWith(it) } == true
+    caninicalResolvedProbe.let { artifactCanonicalFile.startsWith(it) }
   }
