@@ -17,7 +17,6 @@ package com.android.tools.idea.resources.aar;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
@@ -69,14 +68,8 @@ class AarFileResourceItem extends AbstractAarResourceItem {
 
   @Override
   @NotNull
-  protected final AbstractAarResourceRepository getRepository() {
-    return myConfiguration.getRepository();
-  }
-
-  @Override
-  @NotNull
-  public final FolderConfiguration getConfiguration() {
-    return myConfiguration.getFolderConfiguration();
+  AarConfiguration getAarConfiguration() {
+    return myConfiguration;
   }
 
   @Override

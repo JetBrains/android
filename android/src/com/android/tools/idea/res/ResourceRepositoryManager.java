@@ -24,17 +24,21 @@ import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.projectmodel.ExternalLibrary;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.intellij.openapi.Disposable;
@@ -48,10 +52,15 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -91,6 +100,9 @@ public final class ResourceRepositoryManager implements Disposable {
   @GuardedBy("TEST_APP_RESOURCES_LOCK")
   private LocalResourceRepository myTestAppResources;
 
+  @GuardedBy("PROJECT_RESOURCES_LOCK")
+  private CachedValue<LocalesAndLanguages> myLocalesAndLanguages;
+
   /** Libraries and their corresponding resource repositories. */
   @GuardedBy("myLibraryLock")
   private Map<ExternalLibrary, AarResourceRepository> myLibraryResourceMap;
@@ -117,7 +129,7 @@ public final class ResourceRepositoryManager implements Disposable {
       if (instance == manager) {
         // Our object ended up stored in the facet.
         Disposer.register(facet, instance);
-        AndroidProjectRootListener.ensureSubscribed(facet.getModule().getProject());
+        AndroidProjectRootListener.ensureSubscribed(manager.getProject());
       }
     }
 
@@ -466,22 +478,22 @@ public final class ResourceRepositoryManager implements Disposable {
   /**
    * Returns the resource repository with Android framework resources, for the module's compile SDK.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time.
    *
-   * @param needLocales if the return repository should contain resources defined using a locale qualifier (e.g. all translation strings).
-   *                    This makes creating the repository noticeably slower.
-   * @return the framework repository or null if the SDK resources directory cannot be determined for the module.
+   * @param languages the set of ISO 639 language codes determining the subset of resources to load.
+   *     May be empty to load only the language-neutral resources. The returned repository may contain resources
+   *     for more languages than was requested.
+   * @return the framework repository or null if the SDK resources directory cannot be determined for the module
    */
   @Slow
   @Nullable
-  public ResourceRepository getFrameworkResources(boolean needLocales) {
+  public ResourceRepository getFrameworkResources(@NotNull Set<String> languages) {
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
     if (androidPlatform == null) {
       return null;
     }
 
-    return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getFrameworkResources(needLocales);
+    return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getFrameworkResources(languages);
   }
 
   /**
@@ -524,6 +536,7 @@ public final class ResourceRepositoryManager implements Disposable {
       if (myProjectResources != null) {
         Disposer.dispose(myProjectResources);
         myProjectResources = null;
+        myLocalesAndLanguages = null;
       }
     }
 
@@ -563,8 +576,13 @@ public final class ResourceRepositoryManager implements Disposable {
   public void resetAllCaches() {
     resetResources();
     ConfigurationManager.getOrCreateInstance(myFacet.getModule()).getResolverCache().reset();
-    ResourceFolderRegistry.getInstance(myFacet.getModule().getProject()).reset();
+    ResourceFolderRegistry.getInstance(getProject()).reset();
     AarResourceRepositoryCache.getInstance().clear();
+  }
+
+  @NotNull
+  private Project getProject() {
+    return myFacet.getModule().getProject();
   }
 
   private void resetVisibility() {
@@ -757,5 +775,57 @@ public final class ResourceRepositoryManager implements Disposable {
 
   private static void cancelPendingTasks(Collection<Future<AarResourceRepository>> futures) {
     futures.forEach(f -> f.cancel(true));
+  }
+
+  /**
+   * Returns all locales of the project resources.
+   */
+  @NotNull
+  public ImmutableList<Locale> getLocalesInProject() {
+    return getLocalesAndLanguages().locales;
+  }
+
+  /**
+   * Returns a set of ISO 639 language codes derived from locales of the project resources.
+   */
+  @NotNull
+  public ImmutableSortedSet<String> getLanguagesInProject() {
+    return getLocalesAndLanguages().languages;
+  }
+
+  @NotNull
+  private LocalesAndLanguages getLocalesAndLanguages() {
+    synchronized (PROJECT_RESOURCES_LOCK) {
+      if (myLocalesAndLanguages == null) {
+        myLocalesAndLanguages = CachedValuesManager.getManager(getProject()).createCachedValue(
+          () -> {
+            // Get locales from modules, but not libraries.
+            LocalResourceRepository projectResources = getProjectResources(myFacet);
+            SortedSet<LocaleQualifier> localeQualifiers = ResourceRepositoryUtil.getLocales(projectResources);
+            ImmutableList.Builder<Locale> localesBuilder = ImmutableList.builderWithExpectedSize(localeQualifiers.size());
+            ImmutableSortedSet.Builder<String> languagesBuilder = ImmutableSortedSet.naturalOrder();
+            for (LocaleQualifier localeQualifier : localeQualifiers) {
+              localesBuilder.add(Locale.create(localeQualifier));
+              String language = localeQualifier.getLanguage();
+              if (language != null) {
+                languagesBuilder.add(language);
+              }
+            }
+            return CachedValueProvider.Result.create(new LocalesAndLanguages(localesBuilder.build(), languagesBuilder.build()),
+                                                     projectResources);
+          });
+      }
+      return myLocalesAndLanguages.getValue();
+    }
+  }
+
+  private static class LocalesAndLanguages {
+    @NotNull final ImmutableList<Locale> locales;
+    @NotNull final ImmutableSortedSet<String> languages;
+
+    LocalesAndLanguages(@NotNull ImmutableList<Locale> locales, @NotNull ImmutableSortedSet<String> languages) {
+      this.locales = locales;
+      this.languages = languages;
+    }
   }
 }

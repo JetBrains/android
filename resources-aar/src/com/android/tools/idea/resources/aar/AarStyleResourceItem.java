@@ -142,7 +142,7 @@ final class AarStyleResourceItem extends AbstractAarValueResourceItem implements
                                           @NotNull AarSourceFile sourceFile,
                                           @NotNull ResourceNamespace.Resolver resolver,
                                           @NotNull List<ResourceNamespace.Resolver> namespaceResolvers) throws IOException {
-    AbstractAarResourceRepository repository = sourceFile.getConfiguration().getRepository();
+    AbstractAarResourceRepository repository = sourceFile.getRepository();
     ResourceNamespace namespace = repository.getNamespace();
     String libraryName = repository.getLibraryName();
     String parentStyle = stream.readString();

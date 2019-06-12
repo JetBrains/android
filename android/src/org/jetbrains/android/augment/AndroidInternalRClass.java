@@ -19,6 +19,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiModifier;
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,41 +48,44 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     }
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String getQualifiedName() {
     return AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME;
   }
 
   @Override
+  @NotNull
   public String getName() {
     return "R";
   }
 
-  @Nullable
   @Override
+  @Nullable
   public PsiClass getContainingClass() {
     return null;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public PsiFile getContainingFile() {
     return myFile;
   }
 
   @Override
+  @NotNull
   public TextRange getTextRange() {
     return TextRange.EMPTY_RANGE;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public PsiClass[] getInnerClasses() {
     return myInnerClasses;
   }
 
   @Override
+  @Nullable
   public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
     for (PsiClass aClass : getInnerClasses()) {
       if (name.equals(aClass.getName())) {
@@ -97,10 +101,11 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
       super(AndroidInternalRClass.this, resourceType);
     }
 
-    @NotNull
     @Override
+    @NotNull
     protected PsiField[] doGetFields() {
-      ResourceRepository repository = myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).getFrameworkResources(false);
+      AndroidTargetData targetData = myPlatform.getSdkData().getTargetData(myPlatform.getTarget());
+      ResourceRepository repository = targetData.getFrameworkResources(ImmutableSet.of());
       if (repository == null) {
         return PsiField.EMPTY_ARRAY;
       }
@@ -111,8 +116,8 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
                                  myResourceType, AndroidInternalRClass.this);
     }
 
-    @NotNull
     @Override
+    @NotNull
     protected Object[] getFieldsDependencies() {
       return new Object[]{ModificationTracker.NEVER_CHANGED};
     }
