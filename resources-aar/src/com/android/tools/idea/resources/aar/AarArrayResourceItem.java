@@ -42,10 +42,10 @@ final class AarArrayResourceItem extends AbstractAarValueResourceItem implements
    * @param visibility the visibility of the resource
    * @param elements the elements  or the array
    */
-  public AarArrayResourceItem(@NotNull String name,
-                              @NotNull AarSourceFile sourceFile,
-                              @NotNull ResourceVisibility visibility,
-                              @NotNull List<String> elements) {
+  AarArrayResourceItem(@NotNull String name,
+                       @NotNull AarSourceFile sourceFile,
+                       @NotNull ResourceVisibility visibility,
+                       @NotNull List<String> elements) {
     super(ResourceType.ARRAY, name, sourceFile, visibility);
     myElements = elements;
   }
