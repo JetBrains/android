@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.databinding.analytics
 
+import com.android.tools.idea.databinding.DATA_BINDING_ANNOTATIONS
+import com.android.tools.idea.databinding.BINDING_METHODS_ANNOTATION
+import com.android.tools.idea.databinding.INVERSE_BINDING_METHODS_ANNOTATION
 import com.google.wireless.android.sdk.stats.DataBindingEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.JavaProjectRootsUtil
@@ -22,27 +25,13 @@ import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex
 import com.intellij.psi.search.ProjectScope
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 
-const val BINDING_METHODS_ANNOTATION = "BindingMethods"
-const val INVERSE_BINDING_METHODS_ANNOTATION = "InverseBindingMethods"
-
-val ANNOTATIONS = listOf("Bindable",
-                         "BindingAdapter",
-                         "BindingConversion",
-                         "BindingMethod",
-                         BINDING_METHODS_ANNOTATION,
-                         "InverseBindingAdapter",
-                         "InverseBindingMethod",
-                         INVERSE_BINDING_METHODS_ANNOTATION,
-                         "InverseMethod")
-
-
 /**
  * Count all of the different types of binding adapter annotations listed on the official documentation:
  * https://developer.android.com/reference/android/databinding/Bindable
  */
 internal fun trackBindingAdapters(project: Project): DataBindingEvent.DataBindingPollMetadata.BindingAdapterMetrics {
   val scope = JavaProjectRootsUtil.getScopeWithoutGeneratedSources(ProjectScope.getProjectScope(project), project)
-  val annotationCount = ANNOTATIONS
+  val annotationCount = DATA_BINDING_ANNOTATIONS
     .flatMap { JavaAnnotationIndex.getInstance().get(it, project, scope) + KotlinAnnotationsIndex.getInstance().get(it, project, scope) }
     .count()
 
