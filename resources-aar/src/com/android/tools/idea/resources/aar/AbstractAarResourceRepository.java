@@ -52,7 +52,7 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
   @NotNull private final Map<ResourceType, Set<ResourceItem>> myPublicResources = new EnumMap<>(ResourceType.class);
   @Nullable protected final String myLibraryName;
 
-  protected AbstractAarResourceRepository(@NotNull ResourceNamespace namespace, @Nullable String libraryName) {
+  AbstractAarResourceRepository(@NotNull ResourceNamespace namespace, @Nullable String libraryName) {
     myNamespace = namespace;
     myLibraryName = libraryName;
   }
