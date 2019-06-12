@@ -61,14 +61,14 @@ class AarAttrResourceItem extends AbstractAarValueResourceItem implements AttrRe
    *     have corresponding numeric values.
    * @param valueDescriptionMap the the enum or flag value descriptions keyed by the value names
    */
-  public AarAttrResourceItem(@NotNull String name,
-                             @NotNull AarSourceFile sourceFile,
-                             @NotNull ResourceVisibility visibility,
-                             @Nullable String description,
-                             @Nullable String groupName,
-                             @NotNull Set<AttributeFormat> formats,
-                             @NotNull Map<String, Integer> valueMap,
-                             @NotNull Map<String, String> valueDescriptionMap) {
+  AarAttrResourceItem(@NotNull String name,
+                      @NotNull AarSourceFile sourceFile,
+                      @NotNull ResourceVisibility visibility,
+                      @Nullable String description,
+                      @Nullable String groupName,
+                      @NotNull Set<AttributeFormat> formats,
+                      @NotNull Map<String, Integer> valueMap,
+                      @NotNull Map<String, String> valueDescriptionMap) {
     super(ResourceType.ATTR, name, sourceFile, visibility);
     myDescription = description;
     myGroupName = groupName;

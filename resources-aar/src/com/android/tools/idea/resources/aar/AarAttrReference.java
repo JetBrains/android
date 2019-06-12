@@ -48,12 +48,12 @@ class AarAttrReference extends AbstractAarValueResourceItem implements AttrResou
    * @param description the description of the attr resource, if available
    * @param groupName the name of the attr group, if available
    */
-  public AarAttrReference(@NotNull ResourceNamespace namespace,
-                          @NotNull String name,
-                          @NotNull AarSourceFile sourceFile,
-                          @NotNull ResourceVisibility visibility,
-                          @Nullable String description,
-                          @Nullable String groupName) {
+  AarAttrReference(@NotNull ResourceNamespace namespace,
+                   @NotNull String name,
+                   @NotNull AarSourceFile sourceFile,
+                   @NotNull ResourceVisibility visibility,
+                   @Nullable String description,
+                   @Nullable String groupName) {
     super(ResourceType.ATTR, name, sourceFile, visibility);
     myNamespace = namespace;
     myDescription = description;

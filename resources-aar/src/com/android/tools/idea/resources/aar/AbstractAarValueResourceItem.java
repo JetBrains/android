@@ -43,10 +43,10 @@ abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem {
    * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
    */
-  public AbstractAarValueResourceItem(@NotNull ResourceType type,
-                                      @NotNull String name,
-                                      @NotNull AarSourceFile sourceFile,
-                                      @NotNull ResourceVisibility visibility) {
+  AbstractAarValueResourceItem(@NotNull ResourceType type,
+                               @NotNull String name,
+                               @NotNull AarSourceFile sourceFile,
+                               @NotNull ResourceVisibility visibility) {
     super(type, name, visibility);
     mySourceFile = sourceFile;
   }
