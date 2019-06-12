@@ -64,6 +64,7 @@ public final class FreemarkerUtils {
     paramMap.put("getMaterialComponentName", new FmGetMaterialComponentNameMethod());
     paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));
     paramMap.put("layoutToActivity", new FmLayoutToActivityMethod());
+    paramMap.put("layoutToFragment", new FmLayoutToFragmentMethod());
     paramMap.put("slashedPackageName", new FmSlashedPackageNameMethod());
     paramMap.put("truncate", new FmTruncateStringMethod());
     paramMap.put("underscoreToCamelCase", new FmUnderscoreToCamelCaseMethod());
