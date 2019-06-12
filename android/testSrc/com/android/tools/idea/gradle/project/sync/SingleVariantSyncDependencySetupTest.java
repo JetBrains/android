@@ -20,9 +20,4 @@ public class SingleVariantSyncDependencySetupTest extends NewSyncDependencySetup
   protected boolean useSingleVariantSyncInfrastructure() {
     return true;
   }
-
-  @Override
-  protected boolean useNewSyncInfrastructure() {
-    return false;
-  }
 }

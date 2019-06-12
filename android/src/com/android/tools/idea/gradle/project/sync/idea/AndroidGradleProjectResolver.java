@@ -251,7 +251,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // Since this is running in the Gradle connection thread we need to pass back to the UI thread to call the listeners as they may
     // require reading or writing and we want to provide the same context as the other listeners.
     // If we start these from the connection thread deadlocks can occur.
-    Runnable runnable = () -> {
+    ApplicationManager.getApplication().invokeLater(() -> {
       // Since this is run on the UI thread we need to check whether the project has been disposed.
       if (!project.isDisposed()) {
         GradleSyncState.getInstance(project).sourceGenerationFinished();
@@ -263,13 +263,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
         syncListener.sourceGenerationFinished(project);
       }
-    };
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      runnable.run();
-    }
-    else {
-      ApplicationManager.getApplication().invokeLater(runnable);
-    }
+    });
   }
 
   @Override
@@ -543,7 +537,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull
   @Override
   public ProjectImportExtraModelProvider getExtraModelProvider() {
-    return configureAndGetExtraModelProvider();
+    // TODO: Change to configureAndGetExtraModelProvider() to ensure SVS in old sync.
+    return super.getExtraModelProvider();
   }
 
   @Override

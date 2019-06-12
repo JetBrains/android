@@ -27,7 +27,6 @@ import static com.intellij.openapi.externalSystem.service.execution.ProgressExec
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
-import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static java.lang.System.currentTimeMillis;
 
@@ -73,12 +72,8 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
-import com.intellij.util.messages.MessageBus;
-import com.intellij.util.messages.MessageBusConnection;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -159,15 +154,7 @@ public class GradleSyncInvoker {
 
     Application application = ApplicationManager.getApplication();
     if (application.isUnitTestMode()) {
-      CountDownLatch latch = (request.generateSourcesOnSuccess) ? getSourceGenerationLatch(project) : null;
       application.invokeAndWait(syncTask);
-      if (latch != null) {
-        try {
-          latch.await(2, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-          throw new RuntimeException("Failed to wait for source generation to finish", e);
-        }
-      }
       return;
     }
     if (request.runInBackground) {
@@ -176,21 +163,6 @@ public class GradleSyncInvoker {
     else {
       TransactionGuard.getInstance().submitTransactionAndWait(syncTask);
     }
-  }
-
-  private static CountDownLatch getSourceGenerationLatch(@NotNull Project project) {
-    CountDownLatch latch = new CountDownLatch(1);
-
-    MessageBusConnection connection = project.getMessageBus().connect(project);
-    connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, new GradleSyncListener() {
-      @Override
-      public void sourceGenerationFinished(@NotNull Project project) {
-        connection.disconnect();
-        latch.countDown();
-      }
-    });
-
-    return latch;
   }
 
   private static boolean isBuildInProgress(@NotNull Project project) {
