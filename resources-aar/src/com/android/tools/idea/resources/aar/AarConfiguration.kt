@@ -24,7 +24,20 @@ import com.android.utils.HashCodes
  * [FolderConfiguration]. This indirection saves memory because the number of `AarConfiguration` instances is tiny
  * fraction of the number of [AbstractAarResourceItem] instances.
  */
-internal data class AarConfiguration(val repository: AbstractAarResourceRepository, val folderConfiguration: FolderConfiguration) {
+internal class AarConfiguration(repository: AbstractAarResourceRepository, val folderConfiguration: FolderConfiguration) {
+  var repository = repository
+    private set
+
+  /**
+   * Makes [repository] the owner of this `AarConfiguration`. The new owner should be loaded from
+   * the same file or directory as the previous one, which means that changing the owner does not
+   * affect {@link #equals} or {@link #hashCode}.
+   */
+  fun transferOwnershipTo(repository: AbstractAarResourceRepository) {
+    assert(this.repository.origin == repository.origin)
+    this.repository = repository
+  }
+
   /**
    * Overridden to not distinguish between repositories loaded from the same file or folder.
    */
@@ -44,6 +57,6 @@ internal data class AarConfiguration(val repository: AbstractAarResourceReposito
    * Overridden to not distinguish between repositories loaded from the same file or folder.
    */
   override fun hashCode(): Int {
-    return HashCodes.mix(repository.origin.hashCode(), folderConfiguration.hashCode());
+    return HashCodes.mix(repository.origin.hashCode(), folderConfiguration.hashCode())
   }
 }

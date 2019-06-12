@@ -18,6 +18,7 @@ package com.android.tools.idea.resources.aar;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.resources.aar.Base128InputStream.StreamFormatException;
@@ -108,11 +109,25 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
 
   /**
    * Returns the repository this resource belongs to.
+   * <p>
+   * Framework resource items may move between repositories with the same origin.
+   * @see AarConfiguration#transferOwnershipTo(AbstractAarResourceRepository)
    */
   @NotNull
-  protected abstract AbstractAarResourceRepository getRepository();
+  protected final AbstractAarResourceRepository getRepository() {
+    return getAarConfiguration().getRepository();
+  }
 
   @Override
+  @NotNull
+  public final FolderConfiguration getConfiguration() {
+    return getAarConfiguration().getFolderConfiguration();
+  }
+
+  @NotNull
+  abstract AarConfiguration getAarConfiguration();
+
+    @Override
   @NotNull
   public final String getKey() {
     String qualifiers = getConfiguration().getQualifierString();

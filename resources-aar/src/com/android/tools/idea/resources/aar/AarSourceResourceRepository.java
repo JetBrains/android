@@ -56,7 +56,6 @@ import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
 import com.android.ide.common.resources.PatternBasedFileFilter;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.ResourcesUtil;
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.ide.common.resources.ValueXmlHelper;
@@ -72,7 +71,6 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.resources.aar.Base128InputStream.StreamFormatException;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Preconditions;
@@ -119,6 +117,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -239,7 +239,8 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
                                                     @NotNull ResourceNamespace namespace,
                                                     @NotNull String libraryName,
                                                     @Nullable CachingData cachingData) {
-    Loader loader = new Loader(resourceDirectoryOrFile, resourceFilesAndFolders, namespace, libraryName);
+    Loader<AarSourceResourceRepository> loader =
+        new Loader<>(resourceDirectoryOrFile, resourceFilesAndFolders, namespace, libraryName);
     AarSourceResourceRepository repository = new AarSourceResourceRepository(loader);
 
     // If loading from an AAR file, try to load from a cache file first.
@@ -248,6 +249,9 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
 
     loader.loadRepositoryContents(repository);
+
+    repository.populatePublicResourcesMap();
+    repository.freezeResources();
 
     if (cachingData != null && resourceFilesAndFolders == null) {
       Executor executor = cachingData.getCacheCreationExecutor();
@@ -297,34 +301,17 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
    *     exist or is out of date
    * @see #createPersistentCache(CachingData)
    */
-  protected boolean loadFromPersistentCache(@NotNull CachingData cachingData) {
-    byte[] header = getCacheFileHeader(cachingData);
+  private boolean loadFromPersistentCache(@NotNull CachingData cachingData) {
+    byte[] header = getCacheFileHeader(stream -> writeCacheHeaderContent(cachingData, stream));
     return loadFromPersistentCache(cachingData.getCacheFile(), header);
   }
 
-  protected void createPersistentCache(@NotNull CachingData cachingData) {
-    byte[] header = getCacheFileHeader(cachingData);
-    createPersistentCache(cachingData.getCacheFile(), header);
-  }
-
-  @NotNull
-  private byte[] getCacheFileHeader(@NotNull CachingData cachingData) {
-    ByteArrayOutputStream header = new ByteArrayOutputStream();
-    try (Base128OutputStream stream = new Base128OutputStream(header)) {
-      writeCacheHeaderContent(cachingData, stream);
-    }
-    catch (IOException e) {
-      throw new Error("Internal error", e); // An IOException in the try block above indicates a bug.
-    }
-    return header.toByteArray();
-  }
-
-  protected void writeCacheHeaderContent(@NotNull CachingData cachingData, @NotNull Base128OutputStream stream) throws IOException {
-    stream.write(CACHE_FILE_HEADER);
-    stream.writeString(CACHE_FILE_FORMAT_VERSION);
-    stream.writeString(myResourceDirectoryOrFile.toString());
-    stream.writeString(cachingData.getContentVersion());
-    stream.writeString(cachingData.getCodeVersion());
+  /**
+   * Creates persistent cache on disk for faster loading later.
+   */
+  private void createPersistentCache(@NotNull CachingData cachingData) {
+    byte[] header = getCacheFileHeader(stream -> writeCacheHeaderContent(cachingData, stream));
+    createPersistentCache(cachingData.getCacheFile(), header, config -> true);
   }
 
   /**
@@ -343,7 +330,8 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
    *   <li>Serialized resource items (see {@link AbstractAarResourceItem#serialize})</li>
    * </ol>
    */
-  protected void createPersistentCache(@NotNull Path cacheFile, @NotNull byte[] fileHeader) {
+  protected final void createPersistentCache(@NotNull Path cacheFile, @NotNull byte[] fileHeader,
+                                             @NotNull Predicate<FolderConfiguration> configFilter) {
     // Write to a temporary file first, then rename to to the final name.
     Path tempFile;
     try {
@@ -357,7 +345,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
 
     try (Base128OutputStream stream = new Base128OutputStream(tempFile)) {
       stream.write(fileHeader);
-      writeToStream(stream);
+      writeToStream(stream, configFilter);
     }
     catch (Throwable e) {
       LOG.error("Unable to create cache file " + tempFile.toString(), e);
@@ -375,19 +363,39 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
   }
 
+  @NotNull
+  protected static byte[] getCacheFileHeader(@NotNull Base128StreamWriter headerWriter) {
+    ByteArrayOutputStream header = new ByteArrayOutputStream();
+    try (Base128OutputStream stream = new Base128OutputStream(header)) {
+      headerWriter.write(stream);
+    }
+    catch (IOException e) {
+      throw new Error("Internal error", e); // An IOException in the try block above indicates a bug.
+    }
+    return header.toByteArray();
+  }
+
+  protected void writeCacheHeaderContent(@NotNull CachingData cachingData, @NotNull Base128OutputStream stream) throws IOException {
+    stream.write(CACHE_FILE_HEADER);
+    stream.writeString(CACHE_FILE_FORMAT_VERSION);
+    stream.writeString(myResourceDirectoryOrFile.toString());
+    stream.writeString(cachingData.getContentVersion());
+    stream.writeString(cachingData.getCodeVersion());
+  }
+
   /**
    * Loads contents the repository from a cache file on disk.
-   * @see #createPersistentCache(Path, byte[])
+   * @see #createPersistentCache(Path, byte[], Predicate<FolderConfiguration>)
    */
-  protected boolean loadFromPersistentCache(@NotNull Path cacheFile, @NotNull byte[] fileHeader) {
+  private boolean loadFromPersistentCache(@NotNull Path cacheFile, @NotNull byte[] fileHeader) {
     try (Base128InputStream stream = new Base128InputStream(cacheFile)) {
-      for (byte expected : fileHeader) {
-        byte b = stream.readByte();
-        if (b != expected) {
-          return false; // Cache file header doesn't match.
-        }
+      if (!validateHeader(fileHeader, stream)) {
+        return false; // Cache file header doesn't match.
       }
-      loadFromStream(stream);
+      loadFromStream(stream, Maps.newHashMapWithExpectedSize(1000), null);
+
+      populatePublicResourcesMap();
+      freezeResources();
       myLoadedFromCache = true;
       return true;
     }
@@ -396,9 +404,19 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
     catch (Throwable e) {
       cleanupAfterFailedLoadingFromCache();
-      LOG.warn("Unable to load from cache file " + cacheFile.toString(), e);
+      LOG.warn("Unable to load resources from cache file " + cacheFile.toString(), e);
       return false;
     }
+  }
+
+  protected static boolean validateHeader(@NotNull byte[] fileHeader, @NotNull Base128InputStream stream) throws IOException {
+    for (byte expected : fileHeader) {
+      byte b = stream.readByte();
+      if (b != expected) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -410,45 +428,54 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
 
   /**
    * Writes contents of the repository to the given output stream.
+   *
+   * @param stream the stream to write to
+   * @param configFilter only resources belonging to configurations satisfying this filter are written to the stream
    */
-  void writeToStream(@NotNull Base128OutputStream stream) throws IOException {
+  void writeToStream(@NotNull Base128OutputStream stream, @NotNull Predicate<FolderConfiguration> configFilter) throws IOException {
     ObjectIntHashMap<String> qualifierStringIndexes = new ObjectIntHashMap<>();
     ObjectIntHashMap<AarSourceFile> sourceFileIndexes = new ObjectIntHashMap<>();
     ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes = new ObjectIntHashMap<>();
-    accept(item -> {
-      String qualifier = item.getConfiguration().getQualifierString();
-      if (!qualifierStringIndexes.containsKey(qualifier)) {
-        qualifierStringIndexes.put(qualifier, qualifierStringIndexes.size());
-      }
-      if (item instanceof AbstractAarValueResourceItem) {
-        AarSourceFile sourceFile = ((AbstractAarValueResourceItem)item).getSourceFile();
-        if (!sourceFileIndexes.containsKey(sourceFile)) {
-          sourceFileIndexes.put(sourceFile, sourceFileIndexes.size());
+    int itemCount = 0;
+    Collection<ListMultimap<String, ResourceItem>> resourceMaps = myResources.values();
+
+    for (ListMultimap<String, ResourceItem> resourceMap : resourceMaps) {
+      for (ResourceItem item : resourceMap.values()) {
+        FolderConfiguration configuration = item.getConfiguration();
+        if (configFilter.test(configuration)) {
+          String qualifier = configuration.getQualifierString();
+          if (!qualifierStringIndexes.containsKey(qualifier)) {
+            qualifierStringIndexes.put(qualifier, qualifierStringIndexes.size());
+          }
+          if (item instanceof AbstractAarValueResourceItem) {
+            AarSourceFile sourceFile = ((AbstractAarValueResourceItem)item).getSourceFile();
+            if (!sourceFileIndexes.containsKey(sourceFile)) {
+              sourceFileIndexes.put(sourceFile, sourceFileIndexes.size());
+            }
+          }
+          if (item instanceof ResourceValue) {
+            ResourceNamespace.Resolver resolver = ((ResourceValue)item).getNamespaceResolver();
+            if (!namespaceResolverIndexes.containsKey(resolver)) {
+              namespaceResolverIndexes.put(resolver, namespaceResolverIndexes.size());
+            }
+          }
+          itemCount++;
         }
       }
-      if (item instanceof ResourceValue) {
-        ResourceNamespace.Resolver resolver = ((ResourceValue)item).getNamespaceResolver();
-        if (!namespaceResolverIndexes.containsKey(resolver)) {
-          namespaceResolverIndexes.put(resolver, namespaceResolverIndexes.size());
-        }
-      }
-      return ResourceVisitor.VisitResult.CONTINUE;
-    });
+    }
 
     writeStrings(qualifierStringIndexes, stream);
     writeSourceFiles(sourceFileIndexes, stream, qualifierStringIndexes);
     writeNamespaceResolvers(namespaceResolverIndexes, stream);
 
-    Collection<ListMultimap<String, ResourceItem>> resourceMaps = myResources.values();
-    int itemCount = 0;
-    for (ListMultimap<String, ResourceItem> resourceMap : resourceMaps) {
-      itemCount += resourceMap.size();
-    }
     stream.writeInt(itemCount);
 
     for (ListMultimap<String, ResourceItem> resourceMap : resourceMaps) {
       for (ResourceItem item : resourceMap.values()) {
-        ((AbstractAarResourceItem)item).serialize(stream, qualifierStringIndexes, sourceFileIndexes, namespaceResolverIndexes);
+        FolderConfiguration configuration = item.getConfiguration();
+        if (configFilter.test(configuration)) {
+          ((AbstractAarResourceItem)item).serialize(stream, qualifierStringIndexes, sourceFileIndexes, namespaceResolverIndexes);
+        }
       }
     }
   }
@@ -488,47 +515,49 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
 
   /**
    * Loads contents the repository from the given input stream.
-   * @see #writeToStream(Base128OutputStream)
+   * @see #writeToStream(Base128OutputStream, Predicate)
    */
-  protected void loadFromStream(@NotNull Base128InputStream stream) throws IOException {
-    stream.setStringCache(Maps.newHashMapWithExpectedSize(10000)); // Enable string instance sharing to minimize memory consumption.
+  protected void loadFromStream(@NotNull Base128InputStream stream,
+                                @NotNull Map<String, String> stringCache,
+                                @Nullable Map<NamespaceResolver, NamespaceResolver> namespaceResolverCache) throws IOException {
+    stream.setStringCache(stringCache); // Enable string instance sharing to minimize memory consumption.
 
     int n = stream.readInt();
     List<AarConfiguration> configurations = new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
       String configQualifier = stream.readString();
       if (configQualifier == null) {
-        throw StreamFormatException.invalidFormat();
+        throw Base128InputStream.StreamFormatException.invalidFormat();
       }
       FolderConfiguration folderConfig = FolderConfiguration.getConfigForQualifierString(configQualifier);
       if (folderConfig == null) {
-        throw StreamFormatException.invalidFormat();
+        throw Base128InputStream.StreamFormatException.invalidFormat();
       }
       configurations.add(new AarConfiguration(this, folderConfig));
     }
 
     n = stream.readInt();
-    List<AarSourceFile> sourceFiles = new ArrayList<>(n);
+    List<AarSourceFile> newSourceFiles = new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
       AarSourceFile sourceFile = AarSourceFile.deserialize(stream, configurations);
-      sourceFiles.add(sourceFile);
+      newSourceFiles.add(sourceFile);
     }
 
     n = stream.readInt();
-    List<ResourceNamespace.Resolver> namespaceResolvers = new ArrayList<>(n);
+    List<ResourceNamespace.Resolver> newNamespaceResolvers = new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
-      NamespaceResolver resolver = NamespaceResolver.deserialize(stream);
-      namespaceResolvers.add(resolver);
+      NamespaceResolver namespaceResolver = NamespaceResolver.deserialize(stream);
+      if (namespaceResolverCache != null) {
+        namespaceResolver = namespaceResolverCache.computeIfAbsent(namespaceResolver, Function.identity());
+      }
+      newNamespaceResolvers.add(namespaceResolver);
     }
 
     n = stream.readInt();
     for (int i = 0; i < n; i++) {
-      AbstractAarResourceItem item = AbstractAarResourceItem.deserialize(stream, configurations, sourceFiles, namespaceResolvers);
+      AbstractAarResourceItem item = AbstractAarResourceItem.deserialize(stream, configurations, newSourceFiles, newNamespaceResolvers);
       addResourceItem(item);
     }
-
-    populatePublicResourcesMap();
-    freezeResources();
   }
 
   private static void deleteIgnoringErrors(@NotNull Path file) {
@@ -538,16 +567,16 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
   }
 
-  @TestOnly
-  boolean isLoadedFromCache() {
-    return myLoadedFromCache;
-  }
-
   protected static boolean isZipArchive(@NotNull Path resourceDirectoryOrFile) {
     String filename = resourceDirectoryOrFile.getFileName().toString();
     return SdkUtils.endsWithIgnoreCase(filename, DOT_AAR) ||
            SdkUtils.endsWithIgnoreCase(filename, DOT_JAR) ||
            SdkUtils.endsWithIgnoreCase(filename, DOT_ZIP);
+  }
+
+  @TestOnly
+  boolean isLoadedFromCache() {
+    return myLoadedFromCache;
   }
 
   // For debugging only.
@@ -557,7 +586,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     return getClass().getSimpleName() + '@' + Integer.toHexString(System.identityHashCode(this)) + " for " + myResourceDirectoryOrFile;
   }
 
-  protected static class Loader implements ResourceFileFilter {
+  protected static class Loader<T extends AarSourceResourceRepository> implements ResourceFileFilter {
     /** The set of attribute formats that is used when no formats are explicitly specified and the attribute is not a flag or enum. */
     private final Set<AttributeFormat> DEFAULT_ATTR_FORMATS = Sets.immutableEnumSet(
         AttributeFormat.BOOLEAN,
@@ -576,6 +605,8 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     @NotNull private final ListMultimap<String, AarAttrResourceItem> myAttrCandidates = ArrayListMultimap.create();
     @NotNull private final ListMultimap<String, AarStyleableResourceItem> myStyleables = ArrayListMultimap.create();
     @NotNull private ResourceVisibility myDefaultVisibility = ResourceVisibility.PRIVATE;
+    /** Cache of FolderConfiguration instances, keyed by qualifier strings (see {@link FolderConfiguration#getQualifierString()}). */
+    @NotNull protected final Map<String, FolderConfiguration> myFolderConfigCache = new HashMap<>();
     @NotNull private final Map<FolderConfiguration, AarConfiguration> myConfigCache = new HashMap<>();
     @NotNull private final ValueResourceXmlParser myParser = new ValueResourceXmlParser();
     @NotNull private final XmlTextExtractor myTextExtractor = new XmlTextExtractor();
@@ -605,7 +636,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       return true;
     }
 
-    protected void loadRepositoryContents(@NotNull AarSourceResourceRepository repository) {
+    protected void loadRepositoryContents(@NotNull T repository) {
       if (myLoadFromZipArchive) {
         loadFromZip(repository);
       }
@@ -614,7 +645,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       }
     }
 
-    protected void loadFromZip(@NotNull AarSourceResourceRepository repository) {
+    protected void loadFromZip(@NotNull T repository) {
       try (ZipFile zipFile = new ZipFile(myResourceDirectoryOrFile.toFile())) {
         myZipFile = zipFile;
         loadPublicResourceNames();
@@ -634,10 +665,10 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         myZipFile = null;
       }
 
-      finalizeResources(repository);
+      finishLoading(repository);
     }
 
-    private void loadFromResFolder(@NotNull AarSourceResourceRepository repository) {
+    protected void loadFromResFolder(@NotNull T repository) {
       try {
         if (Files.notExists(myResourceDirectoryOrFile)) {
           return; // Don't report errors if the resource directory doesn't exist. This happens in some tests.
@@ -658,14 +689,13 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         LOG.error("Failed to load resources from " + myResourceDirectoryOrFile.toString(), e);
       }
 
-      finalizeResources(repository);
+      finishLoading(repository);
     }
 
-    private void loadResourceFile(
-        @NotNull PathString file, @NotNull AarSourceResourceRepository repository, boolean shouldParseResourceIds) {
+    private void loadResourceFile(@NotNull PathString file, @NotNull T repository, boolean shouldParseResourceIds) {
       String folderName = file.getParentFileName();
       if (folderName != null) {
-        FolderInfo folderInfo = FolderInfo.create(folderName);
+        FolderInfo folderInfo = FolderInfo.create(folderName, myFolderConfigCache);
         if (folderInfo != null) {
           AarConfiguration configuration = getAarConfiguration(repository, folderInfo.configuration);
           loadResourceFile(file, folderInfo, configuration, shouldParseResourceIds);
@@ -673,11 +703,9 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       }
     }
 
-    private void finalizeResources(@NotNull AarSourceResourceRepository repository) {
+    private void finishLoading(@NotNull T repository) {
       processAttrsAndStyleables();
       createResourcesForRTxtIds(repository);
-      repository.populatePublicResourcesMap();
-      repository.freezeResources();
     }
 
     @NotNull
@@ -757,6 +785,10 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
 
     @Override
     public boolean isIgnored(@NotNull Path fileOrDirectory, @NotNull BasicFileAttributes attrs) {
+      if (fileOrDirectory.equals(myResourceDirectoryOrFile)) {
+        return false;
+      }
+
       return myFileFilter.isIgnored(fileOrDirectory.toString(), attrs.isDirectory());
     }
 
@@ -826,8 +858,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
 
     @NotNull
-    private AarConfiguration getAarConfiguration(@NotNull AarSourceResourceRepository repository,
-                                                 @NotNull FolderConfiguration folderConfiguration) {
+    private AarConfiguration getAarConfiguration(@NotNull T repository, @NotNull FolderConfiguration folderConfiguration) {
       AarConfiguration aarConfiguration = myConfigCache.get(folderConfiguration);
       if (aarConfiguration != null) {
         return aarConfiguration;
@@ -1088,7 +1119,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         if (myParser.getPrefix() == null) {
           String tagName = myParser.getName();
           AttributeFormat format =
-            tagName.equals(TAG_ENUM) ? AttributeFormat.ENUM : tagName.equals(TAG_FLAG) ? AttributeFormat.FLAGS : null;
+              tagName.equals(TAG_ENUM) ? AttributeFormat.ENUM : tagName.equals(TAG_FLAG) ? AttributeFormat.FLAGS : null;
           if (format != null) {
             formats.add(format);
             String valueName = myParser.getAttributeValue(null, ATTR_NAME);
@@ -1270,7 +1301,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     /**
      * Creates ID resources for the ID names in the R.txt file.
      */
-    private void createResourcesForRTxtIds(@NotNull AarSourceResourceRepository repository) {
+    private void createResourcesForRTxtIds(@NotNull T repository) {
       if (!myRTxtIds.isEmpty()) {
         AarConfiguration configuration = getAarConfiguration(repository, FolderConfiguration.createDefault());
         AarSourceFile sourceFile = new AarSourceFile(null, configuration);
@@ -1486,22 +1517,24 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
      * Returns a FolderInfo for the given folder name.
      *
      * @param folderName the name of a resource folder
+     * @param folderConfigCache the cache of FolderConfiguration objects keyed by qualifier strings
      * @return the FolderInfo object, or null if folderName is not a valid name of a resource folder
      */
     @Nullable
-    static FolderInfo create(@NotNull String folderName) {
+    static FolderInfo create(@NotNull String folderName, @NotNull Map<String, FolderConfiguration> folderConfigCache) {
       ResourceFolderType folderType = ResourceFolderType.getFolderType(folderName);
       if (folderType == null) {
         return null;
       }
 
-      FolderConfiguration configuration = FolderConfiguration.getConfigForFolder(folderName);
-      if (configuration == null) {
+      String qualifier = FolderConfiguration.getQualifier(folderName);
+      FolderConfiguration config = folderConfigCache.computeIfAbsent(qualifier, q -> FolderConfiguration.getConfigForQualifierString(q));
+      if (config == null) {
         return null;
       }
 
-      if (!configuration.isDefault()) {
-        configuration.normalize();
+      if (!config.isDefault()) {
+        config.normalize();
       }
 
       ResourceType resourceType;
@@ -1515,7 +1548,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         isIdGenerating = FolderTypeRelationship.isIdGeneratingFolderType(folderType);
       }
 
-      return new FolderInfo(folderType, configuration, resourceType, isIdGenerating);
+      return new FolderInfo(folderType, config, resourceType, isIdGenerating);
     }
   }
 
@@ -1646,5 +1679,9 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     XmlSyntaxException(@NotNull String error, @NotNull XmlPullParser parser, @NotNull String filename) {
       super(error + " at " + filename + " line " + parser.getLineNumber());
     }
+  }
+
+  protected interface Base128StreamWriter {
+    void write(@NotNull Base128OutputStream stream) throws IOException;
   }
 }

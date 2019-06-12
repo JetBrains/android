@@ -172,7 +172,7 @@ public class VaryingConfiguration extends NestedConfiguration {
     }
     Locale locale = myParent.getLocale();
     if (isAlternatingLocale()) {
-      ImmutableList<Locale> locales = getConfigurationManager().getLocales();
+      ImmutableList<Locale> locales = getConfigurationManager().getLocalesInProject();
       for (Locale l : locales) {
         // TODO: Try to be smarter about which one we pick; for example, try
         // to pick a language that is substantially different from the inherited
