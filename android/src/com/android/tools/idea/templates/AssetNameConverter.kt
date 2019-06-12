@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,47 @@
 package com.android.tools.idea.templates
 
 import com.google.common.annotations.VisibleForTesting
+import java.util.regex.Pattern
 
 /** Suffix added by default to activity names */
 private const val ACTIVITY_NAME_SUFFIX = "Activity"
+/** Suffix added by default to fragment names */
+private const val FRAGMENT_NAME_SUFFIX = "Fragment"
 /** Prefix added to default layout names. Can be overridden via [.overrideLayoutPrefix] */
 private const val DEFAULT_LAYOUT_NAME_PREFIX = "activity"
+
 /**
  * When stripping the Activity suffix, we match against "Activity" plus zero or more digits.
  * The base of the name will be captured in the first group and the digits will be captured in the second group.
  */
 private val ACTIVITY_NAME_PATTERN = Regex("^(.*)$ACTIVITY_NAME_SUFFIX(\\d*)$").toPattern()
-/** Common Android sytem endings which we strip from class names */
+/**
+ * When stripping the Fragment suffix, we match against "Fragment" plus zero or more digits.
+ * The base of the name will be captured in the first group and the digits will be captured in the second group.
+ */
+private val FRAGMENT_NAME_PATTERN = Regex("^(.*)$FRAGMENT_NAME_SUFFIX(\\d*)$").toPattern()
+
+/** Common Android system endings which we strip from class names */
 @VisibleForTesting
-val STRIP_CLASS_SUFFIXES = arrayOf(ACTIVITY_NAME_SUFFIX, "Fragment", "Service", "Provider")
+val STRIP_CLASS_SUFFIXES = arrayOf(ACTIVITY_NAME_SUFFIX, FRAGMENT_NAME_SUFFIX, "Service", "Provider")
 
 /**
- * Strip the "Activity" suffix from a class name, e.g. "EditorActivity" -> "Editor". This does
- * not strip recursively, so "EditorActivityActivity" -> "EditorActivity"
+ * Strip the "Activity" or "Fragment" suffix from a class name, e.g. "EditorActivity" -> "Editor",
+ * "EditorFragment" -> "Editor".
+ * This does not strip recursively, so "EditorActivityActivity" -> "EditorActivity"
  *
  * Because Studio suggests appending numbers onto new classes if they have a duplicate name,
  * e.g. "MainActivity", "MainActivity2", "MainActivity3", we take that into account, for example
  * we would convert "MainActivity3" into "Main3"
  */
-private fun stripActivitySuffix(activityName: String): String {
-  val finalName = activityName.stripSuffix(ACTIVITY_NAME_SUFFIX)
-  if (finalName == activityName) {
-    // activityName didn't end with "Activity". See if it ended with "Activity###".
-    val m = ACTIVITY_NAME_PATTERN.matcher(activityName)
+private fun stripSuffix(name: String, suffix: String, pattern: Pattern): String {
+  val finalName = name.stripSuffix(suffix)
+  if (finalName == name) {
+    // pattern is expected to be either of [ACTIVITY_NAME_PATTERN] or [FRAGMENT_NAME_PATTERN], both
+    // have digits pattern at the end because Studio suggests appending numbers to Activity or Fragment
+    // classes if they have a duplicate name. This matcher is to preserve those digits.
+    // E.g. "MainActivity3" is converted to "Main3"
+    val m = pattern.matcher(name)
     if (m.matches()) {
       val baseName = m.group(1)
       val digits = m.group(2) // May be ""
@@ -51,6 +65,10 @@ private fun stripActivitySuffix(activityName: String): String {
   }
   return finalName
 }
+
+private fun stripActivitySuffix(activityName: String): String = stripSuffix(activityName, ACTIVITY_NAME_SUFFIX, ACTIVITY_NAME_PATTERN)
+
+private fun stripFragmentSuffix(fragmentName: String): String = stripSuffix(fragmentName, FRAGMENT_NAME_SUFFIX, FRAGMENT_NAME_PATTERN)
 
 /**
  * Allows a one to one mapping suggestion between different types of Android asset names, like for example mapping the name of an
@@ -63,7 +81,7 @@ class AssetNameConverter(private val myType: Type, private val myName: String) {
     get() = (if (myLayoutPrefixOverride == null) DEFAULT_LAYOUT_NAME_PREFIX else myLayoutPrefixOverride) + "_"
 
   enum class Type {
-    ACTIVITY, LAYOUT, CLASS_NAME, RESOURCE
+    ACTIVITY, LAYOUT, CLASS_NAME, RESOURCE, FRAGMENT
   }
 
   /**
@@ -93,6 +111,9 @@ class AssetNameConverter(private val myType: Type, private val myName: String) {
       }
       className
     }
+    Type.FRAGMENT -> {
+      stripFragmentSuffix(myName)
+    }
   }
 
   /**
@@ -110,6 +131,9 @@ class AssetNameConverter(private val myType: Type, private val myName: String) {
    * Takes the existing value, and converts it to the requested type.
    */
   fun getValue(type: Type): String {
+    if (type == Type.FRAGMENT) {
+      overrideLayoutPrefix("fragment")
+    }
     val className = this.toClassName()
     return when (type) {
       Type.ACTIVITY -> {
@@ -124,6 +148,10 @@ class AssetNameConverter(private val myType: Type, private val myName: String) {
       }
       Type.RESOURCE -> TemplateUtils.camelCaseToUnderlines(className)
       Type.CLASS_NAME -> className
+      Type.FRAGMENT -> {
+        val fragmentName = TemplateUtils.extractClassName(className) ?: "Main"
+        fragmentName + FRAGMENT_NAME_SUFFIX
+      }
     }
   }
 }
