@@ -394,7 +394,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       ResourceVisibilityLookup visibilityLookup = repoManager.getResourceVisibility();
 
       if (onlyNamespace == ResourceNamespace.ANDROID || (onlyNamespace == null && !StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get())) {
-        ResourceRepository frameworkResources = repoManager.getFrameworkResources(false);
+        ResourceRepository frameworkResources = repoManager.getFrameworkResources(ImmutableSet.of());
         if (frameworkResources != null) {
           addResourceReferenceValuesFromRepo(frameworkResources, repoManager, visibilityLookup, element, prefix, type,
                                              ResourceNamespace.ANDROID, result, explicitResourceType);

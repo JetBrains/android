@@ -871,7 +871,7 @@ fun getCompletionFromTypes(
 
   val repoManager = ResourceRepositoryManager.getInstance(facet)
   val appResources = repoManager.appResources
-  val frameworkResources = repoManager.getFrameworkResources(false)
+  val frameworkResources = repoManager.getFrameworkResources(emptySet())
 
   val resources = ArrayList<String>(500)
   for (type in types) {
@@ -1161,7 +1161,7 @@ fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
 private fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
   val repoManager = ResourceRepositoryManager.getInstance(facet)
   return if (namespace == ResourceNamespace.ANDROID) {
-    val repo = repoManager.getFrameworkResources(false) ?: return false
+    val repo = repoManager.getFrameworkResources(emptySet()) ?: return false
     val items = repo.getResources(ResourceNamespace.ANDROID, type, name)
     items.isNotEmpty() && (items[0] as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
   }

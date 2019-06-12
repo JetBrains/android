@@ -42,18 +42,22 @@ import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.PathUtils;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import junit.framework.AssertionFailedError;
@@ -75,13 +79,13 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   private Path myCacheDir;
 
   @NotNull
-  private Path getCacheFile(boolean withLocaleResources) {
-    return myCacheDir.resolve(withLocaleResources ? "cache_with_locales.bin" : "cache_without_locales.bin");
+  private Path getCacheFile() {
+    return myCacheDir.resolve("cache.bin");
   }
 
   @NotNull
-  private CachingData createCachingData(boolean withLocaleResources, @Nullable Executor cacheCreationExecutor) {
-    return new CachingData(getCacheFile(withLocaleResources), "", "", cacheCreationExecutor);
+  private CachingData createCachingData(@Nullable Executor cacheCreationExecutor) {
+    return new CachingData(getCacheFile(), "", "", cacheCreationExecutor);
   }
 
   /**
@@ -122,92 +126,6 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     List<ResourceItem> resources = repository.getResources(ResourceNamespace.ANDROID, type, name);
     assertThat(resources).isNotEmpty();
     assertThat(((ResourceItemWithVisibility)resources.get(0)).getVisibility()).isEqualTo(visibility);
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    myResourceFolder = getSdkResFolder();
-    myCacheDir = Files.createTempDirectory("caches");
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      PathUtils.deleteRecursivelyIfExists(myCacheDir);
-    } finally {
-      super.tearDown();
-    }
-  }
-
-  public void testLoadingFromSourcesAndCache() {
-    for (boolean withLocaleResources : new boolean[] {true, false}) {
-      // Create persistent cache.
-      FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, createCachingData(withLocaleResources, directExecutor()));
-
-      long loadTimeFromSources = 0;
-      long loadTimeFromCache = 0;
-      int count = PRINT_STATS ? 100 : 1;
-      for (int i = 0; i < count; ++i) {
-        long start = System.currentTimeMillis();
-        FrameworkResourceRepository fromSourceFiles =
-            FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, null);
-        loadTimeFromSources += System.currentTimeMillis() - start;
-        if (i == 0) {
-          assertThat(fromSourceFiles.isLoadedFromCache()).isFalse();
-          checkContents(fromSourceFiles);
-        }
-        start = System.currentTimeMillis();
-        FrameworkResourceRepository fromCache =
-            FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, createCachingData(withLocaleResources, null));
-        loadTimeFromCache += System.currentTimeMillis() - start;
-        if (i == 0) {
-          assertThat(fromCache.isLoadedFromCache()).isTrue();
-          compareContents(fromSourceFiles, fromCache);
-          checkContents(fromCache);
-        }
-      }
-
-      if (PRINT_STATS) {
-        String type = withLocaleResources ? "Load time" : "Load time without locale resources";
-        System.out.println(type + " without cache: " + loadTimeFromSources / (count * 1000.)
-                           + " sec, with cache " + loadTimeFromCache / (count * 1000.) + " sec");
-      }
-    }
-  }
-
-  public void testLoadingFromSourcesAndJar() {
-    Path frameworkResJar = getFrameworkResJar();
-    for (boolean withLocaleResources : new boolean[] {true, false}) {
-      long loadTimeFromSources = 0;
-      long loadTimeFromJar = 0;
-      int count = PRINT_STATS ? 100 : 1;
-      for (int i = 0; i < count; ++i) {
-        long start = System.currentTimeMillis();
-        FrameworkResourceRepository fromSourceFiles = FrameworkResourceRepository.create(myResourceFolder, withLocaleResources);
-        assertThat(fromSourceFiles.isWithLocaleResources()).isEqualTo(withLocaleResources);
-        loadTimeFromSources += System.currentTimeMillis() - start;
-        if (i == 0) {
-          assertThat(fromSourceFiles.isLoadedFromCache()).isFalse();
-          checkContents(fromSourceFiles);
-        }
-        start = System.currentTimeMillis();
-        FrameworkResourceRepository fromJar = FrameworkResourceRepository.create(frameworkResJar, withLocaleResources);
-        assertThat(fromJar.isWithLocaleResources()).isEqualTo(withLocaleResources);
-        loadTimeFromJar += System.currentTimeMillis() - start;
-        if (i == 0) {
-          assertThat(fromJar.isLoadedFromCache()).isFalse();
-          compareContents(fromSourceFiles, fromJar);
-          checkContents(fromJar);
-        }
-      }
-
-      if (PRINT_STATS) {
-        String type = withLocaleResources ? "Load time" : "Load time without locale resources";
-        System.out.println(type + " from source files: " + loadTimeFromSources / (count * 1000.)
-                           + " sec, from framework_res.jar file " + loadTimeFromJar / (count * 1000.) + " sec");
-      }
-    }
   }
 
   private static void compareContents(@NotNull ResourceRepository expected, @NotNull ResourceRepository actual) {
@@ -440,7 +358,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     return false;
   }
 
-  private static int indexOfEnd(@NotNull String stringToSearch, @NotNull String toSearchFor) {
+  private static int indexOfEnd(@NotNull String stringToSearch, @SuppressWarnings("SameParameterValue") @NotNull String toSearchFor) {
     int index = stringToSearch.indexOf(toSearchFor);
     return index < 0 ? index : index + toSearchFor.length();
   }
@@ -522,5 +440,146 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     assertVisibility(repository, ResourceType.ATTR, "packageType", ResourceVisibility.PUBLIC);
     assertVisibility(repository, ResourceType.DRAWABLE, "ic_info", ResourceVisibility.PRIVATE); // Due to the @hide comment
     assertVisibility(repository, ResourceType.ATTR, "__removed2", ResourceVisibility.PRIVATE); // Due to the naming convention
+  }
+
+  private static void checkLanguages(@NotNull FrameworkResourceRepository fromSourceFiles, @Nullable Set<String> languages) {
+    if (languages == null) {
+      assertThat(fromSourceFiles.getLanguageGroups().size()).isAtLeast(75);
+    }
+    else {
+      assertThat(fromSourceFiles.getLanguageGroups()).isEqualTo(Sets.union(ImmutableSet.of(""), languages));
+    }
+  }
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    myResourceFolder = getSdkResFolder();
+    myCacheDir = Files.createTempDirectory("caches");
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      PathUtils.deleteRecursivelyIfExists(myCacheDir);
+    } finally {
+      super.tearDown();
+    }
+  }
+
+  public void testLoadingFromSourcesAndCache() throws Exception {
+    for (Set<String> languages : Arrays.asList(ImmutableSet.<String>of(), ImmutableSet.of("fr", "it"), null)) {
+      // Create persistent cache.
+      PathUtils.deleteRecursivelyIfExists(myCacheDir);
+      FrameworkResourceRepository.create(myResourceFolder, languages, createCachingData(directExecutor()));
+
+      long loadTimeFromSources = 0;
+      long loadTimeFromCache = 0;
+      int count = PRINT_STATS ? 100 : 1;
+      for (int i = 0; i < count; ++i) {
+        long start = System.currentTimeMillis();
+        FrameworkResourceRepository fromSourceFiles = FrameworkResourceRepository.create(myResourceFolder, languages, null);
+        loadTimeFromSources += System.currentTimeMillis() - start;
+        if (i == 0) {
+          checkLanguages(fromSourceFiles, languages);
+          assertThat(fromSourceFiles.isLoadedFromCache()).isFalse();
+          checkContents(fromSourceFiles);
+        }
+        start = System.currentTimeMillis();
+        FrameworkResourceRepository fromCache =
+            FrameworkResourceRepository.create(myResourceFolder, languages, createCachingData(null));
+        loadTimeFromCache += System.currentTimeMillis() - start;
+        if (i == 0) {
+          checkLanguages(fromSourceFiles, languages);
+          assertThat(fromCache.isLoadedFromCache()).isTrue();
+          compareContents(fromSourceFiles, fromCache);
+          checkContents(fromCache);
+        }
+      }
+
+      if (PRINT_STATS) {
+        String type = "Load time with " + (languages == null ? "all" : languages.size()) + " languages";
+        System.out.println(type + " without cache: " + loadTimeFromSources / (count * 1000.)
+                           + " sec, with cache " + loadTimeFromCache / (count * 1000.) + " sec");
+      }
+    }
+  }
+
+  public void testLoadingFromSourcesAndJar() {
+    Path frameworkResJar = getFrameworkResJar();
+    for (Set<String> languages : Arrays.asList(ImmutableSet.<String>of(), ImmutableSet.of("fr", "de"), null)) {
+      long loadTimeFromSources = 0;
+      long loadTimeFromJar = 0;
+      int count = PRINT_STATS ? 100 : 1;
+      for (int i = 0; i < count; ++i) {
+        long start = System.currentTimeMillis();
+        FrameworkResourceRepository fromSourceFiles = FrameworkResourceRepository.create(myResourceFolder, languages, null);
+        loadTimeFromSources += System.currentTimeMillis() - start;
+        checkLanguages(fromSourceFiles, languages);
+        if (i == 0) {
+          assertThat(fromSourceFiles.isLoadedFromCache()).isFalse();
+          checkContents(fromSourceFiles);
+        }
+        start = System.currentTimeMillis();
+        FrameworkResourceRepository fromJar = FrameworkResourceRepository.create(frameworkResJar, languages, null);
+        loadTimeFromJar += System.currentTimeMillis() - start;
+        checkLanguages(fromSourceFiles, languages);
+        if (i == 0) {
+          assertThat(fromJar.isLoadedFromCache()).isFalse();
+          compareContents(fromSourceFiles, fromJar);
+          checkContents(fromJar);
+        }
+      }
+
+      if (PRINT_STATS) {
+        String type = "Load time with " + (languages == null ? "all" : languages.size()) + " languages";
+        System.out.println(type + " from source files: " + loadTimeFromSources / (count * 1000.)
+                           + " sec, from framework_res.jar file " + loadTimeFromJar / (count * 1000.) + " sec");
+      }
+    }
+  }
+
+  public void testIncrementalLoadingFromJar() {
+    Path frameworkResJar = getFrameworkResJar();
+    FrameworkResourceRepository withFrench = FrameworkResourceRepository.create(frameworkResJar, ImmutableSet.of("fr"), null);
+    checkLanguages(withFrench, ImmutableSet.of("fr"));
+    assertThat(withFrench.isLoadedFromCache()).isFalse();
+    checkContents(withFrench);
+    FrameworkResourceRepository withFrenchAndGerman = withFrench.loadMissingLanguages(ImmutableSet.of("de"), null);
+    checkLanguages(withFrenchAndGerman, ImmutableSet.of("fr", "de"));
+    assertThat(withFrenchAndGerman.isLoadedFromCache()).isFalse();
+    checkContents(withFrenchAndGerman);
+  }
+
+  public void testIncrementalLoadingFromCacheAndSources() {
+    // Create persistent cache for language-neutral, French and German.
+    CachingData cachingData = createCachingData(directExecutor());
+    FrameworkResourceRepository.create(myResourceFolder, ImmutableSet.of("fr", "de"), cachingData);
+
+    FrameworkResourceRepository withoutLanguages = FrameworkResourceRepository.create(myResourceFolder, ImmutableSet.of(), cachingData);
+    checkLanguages(withoutLanguages, ImmutableSet.of());
+    assertThat(withoutLanguages.isLoadedFromCache()).isTrue();
+    assertThat(withoutLanguages.getNumberOfLanguageGroupsLoadedFromCache()).isEqualTo(1);
+    checkContents(withoutLanguages);
+
+    FrameworkResourceRepository withFrench = withoutLanguages.loadMissingLanguages(ImmutableSet.of("fr"), cachingData);
+    checkLanguages(withFrench, ImmutableSet.of("fr"));
+    assertThat(withFrench.isLoadedFromCache()).isTrue();
+    assertThat(withFrench.getNumberOfLanguageGroupsLoadedFromCache()).isEqualTo(2);
+    checkContents(withFrench);
+
+    FrameworkResourceRepository withFrenchGermanItalian = withFrench.loadMissingLanguages(ImmutableSet.of("de", "it"), cachingData);
+    checkLanguages(withFrenchGermanItalian, ImmutableSet.of("fr", "de", "it"));
+    assertThat(withFrenchGermanItalian.isLoadedFromCache()).isFalse();
+    // German should be loaded from cache, but Italian should not.
+    assertThat(withFrenchGermanItalian.getNumberOfLanguageGroupsLoadedFromCache()).isEqualTo(3);
+    checkContents(withFrenchGermanItalian);
+
+    // Check that the previous repository loading created a cache file for Italian.
+    FrameworkResourceRepository withItalian = FrameworkResourceRepository.create(myResourceFolder, ImmutableSet.of("it"), cachingData);
+    checkLanguages(withItalian, ImmutableSet.of("it"));
+    assertThat(withItalian.isLoadedFromCache()).isTrue();
+    assertThat(withItalian.getNumberOfLanguageGroupsLoadedFromCache()).isEqualTo(2);
+    checkContents(withItalian);
   }
 }
