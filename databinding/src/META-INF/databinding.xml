@@ -30,6 +30,7 @@
                     serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingTracker"
                     overrides="true"/>
 
+    <annotator language="kotlin" implementationClass="com.android.tools.idea.databinding.validation.DataBindingKotlinAnnotator" />
     <intentionAction>
       <className>com.android.tools.idea.actions.ConvertLayoutToDataBindingAction</className>
       <category>Android</category>
