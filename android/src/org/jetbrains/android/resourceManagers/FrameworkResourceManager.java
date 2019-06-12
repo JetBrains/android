@@ -23,6 +23,7 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -105,7 +106,7 @@ public class FrameworkResourceManager extends ResourceManager {
   @Nullable
   private ResourceRepository getResourceRepository() {
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
-    return repositoryManager == null ? null : repositoryManager.getFrameworkResources(false);
+    return repositoryManager == null ? null : repositoryManager.getFrameworkResources(ImmutableSet.of());
   }
 
   @Nullable

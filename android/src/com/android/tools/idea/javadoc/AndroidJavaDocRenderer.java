@@ -28,7 +28,6 @@ import static com.intellij.openapi.util.io.FileUtilRt.copy;
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
@@ -71,6 +70,7 @@ import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.intellij.openapi.editor.colors.EditorColorsUtil;
@@ -567,7 +567,7 @@ public class AndroidJavaDocRenderer {
     @Nullable
     public ResourceRepository getFrameworkResources() {
       ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
-      return repositoryManager == null ? null : repositoryManager.getFrameworkResources(false);
+      return repositoryManager == null ? null : repositoryManager.getFrameworkResources(ImmutableSet.of());
     }
 
     @Override

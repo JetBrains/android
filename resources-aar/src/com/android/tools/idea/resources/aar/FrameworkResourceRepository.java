@@ -15,17 +15,25 @@
  */
 package com.android.tools.idea.resources.aar;
 
+import static com.android.SdkConstants.FD_RES_RAW;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,13 +41,18 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Executor;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.xmlpull.v1.XmlPullParser;
 
 /**
@@ -58,59 +71,119 @@ import org.xmlpull.v1.XmlPullParser;
  */
 public final class FrameworkResourceRepository extends AarSourceResourceRepository {
   private static final ResourceNamespace ANDROID_NAMESPACE = ResourceNamespace.ANDROID;
-  static final String ENTRY_NAME_WITH_LOCALES = "resources.bin";
-  static final String ENTRY_NAME_WITHOUT_LOCALES = "resources_light.bin";
+  /** Mapping from languages to language groups, e.g. Romansh is mapped to Italian. */
+  private static final Map<String, String> LANGUAGE_TO_GROUP = ImmutableMap.of("rm", "it");
+  private static final String RESOURCES_TABLE_PREFIX = "resources_";
+  private static final String RESOURCE_TABLE_SUFFIX = ".bin";
 
   private static final Logger LOG = Logger.getInstance(FrameworkResourceRepository.class);
 
-  private final boolean myWithLocaleResources;
+  private final Set<String> myLanguageGroups = new TreeSet<>();
+  private int myNumberOfLanguageGroupsLoadedFromCache;
 
-  private FrameworkResourceRepository(@NotNull MyLoader loader) {
+  private FrameworkResourceRepository(@NotNull Loader loader) {
     super(loader);
-    myWithLocaleResources = loader.myWithLocaleResources;
-  }
-
-  /**
-   * Creates an Android framework resource repository without using a persistent cache.
-   *
-   * @param resourceDirectoryOrFile the res directory or a jar file containing resources of the Android framework
-   * @return the created resource repository
-   */
-  @NotNull
-  public static FrameworkResourceRepository create(@NotNull Path resourceDirectoryOrFile, boolean withLocaleResources) {
-    return create(resourceDirectoryOrFile, withLocaleResources, null);
   }
 
   /**
    * Creates an Android framework resource repository.
    *
    * @param resourceDirectoryOrFile the res directory or a jar file containing resources of the Android framework
-   * @param withLocaleResources whether to include locale-specific resources or not
+   * @param languagesToLoad the set of ISO 639 language codes, or null to load all available languages
    * @param cachingData data used to validate and create a persistent cache file
    * @return the created resource repository
    */
   @NotNull
-  public static FrameworkResourceRepository create(@NotNull Path resourceDirectoryOrFile, boolean withLocaleResources,
+  public static FrameworkResourceRepository create(@NotNull Path resourceDirectoryOrFile, @Nullable Set<String> languagesToLoad,
                                                    @Nullable CachingData cachingData) {
-    MyLoader loader = new MyLoader(resourceDirectoryOrFile, withLocaleResources);
+    long start = LOG.isDebugEnabled() ? System.currentTimeMillis() : 0;
+    Set<String> languageGroups = languagesToLoad == null ? null : getLanguageGroups(languagesToLoad);
+
+    Loader loader = new Loader(resourceDirectoryOrFile, languageGroups);
     FrameworkResourceRepository repository = new FrameworkResourceRepository(loader);
+
+    repository.load(null, cachingData, loader, languageGroups, loader.myLoadedLanguageGroups);
+
+    if (LOG.isDebugEnabled()) {
+      String source = repository.getNumberOfLanguageGroupsLoadedFromOrigin() == 0 ?
+                      "cache" :
+                      repository.myNumberOfLanguageGroupsLoadedFromCache == 0 ?
+                      resourceDirectoryOrFile.toString() :
+                      "cache and " + resourceDirectoryOrFile;
+      LOG.debug("Loaded from " + source + " with " + (repository.myLanguageGroups.size() - 1) + " languages in " +
+                (System.currentTimeMillis() - start) / 1000. + " sec");
+    }
+    return repository;
+  }
+
+  /**
+   * Loads resources for requested languages that are not present in this resource repository.
+   *
+   * @param languagesToLoad the set of ISO 639 language codes, or null to load all available languages
+   * @param cachingData data used to validate and create a persistent cache file
+   * @return the new resource repository with additional resources, or this resource repository if it already contained
+   *     all requested languages
+   */
+  @NotNull
+  public FrameworkResourceRepository loadMissingLanguages(@Nullable Set<String> languagesToLoad, @Nullable CachingData cachingData) {
+    @Nullable Set<String> languageGroups = languagesToLoad == null ? null : getLanguageGroups(languagesToLoad);
+    if (languageGroups != null && myLanguageGroups.containsAll(languageGroups)) {
+      return this; // The repository already contains all requested languages.
+    }
+
+    long start = LOG.isDebugEnabled() ? System.currentTimeMillis() : 0;
+    Loader loader = new Loader(this, languageGroups);
+    FrameworkResourceRepository newRepository = new FrameworkResourceRepository(loader);
+
+    newRepository.load(this, cachingData, loader, languageGroups, loader.myLoadedLanguageGroups);
+
+    if (LOG.isDebugEnabled()) {
+      String source = newRepository.getNumberOfLanguageGroupsLoadedFromOrigin() == getNumberOfLanguageGroupsLoadedFromOrigin() ?
+                      "cache" :
+                      newRepository.myNumberOfLanguageGroupsLoadedFromCache == myNumberOfLanguageGroupsLoadedFromCache ?
+                      myResourceDirectoryOrFile.toString() :
+                      "cache and " + myResourceDirectoryOrFile;
+      LOG.debug("Loaded " + (newRepository.myLanguageGroups.size() - myLanguageGroups.size()) + " additional languages from " + source +
+                " in " + (System.currentTimeMillis() - start) / 1000. + " sec");
+    }
+    return newRepository;
+  }
+
+  private void load(@Nullable FrameworkResourceRepository sourceRepository,
+                    @Nullable CachingData cachingData,
+                    @NotNull Loader loader,
+                    @Nullable Set<String> languageGroups,
+                    @NotNull Set<String> languageGroupsLoadedFromSourceRepositoryOrCache) {
+    Map<String, String> stringCache = Maps.newHashMapWithExpectedSize(10000);
+    Map<NamespaceResolver, NamespaceResolver> namespaceResolverCache = new HashMap<>();
+    Set<AarConfiguration> configurationsToTakeOver =
+        sourceRepository == null ? ImmutableSet.of() : copyFromRepository(sourceRepository, stringCache, namespaceResolverCache);
 
     // If not loading from a jar file, try to load from a cache file first. A separate cache file is not used
     // when loading from framework_res.jar since it already contains data in the cache format. Loading from
     // framework_res.jar or a cache file is significantly faster than reading individual resource files.
-    if (!loader.myLoadFromZipArchive && cachingData != null && repository.loadFromPersistentCache(cachingData)) {
-      return repository;
+    if (!loader.myLoadFromZipArchive && cachingData != null) {
+      loadFromPersistentCache(cachingData, languageGroups, languageGroupsLoadedFromSourceRepositoryOrCache, stringCache,
+                              namespaceResolverCache);
     }
 
-    loader.loadRepositoryContents(repository);
+    myLanguageGroups.addAll(languageGroupsLoadedFromSourceRepositoryOrCache);
+    if (languageGroups == null || !languageGroupsLoadedFromSourceRepositoryOrCache.containsAll(languageGroups)) {
+      loader.loadRepositoryContents(this);
+    }
+
+    myLoadedFromCache = myNumberOfLanguageGroupsLoadedFromCache == myLanguageGroups.size();
+
+    populatePublicResourcesMap();
+    freezeResources();
+    takeOverConfigurations(configurationsToTakeOver);
 
     if (!loader.myLoadFromZipArchive && cachingData != null) {
       Executor executor = cachingData.getCacheCreationExecutor();
-      if (executor != null) {
-        executor.execute(() -> repository.createPersistentCache(cachingData));
+      if (executor != null && !languageGroupsLoadedFromSourceRepositoryOrCache.containsAll(myLanguageGroups)) {
+        executor.execute(() -> createPersistentCache(cachingData, languageGroupsLoadedFromSourceRepositoryOrCache));
       }
     }
-    return repository;
   }
 
   @Override
@@ -132,42 +205,225 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   }
 
   /**
-   * Returns true if the resource repository includes locale-specific resources, otherwise false.
+   * Copies resources from another FrameworkResourceRepository.
+   *
+   * @param sourceRepository the repository to copy resources from
+   * @param stringCache the string cache to populate with the names of copied resources
+   * @param namespaceResolverCache the namespace resolver cache to populate with namespace resolvers referenced by the copied resources
+   * @return the {@link AarConfiguration} objects referenced by the copied resources
    */
-  public boolean isWithLocaleResources() {
-    return myWithLocaleResources;
+  @NotNull
+  private Set<AarConfiguration> copyFromRepository(@NotNull FrameworkResourceRepository sourceRepository,
+                                                   @NotNull Map<String, String> stringCache,
+                                                   @NotNull Map<NamespaceResolver, NamespaceResolver> namespaceResolverCache) {
+    Collection<ListMultimap<String, ResourceItem>> resourceMaps = sourceRepository.myResources.values();
+
+    // Copy resources from the source repository, get AarConfigurations that need to be taken over by this repository,
+    // and pre-populate string and namespace resolver caches.
+    Set<AarConfiguration> sourceConfigurations = Sets.newIdentityHashSet();
+    for (ListMultimap<String, ResourceItem> resourceMap : resourceMaps) {
+      for (ResourceItem item : resourceMap.values()) {
+        addResourceItem(item);
+
+        sourceConfigurations.add(((AbstractAarResourceItem)item).getAarConfiguration());
+        if (item instanceof AbstractAarValueResourceItem) {
+          NamespaceResolver resolver = (NamespaceResolver)((AbstractAarValueResourceItem)item).getNamespaceResolver();
+          namespaceResolverCache.put(resolver, resolver);
+        }
+        String name = item.getName();
+        stringCache.put(name, name);
+      }
+    }
+
+    myNumberOfLanguageGroupsLoadedFromCache += sourceRepository.myNumberOfLanguageGroupsLoadedFromCache;
+    return sourceConfigurations;
   }
 
-  @Override
-  protected void writeCacheHeaderContent(@NotNull CachingData cachingData, @NotNull Base128OutputStream stream) throws IOException {
-    super.writeCacheHeaderContent(cachingData, stream);
-    stream.writeBoolean(myWithLocaleResources);
+  private void loadFromPersistentCache(@NotNull CachingData cachingData, @Nullable Set<String> languagesToLoad,
+                                          @NotNull Set<String> loadedLanguages,
+                                          @NotNull Map<String, String> stringCache,
+                                          @Nullable Map<NamespaceResolver, NamespaceResolver> namespaceResolverCache) {
+    CacheFileNameGenerator fileNameGenerator = new CacheFileNameGenerator((cachingData));
+    Set<String> languages = languagesToLoad == null ? fileNameGenerator.getAllCacheFileLanguages() : languagesToLoad;
+
+    for (String language : languages) {
+      if (!loadedLanguages.contains(language)) {
+        Path cacheFile = fileNameGenerator.getCacheFile(language);
+        try (Base128InputStream stream = new Base128InputStream(cacheFile)) {
+          byte[] header = getCacheFileHeader(s -> writeCacheHeaderContent(cachingData, language, s));
+          if (!validateHeader(header, stream)) {
+            // Cache file header doesn't match.
+            if (language.isEmpty()) {
+              break; // Don't try to load language-specific resources if language-neutral ones could not be loaded.
+            }
+            continue;
+          }
+          loadFromStream(stream, stringCache, namespaceResolverCache);
+          loadedLanguages.add(language);
+          myNumberOfLanguageGroupsLoadedFromCache++;
+        }
+        catch (NoSuchFileException e) {
+          // Cache file does not exist.
+          if (language.isEmpty()) {
+            break;  // Don't try to load language-specific resources if language-neutral ones could not be loaded.
+          }
+        }
+        catch (Throwable e) {
+          cleanupAfterFailedLoadingFromCache();
+          loadedLanguages.clear();
+          myNumberOfLanguageGroupsLoadedFromCache = 0;
+          LOG.warn("Unable to load from cache file " + cacheFile.toString(), e);
+          break;
+        }
+      }
+    }
   }
 
-  private static class MyLoader extends Loader {
-    private final boolean myWithLocaleResources;
+  private void createPersistentCache(@NotNull CachingData cachingData, @NotNull Set<String> languagesToSkip) {
+    CacheFileNameGenerator fileNameGenerator = new CacheFileNameGenerator(cachingData);
+    for (String language : myLanguageGroups) {
+      if (!languagesToSkip.contains(language)) {
+        Path cacheFile = fileNameGenerator.getCacheFile(language);
+        byte[] header = getCacheFileHeader(stream -> writeCacheHeaderContent(cachingData, language, stream));
+        createPersistentCache(cacheFile, header, config -> language.equals(getLanguageGroup(config)));
+      }
+    }
+  }
 
-    MyLoader(@NotNull Path resourceDirectoryOrFile, boolean withLocaleResources) {
+  private void writeCacheHeaderContent(@NotNull CachingData cachingData, @NotNull String language, @NotNull Base128OutputStream stream)
+      throws IOException {
+    writeCacheHeaderContent(cachingData, stream);
+    stream.writeString(language);
+  }
+
+  /**
+   * Returns the name of the resource table file containing resources for the given language.
+   *
+   * @param language the two-letter language abbreviation, or an empty string for language-neutral resources
+   * @return the file name
+   */
+  static String getResourceTableNameForLanguage(@NotNull String language) {
+    return language.isEmpty() ? "resources.bin" : RESOURCES_TABLE_PREFIX + language + RESOURCE_TABLE_SUFFIX;
+  }
+
+  @NotNull
+  static String getLanguageGroup(@NotNull FolderConfiguration config) {
+    LocaleQualifier locale = config.getLocaleQualifier();
+    return locale == null ? "" : getLanguageGroup(StringUtil.notNullize(locale.getLanguage()));
+  }
+
+  /**
+   * Maps some languages to others effectively grouping languages together. For example, Romansh language
+   * that has very few framework resources is grouped together with Italian.
+   *
+   * @param language the original language
+   * @return the language representing the corresponding group of languages
+   */
+  @NotNull
+  private static String getLanguageGroup(@NotNull String language) {
+    return LANGUAGE_TO_GROUP.getOrDefault(language, language);
+  }
+
+  @NotNull
+  private static Set<String> getLanguageGroups(@NotNull Set<String> languages) {
+    Set<String> result = new TreeSet<>();
+    result.add("");
+    for (String language : languages) {
+      result.add(getLanguageGroup(language));
+    }
+    return result;
+  }
+
+  @NotNull
+  Set<String> getLanguageGroups() {
+    Set<String> languages = new TreeSet<>();
+
+    for (ListMultimap<String, ResourceItem> resourceMap : myResources.values()) {
+      for (ResourceItem item : resourceMap.values()) {
+        FolderConfiguration config = item.getConfiguration();
+        languages.add(getLanguageGroup(config));
+      }
+    }
+
+    return languages;
+  }
+
+  private int getNumberOfLanguageGroupsLoadedFromOrigin() {
+    return myLanguageGroups.size() - myNumberOfLanguageGroupsLoadedFromCache;
+  }
+
+  @TestOnly
+  int getNumberOfLanguageGroupsLoadedFromCache() {
+    return myNumberOfLanguageGroupsLoadedFromCache;
+  }
+
+  private static class Loader extends AarSourceResourceRepository.Loader<FrameworkResourceRepository> {
+    @NotNull private final Set<String> myLoadedLanguageGroups;
+    @Nullable private Set<String> myLanguageGroups;
+
+    Loader(@NotNull Path resourceDirectoryOrFile, @Nullable Set<String> languageGroups) {
       super(resourceDirectoryOrFile, null, ANDROID_NAMESPACE, null);
-      myWithLocaleResources = withLocaleResources;
+      myLanguageGroups = languageGroups;
+      myLoadedLanguageGroups = new TreeSet<>();
+    }
+
+    Loader(@NotNull FrameworkResourceRepository sourceRepository, @Nullable Set<String> languageGroups) {
+      super(sourceRepository.myResourceDirectoryOrFile, null, ANDROID_NAMESPACE, null);
+      myLanguageGroups = languageGroups;
+      myLoadedLanguageGroups = new TreeSet<>(sourceRepository.myLanguageGroups);
     }
 
     @Override
-    protected void loadFromZip(@NotNull AarSourceResourceRepository repository) {
+    protected void loadFromZip(@NotNull FrameworkResourceRepository repository) {
       try (ZipFile zipFile = new ZipFile(myResourceDirectoryOrFile.toFile())) {
-        String entryName = myWithLocaleResources ? ENTRY_NAME_WITH_LOCALES : ENTRY_NAME_WITHOUT_LOCALES;
-        ZipEntry zipEntry = zipFile.getEntry(entryName);
-        if (zipEntry == null) {
-          throw new IOException("\"" + entryName + "\" not found in " + myResourceDirectoryOrFile.toString());
+        if (myLanguageGroups == null) {
+          myLanguageGroups = readLanguageGroups(zipFile);
         }
 
-        try (Base128InputStream stream = new Base128InputStream(zipFile.getInputStream(zipEntry))) {
-          repository.loadFromStream(stream);
+        Map<String, String> stringCache = Maps.newHashMapWithExpectedSize(10000);
+        Map<NamespaceResolver, NamespaceResolver> namespaceResolverCache = new HashMap<>();
+
+        for (String language : myLanguageGroups) {
+          if (!myLoadedLanguageGroups.contains(language)) {
+            String entryName = getResourceTableNameForLanguage(language);
+            ZipEntry zipEntry = zipFile.getEntry(entryName);
+            if (zipEntry == null) {
+              if (language.isEmpty()) {
+                throw new IOException("\"" + entryName + "\" not found in " + myResourceDirectoryOrFile.toString());
+              }
+              else {
+                continue; // Requested language may not be represented in the Android framework resources.
+              }
+            }
+
+            try (Base128InputStream stream = new Base128InputStream(zipFile.getInputStream(zipEntry))) {
+              repository.loadFromStream(stream, stringCache, namespaceResolverCache);
+            }
+          }
         }
+
+        repository.populatePublicResourcesMap();
+        repository.freezeResources();
       }
       catch (Exception e) {
         LOG.error("Failed to load resources from " + myResourceDirectoryOrFile.toString(), e);
       }
+    }
+
+    @NotNull
+    private static Set<String> readLanguageGroups(@NotNull ZipFile zipFile) {
+      ImmutableSortedSet.Builder<String> result = ImmutableSortedSet.naturalOrder();
+      result.add("");
+      zipFile.stream().forEach(entry -> {
+        String name = entry.getName();
+        if (name.startsWith(RESOURCES_TABLE_PREFIX) && name.endsWith(RESOURCE_TABLE_SUFFIX) &&
+            name.length() == RESOURCES_TABLE_PREFIX.length() + RESOURCE_TABLE_SUFFIX.length() + 2 &&
+            Character.isLetter(name.charAt(RESOURCES_TABLE_PREFIX.length())) &&
+            Character.isLetter(name.charAt(RESOURCES_TABLE_PREFIX.length() + 1))) {
+          result.add(name.substring(RESOURCES_TABLE_PREFIX.length(), RESOURCES_TABLE_PREFIX.length() + 2));
+        }
+      });
+      return result.build();
     }
 
     @Override
@@ -176,7 +432,19 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     }
 
     @Override
+    protected void loadRepositoryContents(@NotNull FrameworkResourceRepository repository) {
+      super.loadRepositoryContents(repository);
+
+      Set<String> languageGroups = myLanguageGroups == null ? repository.getLanguageGroups() : myLanguageGroups;
+      repository.myLanguageGroups.addAll(languageGroups);
+    }
+
+    @Override
     public boolean isIgnored(@NotNull Path fileOrDirectory, @NotNull BasicFileAttributes attrs) {
+      if (fileOrDirectory.equals(myResourceDirectoryOrFile)) {
+        return false;
+      }
+
       if (super.isIgnored(fileOrDirectory, attrs)) {
         return true;
       }
@@ -184,16 +452,21 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       String fileName = fileOrDirectory.getFileName().toString();
       if (attrs.isDirectory()) {
         if (fileName.startsWith("values-mcc") ||
-            fileName.startsWith("raw") && (fileName.length() == "raw".length() || fileName.charAt("raw".length()) == '-')) {
+            fileName.startsWith(FD_RES_RAW) && (fileName.length() == FD_RES_RAW.length() || fileName.charAt(FD_RES_RAW.length()) == '-')) {
           return true; // Mobile country codes and raw resources are not used by LayoutLib.
         }
 
-        // Skip locale-specific folders if myWithLocaleResources is false.
-        if (!myWithLocaleResources && fileName.startsWith("values-")) {
+        // Skip folders that don't belong to languages in myLanguageGroups or languages that were loaded earlier.
+        if (myLanguageGroups != null || !myLoadedLanguageGroups.isEmpty()) {
           FolderConfiguration config = FolderConfiguration.getConfigForFolder(fileName);
-          if (config == null || config.getLocaleQualifier() != null) {
+          if (config == null) {
             return true;
           }
+          String language = getLanguageGroup(config);
+          if ((myLanguageGroups != null && !myLanguageGroups.contains(language)) || myLoadedLanguageGroups.contains(language)) {
+            return true;
+          }
+          myFolderConfigCache.put(config.getQualifierString(), config);
         }
       }
       else if ((fileName.equals("public.xml") || fileName.equals("symbols.xml")) &&
@@ -310,6 +583,83 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       // in their original form. This is different from the superclass that obtains the names from public.txt
       // where the names are transformed by replacing dots, colons and dashes with underscores.
       return resourceName;
+    }
+  }
+
+  /**
+   * Redirects the {@link AarConfiguration} inherited from another repository to point to this one, so that
+   * the other repository can be garbage collected. This has to be done after this repository is fully loaded.
+   *
+   * @param sourceConfigurations the configurations to reparent
+   */
+  private void takeOverConfigurations(@NotNull Set<AarConfiguration> sourceConfigurations) {
+    for (AarConfiguration configuration : sourceConfigurations) {
+      configuration.transferOwnershipTo(this);
+    }
+  }
+
+  private static class CacheFileNameGenerator {
+    private Path myLanguageNeutralFile;
+    private String myPrefix;
+    private String mySuffix;
+
+    CacheFileNameGenerator(@NotNull CachingData cachingData) {
+      myLanguageNeutralFile = cachingData.getCacheFile();
+      String fileName = myLanguageNeutralFile.getFileName().toString();
+      int dotPos = fileName.lastIndexOf('.');
+      myPrefix = dotPos >= 0 ? fileName.substring(0, dotPos) : fileName;
+      mySuffix = dotPos >= 0 ? fileName.substring(dotPos) : "";
+    }
+
+    @NotNull
+    Path getCacheFile(@NotNull String language) {
+      return language.isEmpty() ? myLanguageNeutralFile : myLanguageNeutralFile.resolveSibling(myPrefix + '_' + language + mySuffix);
+    }
+
+    /**
+     * Determines language from a cache file name.
+     *
+     * @param cacheFileName the name of a cache file
+     * @return the language of resources contained in the cache file, or null if {@code cacheFileName}
+     *     doesn't match the pattern of cache file names.
+     */
+    @Nullable
+    String getLanguage(@NotNull String cacheFileName) {
+      if (!cacheFileName.startsWith(myPrefix) || !cacheFileName.endsWith(mySuffix)) {
+        return null;
+      }
+      int baseLength = myPrefix.length() + mySuffix.length();
+      if (cacheFileName.length() == baseLength) {
+        return "";
+      }
+      if (cacheFileName.length() != baseLength + 3 || cacheFileName.charAt(myPrefix.length()) != '_') {
+        return null;
+      }
+      String language = cacheFileName.substring(myPrefix.length() + 1, myPrefix.length() + 3);
+      if (!isLowerCaseLatinLetter(language.charAt(0)) || !isLowerCaseLatinLetter(language.charAt(1))) {
+        return null;
+      }
+      return language;
+    }
+
+    @NotNull
+    public Set<String> getAllCacheFileLanguages() {
+      Set<String> result = new TreeSet<>();
+      try {
+        Files.list(myLanguageNeutralFile.getParent()).forEach(file -> {
+          String language = getLanguage(file.getFileName().toString());
+          if (language != null) {
+            result.add(language);
+          }
+        });
+      }
+      catch (IOException ignore) {
+      }
+      return result;
+    }
+
+    private static boolean isLowerCaseLatinLetter(char c) {
+      return 'a' <= c && c <= 'z';
     }
   }
 }

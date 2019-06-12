@@ -31,6 +31,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.android.tools.idea.resources.aar.AarResourceItem;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -151,7 +152,7 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
                                                                 @NotNull AndroidFacet facet) {
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
     ResourceRepository repository = namespace.equals(ResourceNamespace.ANDROID) ?
-                                    repositoryManager.getFrameworkResources(false) : repositoryManager.getAppResources();
+                                    repositoryManager.getFrameworkResources(ImmutableSet.of()) : repositoryManager.getAppResources();
     if (repository == null) {
       return PsiElement.EMPTY_ARRAY;
     }

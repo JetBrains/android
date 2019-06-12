@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.jetbrains.annotations.NotNull;
@@ -55,9 +56,14 @@ public class FrameworkResJarCreator {
   }
 
   private static void createJar(@NotNull Path resDirectory, @NotNull Path jarFile) throws IOException {
+    FrameworkResourceRepository repository = FrameworkResourceRepository.create(resDirectory, (Set<String>)null, null);
+    Set<String> languages = repository.getLanguageGroups();
+
     try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(jarFile))) {
-      createZipEntry(FrameworkResourceRepository.ENTRY_NAME_WITH_LOCALES, getEncodedResources(resDirectory, true), zip);
-      createZipEntry(FrameworkResourceRepository.ENTRY_NAME_WITHOUT_LOCALES, getEncodedResources(resDirectory, false), zip);
+      for (String language : languages) {
+        String entryName = FrameworkResourceRepository.getResourceTableNameForLanguage(language);
+        createZipEntry(entryName, getEncodedResources(repository, language), zip);
+      }
       Path parentDir = resDirectory.getParent();
       Files.walkFileTree(resDirectory, new SimpleFileVisitor<Path>() {
         @Override
@@ -82,11 +88,11 @@ public class FrameworkResJarCreator {
     zip.closeEntry();
   }
 
-  private static byte[] getEncodedResources(@NotNull Path resDirectory, boolean withLocaleResources) throws IOException {
-    FrameworkResourceRepository repository = FrameworkResourceRepository.create(resDirectory, withLocaleResources, null);
+  @NotNull
+  private static byte[] getEncodedResources(@NotNull FrameworkResourceRepository repository, @NotNull String language) throws IOException {
     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
     try (Base128OutputStream stream = new Base128OutputStream(byteStream)) {
-      repository.writeToStream(stream);
+      repository.writeToStream(stream, config -> language.equals(FrameworkResourceRepository.getLanguageGroup(config)));
     }
     return byteStream.toByteArray();
   }

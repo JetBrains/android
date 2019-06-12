@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.annotations.concurrency.Immutable;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -24,7 +23,6 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class ConfigurationManagerTest extends AndroidTestCase {
   public void testGetLocales() {
@@ -39,7 +37,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertNotNull(manager);
     assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
-    ImmutableList<Locale> locales = manager.getLocales();
+    ImmutableList<Locale> locales = manager.getLocalesInProject();
     assertEquals(Arrays.asList(Locale.create("no"), Locale.create("no-rNO"), Locale.create("se")), locales);
   }
 

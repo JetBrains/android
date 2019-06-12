@@ -336,7 +336,7 @@ open class NelePropertyItem(
     }
     val repositoryManager = ResourceRepositoryManager.getInstance(model.facet)
     val localRepository = repositoryManager.appResources
-    val frameworkRepository = repositoryManager.getFrameworkResources(false)
+    val frameworkRepository = repositoryManager.getFrameworkResources(emptySet())
     val types = type.resourceTypes
     val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
     if (types.isNotEmpty()) {

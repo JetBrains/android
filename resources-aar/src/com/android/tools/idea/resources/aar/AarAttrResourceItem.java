@@ -204,7 +204,7 @@ class AarAttrResourceItem extends AbstractAarValueResourceItem implements AttrRe
     AbstractAarValueResourceItem item;
     if (formats.isEmpty() && valueMap.isEmpty()) {
       ResourceNamespace namespace = namespaceSuffix == null ?
-                                    sourceFile.getConfiguration().getRepository().getNamespace() :
+                                    sourceFile.getRepository().getNamespace() :
                                     ResourceNamespace.fromNamespaceUri(URI_DOMAIN_PREFIX + namespaceSuffix);
       if (namespace == null) {
         throw StreamFormatException.invalidFormat();

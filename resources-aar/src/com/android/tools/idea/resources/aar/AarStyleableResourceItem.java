@@ -94,7 +94,7 @@ final class AarStyleableResourceItem extends AbstractAarValueResourceItem implem
                                               @NotNull List<AarConfiguration> configurations,
                                               @NotNull List<AarSourceFile> sourceFiles,
                                               @NotNull List<ResourceNamespace.Resolver> namespaceResolvers) throws IOException {
-    AbstractAarResourceRepository repository = sourceFile.getConfiguration().getRepository();
+    AbstractAarResourceRepository repository = sourceFile.getRepository();
     int n = stream.readInt();
     List<AttrResourceValue> attrs = n == 0 ? Collections.emptyList() : new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
