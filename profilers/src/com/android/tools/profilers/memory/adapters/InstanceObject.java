@@ -84,8 +84,8 @@ public interface InstanceObject extends ValueObject {
     switch (callStack.getFrameCase()) {
       case FULL_STACK:
         return callStack.getFullStack().getFramesCount();
-      case SMALL_STACK:
-        return callStack.getSmallStack().getFramesCount();
+      case ENCODED_STACK:
+        return callStack.getEncodedStack().getFramesCount();
       default:
         return 0;
     }

@@ -127,15 +127,12 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   @Override
   public List<CodeLocation> getAllocationCodeLocations() {
     List<CodeLocation> codeLocations = new ArrayList<>();
-    if (myCallstack != null && myCallstack.getFrameCase() == AllocationStack.FrameCase.SMALL_STACK) {
-      AllocationStack.SmallFrameWrapper smallFrames = myCallstack.getSmallStack();
-      for (AllocationStack.SmallFrame frame : smallFrames.getFramesList()) {
-        StackFrameInfoResponse frameInfo =
-          myCaptureObject.getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder()
-                                                          .setSession(myCaptureObject.getSession())
-                                                          .setMethodId(frame.getMethodId()).build());
-        CodeLocation.Builder builder = new CodeLocation.Builder(frameInfo.getClassName())
-          .setMethodName(frameInfo.getMethodName())
+    if (myCallstack != null && myCallstack.getFrameCase() == AllocationStack.FrameCase.ENCODED_STACK) {
+      AllocationStack.EncodedFrameWrapper encodedFrames = myCallstack.getEncodedStack();
+      for (AllocationStack.EncodedFrame frame : encodedFrames.getFramesList()) {
+        AllocationStack.StackFrame resolvedFrame = myCaptureObject.getStackFrame(frame.getMethodId());
+        CodeLocation.Builder builder = new CodeLocation.Builder(resolvedFrame.getClassName())
+          .setMethodName(resolvedFrame.getMethodName())
           .setLineNumber(frame.getLineNumber() - 1);
         codeLocations.add(builder.build());
       }
