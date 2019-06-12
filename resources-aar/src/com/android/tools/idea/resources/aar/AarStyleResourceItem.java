@@ -57,11 +57,11 @@ final class AarStyleResourceItem extends AbstractAarValueResourceItem implements
    * @param parentStyle the parent style reference (package:type/entry)
    * @param styleItems the items of the style
    */
-  public AarStyleResourceItem(@NotNull String name,
-                              @NotNull AarSourceFile sourceFile,
-                              @NotNull ResourceVisibility visibility,
-                              @Nullable String parentStyle,
-                              @NotNull Collection<StyleItemResourceValue> styleItems) {
+  AarStyleResourceItem(@NotNull String name,
+                       @NotNull AarSourceFile sourceFile,
+                       @NotNull ResourceVisibility visibility,
+                       @Nullable String parentStyle,
+                       @NotNull Collection<StyleItemResourceValue> styleItems) {
     super(ResourceType.STYLE, name, sourceFile, visibility);
     myParentStyle = parentStyle;
     ImmutableTable.Builder<ResourceNamespace, String, StyleItemResourceValue> tableBuilder = ImmutableTable.builder();
