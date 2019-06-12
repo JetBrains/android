@@ -390,8 +390,18 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewBasicActivityWithAndroidX() throws Exception {
+    checkCreateTemplate("activities", "BasicActivity", false, withAndroidx);
+  }
+
+  @TemplateCheck
   public void testNewBasicActivityWithKotlin() throws Exception {
     checkCreateTemplate("activities", "BasicActivity", false, withKotlin);
+  }
+
+  @TemplateCheck
+  public void testNewBasicActivityWithKotlinAndAndroidX() throws Exception {
+    checkCreateTemplate("activities", "BasicActivity", false, withAndroidxAndKotlin);
   }
 
   @TemplateCheck
