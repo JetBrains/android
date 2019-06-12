@@ -15,20 +15,19 @@
  */
 package com.android.tools.datastore.database;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.*;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.idea.protobuf.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
   private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setSessionId(1L).setStreamId(1234).setPid(1).build();
@@ -49,7 +48,7 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     methodCalls.add((table) -> assertThat(table.getHeapDumpStatus(session, 0)).isEqualTo(DumpDataResponse.Status.NOT_FOUND));
     methodCalls.add(
       (table) -> assertThat(table.getLegacyAllocationContexts(LegacyAllocationContextsRequest.newBuilder().addClassIds(1).build()))
-        .isEqualTo(AllocationContextsResponse.getDefaultInstance()));
+        .isEqualTo(LegacyAllocationContextsResponse.getDefaultInstance()));
     methodCalls.add((table) -> assertThat(table.getLegacyAllocationData(session, 0)).isNull());
     methodCalls.add((table) -> assertThat(table.getLegacyAllocationDumpData(session, 0)).isNull());
     methodCalls.add((table) -> {
@@ -241,29 +240,29 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     LegacyAllocationContextsRequest request =
       LegacyAllocationContextsRequest.newBuilder().setSession(VALID_SESSION).addClassIds(classId1)
         .addStackIds(stackId4).build();
-    AllocationContextsResponse response = getTable().getLegacyAllocationContexts(request);
-    assertThat(response.getAllocatedClassesCount()).isEqualTo(1);
-    assertThat(response.getAllocationStacksCount()).isEqualTo(1);
-    assertThat(response.getAllocatedClasses(0)).isEqualTo(class1);
-    assertThat(response.getAllocationStacks(0)).isEqualTo(stack2);
+    LegacyAllocationContextsResponse response = getTable().getLegacyAllocationContexts(request);
+    assertThat(response.getClassesCount()).isEqualTo(1);
+    assertThat(response.getStacksCount()).isEqualTo(1);
+    assertThat(response.getClasses(0)).isEqualTo(class1);
+    assertThat(response.getStacks(0)).isEqualTo(stack2);
 
     request = LegacyAllocationContextsRequest.newBuilder().setSession(VALID_SESSION).addClassIds(classId2)
       .addStackIds(stackId3).build();
     response = getTable().getLegacyAllocationContexts(request);
-    assertThat(response.getAllocatedClassesCount()).isEqualTo(1);
-    assertThat(response.getAllocationStacksCount()).isEqualTo(1);
-    assertThat(response.getAllocatedClasses(0)).isEqualTo(class2);
-    assertThat(response.getAllocationStacks(0)).isEqualTo(stack1);
+    assertThat(response.getClassesCount()).isEqualTo(1);
+    assertThat(response.getStacksCount()).isEqualTo(1);
+    assertThat(response.getClasses(0)).isEqualTo(class2);
+    assertThat(response.getStacks(0)).isEqualTo(stack1);
   }
 
   @Test
   public void testAllocationContextNotFound() {
     LegacyAllocationContextsRequest request = LegacyAllocationContextsRequest
       .newBuilder().setSession(VALID_SESSION).addClassIds(1).addClassIds(2).addStackIds(1).addStackIds(2).build();
-    AllocationContextsResponse response = getTable().getLegacyAllocationContexts(request);
+    LegacyAllocationContextsResponse response = getTable().getLegacyAllocationContexts(request);
 
-    assertThat(response.getAllocatedClassesCount()).isEqualTo(0);
-    assertThat(response.getAllocationStacksCount()).isEqualTo(0);
+    assertThat(response.getClassesCount()).isEqualTo(0);
+    assertThat(response.getStacksCount()).isEqualTo(0);
   }
 
   private static void verifyMemoryDataResultCounts(@NotNull MemoryData result,

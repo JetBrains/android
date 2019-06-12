@@ -17,17 +17,21 @@ package com.android.tools.profilers.memory;
 
 import static com.android.tools.profilers.memory.adapters.CaptureObject.DEFAULT_HEAP_ID;
 
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.Memory.AllocatedClass;
+import com.android.tools.profiler.proto.Memory.AllocationEvent;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
+import com.android.tools.profiler.proto.Memory.BatchAllocationContexts;
+import com.android.tools.profiler.proto.Memory.BatchAllocationEvents;
+import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
+import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent;
+import com.android.tools.profiler.proto.Memory.NativeBacktrace;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
-import com.android.tools.profiler.proto.Memory.AllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
-import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.Memory.BatchAllocationSample;
-import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
@@ -35,11 +39,9 @@ import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
-import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
@@ -51,7 +53,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
-import com.android.tools.profiler.proto.Memory.NativeBacktrace;
 import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
 import com.android.tools.profiler.proto.MemoryProfiler.ResolveNativeBacktraceRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
@@ -62,10 +63,9 @@ import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.idea.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -73,9 +73,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
-  private static long US_TO_NS = TimeUnit.MICROSECONDS.toNanos(1);
+  private static long SEC_TO_NS = TimeUnit.SECONDS.toNanos(1);
   // Live Allocation data constant - duration of each allocation event.
-  private static long ALLOC_EVENT_DURATION_NS = 2 * US_TO_NS;
+  private static long ALLOC_EVENT_DURATION_NS = 2 * SEC_TO_NS;
   // Live allocation data constant - number of class/method entries in our fake context data pool.
   private static int ALLOC_CONTEXT_NUM = 4;
   // Live allocation data constant - fixed object size.
@@ -121,11 +121,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   private static final String SYSTEM_NATIVE_MODULE = "/system/lib64/libnativewindow.so";
 
-  /**
-   * By default assume we have all data available in tests - we go by [start time, end time) so we minus 1 from Long.MAX_VALUE.
-   */
-  private static final long DEFAULT_LATEST_ALLOCATION_TIME = Long.MAX_VALUE - 1;
-
   private Status myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
   private TriggerHeapDumpResponse.Status myExplicitHeapDumpStatus = null;
@@ -135,15 +130,10 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private MemoryData myMemoryData = null;
   private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
   private LegacyAllocationEventsResponse.Builder myAllocationEventsBuilder = LegacyAllocationEventsResponse.newBuilder();
-  private AllocationContextsResponse.Builder myAllocationContextBuilder = AllocationContextsResponse.newBuilder();
+  private LegacyAllocationContextsResponse.Builder myAllocationContextBuilder = LegacyAllocationContextsResponse.newBuilder();
   private int myTrackAllocationCount;
   private Common.Session mySession;
   private int mySamplingRate = 1;
-
-  /**
-   * Stores the return value for {@link #getLatestAllocationTime(LatestAllocationTimeRequest, StreamObserver)}.
-   */
-  private long myLatestAllocationTime = DEFAULT_LATEST_ALLOCATION_TIME;
 
   @Override
   public void startMonitoringApp(MemoryStartRequest request,
@@ -186,7 +176,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
                                       StreamObserver<ImportLegacyAllocationsResponse> response) {
     myExplicitAllocationsInfo = request.getInfo();
     myAllocationEventsBuilder = request.getAllocations().toBuilder();
-    myAllocationContextBuilder = request.getContexts().toBuilder();
+    myAllocationContextBuilder.addAllClasses(request.getClassesList()).addAllStacks(request.getStacksList());
     myMemoryData = MemoryData.newBuilder().addAllocationsInfo(request.getInfo()).build();
     response.onNext(ImportLegacyAllocationsResponse.newBuilder().setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build());
     response.onCompleted();
@@ -228,7 +218,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   @Override
   public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                          StreamObserver<AllocationContextsResponse> responseObserver) {
+                                          StreamObserver<MemoryProfiler.LegacyAllocationContextsResponse> responseObserver) {
     responseObserver.onNext(myAllocationContextBuilder.build());
     responseObserver.onCompleted();
   }
@@ -270,21 +260,10 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
-  public void getLatestAllocationTime(LatestAllocationTimeRequest request,
-                                      StreamObserver<LatestAllocationTimeResponse> responseObserver) {
-    responseObserver.onNext(LatestAllocationTimeResponse.newBuilder().setTimestamp(myLatestAllocationTime).build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getAllocations(AllocationSnapshotRequest request,
-                             StreamObserver<BatchAllocationSample> responseObserver) {
-    boolean liveObjectsOnly = request.getLiveObjectsOnly();
-    long startTime = Math.max(0, request.getStartTime());
-    startTime = (long)Math.ceil(startTime / (float)US_TO_NS) * US_TO_NS;
-    long endTime = request.getEndTime();
-    BatchAllocationSample sample = getAllocationSample(liveObjectsOnly, startTime, endTime);
-    responseObserver.onNext(sample);
+  public void getAllocationEvents(AllocationSnapshotRequest request,
+                                  StreamObserver<MemoryProfiler.AllocationEventsResponse> responseObserver) {
+    BatchAllocationEvents events = getAllocationSample(request.getStartTime(), request.getEndTime());
+    responseObserver.onNext(MemoryProfiler.AllocationEventsResponse.newBuilder().addEvents(events).build());
     responseObserver.onCompleted();
   }
 
@@ -293,27 +272,20 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
    * For every microsecond, an allocation event is created and uniquely tagged with the timestamp. The event generation starts
    * at t = 0, and each is expected to be deallocated |ALLOC_EVENT_DURATION_NS| later. Each allocation also references a class and
    * stack, with ids that are cycled every |ALLOC_CONTEXT_NUM| allocations.
-   *
-   * The following illustrates what the data looks like within {0,5}:
-   * {0,2}, tag = 0, class tag = 1, stack id = 1
-   * {1,3}, tag = 1, class tag = 2, stack id = 2
-   * {2,4}, tag = 2, class tag = 3, stack id = 3
-   * {3,5}, tag = 3, class tag = 4, stack id = 4
-   * {4,6}, tag = 4, class tag = 1, stack id = 1
-   * {5,7}, tag = 5, class tag = 2, stack id = 2
+   * <p>
+   * The following illustrates what the data looks like within {0s,5s}:
+   * {0s,2s}, tag = 0, class tag = 1, stack id = 1
+   * {1s,3s}, tag = 1, class tag = 2, stack id = 2
+   * {2s,4s}, tag = 2, class tag = 3, stack id = 3
+   * {3s,5s}, tag = 3, class tag = 4, stack id = 4
+   * {4s,6s}, tag = 4, class tag = 1, stack id = 1
+   * {5s,7s}, tag = 5, class tag = 2, stack id = 2
    */
   @NotNull
-  private static BatchAllocationSample getAllocationSample(boolean liveObjectsOnly, long startTime, long endTime) {
-    long timestamp = Long.MIN_VALUE;
-
-    BatchAllocationSample.Builder sampleBuilder = BatchAllocationSample.newBuilder();
-    for (long i = startTime; i < endTime; i += US_TO_NS) {
-      // Skip instance creation for snapshot mode
-      if (liveObjectsOnly && i < endTime - ALLOC_EVENT_DURATION_NS) {
-        continue;
-      }
-
-      int tag = (int)(i / US_TO_NS);
+  private static BatchAllocationEvents getAllocationSample(long startTime, long endTime) {
+    BatchAllocationEvents.Builder sampleBuilder = BatchAllocationEvents.newBuilder();
+    for (long i = 0; i < endTime; i += SEC_TO_NS) {
+      int tag = (int)(i / SEC_TO_NS);
       int contextId = tag % ALLOC_CONTEXT_NUM + 1;
       AllocationEvent event = AllocationEvent.newBuilder()
         .setAllocData(
@@ -321,31 +293,20 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
             .setStackId(contextId).setHeapId(DEFAULT_HEAP_ID).build())
         .setTimestamp(i).build();
       sampleBuilder.addEvents(event);
-      timestamp = i;
-    }
 
-    for (long i = startTime; i < endTime; i += US_TO_NS) {
-      // Skip instance creation for snapshot mode
-      if (liveObjectsOnly) {
-        break;
+      boolean shouldAddDeallocation = i - ALLOC_EVENT_DURATION_NS >= 0;
+      if (shouldAddDeallocation) {
+        tag = (int)((i - ALLOC_EVENT_DURATION_NS) / SEC_TO_NS);
+        event = AllocationEvent.newBuilder()
+          .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(tag))
+          .setTimestamp(i)
+          .build();
+        sampleBuilder.addEvents(event);
       }
 
-      long allocTime = i - ALLOC_EVENT_DURATION_NS;
-      // Do not create allocation events into the negatives.
-      if (allocTime < 0) {
-        continue;
-      }
-      int tag = (int)((i - ALLOC_EVENT_DURATION_NS) / US_TO_NS);
-      int contextId = tag % ALLOC_CONTEXT_NUM + 1;
-      AllocationEvent event = AllocationEvent.newBuilder()
-        .setFreeData(
-          AllocationEvent.Deallocation.newBuilder().setTag(tag).setSize(ALLOC_SIZE).setClassTag(contextId)
-            .setStackId(contextId).setHeapId(DEFAULT_HEAP_ID).build())
-        .setTimestamp(i).build();
-      sampleBuilder.addEvents(event);
+      sampleBuilder.setTimestamp(Math.max(sampleBuilder.getTimestamp(), i));
     }
 
-    sampleBuilder.setTimestamp(timestamp);
     return sampleBuilder.build();
   }
 
@@ -354,33 +315,67 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
                                      StreamObserver<BatchJNIGlobalRefEvent> responseObserver) {
     // Just add JNI references for all allocated object from the same interval.
     boolean liveObjectsOnly = request.getLiveObjectsOnly();
-    BatchAllocationSample allocationSample = getAllocationSample(liveObjectsOnly, request.getStartTime(), request.getEndTime());
+    BatchAllocationEvents allocationSample = getAllocationSample(request.getStartTime(), request.getEndTime());
+
+    Iterator<AllocationEvent> allocations;
+    if (liveObjectsOnly) {
+      // Only look at objects that are still alive at request end time.
+      // Instances that are allocated before (request.getEndTime() - ALLOC_EVENT_DURATION_NS) would have already been deallocated.
+      allocations = allocationSample.getEventsList().stream()
+        .filter(evt -> evt.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA &&
+                       evt.getTimestamp() >= request.getEndTime() - ALLOC_EVENT_DURATION_NS)
+        .iterator();
+    }
+    else {
+      // Consider all allocations that happen between (request.getStartTime() - ALLOC_EVENT_DURATION_NS) and request.getEndTime
+      // We need the additional allocation events before the start time because their info is needed to generate the deallocation events.
+      allocations = allocationSample.getEventsList().stream()
+        .filter(evt -> evt.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA &&
+                       (evt.getTimestamp() >= request.getStartTime() - ALLOC_EVENT_DURATION_NS &&
+                        evt.getTimestamp() < request.getEndTime()))
+        .iterator();
+    }
+
     BatchJNIGlobalRefEvent.Builder result = BatchJNIGlobalRefEvent.newBuilder();
-    for (AllocationEvent allocEvent : allocationSample.getEventsList()) {
-      if (allocEvent.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
-        AllocationEvent.Allocation allocation = allocEvent.getAllocData();
+    while (allocations.hasNext()) {
+      AllocationEvent event = allocations.next();
+      AllocationEvent.Allocation allocation = event.getAllocData();
+      if (liveObjectsOnly) {
         JNIGlobalReferenceEvent.Builder jniEvent = JNIGlobalReferenceEvent.newBuilder()
           .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
           .setObjectTag(allocation.getTag())
           .setRefValue(allocation.getTag() + JNI_REF_BASE)
           .setThreadId(allocation.getThreadId())
-          .setTimestamp(allocEvent.getTimestamp())
+          .setTimestamp(event.getTimestamp())
           .setBacktrace(createBacktrace(allocation.getTag()));
         result.addEvents(jniEvent);
       }
-      else if (allocEvent.getEventCase() == AllocationEvent.EventCase.FREE_DATA) {
-        AllocationEvent.Deallocation deallocation = allocEvent.getFreeData();
-        JNIGlobalReferenceEvent.Builder jniEvent = JNIGlobalReferenceEvent.newBuilder()
-          .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
-          .setObjectTag(deallocation.getTag())
-          .setRefValue(deallocation.getTag() + JNI_REF_BASE)
-          .setThreadId(deallocation.getThreadId())
-          .setTimestamp(allocEvent.getTimestamp() - 1)
-          .setBacktrace(createBacktrace(deallocation.getTag()));
-        result.addEvents(jniEvent);
+      else {
+        if (event.getTimestamp() < request.getEndTime() - ALLOC_EVENT_DURATION_NS) {
+          JNIGlobalReferenceEvent.Builder jniEvent = JNIGlobalReferenceEvent.newBuilder()
+            .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
+            .setObjectTag(allocation.getTag())
+            .setRefValue(allocation.getTag() + JNI_REF_BASE)
+            .setThreadId(allocation.getThreadId())
+            .setTimestamp(event.getTimestamp())
+            .setBacktrace(createBacktrace(allocation.getTag()));
+          result.addEvents(jniEvent);
+        }
+
+        if (event.getTimestamp() >= request.getStartTime()) {
+          JNIGlobalReferenceEvent.Builder jniEvent = JNIGlobalReferenceEvent.newBuilder()
+            .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
+            .setObjectTag(allocation.getTag())
+            .setRefValue(allocation.getTag() + JNI_REF_BASE)
+            .setThreadId(allocation.getThreadId())
+            .setTimestamp(event.getTimestamp())
+            .setBacktrace(createBacktrace(allocation.getTag()));
+          result.addEvents(jniEvent);
+        }
       }
     }
-    result.setTimestamp(allocationSample.getTimestamp());
+
+    result.setTimestamp(request.getEndTime());
     responseObserver.onNext(result.build());
     responseObserver.onCompleted();
   }
@@ -426,21 +421,20 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
    * For simplicity, we only fake a small pool of allocation context data that starts at 0 and ends at |ALLOC_CONTEXT_NUM| us.
    * Subsequent fake allocation events are designed to reuse the same pool of data, so querying beyond |ALLOC_CONTEXT_NUM| us will
    * return empty data. Also note that class and stack ids are 1-based so a context entry at t = 0 would have an id of 1.
-   *
+   * <p>
    * The following illustrates what the data looks like within {0,5}
-   * t = 0, class tag = 1 (CONTEXT_CLASS_NAMES[0]) stack id = 1 ({CONTEXT_METHOD_NAMES[0], CONTEXT_METHOD_NAMES[1]})
-   * t = 1, class tag = 2 (CONTEXT_CLASS_NAMES[1]) stack id = 2 ({CONTEXT_METHOD_NAMES[1], CONTEXT_METHOD_NAMES[2]})
-   * t = 2, class tag = 3 (CONTEXT_CLASS_NAMES[2]) stack id = 3 ({CONTEXT_METHOD_NAMES[2], CONTEXT_METHOD_NAMES[3]})
-   * t = 3, class tag = 4 (CONTEXT_CLASS_NAMES[3]) stack id = 4 ({CONTEXT_METHOD_NAMES[3], CONTEXT_METHOD_NAMES[0]})
+   * t = 0s, class tag = 1 (CONTEXT_CLASS_NAMES[0]) stack id = 1 ({CONTEXT_METHOD_NAMES[0], CONTEXT_METHOD_NAMES[1]})
+   * t = 1s, class tag = 2 (CONTEXT_CLASS_NAMES[1]) stack id = 2 ({CONTEXT_METHOD_NAMES[1], CONTEXT_METHOD_NAMES[2]})
+   * t = 2s, class tag = 3 (CONTEXT_CLASS_NAMES[2]) stack id = 3 ({CONTEXT_METHOD_NAMES[2], CONTEXT_METHOD_NAMES[3]})
+   * t = 3s, class tag = 4 (CONTEXT_CLASS_NAMES[3]) stack id = 4 ({CONTEXT_METHOD_NAMES[3], CONTEXT_METHOD_NAMES[0]})
    */
   @Override
   public void getAllocationContexts(AllocationContextsRequest request,
                                     StreamObserver<AllocationContextsResponse> responseObserver) {
-    AllocationContextsResponse.Builder contextBuilder = AllocationContextsResponse.newBuilder();
-    long timestamp = Long.MIN_VALUE;
+    BatchAllocationContexts.Builder contextBuilder = BatchAllocationContexts.newBuilder();
     long endTime = request.getEndTime();
-    for (int i = 0; i < endTime; i += TimeUnit.MICROSECONDS.toNanos(1)) {
-      int iAdjusted = (int)(i / TimeUnit.MICROSECONDS.toNanos(1));
+    for (long i = 0; i < endTime; i += SEC_TO_NS) {
+      int iAdjusted = (int)(i / SEC_TO_NS);
       if (iAdjusted >= ALLOC_CONTEXT_NUM) {
         break;
       }
@@ -448,24 +442,28 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
       // Add class.
       AllocatedClass allocClass =
         AllocatedClass.newBuilder().setClassId(iAdjusted + 1).setClassName(CONTEXT_CLASS_NAMES.get(iAdjusted)).build();
-      contextBuilder.addAllocatedClasses(allocClass);
+      contextBuilder.addClasses(allocClass);
 
       // Add stack.
       AllocationStack.Builder stackBuilder = AllocationStack.newBuilder();
       stackBuilder.setStackId(iAdjusted + 1);
-      AllocationStack.SmallFrameWrapper.Builder frameBuilder = AllocationStack.SmallFrameWrapper.newBuilder();
+      AllocationStack.EncodedFrameWrapper.Builder frameBuilder = AllocationStack.EncodedFrameWrapper.newBuilder();
       for (int j = 0; j < 2; j++) {
-        int id = (iAdjusted + j) % ALLOC_CONTEXT_NUM + 1; // valid method Id starts at 1
-        frameBuilder.addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(id).setLineNumber(-1));
-      }
-      stackBuilder.setSmallStack(frameBuilder);
-      contextBuilder.addAllocationStacks(stackBuilder);
+        int contextIndex = (iAdjusted + j) % ALLOC_CONTEXT_NUM;
+        int contextId = contextIndex + 1; // valid method Id starts at 1
+        frameBuilder.addFrames(AllocationStack.EncodedFrame.newBuilder().setMethodId(contextId).setLineNumber(-1));
 
-      timestamp = i;
+        contextBuilder.addMethods(AllocationStack.StackFrame.newBuilder()
+                                    .setMethodId(contextId)
+                                    .setClassName(CONTEXT_CLASS_NAMES.get(contextIndex))
+                                    .setMethodName(CONTEXT_METHOD_NAMES.get(contextIndex)));
+      }
+      stackBuilder.setEncodedStack(frameBuilder);
+      contextBuilder.addEncodedStacks(stackBuilder);
+      contextBuilder.setTimestamp(Math.max(i, contextBuilder.getTimestamp()));
     }
 
-    contextBuilder.setTimestamp(timestamp);
-    responseObserver.onNext(contextBuilder.build());
+    responseObserver.onNext(AllocationContextsResponse.newBuilder().addContexts(contextBuilder).build());
     responseObserver.onCompleted();
   }
 
@@ -531,12 +529,12 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   public FakeMemoryService addExplicitAllocationClass(int id, String name) {
-    myAllocationContextBuilder.addAllocatedClasses(AllocatedClass.newBuilder().setClassId(id).setClassName(name).build());
+    myAllocationContextBuilder.addClasses(AllocatedClass.newBuilder().setClassId(id).setClassName(name).build());
     return this;
   }
 
   public FakeMemoryService addExplicitAllocationStack(String klass, String method, int line, int stackId) {
-    myAllocationContextBuilder.addAllocationStacks(AllocationStack.newBuilder().setStackId(stackId).setFullStack(
+    myAllocationContextBuilder.addStacks(AllocationStack.newBuilder().setStackId(stackId).setFullStack(
       AllocationStack.StackFrameWrapper.newBuilder().addFrames(
         AllocationStack.StackFrame.newBuilder().setClassName(klass).setMethodName(method).setLineNumber(line).build()
       )));
@@ -563,13 +561,5 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   public int getSamplingRate() {
     return mySamplingRate;
-  }
-
-  public void setLatestAllocationTime(long latestAllocationTime) {
-    myLatestAllocationTime = latestAllocationTime;
-  }
-
-  public void resetLatestAllocationTime() {
-    setLatestAllocationTime(DEFAULT_LATEST_ALLOCATION_TIME);
   }
 }

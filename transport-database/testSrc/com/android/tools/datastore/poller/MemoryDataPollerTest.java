@@ -27,7 +27,7 @@ import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocatedClass;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
@@ -464,11 +464,9 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .addEvents(LegacyAllocationEvent.newBuilder().setSize(1).setThreadId(2).setClassId(3).setStackId(4).build())
       .addEvents(LegacyAllocationEvent.newBuilder().setSize(5).setThreadId(6).setClassId(7).setStackId(8).build())
       .build();
-    AllocationContextsResponse contexts = AllocationContextsResponse.newBuilder()
-      .addAllocatedClasses(AllocatedClass.newBuilder().setClassId(1).build())
-      .addAllocatedClasses(AllocatedClass.newBuilder().setClassId(2).build())
-      .addAllocationStacks(AllocationStack.newBuilder().setStackId(3).build())
-      .addAllocationStacks(AllocationStack.newBuilder().setStackId(4).build())
+    MemoryProfiler.LegacyAllocationContextsResponse contexts = MemoryProfiler.LegacyAllocationContextsResponse.newBuilder()
+      .addAllClasses(Arrays.asList(AllocatedClass.newBuilder().setClassId(1).build(), AllocatedClass.newBuilder().setClassId(2).build()))
+      .addAllStacks(Arrays.asList(AllocationStack.newBuilder().setStackId(3).build(), AllocationStack.newBuilder().setStackId(4).build()))
       .build();
 
     AllocationsInfo info = AllocationsInfo.newBuilder().setLegacy(true).setStartTime(1).build();
@@ -476,7 +474,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .setSession(TEST_SESSION)
       .setInfo(info)
       .setAllocations(allocations)
-      .setContexts(contexts)
+      .addAllClasses(contexts.getClassesList())
+      .addAllStacks(contexts.getStacksList())
       .build();
     ImportLegacyAllocationsResponse expected = ImportLegacyAllocationsResponse.newBuilder()
       .setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build();
@@ -489,7 +488,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       LegacyAllocationEventsRequest.newBuilder().setSession(TEST_SESSION).setStartTime(info.getStartTime()).build(), eventObserver);
     validateResponse(eventObserver, allocations);
 
-    StreamObserver<AllocationContextsResponse> contextObserver = mock(StreamObserver.class);
+    StreamObserver<MemoryProfiler.LegacyAllocationContextsResponse> contextObserver = mock(StreamObserver.class);
     myMemoryService.getLegacyAllocationContexts(
       LegacyAllocationContextsRequest.newBuilder()
         .setSession(TEST_SESSION).addAllClassIds(Arrays.asList(1, 2)).addAllStackIds(Arrays.asList(3, 4))
@@ -615,8 +614,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
     @Override
     public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                            StreamObserver<AllocationContextsResponse> responseObserver) {
-      responseObserver.onNext(AllocationContextsResponse.getDefaultInstance());
+                                            StreamObserver<MemoryProfiler.LegacyAllocationContextsResponse> responseObserver) {
+      responseObserver.onNext(MemoryProfiler.LegacyAllocationContextsResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
 
