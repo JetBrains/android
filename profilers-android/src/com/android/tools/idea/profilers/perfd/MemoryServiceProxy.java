@@ -236,16 +236,16 @@ public class MemoryServiceProxy extends ServiceProxy {
   }
 
   public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                          StreamObserver<AllocationContextsResponse> responseObserver) {
+                                          StreamObserver<LegacyAllocationContextsResponse> responseObserver) {
     assert myUseLegacyTracking;
 
 
-    AllocationContextsResponse.Builder builder = AllocationContextsResponse.newBuilder();
+    LegacyAllocationContextsResponse.Builder builder = LegacyAllocationContextsResponse.newBuilder();
     if (myAllocatedClasses.containsKey(request.getSession().getSessionId())) {
       TLongObjectHashMap<AllocatedClass> klasses = myAllocatedClasses.get(request.getSession().getSessionId());
       request.getClassIdsList().forEach(id -> {
         if (klasses.contains(id)) {
-          builder.addAllocatedClasses(klasses.get(id));
+          builder.addClasses(klasses.get(id));
         }
         else {
           getLogger().debug("Class data cannot be found for id: " + id);
@@ -257,7 +257,7 @@ public class MemoryServiceProxy extends ServiceProxy {
       TIntObjectHashMap<AllocationStack> stacks = myAllocationStacks.get(request.getSession().getSessionId());
       request.getStackIdsList().forEach(id -> {
         if (stacks.contains(id)) {
-          builder.addAllocationStacks(stacks.get(id));
+          builder.addStacks(stacks.get(id));
         }
         else {
           getLogger().debug("Stack data cannot be found for id: " + id);

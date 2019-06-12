@@ -187,9 +187,9 @@ data: "Test Data"
 }
 </message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationContexts" Class="class com.android.tools.profiler.proto.MemoryProfiler$AllocationContextsResponse">
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationContexts" Class="class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsResponse">
         <Message></Message>
-        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$AllocationContextsResponse</clazz>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsResponse</clazz>
         <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationContexts</functionCalled>
         <message></message>
     </GrpcCall>
