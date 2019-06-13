@@ -227,10 +227,7 @@ public class GradleSyncInvoker {
     // And any changes to gradle files after sync started will result in another sync needed.
     myPreSyncProjectCleanUp.cleanUp(project);
 
-    // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
-    // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
-    boolean isImportedProject = GradleProjectInfo.getInstance(project).isImportedProject();
-    if (!GradleSyncState.getInstance(project).syncStarted(!isImportedProject, request, listener)) {
+    if (!GradleSyncState.getInstance(project).syncStarted(request, listener)) {
       return;
     }
 
@@ -256,7 +253,7 @@ public class GradleSyncInvoker {
     // Create an external task so we can display messages associated to it in the build view
     ExternalSystemTaskId taskId = createFailedPreCheckSyncTaskWithStartMessage(project);
     syncState.setExternalSystemTaskId(taskId);
-    if (syncState.syncStarted(true, request, syncListener)) {
+    if (syncState.syncStarted(request, syncListener)) {
       syncState.syncFailed(failureCause, null, syncListener);
     }
 
