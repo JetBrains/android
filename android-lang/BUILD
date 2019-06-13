@@ -35,6 +35,8 @@ iml_module(
         "//tools/idea/uast/uast-common:intellij.platform.uast[module]",
         "//tools/idea/platform/util:intellij.platform.util[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 
@@ -84,5 +86,7 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
     ],
 )

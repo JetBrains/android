@@ -81,6 +81,11 @@
 
     <lang.braceMatcher language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomPairedBraceMatcher"/>
     <lang.quoteHandler language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomQuoteHandler"/>
+
+    <!-- Multidex keep files support -->
+    <fileTypeFactory implementation="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepFileTypeFactory"/>
+    <lang.parserDefinition language="MultiDexKeep" implementationClass="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepParserDefinition"/>
+
   </extensions>
 
   <extensions defaultExtensionNs="org.intellij.intelliLang">
