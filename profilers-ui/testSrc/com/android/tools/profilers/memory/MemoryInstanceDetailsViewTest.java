@@ -26,6 +26,7 @@ import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -72,7 +73,8 @@ public class MemoryInstanceDetailsViewTest {
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
     myStage =
-      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer), loader);
+      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer),
+                              loader);
     myDetailsView = new MemoryInstanceDetailsView(myStage, myFakeIdeProfilerComponents);
     myFakeCaptureObject = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE").build();
   }
@@ -119,9 +121,9 @@ public class MemoryInstanceDetailsViewTest {
   public void SelectionWithCallstackVisibilityTest() throws Exception {
     // Selection with callstack information
     Component component = myDetailsView.getComponent();
-    MemoryProfiler.AllocationStack stack = MemoryProfiler.AllocationStack.newBuilder().setFullStack(
-      MemoryProfiler.AllocationStack.StackFrameWrapper.newBuilder().addFrames(
-        MemoryProfiler.AllocationStack.StackFrame.newBuilder().setClassName("MockClass").setMethodName("MockMethod").setLineNumber(1)))
+    Memory.AllocationStack stack = Memory.AllocationStack.newBuilder().setFullStack(
+      Memory.AllocationStack.StackFrameWrapper.newBuilder().addFrames(
+        Memory.AllocationStack.StackFrame.newBuilder().setClassName("MockClass").setMethodName("MockMethod").setLineNumber(1)))
       .build();
     FakeInstanceObject instance = new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setAllocationStack(stack).build();
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(instance));

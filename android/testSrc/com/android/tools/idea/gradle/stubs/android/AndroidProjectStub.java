@@ -118,6 +118,12 @@ public class AndroidProjectStub implements AndroidProject {
     return myName;
   }
 
+  @Nullable
+  @Override
+  public String getGroupId() {
+    return null;
+  }
+
   @Override
   public boolean isLibrary() {
     return myProjectType == PROJECT_TYPE_LIBRARY;

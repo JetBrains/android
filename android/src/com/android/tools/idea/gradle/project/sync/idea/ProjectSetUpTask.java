@@ -74,13 +74,11 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
     Runnable runnable = () -> {
       boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
-      if (!isTest || !GradleProjectImporter.ourSkipSetupFromTest) {
+      if (!isTest) {
         if (importedProject) {
           open(myProject);
         }
-        if (!isTest) {
-          CommandProcessor.getInstance().runUndoTransparentAction(() -> myProject.save());
-        }
+        CommandProcessor.getInstance().runUndoTransparentAction(() -> myProject.save());
       }
 
       if (importedProject) {

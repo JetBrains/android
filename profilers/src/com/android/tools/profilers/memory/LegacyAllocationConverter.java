@@ -17,8 +17,8 @@ package com.android.tools.profilers.memory;
 
 import com.android.ddmlib.AllocationInfo;
 import com.android.ddmlib.AllocationsParser;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.Memory.AllocatedClass;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import org.jetbrains.annotations.NotNull;
 

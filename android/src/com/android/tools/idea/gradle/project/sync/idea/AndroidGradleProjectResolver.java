@@ -46,6 +46,7 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
+import com.android.builder.model.ProjectSyncIssues;
 import com.android.builder.model.SyncIssue;
 import com.android.builder.model.Variant;
 import com.android.builder.model.level2.GlobalLibraryMap;
@@ -81,6 +82,7 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
@@ -103,6 +105,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -278,9 +281,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
 
+    // This model was introduced in Android Gradle Plugin 3.6 that contain the sync issues that have been produced by the project,
+    // this model is requested last to ensure that all SyncIssues are collected and gathered. This replaces the SyncIssuses that are
+    // contained within the AndroidProject. These sync issues are immutable unlike the ones in AndroidProject which can be changed in
+    // the plugin after the model has been requested.
+    ProjectSyncIssues projectSyncIssues = resolverCtx.getExtraProject(gradleModule, ProjectSyncIssues.class);
+
     boolean androidProjectWithoutVariants = false;
     // This stores the sync issues that should be attached to a Java module if we have a AndroidProject without variants.
-    Collection<SyncIssue> syncIssues = new ArrayList<>();
     String moduleName = gradleModule.getName();
 
     VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
@@ -302,12 +310,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         // per Android project, and changing that in the code base is too risky, for very little benefit.
         // See https://code.google.com/p/android/issues/detail?id=170722
         androidProjectWithoutVariants = true;
-        syncIssues = androidProject.getSyncIssues();
       }
       else {
         AndroidModuleModel model =
           new AndroidModuleModel(moduleName, moduleRootDirPath, androidProject, selectedVariant.getName(), myDependenciesFactory,
-                                 (variantGroup == null) ? null : variantGroup.getVariants());
+                                 (variantGroup == null) ? null : variantGroup.getVariants(), projectSyncIssues);
         populateKaptKotlinGeneratedSourceDir(gradleModule, model);
         ideModule.createChild(ANDROID_MODEL, model);
       }
@@ -332,7 +339,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         !hasArtifacts(gradleModule)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      createJavaProject(gradleModule, ideModule, syncIssues /* empty list */, false);
+      createJavaProject(gradleModule, ideModule, Collections.emptyList(), false);
       return;
     }
 
@@ -361,8 +368,16 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     ideModule.createChild(GRADLE_MODULE_MODEL, gradleModuleModel);
 
     if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
+      // For Java modules we need a list, either extract this from the ProjectSyncIssues or get it from the AndroidProject.
+      Collection<SyncIssue> issues = ImmutableList.of();
+      if (projectSyncIssues != null) {
+        issues = projectSyncIssues.getSyncIssues();
+      } else if (androidProject != null) {
+        issues = androidProject.getSyncIssues();
+      }
+
       // This is a Java lib module.
-      createJavaProject(gradleModule, ideModule, syncIssues, androidProjectWithoutVariants);
+      createJavaProject(gradleModule, ideModule, issues, androidProjectWithoutVariants);
       // Populate ContentRootDataNode for buildSrc module. This DataNode is required to setup classpath buildscript.
       if(BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName())){
         nextResolver.populateModuleContentRoots(gradleModule, ideModule);
@@ -380,7 +395,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                  @NotNull Collection<SyncIssue> syncIssues,
                                  boolean androidProjectWithoutVariants) {
     ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, model, syncIssues, androidProjectWithoutVariants);
+    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, syncIssues, model, androidProjectWithoutVariants);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 
@@ -515,6 +530,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     modelClasses.add(NativeAndroidProject.class);
     modelClasses.add(GlobalLibraryMap.class);
     modelClasses.add(GradlePluginModel.class);
+    modelClasses.add(ProjectSyncIssues.class);
     return modelClasses;
   }
 

@@ -18,25 +18,30 @@ package com.android.tools.idea.gradle.project.sync.ng;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ModelBuilderParameter;
 import com.android.builder.model.NativeAndroidProject;
+import com.android.builder.model.ProjectSyncIssues;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.GradlePluginModel;
 import com.android.java.model.JavaProject;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.stream.Collectors;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 
 public class SyncModuleModels implements GradleModuleModels {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 5L;
+  private static final long serialVersionUID = 6L;
 
+  @NotNull private final GradleProject myGradleProject;
   @NotNull private final BuildIdentifier myBuildId;
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
@@ -51,6 +56,7 @@ public class SyncModuleModels implements GradleModuleModels {
                           @NotNull Set<Class<?>> extraAndroidModelTypes,
                           @NotNull Set<Class<?>> extraJavaModelTypes,
                           @NotNull SyncActionOptions options) {
+    myGradleProject = gradleProject;
     myBuildId = buildId;
     myExtraAndroidModelTypes = extraAndroidModelTypes;
     myExtraJavaModelTypes = extraJavaModelTypes;
@@ -58,29 +64,33 @@ public class SyncModuleModels implements GradleModuleModels {
     myOptions = options;
   }
 
-  void populate(@NotNull GradleProject gradleProject, @NotNull BuildController controller) {
-    addModel(GradleProject.class, gradleProject);
-    findAndAddModel(gradleProject, controller, GradlePluginModel.class);
-    findAndAddModel(gradleProject, controller, BuildScriptClasspathModel.class);
-    AndroidProject androidProject = findParameterizedAndroidModel(gradleProject, controller, AndroidProject.class);
+  void populate(@NotNull BuildController controller) {
+    addModel(GradleProject.class, myGradleProject);
+    findAndAddModel(myGradleProject, controller, GradlePluginModel.class);
+    findAndAddModel(myGradleProject, controller, BuildScriptClasspathModel.class);
+    AndroidProject androidProject = findParameterizedAndroidModel(myGradleProject, controller, AndroidProject.class);
     if (androidProject != null) {
       // "Native" projects also both AndroidProject and AndroidNativeProject
-      findParameterizedAndroidModel(gradleProject, controller, NativeAndroidProject.class);
+      findParameterizedAndroidModel(myGradleProject, controller, NativeAndroidProject.class);
       for (Class<?> type : myExtraAndroidModelTypes) {
-        findAndAddModel(gradleProject, controller, type);
+        findAndAddModel(myGradleProject, controller, type);
       }
       // No need to query extra models.
       return;
     }
-    JavaProject javaProject = findAndAddModel(gradleProject, controller, JavaProject.class);
+    JavaProject javaProject = findAndAddModel(myGradleProject, controller, JavaProject.class);
     if (javaProject != null) {
       for (Class<?> type : myExtraJavaModelTypes) {
-        findAndAddModel(gradleProject, controller, type);
+        findAndAddModel(myGradleProject, controller, type);
       }
       return;
     }
     // Jar/Aar module.
-    findAndAddModel(gradleProject, controller, ArtifactModel.class);
+    findAndAddModel(myGradleProject, controller, ArtifactModel.class);
+  }
+
+  void populateSyncIssues(@NotNull BuildController controller) {
+    findAndAddModel(myGradleProject, controller, ProjectSyncIssues.class);
   }
 
   @Nullable

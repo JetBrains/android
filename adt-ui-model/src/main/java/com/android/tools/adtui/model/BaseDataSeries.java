@@ -35,14 +35,14 @@ public abstract class BaseDataSeries<E> implements DataSeries<E> {
   }
 
   @Override
-  public List<SeriesData<E>> getDataForXRange(Range xRange) {
+  public List<SeriesData<E>> getDataForRange(Range range) {
     //If the size of our data is 0, early return an empty list.
-    if(size() == 0 || xRange.isEmpty()) {
+    if(size() == 0 || range.isEmpty()) {
       return getDataSubList(0, 0);
     }
 
-    int fromIndex = getNearestXIndex((long)xRange.getMin());
-    int toIndex = getNearestXIndex((long)xRange.getMax()) + 1;
+    int fromIndex = getNearestXIndex((long)range.getMin());
+    int toIndex = getNearestXIndex((long)range.getMax()) + 1;
     return getDataSubList(fromIndex, toIndex);
   }
 

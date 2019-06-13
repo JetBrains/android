@@ -219,10 +219,6 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
         continue;
       }
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
-      if (formFactor == FormFactor.GLASS && !AndroidSdkUtils.isGlassInstalled()) {
-        // Only show Glass if you've already installed the SDK
-        continue;
-      }
       if (formFactor == FormFactor.AUTOMOTIVE && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
         // Only show Automotive if it is enabled
         continue;

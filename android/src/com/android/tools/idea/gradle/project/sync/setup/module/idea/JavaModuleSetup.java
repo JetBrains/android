@@ -37,7 +37,7 @@ public class JavaModuleSetup extends BaseSetup<JavaModuleSetupStep, JavaModuleMo
   }
 
   @Override
-  protected void beforeSetup(@NotNull ModuleSetupContext context, @Nullable JavaModuleModel model, boolean syncSkipped) {
+  protected void beforeSetup(@NotNull ModuleSetupContext context, @Nullable JavaModuleModel model) {
     if (model != null) {
       SyncIssues.registerSyncIssues(context.getModule(), model.getSyncIssues());
     }

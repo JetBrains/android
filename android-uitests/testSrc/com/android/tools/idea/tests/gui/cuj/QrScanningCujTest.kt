@@ -32,11 +32,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenc
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton
 import org.intellij.lang.annotations.Language
-import java.io.IOException
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.awt.event.KeyEvent
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -63,7 +63,8 @@ class QrScanningCujTest {
       .waitForBuildToFinish(BuildMode.ASSEMBLE)
 
     // Add constraint layout dependency from the PSD
-    ide.openPsd()
+    ide.run {
+      openPsd()
       .run {
         selectDependenciesConfigurable().run {
           findModuleSelector().selectModule("app")
@@ -78,7 +79,8 @@ class QrScanningCujTest {
         }
         clickOk()
       }
-      .waitForGradleProjectSyncToFinish()
+      waitForGradleProjectSyncToFinish()
+    }
 
     // Create new layout file
     ide.run {

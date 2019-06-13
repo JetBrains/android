@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.res.DataBindingLayoutInfoFile
+import com.android.tools.idea.res.BindingLayoutInfoFile
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
@@ -103,10 +103,10 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
     // Additionally, let's verify the behavior of the LightBindingClass's navigation element, for
     // code coverage purposes.
     binding.navigationElement.let { navElement ->
-      assertThat(navElement).isInstanceOf(DataBindingLayoutInfoFile::class.java)
+      assertThat(navElement).isInstanceOf(BindingLayoutInfoFile::class.java)
       assertThat(navElement.containingFile).isSameAs(navElement)
       // This next cast has to be true or else Java code coverage will crash. More details in the
-      // header docs of DataBindingLayoutInfoFile
+      // header docs of BindingLayoutInfoFile
       val psiClassOwner = navElement.containingFile as PsiClassOwner
       assertThat(psiClassOwner.classes).hasLength(1)
       assertThat(psiClassOwner.classes[0]).isEqualTo(binding)

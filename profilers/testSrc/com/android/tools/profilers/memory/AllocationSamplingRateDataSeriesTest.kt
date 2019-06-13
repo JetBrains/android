@@ -51,7 +51,7 @@ class AllocationSamplingRateDataSeriesTest {
     myService.setMemoryData(memoryData)
 
     val series = AllocationSamplingRateDataSeries(myProfilerClient.memoryClient, ProfilersTestData.SESSION_DATA)
-    val dataList = series.getDataForXRange(Range(0.0, java.lang.Double.MAX_VALUE))
+    val dataList = series.getDataForRange(Range(0.0, java.lang.Double.MAX_VALUE))
 
     assertThat(dataList.size).isEqualTo(3)
     var data = dataList[0]
@@ -90,7 +90,7 @@ class AllocationSamplingRateDataSeriesTest {
     myService.setMemoryData(memoryData)
 
     val series = AllocationSamplingRateDataSeries(myProfilerClient.memoryClient, ProfilersTestData.SESSION_DATA)
-    val dataList = series.getDataForXRange(Range(4.0, java.lang.Double.MAX_VALUE))
+    val dataList = series.getDataForRange(Range(4.0, java.lang.Double.MAX_VALUE))
 
     assertThat(dataList.size).isEqualTo(1)
     val data = dataList[0]

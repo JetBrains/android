@@ -42,34 +42,6 @@ public class InstantApps {
    */
   @NotNull
   public static List<Module> findFeatureModules(@NotNull AndroidFacet facet) {
-    // TODO - this doesn't work for now as we have no dependencies for instantapp modules. However can only build one instantapp in a
-    // project at the moment, so just getting all feature modules is exactly equivalent.
-    /*List<Module> featureModules = new ArrayList<>();
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP && androidModuleModel != null) {
-      Collection<AndroidLibrary> androidLibraries = androidModuleModel.getMainArtifact().getDependencies().getLibraries();
-      List<String> gradlePaths = new ArrayList<>();
-      for (AndroidLibrary library : androidLibraries) {
-        if (isNotEmpty(library.getProject()) && library instanceof AndroidModuleModel) {
-          AndroidModuleModel dependencyModel = (AndroidModuleModel)library;
-          assert dependencyModel.getProjectType() == PROJECT_TYPE_FEATURE;
-          gradlePaths.add(library.getProject());
-        }
-      }
-
-      ApplicationManager.getApplication().runReadAction(() -> {
-        for (Module module : ModuleManager.getInstance(facet.getModule().getProject()).getModules()) {
-          GradleFacet facetToCheck = GradleFacet.getInstance(module);
-          if (facetToCheck != null) {
-            GradleModuleModel gradleModuleModel = facetToCheck.getGradleModuleModel();
-            if (gradleModuleModel != null && gradlePaths.contains(gradleModuleModel.getGradlePath())) {
-              featureModules.add(module);
-            }
-          }
-        }
-      });
-    }
-    return featureModules;*/
     return AndroidProjectInfo.getInstance(facet.getModule().getProject()).getAllModulesOfProjectType(PROJECT_TYPE_FEATURE);
   }
 

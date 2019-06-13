@@ -38,9 +38,4 @@ public interface ModuleTemplateGalleryEntry extends ModuleGalleryEntry {
    * @return true if this template belongs to a Library.
    */
   boolean isLibrary();
-
-  /**
-   * @return true if this template belongs to an Instant App.
-   */
-  boolean isInstantApp();
 }

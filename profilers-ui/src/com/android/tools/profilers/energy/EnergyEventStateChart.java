@@ -64,6 +64,7 @@ public final class EnergyEventStateChart {
     duration.getEventList().forEach(evt -> series.add(TimeUnit.NANOSECONDS.toMicros(evt.getTimestamp()), evt));
 
     StateChartModel<Common.Event> model = new StateChartModel<>();
+    // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     model.addSeries(new RangedSeries<>(range, series));
 
     return create(model);

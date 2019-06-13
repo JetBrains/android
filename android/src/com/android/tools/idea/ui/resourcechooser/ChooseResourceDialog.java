@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -2354,7 +2354,6 @@ public class ChooseResourceDialog extends DialogWrapper {
             if (name != null) {
               presentation.setText(name);
             }
-            super.update(e);
           }
         };
 

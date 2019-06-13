@@ -105,5 +105,6 @@
     <orderEntry type="module" module-name="intellij.android.resources-aar" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-plugin" level="project" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
+    <orderEntry type="library" name="studio-proto" level="project" />
   </component>
 </module>

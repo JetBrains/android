@@ -410,7 +410,10 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
     myManager.createImportedSession("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 1)
-    val simpleperfTraceInfo = Cpu.CpuTraceInfo.newBuilder().setTraceType(Cpu.CpuTraceType.SIMPLEPERF).build()
+    val simpleperfTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+                                            .setTraceType(Cpu.CpuTraceType.SIMPLEPERF))).build()
     myCpuService.addTraceInfo(simpleperfTraceInfo)
     myManager.update()
 

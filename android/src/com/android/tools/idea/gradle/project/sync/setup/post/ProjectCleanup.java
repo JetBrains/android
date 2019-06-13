@@ -42,11 +42,7 @@ public class ProjectCleanup {
     if (syncState.lastSyncFailed()) {
       return;
     }
-    boolean syncSkipped = syncState.isSyncSkipped();
     for (ProjectCleanupStep step : myCleanupSteps) {
-      if (syncSkipped && !step.invokeOnSkippedSync()) {
-        continue;
-      }
       step.cleanUpProject(project, ideModelsProvider, indicator);
     }
   }

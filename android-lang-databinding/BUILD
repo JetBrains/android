@@ -14,7 +14,6 @@ iml_module(
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
@@ -47,7 +46,7 @@ iml_module(
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.lang.databinding.LangDataBindingTestSuite",
-    test_coverage = False,  # flaky timeout in coverage runs
+    test_coverage = True,
     test_data = [
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
@@ -71,7 +70,6 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",

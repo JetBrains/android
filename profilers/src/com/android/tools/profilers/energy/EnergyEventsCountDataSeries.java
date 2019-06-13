@@ -67,9 +67,9 @@ public class EnergyEventsCountDataSeries implements DataSeries<Long> {
   }
 
   @Override
-  public List<SeriesData<Long>> getDataForXRange(Range xRange) {
-    long minUs = (long)xRange.getMin();
-    long maxUs = (long)xRange.getMax();
+  public List<SeriesData<Long>> getDataForRange(Range range) {
+    long minUs = (long)range.getMin();
+    long maxUs = (long)range.getMax();
     long minNs = TimeUnit.MICROSECONDS.toNanos(minUs);
     long maxNs = TimeUnit.MICROSECONDS.toNanos(maxUs);
 

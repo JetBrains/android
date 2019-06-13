@@ -62,26 +62,8 @@ public class JavaModuleSetupTest extends IdeaTestCase {
 
   public void testSetUpModule() {
     when(myJavaModel.isAndroidModuleWithoutVariants()).thenReturn(false);
-    myModuleSetup.setUpModule(myContext, myJavaModel, false);
+    myModuleSetup.setUpModule(myContext, myJavaModel);
 
-    verify(mySetupStep1, times(1)).setUpModule(myContext, myJavaModel);
-    verify(mySetupStep2, times(1)).setUpModule(myContext, myJavaModel);
-  }
-
-  public void testSetUpAndroidModuleWithSyncSkipped() {
-    when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true);
-    myModuleSetup.setUpModule(myContext, myJavaModel, true /* sync skipped */);
-
-    // Only 'mySetupStep1' should be invoked when sync is skipped.
-    verify(mySetupStep1, times(1)).setUpModule(myContext, myJavaModel);
-    verify(mySetupStep2, times(0)).setUpModule(myContext, myJavaModel);
-  }
-
-  public void testSetUpAndroidModuleWithSyncNotSkipped() {
-    when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true);
-    myModuleSetup.setUpModule(myContext, myJavaModel, false /* sync not skipped */);
-
-    // Only 'mySetupStep1' should be invoked when sync is skipped.
     verify(mySetupStep1, times(1)).setUpModule(myContext, myJavaModel);
     verify(mySetupStep2, times(1)).setUpModule(myContext, myJavaModel);
   }
@@ -105,7 +87,7 @@ public class JavaModuleSetupTest extends IdeaTestCase {
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     myContext = new ModuleSetupContext.Factory().create(module, modelsProvider);
-    myModuleSetup.setUpModule(myContext, myJavaModel, false);
+    myModuleSetup.setUpModule(myContext, myJavaModel);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     // Verify AndroidFacet was removed.
@@ -124,16 +106,7 @@ public class JavaModuleSetupTest extends IdeaTestCase {
     SyncIssue syncIssue = mock(SyncIssue.class);
     when(myJavaModel.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
 
-    myModuleSetup.setUpModule(myContext, myJavaModel, false /* sync not skipped */);
-    SyncIssues.seal(myProject);
-    assertThat(SyncIssues.forModule(myModule)).containsExactly(syncIssue);
-  }
-
-  public void testSetUpAndroidModuleRegistersSyncIssuesSkipped() {
-    SyncIssue syncIssue = mock(SyncIssue.class);
-    when(myJavaModel.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
-
-    myModuleSetup.setUpModule(myContext, myJavaModel, true /* sync skipped */);
+    myModuleSetup.setUpModule(myContext, myJavaModel);
     SyncIssues.seal(myProject);
     assertThat(SyncIssues.forModule(myModule)).containsExactly(syncIssue);
   }

@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.projectmodel.Library
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.GlobalSearchScope
 
 /**
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
@@ -144,6 +145,18 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
    */
   fun canGeneratePngFromVectorGraphics(): CapabilityStatus
 
+  /**
+   * Returns the [GlobalSearchScope] for a given module that includes all its dependencies and libraries.
+   *
+   * This is a seam for [Module.getModuleWithDependenciesAndLibrariesScope] that allows project systems that have not expressed their
+   * module level dependencies accurately to IntelliJ (typically for performance reasons) to provide a different scope than what the
+   * module itself would.
+   */
+  fun getModuleWithDependenciesAndLibrariesScope(includeTests: Boolean): GlobalSearchScope
+
+  /** Returns an [TestArtifactSearchScopes] instance for a given module, if multiple test types are supported. */
+  @JvmDefault
+  fun getTestArtifactSearchScopes(module: Module): TestArtifactSearchScopes? = null
 }
 
 /** Types of dependencies that [AndroidModuleSystem.registerDependency] can add */

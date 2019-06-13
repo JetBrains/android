@@ -125,7 +125,7 @@ public class FutureCallbackExecutor implements Executor {
   }
 
   /**
-   * Similar to {@link Futures#transform(ListenableFuture, com.google.common.base.Function, Executor)},
+   * Similar to {@link Futures#transformAsync(ListenableFuture, AsyncFunction, Executor)},
    * using this instance as the executor.
    */
   @NotNull
@@ -280,6 +280,7 @@ public class FutureCallbackExecutor implements Executor {
   /**
    * Similar to {@link Function} but allows the {@link #apply(Object)} method to throw checked exceptions.
    */
+  @FunctionalInterface
   public interface ThrowableFunction<T, R> {
     R apply(T t) throws Exception;
   }

@@ -20,7 +20,7 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static java.util.Arrays.asList;
 
 import com.android.builder.model.AndroidProject;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.builder.model.ProjectSyncIssues;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
@@ -329,6 +329,8 @@ public class NewGradleSync implements GradleSync {
         // Note: agpVersion is currently not available for Java modules.
         String agpVersion = androidProject != null ? androidProject.getModelVersion() : null;
 
+        ProjectSyncIssues syncIssues = moduleModels.findModel(ProjectSyncIssues.class);
+
         File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
         GradleModuleModel gradleModel =
           new GradleModuleModel(name, gradleProject, Collections.emptyList(), buildFilePath, null, agpVersion);
@@ -338,7 +340,7 @@ public class NewGradleSync implements GradleSync {
 
         if (androidProject != null) {
           AndroidModuleModel androidModel = new AndroidModuleModel(name, moduleRootPath, androidProject, emptyVariantName,
-                                                                   dependenciesFactory);
+                                                                   dependenciesFactory, null, syncIssues);
           newModels.addModel(AndroidModuleModel.class, androidModel);
           continue;
         }

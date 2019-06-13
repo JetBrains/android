@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
+import static com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup.removeExistingContentEntries;
+
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.Facets;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
@@ -27,16 +29,10 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup.removeExistingContentEntries;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
   @NotNull private final AndroidContentEntriesSetup.Factory myContentEntriesSetupFactory;
@@ -74,23 +70,8 @@ public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
     return contentEntries;
   }
 
-  private static boolean hasNativeModel(@NotNull Module module,
-                                        @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                                        @Nullable GradleModuleModels gradleModels) {
-    if (gradleModels != null) {
-      return gradleModels.findModel(NativeAndroidProject.class) != null;
-    }
-    NdkFacet facet = Facets.findFacet(module, ideModelsProvider, NdkFacet.getFacetType().getId());
-    return facet != null && facet.getNdkModuleModel() != null;
-  }
-
   @Override
   public boolean invokeOnBuildVariantChange() {
-    return true;
-  }
-
-  @Override
-  public boolean invokeOnSkippedSync() {
     return true;
   }
 }

@@ -73,8 +73,7 @@ public class AndroidRegenerateSourcesAction extends AnAction {
         }
       }
     }
-    e.getPresentation().setVisible(visible);
-    e.getPresentation().setEnabled(visible);
+    e.getPresentation().setEnabledAndVisible(visible);
     e.getPresentation().setText(title);
   }
 

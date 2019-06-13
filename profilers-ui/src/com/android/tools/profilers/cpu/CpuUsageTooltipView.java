@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
+
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
@@ -23,11 +25,12 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
 import com.intellij.util.ui.JBUI;
 import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
 
 class CpuUsageTooltipView extends ProfilerTooltipView {
   @NotNull private final CpuUsageTooltip myTooltip;
@@ -53,7 +56,7 @@ class CpuUsageTooltipView extends ProfilerTooltipView {
       }
       SeriesData<CpuTraceInfo> trace = traceSeries.get(0);
       String name =
-        ProfilingTechnology.fromTypeAndMode(trace.value.getTraceType(), trace.value.getTraceInfo().getTraceMode()).getName();
+        ProfilingTechnology.fromTypeAndMode(trace.value.getTraceType(), trace.value.getTraceMode()).getName();
       mySelectionLabel.setText(name);
     }
     else {

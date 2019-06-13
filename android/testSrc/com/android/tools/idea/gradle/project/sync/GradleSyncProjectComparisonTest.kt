@@ -108,15 +108,18 @@ abstract class GradleSyncProjectComparisonTest(
   private fun importSyncAndDumpProject(projectDir: String, patch: ((projectRootPath: File) -> Unit)? = null): String {
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
-    val project = this.project
-    importProject(project.name, getBaseDirPath(project))
+    importProject()
+    return dumpProject()
+  }
+
+  private fun syncAndDumpProject(): String {
+    requestSyncAndWait()
     val dumper = ProjectDumper(androidSdk = TestUtils.getSdk(), offlineRepos = getOfflineM2Repositories())
     dumper.dump(project)
     return dumper.toString()
   }
 
-  private fun syncAndDumpProject(): String {
-    requestSyncAndWait()
+  private fun dumpProject(): String {
     val dumper = ProjectDumper(androidSdk = TestUtils.getSdk(), offlineRepos = getOfflineM2Repositories())
     dumper.dump(project)
     return dumper.toString()
@@ -349,6 +352,11 @@ abstract class GradleSyncProjectComparisonTest(
   fun testTwoJarsWithTheSameName() {
     val text = importSyncAndDumpProject(TWO_JARS)
     // TODO(b/125680482): Update the snapshot when the bug is fixed.
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testWithCompositeBuild() {
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPOSITE_BUILD)
     assertIsEqualToSnapshot(text)
   }
 

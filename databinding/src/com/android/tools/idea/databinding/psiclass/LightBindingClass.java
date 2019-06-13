@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.databinding.psiclass;
 
+import static com.android.tools.idea.databinding.ViewBindingUtil.getViewBindingClassName;
+import static com.android.tools.idea.res.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT;
+
 import com.android.SdkConstants;
 import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
-import com.android.tools.idea.res.DataBindingLayoutInfo;
+import com.android.tools.idea.res.BindingLayoutInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.lang.Language;
@@ -30,22 +33,39 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
-import com.intellij.psi.impl.light.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiReferenceList;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.ResolveState;
+import com.intellij.psi.impl.light.LightField;
+import com.intellij.psi.impl.light.LightFieldBuilder;
+import com.intellij.psi.impl.light.LightIdentifier;
+import com.intellij.psi.impl.light.LightMethod;
+import com.intellij.psi.impl.light.LightMethodBuilder;
 import com.intellij.psi.scope.ElementClassHint;
 import com.intellij.psi.scope.NameHint;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * In-memory PSI for classes generated from a layout file (or a list of related layout files from
@@ -55,7 +75,7 @@ import java.util.Map;
  */
 public class LightBindingClass extends AndroidLightClassBase {
   private static final int STATIC_METHOD_COUNT = 6;
-  private DataBindingLayoutInfo myInfo;
+  private BindingLayoutInfo myInfo;
   private CachedValue<PsiMethod[]> myPsiMethodsCache;
   private CachedValue<PsiField[]> myPsiFieldsCache;
 
@@ -66,7 +86,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   private final DataBindingMode myMode;
   private final Object myLock = new Object();
 
-  public LightBindingClass(AndroidFacet facet, @NotNull PsiManager psiManager, @NotNull DataBindingLayoutInfo info) {
+  public LightBindingClass(AndroidFacet facet, @NotNull PsiManager psiManager, @NotNull BindingLayoutInfo info) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
     myInfo = info;
     myFacet = facet;
@@ -84,7 +104,7 @@ public class LightBindingClass extends AndroidLightClassBase {
           // Generate getter if this is merged or does not have an alternative layout in another configuration.
           List<PsiMethod> methods = new ArrayList<>(variables.size() * 2 + STATIC_METHOD_COUNT);
           // If this is merged, we override all setters (even if we don't use that variable.
-          DataBindingLayoutInfo mergedInfo = myInfo.getMergedInfo();
+          BindingLayoutInfo mergedInfo = myInfo.getMergedInfo();
           if (mergedInfo == null) {
             for (PsiDataBindingResourceItem variable : variables.values()) {
               createVariableMethods(variable, methods, true);
@@ -117,12 +137,12 @@ public class LightBindingClass extends AndroidLightClassBase {
             // fields are generated in the base class.
             return PsiField.EMPTY_ARRAY;
           }
-          List<DataBindingLayoutInfo.ViewWithId> viewsWithIds = myInfo.getViewsWithIds();
+          List<BindingLayoutInfo.ViewWithId> viewsWithIds = myInfo.getViewsWithIds();
           PsiElementFactory factory = PsiElementFactory.SERVICE.getInstance(myInfo.getProject());
           PsiField[] result = new PsiField[viewsWithIds.size()];
           int i = 0;
           int unresolved = 0;
-          for (DataBindingLayoutInfo.ViewWithId viewWithId : viewsWithIds) {
+          for (BindingLayoutInfo.ViewWithId viewWithId : viewsWithIds) {
             PsiField psiField = createPsiField(viewWithId);
             if (psiField == null) {
               unresolved++;
@@ -191,8 +211,17 @@ public class LightBindingClass extends AndroidLightClassBase {
 
   @Override
   public PsiClass getSuperClass() {
-    DataBindingLayoutInfo mergedInfo = myInfo.getMergedInfo();
-    String superClassName = mergedInfo == null ? myMode.viewDataBinding : mergedInfo.getQualifiedName();
+    BindingLayoutInfo mergedInfo = myInfo.getMergedInfo();
+    String superClassName;
+    if (mergedInfo == null) {
+      if (DATA_BINDING_LAYOUT == myInfo.getLayoutType()) {
+        superClassName = myMode.viewDataBinding;
+      } else {
+        superClassName = getViewBindingClassName(getProject());
+      }
+    } else {
+      superClassName = mergedInfo.getQualifiedName();
+    }
     return JavaPsiFacade.getInstance(myInfo.getProject())
         .findClass(superClassName, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
   }
@@ -217,8 +246,17 @@ public class LightBindingClass extends AndroidLightClassBase {
   @Override
   public PsiClassType[] getExtendsListTypes() {
     if (myExtendsListTypes == null) {
-      DataBindingLayoutInfo mergedInfo = myInfo.getMergedInfo();
-      String superClassName = mergedInfo == null ? myMode.viewDataBinding : mergedInfo.getQualifiedName();
+      BindingLayoutInfo mergedInfo = myInfo.getMergedInfo();
+      String superClassName;
+      if (mergedInfo == null) {
+        if (DATA_BINDING_LAYOUT == myInfo.getLayoutType()) {
+          superClassName = myMode.viewDataBinding;
+        } else {
+          superClassName = getViewBindingClassName(getProject());
+        }
+      } else {
+        superClassName = mergedInfo.getQualifiedName();
+      }
       myExtendsListTypes = new PsiClassType[]{
         PsiType.getTypeByName(superClassName, myInfo.getProject(),
                               myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false))};
@@ -391,7 +429,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   @Nullable
-  private PsiField createPsiField(@NotNull DataBindingLayoutInfo.ViewWithId viewWithId) {
+  private PsiField createPsiField(@NotNull BindingLayoutInfo.ViewWithId viewWithId) {
     PsiType type = DataBindingUtil.resolveViewPsiType(viewWithId, myFacet);
     if (type == null) {
       return null;
@@ -465,9 +503,9 @@ public class LightBindingClass extends AndroidLightClassBase {
    * The light field class that represents the generated view fields for a layout file.
    */
   public static class LightDataBindingField extends LightField {
-    private final DataBindingLayoutInfo.ViewWithId myViewWithId;
+    private final BindingLayoutInfo.ViewWithId myViewWithId;
 
-    public LightDataBindingField(DataBindingLayoutInfo.ViewWithId viewWithId,
+    public LightDataBindingField(BindingLayoutInfo.ViewWithId viewWithId,
                                  @NotNull PsiManager manager,
                                  @NotNull PsiField field,
                                  @NotNull PsiClass containingClass) {

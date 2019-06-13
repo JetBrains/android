@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resources.aar;
 
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.TextResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
@@ -36,14 +37,15 @@ class AarTextValueResourceItem extends AarValueResourceItem implements TextResou
    * @param name the name of the resource
    * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
-   * @param value the value associated with the resource
+   * @param textValue the text value associated with the resource
+   * @param rawXmlValue the raw xml value associated with the resource (see {@link ResourceValue#getRawXmlValue()})
    */
-  public AarTextValueResourceItem(@NotNull ResourceType type,
-                                  @NotNull String name,
-                                  @NotNull AarSourceFile sourceFile,
-                                  @NotNull ResourceVisibility visibility,
-                                  @Nullable String textValue,
-                                  @Nullable String rawXmlValue) {
+  AarTextValueResourceItem(@NotNull ResourceType type,
+                           @NotNull String name,
+                           @NotNull AarSourceFile sourceFile,
+                           @NotNull ResourceVisibility visibility,
+                           @Nullable String textValue,
+                           @Nullable String rawXmlValue) {
     super(type, name, sourceFile, visibility, textValue);
     myRawXmlValue = rawXmlValue;
   }

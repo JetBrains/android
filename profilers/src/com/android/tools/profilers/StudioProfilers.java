@@ -15,9 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
-import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
-
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.FpsTimer;
@@ -628,10 +625,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       return false;
     }
 
-    ProfilingStateResponse response = getClient().getCpuClient()
-      .checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
+    List<Cpu.CpuTraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromSession(myClient, mySelectedSession);
+    if (!traceInfoList.isEmpty()) {
+      Cpu.CpuTraceInfo lastTraceInfo = traceInfoList.get(traceInfoList.size() - 1);
+      if (lastTraceInfo.getConfiguration().getInitiationType() == Cpu.TraceInitiationType.INITIATED_BY_STARTUP) {
+        return true;
+      }
+    }
 
-    return response.getBeingProfiled() && response.getConfiguration().getInitiationType() == Cpu.TraceInitiationType.INITIATED_BY_STARTUP;
+    return false;
   }
 
   /**

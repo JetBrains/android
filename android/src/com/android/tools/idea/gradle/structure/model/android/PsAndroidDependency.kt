@@ -19,20 +19,5 @@ import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 
 abstract class PsAndroidDependency internal constructor(
-  final override val parent: PsAndroidModule,
-  containers: Collection<PsAndroidArtifact>
-) : PsChildModel(), PsBaseDependency {
-
-  private val containerCollection = mutableSetOf<PsArtifactKey>()
-  val containers: Collection<PsArtifactKey> = containerCollection
-
-  init {
-    for (container in containers) {
-      addContainer(container)
-    }
-  }
-
-  private fun addContainer(artifact: PsAndroidArtifact) {
-    containerCollection.add(PsArtifactKey(artifact.parent.key, artifact.resolvedName))
-  }
-}
+  final override val parent: PsAndroidModule
+) : PsChildModel(), PsBaseDependency

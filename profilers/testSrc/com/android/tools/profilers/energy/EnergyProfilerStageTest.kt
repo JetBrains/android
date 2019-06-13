@@ -22,12 +22,12 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Energy
-import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.idea.protobuf.ByteString
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -53,7 +53,7 @@ class EnergyProfilerStageTest(private val useUnifiedEvents: Boolean) {
       .setEnergyEvent(
         Energy.EnergyEventData.newBuilder()
           .setAlarmSet(Energy.AlarmSet.getDefaultInstance())
-          .setTraceId("alarmTraceId"))
+          .setCallstack("FakeProcess alarm callstack"))
       .build(),
     Common.Event.newBuilder()
       .setGroupId(1)
@@ -69,7 +69,7 @@ class EnergyProfilerStageTest(private val useUnifiedEvents: Boolean) {
       .setEnergyEvent(
         Energy.EnergyEventData.newBuilder()
           .setJobScheduled(Energy.JobScheduled.getDefaultInstance())
-          .setTraceId("jobTraceId"))
+          .setCallstack("ThirdParty job callstack"))
       .build(),
     Common.Event.newBuilder()
       .setGroupId(2)
@@ -206,8 +206,6 @@ class EnergyProfilerStageTest(private val useUnifiedEvents: Boolean) {
   fun filterEventsByConfiguration() {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(myStage.studioProfilers.selectedAppName).isEqualTo("FakeProcess")
-    transportService.addFile("alarmTraceId", ByteString.copyFromUtf8("FakeProcess"))
-    transportService.addFile("jobTraceId", ByteString.copyFromUtf8("ThirdParty"))
     val durationList = EnergyDuration.groupById(fakeData)
 
     myStage.eventOrigin = EnergyEventOrigin.APP_ONLY
@@ -233,8 +231,6 @@ class EnergyProfilerStageTest(private val useUnifiedEvents: Boolean) {
   fun selectedDurationFilteredByOrigin() {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(myStage.studioProfilers.selectedAppName).isEqualTo("FakeProcess")
-    transportService.addFile("alarmTraceId", ByteString.copyFromUtf8("FakeProcess"))
-    transportService.addFile("jobTraceId", ByteString.copyFromUtf8("ThirdParty"))
     val durationList = EnergyDuration.groupById(fakeData)
 
     myStage.eventOrigin = EnergyEventOrigin.ALL

@@ -268,6 +268,64 @@ public class LineChartTest {
     }
   }
 
+  @Test
+  public void onlyDrawsDataWithinViewRange() {
+    // LineChart will draw on a canvas of width 4 and height 10
+    int windowWidth = 4;
+    int windowHeight = 10;
+    Range xRange = new Range(4, 8);
+    Range dataRange = new Range(0, 8);
+    Range yRange = new Range(0, 10);
+    LineChartModel model = new LineChartModel();
+
+    // We add two data points outside of the View Range
+    DefaultDataSeries<Long> testSeries = new ReturnAllDataSeries();
+    testSeries.add(2, 4L);
+    testSeries.add(3, 6L);
+    testSeries.add(4, 8L);
+    testSeries.add(5, 10L);
+
+    /* We expect that our LineChart draws the points (4,8) and (5,10).
+     * Since Swing's (0,0) is in the top left, our y values 8 and 10 will turn into
+     * 2 and 0 to represent their offset from the top; since the x values are normalized
+     * to starting at 4, we thus expect the points (0,2) and (1,0)
+     */
+    float[][] expectedPoints = {
+      {0.0f, 2.0f},
+      {1.0f, 0.0f}
+    };
+
+    RangedContinuousSeries rangedSeries = new RangedContinuousSeries("test", xRange, yRange, testSeries, dataRange);
+    model.add(rangedSeries);
+
+    // Configure Chart.
+    LineChart chart = new LineChart(model);
+    chart.setSize(windowWidth, windowHeight);
+    BasicStroke stroke = new BasicStroke(1f);
+    LineConfig config = new LineConfig(Color.BLACK).setStroke(stroke).setStepped(false);
+    chart.configure(rangedSeries, config);
+
+    // Configure Mocks.
+    Graphics2D fakeGraphics = mock(Graphics2D.class);
+    ArgumentCaptor valueCapture = ArgumentCaptor.forClass(Shape.class);
+    when(fakeGraphics.create()).thenReturn(fakeGraphics);
+    doNothing().when(fakeGraphics).draw((Shape)valueCapture.capture());
+
+    // Update and draw chart.
+    shiftRangeAndRepaintChart(chart, model, xRange, fakeGraphics, 0);
+    java.util.List<Path2D.Float> values = valueCapture.getAllValues();
+    Assert.assertEquals(1, values.size());
+
+    // Validate each point
+    PathIterator it = values.get(0).getPathIterator(null);
+    for (int i = 0; !it.isDone(); i++) {
+      float[] coords = new float[2];
+      it.currentSegment(coords);
+      Assert.assertArrayEquals(coords, expectedPoints[i], 0.000001f);
+      it.next();
+    }
+  }
+
   /**
    * Helper function to convert from series data to expected test value.
    * @param previousY the series value expected from a previous point.
@@ -295,7 +353,7 @@ public class LineChartTest {
 
   private static final class ReturnAllDataSeries extends DefaultDataSeries<Long> {
     @Override
-    public List<SeriesData<Long>> getDataForXRange(Range xRange) {
+    public List<SeriesData<Long>> getDataForRange(Range range) {
       return getAllData();
     }
   }

@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.google.common.truth.Truth.assertThat;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
@@ -26,17 +35,9 @@ import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.testFramework.IdeaTestCase;
-import org.mockito.Mock;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link AndroidModelFactory}.
@@ -75,7 +76,7 @@ public class AndroidModelFactoryTest extends IdeaTestCase {
 
     when(myModuleModels.findModels(Variant.class)).thenReturn(singletonList(variant));
 
-    AndroidModuleModel androidModel = myAndroidModelFactory.createAndroidModel(getModule(), androidProject, myModuleModels);
+    AndroidModuleModel androidModel = myAndroidModelFactory.createAndroidModel(getModule(), androidProject, myModuleModels, null);
     assertNotNull(androidModel);
 
     IdeAndroidProject androidProjectCopy = androidModel.getAndroidProject();
@@ -99,7 +100,7 @@ public class AndroidModelFactoryTest extends IdeaTestCase {
     VariantStub variant = androidProject.addVariant("debug");
 
     when(myVariantSelector.findVariantToSelect(androidProject)).thenReturn(variant);
-    AndroidModuleModel androidModel = myAndroidModelFactory.createAndroidModel(getModule(), androidProject, myModuleModels);
+    AndroidModuleModel androidModel = myAndroidModelFactory.createAndroidModel(getModule(), androidProject, myModuleModels, null);
     assertNotNull(androidModel);
 
     IdeAndroidProject androidProjectCopy = androidModel.getAndroidProject();
@@ -124,7 +125,7 @@ public class AndroidModelFactoryTest extends IdeaTestCase {
 
     when(myModuleModels.findModels(Variant.class)).thenReturn(asList(debugVariant, releaseVariant));
 
-    AndroidModuleModel androidModel = myAndroidModelFactory.createAndroidModel(getModule(), androidProject, myModuleModels);
+    AndroidModuleModel androidModel = myAndroidModelFactory.createAndroidModel(getModule(), androidProject, myModuleModels, null);
     assertNotNull(androidModel);
 
     IdeAndroidProject androidProjectCopy = androidModel.getAndroidProject();

@@ -15,31 +15,31 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
+import static com.android.SdkConstants.DOT_JAR;
+import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
+
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.JavaArtifact;
 import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.PathsList;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.android.SdkConstants.DOT_JAR;
-import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 
 /**
  * Implementation of {@link JUnitPatcher} that removes android.jar from the class path. It's only applicable to
@@ -69,17 +69,15 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     PathsList classPath = javaParameters.getClassPath();
 
-    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
     if (testScopes == null) {
       return;
     }
 
-    // Filter the library / module dependencies that are in android test
-    FileRootSearchScope excludeScope = testScopes.getUnitTestExcludeScope();
     // There is potential performance if we just call remove for all excluded items because every random remove operation has linear
     // complexity. TODO change the {@code PathList} API.
     for (String path : classPath.getPathList()) {
-      if (excludeScope.accept(new File(path))) {
+      if (!testScopes.includeInUnitTestClasspath(new File(path))) {
         classPath.remove(path);
       }
     }
@@ -171,19 +169,15 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       }
     }
 
-    FileRootSearchScope excludeScope = null;
-    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
-    if (testScopes != null) {
-      excludeScope = testScopes.getUnitTestExcludeScope();
-    }
+    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
 
     for (Module affectedModule : scope.getAffectedModules()) {
       AndroidModuleModel affectedAndroidModel = AndroidModuleModel.get(affectedModule);
       if (affectedAndroidModel != null) {
         AndroidArtifact mainArtifact = affectedAndroidModel.getMainArtifact();
-        addToClasspath(mainArtifact.getJavaResourcesFolder(), classPath, excludeScope);
+        addToClasspath(mainArtifact.getJavaResourcesFolder(), classPath, testScopes);
         for (File additionalClassesFolder : mainArtifact.getAdditionalClassesFolders()) {
-          addToClasspath(additionalClassesFolder, classPath, excludeScope);
+          addToClasspath(additionalClassesFolder, classPath, testScopes);
         }
       }
 
@@ -193,11 +187,11 @@ public class AndroidJunitPatcher extends JUnitPatcher {
         ExtIdeaCompilerOutput output = javaModel.getCompilerOutput();
         File javaTestResources = output == null ? null : output.getTestResourcesDir();
         if (javaTestResources != null) {
-          addToClasspath(javaTestResources, classPath, excludeScope);
+          addToClasspath(javaTestResources, classPath, testScopes);
         }
         File javaMainResources = output == null ? null : output.getMainResourcesDir();
         if (javaMainResources != null) {
-          addToClasspath(javaMainResources, classPath, excludeScope);
+          addToClasspath(javaMainResources, classPath, testScopes);
         }
 
         if (javaModel.getBuildFolderPath() != null) {
@@ -206,19 +200,18 @@ public class AndroidJunitPatcher extends JUnitPatcher {
           if (kotlinClasses.exists()) {
             // It looks like standard Gradle-4.0-style output directories are used. We add Kotlin equivalents speculatively, since we don't
             // yet have a way of passing the data all the way from Gradle to here.
-            addToClasspath(new File(kotlinClasses, "main"), classPath, excludeScope);
-            addToClasspath(new File(kotlinClasses, "test"), classPath, excludeScope);
+            addToClasspath(new File(kotlinClasses, "main"), classPath, testScopes);
+            addToClasspath(new File(kotlinClasses, "test"), classPath, testScopes);
           }
         }
       }
     }
   }
 
-  private static void addToClasspath(@NotNull File folder, @NotNull PathsList classPath, @Nullable FileRootSearchScope excludeScope) {
-    if (excludeScope != null && excludeScope.accept(folder)) {
-      return;
+  private static void addToClasspath(@NotNull File folder, @NotNull PathsList classPath, @Nullable TestArtifactSearchScopes scopes) {
+    if (scopes == null || scopes.includeInUnitTestClasspath(folder)) {
+      classPath.add(folder);
     }
-    classPath.add(folder);
   }
 
   /**

@@ -20,6 +20,7 @@ import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClas
 
 import com.android.support.AndroidxName;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.collect.Maps;
 import com.intellij.ProjectTopics;
@@ -115,7 +116,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
         }
       }
     }
-    fillMap(className, myModule.getModuleWithDependenciesAndLibrariesScope(true), result, false);
+    fillMap(className, ProjectSystemUtil.getModuleSystem(myModule).getModuleWithDependenciesAndLibrariesScope(true), result, false);
     return result;
   }
 
@@ -137,7 +138,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
     }
     Map<String, PsiClass> map = new HashMap<>();
 
-    if (fillMap(className, myModule.getModuleWithDependenciesAndLibrariesScope(true), map, true)) {
+    if (fillMap(className, ProjectSystemUtil.getModuleSystem(myModule).getModuleWithDependenciesAndLibrariesScope(true), map, true)) {
       viewClassMap = new HashMap<>(map.size());
       SmartPointerManager manager = SmartPointerManager.getInstance(myModule.getProject());
 
@@ -158,7 +159,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
       PsiClass aClass;
       // facade.findClass uses index to find class by name, which might throw an IndexNotReadyException in dumb mode
       try {
-        aClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(true));
+        aClass = facade.findClass(className, ProjectSystemUtil.getModuleSystem(myModule).getModuleWithDependenciesAndLibrariesScope(true));
       }
       catch (IndexNotReadyException e) {
         aClass = null;

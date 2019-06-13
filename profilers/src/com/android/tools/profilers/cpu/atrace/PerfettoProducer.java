@@ -15,9 +15,9 @@
  */
 package com.android.tools.profilers.cpu.atrace;
 
-import com.android.tools.profiler.protobuf3jarjar.CodedInputStream;
-import com.android.tools.profiler.protobuf3jarjar.DescriptorProtos;
-import com.android.tools.profiler.protobuf3jarjar.ExtensionRegistryLite;
+import com.android.tools.idea.protobuf.CodedInputStream;
+import com.android.tools.idea.protobuf.DescriptorProtos;
+import com.android.tools.idea.protobuf.ExtensionRegistryLite;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.Predicate;
 import java.io.File;

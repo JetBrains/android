@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.android.tools.idea.gradle.project.sync.ng.AndroidModuleProcessor.MODULE_GRADLE_MODELS_KEY;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -25,24 +29,17 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static com.android.tools.idea.gradle.project.sync.ng.AndroidModuleProcessor.MODULE_GRADLE_MODELS_KEY;
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link AndroidModuleProcessor}.
  */
 public class AndroidModuleProcessorTest extends IdeaTestCase {
-  @Mock private GradleSyncState mySyncState;
   @Mock private AndroidModuleValidator.Factory myModuleValidatorFactory;
   @Mock private GradleModuleModels myAppModels;
   @Mock private GradleModuleModels myLibModels;
@@ -86,9 +83,6 @@ public class AndroidModuleProcessorTest extends IdeaTestCase {
   }
 
   public void testProcessAndroidModels() {
-    // sync skipped.
-    when(mySyncState.isSyncSkipped()).thenReturn(true);
-
     myModuleProcessor.processAndroidModels(Arrays.asList(myAppModule, myLibModule));
 
     myModuleValidator.assertModuleWasValidated(myAppModule, myAppAndroidModel);

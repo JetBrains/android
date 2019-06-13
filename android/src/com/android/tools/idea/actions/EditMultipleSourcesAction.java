@@ -50,7 +50,6 @@ public class EditMultipleSourcesAction extends AnAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    super.update(e);
     Navigatable[] navigatables = e.getData(CommonDataKeys.NAVIGATABLE_ARRAY);
     if (navigatables != null && navigatables.length > 0) {
       e.getPresentation().setEnabled(true);

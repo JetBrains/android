@@ -66,9 +66,9 @@ public class MergedEnergyEventsDataSeries implements DataSeries<Common.Event> {
   }
 
   @Override
-  public List<SeriesData<Common.Event>> getDataForXRange(Range xRange) {
-    long minNs = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
-    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
+  public List<SeriesData<Common.Event>> getDataForRange(Range range) {
+    long minNs = TimeUnit.MICROSECONDS.toNanos((long)range.getMin());
+    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)range.getMax());
     List<SeriesData<Common.Event>> destData = new ArrayList<>();
     Set<Long> activeEventGroups = new HashSet<>();
 

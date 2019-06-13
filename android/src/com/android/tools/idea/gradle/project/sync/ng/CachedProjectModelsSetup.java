@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -29,7 +31,6 @@ import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
-import com.intellij.concurrency.JobLauncher;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -37,13 +38,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import org.jetbrains.annotations.NotNull;
 
 class CachedProjectModelsSetup extends ModuleSetup<CachedProjectModels> {
   @NotNull private final GradleModuleSetup myGradleModuleSetup;
@@ -111,7 +108,7 @@ class CachedProjectModelsSetup extends ModuleSetup<CachedProjectModels> {
       }
     }
     setupModuleModels(setupContextByModuleModel, myGradleModuleSetup, myNdkModuleSetup, myAndroidModuleSetup, myJavaModuleSetup,
-                      myExtraModelsManager, true /* sync skipped*/);
+                      myExtraModelsManager);
   }
 
   private void getModuleModelFromCache(@NotNull GradleFacet gradleFacet,

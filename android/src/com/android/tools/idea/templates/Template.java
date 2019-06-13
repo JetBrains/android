@@ -21,7 +21,6 @@ import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_IS_INSTANT_MODULE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_INSTANT_APP_WRAPPER;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_INSTANT_APP;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
@@ -259,10 +258,6 @@ public class Template {
                                          .setIncludeKotlinSupport(kotlinSupport instanceof Boolean ? (Boolean)kotlinSupport : false)
                                          .setKotlinSupportVersion(kotlinVersion instanceof String ? (String)kotlinVersion : "unknown"));
       UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
-      if (Boolean.TRUE.equals(paramMap.get(ATTR_HAS_INSTANT_APP_WRAPPER))) {
-        aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_PROJECT);
-        UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
-      }
 
       if (title.equals("Android Project") && Boolean.TRUE.equals(paramMap.get(ATTR_IS_DYNAMIC_INSTANT_APP))) {
         aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_BUNDLE_PROJECT);
