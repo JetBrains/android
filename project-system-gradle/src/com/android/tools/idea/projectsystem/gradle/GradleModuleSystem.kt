@@ -35,6 +35,7 @@ import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
+import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.templates.IdeGoogleMavenRepository
@@ -45,6 +46,7 @@ import com.google.common.collect.Multimap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
@@ -67,7 +69,7 @@ import java.util.Collections
 const val CHECK_DIRECT_GRADLE_DEPENDENCIES = false
 
 class GradleModuleSystem(
-  val module: Module,
+  override val module: Module,
   private val projectBuildModelHandler: ProjectBuildModelHandler,
   @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository
 ) : AndroidModuleSystem,
@@ -359,10 +361,26 @@ class GradleModuleSystem(
     fun isSameAs(coordinate: GradleCoordinate) = groupId == coordinate.groupId && artifactId == coordinate.artifactId
   }
 
-  override fun getModuleWithDependenciesAndLibrariesScope(includeTests: Boolean) = module.getModuleWithDependenciesAndLibrariesScope(
-    includeTests)
+  override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
+    val testScopes = getTestArtifactSearchScopes()
+    return when {
+      scopeType == ScopeType.MAIN -> module.getModuleWithDependenciesAndLibrariesScope(false)
+      testScopes == null -> module.getModuleWithDependenciesAndLibrariesScope(true)
+      else -> {
+        val excludeScope = when (scopeType) {
+          ScopeType.SHARED_TEST -> testScopes.sharedTestExcludeScope
+          ScopeType.UNIT_TEST -> testScopes.unitTestExcludeScope
+          ScopeType.ANDROID_TEST -> testScopes.androidTestExcludeScope
+          else -> error("Unknown test scope")
+        }
 
-  override fun getTestArtifactSearchScopes(module: Module): TestArtifactSearchScopes? = GradleTestArtifactSearchScopes.getInstance(module)
+        // Usual scope minus things to exclude:
+        module.getModuleWithDependenciesAndLibrariesScope(true).intersectWith(GlobalSearchScope.notScope(excludeScope))
+      }
+    }
+  }
+
+  override fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = GradleTestArtifactSearchScopes.getInstance(module)
 
   /**
    * Specifies a version incompatibility between [conflict1] from [module1] and [conflict2] from [module2].
