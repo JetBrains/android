@@ -401,7 +401,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @NotNull
   private TestGradleSyncListener requestSync(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-    request.generateSourcesOnSuccess = false;
     requestConfigurator.consume(request);
     return requestSync(request);
   }

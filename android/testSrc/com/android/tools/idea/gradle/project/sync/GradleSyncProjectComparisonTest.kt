@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.testutils.TestUtils
-import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.asParsed
