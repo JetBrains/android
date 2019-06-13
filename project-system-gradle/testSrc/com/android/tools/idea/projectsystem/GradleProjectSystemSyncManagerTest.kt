@@ -72,7 +72,7 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
       val request = invocation.getArgument<GradleSyncInvoker.Request>(1)
 
       ApplicationManager.getApplication().invokeAndWait {
-        gradleSyncState.syncStarted(false, request, null)
+        gradleSyncState.syncStarted(request, null)
 
         if (syncSuccessful) {
           gradleSyncState.syncSucceeded()
