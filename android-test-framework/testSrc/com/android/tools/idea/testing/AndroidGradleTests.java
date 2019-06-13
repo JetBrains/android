@@ -380,7 +380,6 @@ public class AndroidGradleTests {
       Project newProject = GradleProjectImporter.getInstance().importProjectNoSync(project.getName(), getBaseDirPath(project), request);
 
       GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.testRequest();
-      syncRequest.generateSourcesOnSuccess = false;
       return syncProject(newProject, syncRequest);
     });
 
