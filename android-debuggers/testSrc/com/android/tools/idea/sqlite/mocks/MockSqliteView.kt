@@ -36,8 +36,6 @@ open class MockSqliteView : SqliteView {
 
   override val component: JComponent = mock(JComponent::class.java)
 
-  override fun setUp() { }
-
   override fun startLoading(text: String) { }
 
   override fun stopLoading() { }

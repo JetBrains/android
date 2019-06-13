@@ -780,7 +780,10 @@
     <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidDslContributor"/>
   </extensions>
 
+
   <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.explorer.fileOpener" interface="com.android.tools.idea.explorer.FileOpener"/>
+
     <extensionPoint qualifiedName="org.jetbrains.android.mavenProvider" interface="org.jetbrains.android.maven.AndroidMavenProvider"/>
     <extensionPoint qualifiedName="org.jetbrains.android.lightBuildProvider" interface="org.jetbrains.android.compiler.AndroidLightBuildProvider"/>
     <extensionPoint qualifiedName="com.android.moduleDescriptionProvider" interface="com.android.tools.idea.npw.module.ModuleDescriptionProvider"/>
@@ -850,6 +853,10 @@
     <extensionPoint qualifiedName="com.android.tools.idea.databinding.dataBindingSupport"
                     interface="com.android.tools.idea.databinding.DataBindingSupport"/>
   </extensionPoints>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.explorer">
+    <fileOpener implementation="com.android.tools.idea.explorer.SqliteFileOpener"/>
+  </extensions>
 
   <extensions defaultExtensionNs="com.android">
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider"/>

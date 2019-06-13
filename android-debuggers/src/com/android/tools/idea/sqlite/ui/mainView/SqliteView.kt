@@ -37,8 +37,6 @@ interface SqliteView {
    */
   val component: JComponent
 
-  fun setUp()
-
   fun startLoading(text: String)
   fun stopLoading()
 

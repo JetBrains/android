@@ -454,8 +454,12 @@ public class DeviceExplorerController {
 
       executeFuturesInSequence(treeNodes.iterator(), treeNode -> {
         if (downloadedNodes.containsKey(treeNode)) {
-          ApplicationManager.getApplication().invokeLater(() -> openFileInEditor(treeNode, downloadedNodes.get(treeNode)));
-          return Futures.immediateFuture(null);
+
+          ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(downloadedNodes.get(treeNode));
+
+          return myEdtExecutor.transform(getVirtualFile, virtualFile -> {
+            openFile(treeNode, downloadedNodes.get(treeNode), virtualFile); return null;
+          });
         }
 
         if (!Objects.equals(device, myModel.getActiveDevice())) {
@@ -511,7 +515,12 @@ public class DeviceExplorerController {
           }
 
           return myEdtExecutor.transform(allFilesDownloaded, aVoid -> {
-            openFileInEditor(treeNode, downloadedFilePath);
+            ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(downloadedFilePath);
+
+            myEdtExecutor.transform(getVirtualFile, virtualFile -> {
+              openFile(treeNode, downloadedFilePath, virtualFile); return null;
+            });
+
             return null;
           });
         });
@@ -524,6 +533,20 @@ public class DeviceExplorerController {
         });
 
       });
+    }
+
+    private void openFile(DeviceFileEntryNode treeNode, Path downloadedFilePath, VirtualFile virtualFile) {
+      boolean handled = false;
+      for (FileOpener fileOpener : FileOpener.EP_NAME.getExtensions()) {
+        if (fileOpener.canOpenFile(virtualFile) && !handled) {
+          ApplicationManager.getApplication().invokeLater(() -> fileOpener.openFile(myProject, virtualFile));
+          handled = true;
+        }
+      }
+
+      if (!handled) {
+        ApplicationManager.getApplication().invokeLater(() -> openFileInEditor(treeNode, downloadedFilePath));
+      }
     }
 
     @NotNull
