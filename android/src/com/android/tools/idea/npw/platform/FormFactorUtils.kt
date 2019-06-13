@@ -28,16 +28,9 @@ import javax.swing.JComponent
 import java.awt.image.BufferedImage
 
 /**
- * Utility methods for dealing with Form Factors in Wizards.
- */
-/**
- * Create an image showing icons for each of the available form factors. The icons are drawn from left to right, using the form factors
- * large icon. This is an example of this method usage:
- * <pre>
- * `
- * myJLabel.setIcon(getFormFactorsImage(myJLabel, true));
-` *
-</pre> *
+ * Create an image showing icons for each of the available form factors.
+ * The icons are drawn from left to right, using the form factors large icon.
+ *
  * @param component Icon will be drawn in the context of the given `component`
  * @param requireEmulator If true, only include icons for form factors that have an emulator available.
  * @return `null` if it can't create a graphics Object to render the image (for example not enough memory)
