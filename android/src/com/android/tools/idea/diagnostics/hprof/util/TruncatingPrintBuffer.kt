@@ -47,11 +47,7 @@ class TruncatingPrintBuffer(
     queue.clear()
   }
 
-  fun println() {
-    println("")
-  }
-
-  fun println(s: String) {
+  fun println(s: String = "") {
     if (closed) throw IllegalStateException()
     if (linesPrinted < headLimit) {
       printFunc(s)
