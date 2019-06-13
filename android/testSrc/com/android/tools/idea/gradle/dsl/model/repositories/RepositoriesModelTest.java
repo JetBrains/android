@@ -46,6 +46,7 @@ import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefault
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_METHOD_NAME;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -53,12 +54,10 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.parser.java.ParserTestUtilKt;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
-import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -432,6 +431,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddFlatRepository() throws IOException {
+    assumeTrue(isGroovy());
     writeToBuildFile("repositories {\n\n}");
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -454,6 +454,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddFlatRepositoryFromEmpty() throws IOException {
+    assumeTrue(isGroovy());
     writeToBuildFile("");
 
     GradleBuildModel buildModel = getGradleBuildModel();
