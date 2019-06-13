@@ -18,9 +18,9 @@ package org.jetbrains.android;
 import static com.intellij.util.ArrayUtilRt.find;
 import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
 
-import com.android.support.AndroidxName;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ScopeType;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.collect.Maps;
 import com.intellij.ProjectTopics;
@@ -45,7 +45,6 @@ import com.intellij.util.messages.MessageBusConnection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 
 class TagToClassMapperImpl implements TagToClassMapper {
@@ -116,7 +115,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
         }
       }
     }
-    fillMap(className, ProjectSystemUtil.getModuleSystem(myModule).getModuleWithDependenciesAndLibrariesScope(true), result, false);
+    fillMap(className, ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN), result, false);
     return result;
   }
 
@@ -138,7 +137,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
     }
     Map<String, PsiClass> map = new HashMap<>();
 
-    if (fillMap(className, ProjectSystemUtil.getModuleSystem(myModule).getModuleWithDependenciesAndLibrariesScope(true), map, true)) {
+    if (fillMap(className, ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN), map, true)) {
       viewClassMap = new HashMap<>(map.size());
       SmartPointerManager manager = SmartPointerManager.getInstance(myModule.getProject());
 
@@ -159,7 +158,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
       PsiClass aClass;
       // facade.findClass uses index to find class by name, which might throw an IndexNotReadyException in dumb mode
       try {
-        aClass = facade.findClass(className, ProjectSystemUtil.getModuleSystem(myModule).getModuleWithDependenciesAndLibrariesScope(true));
+        aClass = facade.findClass(className, ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN));
       }
       catch (IndexNotReadyException e) {
         aClass = null;
