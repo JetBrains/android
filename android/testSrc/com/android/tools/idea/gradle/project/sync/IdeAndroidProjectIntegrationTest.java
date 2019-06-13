@@ -88,7 +88,6 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
     wrapper.updateDistributionUrl("3.5");
 
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-    request.generateSourcesOnSuccess = false;
     request.skipAndroidPluginUpgrade = true;
     requestSyncAndWait(request);
   }

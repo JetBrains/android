@@ -102,7 +102,6 @@ public class NewGradleSyncTest extends IdeaTestCase {
   public void testSyncFromCachedModels() throws Exception {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.useCachedGradleModels = true;
-    request.generateSourcesOnSuccess = false;
 
     Project project = getProject();
     ProjectBuildFileChecksums buildFileChecksums = mock(ProjectBuildFileChecksums.class);
@@ -414,6 +413,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
 
       GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
+      request.generateSourcesOnSuccess = true;
       when(myCallbackFactory.create()).thenReturn(myCallback);
 
       doAnswer(invocation -> {
@@ -442,6 +442,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
 
       GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
+      request.generateSourcesOnSuccess = true;
       request.variantOnlySyncOptions = new VariantOnlySyncOptions(new File(""), "", "", null, true);
       when(myCallbackFactory.create()).thenReturn(myCallback);
 
