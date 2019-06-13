@@ -35,7 +35,6 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -377,20 +376,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
     TestGradleSyncListener syncListener = requestSync(request);
-    checkStatus(syncListener);
+    AndroidGradleTests.checkSyncStatus(syncListener);
   }
 
   protected void requestSyncAndWait() throws Exception {
     TestGradleSyncListener syncListener = requestSync(request -> { });
-    checkStatus(syncListener);
-  }
-
-  private static void checkStatus(@NotNull TestGradleSyncListener syncListener) {
-    if (!syncListener.success) {
-      String cause =
-        !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
-      fail(cause);
-    }
+    AndroidGradleTests.checkSyncStatus(syncListener);
   }
 
   @NotNull
@@ -417,14 +408,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected TestGradleSyncListener requestSync(@NotNull GradleSyncInvoker.Request request) throws Exception {
-    TestGradleSyncListener syncListener = new TestGradleSyncListener();
     refreshProjectFiles();
-
-    Project project = getProject();
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request, syncListener);
-
-    syncListener.await();
-    return syncListener;
+    return AndroidGradleTests.syncProject(getProject(), request);
   }
 
   @NotNull
