@@ -155,11 +155,11 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.UsefulTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
 import java.io.File
@@ -1628,6 +1628,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testCreateNewEmptyMapValue() {
+    assumeTrue(isGroovy())
     val text = ""
     writeToBuildFile(text)
 
@@ -2170,6 +2171,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testCreateNewEmptyList() {
+    assumeTrue(isGroovy())
     val text = ""
     writeToBuildFile(text)
 
@@ -3277,6 +3279,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   @Test
   fun testAddVariableCycle() {
+    assumeTrue(isGroovy())
     writeToBuildFile("")
 
     val buildModel = gradleBuildModel

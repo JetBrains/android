@@ -25,6 +25,7 @@ import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
+import java.math.BigDecimal
 
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
@@ -50,7 +51,7 @@ internal fun createLiteral(context : GradleDslElement, value : Any) : PsiElement
       }
       return KtPsiFactory(context.dslFile.project).createExpression(valueText)
     }
-    is Int, Boolean -> return KtPsiFactory(context.dslFile.project).createExpressionIfPossible(value.toString())
+    is Int, is Boolean, is BigDecimal -> return KtPsiFactory(context.dslFile.project).createExpressionIfPossible(value.toString())
     is RawText -> return KtPsiFactory(context.dslFile.project).createExpressionIfPossible(value.getText())
     else -> throw IncorrectOperationException("Expression '${value}' not supported.")
   }
