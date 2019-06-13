@@ -17,6 +17,10 @@ package com.android.tools.idea.testing;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -430,5 +434,14 @@ public class AndroidGradleTests {
     // Refresh project dir to have files under of the project.getBaseDir() visible to VFS.
     // Do it in a slower but reliable way.
     VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectRoot, true));
+  }
+
+  public static void validateGradleProjectSource(@NotNull File srcRoot) {
+    File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
+    File build = new File(srcRoot, FN_BUILD_GRADLE);
+    File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
+    File ktsBuild = new File(srcRoot, FN_BUILD_GRADLE_KTS);
+    TestCase.assertTrue("Couldn't find build.gradle(.kts) or settings.gradle(.kts) in " + srcRoot.getPath(),
+               settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
   }
 }
