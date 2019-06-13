@@ -56,7 +56,7 @@ class DebugVisitor(private val printer: (String) -> Unit) : HProfVisitor() {
                    "stackTraceSerialNumber: $stackTraceSerialNumber, " +
                    "threadSerialNumber: $threadSerialNumber, " +
                    "numberOfFrames: $numberOfFrames, " +
-                   "stackFrameIds: ${arrayToString(stackFrameIds)}")
+                   "stackFrameIds: ${stackFrameIds.arrayToString()}")
   }
 
   override fun visitAllocSites() {
@@ -177,16 +177,13 @@ class DebugVisitor(private val printer: (String) -> Unit) : HProfVisitor() {
     printer.invoke("UnloadClass: classSerialNumber=$classSerialNumber")
   }
 
-  companion object {
-    private fun arrayToString(array: LongArray): String {
-      val sb = StringBuilder("[")
-      for (i in 0 until array.size) {
-        if (i > 0)
-          sb.append(", ")
-        sb.append(array[i])
-      }
-      sb.append("]")
-      return sb.toString()
+  private fun LongArray.arrayToString(): String = buildString {
+    append('[')
+    for (i in 0 until size) {
+      if (i > 0)
+        append(", ")
+      append(this[i])
     }
+    append(']')
   }
 }

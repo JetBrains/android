@@ -24,6 +24,7 @@ import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toPaddedSho
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toShortStringAsCount
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toShortStringAsSize
 import com.android.tools.idea.diagnostics.hprof.util.PartialProgressIndicator
+import com.android.tools.idea.diagnostics.hprof.util.TruncatingPrintBuffer
 import com.android.tools.idea.diagnostics.hprof.visitors.HistogramVisitor
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.progress.ProgressIndicator
@@ -34,8 +35,10 @@ import gnu.trove.TLongArrayList
 
 class AnalyzeGraph(private val analysisContext: AnalysisContext) {
 
+  private val unreachableDisposableObjects = TIntArrayList()
   private var strongRefHistogram: Histogram? = null
   private var softWeakRefHistogram: Histogram? = null
+  private var traverseReport: String? = null
 
   private val parentList = analysisContext.parentList
 
@@ -49,60 +52,60 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
 
   private val nominatedInstances = HashMap<ClassDefinition, TIntHashSet>()
 
-  fun analyze(progress: ProgressIndicator): String {
-    val sb = StringBuilder()
-
+  fun analyze(progress: ProgressIndicator): String = buildString {
     val includePerClassSection = analysisContext.config.perClassOptions.classNames.isNotEmpty()
 
     val traverseProgress =
       if (includePerClassSection) PartialProgressIndicator(progress, 0.0, 0.5) else progress
 
+    val analyzeDisposer = AnalyzeDisposer(analysisContext)
+    analyzeDisposer.prepareDisposerChildren()
+
     traverseInstanceGraph(traverseProgress)
 
-    val analyzeDisposer = AnalyzeDisposer(analysisContext)
     analyzeDisposer.computeDisposedObjectsIDs()
 
     // Histogram section
     val histogramOptions = analysisContext.config.histogramOptions
     if (histogramOptions.includeByCount || histogramOptions.includeBySize) {
-      sb.appendln(sectionHeader("Histogram"))
-      sb.append(prepareHistogramSection())
+      appendln(sectionHeader("Histogram"))
+      append(prepareHistogramSection())
     }
+
+    appendln(sectionHeader("Heap summary"))
+    append(traverseReport)
 
     // Per-class section
     if (includePerClassSection) {
       val perClassProgress = PartialProgressIndicator(progress, 0.5, 0.5)
-      sb.appendln(sectionHeader("Instances of each nominated class"))
-      sb.append(preparePerClassSection(perClassProgress))
+      appendln(sectionHeader("Instances of each nominated class"))
+      append(preparePerClassSection(perClassProgress))
     }
 
     // Disposer sections
     if (config.disposerOptions.includeDisposerTree) {
-      sb.appendln(sectionHeader("Disposer tree"))
-      sb.append(analyzeDisposer.prepareDisposerTreeSection())
+      appendln(sectionHeader("Disposer tree"))
+      append(analyzeDisposer.prepareDisposerTreeSection())
     }
     if (config.disposerOptions.includeDisposedObjectsSummary || config.disposerOptions.includeDisposedObjectsDetails) {
-      sb.appendln(sectionHeader("Disposed objects"))
-      sb.append(analyzeDisposer.prepareDisposedObjectsSection())
+      appendln(sectionHeader("Disposed objects"))
+      append(analyzeDisposer.prepareDisposedObjectsSection())
     }
-
-    return sb.toString()
   }
 
-  private fun preparePerClassSection(progress: PartialProgressIndicator): String {
-    val sb = StringBuilder()
+  private fun preparePerClassSection(progress: PartialProgressIndicator): String = buildString {
     val histogram = analysisContext.histogram
     val perClassOptions = analysisContext.config.perClassOptions
 
     if (perClassOptions.includeClassList) {
-      sb.appendln("Nominated classes:")
+      appendln("Nominated classes:")
       perClassOptions.classNames.forEach { name ->
         val (classDefinition, totalInstances, totalBytes) =
           histogram.entries.find { entry -> entry.classDefinition.name == name } ?: return@forEach
         val prettyName = classDefinition.prettyName
-        sb.appendln(" --> [${toShortStringAsCount(totalInstances)}/${toShortStringAsSize(totalBytes)}] " + prettyName)
+        appendln(" --> [${toShortStringAsCount(totalInstances)}/${toShortStringAsSize(totalBytes)}] " + prettyName)
       }
-      sb.appendln()
+      appendln()
     }
 
     val nav = analysisContext.navigator
@@ -115,48 +118,44 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
       progress.fraction = counter.toDouble() / nominatedInstances.size
       progress.text2 = "Processing: ${set.size()} ${classDefinition.prettyName}"
       stopwatch.reset().start()
-      sb.appendln("CLASS: ${classDefinition.prettyName} (${set.size()} objects)")
+      appendln("CLASS: ${classDefinition.prettyName} (${set.size()} objects)")
       val referenceRegistry = GCRootPathsTree(analysisContext, perClassOptions.treeDisplayOptions, classDefinition)
       set.forEach { objectId ->
         referenceRegistry.registerObject(objectId)
         true
       }
       set.clear()
-      sb.append(referenceRegistry.printTree())
+      append(referenceRegistry.printTree())
       if (config.metaInfoOptions.include) {
-        sb.appendln("Report for ${classDefinition.prettyName} created in $stopwatch")
+        appendln("Report for ${classDefinition.prettyName} created in $stopwatch")
       }
-      sb.appendln()
+      appendln()
       counter++
     }
     progress.fraction = 1.0
-
-    return sb.toString()
   }
 
-  private fun prepareHistogramSection(): String {
-    val result = StringBuilder()
+  private fun prepareHistogramSection(): String = buildString {
     val strongRefHistogram = getAndClearStrongRefHistogram()
     val softWeakRefHistogram = getAndClearSoftWeakHistogram()
 
     val histogram = analysisContext.histogram
     val histogramOptions = analysisContext.config.histogramOptions
 
-    result.append(
+    append(
       Histogram.prepareMergedHistogramReport(histogram, "All",
                                              strongRefHistogram, "Strong-ref", histogramOptions))
 
     val unreachableObjectsCount = histogram.instanceCount - strongRefHistogram.instanceCount - softWeakRefHistogram.instanceCount
     val unreachableObjectsSize = histogram.bytesCount - strongRefHistogram.bytesCount - softWeakRefHistogram.bytesCount
-    result.appendln("Unreachable objects: ${toPaddedShortStringAsCount(
+    appendln("Unreachable objects: ${toPaddedShortStringAsCount(
       unreachableObjectsCount)}  ${toPaddedShortStringAsSize(unreachableObjectsSize)}")
-
-    return result.toString()
   }
 
   enum class WalkGraphPhase {
     StrongReferencesNonLocalVariables,
     StrongReferencesLocalVariables,
+    DisposerTree,
     SoftReferences,
     WeakReferences,
     CleanerFinalizerReferences,
@@ -165,8 +164,12 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
 
   private val config = analysisContext.config
 
-  private fun traverseInstanceGraph(progress: ProgressIndicator): String {
-    val result = StringBuilder()
+  private fun traverseInstanceGraph(progress: ProgressIndicator)
+  {
+    val traverseOptions = config.traverseOptions
+    val onlyStrongReferences = traverseOptions.onlyStrongReferences
+    val includeDisposerRelationships = traverseOptions.includeDisposerRelationships
+    val includeFieldInformation = traverseOptions.includeFieldInformation
 
     val nav = analysisContext.navigator
     val classStore = analysisContext.classStore
@@ -218,8 +221,6 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
     rootsSet.compact()
 
     var leafCounter = 0
-    result.appendln("Roots count: ${toVisit.size()}")
-    result.appendln("Classes count: ${classStore.size()}")
 
     progress.text2 = "Traversing instance graph"
 
@@ -245,11 +246,18 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
     val cleanerObjects = TIntArrayList()
     val sunMiscCleanerClass = classStore.getClassIfExists("sun.misc.Cleaner")
     val finalizerClass = classStore.getClassIfExists("java.lang.ref.Finalizer")
-    val onlyStrongReferences = config.traverseOptions.onlyStrongReferences
 
     while (!toVisit.isEmpty) {
       for (i in 0 until toVisit.size()) {
         val id = toVisit[i]
+
+        // Disposer.ourTree is only visited during DisposerTree phase to give opportunity for
+        if (includeDisposerRelationships &&
+            id == analysisContext.diposerTreeObjectId &&
+            phase < WalkGraphPhase.DisposerTree) {
+          continue
+        }
+
         nav.goTo(id.toLong(), ObjectNavigator.ReferenceResolution.ALL_REFERENCES)
         val currentObjectClass = nav.getClass()
 
@@ -269,41 +277,65 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
         nav.copyReferencesTo(references)
         val currentObjectIsArray = currentObjectClass.isArray()
 
+        // Postpone any soft references encountered before the phase that handles them
         if (phase < WalkGraphPhase.SoftReferences && nav.getSoftReferenceId() != 0L) {
-          // Postpone soft references
           if (!onlyStrongReferences) {
             softReferenceIdToParentMap.put(nav.getSoftReferenceId().toInt(), id)
           }
           references[nav.getSoftWeakReferenceIndex()] = 0L
         }
 
+        // Postpone any weak references encountered before the phase that handles them
         if (phase < WalkGraphPhase.WeakReferences && nav.getWeakReferenceId() != 0L) {
-          // Postpone weak references
           if (!onlyStrongReferences) {
             weakReferenceIdToParentMap.put(nav.getWeakReferenceId().toInt(), id)
           }
           references[nav.getSoftWeakReferenceIndex()] = 0L
         }
 
+        val size = nav.getObjectSize()
+        val nonDisposerReferences = references.size()
+
+        // Inline children from the disposer tree
+        if (includeDisposerRelationships && analysisContext.disposerParentToChildren.contains(id)) {
+          if (phase >= WalkGraphPhase.DisposerTree) {
+            unreachableDisposableObjects.add(id)
+          }
+          analysisContext.disposerParentToChildren[id].forEach {
+            references.add(it.toLong())
+            true
+          }
+        }
+
         for (j in 0 until references.size()) {
           val referenceId = references[j].toInt()
 
           if (addIdToListAndSetParentIfOrphan(toVisit2, referenceId, id)) {
-            if (!currentObjectIsArray && j <= 254) {
-              refIndexList[referenceId] = j + 1
+            if (includeFieldInformation) {
+              refIndexList[referenceId] = when {
+                currentObjectIsArray -> RefIndexUtil.ARRAY_ELEMENT
+                j >= nonDisposerReferences -> RefIndexUtil.DISPOSER_CHILD
+                j < RefIndexUtil.MAX_FIELD_INDEX -> j + 1
+                else -> RefIndexUtil.FIELD_OMITTED // Too many reference fields
+              }
             }
             isLeaf = false
           }
         }
 
+        // Ordered list of visited nodes. Parent is always before its children.
         visitedList[visitedCount++] = id
-        val size = nav.getObjectSize()
+
+        // Store size of the object. Later pass will update the size by adding sizes of children
+        // Size in DWORDs to support graph sizes up to 10GB.
         var sizeDivBy4 = (size + 3) / 4
         if (sizeDivBy4 == 0) sizeDivBy4 = 1
         sizesList[id] = sizeDivBy4
 
+        // Update histogram (separately for Strong-references and other reachable objects)
         var histogramEntries: HashMap<ClassDefinition, HistogramVisitor.InternalHistogramEntry>
-        if (phase == WalkGraphPhase.StrongReferencesNonLocalVariables || phase == WalkGraphPhase.StrongReferencesLocalVariables) {
+        if (phase == WalkGraphPhase.StrongReferencesNonLocalVariables || phase == WalkGraphPhase.StrongReferencesLocalVariables ||
+          phase == WalkGraphPhase.DisposerTree) {
           histogramEntries = strongRefHistogramEntries
           if (isLeaf) {
             leafCounter++
@@ -312,15 +344,13 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
         }
         else {
           histogramEntries = reachableNonStrongHistogramEntries
-          if (phase == WalkGraphPhase.CleanerFinalizerReferences) {
-            finalizableBytes += size
-          }
-          else if (phase == WalkGraphPhase.SoftReferences) {
-            softBytes += size
-          }
-          else {
-            assert(phase == WalkGraphPhase.WeakReferences)
-            weakBytes += size
+          when (phase) {
+            WalkGraphPhase.CleanerFinalizerReferences -> finalizableBytes += size
+            WalkGraphPhase.SoftReferences -> softBytes += size
+            else -> {
+              assert(phase == WalkGraphPhase.WeakReferences)
+              weakBytes += size
+            }
           }
           softWeakVisitedCount++
         }
@@ -328,13 +358,17 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
           HistogramVisitor.InternalHistogramEntry(currentObjectClass)
         }.addInstance(size.toLong())
       }
+
+      // Update process
       progress.fraction = (1.0 * visitedInstancesCount / nav.instanceCount)
+
+      // Prepare next level of objects for processing
       toVisit.resetQuick()
       val tmp = toVisit
       toVisit = toVisit2
       toVisit2 = tmp
 
-      // Handle state transitions
+      // If no more object to visit at this phase, transition to the next
       while (toVisit.size() == 0 && phase != WalkGraphPhase.Finished) {
         // Next state
         phase = WalkGraphPhase.values()[phase.ordinal + 1]
@@ -351,7 +385,9 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
           }
           WalkGraphPhase.SoftReferences -> {
             softReferenceIdToParentMap.forEachEntry { softId, parentId ->
-              addIdToListAndSetParentIfOrphan(toVisit, softId, parentId)
+              if (addIdToListAndSetParentIfOrphan(toVisit, softId, parentId)) {
+                refIndexList[softId] = RefIndexUtil.SOFT_REFERENCE
+              }
 
               true
             }
@@ -361,25 +397,31 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
           }
           WalkGraphPhase.WeakReferences -> {
             weakReferenceIdToParentMap.forEachEntry { weakId, parentId ->
-              addIdToListAndSetParentIfOrphan(toVisit, weakId, parentId)
+              if (addIdToListAndSetParentIfOrphan(toVisit, weakId, parentId)) {
+                refIndexList[weakId] = RefIndexUtil.WEAK_REFERENCE
+              }
               true
             }
             // No need to store the list anymore
             weakReferenceIdToParentMap.clear()
             weakReferenceIdToParentMap.compact()
           }
+          WalkGraphPhase.DisposerTree -> {
+            if (analysisContext.diposerTreeObjectId != 0) {
+              toVisit.add(analysisContext.diposerTreeObjectId)
+            }
+          }
           else -> Unit // No work for other state transitions
         }
       }
     }
+
+    // Assert that any postponed objects have been handled
     assert(cleanerObjects.isEmpty)
     assert(softReferenceIdToParentMap.isEmpty)
     assert(weakReferenceIdToParentMap.isEmpty)
 
-    result.appendln("Finalizable size: ${toShortStringAsSize(finalizableBytes)}")
-    result.appendln("Soft-reachable size: ${toShortStringAsSize(softBytes)}")
-    result.appendln("Weak-reachable size: ${toShortStringAsSize(weakBytes)}")
-
+    // Histograms are accessible publicly after traversal is complete
     strongRefHistogram = Histogram(
       strongRefHistogramEntries
         .values
@@ -394,8 +436,11 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
         .sortedByDescending { it.totalInstances },
       softWeakVisitedCount.toLong())
 
+    // Update size field in non-leaves to reflect the size of the whole subtree. Right after traversal
+    // the size field is initialized to the size of the given object.
+    // Traverses objects in the reverse order, so a child is always visited before its parent.
+    // This assures size field is correctly set for a given before its added to the size field of the parent.
     val stopwatchUpdateSizes = Stopwatch.createStarted()
-    // Update sizes for non-leaves
     var index = visitedCount - 1
     while (index >= 0) {
       val id = visitedList[index]
@@ -407,12 +452,35 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
     }
     stopwatchUpdateSizes.stop()
 
-    if (config.metaInfoOptions.include) {
-      result.appendln("Analysis completed! Visited instances: $visitedInstancesCount, time: $stopwatch")
-      result.appendln("Update sizes time: $stopwatchUpdateSizes")
-      result.appendln("Leaves found: $leafCounter")
+    traverseReport = buildString {
+      if (config.metaInfoOptions.include) {
+        appendln("Analysis completed! Visited instances: $visitedInstancesCount, time: $stopwatch")
+        appendln("Update sizes time: $stopwatchUpdateSizes")
+        appendln("Leaves found: $leafCounter")
+      }
+
+      appendln("Class count: ${classStore.size()}")
+
+      // Adds summary of object count by reachability
+      appendln("Finalizable size: ${toShortStringAsSize(finalizableBytes)}")
+      appendln("Soft-reachable size: ${toShortStringAsSize(softBytes)}")
+      appendln("Weak-reachable size: ${toShortStringAsSize(weakBytes)}")
+      appendln("Reachable only from disposer tree: ${unreachableDisposableObjects.size()}")
+      TruncatingPrintBuffer(10, 0, this::appendln).use { buffer ->
+        val unreachableChildren = TIntHashSet()
+        unreachableDisposableObjects.forEach { id ->
+          analysisContext.disposerParentToChildren[id]?.let { unreachableChildren.addAll(it.toNativeArray()) }
+          true
+        }
+        unreachableDisposableObjects.forEach { id ->
+          if (unreachableChildren.contains(id)) {
+            return@forEach true
+          }
+          buffer.println(" * ${nav.getClassForObjectId(id.toLong()).name} (${toShortStringAsSize(sizesList[id].toLong() * 4)})")
+          true
+        }
+      }
     }
-    return result.toString()
   }
 
   /**
@@ -459,6 +527,4 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
     softWeakRefHistogram = null
     return result ?: throw IllegalStateException("Graph not analyzed.")
   }
-
-
 }
