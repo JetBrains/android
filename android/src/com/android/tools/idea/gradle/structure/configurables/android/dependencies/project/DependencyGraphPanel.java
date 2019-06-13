@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.structure.configurables.dependencies.detail
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.MultipleLibraryDependenciesDetails;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractPsNodeTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.GoToModuleAction;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeBuilder;
@@ -152,6 +151,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
     PsModule.DependenciesChangeListener dependenciesChangeListener = event -> {
       if (event instanceof PsModule.DependencyAddedEvent) {
+        // set the selection to the newly-added dependency
         PsDeclaredDependency dependency = ((PsModule.DependencyAddedEvent)event).getDependency().getValue();
         myTreeBuilder.reset(() -> {
           AbstractDependencyNode found = myTreeBuilder.findDeclaredDependency(dependency);
@@ -160,8 +160,23 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
           }
         });
       }
-      else if (event != null) {
-        myTreeBuilder.reset(null);
+      else {
+        // preserve, as much as possible, the user's selection before the dependency change
+        List<AbstractDependencyNode<? extends PsBaseDependency>> selection = getSelection();
+        myTreeBuilder.reset(() -> {
+          List<AbstractDependencyNode<? extends PsBaseDependency>> newSelection = Lists.newArrayList();
+          for (AbstractDependencyNode<? extends PsBaseDependency> node : selection) {
+            for (PsBaseDependency model : node.getModels()) {
+              if (model instanceof PsDeclaredDependency) {
+                AbstractDependencyNode newNode = myTreeBuilder.findDeclaredDependency((PsDeclaredDependency) model);
+                if (newNode!= null) {
+                  newSelection.add(newNode);
+                }
+              }
+            }
+          }
+          myTreeBuilder.select(newSelection.toArray(), null);
+        });
       }
     };
     myContext.getProject().forEachModule(module -> module.add(dependenciesChangeListener, this));
