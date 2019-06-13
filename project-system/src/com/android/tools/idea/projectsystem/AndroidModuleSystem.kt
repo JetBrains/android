@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("ModuleSystemUtil")
+
 package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.projectmodel.Library
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 
 /**
@@ -26,6 +31,10 @@ import com.intellij.psi.search.GlobalSearchScope
  * contain methods that apply to a specific [Module].
  */
 interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
+
+  /** [Module] that this [AndroidModuleSystem] handles. */
+  val module: Module
+
   /**
    * Requests information about the folder layout for the module. This can be used to determine
    * where files of various types should be written.
@@ -146,17 +155,17 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   fun canGeneratePngFromVectorGraphics(): CapabilityStatus
 
   /**
-   * Returns the [GlobalSearchScope] for a given module that includes all its dependencies and libraries.
+   * Returns the [GlobalSearchScope] for a given module that should be used to resolving references.
    *
    * This is a seam for [Module.getModuleWithDependenciesAndLibrariesScope] that allows project systems that have not expressed their
    * module level dependencies accurately to IntelliJ (typically for performance reasons) to provide a different scope than what the
    * module itself would.
    */
-  fun getModuleWithDependenciesAndLibrariesScope(includeTests: Boolean): GlobalSearchScope
+  fun getResolveScope(scopeType: ScopeType): GlobalSearchScope
 
   /** Returns an [TestArtifactSearchScopes] instance for a given module, if multiple test types are supported. */
   @JvmDefault
-  fun getTestArtifactSearchScopes(module: Module): TestArtifactSearchScopes? = null
+  fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = null
 }
 
 /** Types of dependencies that [AndroidModuleSystem.registerDependency] can add */
@@ -164,4 +173,41 @@ enum class DependencyType {
   IMPLEMENTATION,
   // TODO: Add "API," & support in build systems
   ANNOTATION_PROCESSOR
+}
+
+/**
+ * Describes the scope that should be used for resolving references in a given file or other context. Can be determined by calling
+ * [getScopeType].
+ *
+ * In project systems that don't have the concept of separate test scopes, [ScopeType.ANDROID_TEST] is the only value used for test sources.
+ */
+enum class ScopeType {
+  MAIN,
+  ANDROID_TEST,
+  UNIT_TEST,
+  SHARED_TEST,
+}
+
+fun AndroidModuleSystem.getResolveScope(file: VirtualFile): GlobalSearchScope {
+  val scopeType = getScopeType(file, module.project)
+  return getResolveScope(scopeType)
+}
+
+fun AndroidModuleSystem.getResolveScope(element: PsiElement): GlobalSearchScope {
+  val scopeType = element.containingFile?.virtualFile?.let { getScopeType(it, module.project) } ?: ScopeType.MAIN
+  return getResolveScope(scopeType)
+}
+
+private fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): ScopeType {
+  if (!TestSourcesFilter.isTestSources(file, project)) return ScopeType.MAIN
+  val testScopes = getTestArtifactSearchScopes() ?: return ScopeType.ANDROID_TEST
+
+  val inAndroidTest = testScopes.isAndroidTestSource(file)
+  val inUnitTest = testScopes.isUnitTestSource(file)
+
+  return when {
+    inUnitTest && inAndroidTest -> ScopeType.SHARED_TEST
+    inUnitTest && !inAndroidTest -> ScopeType.UNIT_TEST
+    else -> ScopeType.ANDROID_TEST
+  }
 }

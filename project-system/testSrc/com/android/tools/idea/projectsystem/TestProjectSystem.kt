@@ -76,6 +76,8 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
+      override val module = module
+
       override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
         : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
         val found = mutableListOf<GradleCoordinate>()
@@ -134,8 +136,9 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
       override fun getSampleDataDirectory(): PathString? = null
 
-      override fun getModuleWithDependenciesAndLibrariesScope(includeTests: Boolean) = module.getModuleWithDependenciesAndLibrariesScope(
-        includeTests)
+      override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
+        return module.getModuleWithDependenciesAndLibrariesScope(scopeType != ScopeType.MAIN)
+      }
     }
   }
 
