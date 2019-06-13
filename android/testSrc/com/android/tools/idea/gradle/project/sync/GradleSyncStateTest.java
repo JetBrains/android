@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.IdeComponents;
-import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ThreeState;
@@ -62,26 +61,10 @@ public class GradleSyncStateTest extends IdeaTestCase {
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
   }
 
-  public void testSyncStartedWithoutUserNotification() {
+  public void testSyncStartedUserNotification() {
     assertFalse(mySyncState.isSyncInProgress());
 
-    boolean syncStarted = mySyncState.syncStarted(false /* no user notification */,
-                                                  new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
-    assertTrue(syncStarted);
-    assertTrue(mySyncState.isSyncInProgress());
-
-    // Trying to start a sync again should not work.
-    assertFalse(mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null));
-
-    verify(myChangeNotification, never()).notifyStateChanged();
-    verify(myGradleSyncListener, times(1)).syncStarted(myProject, true);
-  }
-
-  public void testSyncStartedWithUserNotification() {
-    assertFalse(mySyncState.isSyncInProgress());
-
-    boolean syncStarted = mySyncState.syncStarted(true /* user notification */,
-                                                  new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
+    boolean syncStarted = mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
     assertTrue(syncStarted);
     assertTrue(mySyncState.isSyncInProgress());
 
@@ -102,7 +85,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
   public void testSyncSkippedAfterSyncStarted() {
     long timestamp = -1231231231299L; // Some random number
 
-    mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
+    mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
     mySyncState.syncSkipped(timestamp, null);
     assertFalse(mySyncState.isSyncInProgress());
   }
@@ -254,7 +237,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
    * Check that myExternalSystemTaskId is set to null (if it was ever set) when sync finishes
    */
   public void testExternalSystemTaskIdEnded() {
-    mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
+    mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
     mySyncState.setExternalSystemTaskId(myTaskId);
     assertEquals(myTaskId, mySyncState.getExternalSystemTaskId());
     mySyncState.syncSucceeded();
@@ -268,7 +251,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
     long timestamp = -1231231231299L; // Some random number
 
     // TODO Add trigger for testing?
-    mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
+    mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
     mySyncState.setExternalSystemTaskId(myTaskId);
     assertEquals(myTaskId, mySyncState.getExternalSystemTaskId());
     mySyncState.syncSkipped(timestamp, null);

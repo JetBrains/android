@@ -421,7 +421,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     refreshProjectFiles();
 
     Project project = getProject();
-    GradleProjectInfo.getInstance(project).setImportedProject(true);
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, syncListener);
 
     syncListener.await();
