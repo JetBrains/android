@@ -507,6 +507,13 @@ public final class StudioFlags {
     "Enable gutter icon annotator to be run after all other annotators and in the background.",
     true);
 
+  public static final Flag<Boolean> MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED = Flag.create(
+    EDITOR, "multidexkeepfile.support.enabled",
+    "Enable support for MultiDexKeepFile format",
+    "If enabled, it offers support (such as code completion) for the MultiDexKeepFile format.",
+    false
+  );
+
   private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
   public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(
     ANALYZER, "enable.app.size.optimizer", "Enable size optimization suggestions in apk analyzer",
