@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.explorer;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.device.fs.DeviceFileId;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
@@ -23,11 +22,10 @@ import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.android.tools.idea.explorer.options.DeviceFileExplorerSettings;
 import com.android.utils.FileUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -35,12 +33,8 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FileTypeChooser;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtilRt;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,6 +46,8 @@ import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -158,18 +154,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   private ListenableFuture<Void> openFileInEditorWorker(@NotNull DeviceFileEntry entry,
                                                         @NotNull Path localPath,
                                                         boolean focusEditor) {
-    // Note: We run this operation inside a transaction because we need to refresh a VirtualFile instance.
-    //       See https://github.com/JetBrains/intellij-community/commit/10c0c11281b875e64c31186eac20fc28ba3fc37a
-    SettableFuture<VirtualFile> futureFile = SettableFuture.create();
-    TransactionGuard.submitTransaction(ApplicationManager.getApplication(), () -> {
-      VirtualFile localFile = VfsUtil.findFileByIoFile(localPath.toFile(), true);
-      if (localFile == null) {
-        futureFile.setException(new RuntimeException(String.format("Unable to locate file \"%s\"", localPath)));
-      }
-      else {
-        futureFile.set(localFile);
-      }
-    });
+    ListenableFuture<VirtualFile> futureFile = DeviceExplorerFilesUtils.findFile(localPath);
 
     return myEdtExecutor.transform(futureFile, file -> {
       // Set the device/path information on the virtual file so custom editors

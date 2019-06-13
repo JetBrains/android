@@ -17,10 +17,8 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
-import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.sqlite.SqliteService
-import com.android.tools.idea.sqlite.model.SqliteModel
-import com.android.tools.idea.sqlite.model.SqliteModelListener
+import com.android.tools.idea.sqlite.SqliteServiceFactory
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
@@ -32,21 +30,23 @@ import com.google.common.util.concurrent.FutureCallback
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.EdtExecutorService
+import org.jetbrains.ide.PooledThreadExecutor
 import java.util.concurrent.Executor
+import kotlin.properties.Delegates
 
 /**
- * Implementation of the application logic related to viewing/editing of a single sqlite database.
+ * Implementation of the application logic related to viewing/editing sqlite databases.
  *
  * All methods are assumed to run on the UI (EDT) thread.
  */
 @UiThread
 class SqliteController(
   parentDisposable: Disposable,
+  private val sqliteServiceFactory: SqliteServiceFactory,
   private val viewFactory: SqliteEditorViewFactory,
-  private val sqliteModel: SqliteModel,
-  private val sqliteView: SqliteView,
-  private val sqliteService: SqliteService,
+  val sqliteView: SqliteView,
   edtExecutor: EdtExecutorService,
   taskExecutor: Executor
 ) : Disposable {
@@ -67,7 +67,13 @@ class SqliteController(
   private val resultSetControllers = mutableMapOf<String, ResultSetController>()
 
   private val sqliteViewListener = SqliteViewListenerImpl()
-  private val sqliteModelListener = SqliteModelListenerImpl()
+
+  private lateinit var sqliteService: SqliteService
+
+  private var sqliteSchema: SqliteSchema by Delegates.observable(SqliteSchema.EMPTY) { _, _, newValue ->
+    logger.info("Schema changed $newValue")
+    sqliteView.displaySchema(newValue)
+  }
 
   init {
     Disposer.register(parentDisposable, this)
@@ -75,16 +81,17 @@ class SqliteController(
 
   fun setUp() {
     sqliteView.addListener(sqliteViewListener)
-    sqliteModel.addListener(sqliteModelListener)
+  }
 
-    sqliteView.setUp()
+  fun openSqliteDatabase(sqliteFile: VirtualFile) {
+    sqliteService = sqliteServiceFactory.getSqliteService(sqliteFile, this, PooledThreadExecutor.INSTANCE)
+
     sqliteView.startLoading("Opening Sqlite database...")
     loadDbSchema()
   }
 
   override fun dispose() {
     sqliteView.removeListener(sqliteViewListener)
-    sqliteModel.removeListener(sqliteModelListener)
   }
 
   private fun loadDbSchema() {
@@ -111,7 +118,7 @@ class SqliteController(
 
   private fun setDatabaseSchema(schema: SqliteSchema) {
     if (!Disposer.isDisposed(this)) {
-      sqliteModel.schema = schema
+      this.sqliteSchema = schema
     }
   }
 
@@ -188,18 +195,6 @@ class SqliteController(
 
     override fun sessionClosed() {
       sqliteEvaluatorController = null
-    }
-  }
-
-  private inner class SqliteModelListenerImpl : SqliteModelListener {
-    override fun schemaChanged(schema: SqliteSchema) {
-      logger.info("Schema changed $schema")
-      sqliteView.displaySchema(schema)
-    }
-
-    override fun deviceFileIdChanged(fileId: DeviceFileId) {
-      logger.info("Device file id changed: $fileId")
-      //TODO(b/131588252)
     }
   }
 }
