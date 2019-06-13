@@ -85,6 +85,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
 
@@ -119,6 +120,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddPropertiesToEmpty() {
+    assumeTrue(isGroovy())
     writeToBuildFile("")
 
     val buildModel = gradleBuildModel

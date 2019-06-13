@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.U
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class RawTextTest : GradleFileModelTestCase() {
@@ -68,6 +69,7 @@ class RawTextTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetUnknownExpression() {
+    assumeTrue(isGroovy())
     set {
       it.setValue(RawText("1 + (4 * 5)**2 - 7"))
     }.validate {

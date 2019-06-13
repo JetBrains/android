@@ -237,7 +237,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void writeToSettingsFile(@NotNull String text) throws IOException {
-    assumeTrue(isGroovy());
     saveFileUnderWrite(mySettingsFile, text);
   }
 
@@ -246,7 +245,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void writeToBuildFile(@NotNull String text) throws IOException {
-    assumeTrue(isGroovy());
     saveFileUnderWrite(myBuildFile, text);
   }
 
@@ -261,7 +259,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected String getSubModuleSettingsText() {
-    return isGroovy() ? ("include ':" + SUB_MODULE_NAME + "'") : "TODO Implement";
+    return isGroovy() ? ("include ':" + SUB_MODULE_NAME + "'") : ("include(\":" + SUB_MODULE_NAME + "\")");
   }
 
   protected Module writeToNewSubModule(@NotNull String name, @NotNull TestFileName fileName, @NotNull String propertiesFileText)
@@ -327,7 +325,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void writeToSubModuleBuildFile(@NotNull String text) throws IOException {
-    assumeTrue(isGroovy());
     saveFileUnderWrite(mySubModuleBuildFile, text);
   }
 

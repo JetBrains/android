@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.notifications.PropertyPlacementNotification
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class BuildNotificationTest : GradleFileModelTestCase() {
@@ -46,6 +47,7 @@ class BuildNotificationTest : GradleFileModelTestCase() {
 
   @Test
   fun testIncompleteParsingNotificationFromAppliedAndParentFiles() {
+    assumeTrue(isGroovy())
     val parentText = """
                      def variable = 3 * 3 * 3 * 3
                      """.trimIndent()
