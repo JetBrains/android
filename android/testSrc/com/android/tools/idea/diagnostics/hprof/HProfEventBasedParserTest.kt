@@ -17,10 +17,9 @@ package com.android.tools.idea.diagnostics.hprof
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.diagnostics.hprof.analysis.HProfAnalysis
-import com.android.tools.idea.diagnostics.hprof.classstore.ClassStore
+import com.android.tools.idea.diagnostics.hprof.classstore.HProfMetadata
 import com.android.tools.idea.diagnostics.hprof.navigator.RootReason
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
-import com.android.tools.idea.diagnostics.hprof.visitors.CollectRootReasonsVisitor
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import gnu.trove.TObjectIntHashMap
 import org.junit.After
@@ -28,7 +27,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.DataOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.nio.channels.FileChannel
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -62,19 +63,23 @@ class HProfEventBasedParserTest {
 
   @Test
   fun testCollectRoots() {
-    val visitor = CollectRootReasonsVisitor()
-    parser.accept(visitor, null)
-    val roots = visitor.roots
+    val hprofMetadata = HProfMetadata.create(parser)
+    val roots = hprofMetadata.roots
+    var javaFrameRootsCount = 0
     val counts = TObjectIntHashMap<RootReason>()
     roots.forEachValue {
-      if (!counts.containsKey(it)) {
-        counts.put(it, 0)
+      if (it.javaFrame) {
+        javaFrameRootsCount++
+      } else {
+        if (!counts.containsKey(it)) {
+          counts.put(it, 0)
+        }
+        counts.increment(it)
       }
-      counts.increment(it)
       true
     }
     assertEquals(2, counts[RootReason.rootGlobalJNI])
-    assertEquals(19, counts[RootReason.rootJavaFrame])
+    assertEquals(19, javaFrameRootsCount)
     assertEquals(1, counts[RootReason.rootLocalJNI])
     assertEquals(2, counts[RootReason.rootMonitorUsed])
     assertEquals(0, counts[RootReason.rootNativeStack])
@@ -86,7 +91,8 @@ class HProfEventBasedParserTest {
 
   @Test
   fun testClassStore() {
-    val classStore = ClassStore.create(parser)
+    val hprofMetadata = HProfMetadata.create(parser)
+    val classStore = hprofMetadata.classStore
     assertEquals(702, classStore.size())
 
     val stringDef = classStore["java.lang.String"]
@@ -120,9 +126,14 @@ class HProfEventBasedParserTest {
     }
     progress.isIndeterminate = false
     val generatedReport = analysis.analyze(progress)
-    val baselineReport = String(Files.readAllBytes(
-      TestUtils.getWorkspaceFile("tools/adt/idea/android/testData/profiling/sample-report.txt").toPath()), StandardCharsets.UTF_8)
+    val baselineReport = getBaselineContents("sample-report.txt")
 
     assertEquals(baselineReport, generatedReport)
   }
+
+  private fun getBaselineContents(fileName: String): String {
+    return String(Files.readAllBytes(
+      TestUtils.getWorkspaceFile("tools/adt/idea/android/testData/profiling/$fileName").toPath()), StandardCharsets.UTF_8)
+  }
+
 }

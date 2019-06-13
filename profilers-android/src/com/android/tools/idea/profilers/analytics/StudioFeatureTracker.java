@@ -362,8 +362,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackCpuStartupProfiling(@NotNull ProfilingConfiguration configuration) {
-    newTracker(AndroidProfilerEvent.Type.CPU_STARTUP_PROFILING).setDevice(myActiveDevice).setCpuStartupProfilingConfiguration(configuration)
+  public void trackCpuStartupProfiling(@NotNull Common.Device device, @NotNull ProfilingConfiguration configuration) {
+    newTracker(AndroidProfilerEvent.Type.CPU_STARTUP_PROFILING).setDevice(device).setCpuStartupProfilingConfiguration(configuration)
       .track();
   }
 
@@ -799,6 +799,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
           .setRecordDurationMs(myCpuCaptureMetadata.getRecordDurationMs())
           .setTraceFileSizeBytes(myCpuCaptureMetadata.getTraceFileSizeBytes())
           .setParsingTimeMs(myCpuCaptureMetadata.getParsingTimeMs())
+          .setStoppingTimeMs(myCpuCaptureMetadata.getStoppingTimeMs())
           .setCaptureStatus(
             CPU_CAPTURE_STATUS_MAP.getOrDefault(myCpuCaptureMetadata.getStatus(), CpuCaptureMetadata.CaptureStatus.SUCCESS));
 

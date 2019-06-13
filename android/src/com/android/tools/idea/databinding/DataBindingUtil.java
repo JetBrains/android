@@ -23,7 +23,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
 import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.res.DataBindingLayoutInfo;
+import com.android.tools.idea.res.BindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -135,7 +135,7 @@ public final class DataBindingUtil {
    * otherwise.
    */
   @Nullable
-  public static PsiType resolveViewPsiType(@NotNull DataBindingLayoutInfo.ViewWithId viewWithId, @NotNull AndroidFacet facet) {
+  public static PsiType resolveViewPsiType(@NotNull BindingLayoutInfo.ViewWithId viewWithId, @NotNull AndroidFacet facet) {
     String viewClassName = getViewClassName(viewWithId.tag, facet);
     if (StringUtil.isNotEmpty(viewClassName)) {
       return parsePsiType(viewClassName, facet, null);
@@ -196,7 +196,7 @@ public final class DataBindingUtil {
     if (resourceUrl == null || resourceUrl.type != ResourceType.LAYOUT) {
       return null;
     }
-    DataBindingLayoutInfo info = moduleResources.getDataBindingLayoutInfo(resourceUrl.name);
+    BindingLayoutInfo info = moduleResources.getBindingLayoutInfo(resourceUrl.name);
     if (info == null) {
       return null;
     }
@@ -476,20 +476,20 @@ public final class DataBindingUtil {
    * not '$' as used by JVM.
    *
    * @param nameOrAlias a fully qualified name, or an alias as declared in an {@code <import>}, or an inner class of an alias
-   * @param dataBindingLayoutInfo for getting the list of {@code <import>} tags
+   * @param bindingLayoutInfo for getting the list of {@code <import>} tags
    * @param qualifyJavaLang qualify names of java.lang classes
    * @return the qualified name of the class, otherwise, if {@code qualifyJavaLang} is false and {@code nameOrAlias} doesn't match any
    *     imports, the unqualified name of the class, or, if {@code qualifyJavaLang} is true and the class name cannot be resolved, null
    */
   @Nullable
   public static String getQualifiedType(@Nullable String nameOrAlias,
-                                        @Nullable DataBindingLayoutInfo dataBindingLayoutInfo,
+                                        @Nullable BindingLayoutInfo bindingLayoutInfo,
                                         boolean qualifyJavaLang) {
-    if (nameOrAlias == null || dataBindingLayoutInfo == null) {
+    if (nameOrAlias == null || bindingLayoutInfo == null) {
       return nameOrAlias;
     }
 
-    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(dataBindingLayoutInfo.getProject());
+    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(bindingLayoutInfo.getProject());
     PsiJavaParserFacade parser = psiFacade.getParserFacade();
     PsiType psiType;
     try {
@@ -519,7 +519,7 @@ public final class DataBindingUtil {
           String className = reference.isQualified() ? reference.getQualifiedName() : reference.getReferenceName();
           if (className != null) {
             int nameLength = className.length();
-            className = resolveImport(className, dataBindingLayoutInfo);
+            className = resolveImport(className, bindingLayoutInfo);
             if (qualifyJavaLang && className.indexOf('.') < 0) {
               className = qualifyClassName(className, parser);
               if (className == null) {
@@ -567,16 +567,16 @@ public final class DataBindingUtil {
    * Resolves a class name using import statements in the data binding information.
    *
    * @param className the class name, possibly not qualified. The class name may contain dots if it corresponds to a nested class.
-   * @param dataBindingLayoutInfo the data binding information containing the import statements to use for class resolution.
+   * @param bindingLayoutInfo the layout information that may contain import statements to use for class resolution.
    * @return the fully qualified class name, or the original name if the first segment of {@code className} doesn't match
    *     any import statement.
    */
   @NotNull
-  public static String resolveImport(@NotNull String className, @Nullable DataBindingLayoutInfo dataBindingLayoutInfo) {
-    if (dataBindingLayoutInfo != null) {
+  public static String resolveImport(@NotNull String className, @Nullable BindingLayoutInfo bindingLayoutInfo) {
+    if (bindingLayoutInfo != null) {
       int dotOffset = className.indexOf('.');
       String firstSegment = dotOffset >= 0 ? className.substring(0, dotOffset) : className;
-      String importedType = dataBindingLayoutInfo.resolveImport(firstSegment);
+      String importedType = bindingLayoutInfo.resolveImport(firstSegment);
       if (importedType != null) {
         return dotOffset >= 0 ? importedType + className.substring(dotOffset) : importedType;
       }

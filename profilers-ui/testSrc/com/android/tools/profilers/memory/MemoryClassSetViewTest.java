@@ -29,7 +29,7 @@ import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;

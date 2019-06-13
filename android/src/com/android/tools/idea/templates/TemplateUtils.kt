@@ -219,10 +219,15 @@ object TemplateUtils {
       return false
     }
     var last: VirtualFile? = null
-    val result = files.filter(File::exists).any {
-      val vFile = VfsUtil.findFileByIoFile(it, true) ?: return@any false
-      return !openEditor(project, vFile).also {
+    var result = true
+    files.filter(File::exists).forEach {
+      val vFile = VfsUtil.findFileByIoFile(it, true)
+      if (vFile == null) {
+        result = false
+      }
+      else {
         last = vFile
+        result = openEditor(project, vFile) && result
       }
     }
 

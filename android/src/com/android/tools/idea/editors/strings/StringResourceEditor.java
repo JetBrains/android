@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.adtui.font.FontUtil;
+import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -22,14 +25,16 @@ import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.util.UserDataHolderBase;
+import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
+import java.awt.Font;
+import java.beans.PropertyChangeListener;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.beans.PropertyChangeListener;
 
 public class StringResourceEditor extends UserDataHolderBase implements FileEditor {
 
@@ -42,6 +47,21 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
     AndroidFacet facet = file.getFacet();
     // Post startup activities (such as when reopening last open editors) are run from a background thread
     UIUtil.invokeAndWaitIfNeeded(() -> myPanel = new StringResourceViewPanel(facet, this));
+  }
+
+  @NotNull
+  public static Font getFont(@NotNull String text, @NotNull Font defaultFont) {
+    return getFont(text, defaultFont, StudioFlags.TRANSLATIONS_EDITOR_USE_LOGICAL_FONT.get());
+  }
+
+  @NotNull
+  @VisibleForTesting
+  static Font getFont(@NotNull String text, @NotNull Font defaultFont, boolean useLogicalFont) {
+    if (!useLogicalFont) {
+      return FontUtil.getFontAbleToDisplay(text, defaultFont);
+    }
+
+    return JBFont.create(new Font(Font.DIALOG, Font.PLAIN, defaultFont.getSize()), !(defaultFont instanceof JBFont));
   }
 
   @NotNull

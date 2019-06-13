@@ -110,14 +110,12 @@ public class NlFlagsEditor extends BaseComponentEditor implements NlComponentEdi
         if (myProperty != null) {
           presentation.setIcon(AllIcons.General.Ellipsis);
           presentation.setText("Click to edit");
-          presentation.setVisible(true);
-          presentation.setEnabled(true);
+          presentation.setEnabledAndVisible(true);
         }
         else {
           presentation.setIcon(null);
           presentation.setText(null);
-          presentation.setVisible(false);
-          presentation.setEnabled(false);
+          presentation.setEnabledAndVisible(false);
         }
       }
 

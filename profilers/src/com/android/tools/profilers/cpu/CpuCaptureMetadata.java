@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -64,7 +64,7 @@ public class CpuCaptureMetadata {
     STOP_FAILED_CANNOT_READ_FILE
     ;
 
-    public static CaptureStatus fromStopStatus(CpuProfiler.CpuProfilingAppStopResponse.Status status) {
+    public static CaptureStatus fromStopStatus(Cpu.TraceStopStatus.Status status) {
       switch (status) {
         case NO_ONGOING_PROFILING:
           return STOP_FAILED_NO_GOING_PROFILING;
@@ -127,6 +127,11 @@ public class CpuCaptureMetadata {
   private long myParsingTimeMs;
 
   /**
+   * How much time (in milliseconds) taken to stop the recording.
+   */
+  private int myStoppingTimeMs;
+
+  /**
    * {@link ProfilingConfiguration} used to start the capture.
    */
   private @NotNull ProfilingConfiguration myProfilingConfiguration;
@@ -157,6 +162,14 @@ public class CpuCaptureMetadata {
 
   public void setCaptureDurationMs(long captureDurationMs) {
     myCaptureDurationMs = captureDurationMs;
+  }
+
+  public int getStoppingTimeMs() {
+    return myStoppingTimeMs;
+  }
+
+  public void setStoppingTimeMs(int stoppingTimeMs) {
+    myStoppingTimeMs = stoppingTimeMs;
   }
 
   public long getParsingTimeMs() {

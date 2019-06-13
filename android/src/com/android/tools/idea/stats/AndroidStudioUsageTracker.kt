@@ -33,6 +33,7 @@ import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.google.wireless.android.sdk.stats.UserSentiment
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
@@ -47,6 +48,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.io.File
 import java.util.ArrayList
+import java.util.Locale
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -178,7 +180,7 @@ object AndroidStudioUsageTracker {
   fun requestUserSentiment() {
     val eventQueue = IdeEventQueue.getInstance()
 
-    lateinit var runner : Runnable
+    lateinit var runner: Runnable
     runner = Runnable {
       // Ensure we're invoked only once.
       eventQueue.removeIdleListener(runner)
@@ -237,7 +239,14 @@ object AndroidStudioUsageTracker {
    */
   private fun currentIdeTheme(): ProductDetails.IdeTheme {
     return when {
-      UIUtil.isUnderDarcula() -> ProductDetails.IdeTheme.DARCULA
+      UIUtil.isUnderDarcula() ->
+        // IJ's custom theme are based off of Darcula. We look at the LafManager to determine whether the actual selected theme is
+        // darcular, high contrast, or some other custom theme
+        when (LafManager.getInstance().currentLookAndFeel?.name?.toLowerCase(Locale.US)) {
+          "darcula" -> ProductDetails.IdeTheme.DARCULA
+          "high contrast" -> ProductDetails.IdeTheme.HIGH_CONTRAST
+          else -> ProductDetails.IdeTheme.CUSTOM
+        }
       UIUtil.isUnderGTKLookAndFeel() -> ProductDetails.IdeTheme.GTK
       UIUtil.isUnderIntelliJLaF() ->
         // When the theme is IntelliJ, there are mac and window specific registries that govern whether the theme refers to the native

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import org.junit.Test;
 
@@ -50,15 +51,15 @@ public class LegacyAllocationConverterTest {
     stackTraceElementList.add(new StackTraceElement(CLASS_NAME, METHOD_NAME, FILE_NAME, LINE_NUMBER + 1));
     stackTraceElementList.add(new StackTraceElement(CLASS_NAME, METHOD_NAME, FILE_NAME, LINE_NUMBER + 2));
     LegacyAllocationConverter.CallStack callStack = converter.addCallStack(stackTraceElementList);
-    List<MemoryProfiler.AllocationStack> allocated = converter.getAllocationStacks();
+    List<Memory.AllocationStack> allocated = converter.getAllocationStacks();
     assertThat(allocated.size()).isEqualTo(1);
-    for (MemoryProfiler.AllocationStack allocation : allocated) {
+    for (Memory.AllocationStack allocation : allocated) {
       assertThat(allocation).isEqualTo(callStack.getAllocationStack());
-      assertThat(allocation.getFrameCase()).isEqualTo(MemoryProfiler.AllocationStack.FrameCase.FULL_STACK);
-      MemoryProfiler.AllocationStack.StackFrameWrapper fullStack = allocation.getFullStack();
+      assertThat(allocation.getFrameCase()).isEqualTo(Memory.AllocationStack.FrameCase.FULL_STACK);
+      Memory.AllocationStack.StackFrameWrapper fullStack = allocation.getFullStack();
       assertThat(fullStack.getFramesCount()).isEqualTo(stackTraceElementList.size());
       for (int i = 0; i < fullStack.getFramesCount(); i++) {
-        MemoryProfiler.AllocationStack.StackFrame frame = fullStack.getFrames(i);
+        Memory.AllocationStack.StackFrame frame = fullStack.getFrames(i);
         assertThat(frame.getClassName()).isEqualTo(stackTraceElementList.get(i).getClassName());
         assertThat(frame.getMethodName()).isEqualTo(stackTraceElementList.get(i).getMethodName());
         assertThat(frame.getFileName()).isEqualTo(stackTraceElementList.get(i).getFileName());
@@ -82,7 +83,7 @@ public class LegacyAllocationConverterTest {
     int id = converter.addClassName(CLASS_NAME);
     assertThat(converter.addClassName(CLASS_NAME)).isEqualTo(id);
 
-    List<MemoryProfiler.AllocatedClass> classes = converter.getClassNames();
+    List<Memory.AllocatedClass> classes = converter.getClassNames();
     assertThat(classes.size()).isEqualTo(1);
     assertThat(classes.get(0).getClassName()).isEqualTo(CLASS_NAME);
     assertThat(classes.get(0).getClassId()).isEqualTo(id);

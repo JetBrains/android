@@ -18,7 +18,7 @@ package com.android.tools.profilers.memory.adapters;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.perflib.heap.*;
 import com.android.tools.perflib.heap.ClassInstance.FieldValue;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

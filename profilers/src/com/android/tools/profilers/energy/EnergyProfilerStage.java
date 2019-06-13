@@ -34,10 +34,7 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.proto.Transport;
-import com.android.tools.profiler.proto.Transport.BytesRequest;
-import com.android.tools.profiler.proto.Transport.BytesResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.Stage;
@@ -48,7 +45,6 @@ import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.util.text.StringUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -76,8 +72,6 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
   private AspectModel<EnergyProfilerAspect> myAspect = new AspectModel<>();
-
-  @NotNull private final EnergyTraceCache myTraceCache = new EnergyTraceCache(this);
 
   @Nullable private EnergyDuration mySelectedDuration;
 
@@ -220,32 +214,12 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
-  public EnergyTraceCache getEventsTraceCache() {
-    return myTraceCache;
-  }
-
-  @NotNull
   public EaseOutModel getInstructionsEaseOutModel() {
     return myInstructionsEaseOutModel;
   }
 
   public boolean hasUserUsedEnergySelection() {
     return getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().getBoolean(HAS_USED_ENERGY_SELECTION, false);
-  }
-
-  @NotNull
-  public ByteString requestBytes(@NotNull String id) {
-    if (StringUtil.isEmpty(id)) {
-      return ByteString.EMPTY;
-    }
-
-    BytesRequest request = BytesRequest.newBuilder()
-      .setStreamId(getStudioProfilers().getSession().getStreamId())
-      .setId(id)
-      .build();
-
-    BytesResponse response = getStudioProfilers().getClient().getTransportClient().getBytes(request);
-    return response.getContents();
   }
 
   /**
@@ -299,7 +273,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   @NotNull
   public List<EnergyDuration> filterByOrigin(@NotNull List<EnergyDuration> list) {
     String appName = getStudioProfilers().getSelectedAppName();
-    return list.stream().filter(duration -> getEventOrigin().isValid(appName, myTraceCache.getTraceData(duration.getCalledByTraceId())))
+    return list.stream().filter(duration -> getEventOrigin().isValid(appName, duration.getCalledBy()))
       .collect(Collectors.toList());
   }
 
@@ -347,6 +321,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     int pid = profilers.getSession().getPid();
 
     // StateChart renders series in reverse order
+    // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       stateChartModel.addSeries(
         new RangedSeries<>(range, new MergedEnergyEventsDataSeries(transportClient, streamId, pid,

@@ -27,8 +27,6 @@ import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
-import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
-import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
@@ -58,7 +56,9 @@ import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopResponse;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.BindableService;
 import io.grpc.stub.StreamObserver;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -224,16 +224,12 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   }
 
   public static class CpuService extends CpuServiceGrpc.CpuServiceImplBase {
-    private boolean myIsBeingProfiled = false;
     private Cpu.CpuTraceConfiguration myTraceConfiguration = Cpu.CpuTraceConfiguration.getDefaultInstance();
+    private List<Cpu.CpuTraceInfo> myTraceInfos = new ArrayList<>();
     private FakeGrpcServer myServer;
 
-    public void setConfiguration(@NotNull Cpu.CpuTraceConfiguration config) {
-      myTraceConfiguration = config;
-      if (myTraceConfiguration.getInitiationType() == Cpu.TraceInitiationType.INITIATED_BY_STARTUP) {
-        // if startup profiling is true, it means that an app is being profiled
-        myIsBeingProfiled = true;
-      }
+    public void addTraceInfo(@NotNull Cpu.CpuTraceInfo info) {
+      myTraceInfos.add(info);
     }
 
     @Override
@@ -264,16 +260,7 @@ public class FakeGrpcServer extends FakeGrpcChannel {
 
     @Override
     public void getTraceInfo(GetTraceInfoRequest request, StreamObserver<GetTraceInfoResponse> response) {
-      response.onNext(GetTraceInfoResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void checkAppProfilingState(ProfilingStateRequest request,
-                                       StreamObserver<ProfilingStateResponse> response) {
-      response.onNext(ProfilingStateResponse.newBuilder()
-                        .setBeingProfiled(myIsBeingProfiled)
-                        .setConfiguration(myTraceConfiguration).build());
+      response.onNext(GetTraceInfoResponse.newBuilder().addAllTraceInfo(myTraceInfos).build());
       response.onCompleted();
     }
   }

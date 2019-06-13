@@ -19,6 +19,7 @@ package org.jetbrains.android.facet;
 import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -79,7 +80,7 @@ public class LayoutViewClassUtils {
     }
     else {
       final PsiClass[] classes = JavaPsiFacade.getInstance(project).findClasses(
-        name, module.getModuleWithDependenciesAndLibrariesScope(false));
+        name, ProjectSystemUtil.getModuleSystem(module).getModuleWithDependenciesAndLibrariesScope(false));
 
       for (PsiClass aClass : classes) {
         if (aClass.isInheritor(baseClass, true)) {

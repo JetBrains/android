@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.junit
 
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.google.common.annotations.VisibleForTesting
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes
 import com.intellij.execution.Executor
 import com.intellij.execution.junit.JUnitConfiguration
 import com.intellij.execution.junit.TestClassFilter
@@ -40,12 +40,12 @@ import com.intellij.refactoring.listeners.RefactoringElementListener
  * Returns a new [GlobalSearchScope] with exclusion rules for unit tests from [TestArtifactSearchScopes] for all modules relevant to the
  * [JUnitConfiguration].
  *
- * @see TestArtifactSearchScopes.getUnitTestExcludeScope
+ * @see TestArtifactSearchScopes.unitTestExcludeScope
  */
 private fun fixScope(originalScope: GlobalSearchScope, jUnitConfiguration: JUnitConfiguration): GlobalSearchScope {
   return (jUnitConfiguration as AndroidJUnitConfiguration).modulesToCompile
     .asSequence()
-    .mapNotNull(TestArtifactSearchScopes::get)
+    .mapNotNull { TestArtifactSearchScopes.getInstance(it) }
     .fold(originalScope) { scope, testArtifactSearchScopes ->
       scope.intersectWith(GlobalSearchScope.notScope(testArtifactSearchScopes.unitTestExcludeScope))
     }

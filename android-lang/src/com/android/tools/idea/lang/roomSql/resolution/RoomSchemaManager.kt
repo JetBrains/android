@@ -17,8 +17,10 @@ package com.android.tools.idea.lang.roomSql.resolution
 
 import com.android.support.AndroidxName
 import com.android.tools.idea.lang.roomSql.RoomAnnotations
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
@@ -57,6 +59,10 @@ class RoomSchemaManager(val project: Project) {
    * @see PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT
    */
   fun getSchema(psiFile: PsiFile): RoomSchema? {
+    // Make sure the dependencies are right. This will be used in a follow-up change.
+    val module = ModuleUtil.findModuleForFile(psiFile.originalFile) ?: return null
+    val scopes = TestArtifactSearchScopes.getInstance(module)
+
     return CachedValuesManager.getManager(project).getCachedValue(psiFile) {
       CachedValueProvider.Result(buildSchema(psiFile), PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT)
     }

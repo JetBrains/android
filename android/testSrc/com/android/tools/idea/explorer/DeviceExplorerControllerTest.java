@@ -15,13 +15,24 @@
  */
 package com.android.tools.idea.explorer;
 
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
+import com.android.tools.idea.deviceExplorer.FileHandler;
 import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
-import com.android.tools.idea.explorer.mocks.*;
+import com.android.tools.idea.explorer.mocks.MockDeviceExplorerFileManager;
+import com.android.tools.idea.explorer.mocks.MockDeviceExplorerView;
+import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry;
+import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem;
+import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemRenderer;
+import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService;
 import com.android.tools.idea.util.FutureUtils;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -32,7 +43,12 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileChooser.*;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.fileChooser.FileSaverDialog;
+import com.intellij.openapi.fileChooser.PathChooserDialog;
 import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
@@ -48,22 +64,12 @@ import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.ui.UIBundle;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.tree.TreeModelAdapter;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
-import org.mockito.Mockito;
-import org.picocontainer.MutablePicoContainer;
-
-import javax.swing.*;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.tree.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Rectangle;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyEvent;
@@ -74,8 +80,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -84,6 +96,23 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import javax.swing.JComponent;
+import javax.swing.RepaintManager;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultTreeSelectionModel;
+import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
+import org.mockito.Mockito;
+import org.picocontainer.MutablePicoContainer;
 
 public class DeviceExplorerControllerTest extends AndroidTestCase {
   private static final long TIMEOUT_MILLISECONDS = 30_000;
@@ -136,7 +165,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     myMockService = new MockDeviceFileSystemService(getProject(), myEdtExecutor);
     myMockView = new MockDeviceExplorerView(getProject(), toolWindow, new MockDeviceFileSystemRendererFactory(), myModel);
     File downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true);
-    myDownloadLocationSupplier = Mockito.mock(Supplier.class);
+    myDownloadLocationSupplier = mock(Supplier.class);
     Mockito.when(myDownloadLocationSupplier.get()).thenReturn(downloadPath.toPath());
     myMockFileManager = new MockDeviceExplorerFileManager(getProject(), myEdtExecutor, myDownloadLocationSupplier);
 
@@ -237,7 +266,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   public void testStartControllerFailure() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
     String setupErrorMessage = "<Unique error message>";
-    DeviceFileSystemService service = Mockito.mock(DeviceFileSystemService.class);
+    DeviceFileSystemService service = mock(DeviceFileSystemService.class);
     Mockito.when(service.start()).thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
     DeviceExplorerController controller = createController(myMockView, service);
 
@@ -252,7 +281,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
   public void testStartControllerUnexpectedFailure() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
-    DeviceFileSystemService service = Mockito.mock(DeviceFileSystemService.class);
+    DeviceFileSystemService service = mock(DeviceFileSystemService.class);
     Mockito.when(service.start()).thenReturn(Futures.immediateFailedFuture(new RuntimeException()));
     DeviceExplorerController controller = createController(myMockView, service);
 
@@ -284,7 +313,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   public void testRestartControllerFailure() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
     String setupErrorMessage = "<Unique error message>";
-    DeviceFileSystemService service = Mockito.mock(DeviceFileSystemService.class);
+    DeviceFileSystemService service = mock(DeviceFileSystemService.class);
     Mockito.when(service.start()).thenReturn(Futures.immediateFuture(null));
     Mockito.when(service.restart()).thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
     Mockito.when(service.getDevices()).thenReturn(Futures.immediateFuture(new ArrayList<>()));
@@ -303,7 +332,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   public void testGetDevicesFailure() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
     String setupErrorMessage = "<Unique error message>";
-    DeviceFileSystemService service = Mockito.mock(DeviceFileSystemService.class);
+    DeviceFileSystemService service = mock(DeviceFileSystemService.class);
     Mockito.when(service.start()).thenReturn(Futures.immediateFuture(null));
     Mockito.when(service.getDevices()).thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
     DeviceExplorerController controller = createController(myMockView, service);
@@ -416,6 +445,24 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
   }
 
+  public void testFileHandlerExtensionIsCalled() throws Exception {
+    FileHandler mockFileHandler = mock(FileHandler.class);
+    PlatformTestUtil.registerExtension(Extensions.getRootArea(), FileHandler.EP_NAME, mockFileHandler, getTestRootDisposable());
+
+    downloadFile(() -> {
+      // Send a VK_ENTER key event
+      fireEnterKey(myMockView.getTree());
+
+      pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
+    });
+    pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
+
+    verify(mockFileHandler).getAdditionalDevicePaths(
+      eq(myFile1.getFullPath()),
+      argThat(new Utils.VirtualFilePathArgumentMatcher("/device-explorer-temp/TestDevice-1/file1.txt"))
+    );
+  }
+
   public void testDownloadFileWithMouseClick() throws Exception {
     downloadFile(() -> {
       TreePath path = getFileEntryPath(myFile1);
@@ -444,7 +491,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     });
     Path downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
     assertTrue(downloadPath.toString()
-                           .endsWith("unitTest_downloadFileLocationWithMouseClick/device-explorer-temp/TestDevice-1/file1.txt"));
+                           .endsWith("device-explorer-temp/TestDevice-1/file1.txt"));
 
     // Change the setting to an alternate directory, ensure that changing during runtime works
     Path changedPath = FileUtil.createTempDirectory("device-explorer-temp-2","", true).toPath();
@@ -463,7 +510,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     });
     downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
     assertTrue(downloadPath.toString()
-                           .endsWith("unitTest_downloadFileLocationWithMouseClick/device-explorer-temp-2/TestDevice-1/file1.txt"));
+                           .endsWith("device-explorer-temp-2/TestDevice-1/file1.txt"));
   }
 
   public void testDownloadFileFailure() throws InterruptedException, ExecutionException, TimeoutException {
@@ -556,7 +603,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // the combo box UI has been invalidated.
     assertEquals(myDevice1, myModel.getActiveDevice());
     assertEquals(model, myModel.getTreeModel());
-    Mockito.verify(myMockRepaintManager).addDirtyRegion(myMockView.getDeviceCombo(),
+    verify(myMockRepaintManager).addDirtyRegion(myMockView.getDeviceCombo(),
                                                         0,
                                                         0,
                                                         myMockView.getDeviceCombo().getWidth(),

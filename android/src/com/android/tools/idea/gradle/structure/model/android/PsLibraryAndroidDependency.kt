@@ -38,21 +38,22 @@ import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import kotlin.reflect.KProperty
 
 open class PsDeclaredLibraryAndroidDependency(
-  parent: PsAndroidModule,
-  containers: Collection<PsAndroidArtifact>,
-  final override val parsedModel: ArtifactDependencyModel
-) : PsLibraryAndroidDependency(parent, containers),
+  parent: PsAndroidModule
+) : PsLibraryAndroidDependency(parent),
     PsDeclaredDependency, PsDeclaredLibraryDependency {
+  final override lateinit var parsedModel: ArtifactDependencyModel ; private set
   override val descriptor by Descriptor
-  private val nameResolvedProperty = parsedModel.name()
-  private val groupResolvedProperty = parsedModel.group()
-  private val versionResolvedProperty = parsedModel.version()
   override val spec: PsArtifactDependencySpec
     get() = PsArtifactDependencySpec.create(
-      groupResolvedProperty.toString(),
-      nameResolvedProperty.forceString(),
-      versionResolvedProperty.toString()
+      parsedModel.group().toString(),
+      parsedModel.name().forceString(),
+      parsedModel.version().toString()
     )
+
+  fun init(parsedModel: ArtifactDependencyModel) {
+    this.parsedModel = parsedModel
+  }
+
   override val isDeclared: Boolean = true
   final override val configurationName: String get() = parsedModel.configurationName()
   override val joinedConfigurationNames: String get() = configurationName
@@ -110,7 +111,7 @@ open class PsResolvedLibraryAndroidDependency(
   override val spec: PsArtifactDependencySpec,
   val artifact: PsAndroidArtifact,
   override val declaredDependencies: List<PsDeclaredLibraryAndroidDependency>
-) : PsLibraryAndroidDependency(parent, listOf(artifact)), PsResolvedDependency, PsResolvedLibraryDependency {
+) : PsLibraryAndroidDependency(parent), PsResolvedDependency, PsResolvedLibraryDependency {
   internal val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
   override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
 
@@ -129,9 +130,8 @@ open class PsResolvedLibraryAndroidDependency(
 }
 
 abstract class PsLibraryAndroidDependency internal constructor(
-  parent: PsAndroidModule,
-  containers: Collection<PsAndroidArtifact>
-) : PsAndroidDependency(parent, containers), PsLibraryDependency {
+  parent: PsAndroidModule
+) : PsAndroidDependency(parent), PsLibraryDependency {
 
   override val name: String get() = spec.name
 

@@ -166,7 +166,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
-
+    // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     myHeapDumpDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, heapDumpSeries));
     myAllocationDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, allocationSeries));
     mySelection = new MemoryProfilerSelection(this);
@@ -933,7 +933,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       // Find the last sampling info and see if it is different from the current, if so,
       double dataRangeMaxUs = getStudioProfilers().getTimeline().getDataRange().getMax();
       List<SeriesData<AllocationSamplingRateDurationData>> data =
-        myAllocationSamplingRateDataSeries.getDataForXRange(new Range(dataRangeMaxUs, dataRangeMaxUs));
+        myAllocationSamplingRateDataSeries.getDataForRange(new Range(dataRangeMaxUs, dataRangeMaxUs));
 
       if (data.isEmpty()) {
         // No data available. Keep the current settings.

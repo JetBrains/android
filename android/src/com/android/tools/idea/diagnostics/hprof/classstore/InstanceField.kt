@@ -15,4 +15,6 @@
  */
 package com.android.tools.idea.diagnostics.hprof.classstore
 
-class InstanceField(val name: String, val offset: Int)
+import com.android.tools.idea.diagnostics.hprof.parser.Type
+
+class InstanceField(val name: String, val offset: Int, val type: Type)

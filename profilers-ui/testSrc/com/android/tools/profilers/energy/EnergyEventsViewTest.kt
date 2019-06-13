@@ -30,10 +30,14 @@ class EnergyEventsViewTest {
       .build()
     val duration = EnergyDuration(Arrays.asList(
       Common.Event.newBuilder()
-        .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(wakeLockAcquired))
+        .setEnergyEvent(
+          Energy.EnergyEventData.newBuilder()
+            .setCallstack("com.foo(Class line: 1)")
+            .setWakeLockAcquired(wakeLockAcquired))
         .build()))
     assertThat(EnergyEventsView.Column.EVENT.getValueFrom(duration)).isEqualTo("Wake Lock: Partial")
     assertThat(EnergyEventsView.Column.DESCRIPTION.getValueFrom(duration)).isEqualTo("wakeLockTag")
+    assertThat(EnergyEventsView.Column.CALLED_BY.getValueFrom(duration)).isEqualTo("com.foo")
   }
 
   @Test

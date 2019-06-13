@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.navigator
 
-import com.android.tools.idea.Projects
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
@@ -88,11 +88,11 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   }
 
   fun testJpsWithQualifiedNames() {
+    val srcPath = File(myFixture.testDataPath, toSystemDependentName(TestProjectPaths.JPS_WITH_QUALIFIED_NAMES))
     // Prepare project in a different directory (_jps) to avoid closing the currently opened project.
-    val projectPath =
-      prepareProjectCoreForImport(
-        File(myFixture.testDataPath, toSystemDependentName(TestProjectPaths.JPS_WITH_QUALIFIED_NAMES)),
-        File(toSystemDependentName(project.basePath + "_jps"))) { /* Do nothing. */ }
+    val projectPath = File(toSystemDependentName(project.basePath + "_jps"))
+
+    AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath, findSdkPath()) { /* Do nothing. */ }
 
     val project = ProjectUtil.openProject(projectPath.absolutePath, null, false)!!
     val text = project.dumpAndroidProjectView()
@@ -117,8 +117,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   ): String {
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
-    val project = this.project!!
-    importProject(project.name, Projects.getBaseDirPath(project))
+    importProject()
 
     return project.dumpAndroidProjectView(projectViewSettings, initialState, filter)
   }

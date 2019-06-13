@@ -39,7 +39,7 @@ public class AndroidGradleProjectStartupActivityIntegTest extends AndroidGradleT
     GradleSyncListener listener = mock(GradleSyncListener.class);
     GradleSyncState.subscribe(getProject(), listener);
 
-    importProject(project.getName(), getBaseDirPath(project));
+    importProject();
 
     verify(listener, times(1)).syncStarted(any(), anyBoolean());
     verify(listener, times(1)).setupStarted(any());

@@ -44,10 +44,10 @@ final class AarStyleableResourceItem extends AbstractAarValueResourceItem implem
    * @param visibility the visibility of the resource
    * @param attrs the attributes of the styleable
    */
-  public AarStyleableResourceItem(@NotNull String name,
-                                  @NotNull AarSourceFile sourceFile,
-                                  @NotNull ResourceVisibility visibility,
-                                  @NotNull List<AttrResourceValue> attrs) {
+  AarStyleableResourceItem(@NotNull String name,
+                           @NotNull AarSourceFile sourceFile,
+                           @NotNull ResourceVisibility visibility,
+                           @NotNull List<AttrResourceValue> attrs) {
     super(ResourceType.STYLEABLE, name, sourceFile, visibility);
     myAttrs = ImmutableList.copyOf(attrs);
   }

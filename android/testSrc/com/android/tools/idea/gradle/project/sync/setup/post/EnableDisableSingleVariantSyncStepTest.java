@@ -51,16 +51,14 @@ public class EnableDisableSingleVariantSyncStepTest extends AndroidGradleTestCas
 
   public void testIsEligibleWithPureJavaProject() throws Exception {
     prepareProjectForImport(PURE_JAVA_PROJECT);
-    Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project));
-    assertEquals(PURE_JAVA, isEligibleForSingleVariantSync(project));
+    importProject();
+    assertEquals(PURE_JAVA, isEligibleForSingleVariantSync(getProject()));
   }
 
   public void testIsEligibleWithNativeProject() throws Exception {
     prepareProjectForImport(HELLO_JNI);
-    Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project));
-    assertEquals(ELIGIBLE, isEligibleForSingleVariantSync(project));
+    importProject();
+    assertEquals(ELIGIBLE, isEligibleForSingleVariantSync(getProject()));
   }
 
   public void testIsEligibleWithKotlinModuleWithNewSync() throws Exception {
@@ -87,7 +85,7 @@ public class EnableDisableSingleVariantSyncStepTest extends AndroidGradleTestCas
     File buildSrcDir = new File(project.getBasePath(), "buildSrc");
     File buildFile = new File(buildSrcDir, "build.gradle");
     writeToFile(buildFile, "repositories {}");
-    importProject(project.getName(), getBaseDirPath(project));
+    importProject();
     // Verify that project is not eligible due to buildSrc module.
     assertEquals(BUILDSRC_MODULE, isEligibleForSingleVariantSync(project));
   }

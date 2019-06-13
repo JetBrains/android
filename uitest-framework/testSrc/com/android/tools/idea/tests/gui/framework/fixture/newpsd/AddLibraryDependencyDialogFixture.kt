@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
+import com.android.tools.idea.tests.gui.framework.DialogContainerFixture
 import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.findByType
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.table.TableView
 import org.fest.swing.core.Robot
 import org.fest.swing.driver.BasicJTableCellReader
-import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JButtonFixture
 import org.fest.swing.fixture.JTableFixture
 import org.fest.swing.fixture.JTextComponentFixture
@@ -37,12 +35,13 @@ import javax.swing.JDialog
 import javax.swing.JTable
 
 class AddLibraryDependencyDialogFixture private constructor(
-  override val container: JDialog,
-  override val ideFrameFixture: IdeFrameFixture
-) : IdeFrameContainerFixture, ContainerFixture<JDialog> {
+  val container: JDialog,
+  val robot: Robot
+) : DialogContainerFixture {
 
   override fun target(): JDialog = container
-  override fun robot(): Robot = ideFrameFixture.robot()
+  override fun robot(): Robot = robot
+  override fun maybeRestoreLostFocus() = Unit
 
   fun findSearchQueryTextBox(): JTextComponentFixture =
     JTextComponentFixture(robot(), robot().finder().findByType<JBTextField>(container))
@@ -79,9 +78,9 @@ class AddLibraryDependencyDialogFixture private constructor(
   fun clickCancel() = clickCancelAndWaitDialogDisappear()
 
   companion object {
-    fun find(ideFrameFixture: IdeFrameFixture, title: String): AddLibraryDependencyDialogFixture {
-      val dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog::class.java, title))
-      return AddLibraryDependencyDialogFixture(dialog, ideFrameFixture)
+    fun find(robot: Robot, title: String): AddLibraryDependencyDialogFixture {
+      val dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog::class.java, title))
+      return AddLibraryDependencyDialogFixture(dialog, robot)
     }
   }
 }

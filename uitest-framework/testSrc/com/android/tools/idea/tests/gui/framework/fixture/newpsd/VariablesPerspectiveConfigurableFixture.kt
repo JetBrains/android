@@ -18,11 +18,10 @@ package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.variables.VARIABLES_VIEW
 import com.android.tools.idea.tests.gui.framework.findByType
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture
-import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.treeStructure.treetable.TreeTable
+import org.fest.swing.core.Robot
 import org.fest.swing.driver.BasicJTableCellReader
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JListFixture
@@ -33,9 +32,9 @@ import java.awt.event.KeyEvent
 import javax.swing.JTable
 
 class VariablesPerspectiveConfigurableFixture(
-  ideFrameFixture: IdeFrameFixture,
+  robot: Robot,
   container: Container
-) : BasePerspectiveConfigurableFixture(ideFrameFixture, container) {
+) : BasePerspectiveConfigurableFixture(robot, container) {
 
   fun clickAddSimpleValue() {
     clickToolButton("Add")
@@ -90,32 +89,25 @@ class VariablesPerspectiveConfigurableFixture(
       }
 
   fun enterText(text: String) {
-    waitForIdle() // Default implementation is buggy and may post events before really idle.
     robot().pressAndReleaseKey(KeyEvent.VK_A, KeyEvent.CTRL_MASK)
     robot().typeText(text)
-    waitForIdle()
   }
 
   fun selectValue(value: String, withKeyboard: Boolean = false) {
     PropertyEditorFixture(
-        ideFrameFixture,
+        robot(),
         robot().finder().findByType<SimplePropertyEditor<*, *>.EditorWrapper>(container)
     ).let {
       if (withKeyboard) it.selectItemWithKeyboard(value) else it.selectItem(value)
     }
-    waitForIdle()
   }
 
   fun tab() {
-    waitForIdle()
     robot().type(9.toChar())
-    waitForIdle()
   }
 
   fun shiftTab() {
-    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_TAB, KeyEvent.SHIFT_MASK)
-    waitForIdle()
   }
 
   fun right() {
@@ -125,45 +117,31 @@ class VariablesPerspectiveConfigurableFixture(
   }
 
   fun up() {
-    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_UP, 0)
-    waitForIdle()
   }
 
   fun down() {
-    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_DOWN, 0)
-    waitForIdle()
   }
 
   fun editWithF2() {
-    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_F2, 0)
-    waitForIdle()
   }
 
   fun editWithEnter() {
-    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0)
-    waitForIdle()
   }
 
   fun enter() {
-    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0)
-    waitForIdle()
   }
 
   fun expandAllWithStar() {
-    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_MULTIPLY, 0)
-    waitForIdle()
   }
 
   fun expandWithPlus() {
-    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_ADD, 0)
-    waitForIdle()
   }
 
   fun left() {
@@ -187,7 +165,7 @@ class VariablesPerspectiveConfigurableFixture(
 fun ProjectStructureDialogFixture.selectVariablesConfigurable(): VariablesPerspectiveConfigurableFixture {
   selectConfigurable("Variables")
   return VariablesPerspectiveConfigurableFixture(
-      ideFrameFixture,
+      robot(),
       findConfigurable(VARIABLES_VIEW))
 }
 

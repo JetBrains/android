@@ -56,7 +56,7 @@ class ImportedTraceThreadDataSeriesTest {
   @Test
   fun emptyRangeShouldReturnEmptySeries() {
     val empty = Range()
-    val dataSeries = mySeries!!.getDataForXRange(empty)
+    val dataSeries = mySeries!!.getDataForRange(empty)
     assertThat(dataSeries).isNotNull()
     // No data within given range
     assertThat(dataSeries).isEmpty()
@@ -65,7 +65,7 @@ class ImportedTraceThreadDataSeriesTest {
   @Test
   fun fullRangeShouldReturnAllStates() {
     val fullRange = Range(-java.lang.Double.MAX_VALUE, java.lang.Double.MAX_VALUE)
-    val dataSeries = mySeries!!.getDataForXRange(fullRange)
+    val dataSeries = mySeries!!.getDataForRange(fullRange)
     assertThat(dataSeries).isNotEmpty()
 
     // Imported ranges have pairs of HAS_ACTIVITY and NO_ACTIVITY states. We add one pair for each child of the root node for the thread.
@@ -97,7 +97,7 @@ class ImportedTraceThreadDataSeriesTest {
   fun rangeAfterStatesReturnsOnlyLastState() {
     val lastChild = Iterables.getLast(myCapture.getCaptureNode(myCapture.mainThreadId)!!.children)
     val rangeAfterStates = Range((lastChild.end + 1).toDouble(), java.lang.Double.MAX_VALUE)
-    val dataSeries = mySeries!!.getDataForXRange(rangeAfterStates)
+    val dataSeries = mySeries!!.getDataForRange(rangeAfterStates)
     // Assert that we return only the last NO_ACTIVITY state
     assertThat(dataSeries).hasSize(1)
     assertThat(dataSeries[0].value).isEqualTo(CpuProfilerStage.ThreadState.NO_ACTIVITY)
@@ -107,7 +107,7 @@ class ImportedTraceThreadDataSeriesTest {
   fun rangeBeforeStatesReturnsEmptySeries() {
     val firstChild = myCapture.getCaptureNode(myCapture.mainThreadId)!!.children[0]
     val rangeAfterStates = Range(-java.lang.Double.MAX_VALUE, (firstChild.start - 1).toDouble())
-    val dataSeries = mySeries!!.getDataForXRange(rangeAfterStates)
+    val dataSeries = mySeries!!.getDataForRange(rangeAfterStates)
     // No state should be returned
     assertThat(dataSeries).isEmpty()
   }

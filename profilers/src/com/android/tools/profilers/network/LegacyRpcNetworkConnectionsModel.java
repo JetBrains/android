@@ -22,7 +22,7 @@ import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.Transport.BytesRequest;
 import com.android.tools.profiler.proto.Transport.BytesResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.intellij.openapi.util.text.StringUtil;

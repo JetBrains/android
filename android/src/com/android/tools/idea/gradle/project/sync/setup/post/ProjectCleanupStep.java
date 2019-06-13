@@ -34,8 +34,4 @@ public abstract class ProjectCleanupStep {
   public abstract void cleanUpProject(@NotNull Project project,
                                       @NotNull IdeModifiableModelsProvider ideModifiableModelsProvider,
                                       @Nullable ProgressIndicator indicator);
-
-  public boolean invokeOnSkippedSync() {
-    return false;
-  }
 }

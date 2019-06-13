@@ -44,25 +44,25 @@ import static com.android.tools.datastore.database.MemoryLiveAllocationTable.Mem
 import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.UPDATE_JNI_REF;
 import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.values;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.datastore.LogService;
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
+import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.AllocatedClass;
+import com.android.tools.profiler.proto.Memory.AllocationEvent;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
+import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
+import com.android.tools.profiler.proto.Memory.EncodedAllocationStack;
+import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent;
+import com.android.tools.profiler.proto.Memory.MemoryMap;
+import com.android.tools.profiler.proto.Memory.NativeBacktrace;
+import com.android.tools.profiler.proto.Memory.ThreadInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
-import com.android.tools.profiler.proto.MemoryProfiler.BatchJNIGlobalRefEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.EncodedAllocationStack;
-import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalReferenceEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryMap;
-import com.android.tools.profiler.proto.MemoryProfiler.NativeBacktrace;
 import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
 import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.ThreadInfo;
-import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
+import com.google.common.annotations.VisibleForTesting;
 import gnu.trove.TLongHashSet;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -234,17 +234,17 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     }
   }
 
-  public MemoryProfiler.BatchAllocationSample getSnapshot(Common.Session session, long endTime) {
-    MemoryProfiler.BatchAllocationSample.Builder sampleBuilder = MemoryProfiler.BatchAllocationSample.newBuilder();
+  public Memory.BatchAllocationSample getSnapshot(Common.Session session, long endTime) {
+    Memory.BatchAllocationSample.Builder sampleBuilder = Memory.BatchAllocationSample.newBuilder();
     try {
       ResultSet allocResult = executeQuery(QUERY_SNAPSHOT, session.getSessionId(), endTime, endTime);
       long timestamp = Long.MIN_VALUE;
       while (allocResult.next()) {
         long allocTime = allocResult.getLong(3);
-        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent
+        Memory.AllocationEvent event = Memory.AllocationEvent
           .newBuilder()
           .setAllocData(
-            MemoryProfiler.AllocationEvent.Allocation
+            Memory.AllocationEvent.Allocation
               .newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2))
               .setSize(allocResult.getLong(4)).setLength(allocResult.getInt(5))
               .setThreadId(allocResult.getInt(6)).setStackId(allocResult.getInt(7))
@@ -262,8 +262,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     return sampleBuilder.build();
   }
 
-  public MemoryProfiler.BatchAllocationSample getAllocations(Common.Session session, long startTime, long endTime) {
-    MemoryProfiler.BatchAllocationSample.Builder sampleBuilder = MemoryProfiler.BatchAllocationSample.newBuilder();
+  public Memory.BatchAllocationSample getAllocations(Common.Session session, long startTime, long endTime) {
+    Memory.BatchAllocationSample.Builder sampleBuilder = Memory.BatchAllocationSample.newBuilder();
     try {
       // Then get all allocation events that are valid for requestTime.
       ResultSet allocResult = executeQuery(QUERY_ALLOC_BY_ALLOC_TIME, session.getSessionId(), startTime, endTime);
@@ -271,10 +271,10 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
 
       while (allocResult.next()) {
         long allocTime = allocResult.getLong(3);
-        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent
+        Memory.AllocationEvent event = Memory.AllocationEvent
           .newBuilder()
           .setAllocData(
-            MemoryProfiler.AllocationEvent.Allocation
+            Memory.AllocationEvent.Allocation
               .newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2)).setSize(allocResult.getLong(5))
               .setLength(allocResult.getInt(6)).setThreadId(allocResult.getInt(7)).setStackId(allocResult.getInt(8))
               .setHeapId(allocResult.getInt(9)).build())
@@ -286,9 +286,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       ResultSet freeResult = executeQuery(QUERY_ALLOC_BY_FREE_TIME, session.getSessionId(), startTime, endTime);
       while (freeResult.next()) {
         long freeTime = freeResult.getLong(4);
-        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent
+        Memory.AllocationEvent event = Memory.AllocationEvent
           .newBuilder().setFreeData(
-            MemoryProfiler.AllocationEvent.Deallocation
+            Memory.AllocationEvent.Deallocation
               .newBuilder().setTag(freeResult.getInt(1)).setClassTag(freeResult.getInt(2)).setSize(freeResult.getLong(5))
               .setLength(freeResult.getInt(6)).setThreadId(freeResult.getInt(7)).setStackId(freeResult.getInt(8))
               .setHeapId(freeResult.getInt(9))
@@ -571,8 +571,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     }
   }
 
-  public void insertAllocationData(Common.Session session, MemoryProfiler.BatchAllocationSample sample) {
-    MemoryProfiler.AllocationEvent.EventCase currentCase = null;
+  public void insertAllocationData(Common.Session session, Memory.BatchAllocationSample sample) {
+    Memory.AllocationEvent.EventCase currentCase = null;
     PreparedStatement currentStatement = null;
     int allocAndFreeCount = 0;
     // If we don't do a closed check it is possible for this function to assert instead of handling
@@ -581,7 +581,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       return;
     }
     try {
-      for (MemoryProfiler.AllocationEvent event : sample.getEventsList()) {
+      for (Memory.AllocationEvent event : sample.getEventsList()) {
         if (currentCase != event.getEventCase()) {
           if (currentCase != null) {
             currentStatement.executeBatch();
@@ -743,7 +743,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       if (rowCount > myAllocationCountLimit) {
         int pruneCount = rowCount - myAllocationCountLimit;
         execute(PRUNE_ALLOC, session.getSessionId(), session.getSessionId(), pruneCount);
-        getLogger().info(String.format(Locale.US, "Allocations have exceed %d entries. Attempting to prune %d.", myAllocationCountLimit, pruneCount));
+        getLogger().info(
+          String.format(Locale.US, "Allocations have exceed %d entries. Attempting to prune %d.", myAllocationCountLimit, pruneCount));
       }
     }
     catch (SQLException e) {
@@ -761,7 +762,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         int pruneCount = rowCount - myAllocationCountLimit;
         execute(PRUNE_JNI_REF_RECORDS, session.getSessionId(), session.getSessionId(), pruneCount);
         getLogger()
-          .info(String.format(Locale.US, "JNI ref records have exceed %d entries. Attempting to prune %d.", myAllocationCountLimit, pruneCount));
+          .info(String.format(Locale.US, "JNI ref records have exceed %d entries. Attempting to prune %d.", myAllocationCountLimit,
+                              pruneCount));
       }
     }
     catch (SQLException e) {

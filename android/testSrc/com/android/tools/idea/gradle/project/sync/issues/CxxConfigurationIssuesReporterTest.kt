@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-
 import com.android.builder.model.SyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
@@ -28,7 +27,6 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import java.io.File
 
 class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
   private lateinit var syncMessages: GradleSyncMessagesStub
@@ -80,9 +78,8 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
   @Test
   fun testWithCompositeBuild() {
     syncMessages.removeAllMessages()
-    prepareMultipleProjectsForImport(COMPOSITE_BUILD, "TestCompositeApp", "TestCompositeLib1", "TestCompositeLib3", "TestCompositeLib2",
-                                     "TestCompositeLib4")
-    importProject(project.name, File(COMPOSITE_BUILD))
+    prepareProjectForImport(COMPOSITE_BUILD)
+    importProject()
 
     val syncIssueOne = setUpMockSyncIssue("19.1.2")
     val syncIssueTwo = setUpMockSyncIssue("19.1.1")

@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import org.jetbrains.annotations.NotNull;
 
 public class FakeTracePreProcessor implements TracePreProcessor {

@@ -26,6 +26,7 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidLaunchTaskContributor;
@@ -47,6 +48,7 @@ import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.process.ProcessAdapter;
@@ -100,9 +102,9 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     ProfilerClient client = new ProfilerClient(transportService.getChannelName());
-    long deviceId;
+    Common.Device profilerDevice;
     try {
-      deviceId = waitForPerfd(device, client);
+      profilerDevice = waitForDaemon(device, client);
     }
     catch (InterruptedException | TimeoutException e) {
       getLogger().debug(e);
@@ -113,7 +115,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     TransportFileManager fileManager = new TransportFileManager(device, transportService.getMessageBus());
     pushStartupAgentConfig(fileManager, project);
     String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME);
-    String startupProfilingResult = startStartupProfiling(applicationId, project, client, device, deviceId);
+    String startupProfilingResult = startStartupProfiling(applicationId, project, client, device, profilerDevice);
     return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
@@ -151,7 +153,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                               @NotNull Project project,
                                               @NotNull ProfilerClient client,
                                               @NotNull IDevice device,
-                                              long deviceId) {
+                                              @NotNull Common.Device profilerDevice) {
     if (!StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get()) {
       return "";
     }
@@ -192,7 +194,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     String traceFilePath = String.format(Locale.US, "%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, appPackageName, System.nanoTime());
     CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest
       .newBuilder()
-      .setDeviceId(deviceId)
+      .setDeviceId(profilerDevice.getDeviceId())
       .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
                           .setAppName(appPackageName)
                           .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP)
@@ -200,6 +202,9 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                           .setTempPath(traceFilePath)
                           .setUserOptions(traceOptions));
     client.getCpuClient().startStartupProfiling(requestBuilder.build());
+
+    StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
+    featureTracker.trackCpuStartupProfiling(profilerDevice, ProfilingConfiguration.fromProto(traceOptions));
 
     if (traceOptions.getTraceType() != Cpu.CpuTraceType.ART) {
       return "";
@@ -228,22 +233,22 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   }
 
   /**
-   * Waits for perfd to come online for maximum 1 minute.
+   * Waits for daemon to come online for maximum 1 minute.
    *
-   * @return ID of device, i.e {@link Common.Device#getDeviceId()}
+   * @return the connected {@link Common.Device}
    */
-  private static long waitForPerfd(@NotNull IDevice device, @NotNull ProfilerClient client)
+  @NotNull
+  private static Common.Device waitForDaemon(@NotNull IDevice device, @NotNull ProfilerClient client)
     throws InterruptedException, TimeoutException {
-    // Wait for perfd to come online for 1 minute.
     for (int i = 0; i < 60; ++i) {
       Common.Device profilerDevice = getProfilerDevice(device, client);
       if (!Common.Device.getDefaultInstance().equals(profilerDevice)) {
-        return profilerDevice.getDeviceId();
+        return profilerDevice;
       }
       //noinspection BusyWait
       Thread.sleep(TimeUnit.SECONDS.toMillis(1));
     }
-    throw new TimeoutException("Timeout waiting for perfd");
+    throw new TimeoutException("Timeout waiting for daemon");
   }
 
   /**
@@ -403,13 +408,13 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       }
       ProfilerClient client = new ProfilerClient(transportService.getChannelName());
 
-      // If we are launching from the "Profile" action, wait for perfd to start properly to get the time.
-      // Note: perfd should have started already from AndroidProfilerLaunchTaskContributor#getAmStartOptions already. This wait might be
+      // If we are launching from the "Profile" action, wait for daemon to start properly to get the time.
+      // Note: daemon should have started already from AndroidProfilerLaunchTaskContributor#getAmStartOptions already. This wait might be
       // redundant but harmless.
       long deviceId = -1;
       if (isProfilerLaunch(myLaunchOptions)) {
         try {
-          deviceId = waitForPerfd(device, client);
+          deviceId = waitForDaemon(device, client).getDeviceId();
         }
         catch (InterruptedException | TimeoutException e) {
           getLogger().debug(e);

@@ -53,7 +53,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -229,7 +229,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @NotNull
   private static String getConfigurationName(@NotNull Module module, @NotNull DependencyScope scope, @Nullable VirtualFile openedFile) {
     if (!scope.isForProductionCompile()) {
-      TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+      TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
 
       if (testScopes != null && openedFile != null) {
         return testScopes.isAndroidTestSource(openedFile) ? ANDROID_TEST_COMPILE : TEST_COMPILE;

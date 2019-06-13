@@ -54,9 +54,9 @@ public class MergeCaptureDataSeries<T> implements DataSeries<T> {
   }
 
   @Override
-  public List<SeriesData<T>> getDataForXRange(Range xRange) {
-    double minRangeUs = xRange.getMin();
-    double maxRangeUs = xRange.getMax();
+  public List<SeriesData<T>> getDataForRange(Range range) {
+    double minRangeUs = range.getMin();
+    double maxRangeUs = range.getMax();
     List<SeriesData<T>> seriesData = new ArrayList<>();
     if (myCapture instanceof AtraceCpuCapture) {
       Range traceRange = myCapture.getRange();
@@ -113,6 +113,6 @@ public class MergeCaptureDataSeries<T> implements DataSeries<T> {
   private List<SeriesData<T>> getDataForRangeFromSeries(
     double minUs, double maxUs, DataSeries<T> series) {
     Range range = new Range(minUs, maxUs);
-    return series.getDataForXRange(range);
+    return series.getDataForRange(range);
   }
 }

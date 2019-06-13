@@ -76,7 +76,7 @@ public final class EnergyEventsView {
     CALLED_BY(0.16, String.class, "Called By") {
       @Override
       Object getValueFrom(@NotNull EnergyDuration data) {
-        return data.getCalledByTraceId();
+        return data.getCalledBy();
       }
     },
     TIMELINE(0.5, Long.class, "Timeline") {
@@ -134,7 +134,7 @@ public final class EnergyEventsView {
     myEventsTable.setAutoCreateRowSorter(true);
     myEventsTable.getColumnModel().getColumn(Column.EVENT.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
     myEventsTable.getColumnModel().getColumn(Column.DESCRIPTION.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
-    myEventsTable.getColumnModel().getColumn(Column.CALLED_BY.ordinal()).setCellRenderer(new CalledByRenderer(myStage));
+    myEventsTable.getColumnModel().getColumn(Column.CALLED_BY.ordinal()).setCellRenderer(new CalledByRenderer());
     myEventsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
       new TimelineRenderer(myEventsTable, myStage.getStudioProfilers().getTimeline()));
 
@@ -297,17 +297,11 @@ public final class EnergyEventsView {
   }
 
   private static final class CalledByRenderer extends BorderlessTableCellRenderer {
-    @NotNull private final EnergyProfilerStage myStage;
-
-    CalledByRenderer(@NotNull EnergyProfilerStage stage) {
-      myStage = stage;
-    }
-
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       String calledByValue = "";
       if (value instanceof String) {
-        calledByValue = myStage.getEventsTraceCache().getTraceData((String)value);
+        calledByValue = (String)value;
         // LastDotIndex in the line is the method name start index, the second last index is the class name start index.
         int lastDotIndex = calledByValue.lastIndexOf('.');
         if (lastDotIndex > 0) {
@@ -362,6 +356,7 @@ public final class EnergyEventsView {
           event = nextEvent;
         }
 
+        // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
         EventModel<Common.Event> eventModel = new EventModel<>(new RangedSeries<>(getTimeline().getSelectionRange(), series));
         Color highlightColor = EnergyEventStateChart.DURATION_STATE_ENUM_COLORS.getColor(duration.getKind());
         EnergyEventComponent component = new EnergyEventComponent(eventModel, highlightColor);

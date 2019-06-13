@@ -106,6 +106,7 @@ class PsProjectImpl(
       }.execute()
       parsedModel = GradleModelProvider.get().getProjectModel(ideProject)
       variables.refresh()
+      buildScriptVariables.refresh()
       internalResolvedModuleModels = null
       moduleCollection.refresh()
     }

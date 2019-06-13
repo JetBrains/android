@@ -33,8 +33,8 @@ public class NetworkUsage extends LineChartModel {
   @NotNull private final Range myTrafficRange;
 
   public NetworkUsage(@NotNull StudioProfilers profilers) {
-
     Range viewRange = profilers.getTimeline().getViewRange();
+    Range dataRange = profilers.getTimeline().getDataRange();
 
     // We use 4 as a reasonable initial default for number of connections.
     myTrafficRange = new Range(0, 4);
@@ -42,11 +42,13 @@ public class NetworkUsage extends LineChartModel {
     myRxSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(false),
                                             viewRange,
                                             myTrafficRange,
-                                            createSeries(profilers, NetworkTrafficDataSeries.Type.BYTES_RECEIVED));
+                                            createSeries(profilers, NetworkTrafficDataSeries.Type.BYTES_RECEIVED),
+                                            dataRange);
     myTxSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(false),
                                             viewRange,
                                             myTrafficRange,
-                                            createSeries(profilers, NetworkTrafficDataSeries.Type.BYTES_SENT));
+                                            createSeries(profilers, NetworkTrafficDataSeries.Type.BYTES_SENT),
+                                            dataRange);
 
     add(myRxSeries);
     add(myTxSeries);

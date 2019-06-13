@@ -34,7 +34,6 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module]",
-        "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
@@ -59,5 +58,8 @@ iml_module(
         "//tools/idea/json:intellij.json[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
+        "//tools/idea/.idea/libraries:studio-grpc",
+        "//tools/idea/.idea/libraries:studio-proto",
+        "//tools/idea/.idea/libraries:transport-proto",
     ],
 )

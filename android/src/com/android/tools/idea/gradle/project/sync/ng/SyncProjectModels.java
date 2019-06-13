@@ -104,6 +104,12 @@ public class SyncProjectModels implements Serializable {
     }
     // Request for GlobalLibraryMap model at last, when all of other models have been built.
     populateGlobalLibraryMap(controller);
+    // ProjectSyncIssues model, Android Gradle Plugin 3.6+
+    // These have to be requested last since the ModelBuilder can keep adding to the issues list while building any of the other
+    // models.
+    for (SyncModuleModels moduleModels : myModuleModels) {
+      moduleModels.populateSyncIssues(controller);
+    }
   }
 
   /**
@@ -148,7 +154,7 @@ public class SyncProjectModels implements Serializable {
       return;
     }
     SyncModuleModels models = new SyncModuleModels(project, buildId, myExtraAndroidModelTypes, myExtraJavaModelTypes, myOptions);
-    models.populate(project, controller);
+    models.populate(controller);
     myModuleModels.add(models);
 
     for (GradleProject child : project.getChildren()) {

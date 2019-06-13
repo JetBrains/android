@@ -75,6 +75,7 @@ public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
       myCpuId = cpuId;
       myModel = new StateChartModel<>();
       myAtraceCpuStateDataSeries = new AtraceDataSeries<>(atraceCpuCapture, capture -> capture.getCpuThreadSliceInfoStates(myCpuId));
+      // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
       myModel.addSeries(new RangedSeries<>(myRange, myAtraceCpuStateDataSeries));
     }
 

@@ -47,17 +47,29 @@ class PsDeclaredJavaDependencyCollection(parent: PsJavaModule)
   PsDeclaredJarJavaDependency, PsDeclaredModuleJavaDependency>(parent),
     PsJavaDependencyCollection<PsDeclaredLibraryJavaDependency, PsDeclaredJarJavaDependency, PsDeclaredModuleJavaDependency> {
 
-  override fun createLibraryDependency(artifactDependencyModel: ArtifactDependencyModel): PsDeclaredLibraryJavaDependency =
-    PsDeclaredLibraryJavaDependency(parent, artifactDependencyModel)
+  override fun createOrUpdateLibraryDependency(
+    existing: PsDeclaredLibraryJavaDependency?,
+    artifactDependencyModel: ArtifactDependencyModel
+  ): PsDeclaredLibraryJavaDependency =
+    (existing ?: PsDeclaredLibraryJavaDependency(parent)).apply {init(artifactDependencyModel)}
 
-  override fun createJarFileDependency(fileDependencyModel: FileDependencyModel): PsDeclaredJarJavaDependency =
-    PsDeclaredJarJavaDependency(parent, fileDependencyModel)
+  override fun createOrUpdateJarFileDependency(
+    existing: PsDeclaredJarJavaDependency?,
+    fileDependencyModel: FileDependencyModel
+  ): PsDeclaredJarJavaDependency =
+    (existing ?: PsDeclaredJarJavaDependency(parent)).apply {init(fileDependencyModel)}
 
-  override fun createJarFileTreeDependency(fileTreeDependencyModel: FileTreeDependencyModel): PsDeclaredJarJavaDependency =
-    PsDeclaredJarJavaDependency(parent, fileTreeDependencyModel)
+  override fun createOrUpdateJarFileTreeDependency(
+    existing: PsDeclaredJarJavaDependency?,
+    fileTreeDependencyModel: FileTreeDependencyModel
+  ): PsDeclaredJarJavaDependency =
+    (existing ?: PsDeclaredJarJavaDependency(parent)).apply {init(fileTreeDependencyModel)}
 
-  override fun createModuleDependency(moduleDependencyModel: ModuleDependencyModel): PsDeclaredModuleJavaDependency =
-    PsDeclaredModuleJavaDependency(parent, moduleDependencyModel)
+  override fun createOrUpdateModuleDependency(
+    existing: PsDeclaredModuleJavaDependency?,
+    moduleDependencyModel: ModuleDependencyModel
+  ): PsDeclaredModuleJavaDependency =
+    (existing ?: PsDeclaredModuleJavaDependency(parent)).apply {init(moduleDependencyModel)}
 }
 
 class PsResolvedJavaDependencyCollection(module: PsJavaModule)

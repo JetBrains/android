@@ -91,6 +91,7 @@ public class StudioIcons {
     public static final Icon EW_RESIZE = load("/studio/icons/cursors/ew-resize.svg"); // 32x32
     public static final Icon GRAB = load("/studio/icons/cursors/grab.svg"); // 32x32
     public static final Icon GRABBING = load("/studio/icons/cursors/grabbing.svg"); // 32x32
+    public static final Icon MOVE = load("/studio/icons/cursors/move.svg"); // 32x32
     public static final Icon NESW_RESIZE = load("/studio/icons/cursors/nesw-resize.svg"); // 32x32
     public static final Icon NS_RESIZE = load("/studio/icons/cursors/ns-resize.svg"); // 32x32
     public static final Icon NWSE_RESIZE = load("/studio/icons/cursors/nwse-resize.svg"); // 32x32

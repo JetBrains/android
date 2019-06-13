@@ -99,14 +99,18 @@ public class EventComponent<E extends Enum<E>> extends AnimatedComponent {
       myRender = false;
     }
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    double min = myModel.getRangedSeries().getXRange().getMin();
-    double max = myModel.getRangedSeries().getXRange().getMax();
+    double viewMin = myModel.getRangedSeries().getXRange().getMin();
+    double viewMax = myModel.getRangedSeries().getXRange().getMax();
     double scaleFactor = dim.getWidth();
     int mouseOverIndex = -1;
     for (int i = 0; i < mIconsToDraw.size(); i++) {
       EventRenderData<E> data = mIconsToDraw.get(i);
-      double normalizedPositionStart = ((data.getStartTimestamp() - min) / (max - min));
-      double normalizedPositionEnd = ((data.getEndTimestamp() - min) / (max - min));
+
+      // We want to start drawing from the beginning of the event or the beginning of a new data stream
+      // TODO(b/122964201) Modify the data provider to provide the correct range instead of clamping
+      double dataClampedStartTimestamp = Math.max(data.getStartTimestamp(), myModel.getRangedSeries().getIntersection().getMin());
+      double normalizedPositionStart = ((dataClampedStartTimestamp - viewMin) / (viewMax - viewMin));
+      double normalizedPositionEnd = ((data.getEndTimestamp() - viewMin) / (viewMax - viewMin));
       double normalizedMouseX = myMouseX / scaleFactor;
       boolean isMouseOverElement = normalizedMouseX > normalizedPositionStart && normalizedMouseX <= normalizedPositionEnd;
       // Find the first element we moused over
@@ -115,26 +119,32 @@ public class EventComponent<E extends Enum<E>> extends AnimatedComponent {
         mouseOverIndex = i;
       }
       else {
-        drawEvent(data, g2d, min, max, scaleFactor, false);
+        drawEvent(data, g2d, viewMin, viewMax, scaleFactor, false);
       }
     }
     if (mouseOverIndex >= 0) {
-      drawEvent(mIconsToDraw.get(mouseOverIndex), g2d, min, max, scaleFactor, true);
+      drawEvent(mIconsToDraw.get(mouseOverIndex), g2d, viewMin, viewMax, scaleFactor, true);
     }
   }
 
   /**
    * Helper function to call into renderer and draw event elements.
-   * @param data Current {@link EventRenderData} element used to grab the event action, as well as normalized positions.
-   * @param g2d Graphics context to draw to.
-   * @param min Series range min value.
-   * @param max Series range max value.
-   * @param scaleFactor Amount to scale normalized values up by.
+   *
+   * @param data               Current {@link EventRenderData} element used to grab the event action, as well as normalized positions.
+   * @param g2d                Graphics context to draw to.
+   * @param min                View range min value.
+   * @param max                View range max value.
+   * @param scaleFactor        Amount to scale normalized values up by.
    * @param isMouseOverElement If the mouse is over the supplied {@link EventRenderData}
    */
   private void drawEvent(EventRenderData<E> data, Graphics2D g2d, double min, double max, double scaleFactor, boolean isMouseOverElement) {
-    double normalizedPositionStart = ((data.getStartTimestamp() - min) / (max - min));
+
+    // We want to start drawing from the beginning of the event or the beginning of a new data stream
+    // TODO(b/122964201) Modify the data provider to provide the correct range instead of clamping
+    double dataClampedStartTimestamp = Math.max(data.getStartTimestamp(), myModel.getRangedSeries().getIntersection().getMin());
+    double normalizedPositionStart = ((dataClampedStartTimestamp - min) / (max - min));
     double normalizedPositionEnd = ((data.getEndTimestamp() - min) / (max - min));
+
     AffineTransform translate = AffineTransform
       .getTranslateInstance(normalizedPositionStart * scaleFactor, 0);
     EventAction<E> action = data.getAction();

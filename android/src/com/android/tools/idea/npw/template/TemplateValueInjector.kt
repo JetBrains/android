@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.template
 
 import com.android.SdkConstants
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE
 import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
 import com.android.tools.idea.configurations.Configuration
@@ -29,7 +28,6 @@ import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.instantapp.InstantApps
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.npw.ThemeHelper
@@ -70,10 +68,7 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_EXPLICIT_BUILD_TOO
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_INSTANT_APP_API_MIN_VERSION
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_BASE_FEATURE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_FEATURE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_INSTANT_APP
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LOW_MEMORY
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
@@ -88,7 +83,6 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_MANIFEST_OUT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_MONOLITHIC_MODULE_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_OUT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_RES_DIR
@@ -115,7 +109,6 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl
 import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.io.FileUtil.join
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.isAndroidx
@@ -172,10 +165,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     addAndroidxSupport(project)
 
     val projectType = facet.configuration.projectType
-    if (projectType == PROJECT_TYPE_FEATURE) {
-      setInstantAppSupport(true, project, module.name)
-    }
-    else if (projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
+    if (projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
       setDynamicFeatureSupport(module)
     }
     return this
@@ -317,43 +307,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     return this
   }
 
-  fun setInstantAppSupport(isExistingProject: Boolean, project: Project, moduleName: String): TemplateValueInjector {
-    myTemplateValues[ATTR_IS_INSTANT_APP] = true
-    myTemplateValues[ATTR_INSTANT_APP_API_MIN_VERSION] = InstantApps.getCompatApiMinVersion()
-
-    myTemplateValues[ATTR_IS_LIBRARY_MODULE] = true
-
-    val projectPath = project.basePath!!
-    val defaultResourceSuffix = join("src", "main", "res")
-    val projectRoot = File(projectPath)
-    var baseModuleRoot = File(projectRoot, "base")
-    var baseModuleResourceRoot = File(baseModuleRoot, defaultResourceSuffix)
-    var baseFeature: Module? = null
-    if (isExistingProject) {
-      baseFeature = InstantApps.findBaseFeature(project)
-      if (baseFeature == null) {
-        baseModuleRoot = File(projectRoot, moduleName)
-        baseModuleResourceRoot = File(baseModuleRoot, defaultResourceSuffix)
-        myTemplateValues[ATTR_IS_BASE_FEATURE] = true
-        val monolithicModuleName = InstantApps.findMonolithicModuleName(project)
-        if (monolithicModuleName != null) {
-          myTemplateValues[ATTR_MONOLITHIC_MODULE_NAME] = monolithicModuleName
-        }
-      }
-    }
-
-    if (baseFeature == null) {
-      myTemplateValues[ATTR_BASE_FEATURE_NAME] = baseModuleRoot.name
-      myTemplateValues[ATTR_BASE_FEATURE_DIR] = baseModuleRoot.path
-      myTemplateValues[ATTR_BASE_FEATURE_RES_DIR] = baseModuleResourceRoot.path
-    }
-    else {
-      setBaseFeature(baseFeature)
-    }
-
-    return this
-  }
-
   private fun setDynamicFeatureSupport(module: Module): TemplateValueInjector {
     myTemplateValues[ATTR_IS_DYNAMIC_FEATURE] = true
 
@@ -382,11 +335,9 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     return this
   }
 
-  fun addTemplateAdditionalValues(packageName: String, isInstantApp: Boolean,
-                                  template: ObjectProperty<NamedModuleTemplate>): TemplateValueInjector {
+  fun addTemplateAdditionalValues(packageName: String, template: ObjectProperty<NamedModuleTemplate>): TemplateValueInjector {
     myTemplateValues[ATTR_PACKAGE_NAME] = packageName
     myTemplateValues[ATTR_SOURCE_PROVIDER_NAME] = template.get().name
-    myTemplateValues[ATTR_IS_INSTANT_APP] = isInstantApp
     myTemplateValues[ATTR_COMPANY_DOMAIN] = getInitialDomain(false)
     return this
   }

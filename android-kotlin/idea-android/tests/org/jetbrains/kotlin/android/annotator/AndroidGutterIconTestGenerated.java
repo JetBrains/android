@@ -61,6 +61,11 @@ public class AndroidGutterIconTestGenerated extends AbstractAndroidGutterIconTes
         doTest(fileName);
     }
 
+    public void testKotlinKeyword() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/gutterIcon/kotlinKeyword.kt");
+        runTestWithFlagSet(fileName, true);
+    }
+
     @TestMetadata("idea-android/testData/android/gutterIcon/res")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)

@@ -40,11 +40,11 @@ class AarValueResourceItem extends AbstractAarValueResourceItem {
    * @param visibility the visibility of the resource
    * @param value the value associated with the resource
    */
-  public AarValueResourceItem(@NotNull ResourceType type,
-                              @NotNull String name,
-                              @NotNull AarSourceFile sourceFile,
-                              @NotNull ResourceVisibility visibility,
-                              @Nullable String value) {
+  AarValueResourceItem(@NotNull ResourceType type,
+                       @NotNull String name,
+                       @NotNull AarSourceFile sourceFile,
+                       @NotNull ResourceVisibility visibility,
+                       @Nullable String value) {
     super(type, name, sourceFile, visibility);
     myValue = value;
   }

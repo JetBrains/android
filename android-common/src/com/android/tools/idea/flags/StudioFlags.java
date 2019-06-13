@@ -114,6 +114,12 @@ public final class StudioFlags {
 
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
+  public static final Flag<Boolean> PROFILER_CPU_CAPTURE_STAGE = Flag.create(
+    PROFILER, "cpu.capture.stage", "Enable new capture stage",
+    "With the new System Trace design we have a cpu capture stage. This flag uses that flow instead of the legacy " +
+    "CpuProfilerStageView flow.",
+    false);
+
   public static final Flag<Boolean> PROFILER_FRAGMENT_PROFILER_ENABLED = Flag.create(
     PROFILER, "event.fragment", "Enable fragment profiling",
     "Shows fragment information in event profiler's activity bar and tooltip.",
@@ -510,24 +516,6 @@ public final class StudioFlags {
 
   private static final FlagGroup UAB = new FlagGroup(FLAGS, "uab", "Unified App Bundle");
 
-  public static final Flag<Boolean> UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS = Flag.create(
-    UAB, "hide.instant.modules", "Hide Instant Modules for non-feature plugin Project",
-    "If a user is working on an older instant app project, they will be able to create instant modules. Otherwise the option won't be available",
-    true
-  );
-
-  public static final Flag<Boolean> UAB_INSTANT_DYNAMIC_FEATURE_MODULE = Flag.create(
-    UAB, "instant.dynamic.feature.modules", "Enable Instant Dynamic Feature Template",
-    "If enabled, the new module wizard will include the template for instant dynamic feature modules",
-    true
-  );
-
-  public static final Flag<Boolean> UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP = Flag.create(
-    UAB, "dynamic.instant.app", "When Instant is checked, only create app module with dist:module in manifest",
-    "If enabled, when the user checks the instant checkbox when creating a new project, then a project with only an app module and with dist:module in the manifest",
-    true
-  );
-
   public static final Flag<Boolean> UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS = Flag.create(
     UAB, "enable.ia.run.configs", "Enable new instant app run configuration options",
     "If enabled, shows the new instant app deploy checkbox in the run configuration dialog and allows new instant app deploy workflow.",
@@ -567,6 +555,15 @@ public final class StudioFlags {
     THEME_EDITOR, "theme.editor.enabled", "Enable the theme editor",
     "If enabled, a visual editor will be available for Android themes.",
     false);
+
+  private static final FlagGroup TRANSLATIONS_EDITOR = new FlagGroup(FLAGS, "translations.editor", "Translations Editor");
+
+  public static final Flag<Boolean> TRANSLATIONS_EDITOR_USE_LOGICAL_FONT = Flag.create(
+    TRANSLATIONS_EDITOR,
+    "translations.editor.use.logical.font",
+    "Use a logical font",
+    "Use a logical font to display translations. See https://docs.oracle.com/javase/tutorial/2d/text/fonts.html#logical-fonts",
+    true);
 
   private static final FlagGroup NDK_SIDE_BY_SIDE = new FlagGroup(FLAGS, "ndk.sxs", "NDK Side by Side");
   public static final Flag<Boolean> NDK_SIDE_BY_SIDE_ENABLED = Flag.create(
