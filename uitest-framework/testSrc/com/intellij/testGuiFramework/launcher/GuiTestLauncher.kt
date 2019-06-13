@@ -211,24 +211,13 @@ object GuiTestLauncher {
   }
 
   private fun getCurrentJavaExec(): String {
-    val homePath = System.getProperty("java.home")
-    val jreDir = File(homePath)
-    val homeDir = File(jreDir.parent)
-    val binDir = File(homeDir, "bin")
-    val javaName: String = if (System.getProperty("os.name").toLowerCase().contains("win")) "java.exe" else "java"
+    val homeDir = File(System.getProperty("java.home"))
+    val binDir = File(if (SystemInfo.IS_AT_LEAST_JAVA9) homeDir else homeDir.parentFile, "bin")
+    val javaName = if (SystemInfo.isWindows) "java.exe" else "java"
     return File(binDir, javaName).path
   }
 
-  private fun getTestClasspath(): List<File> {
-    val classLoader = this.javaClass.classLoader
-    val urlClassLoaderClass = classLoader.javaClass
-    val getUrlsMethod = urlClassLoaderClass.methods.firstOrNull { it.name.toLowerCase() == "geturls" }!!
-    @Suppress("UNCHECKED_CAST")
-    val urlsListOrArray = getUrlsMethod.invoke(classLoader)
-    var urls = (urlsListOrArray as? List<*> ?: (urlsListOrArray as Array<*>).toList()).filterIsInstance(URL::class.java)
-    return urls.map { Paths.get(it.toURI()).toFile() }
-  }
-
+  private fun getTestClasspath(): List<File> = System.getProperty("java.class.path").split(File.pathSeparator).map(::File)
 
   private fun buildClasspathJar() {
     val files = getTestClasspath()
