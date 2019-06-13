@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class ArtifactRepositorySearchFormKtTest : GradleFileModelTestCase() {
@@ -70,6 +71,7 @@ class ArtifactRepositorySearchFormKtTest : GradleFileModelTestCase() {
 
   @Test
   fun testPrepareArtifactVersionChoices() {
+    assumeTrue(isGroovy())
     writeToBuildFile(
       """
         ext {
