@@ -161,5 +161,12 @@ public class ImportApkActionTest extends IdeaTestCase {
     public AnAction[] getRecentProjectsActions(boolean addClearListItem) {
       return AnAction.EMPTY_ARRAY;
     }
+
+    @Override
+    public boolean willReopenProjectOnStart() {
+      return false;
+    }
+
+    public void reopenLastProjectOnStart() {}
   }
 }
