@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.tools.adtui.font.FontUtil;
+import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
+import java.awt.Font;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 
 final class StringsCellRenderer extends FrozenColumnTableCellRenderer {
   private static final SimpleTextAttributes CELL_ERROR_ATTRIBUTES = new SimpleTextAttributes(SimpleTextAttributes.STYLE_WAVED, JBColor.red);
@@ -56,7 +55,7 @@ final class StringsCellRenderer extends FrozenColumnTableCellRenderer {
     }
 
     Font currentFont = table.getFont();
-    Font f = FontUtil.getFontAbleToDisplay(s, currentFont);
+    Font f = StringResourceEditor.getFont(s, currentFont);
 
     if (!currentFont.equals(f)) {
       setFont(f);

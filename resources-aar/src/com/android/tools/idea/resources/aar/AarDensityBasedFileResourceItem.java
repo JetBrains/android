@@ -40,12 +40,12 @@ final class AarDensityBasedFileResourceItem extends AarFileResourceItem implemen
    * @param relativePath defines location of the resource. Exact semantics of the path may vary depending on the resource repository
    * @param density the screen density this resource is associated with
    */
-  public AarDensityBasedFileResourceItem(@NotNull ResourceType type,
-                                         @NotNull String name,
-                                         @NotNull AarConfiguration configuration,
-                                         @NotNull ResourceVisibility visibility,
-                                         @NotNull String relativePath,
-                                         @NotNull Density density) {
+  AarDensityBasedFileResourceItem(@NotNull ResourceType type,
+                                  @NotNull String name,
+                                  @NotNull AarConfiguration configuration,
+                                  @NotNull ResourceVisibility visibility,
+                                  @NotNull String relativePath,
+                                  @NotNull Density density) {
     super(type, name, configuration, visibility, relativePath);
     myDensity = density;
   }

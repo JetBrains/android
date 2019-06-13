@@ -17,8 +17,7 @@ package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profiler.protobuf3jarjar.ByteString
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat

@@ -48,22 +48,24 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
 
   private fun generateTraceInfo(timestamp: Long, properties: GeneratorProperties) {
     val threadIds = mutableListOf<Int>()
-    for(i in 0..NUMBER_OF_THREADS) {
+    for (i in 0..NUMBER_OF_THREADS) {
       threadIds.add(i)
     }
     val trace = Cpu.CpuTraceInfo.newBuilder()
       .setFromTimestamp((lastTraceInfoTimestamp + timestamp) / 2)
       .setToTimestamp(timestamp)
       .setTraceId(random.nextLong())
-      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_UI)
-      .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
+      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                          .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_UI)
+                          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+                                            .setTraceMode(Cpu.CpuTraceMode.SAMPLED)))
       .build()
     myTable.insertTraceInfo(properties.session, trace)
   }
 
   private fun generateThreadSnapshots(timestamp: Long, properties: GeneratorProperties) {
     val snapshots = mutableListOf<CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot>()
-    for(i in 0..NUMBER_OF_THREADS) {
+    for (i in 0..NUMBER_OF_THREADS) {
       snapshots.add(CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot.newBuilder()
                       .setName(i.toString())
                       .setTid(i)

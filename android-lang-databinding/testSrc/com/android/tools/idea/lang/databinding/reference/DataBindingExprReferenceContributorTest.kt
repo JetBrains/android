@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.databinding.reference
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.lang.databinding.getTestDataPath
+import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
@@ -445,5 +446,71 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(xmlDoSomething.isReferenceTo(javaDoSomething)).isTrue()
     assertThat(xmlDoSomething.resolve()).isEqualTo(javaDoSomething)
+  }
+
+  @Test
+  fun dbLiteralReferencesPrimitiveType() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public String calculate(String value) {}
+        public int calculate(int value) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.calcula<caret>te(15)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("int")
+  }
+
+  @Test
+  fun dbLiteralReferencesStringType() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public String calculate(String value) {}
+        public int calculate(int value) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.calcula<caret>te(`15`)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+  }
+
+  @Test
+  fun dbMethodReferencesFromStringLiteral() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <TextView android:text="@{`string`.subst<caret>ring(5)"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
   }
 }

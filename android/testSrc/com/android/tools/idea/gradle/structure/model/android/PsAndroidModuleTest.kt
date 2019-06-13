@@ -270,9 +270,12 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(appModule.validateProductFlavorName("androidTest", "foo")).isEqualTo("Product flavor name cannot start with 'androidTest'.")
     assertThat(appModule.validateProductFlavorName("androidTest", "bar")).isEqualTo("Product flavor name cannot start with 'androidTest'.")
     assertThat(appModule.validateProductFlavorName("androidTest", null)).isEqualTo("Product flavor name cannot start with 'androidTest'.")
-    assertThat(appModule.validateProductFlavorName("androidTestable", "foo")).isEqualTo("Product flavor name cannot start with 'androidTest'.")
-    assertThat(appModule.validateProductFlavorName("androidTestable", "bar")).isEqualTo("Product flavor name cannot start with 'androidTest'.")
-    assertThat(appModule.validateProductFlavorName("androidTestable", null)).isEqualTo("Product flavor name cannot start with 'androidTest'.")
+    assertThat(appModule.validateProductFlavorName("androidTestable", "foo")).isEqualTo(
+      "Product flavor name cannot start with 'androidTest'.")
+    assertThat(appModule.validateProductFlavorName("androidTestable", "bar")).isEqualTo(
+      "Product flavor name cannot start with 'androidTest'.")
+    assertThat(appModule.validateProductFlavorName("androidTestable", null)).isEqualTo(
+      "Product flavor name cannot start with 'androidTest'.")
     assertThat(appModule.validateProductFlavorName("main", "foo")).isEqualTo("Product flavor name cannot be 'main'.")
     assertThat(appModule.validateProductFlavorName("main", "bar")).isEqualTo("Product flavor name cannot be 'main'.")
     assertThat(appModule.validateProductFlavorName("main", null)).isEqualTo("Product flavor name cannot be 'main'.")
@@ -320,6 +323,12 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(appModule.validateProductFlavorName("paid", "foo")).isEqualTo("Duplicate product flavor name: 'paid'")
     assertThat(appModule.validateProductFlavorName("paidLittle", "foo")).isEqualTo("Duplicate product flavor name: 'paidLittle'")
 
+    // even in the first flavor dimension, the first character will end up capitalized in some configuration names...
+    assertThat(appModule.validateProductFlavorName("Paid", "foo"))
+      .isEqualTo("Duplicate product flavor name: 'Paid'")
+    // ... but characters after the first in names are not case-converted
+    assertThat(appModule.validateProductFlavorName("pAid", "foo")).isNull()
+
     // "paid" product flavor + "specialRelease" build type = "paidSpecial" product flavor + "release" build type
     assertThat(appModule.validateProductFlavorName("paidSpecial", "foo"))
       .isEqualTo("Product flavor name 'paidSpecial' in flavor dimension 'foo' would cause a configuration name ambiguity.")
@@ -341,6 +350,11 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .isEqualTo("Product flavor name 'paidLittle' in flavor dimension 'foo' would cause a configuration name ambiguity.")
     assertThat(app3Module.validateProductFlavorName("paidLittle", "bar"))
       .isEqualTo("Product flavor name 'paidLittle' in flavor dimension 'bar' would cause a configuration name ambiguity.")
+
+    assertThat(app3Module.validateProductFlavorName("PaidLittle", "foo"))
+      .isEqualTo("Product flavor name 'PaidLittle' in flavor dimension 'foo' would cause a configuration name ambiguity.")
+    assertThat(app3Module.validateProductFlavorName("PaidLittle", "bar"))
+      .isEqualTo("Product flavor name 'PaidLittle' in flavor dimension 'bar' would cause a configuration name ambiguity.")
   }
 
   fun testAddProductFlavor() {
@@ -539,6 +553,12 @@ class PsAndroidModuleTest : DependencyTestCase() {
     // "paid" flavor + "littleScreen" flavor + "release" buildType = "paidLittle" flavor + "screenRelease" buildType
     assertThat(app2Module.validateBuildTypeName("screenRelease"))
       .isEqualTo("Build type name 'screenRelease' would cause a configuration name ambiguity.")
+
+    val app4Module = moduleWithoutSyncedModel(project, "app4")
+    assertNotNull(app4Module)
+    assertThat(app4Module.validateBuildTypeName("Experimental"))
+      .isEqualTo("Duplicate build type name: 'Experimental'")
+    assertThat(app4Module.validateBuildTypeName("exPerimental")).isNull()
   }
 
   fun testAddBuildType() {
@@ -1149,7 +1169,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestOtherBarImplementation",
       "androidTestBasicOtherBarImplementation",
       "androidTestPaidOtherBarImplementation",
-    
+
       "api",
       "releaseApi",
       "specialReleaseApi",
@@ -1231,7 +1251,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestOtherBarApi",
       "androidTestBasicOtherBarApi",
       "androidTestPaidOtherBarApi",
-    
+
       "compileOnly",
       "releaseCompileOnly",
       "specialReleaseCompileOnly",
@@ -1313,7 +1333,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestOtherBarCompileOnly",
       "androidTestBasicOtherBarCompileOnly",
       "androidTestPaidOtherBarCompileOnly",
-    
+
       "annotationProcessor",
       "releaseAnnotationProcessor",
       "specialReleaseAnnotationProcessor",

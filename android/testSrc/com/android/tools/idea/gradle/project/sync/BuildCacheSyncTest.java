@@ -43,7 +43,7 @@ public class BuildCacheSyncTest extends AndroidGradleTestCase {
     Project project = getProject();
     setBuildCachePath(createTempDirectory("build-cache", ""), project);
 
-    importProject(project.getName(), getBaseDirPath(project));
+    importProject();
 
     File mainActivityFile = new File("app/src/main/java/com/example/alruiz/transitive_dependencies/MainActivity.java");
     Predicate<HighlightInfo> matchByDescription = info -> "Cannot resolve symbol 'AppCompatActivity'".equals(info.getDescription());

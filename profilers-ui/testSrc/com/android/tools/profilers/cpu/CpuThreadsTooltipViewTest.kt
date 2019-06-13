@@ -58,7 +58,9 @@ class CpuThreadsTooltipViewTest {
                               .setTraceId(1)
                               .setFromTimestamp(TimeUnit.SECONDS.toNanos(2))
                               .setToTimestamp(TimeUnit.SECONDS.toNanos(4))
-                              .setTraceType(Cpu.CpuTraceType.ART)
+                              .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                                                  .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+                                                                    .setTraceType(Cpu.CpuTraceType.ART)))
                               .build())
 
     val profilers = StudioProfilers(myProfilerClient, FakeIdeProfilerServices(), timer)

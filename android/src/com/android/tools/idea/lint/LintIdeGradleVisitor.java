@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.SdkConstants.ATTR_MIN_SDK_VERSION;
+import static com.android.SdkConstants.ATTR_TARGET_SDK_VERSION;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.lint.checks.GradleDetector;
@@ -30,20 +33,22 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyRecursiveElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.android.SdkConstants.ATTR_MIN_SDK_VERSION;
-import static com.android.SdkConstants.ATTR_TARGET_SDK_VERSION;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 public class LintIdeGradleVisitor extends GradleVisitor {
   @Nullable
@@ -96,6 +101,24 @@ public class LintIdeGradleVisitor extends GradleVisitor {
                       String value = argumentList.getText();
                       for (GradleScanner detector : detectors) {
                         detector.checkDslPropertyAssignment(context, property, value, parentName, parentParentName, propertyRef, argumentList, call);
+                      }
+                    }
+                  }
+                } else if (element instanceof GrMethodCallExpression) {
+                  GrMethodCallExpression assignment = (GrMethodCallExpression)element;
+                  GrExpression lValue = assignment.getInvokedExpression();
+                  if (lValue instanceof GrReferenceExpression) {
+                    GrReferenceExpression propertyRef = (GrReferenceExpression)lValue;
+                    String property = propertyRef.getReferenceName();
+                    if (property != null) {
+                      GrExpression[] list = assignment.getArgumentList().getExpressionArguments();
+                      if (list.length == 1) {
+                        GrExpression rValue = list[0];
+                        String value = rValue.getText();
+                        for (GradleScanner detector : detectors) {
+                          detector
+                            .checkDslPropertyAssignment(context, property, value, parentName, parentParentName, lValue, rValue, assignment);
+                        }
                       }
                     }
                   }

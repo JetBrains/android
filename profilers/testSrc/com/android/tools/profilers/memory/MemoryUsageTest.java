@@ -26,7 +26,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.UnifiedEventDataSeries;
 import com.google.common.truth.Truth;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -58,6 +57,7 @@ public class MemoryUsageTest {
                                        TimeUnit.SECONDS.toMicros(i * 10),
                                        Memory.MemoryUsageData.newBuilder().setTotalMem(i * 10).build()).build());
     }
+    myProfilers.getTimeline().getDataRange().set(0, TimeUnit.SECONDS.toMicros(100));
   }
 
   @Test

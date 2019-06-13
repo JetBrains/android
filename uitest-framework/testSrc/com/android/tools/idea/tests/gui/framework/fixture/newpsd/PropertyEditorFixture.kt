@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.findByType
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
-import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleColoredComponent
+import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
+import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JTextComponentFixture
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -33,9 +32,12 @@ import javax.swing.JTextField
 private val REFERENCE_JLIST = GuiQuery.get { JList<Any>() }
 
 class PropertyEditorFixture(
-  override val ideFrameFixture: IdeFrameFixture,
-  override val container: Container
-) : IdeFrameContainerFixture {
+  val robot: Robot,
+  val container: Container
+) : ContainerFixture<Container> {
+  override fun target(): Container = container
+  override fun robot(): Robot = robot
+
 
   fun selectItem(text: String) {
     val comboBoxFixture = createComboBoxFicture()
@@ -49,13 +51,10 @@ class PropertyEditorFixture(
     val index = contents.indexOf(text)
     if (index < 0) throw IllegalStateException("'$text' not found. Available items: ${contents.joinToString()}")
     robot().pressAndReleaseKey(KeyEvent.VK_DOWN, KeyEvent.ALT_DOWN_MASK)
-    waitForIdle()
     for (i in 0..index) {
       robot().pressAndReleaseKey(KeyEvent.VK_DOWN)
-      waitForIdle()
     }
     if (andTab) robot().pressAndReleaseKey(KeyEvent.VK_TAB) else robot().pressAndReleaseKey(KeyEvent.VK_ENTER)
-    waitForIdle()
   }
 
   fun enterText(text: String) {

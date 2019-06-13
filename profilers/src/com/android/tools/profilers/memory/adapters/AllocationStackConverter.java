@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack.StackFrame;
+import com.android.tools.profiler.proto.Memory.AllocationStack.StackFrame;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import org.jetbrains.annotations.NotNull;
 

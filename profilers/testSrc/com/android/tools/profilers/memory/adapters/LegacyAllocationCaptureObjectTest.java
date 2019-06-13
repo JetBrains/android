@@ -16,8 +16,9 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
@@ -59,7 +60,8 @@ public class LegacyAllocationCaptureObjectTest {
 
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo,
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA,
+                                        testInfo,
                                         myIdeProfilerServices.getFeatureTracker());
 
     // Verify values associated with the AllocationsInfo object.
@@ -97,7 +99,7 @@ public class LegacyAllocationCaptureObjectTest {
     Collection<HeapSet> heaps = capture.getHeapSets();
     assertEquals(1, heaps.size());
 
-    HeapSet defaultHeap = heaps.stream().filter(heap -> "default" .equals(heap.getName())).findFirst().orElse(null);
+    HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
     assertNotNull(defaultHeap);
     defaultHeap.getChildrenClassifierSets(); // expand the children
 
@@ -127,7 +129,8 @@ public class LegacyAllocationCaptureObjectTest {
 
     AllocationsInfo testInfo1 = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo1,
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA,
+                                        testInfo1,
                                         myIdeProfilerServices.getFeatureTracker());
 
     assertFalse(capture.isDoneLoading());
@@ -155,7 +158,7 @@ public class LegacyAllocationCaptureObjectTest {
     assertEquals(frameCount, instance.getAllocationCallStack().getFullStack().getFramesCount());
   }
 
-  private static void verifyStackFrame(MemoryProfiler.AllocationStack.StackFrame frame, String klass, String method, int line) {
+  private static void verifyStackFrame(Memory.AllocationStack.StackFrame frame, String klass, String method, int line) {
     assertEquals(klass, frame.getClassName());
     assertEquals(method, frame.getMethodName());
     assertEquals(line, frame.getLineNumber());

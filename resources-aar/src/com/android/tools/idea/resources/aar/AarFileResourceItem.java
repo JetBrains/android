@@ -46,11 +46,11 @@ class AarFileResourceItem extends AbstractAarResourceItem {
    * @param visibility the visibility of the resource
    * @param relativePath defines location of the resource. Exact semantics of the path may vary depending on the resource repository
    */
-  public AarFileResourceItem(@NotNull ResourceType type,
-                             @NotNull String name,
-                             @NotNull AarConfiguration configuration,
-                             @NotNull ResourceVisibility visibility,
-                             @NotNull String relativePath) {
+  AarFileResourceItem(@NotNull ResourceType type,
+                      @NotNull String name,
+                      @NotNull AarConfiguration configuration,
+                      @NotNull ResourceVisibility visibility,
+                      @NotNull String relativePath) {
     super(type, name, visibility);
     myConfiguration = configuration;
     myRelativePath = relativePath;

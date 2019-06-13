@@ -47,7 +47,6 @@ public class MemoryUsage extends LineChartModel {
       myTotalMemorySeries =
         createLegacyRangedSeries(profilers, getTotalSeriesLabel(), myMemoryRange, sample -> (long)sample.getMemoryUsage().getTotalMem());
     }
-
     add(myTotalMemorySeries);
   }
 
@@ -57,7 +56,7 @@ public class MemoryUsage extends LineChartModel {
                                                             @NotNull Function<MemorySample, Long> getter) {
     MemoryServiceGrpc.MemoryServiceBlockingStub client = profilers.getClient().getMemoryClient();
     MemoryDataSeries series = new MemoryDataSeries(client, profilers.getSession(), getter);
-    return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series);
+    return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series, profilers.getTimeline().getDataRange());
   }
 
   protected RangedContinuousSeries createRangedSeries(@NotNull StudioProfilers profilers,
@@ -72,7 +71,7 @@ public class MemoryUsage extends LineChartModel {
                                                                Common.Event.Kind.MEMORY_USAGE,
                                                                groupId,
                                                                dataExtractor);
-    return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series);
+    return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series, profilers.getTimeline().getDataRange());
   }
 
   @NotNull

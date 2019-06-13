@@ -1,0 +1,6 @@
+apply plugin: 'com.android.application'
+
+dependencies {
+    compile <warning descr="Do not use Windows file separators in .gradle files; use / instead">fi<caret>les('my\\libs\\http.jar')</warning>
+    compile(<warning descr="Do not use Windows file separators in .gradle files; use / instead">files('my\\libs\\http2.jar')</warning>)
+}

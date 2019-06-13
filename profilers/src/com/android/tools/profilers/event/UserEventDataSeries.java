@@ -50,7 +50,7 @@ public class UserEventDataSeries implements DataSeries<EventAction<UserEvent>> {
   }
 
   @Override
-  public List<SeriesData<EventAction<UserEvent>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<EventAction<UserEvent>>> getDataForRange(@NotNull Range timeCurrentRangeUs) {
     if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       return getTransportData(timeCurrentRangeUs);
     }

@@ -21,9 +21,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Cpu.CpuTraceType
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse
-import com.android.tools.profiler.protobuf3jarjar.ByteString
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
@@ -36,15 +34,14 @@ import java.util.concurrent.TimeUnit
  */
 class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketransport.FakeGrpcChannel,
                       val transportService: FakeTransportService,
-                      val cpuService: FakeCpuService) : ExternalResource() {
+                      val cpuService: FakeCpuService,
+                      val timer: FakeTimer) : ExternalResource() {
 
   lateinit var ideServices: FakeIdeProfilerServices
   lateinit var stage: CpuProfilerStage
-  private lateinit var timer: FakeTimer
 
   override fun before() {
     ideServices = FakeIdeProfilerServices()
-    timer = FakeTimer()
 
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), ideServices, timer)
     // One second must be enough for new devices (and processes) to be picked up
@@ -60,8 +57,8 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
 
     cpuService.setStartProfilingStatus(
       when (success) {
-        true -> CpuProfilingAppStartResponse.Status.SUCCESS
-        false -> CpuProfilingAppStartResponse.Status.FAILURE
+        true -> Cpu.TraceStartStatus.Status.SUCCESS
+        false -> Cpu.TraceStartStatus.Status.FAILURE
       }
     )
 
@@ -77,14 +74,16 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
         true -> {
           cpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
                                     .setTraceId(traceId)
-                                    .setTraceType(traceType)
+                                    .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                                                        .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+                                                                          .setTraceType(traceType)))
                                     .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(fromUs))
                                     .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(toUs))
                                     .build())
-          CpuProfilingAppStopResponse.Status.SUCCESS
+          Cpu.TraceStopStatus.Status.SUCCESS
 
         }
-        false -> CpuProfilingAppStopResponse.Status.STOP_COMMAND_FAILED
+        false -> Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED
       }
     )
     transportService.addFile(traceId.toString(), traceContent)
@@ -94,17 +93,13 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
 
   /**
    * Simulates capturing a trace.
-   *
-   * @param id ID of the trace
-   * @param traceType the profiler type of the trace
    */
-  fun captureTrace(id: Long = 0,
-                   traceType: CpuTraceType = CpuTraceType.ART,
+  fun captureTrace(traceType: CpuTraceType = CpuTraceType.ART,
                    traceContent: ByteString = CpuProfilerTestUtils.readValidTrace()) {
 
     // Change the selected configuration, so that startCapturing() will use the correct one.
     selectConfig(traceType)
-    CpuProfilerTestUtils.captureSuccessfully(stage, cpuService, transportService, id, traceType, traceContent)
+    CpuProfilerTestUtils.captureSuccessfully(stage, cpuService, transportService, traceContent)
   }
 
   /**

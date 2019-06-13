@@ -42,9 +42,9 @@ class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
   }
 
   @Override
-  public List<SeriesData<CaptureDurationData<CaptureObject>>> getDataForXRange(Range xRange) {
-    long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
-    long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
+  public List<SeriesData<CaptureDurationData<CaptureObject>>> getDataForRange(Range range) {
+    long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)range.getMin());
+    long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)range.getMax());
     MemoryProfiler.ListHeapDumpInfosResponse response = myClient.listHeapDumpInfos(
       MemoryProfiler.ListDumpInfosRequest.newBuilder().setSession(mySession).setStartTime(rangeMin).setEndTime(rangeMax).build());
 

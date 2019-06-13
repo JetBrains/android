@@ -88,7 +88,7 @@ public class CpuThreadStateDataSeriesTest {
   public void emptyRange() {
     // Create a series with empty range and arbitrary tid
     DataSeries<CpuProfilerStage.ThreadState> series = createThreadSeries(10);
-    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(new Range());
+    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForRange(new Range());
     assertNotNull(dataSeries);
     // No data within given range
     assertTrue(dataSeries.isEmpty());
@@ -100,7 +100,7 @@ public class CpuThreadStateDataSeriesTest {
     Range range = new Range(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(15));
     // Create a series with the range that contains both thread1 and thread2 and thread2 tid
     DataSeries<CpuProfilerStage.ThreadState> series = createThreadSeries(2);
-    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(range);
+    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForRange(range);
     assertNotNull(dataSeries);
     // thread2 state changes are RUNNING, STOPPED, SLEEPING, WAITING and DEAD
     assertEquals(5, dataSeries.size());
@@ -119,8 +119,7 @@ public class CpuThreadStateDataSeriesTest {
     Assume.assumeFalse(myIsUnifiedPipeline);
 
     // Generate and select a capture in the stage
-    CpuProfilerTestUtils
-      .captureSuccessfully(myProfilerStage, myService, myTransportService, 1, Cpu.CpuTraceType.ART, CpuProfilerTestUtils.readValidTrace());
+    CpuProfilerTestUtils.captureSuccessfully(myProfilerStage, myService, myTransportService, CpuProfilerTestUtils.readValidTrace());
     CpuCapture capture = myProfilerStage.getCapture();
     assertNotNull(capture);
     int tid = capture.getMainThreadId();
@@ -136,7 +135,7 @@ public class CpuThreadStateDataSeriesTest {
       CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
         .setTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()) - TimeUnit.SECONDS.toNanos(2))
         .setNewState(Cpu.CpuThreadData.State.SLEEPING).build()));
-    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForRange(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
     assertNotNull(dataSeries);
     // We expect the portions of the thread activities that are within the capture range to be duplicated with a "_CAPTURED" suffix.
     assertEquals(4, dataSeries.size());
@@ -152,8 +151,7 @@ public class CpuThreadStateDataSeriesTest {
     Assume.assumeFalse(myIsUnifiedPipeline);
 
     // Generate and select a capture in the stage
-    CpuProfilerTestUtils
-      .captureSuccessfully(myProfilerStage, myService, myTransportService, 1, Cpu.CpuTraceType.ART, CpuProfilerTestUtils.readValidTrace());
+    CpuProfilerTestUtils.captureSuccessfully(myProfilerStage, myService, myTransportService, CpuProfilerTestUtils.readValidTrace());
     CpuCapture capture = myProfilerStage.getCapture();
     assertNotNull(capture);
     int tid = capture.getMainThreadId();
@@ -170,7 +168,7 @@ public class CpuThreadStateDataSeriesTest {
         .setTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()) + TimeUnit.SECONDS.toNanos(2))
         .setNewState(Cpu.CpuThreadData.State.SLEEPING).build()));
 
-    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForRange(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
     assertNotNull(dataSeries);
 
     // We expect the portions of the thread activities that are within the capture range to be duplicated with a "_CAPTURED" suffix.

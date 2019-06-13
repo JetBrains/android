@@ -48,22 +48,13 @@ public class AndroidModuleSetupTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
     myModuleSetup = new AndroidModuleSetup(mySetupStep1, mySetupStep2);
-    when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true); // Only mySetupStep1 can be invoked when sync is skipped.
     when(myModuleSetupContext.getModule()).thenReturn(myModule);
     when(myAndroidModel.getAndroidProject()).thenReturn(myAndroidProject);
     when(myAndroidProject.getSyncIssues()).thenReturn(ImmutableList.of());
   }
 
-  public void testSetUpAndroidModuleWithSyncSkipped() {
-    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, true /* sync skipped */);
-
-    // Only 'mySetupStep1' should be invoked when sync is skipped.
-    verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myAndroidModel);
-    verify(mySetupStep2, times(0)).setUpModule(myModuleSetupContext, myAndroidModel);
-  }
-
   public void testSetUpAndroidModuleWithSyncNotSkipped() {
-    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, false /* sync not skipped */);
+    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel);
 
     // Only 'mySetupStep1' should be invoked when sync is skipped.
     verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myAndroidModel);
@@ -74,16 +65,7 @@ public class AndroidModuleSetupTest extends IdeaTestCase {
     SyncIssue syncIssue = mock(SyncIssue.class);
     when(myAndroidProject.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
 
-    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, false /* sync not skipped */);
-    SyncIssues.seal(myProject);
-    assertThat(SyncIssues.forModule(myModule)).containsExactly(syncIssue);
-  }
-
-  public void testSetUpAndroidModuleRegistersSyncIssuesSkipped() {
-    SyncIssue syncIssue = mock(SyncIssue.class);
-    when(myAndroidProject.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
-
-    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, true /* sync skipped */);
+    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel);
     SyncIssues.seal(myProject);
     assertThat(SyncIssues.forModule(myModule)).containsExactly(syncIssue);
   }

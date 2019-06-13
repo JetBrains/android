@@ -28,7 +28,7 @@ import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import org.jetbrains.android.AndroidResourceExternalAnnotatorBase
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
-import org.jetbrains.kotlin.psi.KtReferenceExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 /**
  * Annotator which puts colors and image icons in the editor gutter when referenced in Kotlin files.
@@ -41,13 +41,13 @@ class AndroidKotlinResourceExternalAnnotator : AndroidResourceExternalAnnotatorB
     file.accept(object: PsiRecursiveElementWalkingVisitor() {
       override fun visitElement(element: PsiElement?) {
         super.visitElement(element)
-        val reference = element as? KtReferenceExpression ?: return
+        val reference = element as? KtNameReferenceExpression ?: return
         val referenceTarget = reference.resolveToCall()?.resultingDescriptor as? JavaPropertyDescriptor?: return
         val type = referenceTarget.getAndroidResourceType() ?: return
         if (type == ResourceType.COLOR || type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
           val referenceType = referenceTarget.getResourceReferenceType()
           val namespace = if (referenceType == AndroidPsiUtils.ResourceReferenceType.FRAMEWORK) ResourceNamespace.ANDROID else ResourceNamespace.RES_AUTO
-          val resourceReference = ResourceReference(namespace, type, reference.getText())
+          val resourceReference = ResourceReference(namespace, type, reference.getReferencedName())
           annotationInfo.elements.add(FileAnnotationInfo.AnnotatableElement(resourceReference, element))
         }
       }

@@ -125,7 +125,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     myAndroidProject = TestProjects.createBasicProject();
     createAndSetAndroidModel();
     for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
-      TestArtifactSearchScopes.initializeScope(module);
+      GradleTestArtifactSearchScopes.initializeScope(module);
     }
   }
 

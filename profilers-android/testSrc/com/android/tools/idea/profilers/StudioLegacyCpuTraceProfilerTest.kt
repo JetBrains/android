@@ -24,7 +24,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profiler.protobuf3jarjar.ByteString
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
@@ -74,8 +74,8 @@ class StudioLegacyCpuTraceProfilerTest {
                                                                     .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
                                                                                       .setTraceType(Cpu.CpuTraceType.ART)))
                                                 .build())
-    assertThat(response.errorMessage).isNotEmpty()
-    assertThat(response.status).isEqualTo(CpuProfiler.CpuProfilingAppStartResponse.Status.FAILURE)
+    assertThat(response.status.errorMessage).isNotEmpty()
+    assertThat(response.status.status).isEqualTo(Cpu.TraceStartStatus.Status.FAILURE)
   }
 
   @Test
@@ -117,34 +117,25 @@ class StudioLegacyCpuTraceProfilerTest {
       .build()
     val startRequest = CpuProfiler.CpuProfilingAppStartRequest.newBuilder().setSession(session).setConfiguration(configuration).build()
     val stopRequest = CpuProfiler.CpuProfilingAppStopRequest.newBuilder().setSession(session).setTraceType(Cpu.CpuTraceType.ATRACE).build()
-    val statusRequest = CpuProfiler.ProfilingStateRequest.newBuilder().setSession(session).build()
     val traceInfoRequest = CpuProfiler.GetTraceInfoRequest.newBuilder()
       .setSession(session)
       .setFromTimestamp(Long.MIN_VALUE)
       .setToTimestamp(Long.MAX_VALUE)
       .build()
-
-    // Validate initial state is not set to recorded
-    var checkStatusResponse = profiler.checkAppProfilingState(statusRequest)
-    assertThat(checkStatusResponse.beingProfiled).isFalse()
     assertThat(profiler.getTraceInfo(traceInfoRequest)).isEmpty()
 
-    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)
+    myCpuService.setStartProfilingStatus(Cpu.TraceStartStatus.Status.SUCCESS)
     val startResponse = profiler.startProfilingApp(startRequest)
-    assertThat(startResponse.status).isEqualTo(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)
+    assertThat(startResponse.status.status).isEqualTo(Cpu.TraceStartStatus.Status.SUCCESS)
     assertThat(myCpuService.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
     assertThat(myCpuService.startStopCapturingSession).isEqualTo(session.build())
 
     // Check the state of the StudioLegacyCpuTraceProfiler
     myTimer.currentTimeNs = 150L
-    checkStatusResponse = profiler.checkAppProfilingState(statusRequest)
-    assertThat(checkStatusResponse.beingProfiled).isTrue()
-    assertThat(checkStatusResponse.configuration.userOptions.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
-
-    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)
+    myCpuService.setStopProfilingStatus(Cpu.TraceStopStatus.Status.SUCCESS)
     val stopResponse = profiler.stopProfilingApp(stopRequest)
     assertThat(stopResponse.traceId).isEqualTo(FakeCpuService.FAKE_TRACE_ID)
-    assertThat(stopResponse.status).isEqualTo(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)
+    assertThat(stopResponse.status.status).isEqualTo(Cpu.TraceStopStatus.Status.SUCCESS)
   }
 
   private fun createMockDevice(deviceName: String?): IDevice {

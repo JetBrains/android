@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.framework
 
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import org.fest.swing.core.ComponentFinder
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.ComponentLookupException
+import org.fest.swing.fixture.ContainerFixture
 import java.awt.Container
 import javax.swing.JComponent
+import javax.swing.JDialog
 
-interface IdeFrameContainerFixture {
-  val ideFrameFixture: IdeFrameFixture
-  val container: Container
+fun ContainerFixture<*>.finder() = this.robot().finder()
+
+interface DialogContainerFixture : ContainerFixture<JDialog> {
+  fun maybeRestoreLostFocus()
 }
-
-fun IdeFrameContainerFixture.robot() = ideFrameFixture.robot()
-fun IdeFrameContainerFixture.finder() = ideFrameFixture.robot().finder()
 
 inline fun <reified T : JComponent> matcher(requireShowing: Boolean = true, crossinline predicate: (T) -> Boolean): GenericTypeMatcher<T> =
     object : GenericTypeMatcher<T>(T::class.java, requireShowing) {

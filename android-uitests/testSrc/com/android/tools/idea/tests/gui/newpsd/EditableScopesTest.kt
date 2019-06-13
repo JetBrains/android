@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.waitForDialogToClose
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -67,6 +68,7 @@ class EditableScopesTest {
             assertThat(selectedItem()).isEqualTo("compile")
             replaceText("implementation")
             pressAndReleaseKeys(VK_TAB)
+            assertThat(selectedItem()).isEqualTo("implementation")
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "implementation"))
 
@@ -78,6 +80,8 @@ class EditableScopesTest {
           }
         }
       }
+      waitForDialogToClose()
+      waitForSyncToFinish()
     }
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -104,6 +108,7 @@ class EditableScopesTest {
           findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("compile")
             selectItem("implementation")
+            assertThat(selectedItem()).isEqualTo("implementation")
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "implementation"))
 
@@ -111,6 +116,7 @@ class EditableScopesTest {
           findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("implementation")
             selectItem("releaseImplementation")
+            assertThat(selectedItem()).isEqualTo("releaseImplementation")
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "releaseImplementation"))
         }
@@ -143,6 +149,7 @@ class EditableScopesTest {
             assertThat(selectedItem()).isEqualTo("compile")
             replaceText("implementation")
             pressAndReleaseKeys(VK_TAB)
+            assertThat(selectedItem()).isEqualTo("implementation")
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "implementation"))
 
@@ -154,6 +161,8 @@ class EditableScopesTest {
           }
         }
       }
+      waitForDialogToClose()
+      waitForSyncToFinish()
     }
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -180,6 +189,7 @@ class EditableScopesTest {
           findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("compile")
             selectItem("implementation")
+            assertThat(selectedItem()).isEqualTo("implementation")
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "implementation"))
 
@@ -187,6 +197,7 @@ class EditableScopesTest {
           findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("implementation")
             selectItem("testImplementation")
+            assertThat(selectedItem()).isEqualTo("testImplementation")
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "testImplementation"))
         }
@@ -221,6 +232,7 @@ class EditableScopesTest {
             assertThat(selectedItem()).isEqualTo("testCompile")
             replaceText("testImplementation")
             pressAndReleaseKeys(VK_TAB)
+            assertThat(selectedItem()).isEqualTo("testImplementation")
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "testImplementation"))
 
@@ -232,6 +244,8 @@ class EditableScopesTest {
           }
         }
       }
+      waitForDialogToClose()
+      waitForSyncToFinish()
     }
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -260,6 +274,7 @@ class EditableScopesTest {
           findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("testCompile")
             selectItem("testImplementation")
+            assertThat(selectedItem()).isEqualTo("testImplementation")
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "testImplementation"))
 
@@ -267,6 +282,7 @@ class EditableScopesTest {
           findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("testImplementation")
             selectItem("implementation")
+            assertThat(selectedItem()).isEqualTo("implementation")
           }
         }
       }

@@ -47,6 +47,7 @@ import com.android.tools.idea.lint.AndroidLintExportedReceiverInspection;
 import com.android.tools.idea.lint.AndroidLintExportedServiceInspection;
 import com.android.tools.idea.lint.AndroidLintGradleDeprecatedInspection;
 import com.android.tools.idea.lint.AndroidLintGradleDynamicVersionInspection;
+import com.android.tools.idea.lint.AndroidLintGradlePathInspection;
 import com.android.tools.idea.lint.AndroidLintGridLayoutInspection;
 import com.android.tools.idea.lint.AndroidLintHardcodedTextInspection;
 import com.android.tools.idea.lint.AndroidLintIconDuplicatesInspection;
@@ -1322,6 +1323,11 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestWithFix(new AndroidLintWifiManagerLeakInspection(),
                   "Add getApplicationContext()",
                   "/src/test/pkg/WifiManagerLeak.java", "java");
+  }
+
+  public void testGradleWindows() throws Exception {
+    doTestWithFix(new AndroidLintGradlePathInspection(),
+                  "Replace with my/libs/http.jar", "build.gradle", "gradle");
   }
 
   public void testInvalidImeActionId() throws Exception {

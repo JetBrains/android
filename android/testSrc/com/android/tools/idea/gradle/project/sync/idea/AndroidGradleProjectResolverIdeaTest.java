@@ -15,6 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static java.util.stream.Collectors.toList;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.SyncIssue;
@@ -22,7 +40,11 @@ import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.model.*;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -39,6 +61,9 @@ import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
@@ -49,22 +74,6 @@ import org.jetbrains.plugins.gradle.service.project.DefaultProjectResolverContex
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 import org.mockito.Mock;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.util.stream.Collectors.toList;
-import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AndroidGradleProjectResolver}.
@@ -177,7 +186,12 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     Collection<DataNode<JavaModuleModel>> javaModelNodes = getChildren(moduleDataNode, JAVA_MODULE_MODEL);
     assertSize(1, javaModelNodes);
     JavaModuleModel javaModuleModel = javaModelNodes.iterator().next().getData();
-    assertThat(javaModuleModel.getSyncIssues()).containsExactly(syncIssue);
+    SyncIssue issue = javaModuleModel.getSyncIssues().iterator().next();
+    assertThat(issue.getMessage()).isEqualTo(syncIssue.getMessage());
+    assertThat(issue.getData()).isEqualTo(syncIssue.getData());
+    assertThat(issue.getSeverity()).isEqualTo(syncIssue.getSeverity());
+    assertThat(issue.getType()).isEqualTo(syncIssue.getType());
+    assertThat(issue.getMultiLineMessage()).isEqualTo(syncIssue.getMultiLineMessage());
   }
 
   public void testPopulateModuleContentRootsWithNativeAndroidProject() {

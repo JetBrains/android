@@ -112,8 +112,4 @@ public class CompilerOutputModuleSetupStepTest extends IdeaTestCase {
 
     verify(myCompilerSettingsSetup, never()).setOutputPaths(any(), any(), any());
   }
-
-  public void testIsInvokedOnSkippedSync() {
-    assertTrue(mySetupStep.invokeOnSkippedSync());
-  }
 }

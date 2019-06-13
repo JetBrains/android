@@ -29,12 +29,10 @@ import com.android.tools.idea.common.scene.draw.ColorSet
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawLeft
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawTop
-import com.android.tools.idea.uibuilder.model.viewHandler
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
@@ -44,6 +42,7 @@ import java.awt.Cursor
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.Stroke
+import kotlin.math.abs
 
 private const val DEBUG_RENDERER = false
 
@@ -54,12 +53,17 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   : BaseTarget() {
 
   /**
-   * list of dragged components. The first entry is the one which user start dragging.
+   * List of dragged components. The first entry is the one which user start dragging.
    */
   private lateinit var draggedComponents: List<SceneComponent>
 
   /**
-   * list of initial positions of dragged components
+   * List of new selected components. This is a list of new selection after mouse interaction.
+   */
+  private var newSelectedComponents: List<SceneComponent> = emptyList()
+
+  /**
+   * List of initial positions of dragged components
    */
   private lateinit var initialPositions: List<Point>
 
@@ -335,24 +339,31 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>) {
     if (!myComponent.isDragging) {
-      // Ignore double clicking case.
-      return
-    }
-    draggedComponents.forEach { it.isDragging = false }
-    val ph = snap(x, y)
-    if (ph != null) {
-      // TODO: Makes Notch works when dragging from other layouts to Constraint Layout.
-      if (ToggleAutoConnectAction.isAutoconnectOn()) {
-        targetSnapper.applyNotches(draggedComponents[0].authoritativeNlComponent.startAttributeTransaction())
+      val isClicked = abs(x - firstMouse.x) <= 1 && abs(y - firstMouse.y) <= 1
+      if (isClicked) {
+        // If the component is not being dragged and the mouse position almost not changed,
+        // it means that the user clicked the component without dragging.
+        newSelectedComponents = listOf(myComponent)
       }
-      applyPlaceholder(ph)
     }
     else {
-      draggedComponents.forEachIndexed { index, sceneComponent ->
-        sceneComponent.setPosition(firstMouse.x - offsets[index].x, firstMouse.y - offsets[index].y)
+      draggedComponents.forEach { it.isDragging = false }
+      val ph = snap(x, y)
+      if (ph != null) {
+        // TODO: Makes Notch works when dragging from other layouts to Constraint Layout.
+        if (ToggleAutoConnectAction.isAutoconnectOn()) {
+          targetSnapper.applyNotches(draggedComponents[0].authoritativeNlComponent.startAttributeTransaction())
+        }
+        applyPlaceholder(ph)
       }
+      else {
+        draggedComponents.forEachIndexed { index, sceneComponent ->
+          sceneComponent.setPosition(firstMouse.x - offsets[index].x, firstMouse.y - offsets[index].y)
+        }
+      }
+      newSelectedComponents = draggedComponents
     }
-
+    draggedComponents = emptyList()
     currentSnappedPlaceholder = null
     placeholderHosts = emptySet()
   }
@@ -406,10 +417,12 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
         nlComponent.fireLiveChangeEvent()
       }
     }
+    newSelectedComponents = draggedComponents
+    draggedComponents = emptyList()
     myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
   }
 
-  override fun newSelection(): List<SceneComponent> = draggedComponents
+  override fun newSelection(): List<SceneComponent> = newSelectedComponents
 
   override fun getMouseCursor(): Cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 

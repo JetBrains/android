@@ -24,7 +24,6 @@ import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -63,7 +62,7 @@ abstract class AbstractQuickFixMultiFileTest : LightCodeInsightFixtureTestCase()
   private fun createTestFile(testFile: TestFile): VirtualFile {
     return runWriteAction {
       val vFile = myFixture.tempDirFixture.createFile(testFile.path)
-      vFile.charset = CharsetToolkit.UTF8_CHARSET
+      vFile.charset = Charsets.UTF_8
       VfsUtil.saveText(vFile, testFile.content)
       vFile
     }

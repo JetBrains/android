@@ -638,7 +638,6 @@ public class DexFileViewer implements ApkFileEditorComponent {
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-      super.update(e);
       if (myProguardMappings != null) {
         e.getPresentation().setText("Change Proguard mappings...");
       }

@@ -60,9 +60,6 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
       else if (formFactor == FormFactor.AUTOMOTIVE && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
         // If automotive templates are not enabled, then we just ignore this form factor.
       }
-      else if (formFactor == FormFactor.GLASS && !AndroidSdkUtils.isGlassInstalled()) {
-        // Hidden if not installed
-      }
       else if (formFactor.equals(FormFactor.MOBILE)) {
         res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, getModuleTypeIcon(templateFile),
                                                       message("android.wizard.module.new.mobile"), metadata.getTitle()));
@@ -121,11 +118,6 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
       return myIsLibrary;
     }
 
-    @Override
-    public boolean isInstantApp() {
-      return false;
-    }
-
     @Nullable
     @Override
     public Icon getIcon() {
@@ -152,7 +144,7 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      String basePackage = getSuggestedProjectPackage(model.getProject().getValue(), false);
+      String basePackage = getSuggestedProjectPackage();
       return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, basePackage, myName);
     }
   }

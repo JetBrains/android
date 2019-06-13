@@ -44,6 +44,19 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public static final String FAKE_ATRACE_NAME = "Atrace";
 
+  public static final ProfilingConfiguration ART_SAMPLED_CONFIG = new ProfilingConfiguration(FAKE_ART_SAMPLED_NAME,
+                                                                                             Cpu.CpuTraceType.ART,
+                                                                                             Cpu.CpuTraceMode.SAMPLED);
+  public static final ProfilingConfiguration ART_INSTRUMENTED_CONFIG = new ProfilingConfiguration(FAKE_ART_INSTRUMENTED_NAME,
+                                                                                                  Cpu.CpuTraceType.ART,
+                                                                                                  Cpu.CpuTraceMode.INSTRUMENTED);
+  public static final ProfilingConfiguration SIMPLEPERF_CONFIG = new ProfilingConfiguration(FAKE_SIMPLEPERF_NAME,
+                                                                                            Cpu.CpuTraceType.SIMPLEPERF,
+                                                                                            Cpu.CpuTraceMode.SAMPLED);
+  public static final ProfilingConfiguration ATRACE_CONFIG = new ProfilingConfiguration(FAKE_ATRACE_NAME,
+                                                                                        Cpu.CpuTraceType.ATRACE,
+                                                                                        Cpu.CpuTraceMode.SAMPLED);
+
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
   private final NativeFrameSymbolizer myFakeSymbolizer = (abi, nativeFrame) -> nativeFrame;
   private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
@@ -154,6 +167,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myLiveAllocationsSamplingEnabled = true;
 
   /**
+   * Toggle for cpu capture stage switching vs cpu profiler stage when handling captures.
+   */
+  private boolean myIsCaptureStageEnabled = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -250,6 +268,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isCpuApiTracingEnabled() {
         return myIsCpuApiTracingEnabled;
       }
+
+      @Override
+      public boolean isCpuCaptureStageEnabled() { return myIsCaptureStageEnabled; }
 
       @Override
       public boolean isCpuNewRecordingWorkflowEnabled() {
@@ -392,19 +413,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
-    ProfilingConfiguration artSampled = new ProfilingConfiguration(FAKE_ART_SAMPLED_NAME,
-                                                                   Cpu.CpuTraceType.ART,
-                                                                   Cpu.CpuTraceMode.SAMPLED);
-    ProfilingConfiguration artInstrumented = new ProfilingConfiguration(FAKE_ART_INSTRUMENTED_NAME,
-                                                                        Cpu.CpuTraceType.ART,
-                                                                        Cpu.CpuTraceMode.INSTRUMENTED);
-    ProfilingConfiguration simpleperf = new ProfilingConfiguration(FAKE_SIMPLEPERF_NAME,
-                                                                   Cpu.CpuTraceType.SIMPLEPERF,
-                                                                   Cpu.CpuTraceMode.SAMPLED);
-    ProfilingConfiguration atrace = new ProfilingConfiguration(FAKE_ATRACE_NAME,
-                                                               Cpu.CpuTraceType.ATRACE,
-                                                               Cpu.CpuTraceMode.SAMPLED);
-    return ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
+    return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, ATRACE_CONFIG);
   }
 
   @Override
@@ -487,4 +496,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public void enableLiveAllocationsSampling(boolean enabled) {
     myLiveAllocationsSamplingEnabled = enabled;
   }
+
+  public void enableCpuCaptureStage(boolean enabled) { myIsCaptureStageEnabled = enabled; }
 }

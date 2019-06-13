@@ -16,32 +16,27 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.configurables.MODULES_VIEW
-import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers
-import com.android.tools.idea.tests.gui.framework.robot
-import org.fest.swing.fixture.JTabbedPaneFixture
+import org.fest.swing.core.Robot
 import java.awt.Container
-import javax.swing.JTabbedPane
 
 class ModulesPerspectiveConfigurableFixture(
-  ideFrameFixture: IdeFrameFixture,
+  robot: Robot,
   container: Container
-) : BasePerspectiveConfigurableFixture(ideFrameFixture, container) {
+) : BasePerspectiveConfigurableFixture(robot, container) {
 
   fun selectPropertiesTab(): ModulePropertiesFixture =
-    selectTab("Properties") { ModulePropertiesFixture(ideFrameFixture, it) }
+    selectTab("Properties") { ModulePropertiesFixture(robot(), it) }
 
   fun selectDefaultConfigTab(): ModuleDefaultConfigFixture =
-    selectTab("Default Config") { ModuleDefaultConfigFixture(ideFrameFixture, it) }
+    selectTab("Default Config") { ModuleDefaultConfigFixture(robot(), it) }
 
   fun selectSigningConfigsTab(): SigningConfigsFixture =
-    selectTab("Signing Configs") { SigningConfigsFixture(ideFrameFixture, it) }
+    selectTab("Signing Configs") { SigningConfigsFixture(robot(), it) }
 }
 
 fun ProjectStructureDialogFixture.selectModulesConfigurable(): ModulesPerspectiveConfigurableFixture {
   selectConfigurable("Modules")
   return ModulesPerspectiveConfigurableFixture(
-      ideFrameFixture,
-      findConfigurable(MODULES_VIEW))
+    robot(),
+    findConfigurable(MODULES_VIEW))
 }

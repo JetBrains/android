@@ -58,12 +58,12 @@ public final class EnergyCallstackView extends JPanel {
     StackTraceGroup stackTraceGroup = myStageView.getIdeComponents().createStackGroup();
     long startTimeNs = myStageView.getStage().getStudioProfilers().getSession().getStartTimestamp();
     for (Common.Event event : duration.getEventList()) {
-      if (event.getEnergyEvent().getTraceId().isEmpty() ||
+      if (event.getEnergyEvent().getCallstack().isEmpty() ||
           EnergyDuration.getMetadataName(event.getEnergyEvent().getMetadataCase()).isEmpty()) {
         continue;
       }
 
-      String callstackString = myStageView.getStage().requestBytes(event.getEnergyEvent().getTraceId()).toStringUtf8();
+      String callstackString = event.getEnergyEvent().getCallstack();
       StackTraceModel model = new StackTraceModel(myStageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator());
       StackTraceView stackTraceView = stackTraceGroup.createStackView(model);
       stackTraceView.getModel().setStackFrames(callstackString);
