@@ -154,11 +154,13 @@ object GuiTestLauncher {
       "-Ddisable.android.analytics.consent.dialog.for.test=true",
       "-Ddisable.config.import=true",
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
-      "-Didea.gui.test.port=$port",
-      /* aspects agent options */
-      "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}",
-      "-Daspects.baseline.export.path=${GuiTestOptions.getAspectsBaselineExportPath()}"
+      "-Didea.gui.test.port=$port"
     )
+    /* aspects agent options */
+    if (!SystemInfo.IS_AT_LEAST_JAVA9) {  // b/134524025
+      options += "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}"
+      options += "-Daspects.baseline.export.path=${GuiTestOptions.getAspectsBaselineExportPath()}"
+    }
     /* options for BLeak */
     if (System.getProperty("enable.bleak") == "true") {
       options += "-Denable.bleak=true"
