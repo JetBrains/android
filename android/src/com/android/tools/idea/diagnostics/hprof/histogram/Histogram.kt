@@ -38,10 +38,9 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
 
   val bytesCount: Long = getTotals().second
 
-  fun prepareReport(name: String, topClassCount: Int): String {
-    val result = StringBuilder()
-    result.appendln("Histogram. Top $topClassCount by instance count:")
-    val appendToResult = { s: String -> result.appendln(s); Unit }
+  fun prepareReport(name: String, topClassCount: Int): String = buildString {
+    appendln("Histogram. Top $topClassCount by instance count:")
+    val appendToResult = { s: String -> appendln(s); Unit }
     var counter = 1
 
     TruncatingPrintBuffer(topClassCount, 0, appendToResult).use { buffer ->
@@ -50,15 +49,14 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
         counter++
       }
     }
-    result.appendln(getSummaryLine(this, name))
-    result.appendln()
-    result.appendln("Top 10 by bytes count:")
+    appendln(getSummaryLine(this@Histogram, name))
+    appendln()
+    appendln("Top 10 by bytes count:")
     val entriesByBytes = entries.sortedByDescending { it.totalBytes }
     for (i in 0 until 10) {
       val entry = entriesByBytes[i]
-      result.appendln(formatEntryLine(i + 1, entry))
+      appendln(formatEntryLine(i + 1, entry))
     }
-    return result.toString()
   }
 
   companion object {
@@ -70,10 +68,7 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
 
     fun prepareMergedHistogramReport(mainHistogram: Histogram, mainHistogramName: String,
                                      secondaryHistogram: Histogram, secondaryHistogramName: String,
-                                     options: AnalysisConfig.HistogramOptions): String {
-      val result = StringBuilder()
-      val appendToResult = { s: String -> result.appendln(s); Unit }
-
+                                     options: AnalysisConfig.HistogramOptions): String = buildString {
       val mapClassNameToEntrySecondary = HashMap<String, HistogramEntry>()
       secondaryHistogram.entries.forEach {
         mapClassNameToEntrySecondary[it.classDefinition.name] = it
@@ -83,37 +78,36 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
         "${getSummaryLine(mainHistogram, mainHistogramName)}\n${getSummaryLine(secondaryHistogram, secondaryHistogramName)}"
 
       if (options.includeByCount) {
-        result.appendln("Histogram. Top ${options.classByCountLimit} by instance count [All-objects] [Only-strong-ref]:")
+        appendln("Histogram. Top ${options.classByCountLimit} by instance count [All-objects] [Only-strong-ref]:")
         var counter = 1
 
-        TruncatingPrintBuffer(options.classByCountLimit, 0, appendToResult).use { buffer ->
+        TruncatingPrintBuffer(options.classByCountLimit, 0, this::appendln).use { buffer ->
           mainHistogram.entries.forEach { entry ->
             val entry2 = mapClassNameToEntrySecondary[entry.classDefinition.name]
             buffer.println(formatEntryLineMerged(counter, entry, entry2))
             counter++
           }
         }
-        result.appendln(summary)
+        appendln(summary)
       }
 
       if (options.includeBySize && options.includeByCount) {
-        result.appendln()
+        appendln()
       }
 
       if (options.includeBySize) {
         val classCountInByBytesSection = min(mainHistogram.entries.size, options.classBySizeLimit)
-        result.appendln("Top $classCountInByBytesSection by size:")
+        appendln("Top $classCountInByBytesSection by size:")
         val entriesByBytes = mainHistogram.entries.sortedByDescending { it.totalBytes }
         for (i in 0 until classCountInByBytesSection) {
           val entry = entriesByBytes[i]
           val entry2 = mapClassNameToEntrySecondary[entry.classDefinition.name]
-          result.appendln(formatEntryLineMerged(i + 1, entry, entry2))
+          appendln(formatEntryLineMerged(i + 1, entry, entry2))
         }
         if (!options.includeByCount) {
-          result.appendln(summary)
+          appendln(summary)
         }
       }
-      return result.toString()
     }
 
     private fun getSummaryLine(histogram: Histogram,
