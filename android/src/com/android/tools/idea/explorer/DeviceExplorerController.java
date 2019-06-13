@@ -555,7 +555,6 @@ public class DeviceExplorerController {
     @UiThread
     @NotNull
     private ListenableFuture<Path> downloadFileEntryToDefaultLocation(@NotNull DeviceFileEntryNode treeNode) {
-      // Figure out local path, ask user in "Save As" dialog if required
       Path localPath;
       try {
         localPath = myFileManager.getDefaultLocalPathForEntry(treeNode.getEntry());
