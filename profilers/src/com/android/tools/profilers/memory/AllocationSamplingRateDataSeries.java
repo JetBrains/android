@@ -38,9 +38,9 @@ public final class AllocationSamplingRateDataSeries implements DataSeries<Alloca
   }
 
   @Override
-  public List<SeriesData<AllocationSamplingRateDurationData>> getDataForXRange(Range xRange) {
-    long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
-    long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
+  public List<SeriesData<AllocationSamplingRateDurationData>> getDataForRange(Range range) {
+    long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)range.getMin());
+    long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)range.getMax());
 
     // TODO(b/113703171): Query only sampling rate events needed to construct range data.
     MemoryRequest.Builder dataRequestBuilder = MemoryRequest

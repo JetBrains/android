@@ -43,7 +43,6 @@ class AddDynamicFeatureTest {
 
   @After
   fun tearDown() {
-    StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.clearOverride()
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.clearOverride()
   }
 
@@ -112,7 +111,6 @@ class AddDynamicFeatureTest {
   @Throws(Exception::class)
   fun addInstantDynamicModule_baseHasNoModule() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
-    StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true)
     val ideFrame = guiTest.importSimpleApplication()
     createInstantDynamicModule(ideFrame)
 
@@ -145,7 +143,6 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addInstantDynamicModuleWithFusing_baseHasNoModule() {
-    StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true)
     val ideFrame = guiTest.importSimpleApplication()
 
     createInstantDynamicModuleWithFusing(ideFrame)
@@ -173,7 +170,6 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addInstantDynamicModuleWithFusing_baseHasModule() {
-    StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true)
     val ideFrame = guiTest.importSimpleApplication()
 
     writeDistModuleToBaseManifest(false)

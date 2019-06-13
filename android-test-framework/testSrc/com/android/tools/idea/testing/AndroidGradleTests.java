@@ -15,15 +15,49 @@
  */
 package com.android.tools.idea.testing;
 
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
+import static com.android.testutils.TestUtils.getKotlinVersionForTests;
+import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.io.Files.write;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.util.io.FileUtil.copyDir;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.annotation.RegEx;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import com.intellij.util.ThrowableConsumer;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,15 +65,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.DOT_GRADLE;
-import static com.android.SdkConstants.EXT_GRADLE_KTS;
-import static com.android.testutils.TestUtils.getKotlinVersionForTests;
-import static com.android.testutils.TestUtils.getWorkspaceFile;
-import static com.google.common.io.Files.write;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import javax.annotation.RegEx;
+import junit.framework.TestCase;
+import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidGradleTests {
+  private static final Logger LOG = Logger.getInstance(AndroidGradleTests.class);
   private static final Pattern REPOSITORIES_PATTERN = Pattern.compile("repositories[ ]+\\{");
   private static final Pattern GOOGLE_REPOSITORY_PATTERN = Pattern.compile("google\\(\\)");
   private static final Pattern JCENTER_REPOSITORY_PATTERN = Pattern.compile("jcenter\\(\\)");
@@ -157,6 +191,13 @@ public class AndroidGradleTests {
     return contents;
   }
 
+  public static void updateLocalProperties(@NotNull File projectRoot, @NotNull File sdkPath) throws IOException {
+    LocalProperties localProperties = new LocalProperties(projectRoot);
+    assertAbout(file()).that(sdkPath).named("Android SDK path").isDirectory();
+    localProperties.setAndroidSdkPath(sdkPath.getPath());
+    localProperties.save();
+  }
+
   @NotNull
   public static String updateLocalRepositories(@NotNull String contents, @NotNull String localRepositories) {
     String newContents = REPOSITORIES_PATTERN.matcher(contents).replaceAll("repositories {\n" + localRepositories);
@@ -234,5 +275,164 @@ public class AndroidGradleTests {
       contents = contents.substring(0, matcher.start(1)) + value + contents.substring(matcher.end(1));
     }
     return contents;
+  }
+
+  /**
+   * Creates a gradle wrapper for use in tests under the {@code projectRoot}.
+   * @throws IOException
+   */
+  public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
+    GradleWrapper wrapper = GradleWrapper.create(projectRoot);
+    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
+    assertAbout(file()).that(path).named("Gradle distribution path").isFile();
+    wrapper.updateDistributionUrl(path);
+  }
+
+  /**
+   * Finds the AndroidFacet to be used by the test.
+   */
+  @Nullable
+  public static AndroidFacet findAndroidFacetForTests(Module[] modules, @Nullable String chosenModuleName) {
+    AndroidFacet testAndroidFacet = null;
+    // if module name is specified, find it
+    if (chosenModuleName != null) {
+      for (Module module : modules) {
+        if (chosenModuleName.equals(module.getName())) {
+          testAndroidFacet = AndroidFacet.getInstance(module);
+          break;
+        }
+      }
+    }
+
+    if (testAndroidFacet == null) {
+      // then try and find a non-lib facet
+      for (Module module : modules) {
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet != null && androidFacet.getConfiguration().isAppProject()) {
+          testAndroidFacet = androidFacet;
+          break;
+        }
+      }
+    }
+
+    // then try and find ANY android facet
+    if (testAndroidFacet == null) {
+      for (Module module : modules) {
+        testAndroidFacet = AndroidFacet.getInstance(module);
+        if (testAndroidFacet != null) {
+          break;
+        }
+      }
+    }
+    return testAndroidFacet;
+  }
+
+  public static void setUpSdks(@NotNull JavaCodeInsightTestFixture fixture, @NotNull File androidSdkPath) {
+    @NotNull Project project = fixture.getProject();
+    // We seem to have two different locations where the SDK needs to be specified.
+    // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
+    // Gradle import will fail if the global one isn't set.
+
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    runWriteCommandAction(project, () -> {
+      if (IdeInfo.getInstance().isAndroidStudio()) {
+        ideSdks.setUseEmbeddedJdk();
+        LOG.info("Set JDK to " + ideSdks.getJdkPath());
+      }
+
+      Sdks.allowAccessToSdk(fixture.getProjectDisposable());
+      ideSdks.setAndroidSdkPath(androidSdkPath, project);
+      IdeSdks.removeJdksOn(fixture.getProjectDisposable());
+
+      LOG.info("Set IDE Sdk Path to " + androidSdkPath);
+    });
+
+    Sdk currentJdk = ideSdks.getJdk();
+    TestCase.assertNotNull(currentJdk);
+    TestCase.assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), Jdks.getInstance().isApplicableJdk(currentJdk, JDK_1_8));
+
+    // IntelliJ uses project jdk for gradle import by default, see GradleProjectSettings.myGradleJvm
+    // Android Studio overrides GradleInstallationManager.getGradleJdk() using AndroidStudioGradleInstallationManager
+    // so it doesn't require the Gradle JDK setting to be defined
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      new WriteAction() {
+        @Override
+        protected void run(@NotNull Result result) {
+          ProjectRootManager.getInstance(project).setProjectSdk(currentJdk);
+        }
+      }.execute();
+    }
+  }
+
+  /**
+   * Imports {@code project}, requests sync and waits for sync to complete.
+   */
+  public static void importProject(@NotNull Project project) throws Exception {
+    Ref<Throwable> throwableRef = new Ref<>();
+    TestGradleSyncListener syncListener = new TestGradleSyncListener();
+    Disposable subscriptionDisposable = Disposer.newDisposable();
+    try {
+      ApplicationManager.getApplication().invokeAndWait(() -> {
+        try {
+          // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
+          // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
+          GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
+          Project newProject = GradleProjectImporter.getInstance().importProjectNoSync(project.getName(), getBaseDirPath(project), request);
+
+          // It is essential to subscribe to notifications via [newProject] which may be different from the current project if
+          // a new project was requested.
+          GradleSyncState.subscribe(newProject, syncListener, subscriptionDisposable);
+
+          GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.testRequest();
+          syncRequest.generateSourcesOnSuccess = false;
+          GradleSyncInvoker.getInstance().requestProjectSync(newProject, syncRequest, null);
+        }
+        catch (Throwable e) {
+          throwableRef.set(e);
+        }
+      });
+
+      Throwable throwable = throwableRef.get();
+      if (throwable != null) {
+        if (throwable instanceof IOException) {
+          throw (IOException)throwable;
+        }
+        else if (throwable instanceof ConfigurationException) {
+          throw (ConfigurationException)throwable;
+        }
+        else {
+          throw new RuntimeException(throwable);
+        }
+      }
+      // NOTE: The following await does nothing since we request sync on the EDT thread and in tests sync runs synchronously and
+      //       requestProjectSync() does not exit until sync completes.
+      syncListener.await();
+    }
+    finally {
+      Disposer.dispose(subscriptionDisposable);
+    }
+    if (syncListener.failureMessage != null) {
+      TestCase.fail(syncListener.failureMessage);
+    }
+    AndroidTestBase.refreshProjectFiles();
+  }
+
+  public static void prepareProjectForImportCore(@NotNull File srcRoot,
+                                                 @NotNull File projectRoot,
+                                                 @NotNull File sdkPath,
+                                                 @NotNull ThrowableConsumer<File, IOException> patcher)
+    throws IOException {
+    TestCase.assertTrue(srcRoot.getPath(), srcRoot.exists());
+
+    copyDir(srcRoot, projectRoot);
+
+    // Override settings just for tests (e.g. sdk.dir)
+    updateLocalProperties(projectRoot, sdkPath);
+
+    patcher.consume(projectRoot);
+
+    // Refresh project dir to have files under of the project.getBaseDir() visible to VFS.
+    // Do it in a slower but reliable way.
+    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectRoot, true));
   }
 }

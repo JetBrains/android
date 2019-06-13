@@ -15,24 +15,31 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import static com.android.tools.idea.gradle.project.facet.java.JavaFacet.COMPILE_JAVA_TASK_NAME;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+
 import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
+import com.android.ide.common.gradle.model.ModelCache;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.tools.idea.gradle.project.facet.java.JavaFacet.COMPILE_JAVA_TASK_NAME;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 /**
  * Base model for Java library modules
@@ -71,8 +78,8 @@ public class JavaModuleModel implements ModuleModel {
                          @NotNull Collection<JavaModuleContentRoot> contentRoots,
                          @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
                          @NotNull Collection<JarLibraryDependency> jarLibraryDependencies,
-                         @NotNull Collection<SyncIssue> syncIssues,
                          @NotNull Map<String, Set<File>> artifactsByConfiguration,
+                         @NotNull Collection<SyncIssue> syncIssues,
                          @Nullable ExtIdeaCompilerOutput compilerOutput,
                          @Nullable File buildFolderPath,
                          @Nullable String languageLevel,
@@ -82,7 +89,7 @@ public class JavaModuleModel implements ModuleModel {
     myContentRoots = contentRoots;
     myJavaModuleDependencies = javaModuleDependencies;
     myJarLibraryDependencies = jarLibraryDependencies;
-    mySyncIssues = syncIssues;
+    mySyncIssues = syncIssues.stream().map(issue -> new IdeSyncIssue(issue, new ModelCache())).collect(Collectors.toList());
     myArtifactsByConfiguration = artifactsByConfiguration;
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;

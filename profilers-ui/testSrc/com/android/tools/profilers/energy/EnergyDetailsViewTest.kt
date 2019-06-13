@@ -21,7 +21,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Energy
-import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -29,6 +28,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -173,8 +173,7 @@ class EnergyDetailsViewTest {
   @Test
   fun callstackIsProperlyRendered() {
     val eventWithTrace = wakeLockAcquireEvent.toBuilder().setEnergyEvent(
-      wakeLockAcquireEvent.energyEvent.toBuilder().setTraceId("traceId")).build()
-    transportService.addFile("traceId", ByteString.copyFromUtf8(callstackText))
+      wakeLockAcquireEvent.energyEvent.toBuilder().setCallstack(callstackText)).build()
     view.setDuration(EnergyDuration(Arrays.asList(eventWithTrace)))
     val nonEmptyView = TreeWalker(view).descendants().filterIsInstance<EnergyCallstackView>().first()
     assertThat(nonEmptyView.components.any { c -> c is JPanel }).isTrue()

@@ -23,7 +23,6 @@ import com.intellij.ide.actions.CreateFromTemplateAction;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -150,8 +149,7 @@ public final class CreateClassAction extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     boolean enabled = isAvailable(e.getDataContext());
     Presentation presentation = e.getPresentation();
-    presentation.setVisible(enabled);
-    presentation.setEnabled(enabled);
+    presentation.setEnabledAndVisible(enabled);
   }
 
   private static boolean isAvailable(@NotNull DataContext dataContext) {

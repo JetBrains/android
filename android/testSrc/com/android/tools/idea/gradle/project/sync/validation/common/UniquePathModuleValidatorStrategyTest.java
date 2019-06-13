@@ -24,6 +24,7 @@ import com.google.common.collect.Multimap;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -44,7 +45,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link UniquePathModuleValidatorStrategy}.
  */
-public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase {
+public class UniquePathModuleValidatorStrategyTest extends AndroidTestCase {
   @Mock private Module myModule1;
   @Mock private Module myModule2;
   @Mock private Module myModule3;

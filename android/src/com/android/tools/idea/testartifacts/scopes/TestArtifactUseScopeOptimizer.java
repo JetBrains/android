@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -34,7 +37,13 @@ public class TestArtifactUseScopeOptimizer implements ScopeOptimizer {
     if (file == null) {
       return null;
     }
-    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(file, element.getProject());
+
+    Module module = ModuleUtilCore.findModuleForPsiElement(element);
+    if (module == null) {
+      return null;
+    }
+
+    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
     if (testScopes == null) {
       return null;
     }

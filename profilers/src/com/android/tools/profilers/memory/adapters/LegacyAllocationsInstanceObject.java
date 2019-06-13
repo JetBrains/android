@@ -16,7 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.memory.adapters.ClassDb.ClassEntry;
 import com.android.tools.profilers.stacktrace.ThreadId;
 import com.google.common.collect.ImmutableMap;

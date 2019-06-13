@@ -88,7 +88,7 @@ public final class GroovyDslUtil {
     if (element instanceof GroovyPsiElement) {
       return (GroovyPsiElement)element;
     }
-    throw new IllegalArgumentException("Wrong PsiElement type for writer! Must be of type GoovyPsiElement");
+    throw new IllegalArgumentException("Wrong PsiElement type for writer! Must be of type GroovyPsiElement");
   }
 
   static void addConfigBlock(@NotNull GradleDslSettableExpression expression) {
@@ -808,7 +808,7 @@ public final class GroovyDslUtil {
 
   /**
    * @param startElement starting element
-   * @return the last none null psi element in the tree starting at node startElement.
+   * @return the last non-null psi element in the tree starting at node startElement.
    */
   @Nullable
   static PsiElement findLastPsiElementIn(@NotNull GradleDslElement startElement) {

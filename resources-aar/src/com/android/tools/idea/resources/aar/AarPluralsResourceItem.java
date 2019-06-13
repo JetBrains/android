@@ -43,10 +43,10 @@ final class AarPluralsResourceItem extends AbstractAarValueResourceItem implemen
    * @param visibility the visibility of the resource
    * @param quantityValues the values corresponding to quantities
    */
-  public AarPluralsResourceItem(@NotNull String name,
-                                @NotNull AarSourceFile sourceFile,
-                                @NotNull ResourceVisibility visibility,
-                                @NotNull Map<Arity, String> quantityValues) {
+  AarPluralsResourceItem(@NotNull String name,
+                         @NotNull AarSourceFile sourceFile,
+                         @NotNull ResourceVisibility visibility,
+                         @NotNull Map<Arity, String> quantityValues) {
     this(name, sourceFile, visibility,
          quantityValues.keySet().toArray(Arity.EMPTY_ARRAY), quantityValues.values().toArray(ArrayUtil.EMPTY_STRING_ARRAY));
   }

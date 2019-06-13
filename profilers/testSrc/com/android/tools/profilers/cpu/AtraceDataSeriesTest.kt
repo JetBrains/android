@@ -18,10 +18,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
@@ -52,7 +49,7 @@ class AtraceDataSeriesTest {
     val series = AtraceDataSeries<CpuProfilerStage.ThreadState>(capture, { _ -> testSeriesData })
     // Test get exact data.
     var seriesData: List<SeriesData<CpuProfilerStage.ThreadState>> =
-      series.getDataForXRange(
+      series.getDataForRange(
         Range(
           TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
           TimeUnit.MILLISECONDS.toMicros(100).toDouble()
@@ -62,7 +59,7 @@ class AtraceDataSeriesTest {
 
     // Test no overlap returns one result. This result should be the last.
     seriesData =
-      series.getDataForXRange(
+      series.getDataForRange(
         Range(
           TimeUnit.MILLISECONDS.toMicros(100).toDouble(),
           TimeUnit.MILLISECONDS.toMicros(150).toDouble()
@@ -72,7 +69,7 @@ class AtraceDataSeriesTest {
 
     // Test trace info starts before series data [xxxx|xx]----| returns only valid overlapped range.
     seriesData =
-      series.getDataForXRange(
+      series.getDataForRange(
         Range(
           TimeUnit.MILLISECONDS.toMicros(0).toDouble(),
           TimeUnit.MILLISECONDS.toMicros(50).toDouble()
@@ -82,7 +79,7 @@ class AtraceDataSeriesTest {
 
     // Test trace info overlaps end of series data |-----[xx|xxx] returns only data starting at just before 50 up to max data.
     seriesData =
-      series.getDataForXRange(
+      series.getDataForRange(
         Range(
           TimeUnit.MILLISECONDS.toMicros(50).toDouble(),
           TimeUnit.MILLISECONDS.toMicros(150).toDouble()
@@ -94,7 +91,7 @@ class AtraceDataSeriesTest {
     val minUs = TimeUnit.MILLISECONDS.toMicros(50)
     val maxUs = TimeUnit.MILLISECONDS.toMicros(75)
     seriesData =
-      series.getDataForXRange(
+      series.getDataForRange(
         Range(
           minUs.toDouble(),
           maxUs.toDouble()
@@ -104,7 +101,7 @@ class AtraceDataSeriesTest {
 
     // Test last element is returned if we request last bit of data.
     seriesData =
-      series.getDataForXRange(
+      series.getDataForRange(
         Range(
           TimeUnit.MILLISECONDS.toMicros(99).toDouble(),
           TimeUnit.MILLISECONDS.toMicros(100).toDouble()
@@ -119,7 +116,7 @@ class AtraceDataSeriesTest {
     val series = AtraceDataSeries<CpuProfilerStage.ThreadState>(capture, { _ -> testSeriesData })
     // Test getting data for an empty series doesn't cause issues and returns nothing.
     var seriesData: List<SeriesData<CpuProfilerStage.ThreadState>> =
-      series.getDataForXRange(
+      series.getDataForRange(
         Range(
           TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
           TimeUnit.MILLISECONDS.toMicros(100).toDouble()

@@ -19,16 +19,14 @@ import com.android.tools.idea.diagnostics.hprof.parser.HProfVisitor
 import com.android.tools.idea.diagnostics.hprof.parser.RecordType
 import gnu.trove.TLongObjectHashMap
 
-class CollectStringValuesVisitor(private val stringIDToString: TLongObjectHashMap<String?>) : HProfVisitor() {
+class CollectStringValuesVisitor(val output: TLongObjectHashMap<String>) : HProfVisitor() {
   override fun preVisit() {
     disableAll()
     enable(RecordType.StringInUTF8)
   }
 
   override fun visitStringInUTF8(id: Long, s: String) {
-    if (stringIDToString.contains(id)) {
-      assert(stringIDToString[id] == null)
-      stringIDToString.put(id, s)
-    }
+    assert(output[id] == null)
+    output.put(id, s)
   }
 }

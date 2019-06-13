@@ -22,10 +22,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.LegacyAllocationTracker;
 import com.android.tools.idea.transport.ServiceProxy;
+import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.*;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TLongObjectHashMap;
@@ -338,8 +340,8 @@ public class MemoryServiceProxy extends ServiceProxy {
 
   private void saveAllocationData(long sessionId, long infoId,
                                   @Nullable byte[] rawBytes,
-                                  @NotNull List<MemoryProfiler.AllocatedClass> classes,
-                                  @NotNull List<MemoryProfiler.AllocationStack> stacks,
+                                  @NotNull List<Memory.AllocatedClass> classes,
+                                  @NotNull List<Memory.AllocationStack> stacks,
                                   @NotNull List<MemoryProfiler.LegacyAllocationEvent> events) {
     synchronized (myUpdatingDataLock) {
       TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(sessionId);

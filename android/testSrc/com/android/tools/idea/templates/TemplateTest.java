@@ -19,6 +19,8 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.SdkConstants.FD_TEMPLATES;
 import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
@@ -28,7 +30,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_INSTANT_APP;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
@@ -66,7 +67,6 @@ import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
@@ -86,6 +86,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.checks.ManifestDetector;
@@ -1232,7 +1233,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     moduleState.put(ATTR_TARGET_API_STRING, Integer.toString(targetSdk));
     moduleState.put(ATTR_BUILD_API, target.getVersion().getApiLevel());
     moduleState.put(ATTR_BUILD_API_STRING, getBuildApiString(target.getVersion()));
-    moduleState.put(ATTR_IS_INSTANT_APP, false);
 
     // Next check all other parameters, cycling through booleans and enums.
     Template templateHandler = templateState.getTemplate();
@@ -1433,10 +1433,10 @@ public class TemplateTest extends AndroidGradleTestCase {
       myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
       myFixture.setUp();
 
-      Project project = myFixture.getProject();
+      Project project = getProject();
       new IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
-      setUpSdks(project);
-      projectDir = Projects.getBaseDirPath(project);
+      AndroidGradleTests.setUpSdks(myFixture, findSdkPath());
+      projectDir = getBaseDirPath(project);
       moduleState.put(ATTR_TOP_OUT, projectDir.getPath());
 
       System.out.println("Checking project " + projectName + " in " + project.getBaseDir());
@@ -1588,7 +1588,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     // Update to latest plugin / gradle and sync model
     File projectRoot = new File(moduleState.getString(ATTR_TOP_OUT));
     assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
-    createGradleWrapper(projectRoot);
+    AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
 
     File gradleFile = new File(projectRoot, SdkConstants.FN_BUILD_GRADLE);
     String origContent = com.google.common.io.Files.toString(gradleFile, UTF_8);
@@ -1599,7 +1599,9 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     refreshProjectFiles();
     if (syncProject) {
-      importProject(moduleState.getString(ATTR_MODULE_NAME), projectRoot);
+      assertEquals(moduleState.getString(ATTR_MODULE_NAME), getProject().getName());
+      assertEquals(projectRoot, getBaseDirPath(getProject()));
+      importProject();
     }
   }
 

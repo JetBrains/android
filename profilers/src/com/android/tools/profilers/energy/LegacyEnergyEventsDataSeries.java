@@ -40,10 +40,10 @@ public final class LegacyEnergyEventsDataSeries implements DataSeries<Common.Eve
   }
 
   @Override
-  public List<SeriesData<Common.Event>> getDataForXRange(Range xRange) {
+  public List<SeriesData<Common.Event>> getDataForRange(Range range) {
     EnergyProfiler.EnergyRequest.Builder builder = EnergyProfiler.EnergyRequest.newBuilder().setSession(mySession);
-    builder.setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long) xRange.getMin()));
-    builder.setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long) xRange.getMax()));
+    builder.setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)range.getMin()));
+    builder.setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)range.getMax()));
     EnergyProfiler.EnergyEventsResponse response = myClient.getEnergyClient().getEvents(builder.build());
 
     return response.getEventsList()

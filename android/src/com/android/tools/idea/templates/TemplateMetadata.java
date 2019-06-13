@@ -111,15 +111,8 @@ public class TemplateMetadata {
   public static final String ATTR_DYNAMIC_FEATURE_FUSING = "dynamicFeatureFusing";
   public static final String ATTR_DYNAMIC_IS_INSTANT_MODULE = "isInstantModule";
 
-  public static final String ATTR_IS_INSTANT_APP = "isInstantApp";
   public static final String ATTR_IS_DYNAMIC_INSTANT_APP = "isDynamicInstantApp";
-  public static final String ATTR_HAS_INSTANT_APP_WRAPPER = "hasInstantAppWrapper";
-  public static final String ATTR_HAS_MONOLITHIC_APP_WRAPPER = "hasMonolithicAppWrapper";
-  public static final String ATTR_MONOLITHIC_MODULE_NAME = "monolithicModuleName";
-  public static final String ATTR_INSTANT_APP_PACKAGE_NAME = "instantAppPackageName";
-  public static final String ATTR_INSTANT_APP_API_MIN_VERSION = "instantAppApiMinVersion";
   public static final String ATTR_COMPANY_DOMAIN = "companyDomain";
-  public static final String ATTR_IS_BASE_FEATURE = "isBaseFeature";
   public static final String ATTR_BASE_FEATURE_NAME = "baseFeatureName";
   public static final String ATTR_BASE_FEATURE_DIR = "baseFeatureDir";
   public static final String ATTR_BASE_FEATURE_RES_DIR = "baseFeatureResDir";

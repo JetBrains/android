@@ -84,6 +84,7 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
       myThreadName = threadName;
       myThreadId = filter.getThreadId();
       myAtraceCpuStateDataSeries = new AtraceDataSeries<>(atraceCapture, capture -> capture.getFrames(filter));
+      // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
       myModel.addSeries(new RangedSeries<>(myRange, myAtraceCpuStateDataSeries));
     }
 

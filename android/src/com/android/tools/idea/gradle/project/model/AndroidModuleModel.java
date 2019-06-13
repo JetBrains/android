@@ -36,6 +36,7 @@ import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaCompileOptions;
 import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.ProductFlavorContainer;
+import com.android.builder.model.ProjectSyncIssues;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SourceProviderContainer;
 import com.android.builder.model.SyncIssue;
@@ -148,7 +149,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                             @NotNull AndroidProject androidProject,
                             @NotNull String selectedVariantName,
                             @NotNull IdeDependenciesFactory dependenciesFactory) {
-    this(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null);
+    this(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null, null);
   }
 
   public AndroidModuleModel(@NotNull String moduleName,
@@ -156,8 +157,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                             @NotNull AndroidProject androidProject,
                             @NotNull String variantName,
                             @NotNull IdeDependenciesFactory dependenciesFactory,
-                            @Nullable Collection<Variant> variantsToAdd) {
-    myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory, variantsToAdd);
+                            @Nullable Collection<Variant> variantsToAdd,
+                            @Nullable ProjectSyncIssues syncIssues) {
+    myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
     myUsingSingleVariantSync = variantsToAdd != null;
 
     myProjectSystemId = GRADLE_SYSTEM_ID;

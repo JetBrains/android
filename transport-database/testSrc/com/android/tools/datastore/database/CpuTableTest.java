@@ -55,7 +55,6 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
   protected List<Consumer<CpuTable>> getTableQueryMethodsForVerification() {
     List<Consumer<CpuTable>> methodCalls = new ArrayList<>();
     methodCalls.add((table) -> assertThat(table.getCpuDataByRequest(CpuProfiler.CpuDataRequest.getDefaultInstance())).isEmpty());
-    methodCalls.add((table) -> assertThat(table.getProfilingStateData(Common.Session.getDefaultInstance())).isNull());
     methodCalls.add((table) -> assertThat(table.getThreadsDataByRequest(CpuProfiler.GetThreadsRequest.getDefaultInstance())).isEmpty());
     methodCalls.add((table) -> assertThat(table.getTraceInfo(CpuProfiler.GetTraceInfoRequest.getDefaultInstance())).isEmpty());
     methodCalls.add((table) -> table.insert(Common.Session.getDefaultInstance(), Cpu.CpuUsageData.getDefaultInstance()));
@@ -64,8 +63,6 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
       activities.add(CpuProfiler.GetThreadsResponse.ThreadActivity.getDefaultInstance());
       table.insertActivities(Common.Session.getDefaultInstance(), 0, "", activities);
     });
-    methodCalls.add((table) -> table
-      .insertProfilingStateData(Common.Session.getDefaultInstance(), CpuProfiler.ProfilingStateResponse.getDefaultInstance()));
     methodCalls.add((table) -> {
       List<CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot> snapshots = new ArrayList<>();
       snapshots.add(CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot.getDefaultInstance());
@@ -123,7 +120,10 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
       long startTime = SESSION_ONE_OFFSET + i * 2;
       Cpu.CpuTraceInfo trace = Cpu.CpuTraceInfo
         .newBuilder().setTraceId(startTime)
-        .setTraceType(Cpu.CpuTraceType.ART).setTraceMode(Cpu.CpuTraceMode.SAMPLED)
+        .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                            .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+                                              .setTraceType(Cpu.CpuTraceType.ART)
+                                              .setTraceMode(Cpu.CpuTraceMode.SAMPLED)))
         .setFromTimestamp(startTime).setToTimestamp(startTime + 1)
         .build();
       getTable().insertTraceInfo(SESSION_HUNDREDS, trace);
@@ -303,65 +303,5 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
       .newBuilder().setSession(SESSION_THOUSANDS).setFromTimestamp(0).setToTimestamp(Long.MAX_VALUE).build();
     List<Cpu.CpuTraceInfo> traceInfo = getTable().getTraceInfo(request);
     assertThat(traceInfo.size()).isEqualTo(0);
-  }
-
-  @Test
-  public void beingProfiledStateIsBasedOnSession() {
-    Cpu.CpuTraceConfiguration simpleperfConfig = Cpu.CpuTraceConfiguration.newBuilder()
-      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.SIMPLEPERF))
-      .build();
-    CpuProfiler.ProfilingStateResponse response1 = CpuProfiler.ProfilingStateResponse
-      .newBuilder().setBeingProfiled(true).setConfiguration(simpleperfConfig).build();
-
-    Cpu.CpuTraceConfiguration artConfig = Cpu.CpuTraceConfiguration.newBuilder()
-      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ART))
-      .build();
-    CpuProfiler.ProfilingStateResponse response2 = CpuProfiler.ProfilingStateResponse
-      .newBuilder().setBeingProfiled(true).setConfiguration(artConfig).build();
-
-    Common.Session aliveSession = Common.Session.newBuilder().setSessionId(3L).setEndTimestamp(Long.MAX_VALUE /* alive */).build();
-
-    getTable().insertProfilingStateData(SESSION_HUNDREDS, response1);
-    getTable().insertProfilingStateData(aliveSession, response2);
-
-    // The response we return depends on the session we pass to the select query
-    CpuProfiler.ProfilingStateResponse response = getTable().getProfilingStateData(SESSION_HUNDREDS);
-    assertThat(response).isNotNull();
-    assertThat(response.getBeingProfiled()).isTrue();
-    assertThat(response.getConfiguration().getUserOptions().getTraceType()).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF);
-
-    response = getTable().getProfilingStateData(aliveSession);
-    assertThat(response).isNotNull();
-    assertThat(response.getBeingProfiled()).isTrue();
-    assertThat(response.getConfiguration().getUserOptions().getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
-  }
-
-  @Test
-  public void latestBeingProfiledStateShouldBeReturned() {
-    Cpu.CpuTraceConfiguration simpleperfConfig = Cpu.CpuTraceConfiguration.newBuilder()
-      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.SIMPLEPERF))
-      .build();
-    CpuProfiler.ProfilingStateResponse response1 = CpuProfiler.ProfilingStateResponse
-      .newBuilder().setBeingProfiled(true).setCheckTimestamp(1).setConfiguration(simpleperfConfig).build();
-
-    Cpu.CpuTraceConfiguration artConfig = Cpu.CpuTraceConfiguration.newBuilder()
-      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ART))
-      .build();
-    CpuProfiler.ProfilingStateResponse response2 = CpuProfiler.ProfilingStateResponse
-      .newBuilder().setBeingProfiled(true).setCheckTimestamp(10).setConfiguration(artConfig).build();
-
-    CpuProfiler.ProfilingStateResponse response3 = CpuProfiler.ProfilingStateResponse
-      .newBuilder().setCheckTimestamp(5).setBeingProfiled(false).build();
-
-
-    getTable().insertProfilingStateData(SESSION_HUNDREDS, response1);
-    getTable().insertProfilingStateData(SESSION_HUNDREDS, response2);
-    getTable().insertProfilingStateData(SESSION_HUNDREDS, response3);
-
-    // response2 should be returned because it has the higher (most recent) check_timestamp, even if it was not the last to be inserted
-    CpuProfiler.ProfilingStateResponse response = getTable().getProfilingStateData(SESSION_HUNDREDS);
-    assertThat(response).isNotNull();
-    assertThat(response.getBeingProfiled()).isTrue();
-    assertThat(response.getConfiguration().getUserOptions().getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
   }
 }

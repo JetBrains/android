@@ -71,9 +71,9 @@ class ConfigureAndroidModuleStepTest : AndroidGradleTestCase() {
     myInvokeStrategy.updateAllSteps()
 
     fun assertPackageNameIsCorrectAfterSettingModuleName(moduleName: String) {
-      newModuleModel.moduleName().set(moduleName)
+      newModuleModel.moduleName.set(moduleName)
       myInvokeStrategy.updateAllSteps()
-      assertThat(newModuleModel.packageName().get()).isEqualTo("$basePackage.${moduleName.toLowerCase()}")
+      assertThat(newModuleModel.packageName.get()).isEqualTo("$basePackage.${moduleName.toLowerCase()}")
     }
 
     listOf("myLib1", "somewhatLongerLibName", "lib").forEach { assertPackageNameIsCorrectAfterSettingModuleName(it) }

@@ -15,23 +15,30 @@
  */
 package com.android.tools.idea.databinding.finders;
 
+import static com.android.tools.idea.databinding.ViewBindingUtil.isViewBindingEnabled;
+
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
-import com.android.tools.idea.res.DataBindingLayoutInfo;
+import com.android.tools.idea.res.BindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.util.ArrayUtil;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -40,13 +47,13 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A finder responsible for finding data binding packages missing in the app.
  *
- * Note that some packages used by databinding are already found by default finders, and if we try
- * to suggest our own copies, it can confuse the IntelliJ project structure tool window, which
- * thinks there are two packages with the same name.
+ * Note that some packages used by databinding/viewbinding are already found by default finders,
+ * and if we try to suggest our own copies, it can confuse the IntelliJ project structure tool
+ * window, which thinks there are two packages with the same name.
  *
  * Therefore, this finder is registered with a reduced priority, so it will only suggest packages
  * that were not previously suggested, while data binding class finders are added with a higher
- * priority. See {@link LayoutBindingClassFinder}, {@link BindingComponentClassFinder} and
+ * priority. See {@link BindingClassFinder}, {@link BindingComponentClassFinder} and
  * {@link BrClassFinder} for the class-focused finders.
  *
  * See also: https://issuetracker.google.com/37120280
@@ -55,10 +62,24 @@ public class DataBindingPackageFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;
   private final CachedValue<Map<String, PsiPackage>> myPackageCache;
 
-  public DataBindingPackageFinder(final DataBindingProjectComponent component) {
-    myComponent = component;
-    myPackageCache = CachedValuesManager.getManager(myComponent.getProject()).createCachedValue(
+  public DataBindingPackageFinder(@NotNull Project project) {
+    myComponent = project.getComponent(DataBindingProjectComponent.class);
+    myPackageCache = CachedValuesManager.getManager(project).createCachedValue(
       new ProjectResourceCachedValueProvider<Map<String, PsiPackage>, Set<String>>(myComponent) {
+
+        @NotNull
+        @Override
+        protected AndroidFacet[] getFacets() {
+          AndroidFacet[] viewBindingEnabledFacets = Arrays.stream(ModuleManager.getInstance(myComponent.getProject()).getModules())
+            .map(module -> AndroidFacet.getInstance(module))
+            .filter(Objects::nonNull)
+            .filter(facet -> isViewBindingEnabled(facet))
+            .toArray(AndroidFacet[]::new);
+          if (ArrayUtil.isEmpty(viewBindingEnabledFacets)) {
+            return super.getFacets();
+          }
+          return viewBindingEnabledFacets;
+        }
 
         @NotNull
         @Override
@@ -80,12 +101,12 @@ public class DataBindingPackageFinder extends PsiElementFinder {
             @Override
             protected Set<String> doCompute() {
               LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(getFacet());
-              Map<String, DataBindingLayoutInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
+              Map<String, BindingLayoutInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
               if (dataBindingResourceFiles == null) {
                 return Collections.emptySet();
               }
               Set<String> result = Sets.newHashSet();
-              for (DataBindingLayoutInfo info : dataBindingResourceFiles.values()) {
+              for (BindingLayoutInfo info : dataBindingResourceFiles.values()) {
                 result.add(info.getPackageName());
               }
               return result;

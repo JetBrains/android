@@ -34,10 +34,10 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Set;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -99,7 +99,10 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   }
 
   @Override
-  protected void updateVersionAndDependencies(@NotNull File file) throws IOException {
+  protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
+    // We need the wrapper for import to succeed
+    AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
+
     //Update build.gradle in root directory
     updateBuildFile();
 

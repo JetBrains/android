@@ -58,7 +58,7 @@ abstract public class ProjectResourceCachedValueProvider<T, V> implements Cached
   @Nullable
   @Override
   public final Result<T> compute() {
-    AndroidFacet[] facets = myComponent.getDataBindingEnabledFacets();
+    AndroidFacet[] facets = getFacets();
     List<V> values = Lists.newArrayList();
 
     List<ModificationTracker> newDependencies = Lists.newArrayList();
@@ -78,6 +78,11 @@ abstract public class ProjectResourceCachedValueProvider<T, V> implements Cached
     myDependencies = Collections.unmodifiableList(newDependencies);
     myDependencyModificationCountOnCompute = calculateModificationCountFrom(myDependencies);
     return Result.create(merge(values), this);
+  }
+
+  @NotNull
+  protected AndroidFacet[] getFacets() {
+    return myComponent.getDataBindingEnabledFacets();
   }
 
   private static long calculateModificationCountFrom(List<ModificationTracker> dependencies) {

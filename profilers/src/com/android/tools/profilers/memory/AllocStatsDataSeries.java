@@ -57,7 +57,7 @@ public final class AllocStatsDataSeries implements DataSeries<Long> {
   }
 
   @Override
-  public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<Long>> getDataForRange(@NotNull Range timeCurrentRangeUs) {
     if (!myIsAgentAttached) {
       return Collections.emptyList();
     }

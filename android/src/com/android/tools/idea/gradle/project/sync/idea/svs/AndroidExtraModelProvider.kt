@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea.svs
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeAndroidProject
+import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.level2.GlobalLibraryMap
 import com.android.java.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
@@ -53,6 +54,10 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
         }
 
         androidModules.add(IdeaAndroidModule(module, androidProject, nativeAndroidProject))
+
+        controller.findModel(module.gradleProject, ProjectSyncIssues::class.java)?.also { projectSyncIssues ->
+          consumer.consume(module, projectSyncIssues, ProjectSyncIssues::class.java)
+        }
       }
     }
 

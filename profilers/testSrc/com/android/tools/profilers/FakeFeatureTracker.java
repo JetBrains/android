@@ -52,11 +52,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
   private FilterMetadata myLastFilterMetadata;
 
   /**
-   * Stores the last {@link ProfilingConfiguration} passed to track the startup CPU profiling.
-   */
-  private ProfilingConfiguration myLastCpuStartupProfilingConfig;
-
-  /**
    * Stores the last {@link Cpu.CpuTraceType} passed to the tracker.
    */
   public Cpu.CpuTraceType myLastCpuTraceType;
@@ -240,13 +235,7 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackCpuStartupProfiling(@NotNull ProfilingConfiguration configuration) {
-    myLastCpuStartupProfilingConfig = configuration;
-  }
-
-  @Nullable
-  public ProfilingConfiguration getLastCpuStartupProfilingConfig() {
-    return myLastCpuStartupProfilingConfig;
+  public void trackCpuStartupProfiling(@NotNull Common.Device device, @NotNull ProfilingConfiguration configuration) {
   }
 
   @Override

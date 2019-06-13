@@ -38,9 +38,9 @@ import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatem
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.values;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
+import com.android.tools.profiler.proto.Memory.AllocatedClass;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
@@ -49,10 +49,10 @@ import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRes
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profiler.protobuf3jarjar.GeneratedMessageV3;
-import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
-import com.android.tools.profiler.protobuf3jarjar.Message;
+import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.protobuf.GeneratedMessageV3;
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
+import com.android.tools.idea.protobuf.Message;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

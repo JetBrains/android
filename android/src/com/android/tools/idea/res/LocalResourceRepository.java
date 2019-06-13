@@ -238,12 +238,12 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   @Nullable
-  public DataBindingLayoutInfo getDataBindingLayoutInfo(String layoutName) {
+  public BindingLayoutInfo getBindingLayoutInfo(String layoutName) {
     return null;
   }
 
   @Nullable
-  public Map<String, DataBindingLayoutInfo> getDataBindingResourceFiles() {
+  public Map<String, BindingLayoutInfo> getDataBindingResourceFiles() {
     return null;
   }
 

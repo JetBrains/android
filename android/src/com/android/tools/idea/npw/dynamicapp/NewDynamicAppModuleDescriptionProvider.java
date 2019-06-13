@@ -20,13 +20,11 @@ import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.npw.module.ModuleTemplateGalleryEntry;
-import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
@@ -34,6 +32,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.Collection;
+import java.util.Objects;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,22 +43,10 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
 
   @Override
   public Collection<ModuleGalleryEntry> getDescriptions(Project project) {
-    if (StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.get() && !hasFeaturePlugin(project)) {
-      return ImmutableList.of(
-        new FeatureTemplateGalleryEntry(false),
-        new FeatureTemplateGalleryEntry(true)
-      );
-    }
-    else {
-      return ImmutableList.of(
-        new FeatureTemplateGalleryEntry(false)
-      );
-    }
-  }
-
-  private boolean hasFeaturePlugin(Project project) {
-    return StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.get() && AndroidGradleModuleUtils
-      .projectContainsFeatureModule(project);
+    return ImmutableList.of(
+      new FeatureTemplateGalleryEntry(false),
+      new FeatureTemplateGalleryEntry(true)
+    );
   }
 
   private static class FeatureTemplateGalleryEntry implements ModuleTemplateGalleryEntry {
@@ -68,8 +55,9 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
     private boolean myIsInstant;
 
     FeatureTemplateGalleryEntry(boolean isInstant) {
-      myTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, isInstant ? INSTANT_DYNAMIC_FEATURE_TEMPLATE :
-                                                                                           DYNAMIC_FEATURE_TEMPLATE);
+      myTemplateFile = Objects
+        .requireNonNull(TemplateManager.getInstance().getTemplateFile(
+          CATEGORY_APPLICATION, isInstant ? INSTANT_DYNAMIC_FEATURE_TEMPLATE : DYNAMIC_FEATURE_TEMPLATE));
       myTemplateHandle = new TemplateHandle(myTemplateFile);
       myIsInstant = isInstant;
     }
@@ -115,16 +103,11 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
       return false;
     }
 
-    @Override
-    public boolean isInstantApp() {
-      return false;
-    }
-
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
       Project project = model.getProject().getValue();
-      String basePackage = getSuggestedProjectPackage(project, false);
+      String basePackage = getSuggestedProjectPackage();
       return new ConfigureDynamicModuleStep(new DynamicFeatureModel(project, myTemplateHandle, model.getProjectSyncInvoker(), myIsInstant),
                                             basePackage, myIsInstant);
     }

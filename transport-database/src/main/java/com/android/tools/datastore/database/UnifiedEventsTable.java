@@ -21,7 +21,7 @@ import com.android.tools.profiler.proto.Transport.BytesRequest;
 import com.android.tools.profiler.proto.Transport.BytesResponse;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
-import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

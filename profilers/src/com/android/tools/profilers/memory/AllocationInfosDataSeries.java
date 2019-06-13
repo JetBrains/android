@@ -53,10 +53,10 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
   }
 
   @Override
-  public List<SeriesData<CaptureDurationData<CaptureObject>>> getDataForXRange(Range xRange) {
+  public List<SeriesData<CaptureDurationData<CaptureObject>>> getDataForRange(Range range) {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
-    long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin()) - bufferNs;
-    long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax()) + bufferNs;
+    long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)range.getMin()) - bufferNs;
+    long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)range.getMax()) + bufferNs;
 
     List<MemoryProfiler.AllocationsInfo> infos = getInfoForTimeRangeNs(rangeMin, rangeMax);
 

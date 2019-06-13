@@ -28,7 +28,7 @@ import javax.swing.*;
 
 public class ApkFacetType extends FacetType<ApkFacet, ApkFacetConfiguration> {
   public ApkFacetType() {
-    super(ApkFacet.getFacetTypeId(), ApkFacet.getFacetId(), ApkFacet.getFacetName(), null);
+    super(ApkFacet.getFacetTypeId(), ApkFacet.getFacetId(), ApkFacet.getFacetName());
   }
 
   @Override

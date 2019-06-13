@@ -20,14 +20,14 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.generated.common.v1.IdDisplayType;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Maps;
 import icons.StudioIcons;
-import java.awt.*;
+import java.awt.Dimension;
 import java.io.File;
 import java.util.Map;
+import org.jetbrains.android.AndroidTestCase;
 
-public class AvdDisplayListTest extends AndroidGradleTestCase {
+public class AvdDisplayListTest extends AndroidTestCase {
 
   private AvdInfo myAvdInfo;
   private Map<String, String> myPropertiesMap = Maps.newHashMap();

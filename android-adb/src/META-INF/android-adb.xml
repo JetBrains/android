@@ -19,4 +19,9 @@
     <applicationService serviceImplementation="com.android.tools.idea.adb.AdbOptionsService" />
     <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider" />
   </extensions>
+
+  <extensionPoints>
+  <extensionPoint qualifiedName="com.android.tools.idea.explorer.fileHandler"
+                  interface="com.android.tools.idea.deviceExplorer.FileHandler"/>
+  </extensionPoints>
 </idea-plugin>

@@ -87,11 +87,6 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
     assertAbout(moduleDependencies()).that(mainModule).hasDependency(moduleName, COMPILE, true);
   }
 
-  public void testInvokeOnSkippedSync() {
-    // Make sure this step is called even when sync was skipped see b/62292929
-    assertTrue(mySetupStep.invokeOnSkippedSync());
-  }
-
   public void testGetExported() {
     // Verify exported is true.
     assertTrue(getExported());

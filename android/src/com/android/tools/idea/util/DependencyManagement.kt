@@ -34,11 +34,12 @@ import org.jetbrains.annotations.TestOnly
 var DEPENDENCY_MANAGEMENT_TEST_ASSUME_USER_WILL_ACCEPT_DEPENDENCIES = true
 
 /**
- * Returns true iff the dependency with [artifactId] is transitively available to this [module].
+ * Returns true iff the dependency with [artifactId] is transitively available to this module.
  * This function returns false if the project's dependency model is unavailable and therefore dependencies
  * could not be checked (e.g. Project is syncing with build system or any dependency management error occurs).
  * To handle dependency management errors, use methods defined in [AndroidProjectSystem] and catch
  * [DependencyManagementException].
+ *
  * @param artifactId the dependency's maven artifact id.
  */
 fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
@@ -49,6 +50,11 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
   }
   catch (e: DependencyManagementException) {
     Logger.getInstance(this.javaClass.name).warn(e.message)
+  }
+  catch (e: Throwable) {
+    if (!isDisposed) {
+      throw e
+    }
   }
   return false
 }

@@ -19,7 +19,6 @@ import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
@@ -48,7 +47,6 @@ public class NewInstantAppTest {
 
   @After
   public void after() {
-    StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.clearOverride();
     SdkReplacer.putBack();
   }
 
@@ -77,11 +75,11 @@ public class NewInstantAppTest {
     guiTest.ideFrame()
       .getProjectView()
       .selectAndroidPane()
-      .clickPath(StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.get()? "app" : "feature");
+      .clickPath("app");
   }
 
-  private void testNoWarningsInDefaultNewInstantAppProjects(boolean instantFlagOn) {
-    StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
+  @Test
+  public void testNoWarningsInDefaultNewInstantAppProjects() {
     String projectName = "Warning";
     createAndOpenDefaultAIAProject(projectName, null);
 
@@ -133,40 +131,8 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testNoWarningsInDefaultNewInstantAppProjects_NO_UAB() {
-    testNoWarningsInDefaultNewInstantAppProjects(false);
-  }
-
-  @Test
-  public void testNoWarningsInDefaultNewInstantAppProjects_UAB() {
-    testNoWarningsInDefaultNewInstantAppProjects(true);
-  }
-
-  @Test
-  public void testCanBuildDefaultNewInstantAppProjects_NO_UAB() {
-    StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(false);
-    createAndOpenDefaultAIAProject("BuildApp", null);
-
-    guiTest.ideFrame().getEditor()
-      .open("base/build.gradle") // Check "base" dependencies
-      .moveBetween("application project(':app')", "")
-      .moveBetween("feature project(':feature')", "")
-      .open("feature/build.gradle") // Check "feature" dependencies
-      .moveBetween("implementation project(':base')", "")
-      .open("app/build.gradle") // Check "app" dependencies
-      .moveBetween("implementation project(':feature')", "")
-      .moveBetween("implementation project(':base')", "")
-      .open("base/src/main/AndroidManifest.xml")
-      .moveBetween("android:name=\"aia-compat-api-min-version\"", "")
-      .moveBetween("android:value=\"1\"", "");
-
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
-  }
-
-  @Test
-  public void testCanBuildDefaultNewInstantAppProjects_UAB() {
+  public void testCanBuildDefaultNewInstantAppProjects() {
     //TODO: check for dist:module
-    StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(true);
     createAndOpenDefaultAIAProject("BuildApp", null);
     String manifestContent = guiTest.ideFrame().getEditor()
                                     .open("app/src/main/res/layout/activity_main.xml")
@@ -177,8 +143,10 @@ public class NewInstantAppTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
-  private void testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls(boolean instantFlagOn, String activityMainXml, String manifestPath) {
-    StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
+  @Test
+  public void testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls() {
+    String activityMainXml = "app/src/main/res/layout/activity_main.xml";
+    String manifestPath = "app/src/main/AndroidManifest.xml";
     createAndOpenDefaultAIAProject("BuildApp", null);
     String manifestContent = guiTest.ideFrame().getEditor()
       .open(activityMainXml)
@@ -192,37 +160,7 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls_NO_UAB() {
-    testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls(false, "feature/src/main/res/layout/activity_main.xml", "feature/src/main/AndroidManifest.xml");
-  }
-  @Test
-  public void testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls_UAB() {
-    testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls(true, "app/src/main/res/layout/activity_main.xml", "app/src/main/AndroidManifest.xml");
-  }
-
-  @Test
   public void testCanBuildNewInstantAppProjectsWithLoginActivity() {
-    StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(false);
-    createAndOpenDefaultAIAProject("BuildApp", null);
-    guiTest.ideFrame()
-           .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
-           .clickFinish();
-
-    String baseStrings = guiTest.ideFrame()
-                                .waitForGradleProjectSyncToFinish()
-                                .getEditor()
-                                .open("base/src/main/res/values/strings.xml")
-                                .getCurrentFileContents();
-
-    assertThat(baseStrings).contains("title_activity_login");
-    assertAbout(file()).that(guiTest.getProjectPath("feature/src/main/res/layout/activity_login.xml")).isFile();
-
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
-  }
-
-  @Test
-  public void testCanBuildNewInstantAppProjectsWithLoginActivity_UAB() {
-    StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(true);
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
            .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
@@ -237,27 +175,11 @@ public class NewInstantAppTest {
     assertThat(baseStrings).contains("title_activity_login");
     assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/layout/activity_login.xml")).isFile();
 
-  }
-
-  @Test
-  public void newInstantAppProjectWithFullScreenActivity_NO_UAB() {
-    StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(false);
-    createAndOpenDefaultAIAProject("BuildApp", "Fullscreen Activity");
-    guiTest.ideFrame().getEditor()
-      .open("feature/src/main/res/layout/activity_fullscreen.xml")
-      .open("base/src/main/res/values/attrs.xml") // Make sure "Full Screen" themes, colors and styles are on the base module
-      .moveBetween("ButtonBarContainerTheme", "")
-      .open("base/src/main/res/values/colors.xml")
-      .moveBetween("black_overlay", "")
-      .open("base/src/main/res/values/styles.xml")
-      .moveBetween("FullscreenTheme", "")
-      .moveBetween("FullscreenActionBarStyle", "");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
-  public void newInstantAppProjectWithFullScreenActivity_UAB() {
-    StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(true);
+  public void newInstantAppProjectWithFullScreenActivity() {
     createAndOpenDefaultAIAProject("BuildApp", "Fullscreen Activity");
     guiTest.ideFrame().getEditor()
            .open("app/src/main/res/layout/activity_fullscreen.xml")
@@ -271,19 +193,11 @@ public class NewInstantAppTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
-  @Test // b/68122671
-  public void addMapActivityToExistingIappModule_NO_UAB() {
-    addMapActivityToExistingIappModule(false, "base/src/debug/res/values/google_maps_api.xml", "base/src/release/res/values/google_maps_api.xml");
-  }
-
-  @Test // b/68122671
-  public void addMapActivityToExistingIappModule_UAB() {
-    addMapActivityToExistingIappModule(true, "app/src/debug/res/values/google_maps_api.xml", "app/src/release/res/values/google_maps_api.xml");
-  }
-
   // b/68122671
-  private void addMapActivityToExistingIappModule(boolean instantFlagOn, String debugPath, String releasePath) {
-    StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
+  @Test
+   public void addMapActivityToExistingIappModule() {
+    String debugPath = "app/src/debug/res/values/google_maps_api.xml";
+    String releasePath = "app/src/release/res/values/google_maps_api.xml";
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
            .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Google", "Google Maps Activity")
@@ -296,20 +210,11 @@ public class NewInstantAppTest {
     assertAbout(file()).that(guiTest.getProjectPath(releasePath)).isFile();
   }
 
-  @Test // b/68478730
-  public void addMasterDetailActivityToExistingIappModule_NO_UAB() {
-    addMasterDetailActivityToExistingIappModule(false, "base/src/main/res/values/strings.xml");
-  }
-
-  @Test // b/68478730
-  public void addMasterDetailActivityToExistingIappModule_UAB() {
-    addMasterDetailActivityToExistingIappModule(true, "app/src/main/res/values/strings.xml");
-  }
-
 
   // b/68478730
-  private void addMasterDetailActivityToExistingIappModule(boolean instantFlagOn, String stringPath) {
-    StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
+  @Test
+  public void addMasterDetailActivityToExistingIappModule() {
+    String stringPath = "app/src/main/res/values/strings.xml";
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
            .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Master/Detail Flow")
@@ -325,19 +230,10 @@ public class NewInstantAppTest {
     assertThat(baseStrings).contains("title_item_list");
   }
 
-  @Test // b/68684401
-  public void addFullscreenActivityToExistingIappModule_NO_UAB() {
-    addFullscreenActivityToExistingIappModule(false, "base/src/main/res/values/strings.xml");
-  }
-
-  @Test // b/68684401
-  public void addFullscreenActivityToExistingIappModule_UAB() {
-    addFullscreenActivityToExistingIappModule(true, "app/src/main/res/values/strings.xml");
-  }
-
   // b/68684401
-  private void addFullscreenActivityToExistingIappModule(boolean instantFlagOn, String stringXmlPath) {
-    StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
+  @Test
+  public void addFullscreenActivityToExistingIappModule() {
+    String stringXmlPath = "app/src/main/res/values/strings.xml";
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
            .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Fullscreen Activity")

@@ -90,7 +90,7 @@ class PsJavaModule(
     dependencies.findLibraryDependencies(group, name)
 
   override fun resetDependencies() {
-    myDependencyCollection = null
+    myDependencyCollection?.refresh()
     myResolvedDependencyCollection = null
   }
 

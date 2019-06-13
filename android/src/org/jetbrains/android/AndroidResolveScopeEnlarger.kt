@@ -15,10 +15,9 @@
  */
 package org.jetbrains.android
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.diagnostic.Logger
@@ -26,6 +25,7 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
@@ -101,7 +101,14 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
 
   override fun getAdditionalResolveScope(file: VirtualFile, project: Project): SearchScope? {
     val module = ModuleUtil.findModuleForFile(file, project) ?: return null
-    val includeTests = TestArtifactSearchScopes.get(module)?.isAndroidTestSource(file) ?: false
-    return getAdditionalResolveScopeForModule(module, includeTests)
+
+    return getAdditionalResolveScopeForModule(
+      module,
+      includeTests = when {
+        !TestSourcesFilter.isTestSources(file, project) -> false
+        TestArtifactSearchScopes.getInstance(module)?.isAndroidTestSource(file) == false -> false
+        else -> true
+      }
+    )
   }
 }

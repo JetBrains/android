@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.android.annotations.Nullable;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler;
 
 import java.util.List;
@@ -33,8 +34,8 @@ public interface LegacyAllocationTracker {
 
   interface LegacyAllocationTrackingCallback {
     void accept(byte[] data,
-                List<MemoryProfiler.AllocatedClass> classes,
-                List<MemoryProfiler.AllocationStack> stacks,
+                List<Memory.AllocatedClass> classes,
+                List<Memory.AllocationStack> stacks,
                 List<MemoryProfiler.LegacyAllocationEvent> events);
   }
 }

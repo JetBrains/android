@@ -21,7 +21,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.DataBindingLangUtil;
-import com.android.tools.idea.res.DataBindingLayoutInfo;
+import com.android.tools.idea.res.BindingLayoutInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -67,7 +67,7 @@ import org.jetbrains.annotations.Nullable;
 public class DataBindingConverter extends ResolvingConverter<PsiElement> implements CustomReferenceConverter<PsiElement> {
   @Nullable
   private static String getImport(@NotNull String alias, @NotNull ConvertContext context) {
-    DataBindingLayoutInfo bindingInfo = getDataBindingInfo(context);
+    BindingLayoutInfo bindingInfo = getDataBindingInfo(context);
     if (bindingInfo == null) {
       return null;
     }
@@ -93,8 +93,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (module == null) {
       return null;
     }
-    DataBindingLayoutInfo dataBindingLayoutInfo = getDataBindingInfo(context);
-    String qualifiedName = DataBindingUtil.resolveImport(type, dataBindingLayoutInfo);
+    BindingLayoutInfo bindingLayoutInfo = getDataBindingInfo(context);
+    String qualifiedName = DataBindingUtil.resolveImport(type, bindingLayoutInfo);
     Project project = context.getProject();
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
     GlobalSearchScope scope = enlargeScope(module.getModuleWithDependenciesAndLibrariesScope(false),
@@ -128,9 +128,9 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (element instanceof PsiClass) {
       String type = ((PsiClass)element).getQualifiedName();
       if (type != null) {
-        DataBindingLayoutInfo dataBindingLayoutInfo = getDataBindingInfo(context);
-        if (dataBindingLayoutInfo != null) {
-          type = unresolveImport(type, dataBindingLayoutInfo);
+        BindingLayoutInfo bindingLayoutInfo = getDataBindingInfo(context);
+        if (bindingLayoutInfo != null) {
+          type = unresolveImport(type, bindingLayoutInfo);
         }
       }
       return type;
@@ -147,17 +147,17 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
    * import statements.
    *
    * @param className the fully qualified class name
-   * @param dataBindingLayoutInfo the data binding information containing the import statements to use
+   * @param bindingLayoutInfo the data binding information containing the import statements to use
    * @return a shorter class name, or the original name if it doesn't match any import statement
    *
    * @see #resolveImport
    */
-  private static String unresolveImport(String className, DataBindingLayoutInfo dataBindingLayoutInfo) {
+  private static String unresolveImport(String className, BindingLayoutInfo bindingLayoutInfo) {
     List<String> segments = StringUtil.split(className, ".");
     if (!segments.isEmpty()) {
       String alias = null;
       int maxMatchedSegments = 0;
-      for (PsiDataBindingResourceItem psiImport : dataBindingLayoutInfo.getItems(DataBindingResourceType.IMPORT).values()) {
+      for (PsiDataBindingResourceItem psiImport : bindingLayoutInfo.getItems(DataBindingResourceType.IMPORT).values()) {
         String importedType = psiImport.getTypeDeclaration();
         int matchedSegments = getNumberOfMatchedSegments(importedType, segments);
         if (matchedSegments > maxMatchedSegments) {
@@ -261,8 +261,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
   }
 
   @Nullable
-  protected static DataBindingLayoutInfo getDataBindingInfo(@NotNull final ConvertContext context) {
-    return DataBindingLangUtil.getDataBindingLayoutInfo(context.getFile());
+  protected static BindingLayoutInfo getDataBindingInfo(@NotNull final ConvertContext context) {
+    return DataBindingLangUtil.getBindingLayoutInfo(context.getFile());
   }
 
   private static class AliasedReference extends PsiReferenceBase<PsiElement> {

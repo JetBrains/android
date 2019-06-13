@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
@@ -75,7 +74,7 @@ public class CpuThreadCountDataSeriesTest {
     double rangeMin = TimeUnit.SECONDS.toMicros(20);
     double rangeMax = TimeUnit.SECONDS.toMicros(25);
     Range range = new Range(rangeMin, rangeMax);
-    List<SeriesData<Long>> seriesDataList = myDataSeries.getDataForXRange(range);
+    List<SeriesData<Long>> seriesDataList = myDataSeries.getDataForRange(range);
     // When no threads are find within the requested range, we add the threads count (0)
     // to both range's min and max
     assertEquals(2, seriesDataList.size());
@@ -93,7 +92,7 @@ public class CpuThreadCountDataSeriesTest {
   @Test
   public void oneAliveThreadInRange() {
     Range range = new Range(TimeUnit.SECONDS.toMicros(10), TimeUnit.SECONDS.toMicros(11));
-    List<SeriesData<Long>> seriesDataList = myDataSeries.getDataForXRange(range);
+    List<SeriesData<Long>> seriesDataList = myDataSeries.getDataForRange(range);
     assertEquals(2, seriesDataList.size());
 
     // Threads count by thread2 state change to RUNNING
@@ -112,7 +111,7 @@ public class CpuThreadCountDataSeriesTest {
   @Test
   public void multipleAliveThreadInRange() {
     Range range = new Range(TimeUnit.SECONDS.toMicros(6), TimeUnit.SECONDS.toMicros(10));
-    List<SeriesData<Long>> seriesDataList = myDataSeries.getDataForXRange(range);
+    List<SeriesData<Long>> seriesDataList = myDataSeries.getDataForRange(range);
     assertEquals(4, seriesDataList.size());
 
     // Threads count by thread1 state change to RUNNING
@@ -143,7 +142,7 @@ public class CpuThreadCountDataSeriesTest {
   @Test
   public void threadDiesBeforeRangeMax() {
     Range range = new Range(TimeUnit.SECONDS.toMicros(10), TimeUnit.SECONDS.toMicros(20));
-    List<SeriesData<Long>> seriesDataList = myDataSeries.getDataForXRange(range);
+    List<SeriesData<Long>> seriesDataList = myDataSeries.getDataForRange(range);
     assertEquals(3, seriesDataList.size());
 
     // Threads count by thread2 state change to RUNNING

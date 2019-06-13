@@ -39,8 +39,6 @@ import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
-import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
-import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
 import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.StartupProfilingRequest;
 import com.android.tools.profiler.proto.CpuProfiler.StartupProfilingResponse;
@@ -202,27 +200,6 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       response = client.stopProfilingApp(request);
     }
     observer.onNext(response);
-    observer.onCompleted();
-  }
-
-  @Override
-  public void checkAppProfilingState(ProfilingStateRequest request,
-                                     StreamObserver<ProfilingStateResponse> observer) {
-    ProfilingStateResponse response = myCpuTable.getProfilingStateData(request.getSession());
-    if (response != null) {
-      observer.onNext(response);
-    }
-    else {
-      // When Profiler opens CpuProfilerStage directly (e.g when startup profiling was started),
-      // we're expecting to hit this, because we haven't inserted any data in the DB yet.
-      CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession().getStreamId());
-      if (client != null) {
-        observer.onNext(client.checkAppProfilingState(request));
-      }
-      else {
-        observer.onNext(ProfilingStateResponse.getDefaultInstance());
-      }
-    }
     observer.onCompleted();
   }
 

@@ -85,7 +85,7 @@ class PsAndroidModule(
     flavorDimensionCollection?.refresh()
     productFlavorCollection?.refresh()
     resolvedVariantCollection?.refresh()
-    dependencyCollection = null
+    dependencyCollection?.refresh()
     signingConfigCollection?.refresh()
   }
 
@@ -173,17 +173,17 @@ class PsAndroidModule(
 
   fun addNewBuildType(name: String): PsBuildType = getOrCreateBuildTypeCollection().addNew(name)
 
-  private fun computeCurrentVariants(): Set<String> {
+  private fun computeCurrentVariantSuffixes(): Set<String> {
     return (productFlavors.map { it.name } + buildFlavorCombinations())
-      .flatMap { flavor -> buildTypes.map { buildType -> listOf(flavor, buildType.name).combineAsCamelCase() } }
+      .flatMap { flavor -> buildTypes.map { buildType -> listOf(flavor, buildType.name).combineAsCamelCase().usLocaleCapitalize() } }
       .toSet()
   }
 
   private fun buildTypeCausesAmbiguity(name: String): Boolean {
-    val variants = computeCurrentVariants()
+    val variantSuffixes = computeCurrentVariantSuffixes()
     val currentFlavors = productFlavors.map { it.name } + buildFlavorCombinations()
-    val potential = currentFlavors.map { listOf(it, name).combineAsCamelCase() }
-    return potential.any { variants.contains(it) }
+    val potential = currentFlavors.map { listOf(it, name).combineAsCamelCase().usLocaleCapitalize() }
+    return potential.any { variantSuffixes.contains(it) }
   }
 
   fun validateBuildTypeName(name: String): String? = when {
@@ -193,8 +193,8 @@ class PsAndroidModule(
     name == "main" -> "Build type name cannot be 'main'."
     name == "lint" -> "Build type name cannot be 'lint'."
     DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Build type name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
-    getOrCreateBuildTypeCollection().any { it.name == name } -> "Duplicate build type name: '$name'"
-    getOrCreateProductFlavorCollection().any { it.name == name } -> "Build type name cannot collide with product flavor: '$name'"
+    getOrCreateBuildTypeCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } -> "Duplicate build type name: '$name'"
+    getOrCreateProductFlavorCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } -> "Build type name cannot collide with product flavor: '$name'"
     buildTypeCausesAmbiguity(name) -> "Build type name '$name' would cause a configuration name ambiguity."
     else -> null
   }
@@ -217,10 +217,10 @@ class PsAndroidModule(
 
   private fun productFlavorCausesAmbiguity(name: String, dimension: String?): Boolean {
     if (dimension == null) return false
-    val variants = computeCurrentVariants()
+    val variantSuffixes = computeCurrentVariantSuffixes()
     val potential = (listOf(name) + buildFlavorCombinations(name, dimension))
-      .flatMap { flavor -> buildTypes.map { listOf(flavor, it.name).combineAsCamelCase() } }
-    return potential.any { variants.contains(it) }
+      .flatMap { flavor -> buildTypes.map { listOf(flavor, it.name).combineAsCamelCase().usLocaleCapitalize() } }
+    return potential.any { variantSuffixes.contains(it) }
   }
 
   fun validateProductFlavorName(name: String, dimension: String?): String? = when {
@@ -230,8 +230,8 @@ class PsAndroidModule(
     name == "main" -> "Product flavor name cannot be 'main'."
     name == "lint" -> "Product flavor name cannot be 'lint'."
     DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Product flavor name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
-    getOrCreateProductFlavorCollection().any { it.name == name } -> "Duplicate product flavor name: '$name'"
-    getOrCreateBuildTypeCollection().any { it.name == name } -> "Product flavor name cannot collide with build type: '$name'"
+    getOrCreateProductFlavorCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } -> "Duplicate product flavor name: '$name'"
+    getOrCreateBuildTypeCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } -> "Product flavor name cannot collide with build type: '$name'"
     productFlavorCausesAmbiguity(name, dimension) ->
       "Product flavor name '$name' in flavor dimension '$dimension' would cause a configuration name ambiguity."
     else -> null
@@ -354,6 +354,6 @@ class PsAndroidModule(
   }
 
   private fun resetDeclaredDependencies() {
-    dependencyCollection = null
+    dependencyCollection?.refresh()
   }
 }

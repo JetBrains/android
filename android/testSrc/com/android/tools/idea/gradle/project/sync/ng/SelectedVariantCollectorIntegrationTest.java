@@ -39,32 +39,17 @@ import static java.util.Arrays.asList;
  * Tests for {@link SelectedVariantCollector}.
  */
 public class SelectedVariantCollectorIntegrationTest extends AndroidGradleTestCase {
-  @NotNull private static final String COMPOSITE_BUILD_ROOT_PROJECT = COMPOSITE_BUILD + "/TestCompositeApp";
 
   private SelectedVariantCollector myCollector;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    prepareCompositeProject();
     myCollector = new SelectedVariantCollector(getProject());
   }
 
-  // Copy included projects, update wrapper and gradle files for included projects.
-  private void prepareCompositeProject() throws IOException {
-    File testDataPath = new File(getTestDataPath(), toSystemDependentName(COMPOSITE_BUILD));
-    File projectFolderPath = Projects.getBaseDirPath(myFixture.getProject());
-
-    List<String> includedProjects = asList("TestCompositeLib1", "TestCompositeLib2", "TestCompositeLib3", "TestCompositeLib4");
-    for (String includedProject : includedProjects) {
-      File srcRoot = new File(testDataPath, includedProject);
-      File includedProjectRoot = new File(projectFolderPath, includedProject);
-      prepareProjectForImport(srcRoot, includedProjectRoot);
-    }
-  }
-
   public void testCollectSelectedVariantsWithCompositeBuild() throws Exception {
-    loadProject(COMPOSITE_BUILD_ROOT_PROJECT);
+    loadProject(COMPOSITE_BUILD);
     Map<String, String> expected = getExpectedSelectedVariantPerModule();
 
     SelectedVariants selectedVariants = myCollector.collectSelectedVariants();

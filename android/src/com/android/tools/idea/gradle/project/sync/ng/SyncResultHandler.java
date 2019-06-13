@@ -91,7 +91,7 @@ class SyncResultHandler {
     Runnable runnable = () -> {
       boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
       boolean isImportedProject = myProjectInfo.isImportedProject();
-      if (isImportedProject && (!isTest || !GradleProjectImporter.ourSkipSetupFromTest)) {
+      if (isImportedProject && !isTest) {
         open(myProject);
       }
       if (!isTest) {

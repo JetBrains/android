@@ -55,12 +55,17 @@ public class CpuTraceInfo implements ConfigurableDurationData {
 
   @NotNull
   public Cpu.CpuTraceType getTraceType() {
-    return myInfo.getTraceType();
+    return myInfo.getConfiguration().getUserOptions().getTraceType();
+  }
+
+  @NotNull
+  public Cpu.CpuTraceMode getTraceMode() {
+    return myInfo.getConfiguration().getUserOptions().getTraceMode();
   }
 
   @NotNull
   public Cpu.TraceInitiationType getInitiationType() {
-    return myInfo.getInitiationType();
+    return myInfo.getConfiguration().getInitiationType();
   }
 
   @Override

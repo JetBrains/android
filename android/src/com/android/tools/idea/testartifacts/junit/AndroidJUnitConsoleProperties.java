@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.intellij.execution.Executor;
 import com.intellij.execution.junit2.ui.properties.JUnitConsoleProperties;
 import com.intellij.openapi.module.Module;
@@ -38,7 +38,7 @@ public class AndroidJUnitConsoleProperties extends JUnitConsoleProperties {
 
     for (Module each : getConfiguration().getModules()) {
       // AndroidTest scope in each module is excluded from the scope used to find JUnitTests
-      TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.get(each);
+      TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(each);
       if (testArtifactSearchScopes != null) {
         scope = scope.intersectWith(GlobalSearchScope.notScope(testArtifactSearchScopes.getAndroidTestSourceScope()));
       }

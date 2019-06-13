@@ -19,8 +19,8 @@ package com.android.tools.adtui.model;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a view into a continuous series, where the data in view is only
- * within given x and y ranged.
+ * This class adds a name and an additional range to RangedSeries. This additional range represents
+ * the Y axis to the default range which represents the x axis.
  */
 public class RangedContinuousSeries extends RangedSeries<Long> {
 
@@ -28,17 +28,28 @@ public class RangedContinuousSeries extends RangedSeries<Long> {
   private final String myName;
 
   @NotNull
-  private final Range mYRange;
+  private final Range myYRange;
 
-  public RangedContinuousSeries(@NotNull String name, @NotNull Range xRange, @NotNull Range yRange, @NotNull DataSeries<Long> series) {
-    super(xRange, series);
-    mYRange = yRange;
+  /**
+   * Creates a RangedContinuousSeries with the {@link DataSeries} object scoped by the default and intersecting {@link Range} objects.
+   */
+  public RangedContinuousSeries(@NotNull String name, @NotNull Range xRange, @NotNull Range yRange, @NotNull DataSeries<Long> series,
+                                @NotNull Range intersectRange) {
+    super(xRange, series, intersectRange);
+    myYRange = yRange;
     myName = name;
+  }
+
+  /**
+   * Creates a new RangedSeries with the {@link DataSeries} object scoped only by the xRange {@link Range}.
+   */
+  public RangedContinuousSeries(@NotNull String name, @NotNull Range xRange, @NotNull Range yRange, @NotNull DataSeries<Long> series) {
+    this(name, xRange, yRange, series, new Range(-Double.MAX_VALUE, Double.MAX_VALUE));
   }
 
   @NotNull
   public Range getYRange() {
-    return mYRange;
+    return myYRange;
   }
 
   @NotNull

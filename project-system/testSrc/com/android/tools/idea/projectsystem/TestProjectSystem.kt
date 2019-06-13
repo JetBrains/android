@@ -133,6 +133,9 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
       override fun getOrCreateSampleDataDirectory(): PathString? = null
 
       override fun getSampleDataDirectory(): PathString? = null
+
+      override fun getModuleWithDependenciesAndLibrariesScope(includeTests: Boolean) = module.getModuleWithDependenciesAndLibrariesScope(
+        includeTests)
     }
   }
 
