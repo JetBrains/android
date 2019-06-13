@@ -310,7 +310,9 @@ public class GradleSyncInvoker {
     @VisibleForTesting
     @NotNull
     public static Request testRequest() {
-      return new Request(TRIGGER_TEST_REQUESTED);
+      Request request = new Request(TRIGGER_TEST_REQUESTED);
+      request.generateSourcesOnSuccess = false;
+      return request;
     }
 
     public Request(@NotNull GradleSyncStats.Trigger trigger) {
