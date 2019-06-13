@@ -181,6 +181,9 @@ public class EmbeddedDistributionPaths {
     String jdkDevPath = System.getProperty("studio.dev.jdk", ideHomePath + "/../../prebuilts/studio/jdk");
     String relativePath = toSystemDependentName(jdkDevPath);
     jdkRootPath = new File(toCanonicalPath(relativePath));
+    if (SystemInfo.isJavaVersionAtLeast(11, 0, 0)) {
+      jdkRootPath = new File(jdkRootPath, "jdk11");
+    }
     if (SystemInfo.isWindows) {
       jdkRootPath = new File(jdkRootPath, "win64");
     }
