@@ -13,15 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite.ui.mainView;
+package com.android.tools.idea.explorer.mocks;
 
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import com.android.tools.idea.explorer.FileOpener;
+import com.android.tools.idea.explorer.FutureValuesTracker;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 
-public class SqliteEditorPanel {
-  public JPanel mainPanel;
-  private JPanel headerPanel;
-  public JButton openSqlEvalDialog;
-  public JPanel tabsRoot;
+public class MockFileOpener implements FileOpener {
+
+  public final FutureValuesTracker<Void> tracker = new FutureValuesTracker<>();
+
+  @Override
+  public boolean canOpenFile(VirtualFile virtualFile) {
+    return true;
+  }
+
+  @Override
+  public void openFile(Project project, VirtualFile virtualFile) {
+    tracker.produce(null);
+  }
 }

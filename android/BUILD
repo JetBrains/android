@@ -141,6 +141,7 @@ iml_module(
         "//tools/idea/.idea/libraries:NanoXML",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:perfetto-proto",
+        "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
     ],
 )
 
@@ -292,6 +293,7 @@ iml_module(
         "//tools/idea/.idea/libraries:kotlin-plugin[test]",
         "//tools/idea/.idea/libraries:NanoXML[test]",
         "//tools/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
     ],
 )
 

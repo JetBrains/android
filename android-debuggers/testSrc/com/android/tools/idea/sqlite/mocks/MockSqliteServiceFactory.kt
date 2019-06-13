@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite.ui.mainView;
+package com.android.tools.idea.sqlite.mocks
 
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import com.android.tools.idea.sqlite.SqliteService
+import com.android.tools.idea.sqlite.SqliteServiceFactory
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.vfs.VirtualFile
+import org.mockito.Mockito.mock
+import java.util.concurrent.Executor
 
-public class SqliteEditorPanel {
-  public JPanel mainPanel;
-  private JPanel headerPanel;
-  public JButton openSqlEvalDialog;
-  public JPanel tabsRoot;
+class MockSqliteServiceFactory: SqliteServiceFactory {
+  val sqliteService: SqliteService = mock(SqliteService::class.java)
+  override fun getSqliteService(sqliteFile: VirtualFile, parentDisposable: Disposable, executor: Executor): SqliteService {
+    return sqliteService
+  }
 }

@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.sqlite.model
 
-import com.android.tools.idea.device.fs.DeviceFileId
-import com.intellij.openapi.vfs.VirtualFile
 import java.sql.JDBCType
-import kotlin.properties.Delegates
 
 /**
  * Abstraction over the schema of a single Sqlite database.
@@ -40,48 +37,6 @@ interface SqliteSchema {
       override val tables: List<SqliteTable> = emptyList()
     }
   }
-}
-
-/**
- * The SqliteModel class: encapsulates the database schema. See also [SqliteModelListener].
- */
-class SqliteModel(private val sqliteFile: VirtualFile) {
-  private val myListeners = mutableListOf<SqliteModelListener>()
-
-  var schema: SqliteSchema by Delegates.observable(SqliteSchema.EMPTY) { _, _, newValue ->
-    myListeners.forEach { it.schemaChanged(newValue) }
-  }
-
-  var sqliteFileId: DeviceFileId = DeviceFileId.UNKNOWN
-    get() = sqliteFile.getUserData(DeviceFileId.KEY) ?: field
-    set(value) {
-      field = value
-      sqliteFile.putUserData(DeviceFileId.KEY, value)
-      myListeners.forEach { it.deviceFileIdChanged(value) }
-    }
-
-  fun addListener(listener: SqliteModelListener) {
-    myListeners.add(listener)
-  }
-
-  fun removeListener(listener: SqliteModelListener) {
-    myListeners.remove(listener)
-  }
-}
-
-/**
- * Listener interface corresponding to the [SqliteModel] class.
- */
-interface SqliteModelListener {
-  /**
-   * Notification that the [DeviceFileId] associated to the Sqlite database has changed.
-   */
-  fun deviceFileIdChanged(fileId: DeviceFileId)
-
-  /**
-   * Notification that the [SqliteSchema] has changed.
-   */
-  fun schemaChanged(schema: SqliteSchema)
 }
 
 /** Representation of the Sqlite database table */

@@ -54,6 +54,12 @@ public final class AdtUiUtils {
   public static final JBFont DEFAULT_FONT = JBUI.Fonts.label(10f);
 
   /**
+   * Default font to be used in an empty tool window.
+   * eg Device File Explorer when no device is connected and Sqlite Explorer when no database has been opened.
+   */
+  public static final JBFont EMPTY_TOOL_WINDOW_FONT = JBUI.Fonts.label(16f);
+
+  /**
    * Default font color of charts, and component labels.
    */
   public static final Color DEFAULT_FONT_COLOR = JBColor.foreground();

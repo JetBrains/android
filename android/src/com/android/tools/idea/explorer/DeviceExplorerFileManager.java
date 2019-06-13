@@ -19,9 +19,8 @@ import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.util.Key;
-import org.jetbrains.annotations.NotNull;
-
 import java.nio.file.Path;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Manage files synchronized between devices and the local file system
