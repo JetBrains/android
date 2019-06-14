@@ -40,6 +40,7 @@ import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.google.common.truth.Truth.assertAbout
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
@@ -203,7 +204,7 @@ abstract class GradleSyncProjectComparisonTest(
   }
 
   open fun testPsdDependency() {
-    val text = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
+    val firstSync = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
       val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
       val testRepositoryPath =
           File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath!!
@@ -216,14 +217,16 @@ abstract class GradleSyncProjectComparisonTest(
       """
       AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
     }
-    assertIsEqualToSnapshot(text)
     val secondSync = syncAndDumpProject()
     // TODO(b/124677413): When fixed, [secondSync] should match the same snapshot. (Remove ".second_sync")
-    assertIsEqualToSnapshot(secondSync, ".second_sync")
+    assertAreEqualToSnapshots(
+      firstSync to "",
+      secondSync to ".second_sync"
+    )
   }
 
   open fun testPsdDependencyDeleteModule() {
-    val text = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
+    val beforeDelete = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
       val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
       val testRepositoryPath =
           File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath!!
@@ -236,19 +239,21 @@ abstract class GradleSyncProjectComparisonTest(
       """
       AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
     }
-    assertIsEqualToSnapshot(text, ".before_delete")
     PsProjectImpl(project).let { projectModel ->
       projectModel.removeModule(":moduleB")
       projectModel.applyChanges()
     }
-    val textAfterDeleting = syncAndDumpProject()
+    val textAfterDelete = syncAndDumpProject()
     // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
-    assertIsEqualToSnapshot(textAfterDeleting, ".after_moduleb_deleted")
+    assertAreEqualToSnapshots(
+      beforeDelete to ".before_delete",
+      textAfterDelete to ".after_moduleb_deleted"
+    )
   }
 
   // TODO(b/128873247): Update snapshot files with the bug is fixed and Java-Gradle facet is removed.
   open fun testPsdDependencyAndroidToJavaModuleAndBack() {
-    val text = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
+    val beforeAndroidToJava = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
       val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
       val testRepositoryPath =
           File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath!!
@@ -261,7 +266,6 @@ abstract class GradleSyncProjectComparisonTest(
       """
       AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
     }
-    assertIsEqualToSnapshot(text, ".before_android_to_java")
     val oldModuleCContent = WriteAction.compute<ByteArray, Throwable> {
       val jModuleMFile = project.guessProjectDir()?.findFileByRelativePath("jModuleM/build.gradle")!!
       val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
@@ -271,9 +275,8 @@ abstract class GradleSyncProjectComparisonTest(
       moduleCContent
     }
     ApplicationManager.getApplication().saveAll()
-    val textAfterChange = syncAndDumpProject()
+    val afterAndroidToJava = syncAndDumpProject()
     // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
-    assertIsEqualToSnapshot(textAfterChange, ".after_android_to_java")
 
     run<Throwable> {
       val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
@@ -282,7 +285,11 @@ abstract class GradleSyncProjectComparisonTest(
     ApplicationManager.getApplication().saveAll()
     val textAfterSecondChange = syncAndDumpProject()
     // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
-    assertIsEqualToSnapshot(textAfterSecondChange, ".after_java_to_android")
+    assertAreEqualToSnapshots(
+      beforeAndroidToJava to ".before_android_to_java",
+      afterAndroidToJava to ".after_android_to_java",
+      textAfterSecondChange to ".after_java_to_android"
+    )
   }
 
   open fun testPsdSample() {
@@ -291,8 +298,7 @@ abstract class GradleSyncProjectComparisonTest(
   }
 
   open fun testPsdSampleRenamingModule() {
-    val text = importSyncAndDumpProject(PSD_SAMPLE)
-    assertIsEqualToSnapshot(text)
+    val beforeRename = importSyncAndDumpProject(PSD_SAMPLE)
     PsProjectImpl(project).let { projectModel ->
       projectModel.removeModule(":nested1")
       projectModel.removeModule(":nested1:deep")
@@ -306,12 +312,15 @@ abstract class GradleSyncProjectComparisonTest(
       project.guessProjectDir()!!.findFileByRelativePath("nested1")!!.rename("test", "container1")
     }
     ApplicationManager.getApplication().saveAll()
-    val textAfterDeleting = syncAndDumpProject()
-    assertIsEqualToSnapshot(textAfterDeleting, ".after_rename")
+    val afterRename = syncAndDumpProject()
+    assertAreEqualToSnapshots(
+      beforeRename to "",
+      afterRename to ".after_rename"
+    )
   }
 
   open fun testPsdDependencyUpgradeLibraryModule() {
-    val text = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
+    val beforeLibUpgrade = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
       val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
       val testRepositoryPath =
           File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath!!
@@ -324,7 +333,6 @@ abstract class GradleSyncProjectComparisonTest(
       """
       AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
     }
-    assertIsEqualToSnapshot(text, ".before_lib_upgrade")
     PsProjectImpl(project).let { projectModel ->
       projectModel
           .findModuleByGradlePath(":modulePlus")!!
@@ -343,9 +351,12 @@ abstract class GradleSyncProjectComparisonTest(
           .single().version = "0.9.1".asParsed()
       projectModel.applyChanges()
     }
-    val textAfterDeleting = syncAndDumpProject()
+    val afterLibUpgrade = syncAndDumpProject()
     // TODO(b/124677413): Remove irrelevant changes from the snapshot when the bug is fixed.
-    assertIsEqualToSnapshot(textAfterDeleting, ".after_lib_upgrade")
+    assertAreEqualToSnapshots(
+      beforeLibUpgrade to ".before_lib_upgrade",
+      afterLibUpgrade to ".after_lib_upgrade"
+    )
   }
 
   fun testTwoJarsWithTheSameName() {

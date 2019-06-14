@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.testutils.TestUtils.runningFromBazel
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.android.AndroidTestBase
@@ -47,21 +47,37 @@ interface SnapshotComparisonTest {
 }
 
 fun SnapshotComparisonTest.assertIsEqualToSnapshot(text: String, snapshotTestSuffix: String = "") {
+  val (_, expectedText) = getAndMaybeUpdateSnapshot(snapshotTestSuffix, text)
+  assertThat(text).isEqualTo(expectedText)
+}
+
+fun SnapshotComparisonTest.assertAreEqualToSnapshots(vararg checks: Pair<String, String>) {
+  val (actual, expected) =
+    checks
+      .map { (actual, suffix) ->
+        val (fullName, expected) = getAndMaybeUpdateSnapshot(suffix, actual)
+        val header = "\n####################### ${fullName} #######################\n"
+        header + actual to header + expected
+      }
+      .unzip()
+      .let {
+        it.first.joinToString(separator = "\n") to it.second.joinToString(separator = "\n")
+      }
+
+  assertThat(actual).isEqualTo(expected)
+}
+
+private fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
+  snapshotTestSuffix: String,
+  text: String
+): Pair<String, String> {
   val fullSnapshotName = sanitizeFileName(UsefulTestCase.getTestName(getName(), true)) + snapshotTestSuffix
   val expectedText = getExpectedTextFor(fullSnapshotName)
 
   if (System.getProperty(updateSnapshotsJvmProperty) != null) {
     updateSnapshotFile(fullSnapshotName, text)
   }
-
-  if (runningFromBazel()) {
-    // Produces diffs readable in logs.
-    com.google.common.truth.Truth.assertThat(text).isEqualTo(expectedText)
-  }
-  else {
-    // Produces diffs that can be visually inspected in IDE.
-    org.junit.Assert.assertEquals(expectedText, text)
-  }
+  return fullSnapshotName to expectedText
 }
 
 private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String): List<File> =
