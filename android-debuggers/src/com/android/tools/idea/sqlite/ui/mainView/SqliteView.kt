@@ -18,7 +18,6 @@ package com.android.tools.idea.sqlite.ui.mainView
 import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
-import com.android.tools.idea.sqlite.ui.ResultSetView
 import javax.swing.JComponent
 
 /**
@@ -33,8 +32,10 @@ interface SqliteView {
   fun addListener(listener: SqliteViewListener)
   fun removeListener(listener: SqliteViewListener)
 
+  /**
+   * The JComponent containing the view's UI.
+   */
   val component: JComponent
-  val tableView: ResultSetView
 
   fun setUp()
 
@@ -42,13 +43,15 @@ interface SqliteView {
   fun stopLoading()
 
   fun displaySchema(schema: SqliteSchema)
+  fun displayTable(tableName: String, component: JComponent)
+  fun focusTable(tableName: String)
+  fun closeTable(tableName: String)
 
   fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable)
-
-  fun resetView()
 }
 
 interface SqliteViewListener {
   fun tableNodeActionInvoked(table: SqliteTable)
+  fun closeTableActionInvoked(tableName: String)
   fun openSqliteEvaluatorActionInvoked()
 }

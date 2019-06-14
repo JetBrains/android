@@ -13,18 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite.ui
+package com.android.tools.idea.sqlite.ui.tableView
 
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
+import javax.swing.JComponent
 
 /**
  * Interface used to abstract views that display the content of SQL tables.
  */
-interface ResultSetView {
-  fun startTableLoading(tableName: String?)
+interface TableView {
+  /**
+   * The JComponent containing the view's UI.
+   */
+  val component: JComponent
+
+  /**
+   * Clears the data from the UI and updates the view.
+   */
+  fun resetView()
+  fun startTableLoading()
   fun showTableColumns(columns: List<SqliteColumn>)
   fun showTableRowBatch(rows: List<SqliteRow>)
   fun stopTableLoading()
-  fun reportErrorRelatedToTable(tableName: String?, message: String, t: Throwable)
+  fun reportError(message: String, t: Throwable)
 }

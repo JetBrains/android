@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite.model
+package com.android.tools.idea.sqlite.ui.tableView;
 
-import com.android.tools.idea.device.fs.DeviceFileId
+import com.intellij.ui.table.JBTable;
+import javax.swing.JPanel;
 
-/**
- * Listener interface corresponding to the [SqliteModel] class.
- */
-interface SqliteModelListener {
-  /**
-   * Notification that the [DeviceFileId] associated to the Sqlite database has changed.
-   */
-  fun deviceFileIdChanged(fileId: DeviceFileId?)
-
-  /**
-   * Notification that the [SqliteSchema] has changed.
-   */
-  fun schemaChanged(schema: SqliteSchema)
+public class TablePanel {
+  public JPanel root;
+  public JBTable table;
 }
