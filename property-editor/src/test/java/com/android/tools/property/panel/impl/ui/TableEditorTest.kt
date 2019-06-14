@@ -27,6 +27,7 @@ import com.android.tools.property.panel.impl.model.TableLineModelImpl
 import com.android.tools.property.panel.impl.model.util.TestGroupItem
 import com.android.tools.property.panel.impl.model.util.FakePTableModel
 import com.android.tools.property.panel.impl.model.util.TestTableItem
+import com.android.tools.property.ptable2.impl.PTableModelImpl
 import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -60,5 +61,29 @@ class TableEditorTest {
     assertThat(editor.component.isEditing).isTrue()
     assertThat(editor.component.editingRow).isEqualTo(2)
     assertThat(editor.component.getValueAt(2, 1)).isEqualTo(TestTableItem("top", "8"))
+  }
+
+  @Test
+  fun testSelectionOfExpandedItems() {
+    val editorProvider = object : PTableCellEditorProvider {
+      val editor = object : DefaultPTableCellEditor() {
+        override val editorComponent = JPanel()
+      }
+
+      override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor {
+        return editor
+      }
+    }
+    val group1: PTableGroupItem = TestGroupItem("group1", mapOf("size" to "4dp", "tone" to "C"))
+    val group2: PTableGroupItem = TestGroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
+    val tableModel = FakePTableModel(false, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
+    val lineModel = TableLineModelImpl(tableModel, true)
+    val editor = TableEditor(lineModel, DefaultPTableCellRendererProvider(), editorProvider)
+    val model = editor.component.model as PTableModelImpl
+    model.expand(4)
+    editor.component.selectionModel.setSelectionInterval(6, 6)
+    assertThat(lineModel.selectedItem!!.name).isEqualTo("right")
+    editor.component.selectionModel.clearSelection()
+    assertThat(lineModel.selectedItem).isNull()
   }
 }

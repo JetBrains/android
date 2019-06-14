@@ -15,14 +15,21 @@
  */
 package org.jetbrains.android.resourceManagers;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.ConvertContext;
+import java.util.Collection;
+import java.util.List;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -37,18 +44,6 @@ public class FrameworkResourceManager extends ResourceManager {
     super(module.getProject());
     myModule = module;
     myPublicOnly = publicOnly;
-  }
-
-  @Override
-  @NotNull
-  protected ResourceRepository getResourceRepository() {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
-    assert repositoryManager != null;
-    ResourceRepository frameworkResources = repositoryManager.getFrameworkResources(false);
-    if (frameworkResources == null) {
-      throw new RuntimeException("Failed to read framework resources for module " + myModule.getName());
-    }
-    return frameworkResources;
   }
 
   @Override
@@ -89,7 +84,28 @@ public class FrameworkResourceManager extends ResourceManager {
     if (platform == null) {
       return null;
     }
-    return platform.getSdkData().getTargetData(getPlatform().getTarget()).getPublicAttrDefs(myProject);
+    return platform.getSdkData().getTargetData(platform.getTarget()).getPublicAttrDefs(myProject);
+  }
+
+  @Override
+  @NotNull
+  protected Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
+    ResourceRepository repository = getResourceRepository();
+    return repository == null ? ImmutableList.of() : repository.getLeafResourceRepositories();
+  }
+
+  @Override
+  @NotNull
+  protected List<ResourceItem> getResources(
+      @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, @NotNull String resName) {
+    ResourceRepository repository = getResourceRepository();
+    return repository == null ? ImmutableList.of() : repository.getResources(namespace, resourceType, resName);
+  }
+
+  @Nullable
+  private ResourceRepository getResourceRepository() {
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
+    return repositoryManager == null ? null : repositoryManager.getFrameworkResources(false);
   }
 
   @Nullable

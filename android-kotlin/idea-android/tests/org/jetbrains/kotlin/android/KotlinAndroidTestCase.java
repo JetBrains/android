@@ -23,7 +23,6 @@ import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.startup.AndroidCodeStyleSettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -115,7 +114,8 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
     }
 
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
-    AndroidCodeStyleSettings.modify(mySettings);
+    // Note: we apply the Android Studio code style so that tests running as the Android plugin in IDEA behave the same.
+    AndroidTestCase.applyAndroidCodeStyleSettings(mySettings);
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;

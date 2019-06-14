@@ -57,6 +57,7 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
@@ -93,10 +94,10 @@ import javax.swing.Icon
 open class NelePropertyItem(
   override val namespace: String,
   override val name: String,
-  val type: NelePropertyType,
-  val definition: AttributeDefinition?,
-  val componentName: String,
-  val libraryName: String,
+  open val type: NelePropertyType,
+  open val definition: AttributeDefinition?,
+  open val componentName: String,
+  open val libraryName: String,
   val model: NelePropertiesModel,
   val optionalValue: Any?,
   val components: List<NlComponent>
@@ -108,6 +109,12 @@ open class NelePropertyItem(
       return if (model.showResolvedValues) resolveValue(rawValue) else rawValue
     }
     set(value) {
+      val undoManager = UndoManager.getInstance(project)
+      if (undoManager.isUndoInProgress || undoManager.isRedoInProgress) {
+        // b/134522901: Avoid updating the property during undo/redo
+        return
+      }
+
       model.setPropertyValue(this, value)
     }
 
@@ -323,8 +330,9 @@ open class NelePropertyItem(
       return IdEnumSupport(this).values.map { it.value }
     }
     val values = mutableListOf<String>()
-    if (definition != null && definition.values.isNotEmpty()) {
-      values.addAll(definition.values)
+    val attrDefinition = definition
+    if (attrDefinition != null && attrDefinition.values.isNotEmpty()) {
+      values.addAll(attrDefinition.values)
     }
     val repositoryManager = ResourceRepositoryManager.getInstance(model.facet)
     val localRepository = repositoryManager.appResources

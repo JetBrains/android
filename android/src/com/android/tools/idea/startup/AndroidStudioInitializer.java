@@ -42,7 +42,6 @@ import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.plugins.PluginManagerCore;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.internal.statistic.persistence.UsageStatisticsPersistenceComponent;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -90,7 +89,6 @@ public class AndroidStudioInitializer implements Runnable {
     disableIdeaJUnitConfigurations();
     hideRarelyUsedIntellijActions();
     renameSynchronizeAction();
-    initializeCodeStyleSettings();
     setupResourceManagerActions();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
@@ -275,10 +273,6 @@ public class AndroidStudioInitializer implements Runnable {
     // Rename the Synchronize action to Sync with File System to look better next to Sync Project with Gradle Files.
     AnAction action = ActionManager.getInstance().getAction(IdeActions.ACTION_SYNCHRONIZE);
     action.getTemplatePresentation().setText("S_ync with File System", true);
-  }
-
-  private static void initializeCodeStyleSettings() {
-    AndroidCodeStyleSettings.initialize(PropertiesComponent.getInstance());
   }
 
   @NotNull

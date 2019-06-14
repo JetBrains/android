@@ -54,7 +54,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
 
   public void testSetValueChangeReferences() {
     NeleIdRenameProcessor.setChoiceForNextRename(RefactoringChoice.ASK);
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.YES);
+    NeleIdRenameProcessor.setDialogProvider((project, id, hasUsages, otherDeclarations) -> RefactoringChoice.YES);
     BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("label"));
 
     assertThat(myTextView.getId()).isEqualTo("label");
@@ -64,7 +64,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
   }
 
   public void testSetAndroidValueChangeReferences() {
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.YES);
+    NeleIdRenameProcessor.setDialogProvider((project, id, hasUsages, otherDeclarations) -> RefactoringChoice.YES);
     BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("@android:id/text2"));
 
     assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@android:id/text2");
@@ -73,7 +73,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
   }
 
   public void testSetValueDoNotChangeReferences() {
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.NO);
+    NeleIdRenameProcessor.setDialogProvider((project, id, hasUsages, otherDeclarations) -> RefactoringChoice.NO);
     BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("label"));
 
     assertThat(myTextView.getId()).isEqualTo("label");
@@ -82,7 +82,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
   }
 
   public void testSetValueAndYesToChangeReferencesAndDoNotCheckAgain() {
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.YES);
+    NeleIdRenameProcessor.setDialogProvider((project, id, hasUsages, otherDeclarations) -> RefactoringChoice.YES);
     BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("other"));
 
     UIUtil.dispatchAllInvocationEvents();
@@ -92,7 +92,8 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
 
     // Set id again, this time expect references to be changed without showing a dialog
     NeleIdRenameProcessor.setChoiceForNextRename(RefactoringChoice.YES);
-    NeleIdRenameProcessor.setDialogProvider((project) -> { throw new RuntimeException("Unexpected invocation"); });
+    NeleIdRenameProcessor.setDialogProvider(
+      (project, id, hasUsages, otherDeclarations) -> { throw new RuntimeException("Unexpected invocation"); });
     BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("last"));
 
     assertThat(myTextView.getId()).isEqualTo("last");
@@ -101,7 +102,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
   }
 
   public void testSetValueAndYesWillNotEnablePreviewBeforeRun() {
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.YES);
+    NeleIdRenameProcessor.setDialogProvider((project, id, hasUsages, otherDeclarations) -> RefactoringChoice.YES);
     BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("label"));
 
     assertThat(myTextView.getId()).isEqualTo("label");
@@ -110,7 +111,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
   }
 
   public void testSetValueAndPreviewWillEnablePreviewBeforeRun() {
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.PREVIEW);
+    NeleIdRenameProcessor.setDialogProvider((project, id, hasUsages, otherDeclarations) -> RefactoringChoice.PREVIEW);
     try {
       BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("label"));
       throw new RuntimeException("Preview was not shown as expected as is emulating a click on the preview button");
@@ -121,7 +122,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
   }
 
   public void testSetValueAndCancelNotExecuteRenameProcess() {
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.CANCEL);
+    NeleIdRenameProcessor.setDialogProvider((project, id, hasUsages, otherDeclarations) -> RefactoringChoice.CANCEL);
     BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("label"));
 
     assertThat(myTextView.getId()).isEqualTo("textView");

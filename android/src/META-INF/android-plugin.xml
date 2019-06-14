@@ -514,6 +514,7 @@
 
     <globalInspection hasStaticDescription="true" shortName="PermissionUsageInspection" displayName="Permission Check for Location APIs" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.experimental.PermissionUsageInspection"/>
 
+    <predefinedCodeStyle implementation="org.jetbrains.android.formatter.AndroidJavaPredefinedCodeStyle"/>
 
     <colorSettingsPage implementation="com.android.tools.idea.logcat.AndroidLogcatColorPage"/>
     <findUsagesHandlerFactory implementation="org.jetbrains.android.AndroidFindUsagesHandlerFactory"/>

@@ -117,6 +117,11 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet) :
    * generated code, since those were `@Bindable` fields were generated FROM variable names.
    */
   private fun collectVariableNamesFromUserBindables(): Set<String>? {
+    // TODO(b/134532947): The code to search for @Bindable annotations is causing a deadlock, and
+    //  this feature isn't used too commonly, so we are disabling it temporarily until we can come
+    //  up with a proper fix. The deadlock can be caused by the searchElements call below.
+    return null
+
     val facade = JavaPsiFacade.getInstance(facet.module.project)
     val mode = ModuleDataBinding.getInstance(facet).dataBindingMode
     val bindableAnnotation = facade.findClass(

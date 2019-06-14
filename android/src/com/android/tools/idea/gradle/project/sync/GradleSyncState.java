@@ -773,14 +773,20 @@ public class GradleSyncState {
 
   // See issue: https://code.google.com/p/android/issues/detail?id=64508
   private static void removeAndroidModels(@NotNull Project project) {
+    if (project.isDisposed()) return;
     // Remove all Android models from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
     // failure.
+    try {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
+      if (module.isDisposed()) continue;
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
         facet.getConfiguration().setModel(null);
       }
+    }
+    } catch (Throwable t) {
+      LOG.error("Failed to remove Android models", t);
     }
   }
 }

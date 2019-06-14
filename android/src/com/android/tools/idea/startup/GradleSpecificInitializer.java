@@ -120,8 +120,6 @@ public class GradleSpecificInitializer implements Runnable {
     // Never applicable in the context of android studio, so just set to invisible.
     pluginAction.getTemplatePresentation().setVisible(false);
 
-    modifyCodeStyleSettings();
-
     if (AndroidSdkUtils.isAndroidSdkManagerEnabled()) {
       ApplicationManager.getApplication().executeOnPooledThread(GradleSpecificInitializer::setupSdk);
     }
@@ -394,19 +392,6 @@ public class GradleSpecificInitializer implements Runnable {
   @Nullable
   private static File getAndroidSdkPath() {
     return AndroidSdkInitializer.findOrGetAndroidSdkPath();
-  }
-
-  @VisibleForTesting
-  static void modifyCodeStyleSettings() {
-    CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
-    CommonCodeStyleSettings commonSettings = schemes.getCurrentScheme().getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE);
-
-    Object arrangementSettings = commonSettings.getArrangementSettings();
-
-    if (Objects.equals(arrangementSettings, AndroidXmlPredefinedCodeStyle.createVersion1Settings()) ||
-        Objects.equals(arrangementSettings, AndroidXmlPredefinedCodeStyle.createVersion2Settings())) {
-      commonSettings.setArrangementSettings(AndroidXmlPredefinedCodeStyle.createVersion3Settings());
-    }
   }
 
   private static void checkAndSetAndroidSdkSources() {

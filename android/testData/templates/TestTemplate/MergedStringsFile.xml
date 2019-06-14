@@ -17,9 +17,7 @@
     <string name="string_1">Hello World!</string>
 
     <!-- a comment -->
-    <string name="string_with_blank_and_comment_before">String with single blank and comment before. Total length should
-        be more than 120 characters.
-    </string>
+    <string name="string_with_blank_and_comment_before">String with single blank and comment before. Total length should be more than 120 characters.</string>
 
     <!-- comment 2 -->
     <string name="bar">Another string</string>
