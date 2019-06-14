@@ -69,7 +69,7 @@ class SqliteEvaluatorController(
           sqlInstruction.startsWith("UPDATE", ignoreCase = true) or
           sqlInstruction.startsWith("DELETE", ignoreCase = true) -> executeUpdate(sqlInstruction)
         else -> executeQuery(sqlInstruction) {
-          view.reportErrorRelatedToTable(null, "Error executing sqlQueryCommand", it)
+          view.tableView.reportError("Error executing sqlQueryCommand", it)
         }
       }
     }
@@ -81,11 +81,11 @@ class SqliteEvaluatorController(
       edtExecutor.addCallback(service.executeUpdate(sqlUpdateCommand), object : FutureCallback<Int> {
         override fun onSuccess(result: Int?) {
           // TODO do we want to update the UI of the dialog?
-          view.resetView()
+          view.tableView.resetView()
         }
 
         override fun onFailure(t: Throwable) {
-          view.reportErrorRelatedToTable(null, "Error executing update", t)
+          view.tableView.reportError("Error executing update", t)
         }
       })
     }
@@ -97,7 +97,7 @@ class SqliteEvaluatorController(
 
           currentQueryResultSetController = ResultSetController(
             this@SqliteEvaluatorController,
-            view, null, sqliteResultSet,
+            view.tableView, null, sqliteResultSet,
             edtExecutor
           ).also { it.setUp() }
           currentQueryResultSetController

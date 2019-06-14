@@ -69,6 +69,20 @@ class SqliteModel(private val sqliteFile: VirtualFile) {
   }
 }
 
+/**
+ * Listener interface corresponding to the [SqliteModel] class.
+ */
+interface SqliteModelListener {
+  /**
+   * Notification that the [DeviceFileId] associated to the Sqlite database has changed.
+   */
+  fun deviceFileIdChanged(fileId: DeviceFileId)
+
+  /**
+   * Notification that the [SqliteSchema] has changed.
+   */
+  fun schemaChanged(schema: SqliteSchema)
+}
 
 /** Representation of the Sqlite database table */
 data class SqliteTable(val name: String, val columns: List<SqliteColumn>)

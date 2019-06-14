@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.model.SqliteSchema
-import com.android.tools.idea.sqlite.ui.ResultSetView
 import com.android.tools.idea.sqlite.ui.mainView.SqliteView
 import com.android.tools.idea.sqlite.ui.mainView.SqliteViewListener
 import org.mockito.Mockito.mock
@@ -37,8 +36,6 @@ open class MockSqliteView : SqliteView {
 
   override val component: JComponent = mock(JComponent::class.java)
 
-  override val tableView: ResultSetView = mock(ResultSetView::class.java)
-
   override fun setUp() { }
 
   override fun startLoading(text: String) { }
@@ -47,7 +44,11 @@ open class MockSqliteView : SqliteView {
 
   override fun displaySchema(schema: SqliteSchema) { }
 
-  override fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable) { }
+  override fun displayTable(tableName: String, component: JComponent) { }
 
-  override fun resetView() { }
+  override fun focusTable(tableName: String) { }
+
+  override fun closeTable(tableName: String) { }
+
+  override fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable) { }
 }
