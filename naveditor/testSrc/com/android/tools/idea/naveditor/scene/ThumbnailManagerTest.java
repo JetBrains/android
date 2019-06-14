@@ -33,10 +33,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -175,14 +178,6 @@ public class ThumbnailManagerTest extends NavTestCase {
   private static final float MAX_PERCENT_DIFFERENT = 1f;
 
   public void testGeneratedImage() throws Exception {
-    // TODO: Add support for retina images: b/119616215
-    if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
-      return;
-    }
-
-    File goldenFile = new File(Companion.getTestDataPath() + "/thumbnails/basic_activity_1.png");
-    BufferedImage goldenImage = ImageIO.read(goldenFile);
-
     ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
 
     VirtualFile file = getProject().getBaseDir().findFileByRelativePath("../unitTest/res/layout/activity_main.xml");
@@ -190,6 +185,16 @@ public class ThumbnailManagerTest extends NavTestCase {
 
     NlModel model = NlModel.create(getProject(), myFacet, psiFile.getVirtualFile(), mySurface.getComponentRegistrar());
     BufferedImage image = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(192, 320)).getTerminalImage();
+
+    String fileName = "basic_activity_1.png";
+
+    if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
+      image = ImageUtil.toBufferedImage(image);
+      fileName = "basic_activity_1_retina.png";
+    }
+
+    File goldenFile = Paths.get(Companion.getTestDataPath(), "thumbnails", fileName).toFile();
+    BufferedImage goldenImage = ImageIO.read(goldenFile);
 
     ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image, MAX_PERCENT_DIFFERENT);
   }
