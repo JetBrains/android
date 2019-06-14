@@ -28,6 +28,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -38,7 +39,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
  */
 public class GradleModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 3L;
+  private static final long serialVersionUID = 4L;
 
   @NotNull private final String myModuleName;
   @NotNull private final List<String> myTaskNames;
@@ -49,6 +50,8 @@ public class GradleModuleModel implements ModuleModel {
   @Nullable private final File myBuildFilePath;
   @Nullable private final String myGradleVersion;
   @Nullable private final String myAgpVersion;
+
+  private final boolean myIsKaptEnabled;
 
   /**
    * @param moduleName    the name of the IDE module.
@@ -63,10 +66,11 @@ public class GradleModuleModel implements ModuleModel {
                            @NotNull Collection<String> gradlePlugins,
                            @Nullable File buildFilePath,
                            @Nullable String gradleVersion,
-                           @Nullable String agpVersion) {
+                           @Nullable String agpVersion,
+                           @Nullable KaptGradleModel kaptGradleModel) {
     this(moduleName, getTaskNames(gradleProject), gradleProject.getPath(),
          gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir(), ImmutableList.copyOf(gradlePlugins), buildFilePath,
-         gradleVersion, agpVersion);
+         gradleVersion, agpVersion, kaptGradleModel != null && kaptGradleModel.isEnabled());
   }
 
   /**
@@ -80,7 +84,8 @@ public class GradleModuleModel implements ModuleModel {
                            @NotNull List<String> gradlePlugins,
                            @Nullable File buildFilePath,
                            @Nullable String gradleVersion,
-                           @Nullable String agpVersion) {
+                           @Nullable String agpVersion,
+                           boolean isKaptEnabled) {
     myModuleName = moduleName;
     myTaskNames = taskNames;
     myGradlePath = gradlePath;
@@ -89,6 +94,7 @@ public class GradleModuleModel implements ModuleModel {
     myBuildFilePath = buildFilePath;
     myGradleVersion = gradleVersion;
     myAgpVersion = agpVersion;
+    myIsKaptEnabled = isKaptEnabled;
   }
 
   @NotNull
@@ -153,5 +159,9 @@ public class GradleModuleModel implements ModuleModel {
   @NotNull
   public List<String> getGradlePlugins() {
     return myGradlePlugins;
+  }
+
+  public boolean isKaptEnabled() {
+    return myIsKaptEnabled;
   }
 }

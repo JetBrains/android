@@ -38,6 +38,7 @@ import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 
 public class GradleModuleSetup {
   @NotNull
@@ -70,7 +71,7 @@ public class GradleModuleSetup {
     String agpVersion = androidProject != null ? androidProject.getModelVersion() : null;
 
     return new GradleModuleModel(module.getName(), gradleProject, getGradlePlugins(models), buildFilePath, getGradleVersion(module),
-                                 agpVersion);
+                                 agpVersion, models.findModel(KaptGradleModel.class));
   }
 
   @NotNull
