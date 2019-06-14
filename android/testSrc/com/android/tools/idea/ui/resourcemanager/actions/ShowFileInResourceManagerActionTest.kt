@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.actions
 
 import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.widget.SectionList
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
@@ -82,7 +82,7 @@ class ShowFileInResourceManagerActionTest {
     }
     wait.assertCompleted()
     resourceExplorer.selectAsset(rule.module.androidFacet!!, newFile.virtualFile)
-    val designAsset = component.selectedValue as DesignAssetSet
+    val designAsset = component.selectedValue as ResourceAssetSet
     assertTrue { designAsset.name == "icon" }
   }
 
