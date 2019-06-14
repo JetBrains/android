@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getPNGFile
 import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.runReadAction
@@ -70,7 +71,7 @@ class ProjectResourcesBrowserViewModelTest {
     val latch = CountDownLatch(1)
     val pngDrawable = projectRule.getPNGResourceItem()
     val viewModel = createViewModel(projectRule.module)
-    val asset = DesignAsset.fromResourceItem(pngDrawable)!!
+    val asset = Asset.fromResourceItem(pngDrawable)!! as DesignAsset
     val iconSize = 32 // To compensate the 10% margin around the icon
     viewModel.assetPreviewManager
       .getPreviewProvider(ResourceType.DRAWABLE)
@@ -96,17 +97,17 @@ class ProjectResourcesBrowserViewModelTest {
     viewModel.filterOptions.isShowLibraries = true
     val colorSection = viewModel.getResourcesLists().get()
     Truth.assertThat(colorSection).hasSize(2)
-    Truth.assertThat(colorSection[0].assets).isEmpty()
-    Truth.assertThat(colorSection[1].assets).isNotEmpty()
-    Truth.assertThat(colorSection[1].assets).isNotEmpty()
-    Truth.assertThat(colorSection[1].assets[0].designAssets[0].type).isEqualTo(ResourceType.COLOR)
+    Truth.assertThat(colorSection[0].assetSets).isEmpty()
+    Truth.assertThat(colorSection[1].assetSets).isNotEmpty()
+    Truth.assertThat(colorSection[1].assetSets).isNotEmpty()
+    Truth.assertThat(colorSection[1].assetSets[0].assets[0].type).isEqualTo(ResourceType.COLOR)
 
     viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.DRAWABLE)
     val drawableSection = viewModel.getResourcesLists().get()
     Truth.assertThat(drawableSection).hasSize(2)
-    Truth.assertThat(drawableSection[0].assets).isEmpty()
-    Truth.assertThat(drawableSection[1].assets).isNotEmpty()
-    Truth.assertThat(drawableSection[1].assets[0].designAssets[0].type).isEqualTo(ResourceType.DRAWABLE)
+    Truth.assertThat(drawableSection[0].assetSets).isEmpty()
+    Truth.assertThat(drawableSection[1].assetSets).isNotEmpty()
+    Truth.assertThat(drawableSection[1].assetSets[0].assets[0].type).isEqualTo(ResourceType.DRAWABLE)
   }
 
   @RunsInEdt
@@ -116,9 +117,9 @@ class ProjectResourcesBrowserViewModelTest {
     val viewModel = createViewModel(projectRule.module)
 
     viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
-    val values = viewModel.getResourcesLists().get()[0].assets
+    val values = viewModel.getResourcesLists().get()[0].assetSets
     Truth.assertThat(values).isNotNull()
-    Truth.assertThat(values.flatMap { it.designAssets }
+    Truth.assertThat(values.flatMap { it.assets }
                        .map { it.resourceItem.resourceValue?.value })
       .containsExactly("#3F51B5", "#303F9F", "#9dff00")
   }
@@ -129,10 +130,10 @@ class ProjectResourcesBrowserViewModelTest {
     val viewModel = createViewModel(projectRule.module)
     val resourceChangedLatch = CountDownLatch(1)
     viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.DRAWABLE)
-    val values = viewModel.getResourcesLists().get()[0].assets
+    val values = viewModel.getResourcesLists().get()[0].assetSets
     Truth.assertThat(values).isNotNull()
     Truth.assertThat(values
-                       .flatMap { it.designAssets }
+                       .flatMap { it.assets }
                        .mapNotNull { it.resourceItem.resourceValue?.value }
                        .map {
                          FileUtil.getRelativePath(projectRule.fixture.tempDirPath, it, '/')
@@ -148,9 +149,9 @@ class ProjectResourcesBrowserViewModelTest {
     runInEdtAndGet { RenameDialog(projectRule.project, psiFile, null, null).performRename("new_name.xml") }
     Truth.assertWithMessage("resourceChangedCallback was called").that(resourceChangedLatch.await(1, TimeUnit.SECONDS)).isTrue()
 
-    val newValues = viewModel.getResourcesLists().get()[0].assets
+    val newValues = viewModel.getResourcesLists().get()[0].assetSets
     Truth.assertThat(newValues
-                       .flatMap { it.designAssets }
+                       .flatMap { it.assets }
                        .mapNotNull { it.resourceItem.resourceValue?.value }
                        .map {
                          FileUtil.getRelativePath(projectRule.fixture.tempDirPath, it, '/')

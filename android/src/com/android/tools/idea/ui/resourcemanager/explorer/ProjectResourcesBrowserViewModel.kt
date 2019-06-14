@@ -23,15 +23,16 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getFolderType
+import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.SUPPORTED_RESOURCES
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
-import com.android.tools.idea.resources.aar.AarResourceRepository
-import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -193,7 +194,7 @@ class ProjectResourcesBrowserViewModel(
     unsubscribeListener(facet)
   }
 
-  override fun getData(dataId: String?, selectedAssets: List<DesignAsset>): Any? {
+  override fun getData(dataId: String?, selectedAssets: List<Asset>): Any? {
     return dataManager.getData(dataId, selectedAssets)
   }
 
@@ -205,15 +206,15 @@ class ProjectResourcesBrowserViewModel(
 
 private fun createResourceSection(libraryName: String, resourceItems: List<ResourceItem>): ResourceSection {
   val designAssets = resourceItems
-    .mapNotNull { DesignAsset.fromResourceItem(it) }
-    .groupBy(DesignAsset::name)
-    .map { (name, assets) -> DesignAssetSet(name, assets) }
+    .mapNotNull { Asset.fromResourceItem(it) }
+    .groupBy(Asset::name)
+    .map { (name, assets) -> ResourceAssetSet(name, assets) }
   return ResourceSection(libraryName, designAssets)
 }
 
 data class ResourceSection(
   val libraryName: String = "",
-  val assets: List<DesignAssetSet>)
+  val assetSets: List<ResourceAssetSet>)
 
 private fun userReadableLibraryName(lib: AarResourceRepository) =
   lib.libraryName?.let {

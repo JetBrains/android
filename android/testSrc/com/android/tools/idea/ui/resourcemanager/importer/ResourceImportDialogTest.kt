@@ -94,7 +94,7 @@ class ResourceImportDialogTest {
     val content = resourceImportDialog.root.viewport.view as JPanel
     val fileRows = findComponentsOfType(content, FileImportRow::class.java)
     val firstAssetSet = dialogViewModel.assetSets.first()
-    val firstAsset = firstAssetSet.designAssets.first()
+    val firstAsset = firstAssetSet.assets.first()
 
     val row0 = fileRows[0]
     val parent = row0.parent as JPanel
@@ -105,7 +105,7 @@ class ResourceImportDialogTest {
 
     // Check that the view has been removed and that the asset has been removed from the model.
     assertFalse(parent.components.contains(row0))
-    assertFalse(dialogViewModel.assetSets.first().designAssets.contains(firstAsset))
+    assertFalse(dialogViewModel.assetSets.first().assets.contains(firstAsset))
 
     // Check that a label with the assetSet name is still present.
     assertEquals(1, findComponentsOfType(content, JBTextField::class.java).filter { it.text.equals(firstAssetSet.name, true) }.size)
@@ -130,7 +130,7 @@ class ResourceImportDialogTest {
     val content = resourceImportDialog.root.viewport.view as JPanel
     val fileRows = findComponentsOfType(content, FileImportRow::class.java)
     val firstAssetSet = dialogViewModel.assetSets.first()
-    val firstAsset = firstAssetSet.designAssets.first()
+    val firstAsset = firstAssetSet.assets.first()
 
     val row0 = fileRows[0]
     val parent = row0.parent as JPanel
@@ -140,7 +140,7 @@ class ResourceImportDialogTest {
 
     // Check that the view has been removed and that the asset has been removed from the model.
     assertFalse(parent.components.contains(row0))
-    assertFalse(dialogViewModel.assetSets.first().designAssets.contains(firstAsset))
+    assertFalse(dialogViewModel.assetSets.first().assets.contains(firstAsset))
 
     // Check that a label with the assetSet name is still present.
     assertEquals(1, findComponentsOfType(content, JBTextField::class.java).filter { it.text.equals(firstAssetSet.name, true) }.size)
@@ -189,7 +189,7 @@ private val staticRule = AndroidProjectRule.onDisk()
 fun main(vararg args: String) {
   staticRule.before(Description.createSuiteDescription(
     ResourceImportDialogTest::class.java))
-  staticRule.fixture.testDataPath = getTestDataDirectory() + "/designAssets"
+  staticRule.fixture.testDataPath = getTestDataDirectory() + "/assets"
   runInEdt {
     UIManager.setLookAndFeel(DarculaLaf())
     JFrame().apply {

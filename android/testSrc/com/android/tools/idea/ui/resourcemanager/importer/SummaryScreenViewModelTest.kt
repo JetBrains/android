@@ -25,7 +25,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
@@ -67,11 +67,11 @@ class SummaryScreenViewModelTest {
     val trueFile = getTestFiles("entertainment/icon_category_entertainment.png").first()
     viewModel.assetSetsToImport =
       setOf(
-        DesignAssetSet("asset1", listOf(
+        ResourceAssetSet("asset1", listOf(
           DesignAsset(FakeVirtualFile(resDir, "image1.png"), listOf(NightModeQualifier(NightMode.NIGHT)), ResourceType.DRAWABLE),
           DesignAsset(FakeVirtualFile(resDir, "image2.png"), listOf(DensityQualifier(Density.MEDIUM)), ResourceType.DRAWABLE)
         )),
-        DesignAssetSet("asset2", listOf(
+        ResourceAssetSet("asset2", listOf(
           DesignAsset(FakeVirtualFile(resDir, "image3.png"), listOf(
             HighDynamicRangeQualifier(HighDynamicRange.HIGHDR),
             DensityQualifier(Density.MEDIUM)),
@@ -111,7 +111,7 @@ class SummaryScreenViewModelTest {
     val resDir = rule.fixture.tempDirFixture.findOrCreateDir("res")
 
     viewModel.assetSetsToImport =
-      setOf(DesignAssetSet("asset1", listOf(
+      setOf(ResourceAssetSet("asset1", listOf(
         DesignAsset(FakeVirtualFile(resDir, "image1.png"), listOf(NightModeQualifier(NightMode.NIGHT)), ResourceType.DRAWABLE))))
     viewModel.selectedFile = viewModel.getFileTreeModel().root.getChild(0).getChild(0).file
     assertThat(callBackCalled).isTrue()

@@ -17,8 +17,8 @@ package com.android.tools.idea.ui.resourcemanager
 
 import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.Asset
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import org.jetbrains.android.facet.AndroidFacet
 
 /** A [ResourceExplorer] used in a dialog for resource picking. */
@@ -34,8 +34,8 @@ class ResourceExplorerDialog(facet: AndroidFacet) : ResourcePickerDialog(facet.m
 
   override fun createCenterPanel() = resourceExplorerPanel
 
-  override fun onDesignAssetSetSelected(designAssetSet: DesignAssetSet?) {
-    pickedResourceName = (designAssetSet?.getHighestDensityAsset() as DesignAsset).resourceItem.referenceToSelf.resourceUrl.toString()
+  override fun onDesignAssetSetSelected(resourceAssetSet: ResourceAssetSet?) {
+    pickedResourceName = (resourceAssetSet?.getHighestDensityAsset() as Asset).resourceItem.referenceToSelf.resourceUrl.toString()
   }
 
   override val resourceName: String?
