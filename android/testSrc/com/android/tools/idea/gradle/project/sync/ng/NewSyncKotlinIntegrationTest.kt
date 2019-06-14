@@ -77,7 +77,7 @@ class NewSyncKotlinIntegrationTest : AndroidGradleTestCase() {
 
   private fun GradleModuleModel.copy(): GradleModuleModel? =
     GradleModuleModel(moduleName, taskNames, gradlePath, rootFolderPath,
-                      gradlePlugins, buildFilePath!!, gradleVersion!!, agpVersion)
+                      gradlePlugins, buildFilePath!!, gradleVersion!!, agpVersion, isKaptEnabled)
 
   private fun Module.verifyGradleFacetConfiguration(oldGradleModuleModel: GradleModuleModel?) {
     val facet = GradleFacet.getInstance(this)

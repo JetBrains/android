@@ -30,6 +30,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRE
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
+import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_KAPT;
 import static com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE;
 import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -859,6 +860,16 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     assertThat(expectedFailure).isEqualTo("setup project failed: Sync issues found!\n" +
                                           "Module 'app':\nRequested NDK version 'i am a good version' could not be parsed\n");
+  }
+
+  public void testKaptIsEnabled() throws Exception {
+    loadProject(KOTLIN_KAPT);
+
+    GradleModuleModel appModel = GradleFacet.getInstance(getModule("app")).getGradleModuleModel();
+    assertTrue(appModel.isKaptEnabled());
+
+    GradleModuleModel rootModel = GradleFacet.getInstance(getModule("lib")).getGradleModuleModel();
+    assertFalse(rootModel.isKaptEnabled());
   }
 
   @NotNull
