@@ -48,8 +48,8 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
@@ -158,7 +158,7 @@ public class RenderTask {
   @NotNull private final Object myCredential;
   private boolean myProvideCookiesForIncludedViews = false;
   @Nullable private RenderSession myRenderSession;
-  @NotNull private IImageFactory myCachingImageFactory;
+  @NotNull private IImageFactory myCachingImageFactory = SIMPLE_IMAGE_FACTORY;
   @Nullable private IImageFactory myImageFactoryDelegate;
   private final boolean isSecurityManagerEnabled;
   @NotNull private CrashReporter myCrashReporter;
@@ -538,7 +538,10 @@ public class RenderTask {
             }
           }
         }
-        params.setAppLabel(params.getResources().resolveResValue(appLabel).getValue());
+        ResourceValue resource = params.getResources().resolveResValue(appLabel);
+        if (resource != null) {
+          params.setAppLabel(resource.getValue());
+        }
       }
       catch (Exception ignored) {
       }
@@ -886,11 +889,13 @@ public class RenderTask {
           else {
             Throwable exception = result == null ? new RuntimeException("Rendering failed - null result") : result.getException();
             if (exception == null) {
-              exception = new RuntimeException("Rendering failed - " + result.getErrorMessage());
+              String message = result.getErrorMessage();
+              exception = new RuntimeException(message == null ? "Rendering failed" : "Rendering failed - " + message);
             }
             reportException(exception);
             return immediateFailedFuture(exception);
           }
+
         });
   }
 
@@ -1042,10 +1047,6 @@ public class RenderTask {
   private RenderSession measure(ILayoutPullParser parser) {
     RenderTaskContext context = getContext();
     ResourceResolver resolver = context.getConfiguration().getResourceResolver();
-    if (resolver == null) {
-      // Abort the rendering if the resources are not found.
-      return null;
-    }
 
     myLayoutlibCallback.reset();
 

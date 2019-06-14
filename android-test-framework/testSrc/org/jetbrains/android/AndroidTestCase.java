@@ -8,7 +8,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.startup.AndroidCodeStyleSettings;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
@@ -67,7 +66,9 @@ import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.formatter.AndroidJavaPredefinedCodeStyle;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
+import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -150,7 +151,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     collectAllowedRoots(allowedRoots);
     registerAllowedRoots(allowedRoots, getTestRootDisposable());
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
-    AndroidCodeStyleSettings.modify(mySettings);
+    // Note: we apply the Android Studio code style so that tests running as the Android plugin in IDEA behave the same.
+    applyAndroidCodeStyleSettings(mySettings);
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
@@ -271,6 +273,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   protected static AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {
     return AndroidXmlCodeStyleSettings.getInstance(CodeStyleSchemes.getInstance().getDefaultScheme().getCodeStyleSettings());
+  }
+
+  public static void applyAndroidCodeStyleSettings(CodeStyleSettings settings) {
+    new AndroidJavaPredefinedCodeStyle().apply(settings);
+    new AndroidXmlPredefinedCodeStyle().apply(settings);
   }
 
   /**

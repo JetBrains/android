@@ -24,6 +24,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
 import com.android.tools.lint.detector.api.stripIdPrefix
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.attrs.AttributeDefinition
@@ -49,6 +50,11 @@ class NeleIdPropertyItem(
   override var value: String?
     get() = stripIdPrefix(super.value)
     set(value) {
+      val undoManager = UndoManager.getInstance(project)
+      if (undoManager.isUndoInProgress || undoManager.isRedoInProgress) {
+        // b/134522901: Avoid updating the property during undo/redo
+        return
+      }
       val oldId = stripIdPrefix(super.value)
       val newId = stripIdPrefix(value)
       val newValue = toValue(newId)

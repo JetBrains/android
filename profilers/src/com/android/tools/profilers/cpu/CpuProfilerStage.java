@@ -186,6 +186,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   private long myCaptureStartTimeNs;
 
+  /**
+   * If there is a capture being stopped, stores the start time of the stop operation.
+   * The time is in the host machine's clock.
+   */
+  private long myStopStartTimeNs;
+
   private CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable;
 
   private final CpuCaptureStateUpdatable myCaptureStateUpdatable;
@@ -587,6 +593,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myInProgressTraceSeries.add(captureStartTimeUs, new DefaultDurationData(currentTimeUs - captureStartTimeUs));
 
     setCaptureState(CaptureState.STOPPING);
+    myStopStartTimeNs = System.nanoTime();
     CompletableFuture.supplyAsync(
       () -> cpuService.stopProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
       .thenAcceptAsync(this::stopCapturingCallback, getStudioProfilers().getIdeServices().getMainExecutor());
@@ -644,6 +651,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     // Set the estimate duration of the capture, i.e. the time difference between device time when user clicked start and stop.
     // If the capture is successful, it will be overridden by a more accurate time, calculated from the capture itself.
     captureMetadata.setCaptureDurationMs(estimateDurationMs);
+    int stopElapsedTimeMs = (int)TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - myStopStartTimeNs);
+    captureMetadata.setStoppingTimeMs(stopElapsedTimeMs);
     if (!response.getStatus().equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
       getLogger().warn("Unable to stop tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());

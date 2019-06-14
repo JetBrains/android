@@ -29,6 +29,7 @@ import java.awt.*;
  */
 public class DrawAnimatedFrame extends DrawRegion {
   private int mDirection;
+  private boolean mDrawAsDelete;
   private int[] mXPoints = new int[6];
   private int[] mYPoints = new int[6];
   private static final Stroke myBasicStroke = new BasicStroke(2f);
@@ -42,7 +43,8 @@ public class DrawAnimatedFrame extends DrawRegion {
     String[] sp = s.split(",");
     int c = 0;
     c = super.parse(sp, c);
-    mDirection = Integer.parseInt(sp[c]);
+    mDirection = Integer.parseInt(sp[c++]);
+    mDrawAsDelete = Boolean.parseBoolean(sp[c]);
   }
 
   @Override
@@ -53,10 +55,12 @@ public class DrawAnimatedFrame extends DrawRegion {
   public DrawAnimatedFrame(@SwingCoordinate int x,
                            @SwingCoordinate int y,
                            @SwingCoordinate int width,
-                           @SwingCoordinate int height, int direction
+                           @SwingCoordinate int height, int direction,
+                           boolean asDelete
   ) {
     super(x, y, width, height);
     mDirection = direction;
+    mDrawAsDelete = asDelete;
   }
 
   @Override
@@ -131,7 +135,7 @@ public class DrawAnimatedFrame extends DrawRegion {
     g.drawPolyline(mXPoints, mYPoints, mXPoints.length);
 
     g.setStroke(myBasicStroke);
-    g.setColor(colorSet.getAnchorDisconnectionCircle());
+    g.setColor(mDrawAsDelete? colorSet.getAnchorDisconnectionCircle() : colorSet.getSelectedFrames());
 
     int dx = 4 * Math.abs(Integer.signum(mXPoints[4] - mXPoints[1]));
     int dy = 4 * Math.abs(Integer.signum(mYPoints[4] - mYPoints[1]));
@@ -147,11 +151,11 @@ public class DrawAnimatedFrame extends DrawRegion {
 
   @Override
   public String serialize() {
-    return super.serialize() + "," + mDirection;
+    return super.serialize() + "," + mDirection + "," + mDrawAsDelete;
   }
 
-  public static void add(DisplayList list, @AndroidDpCoordinate Rectangle rect, int direction
+  public static void add(DisplayList list, @AndroidDpCoordinate Rectangle rect, int direction, boolean asDelete
   ) {
-    list.add(new DrawAnimatedFrame(rect.x, rect.y, rect.width, rect.height, direction));
+    list.add(new DrawAnimatedFrame(rect.x, rect.y, rect.width, rect.height, direction, asDelete));
   }
 }

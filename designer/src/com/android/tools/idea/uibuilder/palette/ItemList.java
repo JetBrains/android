@@ -95,8 +95,8 @@ public class ItemList extends ListWithMargin<Palette.Item> {
 
       ItemList itemList = (ItemList)list;
       myDownloadIcon.setVisible(itemList.displayDownloadIcon(item, index));
-      myDownloadIcon.setIcon(selected ? StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD_SELECTED
-                                      : StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD);
+      myDownloadIcon.setIcon(selected && hasFocus ? StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD_SELECTED
+                                                  : StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD);
       return myPanel;
     }
   }
@@ -122,7 +122,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
 
       setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
       mySelectionForeground = UIUtil.getTreeForeground(selected, hasFocus);
-      setIcon(hasFocus ? ColoredIconGenerator.INSTANCE.generateWhiteIcon(icon) : icon);
+      setIcon(selected && hasFocus ? ColoredIconGenerator.INSTANCE.generateWhiteIcon(icon) : icon);
       append(text);
     }
   }

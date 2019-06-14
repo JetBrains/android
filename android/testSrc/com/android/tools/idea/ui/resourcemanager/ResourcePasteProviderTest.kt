@@ -150,39 +150,63 @@ internal class ResourcePasteProviderTest {
     val resourcePasteProvider = ResourcePasteProvider()
     resourcePasteProvider.paste(dataContext)
 
-    Truth.assertThat(editor.document.text).isEqualTo("<Tag1 xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                                                     "   <Tag2>\n" +
-                                                     "       <ImageView android:layout_width=\"wrap_content\" android:layout_height=\"wrap_content\"\n" +
-                                                     "                  android:src=\"@namespace:drawable/my_resource\"/>\n" +
-                                                     "   </Tag2>\n" +
-                                                     "</Tag1>")
+    Truth.assertThat(editor.document.text).isEqualTo("""
+    <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
+       <Tag2>
+
+           <ImageView
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:src="@namespace:drawable/my_resource" />
+       </Tag2>
+    </Tag1>
+    """.trimIndent())
 
     resourcePasteProvider.paste(createDataContext(editor, psiFile, ResourceUrl.parse("@drawable/resource2")!!))
 
-    Truth.assertThat(editor.document.text).isEqualTo("<Tag1 xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                                                     "   <Tag2>\n" +
-                                                     "       <ImageView android:layout_width=\"wrap_content\" android:layout_height=\"wrap_content\"\n" +
-                                                     "                  android:src=\"@drawable/resource2\"/>\n" +
-                                                     "       <ImageView android:layout_width=\"wrap_content\" android:layout_height=\"wrap_content\"\n" +
-                                                     "                  android:src=\"@namespace:drawable/my_resource\"/>\n" +
-                                                     "   </Tag2>\n" +
-                                                     "</Tag1>")
+    Truth.assertThat(editor.document.text).isEqualTo("""
+    <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
+       <Tag2>
+
+           <ImageView
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:src="@drawable/resource2" />
+
+           <ImageView
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:src="@namespace:drawable/my_resource" />
+       </Tag2>
+    </Tag1>
+  """.trimIndent())
 
     val tagIndex2 = editor.document.text.indexOf("</Tag2>") + "</Tag2>".length
     runInEdtAndWait { editor.caretModel.moveToOffset(tagIndex2) }
 
     resourcePasteProvider.paste(createDataContext(editor, psiFile, ResourceUrl.parse("@drawable/resource3")!!))
 
-    Truth.assertThat(editor.document.text).isEqualTo("<Tag1 xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                                                     "   <Tag2>\n" +
-                                                     "       <ImageView android:layout_width=\"wrap_content\" android:layout_height=\"wrap_content\"\n" +
-                                                     "                  android:src=\"@drawable/resource2\"/>\n" +
-                                                     "       <ImageView android:layout_width=\"wrap_content\" android:layout_height=\"wrap_content\"\n" +
-                                                     "                  android:src=\"@namespace:drawable/my_resource\"/>\n" +
-                                                     "   </Tag2>\n" +
-                                                     "    <ImageView android:layout_width=\"wrap_content\" android:layout_height=\"wrap_content\"\n" +
-                                                     "               android:src=\"@drawable/resource3\"/>\n" +
-                                                     "</Tag1>")
+    Truth.assertThat(editor.document.text).isEqualTo("""
+    <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
+       <Tag2>
+
+           <ImageView
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:src="@drawable/resource2" />
+
+           <ImageView
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:src="@namespace:drawable/my_resource" />
+       </Tag2>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/resource3" />
+    </Tag1>
+    """.trimIndent())
   }
 
   private fun createEditor(psiFile: PsiFile): Editor {

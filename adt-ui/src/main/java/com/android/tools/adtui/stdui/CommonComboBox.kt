@@ -18,9 +18,9 @@ package com.android.tools.adtui.stdui
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
-import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JTextField
 import javax.swing.plaf.UIResource
@@ -29,7 +29,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor
 /**
  * ComboBox controlled by a [CommonComboBoxModel].
  */
-open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : JComboBox<E>(model) {
+open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBox<E>(model) {
 
   private var textField: CommonTextField<*>? = null
 

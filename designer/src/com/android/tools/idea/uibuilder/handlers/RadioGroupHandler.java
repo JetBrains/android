@@ -49,6 +49,12 @@ public class RadioGroupHandler extends LinearLayoutHandler {
   }
 
   @Override
+  public boolean isVertical(@NotNull NlComponent component) {
+    // RadioGroup is vertical by default.
+    return !VALUE_HORIZONTAL.equals(component.resolveAttribute(ANDROID_URI, ATTR_ORIENTATION));
+  }
+
+  @Override
   @Language("XML")
   @NotNull
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {

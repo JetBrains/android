@@ -23,6 +23,7 @@ android {
 }
 
 dependencies {
+    implementation project(':lib')
     api fileTree(dir: 'libs', include: ['*.jar'])
 
     // depending on the latest allows us to load whatever the testing infra has

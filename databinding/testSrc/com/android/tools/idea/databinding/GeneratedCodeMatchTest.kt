@@ -286,7 +286,11 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
       // Convert Asm and PSI classes into description sets and verify they're the same
       val asmInfo = ClassDescriber.collectDescriptionSet(classReader, baseClassInfo)
       val psiInfo = ClassDescriber.collectDescriptionSet(psiClass)
-      assertWithMessage(className).that(asmInfo).isEqualTo(psiInfo)
+
+      // TODO(b/134532947): BR completion doesn't include user fields (temporarily) to avoid a deadlock, skip check for now
+      if (className != "com.android.example.appwithdatabinding.BR") {
+        assertWithMessage(className).that(asmInfo).isEqualTo(psiInfo)
+      }
     }
     assertWithMessage("Failed to find expected generated data binding classes; did the compiler change?")
       .that(generatedClasses).containsExactly(
