@@ -16,9 +16,11 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
+import com.android.tools.idea.ui.resourcemanager.model.Asset
+import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWrapper
 import com.android.tools.idea.ui.resourcemanager.widget.Section
 import com.android.tools.idea.ui.resourcemanager.widget.SectionList
@@ -105,7 +107,7 @@ private val LIST_MODE_BACKGROUND = UIUtil.getListBackground()
 private const val DELAY_BEFORE_LOADING_STATE = 100L // ms
 
 /**
- * View meant to display [com.android.tools.idea.ui.resourcemanager.model.DesignAsset] located
+ * View meant to display [com.android.tools.idea.ui.resourcemanager.model.Asset] located
  * in the project.
  * It uses an [ProjectResourcesBrowserViewModel] to populates the views
  */
@@ -228,9 +230,11 @@ class ResourceExplorerView(
   /**
    * Replace the content of the view with a [ResourceDetailView] for the provided [designAssetSet].
    */
-  private fun openAssets(designAssetSet: DesignAssetSet) {
-    if (designAssetSet.designAssets.size == 1) {
-      val asset = designAssetSet.designAssets.first()
+  private fun openAssets(designAssetSet: ResourceAssetSet) {
+    if (designAssetSet.assets.size == 1) {
+      val asset = designAssetSet.assets.first()
+      if (!(asset is DesignAsset)) return // TODO: Show some sort of ui feedback. E.g: A warning icon on resource + error dialog.
+      // TODO: Refactor openFile out of ResourceExplorerViewModel, would need something different for resource picking.
       ResourceManagerTracking.logAssetOpened(asset.type)
       resourcesBrowserViewModel.openFile(asset)
       return
@@ -238,7 +242,7 @@ class ResourceExplorerView(
     showDetailView(designAssetSet)
   }
 
-  private fun showDetailView(designAssetSet: DesignAssetSet) {
+  private fun showDetailView(designAssetSet: ResourceAssetSet) {
     val parent = parent
     parent.remove(this)
     val previousSelectedValue = sectionList.selectedValue
@@ -278,11 +282,11 @@ class ResourceExplorerView(
     }
   }
 
-  private fun getSelectedAssets(): List<DesignAsset> {
+  private fun getSelectedAssets(): List<Asset> {
     return sectionList.getLists()
       .flatMap { it.selectedValuesList }
-      .filterIsInstance<DesignAssetSet>()
-      .flatMap(DesignAssetSet::designAssets)
+      .filterIsInstance<ResourceAssetSet>()
+      .flatMap(ResourceAssetSet::assets)
   }
 
   private fun populateResourcesLists() {
@@ -316,7 +320,7 @@ class ResourceExplorerView(
   private fun displayResources(resourceLists: List<ResourceSection>) {
     sectionListModel.clear()
     val sections = resourceLists
-      .filterNot { it.assets.isEmpty() }
+      .filterNot { it.assetSets.isEmpty() }
       .map(this::createSection)
       .toList()
     if (!sections.isEmpty()) {
@@ -327,7 +331,7 @@ class ResourceExplorerView(
     }
   }
 
-  private fun createLoadingSection() = AssetSection<DesignAssetSet>(
+  private fun createLoadingSection() = AssetSection<ResourceAssetSet>(
     resourcesBrowserViewModel.facet.module.name, null,
     AssetListView(emptyList(), null).apply {
       setPaintBusy(true)
@@ -335,7 +339,7 @@ class ResourceExplorerView(
       background = this@ResourceExplorerView.background
     })
 
-  private fun createEmptySection() = AssetSection<DesignAssetSet>(
+  private fun createEmptySection() = AssetSection<ResourceAssetSet>(
     resourcesBrowserViewModel.facet.module.name, null,
     AssetListView(emptyList(), null).apply {
       setEmptyText("No ${resourcesBrowserViewModel.selectedTabName.toLowerCase(Locale.US)} available")
@@ -390,7 +394,7 @@ class ResourceExplorerView(
   }
 
   private fun createSection(section: ResourceSection) =
-    AssetSection(section.libraryName, section.assets.size, AssetListView(section.assets, resourcesBrowserViewModel.speedSearch).apply {
+    AssetSection(section.libraryName, section.assetSets.size, AssetListView(section.assetSets, resourcesBrowserViewModel.speedSearch).apply {
       cellRenderer = DesignAssetCellRenderer(resourcesBrowserViewModel.assetPreviewManager)
       dragHandler.registerSource(this)
       addMouseListener(popupHandler)
@@ -409,7 +413,7 @@ class ResourceExplorerView(
   }
 
   interface SelectionListener {
-    fun onDesignAssetSetSelected(designAssetSet: DesignAssetSet?)
+    fun onDesignAssetSetSelected(resourceAssetSet: ResourceAssetSet?)
   }
 
   private class AssetSection<T>(

@@ -19,7 +19,8 @@ import com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX
 import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer
 import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.VerticalLayout
@@ -86,7 +87,7 @@ class ResourceImportDialog(
   constructor(facet: AndroidFacet, assetSets: Sequence<DesignAsset>) :
     this(ResourceImportDialogViewModel(facet, assetSets))
 
-  private val assetSetToView = IdentityHashMap<DesignAssetSet, DesignAssetSetView>()
+  private val assetSetToView = IdentityHashMap<ResourceAssetSet, DesignAssetSetView>()
 
   private val content = JPanel(VerticalLayout(0)).apply {
     border = CONTENT_PANEL_BORDER
@@ -158,7 +159,7 @@ class ResourceImportDialog(
     fileCountLabel.text = "$importedAssetCount ${StringUtil.pluralize("resource", importedAssetCount)} ready to be imported"
   }
 
-  private fun addDesignAssetSet(assetSet: DesignAssetSet) {
+  private fun addDesignAssetSet(assetSet: ResourceAssetSet) {
     val view = DesignAssetSetView(assetSet)
     content.add(view)
     assetSetToView[assetSet] = view
@@ -168,7 +169,7 @@ class ResourceImportDialog(
    * If a [DesignAssetSetView] already exists for [designAssetSet], merge the [newDesignAssets]
    * within this view, otherwise create a new [DesignAssetSetView].
    */
-  private fun addAssets(designAssetSet: DesignAssetSet,
+  private fun addAssets(designAssetSet: ResourceAssetSet,
                         newDesignAssets: List<DesignAsset>) {
     val existingView = assetSetToView[designAssetSet]
     if (existingView != null) {
@@ -208,9 +209,9 @@ class ResourceImportDialog(
   }
 
   /**
-   * View showing a [DesignAssetSet] and its contained [DesignAsset].
+   * View showing a [ResourceAssetSet] and its contained [DesignAsset].
    */
-  private inner class DesignAssetSetView(private var assetSet: DesignAssetSet) : JPanel(BorderLayout(0, 0)) {
+  private inner class DesignAssetSetView(private var assetSet: ResourceAssetSet) : JPanel(BorderLayout(0, 0)) {
     val assetNameLabel = JBTextField(assetSet.name, 20).apply {
       this.font = UIUtil.getLabelFont().deriveFont(JBUI.scaleFontSize(14f))
       document.addDocumentListener(object : DocumentAdapter() {

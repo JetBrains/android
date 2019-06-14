@@ -16,9 +16,10 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_DEBUG
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
-import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
+import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetIconProvider
+import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.rendering.ColorIconProvider
 import com.android.tools.idea.ui.resourcemanager.widget.IssueLevel
 import com.intellij.ui.ColorUtil
@@ -49,18 +50,18 @@ fun createIcon(color: Color?): BufferedImage = UIUtil.createImage(
 }
 
 /**
- * [ListCellRenderer] to render [DesignAssetSet] using an [AssetIconProvider]
+ * [ListCellRenderer] to render [ResourceAssetSet] using an [AssetIconProvider]
  * returned by the [assetPreviewManager].
  */
 class DesignAssetCellRenderer(
   private val assetPreviewManager: AssetPreviewManager
-) : ListCellRenderer<DesignAssetSet> {
+) : ListCellRenderer<ResourceAssetSet> {
 
   val label = JLabel().apply { horizontalAlignment = JLabel.CENTER }
 
   override fun getListCellRendererComponent(
-    list: JList<out DesignAssetSet>,
-    value: DesignAssetSet,
+    list: JList<out ResourceAssetSet>,
+    value: ResourceAssetSet,
     index: Int,
     isSelected: Boolean,
     cellHasFocus: Boolean
@@ -69,12 +70,15 @@ class DesignAssetCellRenderer(
     assetView.thumbnail = label
     val thumbnailSize = assetView.thumbnailSize
     val assetToRender = value.getHighestDensityAsset()
+
     val iconProvider: AssetIconProvider = assetPreviewManager.getPreviewProvider(assetToRender.type)
-    label.icon = iconProvider.getIcon(assetToRender,
-                                      thumbnailSize.width,
-                                      thumbnailSize.height,
-                                      { list.getCellBounds(index, index)?.let(list::repaint) },
-                                      { index in list.firstVisibleIndex..list.lastVisibleIndex })
+    label.icon = if (assetToRender is DesignAsset) {
+      iconProvider.getIcon(assetToRender,
+                           thumbnailSize.width,
+                           thumbnailSize.height,
+                           { list.getCellBounds(index, index)?.let(list::repaint) },
+                           { index in list.firstVisibleIndex..list.lastVisibleIndex })
+    } else null
     assetView.withChessboard = iconProvider.supportsTransparency
     assetView.selected = isSelected
     assetView.focused = cellHasFocus
@@ -100,7 +104,7 @@ private data class AssetData(
   var metadata: String
 )
 
-private fun getAssetData(assetSet: DesignAssetSet,
+private fun getAssetData(assetSet: ResourceAssetSet,
                          iconProvider: AssetIconProvider): AssetData {
   val title = assetSet.name
   val subtitle = if (iconProvider is ColorIconProvider) {
@@ -114,7 +118,7 @@ private fun getAssetData(assetSet: DesignAssetSet,
   return AssetData(title, subtitle, metadata)
 }
 
-private fun DesignAssetSet.versionCountString(): String {
-  val size = designAssets.size
+private fun ResourceAssetSet.versionCountString(): String {
+  val size = assets.size
   return "$size $VERSION".pluralize(size)
 }

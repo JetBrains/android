@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.resources.ResourceType
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.intellij.openapi.vfs.VirtualFile
@@ -62,7 +63,7 @@ interface ResourceExplorerViewModel {
   /**
    * Delegate method to handle calls to [com.intellij.openapi.actionSystem.DataProvider.getData].
    */
-  fun getData(dataId: String?, selectedAssets: List<DesignAsset>): Any?
+  fun getData(dataId: String?, selectedAssets: List<Asset>): Any?
 
   /**
    * Opens an editor to display the [asset].
