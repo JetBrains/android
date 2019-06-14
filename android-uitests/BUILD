@@ -2,7 +2,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 filegroup(
     name = "aspect_rules",
-    srcs = ["default_aspect_rules.txt"],
+    srcs = ["default_aspect_rules.json"],
 )
 
 filegroup(
