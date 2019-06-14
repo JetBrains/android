@@ -333,7 +333,7 @@ public class NewGradleSync implements GradleSync {
 
         File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
         GradleModuleModel gradleModel =
-          new GradleModuleModel(name, gradleProject, Collections.emptyList(), buildFilePath, null, agpVersion);
+          new GradleModuleModel(name, gradleProject, Collections.emptyList(), buildFilePath, null, agpVersion, null);
         newModels.addModel(GradleModuleModel.class, gradleModel);
 
         File moduleRootPath = gradleProject.getProjectDirectory();
