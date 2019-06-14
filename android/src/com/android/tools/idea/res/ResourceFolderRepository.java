@@ -166,21 +166,20 @@ import org.jetbrains.ide.PooledThreadExecutor;
 public final class ResourceFolderRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
   private static final Logger LOG = Logger.getInstance(ResourceFolderRepository.class);
 
-  private final Module myModule;
-  private final AndroidFacet myFacet;
-  private final PsiListener myListener;
-  private final VirtualFile myResourceDir;
+  @NotNull private final AndroidFacet myFacet;
+  @NotNull private final PsiListener myListener;
+  @NotNull private final VirtualFile myResourceDir;
   @NotNull private final ResourceNamespace myNamespace;
 
   @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
-  private final ResourceTable myFullTable = new ResourceTable();
+  @NotNull private final ResourceTable myFullTable = new ResourceTable();
 
-  private final Map<VirtualFile, ResourceItemSource<? extends ResourceItem>> sources = new HashMap<>();
+  @NotNull private final Map<VirtualFile, ResourceItemSource<? extends ResourceItem>> sources = new HashMap<>();
   // qualifiedName -> PsiResourceFile
-  private Map<String, BindingLayoutInfo> myDataBindingResourceFiles = new HashMap<>();
+  @NotNull private Map<String, BindingLayoutInfo> myDataBindingResourceFiles = new HashMap<>();
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
-  private final Object SCAN_LOCK = new Object();
-  private Set<PsiFile> myPendingScans;
+  @NotNull private final Object SCAN_LOCK = new Object();
+  @Nullable private Set<PsiFile> myPendingScans;
 
   /**
    * State of the initial scan, which uses {@link ResourceSet} and falls back to the PSI scanner on errors.
@@ -199,7 +198,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private ResourceFolderRepository(@NotNull AndroidFacet facet, @NotNull VirtualFile resourceDir, @NotNull ResourceNamespace namespace) {
     super(resourceDir.getName());
     myFacet = facet;
-    myModule = facet.getModule();
     myListener = new PsiListener();
     myResourceDir = resourceDir;
     myNamespace = namespace;
@@ -254,7 +252,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    */
   @VisibleForTesting
   void saveStateToFile() {
-    File blobRoot = ResourceFolderRepositoryFileCacheService.get().getResourceDir(myModule.getProject(), myResourceDir);
+    File blobRoot = ResourceFolderRepositoryFileCacheService.get().getResourceDir(getProject(), myResourceDir);
     if (blobRoot == null) {
       // The cache is invalid, do nothing.
       return;
@@ -292,7 +290,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       return createFreshResourceMerger();
     }
 
-    File blobRoot = ResourceFolderRepositoryFileCacheService.get().getResourceDir(myModule.getProject(), myResourceDir);
+    File blobRoot = ResourceFolderRepositoryFileCacheService.get().getResourceDir(getProject(), myResourceDir);
     if (blobRoot == null || !blobRoot.exists()) {
       return createFreshResourceMerger();
     }
@@ -507,7 +505,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * @param resourceDir the root resource directory.
    */
   private void getPsiDirsForListener(@NotNull VirtualFile resourceDir) {
-    PsiManager manager = PsiManager.getInstance(myModule.getProject());
+    PsiManager manager = PsiManager.getInstance(getProject());
     PsiDirectory resourceDirPsi = manager.findDirectory(resourceDir);
     if (resourceDirPsi != null) {
       resourceDirPsi.getSubdirectories();
@@ -518,7 +516,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * For resource files that failed when scanning with a VirtualFile, retry with PsiFile.
    */
   private void scanQueuedPsiResources(@NotNull Map<ResourceType, ListMultimap<String, ResourceItem>> result) {
-    PsiManager psiManager = PsiManager.getInstance(myModule.getProject());
+    PsiManager psiManager = PsiManager.getInstance(getProject());
     for (PsiValueResourceQueueEntry valueResource : myInitialScanState.myPsiValueResourceQueue) {
       PsiFile file = psiManager.findFile(valueResource.file);
       if (file != null) {
@@ -548,7 +546,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
     if (virtualFile != null && virtualFile.exists()) {
-      Project project = myModule.getProject();
+      Project project = getProject();
       if (!project.isDisposed()) {
         return PsiManager.getInstance(project).findFile(virtualFile);
       }
@@ -1098,7 +1096,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @VisibleForTesting
   void rescan(@NotNull PsiFile psiFile, @NotNull ResourceFolderType folderType) {
-    synchronized(SCAN_LOCK) {
+    synchronized (SCAN_LOCK) {
       if (isScanPending(psiFile)) {
         return;
       }
@@ -1108,21 +1106,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
       myPendingScans.add(psiFile);
     }
+
     ApplicationManager.getApplication().invokeLater(() -> {
       if (!psiFile.isValid()) return;
 
       ApplicationManager.getApplication().runWriteAction(() -> {
-        boolean rescan;
-        synchronized (SCAN_LOCK) {
-          // Handled by {@link #sync()} after the {@link #rescan} call and before invokeLater ?
-          rescan = myPendingScans != null && myPendingScans.contains(psiFile);
-        }
-        if (rescan) {
+        if (isScanPending(psiFile)) {
           rescanImmediately(psiFile, folderType);
           synchronized (SCAN_LOCK) {
-            // myPendingScans can't be null here because the only method which clears it
-            // is sync() which also requires a write lock, and we've held the write lock
-            // since null checking it above
+            // myPendingScans cannot be null since it contains psiFile.
             myPendingScans.remove(psiFile);
             if (myPendingScans.isEmpty()) {
               myPendingScans = null;
@@ -1138,7 +1130,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     super.sync();
 
     List<PsiFile> files;
-    synchronized(SCAN_LOCK) {
+    synchronized (SCAN_LOCK) {
       if (myPendingScans == null || myPendingScans.isEmpty()) {
         return;
       }
@@ -1156,7 +1148,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     });
 
-    synchronized(SCAN_LOCK) {
+    synchronized (SCAN_LOCK) {
       myPendingScans = null;
     }
   }
@@ -1173,11 +1165,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
     PsiFile file = psiFile;
     if (folderType == VALUES) {
-      // For unit test tracking purposes only
+      // For unit test tracking purposes only.
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourFullRescans++;
 
-      // First delete out the previous items
+      // First delete out the previous items.
       ResourceItemSource<? extends ResourceItem> source = this.sources.get(file.getVirtualFile());
       boolean removed = false;
       if (source != null) {
@@ -1191,9 +1183,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       file = ensureValid(file);
       boolean added = false;
       if (file != null) {
-        // Add items for this file
+        // Add items for this file.
         PsiDirectory parent = file.getParent();
-        assert parent != null; // since we have a folder type
+        assert parent != null; // Since we have a folder type.
         PsiDirectory fileParent = psiFile.getParent();
         if (fileParent != null) {
           FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(fileParent.getName());
@@ -1205,7 +1197,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
       if (added || removed) {
         // TODO: Consider doing a deeper diff of the changes to the resource items
-        // to determine if the removed and added items actually differ
+        //       to determine if the removed and added items actually differ.
         setModificationCount(ourModificationCounter.incrementAndGet());
         invalidateParentCaches();
       }
@@ -1215,10 +1207,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (source instanceof PsiResourceFile) {
         PsiResourceFile psiResourceFile = (PsiResourceFile)source;
         // Already seen this file; no need to do anything unless it's an XML file with generated ids;
-        // in that case we may need to update the id's
-        if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) &&
-            file.getFileType() == StdFileTypes.XML) {
-          // For unit test tracking purposes only
+        // in that case we may need to update the id's.
+        if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && file.getFileType() == StdFileTypes.XML) {
+          // For unit test tracking purposes only.
           //noinspection AssignmentToStaticFieldFromInstanceMethod
           ourFullRescans++;
 
@@ -2141,11 +2132,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
 
     if (isResourceFile(file) && isRelevantFile(file)) {
-      PsiFile psiFile = PsiManager.getInstance(myModule.getProject()).findFile(file);
+      PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
       if (psiFile != null) {
         rescanImmediately(psiFile, folderType);
       }
     }
+  }
+
+  private Project getProject() {
+    return myFacet.getModule().getProject();
   }
 
   void onFileOrDirectoryRemoved(@NotNull VirtualFile file) {
