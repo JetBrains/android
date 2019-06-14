@@ -15,33 +15,24 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewListener
+import com.android.tools.idea.sqlite.ui.tableView.TableView
+import org.mockito.Mockito.mock
 import java.util.ArrayList
+import javax.swing.JComponent
 
 open class MockSqliteEvaluatorView : SqliteEvaluatorView {
+  override val component: JComponent = mock(JComponent::class.java)
+  override val tableView: TableView = mock(TableView::class.java)
 
   val listeners = ArrayList<SqliteEvaluatorViewListener>()
 
   override fun show() { }
-
-  override fun resetView() { }
 
   override fun requestFocus() { }
 
   override fun addListener(listener: SqliteEvaluatorViewListener) { listeners.add(listener) }
 
   override fun removeListener(listener: SqliteEvaluatorViewListener) { listeners.remove(listener) }
-
-  override fun startTableLoading(tableName: String?) { }
-
-  override fun showTableColumns(columns: List<SqliteColumn>) { }
-
-  override fun showTableRowBatch(rows: List<SqliteRow>) { }
-
-  override fun stopTableLoading() { }
-
-  override fun reportErrorRelatedToTable(tableName: String?, message: String, t: Throwable) { }
 }

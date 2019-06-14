@@ -18,7 +18,7 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.SqliteResultSet
-import com.android.tools.idea.sqlite.ui.ResultSetView
+import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
@@ -36,7 +36,7 @@ import com.intellij.openapi.util.Disposer
 @UiThread
 class ResultSetController(
   parentDisposable: Disposable,
-  private val view: ResultSetView,
+  private val view: TableView,
   private val tableName: String?,
   private val resultSet: SqliteResultSet,
   private val edtExecutor: FutureCallbackExecutor
@@ -52,7 +52,7 @@ class ResultSetController(
   }
 
   fun setUp() {
-    view.startTableLoading(tableName)
+    view.startTableLoading()
 
     val futureDisplayRows = edtExecutor.transformAsync(resultSet.columns) { columns ->
       guardDisposed {
@@ -65,7 +65,8 @@ class ResultSetController(
 
     val futureCatching = edtExecutor.catching(futureDisplayRows, Throwable::class.java) { error ->
       guardDisposed {
-        view.reportErrorRelatedToTable(tableName, "Error retrieving contents of tableName", error)
+        val message = "Error retrieving rows ${if(tableName != null) "for table \"$tableName\"" else ""}"
+        view.reportError(message, error)
       }
     }
 
