@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.DefaultTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.FileTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
@@ -315,7 +314,7 @@ public class PropertyUtil {
     String oldName = oNamePsiElement.getText();
 
     GradleNameElement nNameElement = newElement.getNameElement();
-    String newName = nNameElement.getUnsavedName();
+    String newName = nNameElement.getLocalName();
     if (newName == null) {
       return false;
     }
