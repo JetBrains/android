@@ -293,6 +293,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
 
+    // This model is used to work out whether Kapt is enabled.
+    KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
+
     if (androidProject != null) {
       Variant selectedVariant = myVariantSelector.findVariantToSelect(androidProject);
       if (selectedVariant == null && variantGroup != null) {
@@ -364,7 +367,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       gradlePluginList.addAll(gradlePluginModel.getGradlePluginList());
     }
     GradleModuleModel gradleModuleModel =
-      new GradleModuleModel(moduleName, gradleProject, gradlePluginList, buildFilePath, gradleVersion, agpVersion);
+      new GradleModuleModel(moduleName, gradleProject, gradlePluginList, buildFilePath, gradleVersion, agpVersion, kaptGradleModel);
     ideModule.createChild(GRADLE_MODULE_MODEL, gradleModuleModel);
 
     if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
