@@ -58,8 +58,13 @@ class SqliteController(
   private val taskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
 
   private var sqliteEvaluatorController: SqliteEvaluatorController? = null
-  private var currentResultSetController: ResultSetController? = null
-  private var currentTable: SqliteTable? = null
+
+  /**
+   * Controllers for all open result views, keyed by table name.
+   *
+   * <p>Multiple tables can be open at the same time in different tabs. This map keeps track of corresponding controllers.
+   */
+  private val resultSetControllers = mutableMapOf<String, ResultSetController>()
 
   private val sqliteViewListener = SqliteViewListenerImpl()
   private val sqliteModelListener = SqliteModelListenerImpl()
@@ -110,36 +115,9 @@ class SqliteController(
     }
   }
 
-  private fun refreshCurrentTableDataSet(table: SqliteTable) {
-    edtExecutor.addCallback(sqliteService.readTable(table), object : FutureCallback<SqliteResultSet> {
-      override fun onSuccess(sqliteResultSet: SqliteResultSet?) {
-        sqliteResultSet?.let {
-          currentResultSetController = ResultSetController(
-            this@SqliteController,
-            sqliteView.tableView, table.name, it,
-            edtExecutor
-          ).also { it.setUp() }
-          currentResultSetController
-        }
-      }
-
-      override fun onFailure(t: Throwable) {
-        sqliteView.tableView.reportErrorRelatedToTable(table.name, "Error opening Sqlite table", t)
-      }
-    })
-  }
-
   private fun updateView() {
     edtExecutor.addCallback(sqliteService.readSchema(), object : FutureCallback<SqliteSchema> {
       override fun onSuccess(schema: SqliteSchema?) {
-        if (schema?.tables?.find { it.name == currentTable?.name } != null) {
-          refreshCurrentTableDataSet(currentTable!!)
-        }
-        else {
-          currentTable = null
-          sqliteView.resetView()
-        }
-
         schema?.let { setDatabaseSchema(it) }
       }
 
@@ -151,8 +129,39 @@ class SqliteController(
 
   private inner class SqliteViewListenerImpl : SqliteViewListener {
     override fun tableNodeActionInvoked(table: SqliteTable) {
-      currentTable = table
-      refreshCurrentTableDataSet(table)
+      if(resultSetControllers.containsKey(table.name)) {
+        sqliteView.focusTable(table.name)
+        return
+      }
+
+      edtExecutor.addCallback(sqliteService.readTable(table), object : FutureCallback<SqliteResultSet> {
+        override fun onSuccess(sqliteResultSet: SqliteResultSet?) {
+          if (sqliteResultSet != null) {
+
+            val tableView = viewFactory.createTableView()
+            sqliteView.displayTable(table.name, tableView.component)
+
+            val resultSetController = ResultSetController(
+              this@SqliteController,
+              tableView, table.name, sqliteResultSet,
+              edtExecutor
+            ).also { it.setUp() }
+
+            resultSetControllers[table.name] = resultSetController
+          }
+        }
+
+        override fun onFailure(t: Throwable) {
+          sqliteView.reportErrorRelatedToService(sqliteService, "Error reading Sqlite table \"${table.name}\"", t)
+        }
+      })
+    }
+
+    override fun closeTableActionInvoked(tableName: String) {
+      sqliteView.closeTable(tableName)
+
+      val controller = resultSetControllers.remove(tableName)
+      controller?.let(Disposer::dispose)
     }
 
     override fun openSqliteEvaluatorActionInvoked() {
@@ -188,7 +197,7 @@ class SqliteController(
       sqliteView.displaySchema(schema)
     }
 
-    override fun deviceFileIdChanged(fileId: DeviceFileId?) {
+    override fun deviceFileIdChanged(fileId: DeviceFileId) {
       logger.info("Device file id changed: $fileId")
       //TODO(b/131588252)
     }

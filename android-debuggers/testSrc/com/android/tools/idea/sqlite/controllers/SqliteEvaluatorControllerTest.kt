@@ -28,7 +28,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -86,8 +85,7 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
 
     // Assert
     verify(sqliteService).executeQuery(sqlInstruction)
-    verify(sqliteEvaluatorView)
-      .reportErrorRelatedToTable(isNull(), eq("Error executing sqlQueryCommand"), refEq(throwable))
+    verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing sqlQueryCommand"), refEq(throwable))
   }
 
   fun testEvaluateSqlActionCreateSuccess() {
@@ -150,7 +148,7 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
 
     // Assert
     verify(sqliteService).executeUpdate(action)
-    verify(sqliteEvaluatorView).resetView()
+    verify(sqliteEvaluatorView.tableView).resetView()
   }
 
   private fun evaluateSqlActionFailure(action: String) {
@@ -166,7 +164,6 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
 
     // Assert
     verify(sqliteService).executeUpdate(action)
-    verify(sqliteEvaluatorView)
-      .reportErrorRelatedToTable(isNull(), eq("Error executing update"), refEq(throwable))
+    verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing update"), refEq(throwable))
   }
 }

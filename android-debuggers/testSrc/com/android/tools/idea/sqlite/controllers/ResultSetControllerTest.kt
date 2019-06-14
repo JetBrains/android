@@ -20,14 +20,13 @@ import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteResultSet
-import com.android.tools.idea.sqlite.ui.ResultSetView
+import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.ArgumentMatchers.isNull
 import org.mockito.InOrder
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
@@ -39,7 +38,7 @@ import java.sql.JDBCType
 //TODO(b/131589065) write tests for listOfSqliteColumns of different sizes, to handle all paths of ResultSetController.fetchRowBatch()
 class ResultSetControllerTest : UsefulTestCase() {
 
-  private lateinit var resultSetView: ResultSetView
+  private lateinit var tableView: TableView
   private lateinit var sqliteResultSet: SqliteResultSet
   private lateinit var edtExecutor: FutureCallbackExecutor
   private lateinit var resultSetController: ResultSetController
@@ -53,26 +52,26 @@ class ResultSetControllerTest : UsefulTestCase() {
 
   override fun setUp() {
     super.setUp()
-    resultSetView = mock(ResultSetView::class.java)
+    tableView = mock(TableView::class.java)
     sqliteResultSet = mock(SqliteResultSet::class.java)
     edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
 
-    orderVerifier = inOrder(sqliteResultSet, resultSetView)
+    orderVerifier = inOrder(sqliteResultSet, tableView)
   }
 
   fun testSetUp() {
     // Prepare
     `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
-    resultSetController = ResultSetController(testRootDisposable, resultSetView, "tableName", sqliteResultSet, edtExecutor)
+    resultSetController = ResultSetController(testRootDisposable, tableView, "tableName", sqliteResultSet, edtExecutor)
 
     // Act
     resultSetController.setUp()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    orderVerifier.verify(resultSetView).startTableLoading("tableName")
-    orderVerifier.verify(resultSetView).showTableColumns(listOfSqliteColumns)
-    orderVerifier.verify(resultSetView).stopTableLoading()
+    orderVerifier.verify(tableView).startTableLoading()
+    orderVerifier.verify(tableView).showTableColumns(listOfSqliteColumns)
+    orderVerifier.verify(tableView).stopTableLoading()
 
     verify(sqliteResultSet).rowBatchSize = anyInt()
     verify(sqliteResultSet).columns
@@ -81,36 +80,36 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun testSetUpTableNameIsNull() {
     // Prepare
     `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
-    resultSetController = ResultSetController(testRootDisposable, resultSetView, null, sqliteResultSet, edtExecutor)
+    resultSetController = ResultSetController(testRootDisposable, tableView, null, sqliteResultSet, edtExecutor)
 
     // Act
     resultSetController.setUp()
 
     // Assert
-    verify(resultSetView).startTableLoading(isNull())
+    verify(tableView).startTableLoading()
   }
 
   fun testSetUpError() {
     // Prepare
     val throwable = Throwable()
     `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFailedFuture(throwable))
-    resultSetController = ResultSetController(testRootDisposable, resultSetView, "tableName", sqliteResultSet, edtExecutor)
+    resultSetController = ResultSetController(testRootDisposable, tableView, "tableName", sqliteResultSet, edtExecutor)
 
     // Act
     resultSetController.setUp()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    orderVerifier.verify(resultSetView).startTableLoading("tableName")
-    orderVerifier.verify(resultSetView)
-      .reportErrorRelatedToTable(eq("tableName"), eq("Error retrieving contents of tableName"), refEq(throwable))
-    orderVerifier.verify(resultSetView).stopTableLoading()
+    orderVerifier.verify(tableView).startTableLoading()
+    orderVerifier.verify(tableView)
+      .reportError(eq("Error retrieving rows for table \"tableName\""), refEq(throwable))
+    orderVerifier.verify(tableView).stopTableLoading()
   }
 
   fun testSetUpIsDisposed() {
     // Prepare
     `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
-    resultSetController = ResultSetController(testRootDisposable, resultSetView, "tableName", sqliteResultSet, edtExecutor)
+    resultSetController = ResultSetController(testRootDisposable, tableView, "tableName", sqliteResultSet, edtExecutor)
 
     // Act
     resultSetController.setUp()
@@ -118,14 +117,14 @@ class ResultSetControllerTest : UsefulTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(resultSetView).startTableLoading("tableName")
-    verifyNoMoreInteractions(resultSetView)
+    verify(tableView).startTableLoading()
+    verifyNoMoreInteractions(tableView)
   }
 
   fun testSetUpErrorIsDisposed() {
     // Prepare
     `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFailedFuture(Throwable()))
-    resultSetController = ResultSetController(testRootDisposable, resultSetView, "tableName", sqliteResultSet, edtExecutor)
+    resultSetController = ResultSetController(testRootDisposable, tableView, "tableName", sqliteResultSet, edtExecutor)
 
     // Act
     Disposer.dispose(resultSetController)
@@ -133,7 +132,7 @@ class ResultSetControllerTest : UsefulTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(resultSetView).startTableLoading("tableName")
-    verifyNoMoreInteractions(resultSetView)
+    verify(tableView).startTableLoading()
+    verifyNoMoreInteractions(tableView)
   }
 }

@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.sqlite.ui.mainView;
 
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.table.JBTable;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -26,11 +23,8 @@ public class SqliteEditorPanel {
   public JPanel mainPanel;
   public JTextField deviceIdText;
   public JTextField devicePathText;
-  public JPanel resultSetTitlePanel;
-  public JBLabel resultSetTitleLabel;
-  public JBScrollPane resultSetPane;
-  public JBTable resultSetTable;
   private JPanel headerPanel;
   private JPanel filePropertiesPanel;
   public JButton openSqlEvalDialog;
+  public JPanel tabsRoot;
 }

@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator;
 
-import com.intellij.ui.table.JBTable;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class SqliteEvaluatorPanel {
-  public JPanel mainPanel;
+  public JPanel root;
   public JTextField textField;
-  public JBTable table;
 }
