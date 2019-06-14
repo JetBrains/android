@@ -2,11 +2,9 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.property-editor",
+    name = "intellij.android.layout-ui",
     srcs = ["src/main/java"],
-    iml_files = ["intellij.android.property-editor.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    test_coverage = True,
+    iml_files = ["intellij.android.layout-ui.iml"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
@@ -16,9 +14,6 @@ iml_module(
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
     ],
     test_srcs = ["src/test/java"],
-    test_tags = [
-        "no_test_mac",  # b/127340859
-    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
