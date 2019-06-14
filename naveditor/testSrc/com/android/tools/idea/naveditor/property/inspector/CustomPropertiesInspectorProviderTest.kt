@@ -25,12 +25,12 @@ import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.editors.TextEditor
 import com.android.tools.idea.naveditor.property.isCustomProperty
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_CUSTOM_PROPERTIES
+import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_CUSTOMPROPERTIES
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor
 
-class CustomPropertiesInspectorProviderTest : NavTestCase(NAVIGATION_EDITOR_CUSTOM_PROPERTIES) {
+class CustomPropertiesInspectorProviderTest : NavTestCase(NAVIGATION_EDITOR_CUSTOMPROPERTIES) {
   fun testCustomPropertiesInspector() {
     ResourceRepositoryManager.getAppResources(myFacet).sync()
 
