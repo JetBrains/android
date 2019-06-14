@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.ide.common.resources.ValueResourceNameValidator
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.util.toIoFile
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
@@ -69,11 +69,11 @@ fun Sequence<File>.findAllDesignAssets(importersProvider: ImportersProvider): Se
     .toDesignAsset(importersProvider)
 
 /**
- * Group [DesignAsset]s by their name into [DesignAssetSet].
+ * Group [DesignAsset]s by their name into [ResourceAssetSet].
  */
-fun Sequence<DesignAsset>.groupIntoDesignAssetSet(): List<DesignAssetSet> =
+fun Sequence<DesignAsset>.groupIntoDesignAssetSet(): List<ResourceAssetSet> =
   groupBy { it.name }
-    .map { (name, assets) -> DesignAssetSet(ValueResourceNameValidator.normalizeName(name), assets) }
+    .map { (name, assets) -> ResourceAssetSet(ValueResourceNameValidator.normalizeName(name), assets) }
 
 /**
  * Displays a file picker which filters files depending on the files supported by the [DesignAssetImporter]

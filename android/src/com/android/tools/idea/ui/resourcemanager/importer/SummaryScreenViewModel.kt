@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.getMetadata
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
 import com.intellij.openapi.util.io.FileUtil
@@ -39,7 +39,7 @@ import kotlin.properties.Delegates
  * The class will use the [designAssetImporter] to generate the
  * file paths where the source files from [assetSetsToImport] will be copied.
  *
- * [assetSetsToImport] first needs to be set with the [DesignAssetSet] to import.
+ * [assetSetsToImport] first needs to be set with the [ResourceAssetSet] to import.
  *
  * To get the list of the target file paths, use [getFileTreeModel].
  *
@@ -61,12 +61,12 @@ class SummaryScreenViewModel(private val designAssetImporter: DesignAssetImporte
     }
 
   /**
-   * The set of all the [DesignAssetSet] ready to be imported.
+   * The set of all the [ResourceAssetSet] ready to be imported.
    *
    * Use [getFileTreeModel] to get a tree model of the target file structure
    * of the file being imported.
    */
-  var assetSetsToImport: Set<DesignAssetSet> = emptySet()
+  var assetSetsToImport: Set<ResourceAssetSet> = emptySet()
     set(value) {
       field = value
       importingAsset = designAssetImporter.toIntermediateAssets(value)

@@ -20,7 +20,8 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
@@ -36,7 +37,7 @@ class DesignAssetImporter {
 
   val folderConfiguration = FolderConfiguration()
 
-  fun importDesignAssets(assetSets: Collection<DesignAssetSet>,
+  fun importDesignAssets(assetSets: Collection<ResourceAssetSet>,
                          androidFacet: AndroidFacet,
                          resFolder: File = getOrCreateDefaultResDirectory(androidFacet)) {
 
@@ -56,17 +57,17 @@ class DesignAssetImporter {
   }
 
   /**
-   * Use the data available in the provided [DesignAssetSet] to generate the [IntermediateAsset]
+   * Use the data available in the provided [ResourceAssetSet] to generate the [IntermediateAsset]
    * containing data about the target path of the [DesignAsset]s.
    */
-  fun toIntermediateAssets(assetSets: Collection<DesignAssetSet>,
+  fun toIntermediateAssets(assetSets: Collection<ResourceAssetSet>,
                            resFolder: File = File("res")) =
     assetSets.flatMap { this.toIntermediateAsset(it, resFolder) }
 
   /**
    * Transforms the [DesignAsset] of the [assetSet] into a list of [IntermediateAsset].
    */
-  private fun toIntermediateAsset(assetSet: DesignAssetSet, resFolder: File) =
+  private fun toIntermediateAsset(assetSet: ResourceAssetSet, resFolder: File) =
     assetSet.designAssets.map { IntermediateAsset(it.file, resFolder.path, getFolderName(it), assetSet.name) }
 
   /**

@@ -70,7 +70,8 @@ class ResourceExplorerViewTest {
       public override fun condition() = list.model.size == 1
     }
     assertThat(waitForElementToBeFiltered.isConditionRealized).isTrue()
-    assertThat(list.model.getElementAt(0).designAssets[0].file.name).isEqualTo("png.png")
+    val firstAsset = list.model.getElementAt(0).assets[0] as DesignAsset
+    assertThat(firstAsset.file.name).isEqualTo("png.png")
   }
 
   private fun createViewModel(module: Module): ProjectResourcesBrowserViewModel {
