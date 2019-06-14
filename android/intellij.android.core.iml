@@ -167,6 +167,5 @@
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
-    <orderEntry type="module" module-name="intellij.android.wizard.template.plugin" />
   </component>
 </module>
