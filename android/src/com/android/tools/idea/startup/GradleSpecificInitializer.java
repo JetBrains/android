@@ -120,7 +120,11 @@ public class GradleSpecificInitializer implements Runnable {
     // Never applicable in the context of android studio, so just set to invisible.
     pluginAction.getTemplatePresentation().setVisible(false);
 
-    if (AndroidSdkUtils.isAndroidSdkManagerEnabled()) {
+    // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
+    // In unit tests, we only want to set up SDKs which are set up explicitly by the test itself, whereas initializers
+    // might lead to unexpected SDK leaks because having not set up the SDKs, the test will consequently not release them either.
+    if (AndroidSdkUtils.isAndroidSdkManagerEnabled() && !GuiTestingService.getInstance().isGuiTestingMode()
+        && !ApplicationManager.getApplication().isUnitTestMode() && !ApplicationManager.getApplication().isHeadlessEnvironment()) {
       ApplicationManager.getApplication().executeOnPooledThread(GradleSpecificInitializer::setupSdk);
     }
   }
@@ -342,15 +346,6 @@ public class GradleSpecificInitializer implements Runnable {
       }
 
       // Do not prompt user to select SDK path (we have one already.) Instead, check SDK compatibility when a project is opened.
-      return true;
-    }
-
-    // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
-    // In unit tests, we only want to set up SDKs which are set up explicitly by the test itself, whereas initializers
-    // might lead to unexpected SDK leaks because having not set up the SDKs, the test will consequently not release them either.
-    if (GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()
-        || ApplicationManager.getApplication().isHeadlessEnvironment()) {
-      // This is good enough. Later on in the GUI test we'll validate the given SDK path.
       return true;
     }
 
