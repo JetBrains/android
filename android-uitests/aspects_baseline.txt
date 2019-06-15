@@ -62,11 +62,11 @@ com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.andr
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.editors.theme.ThemeResolver.resolveLocallyDefinedModuleThemes
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.res.ProjectResourceRepository.computeRepositories
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources
-com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.configurations.ConfigurationManager.getLocales
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.fonts.ProjectFonts.getFonts
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.AppResourceRepository.computeLocalRepositories
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceNotificationManager$ModuleEventObserver.registerListeners
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources
+com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.lambda$getLocalesAndLanguages$6
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog$ResourcePanel.allowEditing
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|org.jetbrains.android.AndroidResourceRenameResourceProcessor.findExistingNameConflicts
 com.android.tools.idea.uibuilder.palette.NlPaletteModel.getPalette|com.android.tools.idea.uibuilder.palette.DataModel.update
