@@ -99,6 +99,7 @@ apply_diff(
     diff_file = "build_gradle.diff",
     input_file = "//tools/idea/build/dependencies/gradle-api-deps:build.gradle",
     output_file = "build.gradle",
+    tags = ["manual"],
 )
 
 # generate the maven repository
@@ -111,5 +112,6 @@ gradle_build(
         "gradle-launcher.jar": "m2/org/jetbrains/intellij/deps/gradle-launcher/*/gradle-launcher-*.jar",
         "gradle-wrapper.jar": "m2/org/jetbrains/intellij/deps/gradle-wrapper/*/gradle-wrapper-*.jar",
     },
+    tags = ["manual"],
     tasks = [":publishGradleApiToMavenLocal"],
 )
