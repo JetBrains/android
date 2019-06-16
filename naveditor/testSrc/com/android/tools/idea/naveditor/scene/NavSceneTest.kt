@@ -70,13 +70,13 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,1050,928\n" +
       "DrawAction,580.0x400.0x70.0x19.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,DOWN,435.25x380.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,DOWN,435.25x380.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawAction,490.0x400.0x76.5x128.0,580.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,612.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,612.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,435.25x532.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -111,7 +111,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,960,928\n" +
       "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,522.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
@@ -230,7 +230,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,1057,928\n" +
       "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,435.25x532.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -287,7 +287,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,967,928\n" +
       "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,435.25x532.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -336,10 +336,10 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,1057,928\n" +
       "DrawAction,400.0x400.0x70.0x19.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "FillArrow,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawAction,490.0x400.0x76.5x128.0,580.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,RIGHT,571.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "FillArrow,RIGHT,571.0x461.0x5.0x6.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -368,7 +368,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,967,928\n" +
       "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,435.25x532.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment3,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -448,10 +448,10 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawArrow,0,UP,541.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,541.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
       "DrawSelfAction,560.0x409.5,544.0x427.0,b2a7a7a7\n" +
       "\n" +
-      "DrawArrow,0,UP,457.5x532.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,457.5x532.0x6.0x5.0,b2a7a7a7,0\n" +
       "DrawSelfAction,476.5x464.0,460.5x536.0,b2a7a7a7\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
@@ -586,7 +586,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,960,928\n" +
       "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,522.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,ffa7a7a7\n" +
@@ -606,7 +606,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,960,928\n" +
       "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,522.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
@@ -626,7 +626,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,960,928\n" +
       "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,522.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
@@ -706,7 +706,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,960,928\n" +
       "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,522.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,490.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
       "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ff1886f7,2.0,Nested Graph,ffa7a7a7\n" +
@@ -804,13 +804,13 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,1057,928\n" +
       "DrawAction,580.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,435.25x532.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
       "DrawHorizontalAction,474.0x461.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
       "\n" +
-      "DrawArrow,0,UP,637.5x532.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,637.5x532.0x6.0x5.0,b2a7a7a7,0\n" +
       "DrawSelfAction,656.5x464.0,640.5x536.0,b2a7a7a7\n" +
       "DrawHeader,580.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
       "DrawFragment,580.0x400.0x76.5x128.0,0.5,null\n" +
@@ -848,7 +848,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,967,928\n" +
       "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "FillArrow,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7,0\n" +
       "DrawIcon,478.0x453.0x8.0x8.0,POP_ACTION,b2a7a7a7\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
@@ -912,7 +912,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,1057,1078\n" +
       "DrawAction,400.0x520.0x76.5x128.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,525.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,525.25x532.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -929,7 +929,7 @@ class NavSceneTest : NavTestCase() {
       "DrawHorizontalAction,480.5x572.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
       "DrawHorizontalAction,480.5x590.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
       "\n" +
-      "DrawArrow,0,UP,547.5x682.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,547.5x682.0x6.0x5.0,b2a7a7a7,0\n" +
       "DrawSelfAction,566.5x614.0,550.5x686.0,b2a7a7a7\n" +
       "DrawHeader,490.0x539.0x76.5x11.0,0.5,fragment5,false,false\n" +
       "DrawFragment,490.0x550.0x76.5x128.0,0.5,null\n" +
@@ -1041,16 +1041,16 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,1057,928\n" +
       "DrawAction,400.0x430.0x70.0x19.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "FillArrow,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawAction,400.0x430.0x70.0x19.0,400.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,432.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,432.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawAction,490.0x400.0x76.5x128.0,580.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,RIGHT,571.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "FillArrow,RIGHT,571.0x461.0x5.0x6.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawAction,490.0x400.0x76.5x128.0,400.0x430.0x70.0x19.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,432.0x453.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,432.0x453.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +

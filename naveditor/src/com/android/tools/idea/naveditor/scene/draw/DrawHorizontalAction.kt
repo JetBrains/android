@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.draw.ArrowDirection
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
-import com.android.tools.idea.common.scene.draw.DrawArrow
+import com.android.tools.idea.common.scene.draw.FillArrow
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
 import com.android.tools.idea.common.scene.draw.DrawShape
@@ -30,7 +30,6 @@ import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.NavSceneManager.ACTION_ARROW_PARALLEL
-import com.android.tools.idea.naveditor.scene.NavSceneManager.ACTION_ARROW_PERPENDICULAR
 import com.android.tools.idea.naveditor.scene.getHorizontalActionIconRect
 import java.awt.Color
 import java.awt.geom.Line2D
@@ -59,7 +58,7 @@ data class DrawHorizontalAction(@SwingCoordinate private val rectangle: Rectangl
     val drawLine = DrawShape(Line2D.Float(x1, y, x2, y), color, ACTION_STROKE)
 
     val arrowRect = Rectangle2D.Float(x2, rectangle.y, arrowWidth, rectangle.height)
-    val drawArrow = DrawArrow(1, ArrowDirection.RIGHT, arrowRect, color)
+    val drawArrow = FillArrow(ArrowDirection.RIGHT, arrowRect, color)
 
     val list = mutableListOf(drawLine, drawArrow)
 

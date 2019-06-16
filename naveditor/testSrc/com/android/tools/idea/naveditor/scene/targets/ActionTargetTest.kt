@@ -93,7 +93,7 @@ class ActionTargetTest : NavTestCase() {
 
     val displayListTemplate = "Clip,0,0,967,928\n" +
                               "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,%1\$s\n" +
-                              "DrawArrow,0,UP,435.25x532.0x6.0x5.0,%1\$s\n" +
+                              "FillArrow,UP,435.25x532.0x6.0x5.0,%1\$s,0\n" +
                               "\n" +
                               "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
                               "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -157,19 +157,19 @@ class ActionTargetTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,1377,1428\n" +
       "DrawAction,650.0x400.0x76.5x128.0,650.0x650.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,DOWN,685.25x630.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,DOWN,685.25x630.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawAction,900.0x400.0x76.5x128.0,650.0x650.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,DOWN,685.25x630.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,DOWN,685.25x630.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawAction,400.0x650.0x76.5x128.0,650.0x650.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,RIGHT,641.0x711.0x5.0x6.0,b2a7a7a7\n" +
+      "FillArrow,RIGHT,641.0x711.0x5.0x6.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawAction,650.0x900.0x76.5x128.0,650.0x650.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,685.25x782.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,685.25x782.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawAction,900.0x900.0x76.5x128.0,650.0x650.0x76.5x128.0,b2a7a7a7\n" +
-      "DrawArrow,0,UP,685.25x782.0x6.0x5.0,b2a7a7a7\n" +
+      "FillArrow,UP,685.25x782.0x6.0x5.0,b2a7a7a7,0\n" +
       "\n" +
       "DrawHeader,650.0x639.0x76.5x11.0,0.5,fragment1,true,false\n" +
       "DrawFragment,650.0x650.0x76.5x128.0,0.5,null\n" +
