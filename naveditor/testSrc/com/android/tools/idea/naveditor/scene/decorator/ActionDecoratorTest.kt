@@ -18,18 +18,15 @@ package com.android.tools.idea.naveditor.scene.decorator
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.ArrowDirection
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawArrow
-import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
+import com.android.tools.idea.common.scene.draw.FillArrow
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.NavColors.ACTION
 import com.android.tools.idea.naveditor.scene.draw.DrawAction
 import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 import com.android.tools.idea.naveditor.scene.draw.DrawSelfAction
-import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.naveditor.surface.NavView
+import com.android.tools.idea.naveditor.scene.draw.assertDrawCommandsEqual
 import org.mockito.Mockito
-import java.awt.FontMetrics
 import java.awt.Graphics2D
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
@@ -62,7 +59,7 @@ class ActionDecoratorTest : NavTestCase() {
 
     val drawAction = displayList.commands[0]
     assertNotNull(drawAction as DrawAction) // TODO: Convert DrawAction to data class
-    assertEquals(DrawArrow(0, ArrowDirection.UP, Rectangle2D.Float(561.75f, 532.0f, 6.0f, 5.0f), ACTION),
+    assertDrawCommandsEqual(FillArrow(ArrowDirection.UP, Rectangle2D.Float(561.75f, 532.0f, 6.0f, 5.0f), ACTION),
                  displayList.commands[1])
     assertEquals(DrawIcon(Rectangle2D.Float(487.2728f, 654.0313f, 8.0f, 8.0f), DrawIcon.IconType.POP_ACTION, ACTION),
                  displayList.commands[2])
@@ -88,7 +85,7 @@ class ActionDecoratorTest : NavTestCase() {
 
     ActionDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), f1_to_f1)
 
-    assertEquals(DrawArrow(0, ArrowDirection.UP, Rectangle2D.Float(440f, 573.0f, 6.0f, 5.0f), ACTION),
+    assertDrawCommandsEqual(FillArrow(ArrowDirection.UP, Rectangle2D.Float(440f, 573.0f, 6.0f, 5.0f), ACTION),
                  displayList.commands[0])
     assertEquals(DrawSelfAction(Point2D.Float(459f, 519f), Point2D.Float(443f, 577f), ACTION),
                  displayList.commands[1])

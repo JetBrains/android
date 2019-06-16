@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.common.scene.draw.ArrowDirection
-import com.android.tools.idea.common.scene.draw.DrawArrow
+import com.android.tools.idea.common.scene.draw.FillArrow
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.util.ui.JBUI
@@ -40,13 +40,13 @@ class DrawHorizontalActionTest : NavTestCase() {
 
     assertEquals(2, drawAction.commands.size)
     assertDrawLinesEqual(DrawShape(ARROW_LINE, COLOR, STROKE), drawAction.commands[0])
-    assertEquals(drawAction.commands[1], DrawArrow(1, ArrowDirection.RIGHT, ARROW_RECT, COLOR))
+    assertDrawCommandsEqual(FillArrow(ArrowDirection.RIGHT, ARROW_RECT, COLOR), drawAction.commands[1])
 
     drawAction = DrawHorizontalAction(rectangle, SCALE, COLOR, true)
 
     assertEquals(3, drawAction.commands.size)
     assertDrawLinesEqual(DrawShape(ARROW_LINE, COLOR, STROKE), drawAction.commands[0])
-    assertEquals(drawAction.commands[1], DrawArrow(1, ArrowDirection.RIGHT, ARROW_RECT, COLOR))
+    assertDrawCommandsEqual(FillArrow(ArrowDirection.RIGHT, ARROW_RECT, COLOR), drawAction.commands[1])
     assertEquals(drawAction.commands[2], DrawIcon(ICON_RECT, DrawIcon.IconType.POP_ACTION, COLOR))
   }
 }
