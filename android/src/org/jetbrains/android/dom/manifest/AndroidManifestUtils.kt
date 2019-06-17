@@ -19,41 +19,34 @@ package org.jetbrains.android.dom.manifest
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.ATTR_PACKAGE
 import com.android.SdkConstants.TAG_PERMISSION
 import com.android.SdkConstants.TAG_PERMISSION_GROUP
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.XmlRecursiveElementVisitor
+import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import com.intellij.util.text.nullize
 import com.intellij.util.xml.DomElement
 import com.intellij.util.xml.XmlName
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Returns the effective package name of the module corresponding to the given [facet]
- * (i.e. the "package" attribute of the merged manifest once the module is built),
- * or null if the package name couldn't be determined.
+ * Returns the module's resource package name, or null if it could not be determined.
+ *
+ * The resource package name is equivalent to the "package" attribute of the module's
+ * merged manifest once it has been built. Depending on the build system, however,
+ * this method may be optimized to avoid the costs of merged manifest computation.
  */
-fun getPackageName(facet: AndroidFacet): String? {
-  return CachedValuesManager.getManager(facet.module.project).getCachedValue(facet) {
-    // TODO(b/110188226): read the merged manifest
-    val manifest = facet.manifest
-    if (manifest == null) {
-      // TODO(b/110188226): implement a ModificationTracker for the set of existing manifest files.
-      // For now we just recompute every time, which is safer than never recomputing.
-      CachedValueProvider.Result.create<String>(null, ModificationTracker.EVER_CHANGED)
-    }
-    else {
-      val packageName = manifest.`package`.value
-      CachedValueProvider.Result.create(packageName.nullize(true), manifest.xmlTag!!)
-    }
-  }
-}
+@AnyThread
+fun getPackageName(facet: AndroidFacet) = facet.module.getModuleSystem().getPackageName()
 
 /**
  * Returns the package name for resources from the module under test corresponding to the given [facet].
@@ -85,29 +78,75 @@ fun isRequiredAttribute(attrName: XmlName, element: DomElement): Boolean {
   }
 }
 
+private val CUSTOM_PERMISSIONS = Key.create<CachedValue<Collection<String>?>>("merged.manifest.custom.permissions")
+
 /**
  * Returns the names of the custom permissions listed in the primary manifest of the module
  * corresponding to the given [facet], or null if the primary manifest couldn't be found.
  */
-fun getCustomPermissions(facet: AndroidFacet) = getPrimaryManifestXml(facet)?.findAndroidNamesForTags(TAG_PERMISSION)
+fun getCustomPermissions(facet: AndroidFacet): Collection<String>? {
+  val cachedValue = facet.cachedValueFromPrimaryManifest { customPermissions }
+  return facet.putUserDataIfAbsent(CUSTOM_PERMISSIONS, cachedValue).value
+}
+
+private val CUSTOM_PERMISSION_GROUPS = Key.create<CachedValue<Collection<String>?>>("merged.manifest.custom.permission.groups")
 
 /**
  * Returns the names of the custom permission groups listed in the primary manifest of the module
  * corresponding to the given [facet], or null if the primary manifest couldn't be found.
  */
-fun getCustomPermissionGroups(facet: AndroidFacet) = getPrimaryManifestXml(facet)?.findAndroidNamesForTags(TAG_PERMISSION_GROUP)
-
-private fun getPrimaryManifestXml(facet: AndroidFacet): XmlFile? {
-  val psiFile = facet.manifestFile?.let { AndroidPsiUtils.getPsiFileSafely(facet.module.project, it) }
-  return psiFile as? XmlFile
+fun getCustomPermissionGroups(facet: AndroidFacet): Collection<String>? {
+  val cachedValue = facet.cachedValueFromPrimaryManifest { customPermissionGroups }
+  return facet.putUserDataIfAbsent(CUSTOM_PERMISSION_GROUPS, cachedValue).value
 }
+
+/**
+ * Creates a [CachedValue] that runs the given [valueSelector] on the facet's primary manifest.  If the manifest is missing,
+ * the returned [CachedValue] returns null and will check for the manifest again next time it's evaluated.
+ *
+ * Note that the primary manifest is a subset of the effective merged manifest and relying on is most likely incorrect. It's
+ * up to the [AndroidModuleSystem] to determine which values can be safely read from just the primary manifest.
+ *
+ * @see com.android.tools.idea.model.MergedManifestManager
+ * @see com.android.tools.idea.projectsystem.AndroidModuleSystem
+ */
+fun <T> AndroidFacet.cachedValueFromPrimaryManifest(valueSelector: AndroidManifestXmlFile.() -> T): CachedValue<T?> {
+  return CachedValuesManager.getManager(module.project).createCachedValue<T?> {
+    val primaryManifest = getPrimaryManifestXml()
+    if (primaryManifest == null) {
+      CachedValueProvider.Result.create(null, ModificationTracker.EVER_CHANGED)
+    }
+    else {
+      CachedValueProvider.Result.create(primaryManifest.valueSelector(), primaryManifest)
+    }
+  }
+}
+
+/**
+ * Returns the PSI representation of the facet's primary manifest, if available.
+ */
+private fun AndroidFacet.getPrimaryManifestXml(): AndroidManifestXmlFile? {
+  val psiFile = manifestFile?.let { AndroidPsiUtils.getPsiFileSafely(module.project, it) }
+  return psiFile as? AndroidManifestXmlFile
+}
+
+/**
+ * The PSI representation of an Android manifest file.
+ */
+typealias AndroidManifestXmlFile = XmlFile
+
+val AndroidManifestXmlFile.packageName get() = rootTag?.getAttributeValue(ATTR_PACKAGE, null)
+
+val AndroidManifestXmlFile.customPermissions get() = findAndroidNamesForTags(TAG_PERMISSION)
+
+val AndroidManifestXmlFile.customPermissionGroups get() = findAndroidNamesForTags(TAG_PERMISSION_GROUP)
 
 /**
  * Returns the android:name attribute of each [XmlTag] of the given type in the [XmlFile].
  */
-private fun XmlFile.findAndroidNamesForTags(tagName: String): Collection<String> {
+private fun AndroidManifestXmlFile.findAndroidNamesForTags(tagName: String): Collection<String> {
   val androidNames = mutableListOf<String>()
-  accept(object: XmlRecursiveElementVisitor() {
+  accept(object : XmlRecursiveElementVisitor() {
     override fun visitXmlTag(tag: XmlTag?) {
       super.visitXmlTag(tag)
       if (tagName != tag?.name) return
