@@ -286,7 +286,7 @@ public class NewProjectModel extends WizardModel {
       initialLanguage = (selectedOldUseKotlin || isFirstUsage) ? KOTLIN : JAVA;
 
       // Save now, otherwise the user may cancel the wizard, but the property for "isFirstUsage" will be set just because it was shown.
-      props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, initialLanguage.getName());
+      props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, initialLanguage.toString());
       props.unsetValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
     }
     else  {
@@ -312,7 +312,7 @@ public class NewProjectModel extends WizardModel {
     // Set the property value
     PropertiesComponent props = PropertiesComponent.getInstance();
     props.setValue(PROPERTIES_CPP_SUPPORT_KEY, myEnableCppSupport.get());
-    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, myLanguage.getValue().getName());
+    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, myLanguage.getValue().toString());
     props.setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true);
   }
 
