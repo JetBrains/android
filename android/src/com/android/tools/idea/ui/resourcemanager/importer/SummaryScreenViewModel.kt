@@ -17,8 +17,10 @@ package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel
 import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.getMetadata
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
@@ -26,6 +28,7 @@ import java.io.File
 import java.util.concurrent.CompletableFuture
 import javax.swing.Icon
 import javax.swing.ImageIcon
+import kotlin.properties.Delegates
 
 /**
  * ViewModel for the confirmation step during the import flow.
@@ -47,6 +50,16 @@ class SummaryScreenViewModel(private val designAssetImporter: DesignAssetImporte
                              private val rendererManager: DesignAssetRendererManager,
                              private val facet: AndroidFacet) {
 
+  var selectedFile: File? by Delegates.observable<File?>(null, { _, _, _ -> updateCallback() })
+
+  var updateCallback: () -> Unit = {}
+
+  val metadata: Map<String, String>
+    get() {
+      val selectedFile = selectedFile ?: return emptyMap()
+      return getMetadata(selectedFile)
+    }
+
   /**
    * The set of all the [DesignAssetSet] ready to be imported.
    *
@@ -56,32 +69,33 @@ class SummaryScreenViewModel(private val designAssetImporter: DesignAssetImporte
   var assetSetsToImport: Set<DesignAssetSet> = emptySet()
     set(value) {
       field = value
-      importingAsset = designAssetImporter.toImportingAssets(value)
-      targetToSource = importingAsset
-        .associate { it.targetPath to it.sourceFile }
+      importingAsset = designAssetImporter.toIntermediateAssets(value)
+      targetToSource = importingAsset.associate { it.targetRelativePath to it.intermediateFile }
     }
-
-  /**
-   * The list of [assetSetsToImport] converted into [ImportingAsset]
-   */
-  private var importingAsset = designAssetImporter.toImportingAssets(assetSetsToImport)
-
-  private var targetToSource = importingAsset.map { it.targetPath to it.sourceFile }.toMap()
 
   private val resDirectory = getOrCreateDefaultResDirectory(facet).path
 
+  /**
+   * The list of [assetSetsToImport] converted into [IntermediateAsset]
+   */
+  private var importingAsset = designAssetImporter.toIntermediateAssets(assetSetsToImport, File(resDirectory))
+
+  private var targetToSource: Map<String, VirtualFile> = emptyMap()
+
   private fun getPreviewFiles(): Set<File> = importingAsset
-    .map { File(resDirectory, it.targetFolder + File.separatorChar + it.targetFileName) }
+    .sortedBy { it.targetFolderName }
+    .map { File(resDirectory, it.targetRelativePath) }
     .toSet()
 
   /**
-   * Returns a [CompletableFuture] providing a [Icon] of the file to
-   * be imported at [targetFilePath].
+   * Returns a [CompletableFuture] providing a [Icon] of the [selectedFile]
    *
-   * The [targetFilePath] is the path of the file returned by the [ProposedFileTreeModel.Node.file].
+   * The [selectedFile] is the path of the file returned by the [ProposedFileTreeModel.Node.file]
+   * and should be set before calling this method.
    */
-  fun getPreview(targetFilePath: String): CompletableFuture<Icon> {
-    val path = FileUtil.getRelativePath(resDirectory, targetFilePath, File.separatorChar)
+  fun getPreview(): CompletableFuture<Icon> {
+    val selectedFile = selectedFile ?: return CompletableFuture.completedFuture(null)
+    val path = FileUtil.getRelativePath(resDirectory, selectedFile.path, File.separatorChar)
     val virtualFile = targetToSource[path]
                       ?: return CompletableFuture.completedFuture(IconUtil.getEmptyIcon(true))
     return rendererManager
@@ -102,6 +116,12 @@ class SummaryScreenViewModel(private val designAssetImporter: DesignAssetImporte
    * using a [com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer].
    */
   fun getFileTreeModel(): ProposedFileTreeModel {
-    return ProposedFileTreeModel(getOrCreateDefaultResDirectory(facet), getPreviewFiles())
+    return ProposedFileTreeModel(File(resDirectory), getPreviewFiles())
+  }
+
+  private fun getMetadata(selectedFile: File): Map<String, String> {
+    val path = FileUtil.getRelativePath(resDirectory, selectedFile.path, File.separatorChar)
+    val sourceFile = targetToSource[path] ?: return emptyMap()
+    return sourceFile.getMetadata().mapKeys { it.key.metadataName }
   }
 }
