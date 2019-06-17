@@ -107,6 +107,11 @@ public final class StudioFlags {
     "Show JDK Setup Step in Welcome Wizard",
     true);
 
+  public static final Flag<Boolean> NPW_EXPERIMENTAL_ACTIVITY_GALLERY = Flag.create(
+    NPW, "experimental.activity.gallery", "Show experimental activity gallery",
+    "Show experimental activity gallery which contains Kotlin templates passed through plugin in addition to the normal gallery",
+    false);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
   public static final Flag<Boolean> PROFILER_CPU_CAPTURE_STAGE = Flag.create(
