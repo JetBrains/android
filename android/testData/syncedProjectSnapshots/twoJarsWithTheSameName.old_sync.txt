@@ -4,7 +4,7 @@ PROJECT             : My Application
         LinkedProjectId     : My Application
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/My Application.iml [-]
+        ModuleFile          : <PROJECT>/My Application.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -122,7 +122,7 @@ PROJECT             : My Application
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/lib/lib.iml [-]
+        ModuleFile          : <PROJECT>/lib/lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle

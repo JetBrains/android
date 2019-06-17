@@ -5,7 +5,7 @@ PROJECT             : testNdkProjectSync
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml [-]
+        ModuleFile          : <PROJECT>/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -425,7 +425,7 @@ PROJECT             : testNdkProjectSync
         LinkedProjectId     : testNdkProjectSync
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testNdkProjectSync.iml [-]
+        ModuleFile          : <PROJECT>/testNdkProjectSync.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
