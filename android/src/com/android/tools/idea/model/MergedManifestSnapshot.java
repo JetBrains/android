@@ -74,6 +74,7 @@ public class MergedManifestSnapshot {
   private final ImmutableList<Element> myActivities;
   private final ImmutableList<Element> myActivityAliases;
   private final ImmutableList<Element> myServices;
+  private final boolean myIsValid;
 
 
   MergedManifestSnapshot(@NotNull Module module,
@@ -120,6 +121,7 @@ public class MergedManifestSnapshot {
     myServices = services;
     myLoggingRecords = loggingRecords;
     myActions = actions;
+    myIsValid = loggingRecords.stream().anyMatch(record -> record.getSeverity() == MergingReport.Record.Severity.ERROR);
 
     if (actions != null) {
       ImmutableMap.Builder<String, XmlNode.NodeKey> nodeKeysBuilder = ImmutableMap.builder();
@@ -134,6 +136,14 @@ public class MergedManifestSnapshot {
     }
   }
 
+  /**
+   * Returns true if the manifest merger encountered any errors when computing this snapshot,
+   * indicating that this snapshot contains dummy values that may not represent the merged
+   * manifest accurately.
+   */
+  public boolean isValid() {
+    return myIsValid;
+  }
 
   long getCreationTimestamp() {
     return myCreationTimeMs;
