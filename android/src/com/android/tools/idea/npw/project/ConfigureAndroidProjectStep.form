@@ -161,7 +161,7 @@
       </grid>
       <vspacer id="45f83">
         <constraints>
-          <grid row="18" column="1" row-span="2" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="17" column="1" row-span="3" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
       <component id="39004" class="javax.swing.JCheckBox" binding="myInstantAppCheck">
@@ -203,17 +203,6 @@
           <label value="Use offline repo"/>
           <selected value="true"/>
           <text value="Use offline repo"/>
-        </properties>
-      </component>
-      <component id="9863d" class="javax.swing.JCheckBox" binding="myUseAndroidxCheck">
-        <constraints>
-          <grid row="17" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <font style="0"/>
-          <label value="Use androidx.* artifacts"/>
-          <selected value="true"/>
-          <text value="Use androidx.* artifacts"/>
         </properties>
       </component>
     </children>

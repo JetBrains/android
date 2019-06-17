@@ -16,10 +16,8 @@
 package com.android.tools.idea.npw.model;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
 import static com.android.tools.idea.npw.platform.Language.JAVA;
 import static com.android.tools.idea.npw.platform.Language.KOTLIN;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
@@ -109,7 +107,6 @@ public class NewProjectModel extends WizardModel {
   private final MultiTemplateRenderer myMultiTemplateRenderer;
   private final OptionalValueProperty<Language> myLanguage = new OptionalValueProperty<>();
   private final BoolProperty myUseOfflineRepo = new BoolValueProperty();
-  private final BoolProperty myUseAndroidx = new BoolValueProperty();
 
   private static Logger getLogger() {
     return Logger.getInstance(NewProjectModel.class);
@@ -145,7 +142,6 @@ public class NewProjectModel extends WizardModel {
     myApplicationName.addConstraint(String::trim);
 
     myEnableCppSupport.set(getInitialCppSupport());
-    myUseAndroidx.set(getInitialUseAndroidxSupport());
     myLanguage.set(calculateInitialLanguage(PropertiesComponent.getInstance()));
   }
 
@@ -201,11 +197,6 @@ public class NewProjectModel extends WizardModel {
       }
     }
     return false;
-  }
-
-  @NotNull
-  public BoolProperty useAndroidx() {
-    return myUseAndroidx;
   }
 
   public OptionalProperty<Project> project() {
@@ -297,15 +288,6 @@ public class NewProjectModel extends WizardModel {
     boolean askedBefore = props.getBoolean(PROPERTIES_NPW_ASKED_LANGUAGE_KEY);
     // After version 3.5, we force the user to select the language if we didn't ask before or if the selection was not Kotlin.
     return initialLanguage == KOTLIN || askedBefore ? Optional.of(initialLanguage) : Optional.empty();
-  }
-
-  /**
-   * Returns the initial value of the androidx support property. The value is true if we allow androidx to be the default
-   * and if androidx is available.
-   */
-  @NotNull
-  private Boolean getInitialUseAndroidxSupport() {
-    return NELE_USE_ANDROIDX_DEFAULT.get() && isAndroidxAvailable();
   }
 
   private void saveWizardState() {
@@ -430,8 +412,6 @@ public class NewProjectModel extends WizardModel {
           myTemplateValues.put(ATTR_USE_OFFLINE_REPO, true);
         }
       }
-
-      myTemplateValues.put(ATTR_ANDROIDX_SUPPORT, myUseAndroidx.get());
 
       Map<String, Object> params = Maps.newHashMap(myTemplateValues);
       for (NewModuleModel newModuleModel : getNewModuleModels()) {
