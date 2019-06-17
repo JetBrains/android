@@ -122,7 +122,7 @@ public class BuildVariantUpdater {
    *
    * @return true if there are affected facets.
    */
-  boolean updateSelectedBuildVariant(@NotNull Project project,
+  public boolean updateSelectedBuildVariant(@NotNull Project project,
                                      @NotNull String moduleName,
                                      @NotNull String selectedBuildVariant) {
     Module moduleToUpdate = findModule(project, moduleName);
