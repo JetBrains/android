@@ -33,6 +33,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
+        "//tools/idea/xml/impl:intellij.xml.impl[module]",
     ],
 )
 
