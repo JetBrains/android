@@ -35,6 +35,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
 
   val compileSdkVersion: SimpleProperty<PsAndroidModule, String> = property(
     "Compile Sdk Version",
+    preferredVariableName = { "compileSdkVersion" },
     resolvedValueGetter = { compileTarget },
     parsedPropertyGetter = { compileSdkVersion() },
     getter = { asString() },
@@ -46,6 +47,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
 
   val buildToolsVersion: SimpleProperty<PsAndroidModule, String> = property(
     "Build Tools Version",
+    preferredVariableName = { "buildToolsVersion" },
     resolvedValueGetter = { buildToolsVersion },
     parsedPropertyGetter = { buildToolsVersion() },
     getter = { asString() },
@@ -57,6 +59,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
 
   val sourceCompatibility: SimpleProperty<PsAndroidModule, LanguageLevel> = property(
     "Source Compatibility",
+    preferredVariableName = { "sourceCompatibility" },
     resolvedValueGetter = { LanguageLevel.parse(javaCompileOptions.sourceCompatibility) },
     parsedPropertyGetter = { compileOptions().sourceCompatibility() },
     getter = { asLanguageLevel() },
@@ -68,6 +71,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
 
   val targetCompatibility: SimpleProperty<PsAndroidModule, LanguageLevel> = property(
     "Target Compatibility",
+    preferredVariableName = { "targetCompatibility" },
     resolvedValueGetter = { LanguageLevel.parse(javaCompileOptions.targetCompatibility) },
     parsedPropertyGetter = { compileOptions().targetCompatibility() },
     getter = { asLanguageLevel() },
