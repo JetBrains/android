@@ -19,15 +19,11 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -38,14 +34,14 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
   private CpuServiceGrpc.CpuServiceBlockingStub myClient;
 
   private final Common.Session mySession;
-  private final Function<List<Cpu.CpuUsageData>, Stream<SeriesData<Long>>> myDataExtractor;
+  private final boolean myIsOtherProcess;
 
   public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client,
                             Common.Session session,
-                            Function<List<Cpu.CpuUsageData>, Stream<SeriesData<Long>>> dataExtractor) {
+                            boolean isOtherProcess) {
     myClient = client;
     mySession = session;
-    myDataExtractor = dataExtractor;
+    myIsOtherProcess = isOtherProcess;
   }
 
   @Override
@@ -58,6 +54,6 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
-    return myDataExtractor.apply(response.getDataList()).collect(Collectors.toList());
+    return CpuUsage.extractData(response.getDataList(), myIsOtherProcess);
   }
 }
