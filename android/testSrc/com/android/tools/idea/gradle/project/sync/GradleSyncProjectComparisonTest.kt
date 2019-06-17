@@ -45,6 +45,7 @@ import com.google.common.truth.Truth.assertAbout
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteAction.run
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.delete
@@ -109,7 +110,7 @@ abstract class GradleSyncProjectComparisonTest(
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
     importProject()
-    return dumpProject()
+    return project.dumpProject()
   }
 
   private fun syncAndDumpProject(): String {
@@ -119,9 +120,9 @@ abstract class GradleSyncProjectComparisonTest(
     return dumper.toString()
   }
 
-  private fun dumpProject(): String {
+  private fun Project.dumpProject(): String {
     val dumper = ProjectDumper(androidSdk = TestUtils.getSdk(), offlineRepos = getOfflineM2Repositories())
-    dumper.dump(project)
+    dumper.dump(this)
     return dumper.toString()
   }
 
@@ -207,7 +208,7 @@ abstract class GradleSyncProjectComparisonTest(
     val firstSync = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
       val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
       val testRepositoryPath =
-          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath!!
+          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
       val repositories = """
       maven {
         name "test"
@@ -229,7 +230,7 @@ abstract class GradleSyncProjectComparisonTest(
     val beforeDelete = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
       val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
       val testRepositoryPath =
-          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath!!
+          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
       val repositories = """
       maven {
         name "test"
@@ -256,7 +257,7 @@ abstract class GradleSyncProjectComparisonTest(
     val beforeAndroidToJava = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
       val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
       val testRepositoryPath =
-          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath!!
+          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
       val repositories = """
       maven {
         name "test"
@@ -323,7 +324,7 @@ abstract class GradleSyncProjectComparisonTest(
     val beforeLibUpgrade = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
       val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
       val testRepositoryPath =
-          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath!!
+          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
       val repositories = """
       maven {
         name "test"
