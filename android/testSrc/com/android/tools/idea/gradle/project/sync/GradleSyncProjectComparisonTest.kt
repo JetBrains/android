@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
+import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.FileSubject
 import com.android.tools.idea.testing.FileSubject.file
@@ -39,6 +40,7 @@ import com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
+import com.android.tools.idea.testing.TestProjectPaths.VARIANT_SPECIFIC_DEPENDENCIES
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.google.common.truth.Truth.assertAbout
@@ -345,6 +347,36 @@ abstract class GradleSyncProjectComparisonTest(
   fun testWithCompositeBuild() {
     val text = importSyncAndDumpProject(TestProjectPaths.COMPOSITE_BUILD)
     assertIsEqualToSnapshot(text)
+  }
+
+  fun testSwitchingVariants_simpleApplication() {
+    val debugBefore = importSyncAndDumpProject(SIMPLE_APPLICATION)
+    BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release")
+    val release = project.saveAndDump()
+    BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "debug")
+    val debugAfter = project.saveAndDump()
+    assertAreEqualToSnapshots(
+      debugBefore to ".debug",
+      release to ".release",
+      debugAfter to ".debug"
+    )
+  }
+
+  // TODO(b/135453395): This test illustrates that variant switching does not remove dependencies.
+  fun testSwitchingVariants_variantSpecificDependencies() {
+    val freeDebugBefore = importSyncAndDumpProject(VARIANT_SPECIFIC_DEPENDENCIES)
+
+    BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "paidDebug")
+    val paidDebug = project.saveAndDump()
+
+    BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "freeDebug")
+    val freeDebugAfter = project.saveAndDump()
+
+    assertAreEqualToSnapshots(
+      freeDebugBefore to ".freeDebugBefore",
+      paidDebug to ".paidDebug",
+      freeDebugAfter to ".freeDebugAfter"
+    )
   }
 
   private fun createEmptyGradleSettingsFile() {
