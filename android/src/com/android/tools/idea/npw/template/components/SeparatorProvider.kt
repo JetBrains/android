@@ -22,6 +22,6 @@ import javax.swing.SwingConstants
 /**
  * Provides a separator well suited for [Parameter.Type.SEPARATOR] parameters.
  */
-class SeparatorProvider(parameter: Parameter) : ParameterComponentProvider<JSeparator>(parameter) {
-  override fun createComponent(parameter: Parameter): JSeparator = JSeparator(SwingConstants.HORIZONTAL)
+class SeparatorProvider : ComponentProvider<JSeparator>() {
+  override fun createComponent(): JSeparator = JSeparator(SwingConstants.HORIZONTAL)
 }
