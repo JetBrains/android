@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
@@ -76,7 +76,7 @@ public class OldAndroidPluginErrorHandler extends BaseSyncErrorHandler {
       hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink());
     }
     if (project.isInitialized()) {
-      AndroidPluginInfo result = searchInBuildFilesOnly(project);
+      AndroidPluginInfo result = findFromBuildFiles(project);
       if (result != null && result.getPluginBuildFile() != null) {
         hyperlinks.add(new OpenFileHyperlink(result.getPluginBuildFile().getPath()));
       }

@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles;
 import static com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor.Repository.GOOGLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
@@ -94,7 +94,7 @@ public class AddGoogleMavenRepositoryHyperlink extends NotificationHyperlink {
   @NotNull
   public static List<VirtualFile> getBuildFileForPlugin(@NotNull Project project) {
     // Get Android Plugin info from the project, if plugin info can not be found, use project build.gradle file instead
-    AndroidPluginInfo result = searchInBuildFilesOnly(project);
+    AndroidPluginInfo result = findFromBuildFiles(project);
     if (result != null) {
       VirtualFile buildFile = result.getPluginBuildFile();
       if (buildFile != null) {
