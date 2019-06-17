@@ -65,18 +65,6 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
   }
 
   @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> setIncludeNavController(boolean select) {
-    selectCheckBoxWithText("Include Navigation Controller", select);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> setUseAndroidX(boolean select) {
-    selectCheckBoxWithText("Use androidx.* artifacts", select);
-    return this;
-  }
-
-  @NotNull
   public ConfigureNewAndroidProjectStepFixture<W> setUseOfflineRepo(boolean select) {
     selectCheckBoxWithText("Use offline repo", select);
     return this;
