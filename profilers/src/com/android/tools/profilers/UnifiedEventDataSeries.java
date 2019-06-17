@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -43,22 +42,22 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
   private final int myPid;
   @NotNull private final Common.Event.Kind myKind;
   private final int myGroupId;
-  @NotNull private final Function<List<Common.Event>, Stream<SeriesData<Long>>> myDataExtractor;
+  @NotNull private final Function<List<Common.Event>, List<SeriesData<Long>>> myDataExtractor;
 
   /**
    * @param client        the grpc client to request data from.
    * @param streamId
    * @param pid
    * @param kind          the data kind ot query.
-   * @param groupId       the group id within the data kind to query. If the data don't have group distinction, use {@link DEFAULT_GROUP_ID}.
-   * @param dataExtractor the function to extract data from a list of events to build the list of series data as a stream.
+   * @param groupId       the group id within the data kind to query. If the data don't have group distinction, use DEFAULT_GROUP_ID.
+   * @param dataExtractor the function to extract data from a list of events to build the list of series data.
    */
   public UnifiedEventDataSeries(@NotNull TransportServiceGrpc.TransportServiceBlockingStub client,
                                 long streamId,
                                 int pid,
                                 @NotNull Common.Event.Kind kind,
                                 int groupId,
-                                @NotNull Function<List<Common.Event>, Stream<SeriesData<Long>>> dataExtractor) {
+                                @NotNull Function<List<Common.Event>, List<SeriesData<Long>>> dataExtractor) {
     myClient = client;
     myStreamId = streamId;
     myPid = pid;
@@ -88,7 +87,7 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
     if (response.getGroupsCount() == 0) {
       return new ArrayList<>();
     }
-    return myDataExtractor.apply(response.getGroups(0).getEventsList()).collect(Collectors.toList());
+    return myDataExtractor.apply(response.getGroups(0).getEventsList());
   }
 
   /**
@@ -98,8 +97,9 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
    * @param fieldExtractor a {@link Function} that extracts a Long field from an {@link Common.Event}.
    * @return a {@link Function} that converts a list of events into a list of {@link SeriesData}.
    */
-  public static Function<List<Common.Event>, Stream<SeriesData<Long>>> fromFieldToDataExtractor(Function<Common.Event, Long> fieldExtractor) {
+  public static Function<List<Common.Event>, List<SeriesData<Long>>> fromFieldToDataExtractor(Function<Common.Event, Long> fieldExtractor) {
     return events -> events.stream()
-      .map(event -> new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp()), fieldExtractor.apply(event)));
+      .map(event -> new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp()), fieldExtractor.apply(event)))
+      .collect(Collectors.toList());
   }
 }

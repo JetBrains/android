@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuUsage extends LineChartModel {
@@ -49,8 +48,7 @@ public class CpuUsage extends LineChartModel {
         events -> extractData(events.stream().map(event -> event.getCpuUsage()).collect(Collectors.toList()), false));
     }
     else {
-      series =
-        new CpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), dataList -> extractData(dataList, false));
+      series = new CpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), false);
     }
     myCpuSeries = new RangedContinuousSeries(getCpuSeriesLabel(), profilers.getTimeline().getViewRange(), myCpuRange, series,
                                              profilers.getTimeline().getDataRange());
@@ -73,12 +71,15 @@ public class CpuUsage extends LineChartModel {
 
   /**
    * Extracts CPU usage percentage data from a list of {@link Cpu.CpuUsageData}.
+   *
+   * @return a list of SeriesData containing CPU usage percentage.
    */
-  public static Stream<SeriesData<Long>> extractData(List<Cpu.CpuUsageData> dataList, boolean isOtherProcess) {
+  protected static List<SeriesData<Long>> extractData(List<Cpu.CpuUsageData> dataList, boolean isOtherProcess) {
     return IntStream.range(0, dataList.size())
       // Start from the second CPU usage data so we can compute the difference between two adjacent ones.
       .filter(index -> index > 0)
-      .mapToObj(index -> getCpuUsageData(dataList, index, isOtherProcess));
+      .mapToObj(index -> getCpuUsageData(dataList, index, isOtherProcess))
+      .collect(Collectors.toList());
   }
 
   private static SeriesData<Long> getCpuUsageData(List<Cpu.CpuUsageData> dataList, int index, boolean isOtherProcess) {
