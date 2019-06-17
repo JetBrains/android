@@ -50,8 +50,7 @@ public class DetailedCpuUsage extends CpuUsage {
       threads = new CpuThreadCountDataSeries(profilers.getClient().getTransportClient(), streamId, pid);
     }
     else {
-      others =
-        new CpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), dataList -> extractData(dataList, true));
+      others = new CpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), true);
       threads = new LegacyCpuThreadCountDataSeries(profilers.getClient().getCpuClient(), profilers.getSession());
     }
     myOtherCpuSeries = new RangedContinuousSeries("Others", profilers.getTimeline().getViewRange(), getCpuRange(), others);
