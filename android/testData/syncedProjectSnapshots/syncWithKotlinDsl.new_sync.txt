@@ -5,7 +5,7 @@ PROJECT             : testSyncWithKotlinDsl
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml [-]
+        ModuleFile          : <PROJECT>/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -410,7 +410,7 @@ PROJECT             : testSyncWithKotlinDsl
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/lib/lib.iml [-]
+        ModuleFile          : <PROJECT>/lib/lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -555,7 +555,7 @@ PROJECT             : testSyncWithKotlinDsl
         LinkedProjectId     : testSyncWithKotlinDsl
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testSyncWithKotlinDsl.iml [-]
+        ModuleFile          : <PROJECT>/testSyncWithKotlinDsl.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle

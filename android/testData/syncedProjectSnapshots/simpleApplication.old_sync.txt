@@ -467,7 +467,7 @@ PROJECT             : testSimpleApplication
         LinkedProjectId     : testSimpleApplication
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testSimpleApplication.iml [-]
+        ModuleFile          : <PROJECT>/testSimpleApplication.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle

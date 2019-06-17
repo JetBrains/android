@@ -4,7 +4,7 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : TestCompositeLib1
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/TestCompositeLib1/TestCompositeLib1.iml [-]
+        ModuleFile          : <PROJECT>/TestCompositeLib1/TestCompositeLib1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
@@ -21,7 +21,7 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/TestCompositeLib1/app/TestCompositeLib1-app.iml [-]
+        ModuleFile          : <PROJECT>/TestCompositeLib1/app/TestCompositeLib1-app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -451,7 +451,7 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1/lib
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/TestCompositeLib1/lib/TestCompositeLib1-lib.iml [-]
+        ModuleFile          : <PROJECT>/TestCompositeLib1/lib/TestCompositeLib1-lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -864,7 +864,7 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : TestCompositeLib3
         LinkedProjectPath   : <PROJECT>/TestCompositeLib3
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/TestCompositeLib3/TestCompositeLib3.iml [-]
+        ModuleFile          : <PROJECT>/TestCompositeLib3/TestCompositeLib3.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
@@ -881,7 +881,7 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/TestCompositeLib3/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/TestCompositeLib3/app/TestCompositeLib3-app.iml [-]
+        ModuleFile          : <PROJECT>/TestCompositeLib3/app/TestCompositeLib3-app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1309,7 +1309,7 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/TestCompositeLib3/lib
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/TestCompositeLib3/lib/TestCompositeLib3-lib.iml [-]
+        ModuleFile          : <PROJECT>/TestCompositeLib3/lib/TestCompositeLib3-lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1655,7 +1655,7 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : composite2
         LinkedProjectPath   : <PROJECT>/TestCompositeLib2
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/TestCompositeLib2/composite2.iml [-]
+        ModuleFile          : <PROJECT>/TestCompositeLib2/composite2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -1678,7 +1678,7 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : composite4
         LinkedProjectPath   : <PROJECT>/TestCompositeLib4
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/TestCompositeLib4/composite4.iml [-]
+        ModuleFile          : <PROJECT>/TestCompositeLib4/composite4.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -1701,7 +1701,7 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : testWithCompositeBuild
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testWithCompositeBuild.iml [-]
+        ModuleFile          : <PROJECT>/testWithCompositeBuild.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
@@ -1718,7 +1718,7 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/testWithCompositeBuild-app.iml [-]
+        ModuleFile          : <PROJECT>/app/testWithCompositeBuild-app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2149,7 +2149,7 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/lib/testWithCompositeBuild-lib.iml [-]
+        ModuleFile          : <PROJECT>/lib/testWithCompositeBuild-lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android

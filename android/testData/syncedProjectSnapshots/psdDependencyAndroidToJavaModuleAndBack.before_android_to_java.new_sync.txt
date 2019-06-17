@@ -5,7 +5,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml [-]
+        ModuleFile          : <PROJECT>/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -394,7 +394,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : :jModuleK
         LinkedProjectPath   : <PROJECT>/jModuleK
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleK/jModuleK.iml [-]
+        ModuleFile          : <PROJECT>/jModuleK/jModuleK.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -455,7 +455,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : :jModuleL
         LinkedProjectPath   : <PROJECT>/jModuleL
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleL/jModuleL.iml [-]
+        ModuleFile          : <PROJECT>/jModuleL/jModuleL.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -494,7 +494,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : :jModuleM
         LinkedProjectPath   : <PROJECT>/jModuleM
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleM/jModuleM.iml [-]
+        ModuleFile          : <PROJECT>/jModuleM/jModuleM.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -533,7 +533,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : :jModuleZ
         LinkedProjectPath   : <PROJECT>/jModuleZ
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleZ/jModuleZ.iml [-]
+        ModuleFile          : <PROJECT>/jModuleZ/jModuleZ.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -596,7 +596,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : :mainModule
         LinkedProjectPath   : <PROJECT>/mainModule
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/mainModule/mainModule.iml [-]
+        ModuleFile          : <PROJECT>/mainModule/mainModule.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1014,7 +1014,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : :moduleA
         LinkedProjectPath   : <PROJECT>/moduleA
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleA/moduleA.iml [-]
+        ModuleFile          : <PROJECT>/moduleA/moduleA.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1372,7 +1372,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : :moduleB
         LinkedProjectPath   : <PROJECT>/moduleB
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleB/moduleB.iml [-]
+        ModuleFile          : <PROJECT>/moduleB/moduleB.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1724,7 +1724,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : :moduleC
         LinkedProjectPath   : <PROJECT>/moduleC
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleC/moduleC.iml [-]
+        ModuleFile          : <PROJECT>/moduleC/moduleC.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2068,7 +2068,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : :moduleFlavor
         LinkedProjectPath   : <PROJECT>/moduleFlavor
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleFlavor/moduleFlavor.iml [-]
+        ModuleFile          : <PROJECT>/moduleFlavor/moduleFlavor.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2211,7 +2211,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : :modulePlus
         LinkedProjectPath   : <PROJECT>/modulePlus
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/modulePlus/modulePlus.iml [-]
+        ModuleFile          : <PROJECT>/modulePlus/modulePlus.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2587,7 +2587,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : :jModuleZ:nestedZ
         LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleZ/nestedZ/nestedZ.iml [-]
+        ModuleFile          : <PROJECT>/jModuleZ/nestedZ/nestedZ.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -2618,7 +2618,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectId     : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testPsdDependencyAndroidToJavaModuleAndBack.iml [-]
+        ModuleFile          : <PROJECT>/testPsdDependencyAndroidToJavaModuleAndBack.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
