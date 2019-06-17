@@ -18,10 +18,10 @@ package com.android.tools.idea.lang.androidSql
 import com.android.tools.idea.lang.androidSql.room.RoomDependencyChecker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 
 
-class RoomDependencyCheckerTest : LightCodeInsightFixtureTestCase() {
+class RoomDependencyCheckerTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun test_recalculateValue() {
     val initialValue = RoomDependencyChecker.getInstance(project)?.isRoomPresent()

@@ -16,10 +16,10 @@
 package com.android.tools.idea
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import org.junit.Test
 
-class ASTUtilTest : LightCodeInsightFixtureTestCase() {
+class ASTUtilTest : LightJavaCodeInsightFixtureTestCase() {
     @Test
     fun testGetImports_java_noImports() {
       val psiFile = myFixture.addFileToProject("src/com/android/test/A.java", """

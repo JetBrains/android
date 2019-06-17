@@ -20,7 +20,7 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 
 fun createStubRoomClasses(codeInsightTestFixture: JavaCodeInsightTestFixture) {
   codeInsightTestFixture.addClass(
@@ -165,7 +165,7 @@ fun JavaCodeInsightTestFixture.addRoomEntity(
   )
 }
 
-abstract class RoomLightTestCase : LightCodeInsightFixtureTestCase() {
+abstract class RoomLightTestCase : LightJavaCodeInsightFixtureTestCase() {
   override fun setUp() {
     super.setUp()
     createStubRoomClasses(myFixture)

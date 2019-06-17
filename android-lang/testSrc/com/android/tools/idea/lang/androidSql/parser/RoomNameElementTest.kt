@@ -21,10 +21,10 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import kotlin.reflect.KClass
 
-class RoomNameElementTest : LightCodeInsightFixtureTestCase() {
+class RoomNameElementTest : LightJavaCodeInsightFixtureTestCase() {
 
   /**
    * Parses the given string and finds the first [PsiElement] of the requested class.
