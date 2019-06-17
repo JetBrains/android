@@ -401,7 +401,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
       return versionInUse
     }
 
-    val androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(project)
+    val androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project)
     return androidPluginInfo?.pluginVersion ?: defaultGradleVersion
   }
 
