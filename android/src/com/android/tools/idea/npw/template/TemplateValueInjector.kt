@@ -302,7 +302,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   fun setLanguage(language: Language): TemplateValueInjector {
-    myTemplateValues[ATTR_LANGUAGE] = language.getName()
+    myTemplateValues[ATTR_LANGUAGE] = language.toString()
     myTemplateValues[ATTR_KOTLIN_SUPPORT] = language == Language.KOTLIN
     return this
   }
