@@ -27,6 +27,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +58,14 @@ public class AndroidPluginInfo {
   @Slow
   @Nullable
   public static AndroidPluginInfo find(@NotNull Project project) {
-    return find(project, false);
+    AndroidPluginInfo modelPluginInfo = findFromModel(project);
+    if (modelPluginInfo != null && modelPluginInfo.getPluginVersion() != null) {
+      return modelPluginInfo;
+    }
+
+
+    AndroidPluginInfo buildPluginInfo = findInBuildFiles(project, modelPluginInfo == null ? null : modelPluginInfo.getModule());
+    return buildPluginInfo == null ? modelPluginInfo : buildPluginInfo;
   }
 
   /**
@@ -70,50 +78,35 @@ public class AndroidPluginInfo {
    */
   @Slow
   @Nullable
-  public static AndroidPluginInfo searchInBuildFilesOnly(@NotNull Project project) {
-    return find(project, true);
+  public static AndroidPluginInfo findFromBuildFiles(@NotNull Project project) {
+    return findInBuildFiles(project, null);
+  }
+
+  @Nullable
+  public static AndroidPluginInfo findFromModel(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
+      if (gradleModel != null && gradleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
+        // This is the 'app' module in the project.
+        return new AndroidPluginInfo(module, gradleModel.getModelVersion(), null);
+      }
+    }
+    return null;
   }
 
   @Slow
   @Nullable
-  private static AndroidPluginInfo find(@NotNull Project project, boolean searchInBuildFilesOnly) {
-    Module appModule = null;
-    AndroidModuleModel appGradleModel = null;
-    VirtualFile pluginBuildFile = null;
-
-    if (!searchInBuildFilesOnly) {
-      for (Module module : ModuleManager.getInstance(project).getModules()) {
-        AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
-        if (gradleModel != null && gradleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
-          // This is the 'app' module in the project.
-          appModule = module;
-          appGradleModel = gradleModel;
-          break;
-        }
-      }
+  private static AndroidPluginInfo findInBuildFiles(@NotNull Project project, @Nullable Module appModule) {
+    Module fileAppModule = null;
+    // Try to find 'app' module or plugin version by reading build.gradle files.
+    BuildFileSearchResult result = searchInBuildFiles(project, appModule == null);
+    if (result.appVirtualFile != null) {
+      fileAppModule = findModuleForFile(result.appVirtualFile, project);
     }
-
-    GradleVersion pluginVersion = appGradleModel != null ? appGradleModel.getModelVersion() : null;
-
-    boolean appModuleFound = appModule != null;
-    boolean pluginVersionFound = pluginVersion != null;
-
-    if (!appModuleFound || !pluginVersionFound) {
-      // Try to find 'app' module or plugin version by reading build.gradle files.
-      BuildFileSearchResult result = searchInBuildFiles(project, !appModuleFound);
-      if (result.appVirtualFile != null) {
-        appModule = findModuleForFile(result.appVirtualFile, project);
-      }
-      if (isNotEmpty(result.pluginVersion)) {
-        pluginVersion = GradleVersion.tryParse(result.pluginVersion);
-      }
-      pluginBuildFile = result.pluginVirtualFile;
+    if (fileAppModule != null || appModule != null) {
+      GradleVersion pluginVersion = isNotEmpty(result.pluginVersion) ? GradleVersion.tryParse(result.pluginVersion) : null;
+      return new AndroidPluginInfo(fileAppModule == null ? appModule : fileAppModule, pluginVersion, result.pluginVirtualFile);
     }
-
-    if (appModule != null) {
-      return new AndroidPluginInfo(appModule, pluginVersion, pluginBuildFile);
-    }
-
     return null;
   }
 
