@@ -85,13 +85,6 @@ public final class StudioFlags {
     "Checkbox mark adds a path to shipped offline repo to local.properties and references it in build.gradle's dependencies",
     false);
 
-  public static final Flag<Boolean> NPW_USE_NAV_CONTROLLER = Flag.create(
-    NPW, "use.nav.controller", "Use Navigation Controller",
-    "Use Navigation Controller in a project that has multiple destinations, " +
-    "for example: Navigation Drawer Activity or Bottom Navigation Activity. This flag is used not to include the Navigation Component " +
-    "before it becomes stable.",
-    true);
-
   public static final Flag<Boolean> NPW_TEMPLATES_AUTOMOTIVE = Flag.create(
     NPW, "templates.automotive", "Include 'Automotive' templates in wizards",
     "Show 'Automotive' templates in 'New Project', 'New Module' and 'New component' wizards. Also present 'Automotive' devices in AVD.",
