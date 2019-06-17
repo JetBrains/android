@@ -20,13 +20,13 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.testFramework.LightProjectDescriptor;
-import com.siyeh.ig.LightInspectionTestCase;
+import com.siyeh.ig.LightJavaInspectionTestCase;
 import org.jetbrains.android.AndroidFacetProjectDescriptor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("StatementWithEmptyBody")
-public abstract class AndroidInspectionTestCase extends LightInspectionTestCase {
+public abstract class AndroidInspectionTestCase extends LightJavaInspectionTestCase {
 
   @NotNull
   @Override
