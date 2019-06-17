@@ -18,7 +18,7 @@ PROJECT             : testSimpleApplicationWithAgp3_3_2
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
+            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res;file://<PROJECT>/app/build/generated/res/rs/debug [-]
             TestResFoldersRelativePath    :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -44,17 +44,17 @@ PROJECT             : testSimpleApplicationWithAgp3_3_2
         CONENT_ENTRY        : file://<PROJECT>/app
             JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out
             JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
-            JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/apt/androidTest/debug [-]
             JavaSource          : file://<PROJECT>/app/build/generated/source/apt/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/apt/test/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
@@ -97,7 +97,7 @@ PROJECT             : testSimpleApplicationWithAgp3_3_2
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
