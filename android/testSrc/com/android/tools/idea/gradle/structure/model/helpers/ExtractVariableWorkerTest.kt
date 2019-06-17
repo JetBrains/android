@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.asParsed
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -181,4 +182,44 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
                  equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("2.7.1", DslText.Literal)))
     }
   }
+
+  fun testExtractJavaModuleDependencyVersion() {
+    loadProject(TestProjectPaths.UNIT_TESTING)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+    val javaModule = project.findModuleByName("javalib") as PsJavaModule
+    val junit = javaModule.dependencies.findLibraryDependencies("junit:junit:4.12").firstOrNull()
+    val mockito = javaModule.dependencies.findLibraryDependencies("org.mockito:mockito-core:2.7.1").firstOrNull()
+
+    assertThat(junit, notNullValue())
+    assertThat(mockito, notNullValue())
+
+    run {
+      val junitVersion = junit!!.versionProperty.bind(Unit)
+      val worker = ExtractVariableWorker(junitVersion)
+      val (newName, newProperty) = worker.changeScope(javaModule.variables, "")
+      assertThat(newName, equalTo("junitVersion"))
+      assertThat(newProperty.getParsedValue(),
+                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed("4.12", DslText.Literal).annotated()))
+      worker.commit("junitVersion")
+
+      assertThat(javaModule.variables.getOrCreateVariable("junitVersion").value,
+                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("4.12", DslText.Literal)))
+    }
+
+    run {
+      val mockitoVersion = mockito!!.versionProperty.bind(Unit)
+      val worker = ExtractVariableWorker(mockitoVersion)
+      val (newName, newProperty) = worker.changeScope(javaModule.variables, "")
+      assertThat(newName, equalTo("mockitoCoreVersion"))
+      assertThat(newProperty.getParsedValue(),
+                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed("2.7.1", DslText.Literal).annotated()))
+      worker.commit("mockitoCoreVersion")
+
+      assertThat(javaModule.variables.getOrCreateVariable("mockitoCoreVersion").value,
+                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("2.7.1", DslText.Literal)))
+    }
+  }
+
 }
