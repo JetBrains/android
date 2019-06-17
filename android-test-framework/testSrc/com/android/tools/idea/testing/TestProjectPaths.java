@@ -99,4 +99,5 @@ public final class TestProjectPaths {
   public static final String UIBUILDER_PROPERTY = "projects/uibuilder/property";
   public static final String UNIT_TESTING = "projects/unitTesting";
   public static final String UNUSED_RESOURCES = "projects/unusedResources";
+  public static final String VARIANT_SPECIFIC_DEPENDENCIES = "projects/variantSpecificDependencies";
 }
