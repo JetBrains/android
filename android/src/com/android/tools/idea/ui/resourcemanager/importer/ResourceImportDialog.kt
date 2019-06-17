@@ -20,7 +20,7 @@ import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer
 import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
-import com.android.tools.idea.ui.resourcemanager.widget.ChessBoardPanel
+import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.ide.wizard.AbstractWizard
@@ -36,6 +36,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.JBCardLayout
 import com.intellij.ui.JBColor
+import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
@@ -53,9 +54,9 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.beans.PropertyChangeListener
 import java.util.IdentityHashMap
+import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import javax.swing.BorderFactory
-import javax.swing.Icon
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -338,17 +339,22 @@ private class SummaryStep(private val viewModel: SummaryScreenViewModel) : StepA
 
   private var root: JComponent? = null
 
-  // TODO replace the preview icon with the view containing icon and metadata
-  private val preview = JBLabel(null as Icon?, JBLabel.CENTER).apply {
-    preferredSize = JBUI.size(300, 200)
+  private val preview = DetailedPreview()
+
+  init {
+    viewModel.updateCallback = this::update
   }
 
   override fun _init() {
-    root = JPanel(BorderLayout()).apply {
-      add(createTree(), BorderLayout.WEST)
-      add(ChessBoardPanel(BorderLayout()).apply {
-        add(preview)
-      }, BorderLayout.EAST)
+    root = JBSplitter(false, 0.5f).apply {
+      isShowDividerControls = true
+      isShowDividerIcon = true
+      firstComponent = JBScrollPane(createTree()).apply {
+        border = JBUI.Borders.merge(border, JBUI.Borders.empty(8), true)
+        background = UIUtil.getPanelBackground()
+      }
+      secondComponent = preview
+      dividerWidth = JBUI.scale(4)
     }
   }
 
@@ -360,17 +366,24 @@ private class SummaryStep(private val viewModel: SummaryScreenViewModel) : StepA
 
   override fun getComponent(): JComponent? = root
 
+  private fun update() {
+    preview.data = viewModel.metadata
+    pendingFuture?.cancel(true)
+    pendingFuture = viewModel.getPreview().whenComplete { icon, _ ->
+      pendingFuture = null
+      preview.icon = icon
+    }
+  }
+
+  var pendingFuture: CompletableFuture<*>? = null
   private fun createTree() = Tree(viewModel.getFileTreeModel()).apply {
     cellRenderer = ProposedFileTreeCellRenderer()
     background = UIUtil.getTreeBackground()
     TreeUtil.expandAll(this)
     addTreeSelectionListener { selectionEvent ->
-      val path = (selectionEvent.newLeadSelectionPath.lastPathComponent as ProposedFileTreeModel.Node).file.path
-      viewModel.getPreview(path).whenComplete { icon, _ ->
-        if (icon != null) {
-          preview.icon = icon
-        }
-      }
+      val node = selectionEvent.newLeadSelectionPath?.lastPathComponent as? ProposedFileTreeModel.Node
+      viewModel.selectedFile = if (node != null && node.isLeaf()) node.file else null
     }
+    TreeUtil.selectPath(this, TreeUtil.getFirstLeafNodePath(this))
   }
 }
