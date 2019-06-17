@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework;
 import com.android.tools.perflogger.Metric;
 import com.android.tools.perflogger.Benchmark;
 import com.android.tools.perflogger.Metric.MetricSample;
+import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
@@ -66,16 +67,20 @@ final class GuiPerfLogger extends TestWatcher {
   @Override
   protected void finished(Description description) {
     myTimer.stop();
-    myElapsedTime = System.currentTimeMillis() - myElapsedTime;
 
-    // log the approximate "after" memory.
-    System.gc();
-    logHeapUsageSample();
+    // process the rest on the EDT, since myTimer's task may be in flight (and it gets processed on the EDT)
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      myElapsedTime = System.currentTimeMillis() - myElapsedTime;
 
-    // log the total run time of the test.
-    myMetric.addSamples(myTimeBenchmark, new MetricSample(Instant.now().toEpochMilli(), myElapsedTime));
+      // log the approximate "after" memory.
+      System.gc();
+      logHeapUsageSample();
 
-    myMetric.commit();
+      // log the total run time of the test.
+      myMetric.addSamples(myTimeBenchmark, new MetricSample(Instant.now().toEpochMilli(), myElapsedTime));
+
+      myMetric.commit();
+    });
   }
 
   private void logHeapUsageSample() {
