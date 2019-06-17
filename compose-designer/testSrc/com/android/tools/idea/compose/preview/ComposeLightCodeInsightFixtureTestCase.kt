@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import org.intellij.lang.annotations.Language
 
-open class ComposeLightCodeInsightFixtureTestCase : LightCodeInsightFixtureTestCase() {
+open class ComposeLightJavaCodeInsightFixtureTestCase : LightJavaCodeInsightFixtureTestCase() {
   override fun setUp() {
     super.setUp()
 

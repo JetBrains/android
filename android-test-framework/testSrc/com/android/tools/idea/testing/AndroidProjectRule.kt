@@ -190,7 +190,7 @@ class AndroidProjectRule private constructor(
   private fun createLightFixture(): CodeInsightTestFixture {
     // This is a very abstract way to initialize a new Project and a single Module.
     val factory = IdeaTestFixtureFactory.getFixtureFactory()
-    val projectBuilder = factory.createLightFixtureBuilder(LightCodeInsightFixtureTestCase.JAVA_8)
+    val projectBuilder = factory.createLightFixtureBuilder(LightJavaCodeInsightFixtureTestCase.JAVA_8)
     return factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
   }
 

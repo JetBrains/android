@@ -19,9 +19,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.*
 import com.intellij.psi.PsiClass
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 
-class MultiDexKeepReferenceTest : LightCodeInsightFixtureTestCase() {
+class MultiDexKeepReferenceTest : LightJavaCodeInsightFixtureTestCase() {
   override fun setUp() {
    super.setUp()
     StudioFlags.MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED.override(true)
