@@ -28,6 +28,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.pom.java.LanguageLevel
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -139,6 +140,45 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       assertThat(newProperty.getParsedValue(), equalTo<Annotated<ParsedValue<LanguageLevel>>>(ParsedValue.NotSet.annotated()))
 
       assertThat(worker.validate(" "), equalTo("Variable name is required."))
+    }
+  }
+
+  fun testExtractAndroidModuleDependencyVersion() {
+    loadProject(TestProjectPaths.UNIT_TESTING)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    val junit = appModule.dependencies.findLibraryDependencies("junit:junit:4.12").firstOrNull()
+    val mockito = appModule.dependencies.findLibraryDependencies("org.mockito:mockito-core:2.7.1").firstOrNull()
+
+    assertThat(junit, notNullValue())
+    assertThat(mockito, notNullValue())
+
+    run {
+      val junitVersion = junit!!.versionProperty.bind(Unit)
+      val worker = ExtractVariableWorker(junitVersion)
+      val (newName, newProperty) = worker.changeScope(appModule.variables, "")
+      assertThat(newName, equalTo("junitVersion"))
+      assertThat(newProperty.getParsedValue(),
+                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed("4.12", DslText.Literal).annotated()))
+      worker.commit("junitVersion")
+
+      assertThat(appModule.variables.getOrCreateVariable("junitVersion").value,
+                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("4.12", DslText.Literal)))
+    }
+
+    run {
+      val mockitoVersion = mockito!!.versionProperty.bind(Unit)
+      val worker = ExtractVariableWorker(mockitoVersion)
+      val (newName, newProperty) = worker.changeScope(appModule.variables, "")
+      assertThat(newName, equalTo("mockitoCoreVersion"))
+      assertThat(newProperty.getParsedValue(),
+                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed("2.7.1", DslText.Literal).annotated()))
+      worker.commit("mockitoCoreVersion")
+
+      assertThat(appModule.variables.getOrCreateVariable("mockitoCoreVersion").value,
+                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("2.7.1", DslText.Literal)))
     }
   }
 }
