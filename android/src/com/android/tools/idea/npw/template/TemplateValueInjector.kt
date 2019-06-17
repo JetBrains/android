@@ -361,9 +361,8 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   private fun addAndroidxSupport(project: Project?) {
-    if (project != null) {
-      myTemplateValues[ATTR_ANDROIDX_SUPPORT] = project.isAndroidx()
-    }
+    // Note: New projects are always created with androidx dependencies
+    myTemplateValues[ATTR_ANDROIDX_SUPPORT] = project == null || !project.isInitialized || project.isAndroidx()
   }
 
   private fun addDebugKeyStore(templateValues: MutableMap<String, Any>, facet: AndroidFacet?) {
