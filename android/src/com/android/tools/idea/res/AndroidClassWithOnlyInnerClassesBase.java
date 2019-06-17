@@ -93,7 +93,7 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
 
   @NotNull
   @Override
-  public final PsiClass[] getInnerClasses() {
+  public PsiClass[] getInnerClasses() {
     return myClassCache.getValue();
   }
 
