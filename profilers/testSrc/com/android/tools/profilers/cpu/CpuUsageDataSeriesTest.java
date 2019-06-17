@@ -15,17 +15,19 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
+import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 public class CpuUsageDataSeriesTest {
 
@@ -40,8 +42,7 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void thisProcessCpuUsage() {
-    mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA,
-                                      dataList -> CpuUsage.extractData(dataList, false));
+    mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA, false);
     int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     int appTime = (int)(0.4 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
@@ -76,8 +77,7 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void otherProcessesCpuUsage() {
-    mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA,
-                                      dataList -> CpuUsage.extractData(dataList, true));
+    mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA, true);
     int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     List<SeriesData<Long>> seriesData = mySeries.getDataForRange(ANY_RANGE);
@@ -107,8 +107,7 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void emptyData() {
-    mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA,
-                                      dataList -> CpuUsage.extractData(dataList, false));
+    mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA, false);
     assertNotNull(mySeries);
     assertFalse(mySeries.getDataForRange(ANY_RANGE).isEmpty());
     myService.setEmptyUsageData(true);

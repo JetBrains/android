@@ -27,7 +27,6 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class MemoryUsage extends LineChartModel {
@@ -63,7 +62,7 @@ public class MemoryUsage extends LineChartModel {
                                                       @NotNull String name,
                                                       @NotNull Range range,
                                                       int groupId,
-                                                      Function<List<Common.Event>, Stream<SeriesData<Long>>> dataExtractor) {
+                                                      Function<List<Common.Event>, List<SeriesData<Long>>> dataExtractor) {
     TransportServiceGrpc.TransportServiceBlockingStub client = profilers.getClient().getTransportClient();
     UnifiedEventDataSeries series = new UnifiedEventDataSeries(client,
                                                                profilers.getSession().getStreamId(),
