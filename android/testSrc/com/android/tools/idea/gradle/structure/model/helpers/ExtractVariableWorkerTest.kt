@@ -44,25 +44,25 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
     run {
       val worker = ExtractVariableWorker(compileSdkVersion)
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
-      assertThat(newName, equalTo("var"))
+      assertThat(newName, equalTo("compileSdkVersion"))
       assertThat(newProperty.getParsedValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString().asParsed().annotated()))
 
-      worker.commit("var")
+      worker.commit("compileSdkVersion")
       assertThat(compileSdkVersion.getParsedValue(),
                  equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-                                                                                DslText.Reference("var"))
+                                                                                DslText.Reference("compileSdkVersion"))
                                                            .annotated()))
-      assertThat(appModule.variables.getOrCreateVariable("var").value,
+      assertThat(appModule.variables.getOrCreateVariable("compileSdkVersion").value,
                  equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.asParsed<Any>()))
     }
 
     run {
       val worker = ExtractVariableWorker(compileSdkVersion)
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
-      assertThat(newName, equalTo("var1"))   // The second suggested name is "var1".
+      assertThat(newName, equalTo("compileSdkVersion1"))   // The second suggested name is the preferredName + "1".
       assertThat(newProperty.getParsedValue(),
                  equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-                                                                                DslText.Reference("var"))
+                                                                                DslText.Reference("compileSdkVersion"))
                                                            .annotated()))
 
       worker.commit("otherName")
@@ -71,7 +71,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
                                                                                 DslText.Reference("otherName"))
                                                            .annotated()))
       assertThat(appModule.variables.getOrCreateVariable("otherName").value,
-                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed(28, DslText.Reference("var"))))
+                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed(28, DslText.Reference("compileSdkVersion"))))
     }
   }
 
@@ -86,7 +86,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
     run {
       val worker = ExtractVariableWorker(compileSdkVersion)
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
-      assertThat(newName, equalTo("var"))
+      assertThat(newName, equalTo("compileSdkVersion"))
       assertThat(newProperty.getParsedValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString().asParsed().annotated()))
 
 
@@ -117,10 +117,10 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
     run {
       val worker = ExtractVariableWorker(targetCompatibility)
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
-      assertThat(newName, equalTo("var"))
+      assertThat(newName, equalTo("targetCompatibility"))
       assertThat(newProperty.getParsedValue(), equalTo<Annotated<ParsedValue<LanguageLevel>>>(ParsedValue.NotSet.annotated()))
 
-      assertThat(worker.validate("var"), equalTo("Cannot bind a variable to an empty value."))
+      assertThat(worker.validate("targetCompatibility"), equalTo("Cannot bind a variable to an empty value."))
     }
   }
 
@@ -135,7 +135,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
     run {
       val worker = ExtractVariableWorker(targetCompatibility)
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
-      assertThat(newName, equalTo("var"))
+      assertThat(newName, equalTo("targetCompatibility"))
       assertThat(newProperty.getParsedValue(), equalTo<Annotated<ParsedValue<LanguageLevel>>>(ParsedValue.NotSet.annotated()))
 
       assertThat(worker.validate(" "), equalTo("Variable name is required."))
