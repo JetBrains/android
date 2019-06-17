@@ -514,10 +514,9 @@ public class TemplateManager {
           String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
           Project project = facet.getModule().getProject();
 
-          RenderTemplateModel renderModel = RenderTemplateModel.fromFacet(facet, null, initialPackageSuggestion, moduleTemplates.get(0),
-                                                                    AndroidBundle
-                                                                      .message("android.wizard.activity.add", FormFactor.MOBILE.id),
-                                                                    projectSyncInvoker, true);
+          RenderTemplateModel renderModel = RenderTemplateModel.fromFacet(
+            facet, null, initialPackageSuggestion, moduleTemplates.get(0),
+            AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id), projectSyncInvoker, true);
 
           NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker);
           ChooseActivityTypeStep chooseActivityTypeStep =
@@ -530,7 +529,59 @@ public class TemplateManager {
       categoryGroup.add(galleryAction);
       categoryGroup.addSeparator();
       setPresentation(category, galleryAction);
+
+      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()) {
+        AnAction experimentalGalleryAction = new AnAction() {
+          @Override
+          public void update(@NotNull AnActionEvent e) {
+            updateAction(e, "Experimental gallery...", true, true);
+          }
+
+          @Override
+          public void actionPerformed(@NotNull AnActionEvent e) {
+            ProjectSyncInvoker projectSyncInvoker = new ProjectSyncInvoker.DefaultProjectSyncInvoker();
+
+            DataContext dataContext = e.getDataContext();
+            Module module = LangDataKeys.MODULE.getData(dataContext);
+            assert module != null;
+
+            AndroidFacet facet = AndroidFacet.getInstance(module);
+            assert facet != null && facet.getConfiguration().getModel() != null;
+
+            VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+            assert targetFile != null;
+
+            VirtualFile targetDirectory = targetFile;
+            if (!targetDirectory.isDirectory()) {
+              targetDirectory = targetFile.getParent();
+              assert targetDirectory != null;
+            }
+            Project project = facet.getModule().getProject();
+
+            List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
+            assert (!moduleTemplates.isEmpty());
+
+            String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
+
+            RenderTemplateModel renderModel = RenderTemplateModel.fromFacet(
+              facet, null, initialPackageSuggestion, moduleTemplates.get(0),
+              AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id), projectSyncInvoker, true);
+
+            NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker);
+            ChooseActivityTypeStep chooseActivityTypeStep =
+              new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
+            ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
+
+            new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();
+          }
+        };
+
+        categoryGroup.add(experimentalGalleryAction);
+        categoryGroup.addSeparator();
+        setPresentation(category, experimentalGalleryAction);
+      }
     }
+
     // Automotive category includes Car category templates. If a template is in both categories, use the automotive one.
     Map<String, String> templateCategoryMap = categoryRow.keySet().stream().collect(toMap(it -> it, it -> category));
     if (category.equals(CATEGORY_AUTOMOTIVE)) {
