@@ -75,21 +75,18 @@ public class CpuUsage extends LineChartModel {
    * @return a list of SeriesData containing CPU usage percentage.
    */
   protected static List<SeriesData<Long>> extractData(List<Cpu.CpuUsageData> dataList, boolean isOtherProcess) {
-    return IntStream.range(0, dataList.size())
-      // Start from the second CPU usage data so we can compute the difference between two adjacent ones.
-      .filter(index -> index > 0)
-      .mapToObj(index -> getCpuUsageData(dataList, index, isOtherProcess))
+    return IntStream.range(0, dataList.size() - 1)
+      // Calculate CPU usage percentage from two adjacent CPU usage data.
+      .mapToObj(index -> getCpuUsageData(dataList.get(index), dataList.get(index + 1), isOtherProcess))
       .collect(Collectors.toList());
   }
 
-  private static SeriesData<Long> getCpuUsageData(List<Cpu.CpuUsageData> dataList, int index, boolean isOtherProcess) {
-    Cpu.CpuUsageData data = dataList.get(index);
-    Cpu.CpuUsageData lastData = dataList.get(index - 1);
+  private static SeriesData<Long> getCpuUsageData(Cpu.CpuUsageData prevData, Cpu.CpuUsageData data, boolean isOtherProcess) {
     long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getEndTimestamp());
-    long elapsed = (data.getElapsedTimeInMillisec() - lastData.getElapsedTimeInMillisec());
+    long elapsed = (data.getElapsedTimeInMillisec() - prevData.getElapsedTimeInMillisec());
     // TODO: consider using raw data instead of percentage to improve efficiency.
-    double app = 100.0 * (data.getAppCpuTimeInMillisec() - lastData.getAppCpuTimeInMillisec()) / elapsed;
-    double system = 100.0 * (data.getSystemCpuTimeInMillisec() - lastData.getSystemCpuTimeInMillisec()) / elapsed;
+    double app = 100.0 * (data.getAppCpuTimeInMillisec() - prevData.getAppCpuTimeInMillisec()) / elapsed;
+    double system = 100.0 * (data.getSystemCpuTimeInMillisec() - prevData.getSystemCpuTimeInMillisec()) / elapsed;
 
     // System and app usages are read from them device in slightly different times. That can cause app usage to be slightly higher than
     // system usage and we need to adjust our values to cover these scenarios. Also, we use iowait (time waiting for I/O to complete) when
