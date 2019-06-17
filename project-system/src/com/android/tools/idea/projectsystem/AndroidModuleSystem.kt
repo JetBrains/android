@@ -155,6 +155,15 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   fun canGeneratePngFromVectorGraphics(): CapabilityStatus
 
   /**
+   * Returns the module's resource package name, or null if it could not be determined.
+   *
+   * The resource package name is equivalent to the "package" attribute of the module's
+   * merged manifest once it has been built. Depending on the build system, however,
+   * this method may be optimized to avoid the costs of merged manifest computation.
+   */
+  fun getPackageName(): String?
+
+  /**
    * Returns the [GlobalSearchScope] for a given module that should be used to resolving references.
    *
    * This is a seam for [Module.getModuleWithDependenciesAndLibrariesScope] that allows project systems that have not expressed their
