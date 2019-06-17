@@ -19,13 +19,13 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class AddTargetVersionCheckQuickFixTest extends LightCodeInsightFixtureTestCase {
+public class AddTargetVersionCheckQuickFixTest extends LightJavaCodeInsightFixtureTestCase {
   public void testNotApplicableInJavaModules() {
     PsiFile file = myFixture.configureByText("X.java", "" +
                                                        "package com.example;\n" +
