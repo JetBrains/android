@@ -1062,7 +1062,7 @@ public class RenderErrorContributor {
       if (CLASS_CONSTRAINT_LAYOUT.isEquals(className)) {
         builder.newline().addNbsps(3);
         Project project = logger.getProject();
-        boolean useAndroidX = project != null ? MigrateToAndroidxUtil.isAndroidx(project) : StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get();
+        boolean useAndroidX = project == null || MigrateToAndroidxUtil.isAndroidx(project);
         GoogleMavenArtifactId artifact = useAndroidX ?
                                          GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
                                          GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
