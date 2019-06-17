@@ -205,19 +205,7 @@ abstract class GradleSyncProjectComparisonTest(
   }
 
   open fun testPsdDependency() {
-    val firstSync = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
-      val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
-      val testRepositoryPath =
-          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
-      val repositories = """
-      maven {
-        name "test"
-        url "file:$testRepositoryPath"
-      }
-      $localRepositories
-      """
-      AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
-    }
+    val firstSync = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot -> addPsdSampleRepo(projectRoot) }
     val secondSync = syncAndDumpProject()
     // TODO(b/124677413): When fixed, [secondSync] should match the same snapshot. (Remove ".second_sync")
     assertAreEqualToSnapshots(
@@ -227,19 +215,7 @@ abstract class GradleSyncProjectComparisonTest(
   }
 
   open fun testPsdDependencyDeleteModule() {
-    val beforeDelete = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
-      val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
-      val testRepositoryPath =
-          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
-      val repositories = """
-      maven {
-        name "test"
-        url "file:$testRepositoryPath"
-      }
-      $localRepositories
-      """
-      AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
-    }
+    val beforeDelete = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot -> addPsdSampleRepo(projectRoot) }
     PsProjectImpl(project).let { projectModel ->
       projectModel.removeModule(":moduleB")
       projectModel.applyChanges()
@@ -377,6 +353,20 @@ abstract class GradleSyncProjectComparisonTest(
     writeToFile(settingsFilePath, " ")
     assertAbout<FileSubject, File>(file()).that(settingsFilePath).isFile()
     refreshProjectFiles()
+  }
+
+  private fun addPsdSampleRepo(projectRoot: File) {
+    val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
+    val testRepositoryPath =
+      File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
+    val repositories = """
+        maven {
+          name "test"
+          url "file:$testRepositoryPath"
+        }
+        $localRepositories
+        """
+    AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
   }
 }
 
