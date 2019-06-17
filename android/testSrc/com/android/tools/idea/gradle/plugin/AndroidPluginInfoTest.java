@@ -43,7 +43,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
 
   public void testFindWithStablePluginReadingBuildFilesOnly() throws Exception {
     loadSimpleApplication();
-    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(getProject());
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(getProject());
     assertNotNull(androidPluginInfo);
     assertNotNull(androidPluginInfo.getModule());
     assertEquals("app", androidPluginInfo.getModule().getName());
@@ -58,13 +58,27 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
 
   public void testFindWithStablePluginInAppReadingBuildFilesOnly() throws Exception {
     loadProject(PLUGIN_IN_APP);
-    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(getProject());
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(getProject());
     assertNotNull(androidPluginInfo);
     assertNotNull(androidPluginInfo.getModule());
     assertEquals("app", androidPluginInfo.getModule().getName());
     assertNotNull(androidPluginInfo.getPluginBuildFile());
     assertEquals(new File(new File(getProjectFolderPath(), "app"), FN_BUILD_GRADLE),
                  new File(androidPluginInfo.getPluginBuildFile().getPath()));
+
+    GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
+    assertNotNull(pluginVersion);
+    assertEquals(BuildEnvironment.getInstance().getGradlePluginVersion(), pluginVersion.toString());
+  }
+
+  public void testFindWithStablePluginInAppFromModelsOnly() throws Exception {
+    loadSimpleApplication();
+
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(getProject());
+    assertNotNull(androidPluginInfo);
+    assertNotNull(androidPluginInfo.getModule());
+    assertEquals("app", androidPluginInfo.getModule().getName());
+    assertNull(androidPluginInfo.getPluginBuildFile());
 
     GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
     assertNotNull(pluginVersion);

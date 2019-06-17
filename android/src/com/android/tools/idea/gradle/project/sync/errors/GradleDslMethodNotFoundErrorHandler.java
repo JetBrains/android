@@ -158,7 +158,7 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
 
   private static boolean gradleModelIsRecent(@NotNull Project project) {
     // Sync has failed, so we can only check the build file.
-    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(project);
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project);
     if (androidPluginInfo != null) {
       GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
       if (pluginVersion != null) {

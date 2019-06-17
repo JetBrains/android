@@ -510,7 +510,7 @@ public final class TemplateValueInjector {
       return versionInUse;
     }
 
-    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(project);
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project);
     GradleVersion pluginVersion = (androidPluginInfo == null) ? null : androidPluginInfo.getPluginVersion();
     return (pluginVersion == null) ? defaultGradleVersion : pluginVersion;
   }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import static com.android.ide.common.repository.GradleVersion.tryParseAndroidGradlePluginVersion;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.MISSING_BUILD_TOOLS;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
@@ -62,7 +62,7 @@ public class MissingBuildToolsErrorHandler extends BaseSyncErrorHandler {
     if (matcher.matches()) {
       String version = matcher.group(3);
       GradleVersion currentAGPVersion = null;
-      AndroidPluginInfo result = searchInBuildFilesOnly(project);
+      AndroidPluginInfo result = findFromBuildFiles(project);
       if (result != null) {
         currentAGPVersion = result.getPluginVersion();
       }
