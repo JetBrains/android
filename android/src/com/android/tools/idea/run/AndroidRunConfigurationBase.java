@@ -42,6 +42,7 @@ import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -374,9 +375,33 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (module == null) {
       return null;
     }
+
+    final Project project = module.getProject();
+    if (AndroidProjectInfo.getInstance(project).requiredAndroidModelMissing()) {
+      Logger.getInstance(AndroidRunConfigurationBase.class).warn("Can't get application ID: Android module missing");
+      return null;
+    }
+
     final AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return null;
+    }
+
+    if (facet.isDisposed()) {
+      Logger.getInstance(AndroidRunConfigurationBase.class).warn("Can't get application ID: Facet already disposed");
+      return null;
+    }
+
+    if (!facet.getConfiguration().isAppProject() && facet.getConfiguration().getProjectType() != PROJECT_TYPE_TEST) {
+      if (facet.getConfiguration().isLibraryProject() || facet.getConfiguration().getProjectType() == PROJECT_TYPE_FEATURE) {
+        Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
+        if (!result.getFirst()) {
+          Logger.getInstance(AndroidRunConfigurationBase.class).info("Application ID: " + result.getSecond());
+        }
+      }
+      else {
+        Logger.getInstance(AndroidRunConfigurationBase.class).info("Application ID: Unknown APK type");
+      }
     }
 
     return getApplicationIdProvider(facet);
