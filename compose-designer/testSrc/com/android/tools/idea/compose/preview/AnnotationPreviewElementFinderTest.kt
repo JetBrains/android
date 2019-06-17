@@ -35,7 +35,7 @@ private fun assertMethodTextRange(file: UFile, methodName: String, actualBodyRan
   Assert.assertEquals(range, actualBodyRange)
 }
 
-class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() {
+class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   fun testFindPreviewAnnotations() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """

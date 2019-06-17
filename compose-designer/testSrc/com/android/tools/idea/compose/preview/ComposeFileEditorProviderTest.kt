@@ -25,7 +25,7 @@ import org.intellij.lang.annotations.Language
 private fun ComposeFileEditorProvider.accept(file: PsiFile) =
   accept(file.project, file.virtualFile)
 
-class ComposeFileEditorProviderTest : ComposeLightCodeInsightFixtureTestCase() {
+class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   fun testAcceptFile() {
     val provider = ComposeFileEditorProvider()
 

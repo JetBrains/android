@@ -18,14 +18,14 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.intellij.testFramework.LightProjectDescriptor;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import org.jetbrains.android.AndroidFacetProjectDescriptor;
 import org.jetbrains.annotations.NotNull;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
-public class ResourceClassRegistryTest extends LightCodeInsightFixtureTestCase {
+public class ResourceClassRegistryTest extends LightJavaCodeInsightFixtureTestCase {
   ResourceClassRegistry myRegistry;
   private ResourceIdManager myIdManager;
 

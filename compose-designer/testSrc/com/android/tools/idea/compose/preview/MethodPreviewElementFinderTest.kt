@@ -31,7 +31,7 @@ import org.jetbrains.uast.visitor.AbstractUastVisitor
 private fun PreviewElement.previewBodyAsCompactText(): String? =
   this.previewBodyPsi?.element?.text?.replace("\\s+".toRegex(), " ")
 
-class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() {
+class MethodPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   fun testFindPreviewMethods() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
