@@ -87,7 +87,7 @@ class MissingNdkErrorHandler : BaseSyncErrorHandler() {
     val gradleBuildFiles = ModuleManager.getInstance(project).modules.mapNotNull { getGradleBuildFile(it) }
     val preferredVersion = tryExtractPreferredNdkDownloadVersion(text)
     if (preferredVersion != null) {
-      val localNdk = IdeSdks.getInstance().getSpecificLocalPackage(preferredVersion)
+      val localNdk = IdeSdks.getInstance().getSpecificLocalPackage("ndk;$preferredVersion")
       if (localNdk != null) {
         hyperlinks += FixNdkVersionHyperlink(localNdk.version.toString(), gradleBuildFiles)
       }
