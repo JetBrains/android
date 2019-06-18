@@ -38,7 +38,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.ConcurrencyUtil;
+import com.intellij.util.concurrency.SequentialTaskExecutor;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.ui.AsyncProcessIcon;
 import org.jdom.Element;
@@ -109,7 +109,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
   private JPanel myPanel;
   private JBList myResultList;
   private final List<Artifact> myShownItems = Lists.newArrayList();
-  private final ExecutorService mySearchWorker = ConcurrencyUtil.newSingleThreadExecutor("Maven dependency lookup");
+  private final ExecutorService mySearchWorker = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Maven Dependency Lookup");
   private final boolean myAndroidModule;
 
   private final List<String> myAndroidSdkLibraries = Lists.newArrayList();
