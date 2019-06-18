@@ -117,6 +117,8 @@ class AddToNewGraphActionTest : NavTestCase() {
     val action = AddToNewGraphAction(surface)
     action.actionPerformed(mock(AnActionEvent::class.java))
     UndoManager.getInstance(project).undo(TestNavEditor(model.virtualFile, project))
+    assertEquals(2, surface.scene?.root?.children?.size)
+
     PsiDocumentManager.getInstance(project).commitAllDocuments()
     model.notifyModified(NlModel.ChangeType.EDIT)
 
@@ -124,5 +126,6 @@ class AddToNewGraphActionTest : NavTestCase() {
     assertEquals(200, surface.scene?.getSceneComponent("f1")?.drawY)
     assertEquals(400, surface.scene?.getSceneComponent("f2")?.drawX)
     assertEquals(500, surface.scene?.getSceneComponent("f2")?.drawY)
+    assertEquals(3, surface.scene?.root?.children?.size)
   }
 }
