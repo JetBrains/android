@@ -52,7 +52,7 @@ class ScreenDragTargetTest : NavTestCase() {
     scene.layout(0, SceneContext.get())
 
     val component = scene.getSceneComponent("fragment1")!!
-    val interactionManager = InteractionManager(surface)
+    val interactionManager = surface.interactionManager
     try {
       interactionManager.startListening()
 
