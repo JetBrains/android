@@ -33,7 +33,6 @@ import com.intellij.psi.xml.XmlFile;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-// TODO(b/120407029): move this to uibuilder module.
 public class NlEditorProvider extends DesignerEditorProvider {
 
   @NotNull
