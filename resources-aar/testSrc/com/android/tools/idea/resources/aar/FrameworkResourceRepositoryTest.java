@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.resources.aar;
 
+import static com.android.SdkConstants.FD_DATA;
+import static com.android.SdkConstants.FD_RES;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
@@ -37,14 +39,13 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.PathUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.PathManager;
+import com.intellij.testFramework.PlatformTestCase;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,9 +61,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
-import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,17 +68,16 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Tests for {@link FrameworkResourceRepository}.
  */
-public class FrameworkResourceRepositoryTest extends AndroidTestCase {
+public class FrameworkResourceRepositoryTest extends PlatformTestCase {
   /** Enables printing of repository statistics. */
   private static final boolean PRINT_STATS = false;
-  private static final String FRAMEWORK_RES_JAR_PATH = "tools/adt/idea/resources-aar/framework_res.jar";
 
   private Path myResourceFolder;
-  private Path myCacheDir;
+  private Path myTempDir;
 
   @NotNull
   private Path getCacheFile() {
-    return myCacheDir.resolve("cache.bin");
+    return myTempDir.resolve("cache.bin");
   }
 
   @NotNull
@@ -92,33 +89,17 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
    * Returns the resource folder of the Android framework resources used by LayoutLib.
    */
   @NotNull
-  private Path getSdkResFolder() {
-    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
-    IAndroidTarget target = manager.getHighestApiTarget();
-    if (target == null) {
-      TestCase.fail();
-    }
-    CompatibilityRenderTarget compatibilityTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
-    return Paths.get(compatibilityTarget.getLocation(), "data", "res").normalize();
+  private static Path getFrameworkResDir() {
+    IAndroidTarget renderTarget = StudioEmbeddedRenderTarget.getInstance();
+    return Paths.get(renderTarget.getLocation(), FD_DATA, FD_RES).normalize();
   }
 
-  /**
-   * Returns the resource folder of the Android framework resources used by LayoutLib.
-   */
+  /** Returns the path of a freshly built framework_res.jar. */
   @NotNull
-  private static Path getFrameworkResJar() {
-    Path rootPath = Paths.get(PathManager.getHomePath()).getParent().getParent();
-    // For running from Bazel.
-    Path path = rootPath.resolve(FRAMEWORK_RES_JAR_PATH).normalize();
-    if (Files.exists(path)) {
-      return path;
-    }
-    // For running from IntelliJ.
-    path = rootPath.resolve("bazel-genfiles/" + FRAMEWORK_RES_JAR_PATH);
-    if (Files.exists(path)) {
-      return path;
-    }
-    throw new AssertionFailedError("Could not find " + FRAMEWORK_RES_JAR_PATH);
+  private Path getFrameworkResJar() throws IOException {
+    Path path = myTempDir.resolve("framework_res.jar");
+    FrameworkResJarCreator.createJar(getFrameworkResDir(), path);
+    return path;
   }
 
   private static void assertVisibility(
@@ -454,14 +435,14 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myResourceFolder = getSdkResFolder();
-    myCacheDir = Files.createTempDirectory("caches");
+    myResourceFolder = getFrameworkResDir();
+    myTempDir = Files.createTempDirectory("temp");
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      PathUtils.deleteRecursivelyIfExists(myCacheDir);
+      PathUtils.deleteRecursivelyIfExists(myTempDir);
     } finally {
       super.tearDown();
     }
@@ -470,7 +451,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   public void testLoadingFromSourcesAndCache() throws Exception {
     for (Set<String> languages : Arrays.asList(ImmutableSet.<String>of(), ImmutableSet.of("fr", "it"), null)) {
       // Create persistent cache.
-      PathUtils.deleteRecursivelyIfExists(myCacheDir);
+      PathUtils.deleteRecursivelyIfExists(myTempDir);
       FrameworkResourceRepository.create(myResourceFolder, languages, createCachingData(directExecutor()));
 
       long loadTimeFromSources = 0;
@@ -505,7 +486,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     }
   }
 
-  public void testLoadingFromSourcesAndJar() {
+  public void testLoadingFromSourcesAndJar() throws Exception {
     Path frameworkResJar = getFrameworkResJar();
     for (Set<String> languages : Arrays.asList(ImmutableSet.<String>of(), ImmutableSet.of("fr", "de"), null)) {
       long loadTimeFromSources = 0;
@@ -539,7 +520,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     }
   }
 
-  public void testIncrementalLoadingFromJar() {
+  public void testIncrementalLoadingFromJar() throws Exception {
     Path frameworkResJar = getFrameworkResJar();
     FrameworkResourceRepository withFrench = FrameworkResourceRepository.create(frameworkResJar, ImmutableSet.of("fr"), null);
     checkLanguages(withFrench, ImmutableSet.of("fr"));

@@ -43,7 +43,6 @@ public class DesignerTestSuite extends IdeaTestSuiteBase {
         "tools/adt/idea/android/lib/sampleData",
         "tools/adt/idea/android/testData",
         "tools/adt/idea/designer/testData",
-        "tools/adt/idea/resources-aar/framework_res.jar",
         "tools/base/templates",
         "tools/idea/java");
 

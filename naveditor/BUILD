@@ -53,9 +53,9 @@ iml_module(
     test_data = [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/framework_res",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
-        "//tools/adt/idea/resources-aar:framework_res",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/idea:platform-build-info",
         "//prebuilts/studio/sdk:platforms/latest",

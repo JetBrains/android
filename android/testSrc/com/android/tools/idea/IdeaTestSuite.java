@@ -55,7 +55,6 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
         "tools/adt/idea/android/lib",
         "tools/adt/idea/artwork/resources/device-art-resources",
         "tools/adt/idea/android/testData",
-        "tools/adt/idea/resources-aar/framework_res.jar",
         "tools/base/templates",
         "tools/idea/java");
 

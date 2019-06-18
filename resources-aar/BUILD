@@ -29,7 +29,7 @@ iml_module(
     test_coverage = True,
     # keep sorted
     test_data = [
-        ":framework_res",
+        "//prebuilts/studio/layoutlib:data/framework_res",
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
