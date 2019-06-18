@@ -69,7 +69,7 @@ public class CommonDragHandlerTest extends LayoutTestCase {
     surface.getSelectionModel().setSelection(ImmutableList.of(button));
     surface.setModel(model);
     Transferable transferable = surface.getSelectionAsTransferable();
-    InteractionManager manager = new InteractionManager(surface);
+    InteractionManager manager = surface.getInteractionManager();
     manager.startListening();
     LayoutTestUtilities.dragDrop(manager, 0, 0, 40, 0, transferable, DnDConstants.ACTION_MOVE);
     assertEquals(3, model.find("inner").getChildCount());

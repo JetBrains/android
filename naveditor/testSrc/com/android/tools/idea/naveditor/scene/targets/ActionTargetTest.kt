@@ -59,7 +59,7 @@ class ActionTargetTest : NavTestCase() {
     scene.buildDisplayList(DisplayList(), 0, view)
 
 
-    val interactionManager = InteractionManager(surface)
+    val interactionManager = surface.interactionManager
     interactionManager.startListening()
 
     LayoutTestUtilities.clickMouse(interactionManager, BUTTON1, 1, Coordinates.getSwingXDip(view, 300),

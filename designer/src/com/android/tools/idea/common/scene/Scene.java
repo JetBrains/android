@@ -130,9 +130,6 @@ public class Scene implements SelectionListener, Disposable {
   List<SceneComponent> myNewSelectedComponentsOnRelease = new ArrayList<>();
   List<SceneComponent> myNewSelectedComponentsOnDown = new ArrayList<>();
   Set<SceneComponent> myHoveredComponents = new HashSet<>();
-  private boolean myIsCtrlMetaDown;
-  private boolean myIsShiftDown;
-  private boolean myIsAltDown;
 
   private boolean myIsLiveRenderingEnabled;
 
@@ -300,32 +297,26 @@ public class Scene implements SelectionListener, Disposable {
     return myMouseCursor;
   }
 
-  /**
-   * Update the current key modifiers state
-   *
-   * @param modifiers
-   */
-  public void updateModifiers(int modifiers) {
+  public boolean isCtrlMetaDown() {
+    int modifiers = getModifiers();
     int ctrlMetaDownMask = AdtUiUtils.getActionMask();
     int ctrlMetaMask = SystemInfo.isMac ? InputEvent.META_MASK : InputEvent.CTRL_MASK;
-    myIsCtrlMetaDown = (((modifiers & ctrlMetaDownMask) != 0)
-                        || ((modifiers & ctrlMetaMask) != 0));
-    myIsShiftDown = (((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0)
-                     || ((modifiers & InputEvent.SHIFT_MASK) != 0));
-    myIsAltDown = (((modifiers & InputEvent.ALT_DOWN_MASK) != 0)
-                   || ((modifiers & InputEvent.ALT_MASK) != 0));
-  }
-
-  public boolean isCtrlMetaDown() {
-    return myIsCtrlMetaDown;
+    return((modifiers & ctrlMetaDownMask) != 0) || ((modifiers & ctrlMetaMask) != 0);
   }
 
   public boolean isShiftDown() {
-    return myIsShiftDown;
+    int modifiers = getModifiers();
+    return ((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0) || ((modifiers & InputEvent.SHIFT_MASK) != 0);
   }
 
   public boolean isAltDown() {
-    return myIsAltDown;
+    int modifiers = myDesignSurface.getInteractionManager().getLastModifiers();
+    return ((modifiers & InputEvent.ALT_DOWN_MASK) != 0) || ((modifiers & InputEvent.ALT_MASK) != 0);
+  }
+
+  @JdkConstants.InputEventMask
+  private int getModifiers() {
+    return myDesignSurface.getInteractionManager().getLastModifiers();
   }
 
   //endregion
@@ -483,13 +474,13 @@ public class Scene implements SelectionListener, Disposable {
   public void select(List<SceneComponent> components) {
     if (myDesignSurface != null) {
       ArrayList<NlComponent> nlComponents = new ArrayList<>();
-      if (myIsShiftDown || myIsCtrlMetaDown) {
+      if (isShiftDown() || isCtrlMetaDown()) {
         List<NlComponent> selection = myDesignSurface.getSelectionModel().getSelection();
         nlComponents.addAll(selection);
       }
       for (SceneComponent sceneComponent : components) {
         NlComponent nlComponent = sceneComponent.getNlComponent();
-        if ((myIsShiftDown || myIsCtrlMetaDown) && nlComponents.contains(nlComponent)) {
+        if ((isShiftDown() || isCtrlMetaDown()) && nlComponents.contains(nlComponent)) {
           // if shift is pressed and the component is already selected, remove it from the selection
           nlComponents.remove(nlComponent);
         }
