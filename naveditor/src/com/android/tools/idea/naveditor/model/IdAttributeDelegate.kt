@@ -16,13 +16,14 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
+import com.android.ide.common.resources.stripPrefixFromId
 import com.android.tools.idea.common.model.NlComponent
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 open class IdAttributeDelegate(private val namespace: String?, private val propertyName: String) : ReadWriteProperty<NlComponent, String?> {
   override operator fun getValue(thisRef: NlComponent, property: KProperty<*>): String? {
-    return NlComponent.stripId(thisRef.resolveAttribute(namespace, propertyName))
+    return thisRef.resolveAttribute(namespace, propertyName)?.let(::stripPrefixFromId)
   }
 
   override operator fun setValue(thisRef: NlComponent, property: KProperty<*>, value: String?) {
