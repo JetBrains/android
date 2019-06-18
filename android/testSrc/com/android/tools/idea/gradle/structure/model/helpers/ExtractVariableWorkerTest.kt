@@ -19,12 +19,17 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfigDescriptors
+import com.android.tools.idea.gradle.structure.model.android.PsBuildType
+import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.pom.java.LanguageLevel
@@ -222,4 +227,151 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
     }
   }
 
+  fun testPreferredVariableNames() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+
+    fun <T : Any> checkPreferredName(property: ModelPropertyCore<T>, expectedName: String, expectedValue: T? = null) {
+      val worker = ExtractVariableWorker(property)
+      val (newName, newProperty) = worker.changeScope(appModule.variables, "")
+      assertThat(newName, equalTo(expectedName))
+      if (expectedValue != null) {
+        assertThat(newProperty.getParsedValue().value.maybeValue, equalTo(expectedValue))
+      }
+      worker.cancel()
+    }
+
+    // applicationId
+    run {
+      val applicationId = PsAndroidModuleDefaultConfigDescriptors.applicationId.bind(appModule.defaultConfig)
+      checkPreferredName(applicationId, "defaultApplicationId", "com.example.psd.sample.app.default")
+    }
+    run {
+      val applicationId =
+        PsProductFlavor.ProductFlavorDescriptors.applicationId.bind(appModule.productFlavors.find { it.name == "paid" }!!)
+      checkPreferredName(applicationId, "paidApplicationId", "com.example.psd.sample.app.paid")
+    }
+
+    // applicationIdSuffix
+    run {
+      val applicationIdSuffix = PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix.bind(appModule.defaultConfig)
+      checkPreferredName(applicationIdSuffix, "defaultApplicationIdSuffix")
+    }
+    run {
+      val applicationIdSuffix =
+        PsBuildType.BuildTypeDescriptors.applicationIdSuffix.bind(appModule.buildTypes.find { it.name == "release" }!!)
+      checkPreferredName(applicationIdSuffix, "releaseApplicationIdSuffix", "suffix")
+    }
+    run {
+      val applicationIdSuffix =
+        PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix.bind(appModule.productFlavors.find { it.name == "bar" }!!)
+      checkPreferredName(applicationIdSuffix, "barApplicationIdSuffix", "barSuffix")
+    }
+
+    // multiDexEnabled
+    run {
+      val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.bind(appModule.defaultConfig)
+      checkPreferredName(multiDexEnabled, "defaultMultiDexEnabled")
+    }
+    run {
+      val multiDexEnabled = PsBuildType.BuildTypeDescriptors.multiDexEnabled.bind(appModule.buildTypes.find { it.name == "release" }!!)
+      checkPreferredName(multiDexEnabled, "releaseMultiDexEnabled")
+    }
+    run {
+      val multiDexEnabled = PsProductFlavor.ProductFlavorDescriptors.multiDexEnabled.bind(
+        appModule.productFlavors.find { it.name == "bar" }!!)
+      checkPreferredName(multiDexEnabled, "barMultiDexEnabled")
+    }
+
+    // {max,min,target}SdkVersion
+    run {
+      val maxSdkVersion = PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion.bind(appModule.defaultConfig)
+      val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.bind(appModule.defaultConfig)
+      val targetSdkVersion = PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion.bind(appModule.defaultConfig)
+      checkPreferredName(maxSdkVersion, "defaultMaxSdkVersion", 26)
+      // do not be fooled by the literal 9 in psdSample/app/build.gradle: it gets overwritten on project setup
+      // (see AndroidGradleTests.updateMinSdkVersion)
+      checkPreferredName(minSdkVersion, "defaultMinSdkVersion", SdkVersionInfo.LOWEST_ACTIVE_API.toString())
+      checkPreferredName(targetSdkVersion, "defaultTargetSdkVersion", "19")
+    }
+    run {
+      val paidProductFlavor = appModule.productFlavors.find { it.name == "paid" }!!
+      val maxSdkVersion = PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion.bind(paidProductFlavor)
+      val minSdkVersion = PsProductFlavor.ProductFlavorDescriptors.minSdkVersion.bind(paidProductFlavor)
+      val targetSdkVersion = PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion.bind(paidProductFlavor)
+      checkPreferredName(maxSdkVersion, "paidMaxSdkVersion", 25)
+      checkPreferredName(minSdkVersion, "paidMinSdkVersion", "10")
+      checkPreferredName(targetSdkVersion, "paidTargetSdkVersion", "20")
+    }
+
+    // test{ApplicationId,FunctionalTest,HandleProfiling,InstrumentationRunner}
+    run {
+      val testApplicationId = PsAndroidModuleDefaultConfigDescriptors.testApplicationId.bind(appModule.defaultConfig)
+      val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.bind(appModule.defaultConfig)
+      val testHandleProfiling = PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling.bind(appModule.defaultConfig)
+      val testInstrumentationRunner = PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner.bind(appModule.defaultConfig)
+      checkPreferredName(testApplicationId, "defaultTestApplicationId", "com.example.psd.sample.app.default.test")
+      checkPreferredName(testFunctionalTest, "defaultTestFunctionalTest", false)
+      checkPreferredName(testHandleProfiling, "defaultTestHandleProfiling")
+      checkPreferredName(testInstrumentationRunner, "defaultTestInstrumentationRunner")
+    }
+    run {
+      val paidProductFlavor = appModule.productFlavors.find { it.name == "paid" }!!
+      val testApplicationId = PsProductFlavor.ProductFlavorDescriptors.testApplicationId.bind(paidProductFlavor)
+      val testFunctionalTest = PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest.bind(paidProductFlavor)
+      val testHandleProfiling = PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling.bind(paidProductFlavor)
+      val testInstrumentationRunner = PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunner.bind(paidProductFlavor)
+      checkPreferredName(testApplicationId, "paidTestApplicationId", "com.example.psd.sample.app.paid.test")
+      checkPreferredName(testFunctionalTest, "paidTestFunctionalTest", true)
+      checkPreferredName(testHandleProfiling, "paidTestHandleProfiling", true)
+      checkPreferredName(testInstrumentationRunner, "paidTestInstrumentationRunner")
+    }
+
+    // version{Code,Name,NameSuffix}
+    run {
+      val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.bind(appModule.defaultConfig)
+      val versionName = PsAndroidModuleDefaultConfigDescriptors.versionName.bind(appModule.defaultConfig)
+      val versionNameSuffix = PsAndroidModuleDefaultConfigDescriptors.versionNameSuffix.bind(appModule.defaultConfig)
+      checkPreferredName(versionCode, "defaultVersionCode", 1)
+      checkPreferredName(versionName, "defaultVersionName", "1.0")
+      checkPreferredName(versionNameSuffix, "defaultVersionNameSuffix", "vns")
+    }
+    run {
+      val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.bind(appModule.buildTypes.find { it.name == "release" }!!)
+      checkPreferredName(versionNameSuffix, "releaseVersionNameSuffix", "vsuffix")
+    }
+    run {
+      val paidProductFlavor = appModule.productFlavors.find { it.name == "paid" }!!
+      val versionCode = PsProductFlavor.ProductFlavorDescriptors.versionCode.bind(paidProductFlavor)
+      val versionName = PsProductFlavor.ProductFlavorDescriptors.versionName.bind(paidProductFlavor)
+      val versionNameSuffix = PsProductFlavor.ProductFlavorDescriptors.versionNameSuffix.bind(paidProductFlavor)
+      checkPreferredName(versionCode, "paidVersionCode", 2)
+      checkPreferredName(versionName, "paidVersionName", "2.0")
+      checkPreferredName(versionNameSuffix, "paidVersionNameSuffix", "vnsFoo")
+    }
+
+    // buildType-only properties
+    run {
+      val releaseBuildType = appModule.buildTypes.find { it.name == "release" }!!
+      val debuggable = PsBuildType.BuildTypeDescriptors.debuggable.bind(releaseBuildType)
+      val embedMicroApp = PsBuildType.BuildTypeDescriptors.embedMicroApp.bind(releaseBuildType)
+      val jniDebuggable = PsBuildType.BuildTypeDescriptors.jniDebuggable.bind(releaseBuildType)
+      val minifyEnabled = PsBuildType.BuildTypeDescriptors.minifyEnabled.bind(releaseBuildType)
+      val pseudoLocalesEnabled = PsBuildType.BuildTypeDescriptors.pseudoLocalesEnabled.bind(releaseBuildType)
+      val renderscriptDebuggable = PsBuildType.BuildTypeDescriptors.renderscriptDebuggable.bind(releaseBuildType)
+      val renderscriptOptimLevel = PsBuildType.BuildTypeDescriptors.renderscriptOptimLevel.bind(releaseBuildType)
+      val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.bind(releaseBuildType)
+      checkPreferredName(debuggable, "releaseDebuggable", false)
+      checkPreferredName(embedMicroApp, "releaseEmbedMicroApp")
+      checkPreferredName(jniDebuggable, "releaseJniDebuggable", false)
+      checkPreferredName(minifyEnabled, "releaseMinifyEnabled", false)
+      checkPreferredName(pseudoLocalesEnabled, "releasePseudoLocalesEnabled")
+      checkPreferredName(renderscriptDebuggable, "releaseRenderscriptDebuggable")
+      checkPreferredName(renderscriptOptimLevel, "releaseRenderscriptOptimLevel", 2)
+      checkPreferredName(testCoverageEnabled, "releaseTestCoverageEnabled")
+    }
+  }
 }
