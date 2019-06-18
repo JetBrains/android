@@ -39,4 +39,8 @@ class SqliteFileTypeDetector : FileTypeRegistry.FileTypeDetector {
   }
 
   override fun getVersion(): Int = 1
+
+  override fun getDetectedFileTypes(): Collection<FileType> {
+    return listOf(SqliteFileType)
+  }
 }
