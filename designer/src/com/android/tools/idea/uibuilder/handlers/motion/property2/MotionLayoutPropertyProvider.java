@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
+import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.ConstraintSetConstraint;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneConstraintSet;
 
@@ -25,7 +26,6 @@ import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.property.panel.api.PropertiesTable;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
 import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem;
 import com.android.tools.idea.uibuilder.property2.NeleIdPropertyItem;
@@ -34,6 +34,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.property2.NelePropertyType;
 import com.android.tools.idea.uibuilder.property2.PropertiesProvider;
 import com.android.tools.idea.uibuilder.property2.support.TypeResolver;
+import com.android.tools.property.panel.api.PropertiesTable;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
@@ -201,7 +202,8 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
       return null;
     }
     for (XmlTag constraint : constraintSet.findSubTags(ConstraintSetConstraint)) {
-      if (id.equals(NlComponent.stripId(constraint.getAttributeValue(ATTR_ID, ANDROID_URI)))) {
+      String idValue = constraint.getAttributeValue(ATTR_ID, ANDROID_URI);
+      if (idValue != null && id.equals(stripPrefixFromId(idValue))) {
         return constraint;
       }
     }
