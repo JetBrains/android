@@ -7,7 +7,7 @@ iml_module(
     bundle_data = [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//tools/adt/idea/resources-aar:framework_res",
+        "//prebuilts/studio/layoutlib:data/framework_res",
     ],
     iml_files = ["intellij.android.layoutlib.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",

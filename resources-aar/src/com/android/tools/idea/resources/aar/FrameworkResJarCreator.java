@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resources.aar;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,6 +25,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -55,7 +59,8 @@ public class FrameworkResJarCreator {
     }
   }
 
-  private static void createJar(@NotNull Path resDirectory, @NotNull Path jarFile) throws IOException {
+  @VisibleForTesting
+  static void createJar(@NotNull Path resDirectory, @NotNull Path jarFile) throws IOException {
     FrameworkResourceRepository repository = FrameworkResourceRepository.create(resDirectory, (Set<String>)null, null);
     Set<String> languages = repository.getLanguageGroups();
 
@@ -64,21 +69,34 @@ public class FrameworkResJarCreator {
         String entryName = FrameworkResourceRepository.getResourceTableNameForLanguage(language);
         createZipEntry(entryName, getEncodedResources(repository, language), zip);
       }
+
       Path parentDir = resDirectory.getParent();
-      Files.walkFileTree(resDirectory, new SimpleFileVisitor<Path>() {
-        @Override
-        @NotNull
-        public FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) throws IOException {
-          // When running on Windows, we need to make sure that the file entries are correctly encoded with the Unix path separator since the
-          // ZIP file spec only allows for that one.
-          String relativePath = FileUtil.toSystemIndependentName(parentDir.relativize(file).toString());
-          if (!relativePath.equals("res/version")) { // Skip the "version" file.
-            createZipEntry(relativePath, Files.readAllBytes(file), zip);
-          }
-          return FileVisitResult.CONTINUE;
+      List<Path> files = getContainedFiles(resDirectory);
+
+      for (Path file : files) {
+        // When running on Windows, we need to make sure that the file entries are correctly encoded
+        // with the Unix path separator since the ZIP file spec only allows for that one.
+        String relativePath = FileUtil.toSystemIndependentName(parentDir.relativize(file).toString());
+        if (!relativePath.equals("res/version")) { // Skip the "version" file.
+          createZipEntry(relativePath, Files.readAllBytes(file), zip);
         }
-      });
+      }
     }
+  }
+
+  @NotNull
+  private static List<Path> getContainedFiles(@NotNull Path resDirectory) throws IOException {
+    List<Path> files = new ArrayList<>();
+    Files.walkFileTree(resDirectory, new SimpleFileVisitor<Path>() {
+      @Override
+      @NotNull
+      public FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
+        files.add(file);
+        return FileVisitResult.CONTINUE;
+      }
+    });
+    Collections.sort(files); // Make sure that the files are in canonical order.
+    return files;
   }
 
   private static void createZipEntry(@NotNull String name, @NotNull byte[] content, @NotNull ZipOutputStream zip) throws IOException {
