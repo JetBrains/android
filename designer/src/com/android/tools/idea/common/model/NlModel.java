@@ -987,6 +987,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     addComponents(toAdd, receiver, before, insertType, surface, null);
   }
 
+  public void addComponents(@NotNull List<NlComponent> componentToAdd,
+                            @NotNull NlComponent receiver,
+                            @Nullable NlComponent before,
+                            @NotNull InsertType insertType,
+                            @Nullable DesignSurface surface,
+                            @Nullable Runnable attributeUpdatingTask) {
+    addComponents(componentToAdd, receiver, before, insertType, surface, attributeUpdatingTask, null);
+  }
+
   /**
    * Adds components to the specified receiver before the given sibling.
    * If insertType is a move the components specified should be components from this model.
@@ -996,7 +1005,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                             @Nullable NlComponent before,
                             @NotNull InsertType insertType,
                             @Nullable DesignSurface surface,
-                            @Nullable Runnable attributeUpdatingTask) {
+                            @Nullable Runnable attributeUpdatingTask,
+                            @Nullable String groupId) {
     // Fix for b/124381110
     // The components may be added by addComponentInWriteCommand after this method returns.
     // Make a copy of the components such that the caller can change the list without causing problems.
@@ -1005,7 +1015,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return;
     }
 
-    Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask);
+    Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask, groupId);
     NlDependencyManager.getInstance().addDependenciesAsync(toAdd, getFacet(), "Adding Components...", callback);
   }
 
@@ -1014,9 +1024,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                           @Nullable NlComponent before,
                                           @NotNull InsertType insertType,
                                           @Nullable DesignSurface surface,
-                                          @Nullable Runnable attributeUpdatingTask) {
+                                          @Nullable Runnable attributeUpdatingTask,
+                                          @Nullable String groupId) {
     DumbService.getInstance(getProject()).runWhenSmart(() -> {
-      NlWriteCommandActionUtil.run(toAdd, generateAddComponentsDescription(toAdd, insertType), () -> {
+      NlWriteCommandActionUtil.run(toAdd, generateAddComponentsDescription(toAdd, insertType), groupId, () -> {
         if (attributeUpdatingTask != null) {
           // Update the attribute before adding components, if need.
           attributeUpdatingTask.run();
