@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
+import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 import static icons.StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_TO_BOTTOM;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_TO_TOP;
@@ -481,8 +482,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   }
 
   private static boolean isOppositeSideConnectedToSameTarget(@NotNull String targetId, @Nullable String otherSideAttrValue) {
-    String strippedId = NlComponent.stripId(otherSideAttrValue);
-    return strippedId != null && strippedId.equals(NlComponent.stripId(targetId));
+    return otherSideAttrValue != null && stripPrefixFromId(otherSideAttrValue).equals(stripPrefixFromId(targetId));
   }
 
   private int getDistance(String attribute, NlComponent targetComponent, Scene scene) {

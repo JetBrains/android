@@ -15,17 +15,63 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT_ABOVE;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BASELINE;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_TOP;
+import static com.android.SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_BELOW;
+import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL;
+import static com.android.SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT;
+import static com.android.SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL;
+import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF;
+import static com.android.SdkConstants.ATTR_PARENT;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.RELATIVE_LAYOUT;
+import static com.android.SdkConstants.SHERPA_URI;
+import static com.android.SdkConstants.VALUE_N_DP;
+import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
+
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.util.DependencyManagementUtil;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
 
 /**
  * This performs direct conversion of RelativeLayout to ConstraintLayout
@@ -134,7 +180,7 @@ public class ScoutDirectConvert {
             delList.add(new String[]{ANDROID_URI, attr.name});
             createList.add(new String[]{SHERPA_URI, a.mConstraintAttributes[0], attr.value});
             if (a.mMddTargetMargin != Dir.NONE) {
-              String id = NlComponent.stripId(attr.value);
+              String id = attr.value != null ? stripPrefixFromId(attr.value) : null;
               NlComponent ref = idMap.get(id);
               switch (a.mMddTargetMargin) {
                 case LEFT:
