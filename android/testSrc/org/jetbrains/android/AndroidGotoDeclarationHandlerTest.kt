@@ -82,12 +82,12 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
     val file = myFixture.copyFileToProject(basePath + "GotoId.java", "src/p1/p2/GotoId.java")
-    assertEquals("layout/layout.xml:4:\n" +
-                 "  <EditText android:id=\"@+id/anchor\"/>\n" +
-                 "                       ~|~~~~~~~~~~~~ \n" +
-                 "values/ids.xml:2:\n" +
+    assertEquals("values/ids.xml:2:\n" +
                  "  <item name=\"anchor\" type=\"id\"/>\n" +
-                 "             ~|~~~~~~~           \n",
+                 "             ~|~~~~~~~           \n" +
+                 "layout/layout.xml:4:\n" +
+                 "  <EditText android:id=\"@+id/anchor\"/>\n" +
+                 "                       ~|~~~~~~~~~~~~ \n",
                  describeElements(getDeclarationsFrom(file))
     )
   }

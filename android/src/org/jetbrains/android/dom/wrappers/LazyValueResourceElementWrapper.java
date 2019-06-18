@@ -2,9 +2,13 @@ package org.jetbrains.android.dom.wrappers;
 
 import com.android.tools.idea.res.psi.ResourceNavigationItem;
 import com.google.common.base.Stopwatch;
+import com.intellij.lang.Language;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiTarget;
 import com.intellij.psi.impl.RenameableFakePsiElement;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -64,6 +68,23 @@ public class LazyValueResourceElementWrapper extends RenameableFakePsiElement
     else {
       return myResourceInfo.computeXmlElement();
     }
+  }
+
+  @NotNull
+  @Override
+  public Language getLanguage() {
+    return myParent.getLanguage();
+  }
+
+  @Override
+  public PsiFile getContainingFile() {
+    return PsiManager.getInstance(myParent.getProject()).findFile(myResourceInfo.getContainingFile());
+  }
+
+  @Nullable
+  @Override
+  public TextRange getTextRange() {
+    return getNavigationElement().getTextRange();
   }
 
   @Override
