@@ -499,7 +499,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       //
       // (Longer term we consider having a singleton Toolkit listener which listens
       // for AWT events globally and tracks the most recent global modifier key state.)
-      int modifiers = InteractionManager.getLastModifiers();
+      int modifiers = mySurface.getInteractionManager().getLastModifiers();
 
       myCurrentPresentation = e.getPresentation();
       try {

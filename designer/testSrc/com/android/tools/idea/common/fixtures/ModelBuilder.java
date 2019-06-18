@@ -36,11 +36,13 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.utils.XmlUtils;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -175,10 +177,9 @@ public class ModelBuilder {
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
 
-      DesignSurface surface = createSurface(mySurfaceClass);
+      DesignSurface surface = createSurface(project, mySurfaceClass);
       when(surface.getComponentRegistrar()).thenReturn(myComponentConsumer);
       SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, xmlFile.getVirtualFile());
-      Disposer.register(project, surface);
       when(surface.getModel()).thenReturn(model);
       when(surface.getConfiguration()).thenReturn(model.getConfiguration());
       when(surface.getSceneScalingFactor()).thenCallRealMethod();
@@ -219,9 +220,10 @@ public class ModelBuilder {
     return null;
   }
 
-  public static DesignSurface createSurface(Class<? extends DesignSurface> surfaceClass) {
+  public static DesignSurface createSurface(Disposable disposableParent, Class<? extends DesignSurface> surfaceClass) {
     JComponent layeredPane = new JPanel();
     DesignSurface surface = mock(surfaceClass);
+    Disposer.register(disposableParent, surface);
     List<DesignSurfaceListener> listeners = new ArrayList<>();
     when(surface.getLayeredPane()).thenReturn(layeredPane);
     SelectionModel selectionModel = new SelectionModel();
@@ -229,6 +231,7 @@ public class ModelBuilder {
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);
     when(surface.getSelectionAsTransferable()).thenCallRealMethod();
+    when(surface.getInteractionManager()).thenReturn(new InteractionManager(surface));
     doAnswer(inv -> listeners.add(inv.getArgument(0))).when(surface).addListener(any(DesignSurfaceListener.class));
     doAnswer(inv -> listeners.remove((DesignSurfaceListener)inv.getArgument(0))).when(surface).removeListener(any(DesignSurfaceListener.class));
     selectionModel.addListener((model, selection) -> listeners.forEach(listener -> listener.componentSelectionChanged(surface, selection)));

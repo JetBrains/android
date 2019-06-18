@@ -45,6 +45,7 @@ public class SceneMouseInteraction {
   private final Scene myScene;
   float myLastX;
   float myLastY;
+  @JdkConstants.InputEventMask private int myModifiers = 0;
   DisplayList myDisplayList = new DisplayList();
 
   public SceneMouseInteraction(Scene scene) {
@@ -54,6 +55,15 @@ public class SceneMouseInteraction {
 
   public float getLastX() { return myLastX; }
   public float getLastY() { return myLastY; }
+
+  /**
+   * Function to set modifiers to this interaction.
+   * All the following mouse and key events apply to the given modifiers.
+   */
+  public void setModifiers(@JdkConstants.InputEventMask int modifiers) {
+    myModifiers = modifiers;
+    myScene.getDesignSurface().getInteractionManager().setModifier(modifiers);
+  }
 
   @NotNull
   private Optional<Target> findTarget(@Nullable SceneComponent component, @NotNull Predicate<Target> selector) {
@@ -183,7 +193,7 @@ public class SceneMouseInteraction {
   }
 
   public void mouseDown(float x, float y) {
-    mouseDown(x, y, 0);
+    mouseDown(x, y, myModifiers);
   }
 
   public void mouseDown(float x, float y, @JdkConstants.InputEventMask int modifier) {
@@ -212,12 +222,12 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     if (deltaX != 0 || deltaY != 0) {
       for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag(transform, (int)dx, (int)dy, 0);
+        myScene.mouseDrag(transform, (int)dx, (int)dy, myModifiers);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
         dx += deltaX;
         dy += deltaY;
       }
-      myScene.mouseDrag(transform, (int)x, (int)y, 0);
+      myScene.mouseDrag(transform, (int)x, (int)y, myModifiers);
     }
     myLastX = x;
     myLastY = y;
@@ -304,7 +314,7 @@ public class SceneMouseInteraction {
    * @param componentId the id of the component we will release the mouse above
    */
   public void mouseRelease(String componentId) {
-    mouseRelease(componentId, 0, 0);
+    mouseRelease(componentId, 0, myModifiers);
   }
 
   /**
@@ -343,14 +353,14 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     if (deltaX != 0 || deltaY != 0) {
       for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag(transform, (int)dx, (int)dy, 0);
+        myScene.mouseDrag(transform, (int)dx, (int)dy, myModifiers);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
         dx += deltaX;
         dy += deltaY;
       }
-      myScene.mouseDrag(transform, (int)x, (int)y, 0);
+      myScene.mouseDrag(transform, (int)x, (int)y, myModifiers);
     }
-    myScene.mouseRelease(transform, (int)x, (int)y, 0);
+    myScene.mouseRelease(transform, (int)x, (int)y, myModifiers);
     repaint();
   }
 
@@ -372,12 +382,12 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     if (deltaX != 0 || deltaY != 0) {
       for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag(transform, (int)dx, (int)dy, 0);
+        myScene.mouseDrag(transform, (int)dx, (int)dy, myModifiers);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
         dx += deltaX;
         dy += deltaY;
       }
-      myScene.mouseDrag(transform, (int)x, (int)y, 0);
+      myScene.mouseDrag(transform, (int)x, (int)y, myModifiers);
     }
     myScene.mouseCancel();
     repaint();
@@ -456,7 +466,7 @@ public class SceneMouseInteraction {
     ViewHandlerManager handlerManager = ViewHandlerManager.get(nlComponent.getModel().getProject());
     ViewHandler viewHandler = handlerManager.getHandler(nlComponent);
 
-    viewAction.perform(viewEditor, viewHandler, nlComponent, myScene.getSelection(), 0);
+    viewAction.perform(viewEditor, viewHandler, nlComponent, myScene.getSelection(), myModifiers);
   }
 
   public void performViewAction(@NotNull String componentId, @NotNull Predicate<ViewAction> selector) {

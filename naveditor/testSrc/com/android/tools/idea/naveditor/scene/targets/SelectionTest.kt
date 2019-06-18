@@ -52,7 +52,7 @@ class SelectionTest : NavTestCase() {
     val scene = model.surface.scene!!
     scene.layout(0, SceneContext.get())
 
-    val interactionManager = InteractionManager(surface)
+    val interactionManager = surface.interactionManager
     interactionManager.startListening()
 
     val component1 = scene.getSceneComponent("fragment1")!!
