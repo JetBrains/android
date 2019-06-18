@@ -127,18 +127,38 @@ public class RepositoryUrlManager {
                                    @Nullable Predicate<GradleVersion> filter,
                                    boolean includePreviews,
                                    @NotNull FileOp fileOp) {
-    // First check the Google maven repository, which has most versions.
+    GradleVersion version = findVersion(groupId, artifactId, filter, includePreviews, fileOp);
+    return version == null ? null : version.toString();
+  }
+
+
+  /**
+   * Returns the string for the specific version number of the most recent version of the given library
+   * (matching the given prefix filter, if any)
+   *
+   * @param groupId         the group id
+   * @param artifactId      the artifact id
+   * @param filter          the optional filter constraining acceptable versions
+   * @param includePreviews whether to include preview versions of libraries
+   */
+  @Nullable
+  public GradleVersion findVersion(@NotNull String groupId,
+                                   @NotNull String artifactId,
+                                   @Nullable Predicate<GradleVersion> filter,
+                                   boolean includePreviews,
+                                   @NotNull FileOp fileOp) {
     GradleVersion version;
-    if (!ApplicationManager.getApplication().isDispatchThread()) {
-      version = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews);
-    }
-    else {
+    // First check the Google maven repository, which has most versions.
+    if (ApplicationManager.getApplication().isDispatchThread()) {
       version = myCachedGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews);
       refreshCacheInBackground(groupId, artifactId);
     }
+    else {
+      version = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews);
+    }
 
     if (version != null) {
-      return version.toString();
+      return version;
     }
 
     // Try the repo embedded in AS.
@@ -152,11 +172,27 @@ public class RepositoryUrlManager {
                                                                                           includePreviews,
                                                                                           fileOp);
         if (versionInEmbedded != null) {
-          return versionInEmbedded.getRevision();
+          return versionInEmbedded.getVersion();
         }
       }
     }
     return null;
+  }
+
+  @NotNull
+  public List<GradleCoordinate> findCompileDependencies(@NotNull String groupId,
+                                                        @NotNull String artifactId,
+                                                        @NotNull GradleVersion version) {
+    // First check the Google maven repository, which has most versions.
+    List<GradleCoordinate> result;
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      result = myCachedGoogleMavenRepository.findCompileDependencies(groupId, artifactId, version);
+      refreshCacheInBackground(groupId, artifactId);
+    }
+    else {
+      result = myGoogleMavenRepository.findCompileDependencies(groupId, artifactId, version);
+    }
+    return result;
   }
 
   /**
