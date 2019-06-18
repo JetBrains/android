@@ -16,6 +16,8 @@
 
 package org.jetbrains.android.dom;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.testutils.TestUtils;
@@ -83,6 +85,51 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
       return "res-overlay/values/" + testFileName;
     }
     return "res/values/" + testFileName;
+  }
+
+  public void testContainingFile() {
+    PsiFile styleFile = myFixture.addFileToProject("res/values/styles.xml",
+                               "<resources><style name=\"AppTheme\" parent=\"Theme.AppCompat.Light.DarkActionBar\"/></resources>");
+    PsiFile file = myFixture.addFileToProject("res/layout/foo.xml",
+                                              //language=XML
+                                              "<LinearLayout\n" +
+                                              "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                              "    android:orientation=\"vertical\"\n" +
+                                              "    android:layout_width=\"match_parent\"\n" +
+                                              "    android:layout_height=\"match_parent\">\n" +
+                                              "    <TextView\n" +
+                                              "        android:layout_width=\"match_parent\"\n" +
+                                              "        android:layout_height=\"match_parent\"\n" +
+                                              "        android:textAppearance=\"@style/App<caret>Theme\"\n" +
+                                              "        />\n" +
+                                              "</LinearLayout>");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    PsiElement elementAtCaret = myFixture.getElementAtCaret();
+    assertThat(elementAtCaret.getContainingFile()).isEqualTo(styleFile);
+  }
+
+  public void testTextRange() {
+    PsiFile styleFile = myFixture.addFileToProject("res/values/styles.xml",
+                                               "<resources><style name=\"AppTheme\" parent=\"Theme.AppCompat.Light.DarkActionBar\"/></resources>");
+    PsiFile file = myFixture.addFileToProject("res/layout/foo.xml",
+                                              //language=XML
+                                              "<LinearLayout\n" +
+                                              "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                              "    android:orientation=\"vertical\"\n" +
+                                              "    android:layout_width=\"match_parent\"\n" +
+                                              "    android:layout_height=\"match_parent\">\n" +
+                                              "    <TextView\n" +
+                                              "        android:layout_width=\"match_parent\"\n" +
+                                              "        android:layout_height=\"match_parent\"\n" +
+                                              "        android:textAppearance=\"@style/App<caret>Theme\"\n" +
+                                              "        />\n" +
+                                              "</LinearLayout>");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    PsiElement elementAtCaret = myFixture.getElementAtCaret();
+    String text = myFixture.getDocument(styleFile).getCharsSequence().subSequence(
+      elementAtCaret.getTextRange().getStartOffset(),
+      elementAtCaret.getTextRange().getEndOffset()).toString();
+    assertThat(text).isEqualTo("\"AppTheme\"");
   }
 
   public void testHtmlTags() throws Throwable {
