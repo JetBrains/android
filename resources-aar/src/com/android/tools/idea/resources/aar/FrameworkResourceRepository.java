@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resources.aar;
 
+import static com.android.SdkConstants.DOT_9PNG;
 import static com.android.SdkConstants.FD_RES_RAW;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -38,6 +39,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -78,12 +80,15 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private static final String RESOURCE_TABLE_SUFFIX = ".bin";
 
   private static final Logger LOG = Logger.getInstance(FrameworkResourceRepository.class);
+  private static final String COMPILED_9PNG_EXTENSION = ".compiled.9.png";
 
   private final Set<String> myLanguageGroups = new TreeSet<>();
   private int myNumberOfLanguageGroupsLoadedFromCache;
+  private boolean myUseCompiled9Patches;
 
-  private FrameworkResourceRepository(@NotNull RepositoryLoader loader) {
+  private FrameworkResourceRepository(@NotNull RepositoryLoader loader, boolean useCompiled9Patches) {
     super(loader, null);
+    myUseCompiled9Patches = useCompiled9Patches;
   }
 
   /**
@@ -92,16 +97,17 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
    * @param resourceDirectoryOrFile the res directory or a jar file containing resources of the Android framework
    * @param languagesToLoad the set of ISO 639 language codes, or null to load all available languages
    * @param cachingData data used to validate and create a persistent cache file
+   * @param useCompiled9Patches whether to provide the compiled or non-compiled version of the framework 9-patches
    * @return the created resource repository
    */
   @NotNull
   public static FrameworkResourceRepository create(@NotNull Path resourceDirectoryOrFile, @Nullable Set<String> languagesToLoad,
-                                                   @Nullable CachingData cachingData) {
+                                                   @Nullable CachingData cachingData, boolean useCompiled9Patches) {
     long start = LOG.isDebugEnabled() ? System.currentTimeMillis() : 0;
     Set<String> languageGroups = languagesToLoad == null ? null : getLanguageGroups(languagesToLoad);
 
     Loader loader = new Loader(resourceDirectoryOrFile, languageGroups);
-    FrameworkResourceRepository repository = new FrameworkResourceRepository(loader);
+    FrameworkResourceRepository repository = new FrameworkResourceRepository(loader, useCompiled9Patches);
 
     repository.load(null, cachingData, loader, languageGroups, loader.myLoadedLanguageGroups);
 
@@ -134,7 +140,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
     long start = LOG.isDebugEnabled() ? System.currentTimeMillis() : 0;
     Loader loader = new Loader(this, languageGroups);
-    FrameworkResourceRepository newRepository = new FrameworkResourceRepository(loader);
+    FrameworkResourceRepository newRepository = new FrameworkResourceRepository(loader, myUseCompiled9Patches);
 
     newRepository.load(this, cachingData, loader, languageGroups, loader.myLoadedLanguageGroups);
 
@@ -358,6 +364,29 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     return myNumberOfLanguageGroupsLoadedFromCache;
   }
 
+  @NotNull
+  private String updateResourcePath(@NotNull String relativeResourcePath) {
+    if (myUseCompiled9Patches && relativeResourcePath.endsWith(DOT_9PNG)) {
+      relativeResourcePath =
+        StringUtil.replaceSubstring(relativeResourcePath,
+                                    TextRange.create(relativeResourcePath.length() - DOT_9PNG.length(), relativeResourcePath.length()),
+                                    COMPILED_9PNG_EXTENSION);
+    }
+    return relativeResourcePath;
+  }
+
+  @NotNull
+  @Override
+  public String getResourceUrl(@NotNull String relativeResourcePath) {
+    return super.getResourceUrl(updateResourcePath(relativeResourcePath));
+  }
+
+  @NotNull
+  @Override
+  public PathString getSourceFile(@NotNull String relativeResourcePath, boolean forFileResource) {
+    return super.getSourceFile(updateResourcePath(relativeResourcePath), forFileResource);
+  }
+
   private static class Loader extends RepositoryLoader<FrameworkResourceRepository> {
     @NotNull private final Set<String> myLoadedLanguageGroups;
     @Nullable private Set<String> myLanguageGroups;
@@ -468,6 +497,9 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       else if ((fileName.equals("public.xml") || fileName.equals("symbols.xml")) &&
                "values".equals(new PathString(fileOrDirectory).getParentFileName())) {
         return true; // Skip files that don't contain resources.
+      }
+      else if (fileName.endsWith(COMPILED_9PNG_EXTENSION)) {
+        return true;
       }
 
       return false;
