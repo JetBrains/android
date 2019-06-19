@@ -266,6 +266,11 @@ public final class StudioFlags {
     "Enable this flag to show selection boundaries without other decoration when mouse is not hovered in layout",
     true);
 
+  public static final Flag<Boolean> NELE_NATIVE_LAYOUTLIB = Flag.create(
+    NELE, "native.layoutlib", "Enable the native version of layoutlib",
+    "Use the native version of layoutlib when rendering Android resources",
+    false);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",

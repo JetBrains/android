@@ -17,6 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants.DOT_JAR
 import com.android.tools.idea.concurrency.AndroidIoManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.resources.aar.CachingData
 import com.android.tools.idea.resources.aar.FrameworkResourceRepository
 import com.android.tools.idea.resources.aar.RESOURCE_CACHE_DIRECTORY
@@ -52,7 +53,7 @@ class FrameworkResourceRepositoryManager {
     val path = resourceDirectoryOrFile.toPath()
     val cachingData = createCachingData(path)
     val cached = cache.computeIfAbsent(path) {
-      file -> FrameworkResourceRepository.create(file, languages, cachingData)
+      file -> FrameworkResourceRepository.create(file, languages, cachingData, StudioFlags.NELE_NATIVE_LAYOUTLIB.get())
     }
     if (languages.isEmpty()) {
       return cached

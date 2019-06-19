@@ -25,6 +25,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
@@ -179,7 +180,7 @@ public class AndroidTargetData {
       if (!(myTarget instanceof StudioEmbeddedRenderTarget)) {
         LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
       }
-      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues());
+      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), StudioFlags.NELE_NATIVE_LAYOUTLIB.get());
       Disposer.register(project, myLayoutLibrary);
     }
 
