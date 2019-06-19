@@ -86,13 +86,13 @@ public class ActionTarget extends BaseTarget {
     Rectangle2D.Float iconRect = null;
 
     if (myActionType == ActionType.SELF) {
-      @SwingCoordinate Point2D.Float[] points = getSelfActionPoints(source, transform);
+      @SwingCoordinate Point2D.Float[] points = NavActionHelperKt.selfActionPoints(source, (float)transform.getScale());
       for (int i = 1; i < points.length; i++) {
         picker.addLine(this, 0, (int)points[i - 1].x, (int)points[i - 1].y, (int)points[i].x, (int)points[i].y, 5);
       }
 
       if (isPopAction) {
-        iconRect = getSelfActionIconRect(points[0], transform);
+        iconRect = getSelfActionIconRect(points[0], (float)transform.getScale());
       }
     }
     else {
@@ -109,23 +109,6 @@ public class ActionTarget extends BaseTarget {
     if (iconRect != null) {
       picker.addRect(this, 0, (int)iconRect.x, (int)iconRect.y, (int)(iconRect.x + iconRect.width), (int)(iconRect.y + iconRect.height));
     }
-  }
-
-  @NotNull
-  private static Point2D.Float[] getSelfActionPoints(@SwingCoordinate @NotNull Rectangle2D.Float rect, @NotNull SceneContext sceneContext) {
-    Point2D.Float start = NavActionHelperKt.getStartPoint(rect);
-    Point2D.Float end = getSelfActionEndPoint(rect, sceneContext);
-
-    return NavActionHelperKt.selfActionPoints(start, end, sceneContext);
-  }
-
-  @NotNull
-  private static Point2D.Float getSelfActionEndPoint(@SwingCoordinate @NotNull Rectangle2D.Float rect, @NotNull SceneContext sceneContext) {
-    Point2D.Float end = NavActionHelperKt.getEndPoint(sceneContext, rect, ConnectionDirection.BOTTOM);
-    end.x += rect.width / 2 + sceneContext.getSwingDimension(
-      NavActionHelperKt.SELF_ACTION_LENGTHS[0] - NavActionHelperKt.SELF_ACTION_LENGTHS[2]);
-
-    return end;
   }
 
   @Override
