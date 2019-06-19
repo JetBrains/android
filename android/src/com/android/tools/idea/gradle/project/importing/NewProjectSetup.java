@@ -24,8 +24,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectType;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,6 +70,11 @@ public class NewProjectSetup {
   void prepareProjectForImport(@NotNull Project project, @Nullable LanguageLevel languageLevel) {
     openProjectAndActivateProjectView(project);
     CommandProcessor.getInstance().executeCommand(project, () -> ApplicationManager.getApplication().runWriteAction(() -> {
+      Sdk jdk = IdeSdks.getInstance().getJdk();
+      if (jdk != null) {
+        ApplicationManager.getApplication().runWriteAction(() -> ProjectRootManager.getInstance(project).setProjectSdk(jdk));
+      }
+
       if (languageLevel != null) {
         LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(project);
         if (extension != null) {
@@ -89,9 +96,6 @@ public class NewProjectSetup {
   }
 
   private void openProjectAndActivateProjectView(@NotNull Project project) {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      return;
-    }
     ApplicationManager.getApplication().runWriteAction(() -> myTopLevelModuleFactory.createTopLevelModule(project));
 
     // Just by opening the project, Studio will show the error message in a balloon notification, automatically.

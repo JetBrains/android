@@ -457,14 +457,6 @@ public class NewProjectModel extends WizardModel {
         getLogger().warn("Failed to update Gradle wrapper file", e);
       }
 
-      // This is required for Android plugin in IDEA
-      if (!IdeInfo.getInstance().isAndroidStudio()) {
-        final Sdk jdk = IdeSdks.getInstance().getJdk();
-        if (jdk != null) {
-          ApplicationManager.getApplication().runWriteAction(() -> ProjectRootManager.getInstance(project().getValue()).setProjectSdk(jdk));
-        }
-      }
-
       try {
         // Java language level; should be 7 for L and above
         LanguageLevel initialLanguageLevel = null;
