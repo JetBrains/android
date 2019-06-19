@@ -58,7 +58,7 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
 
   public void testIsInputValidWithIdeaSync() throws Exception {
     StudioFlags.NEW_SYNC_INFRA_ENABLED.override(false);
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
     verifyErrorMessage();
   }
 

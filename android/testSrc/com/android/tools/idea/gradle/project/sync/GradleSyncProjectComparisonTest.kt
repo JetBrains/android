@@ -97,10 +97,17 @@ abstract class GradleSyncProjectComparisonTest(
 
   class OldSyncGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest(useNewSync = false)
 
+  class OldSyncSingleVariantGradleSyncProjectComparisonTest :
+      GradleSyncProjectComparisonTest(useNewSync = false, singleVariantSync = true) {
+    /** TODO(b/124504437): Enable this test */
+    override fun testNdkProjectSync() = Unit
+  }
+
   override val snapshotDirectoryName = "syncedProjectSnapshots"
   override val snapshotSuffixes = listOfNotNull(
     // Suffixes to use to override the default expected result.
     ".new_sync.single_variant".takeIf { useNewSync && singleVariantSync },
+    ".old_sync.single_variant".takeIf { !useNewSync && singleVariantSync },
     ".new_sync".takeIf { useNewSync },
     ".old_sync".takeIf { !useNewSync },
     ""
