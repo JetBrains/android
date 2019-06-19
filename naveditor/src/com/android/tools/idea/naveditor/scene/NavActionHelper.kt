@@ -78,13 +78,13 @@ private const val STEP_THRESHOLD = 0.4
  * end: previous point shifted up 8
  */
 @SwingCoordinate
-fun selfActionPoints(@SwingCoordinate start: Point2D.Float, @SwingCoordinate end: Point2D.Float, context: SceneContext): Array<Point2D.Float> {
-  val p1 = Point2D.Float(start.x + context.getSwingDimension(SELF_ACTION_LENGTHS[0]),
-                         start.y)
-  val p2 = Point2D.Float(p1.x,
-                                       end.y + context.getSwingDimension(SELF_ACTION_LENGTHS[3]))
-  val p3 = Point2D.Float(end.x, p2.y)
-  return arrayOf(start, p1, p2, p3, end)
+fun selfActionPoints(@SwingCoordinate rectangle: Rectangle2D.Float, scale: Float): Array<Point2D.Float> {
+  val p0 = getStartPoint(rectangle)
+  val p1 = Point2D.Float(p0.x + SELF_ACTION_LENGTHS[0] * scale, p0.y)
+  val p2 = Point2D.Float(p1.x, p1.y + rectangle.height / 2 + SELF_ACTION_LENGTHS[1] * scale)
+  val p3 = Point2D.Float(p2.x - SELF_ACTION_LENGTHS[2] * scale, p2.y)
+  val p4 = Point2D.Float(p3.x, p3.y - SELF_ACTION_LENGTHS[3] * scale)
+  return arrayOf(p0, p1, p2, p3, p4)
 }
 
 /**
@@ -213,9 +213,7 @@ fun getAnyPoint(action: SceneComponent, context: SceneContext): Point2D.Float? {
 
   when (actionNlComponent.getActionType(rootNlComponent)) {
     ActionType.SELF -> {
-      val points = selfActionPoints(getStartPoint(sourceRect),
-                                    getEndPoint(context, sourceRect, ConnectionDirection.BOTTOM),
-                                    context)
+      val points = selfActionPoints(sourceRect, context.scale.toFloat())
       return Point2D.Float(points[1].x, (points[1].y + points[2].y)/2)
     }
     ActionType.REGULAR, ActionType.EXIT_DESTINATION -> {
@@ -300,15 +298,15 @@ fun getRegularActionIconRect(@SwingCoordinate source: Rectangle2D.Float,
  * Returns the drawing rectangle for the pop icon for a self action
  */
 @SwingCoordinate
-fun getSelfActionIconRect(@SwingCoordinate start: Point2D.Float, context: SceneContext): Rectangle2D.Float {
-  val distance = context.getSwingDimension(POP_ICON_DISTANCE).toFloat()
-  val offsetX = context.getSwingDimension(SELF_ACTION_LENGTHS[0]) + distance
+fun getSelfActionIconRect(@SwingCoordinate start: Point2D.Float, scale: Float): Rectangle2D.Float {
+  val distance = POP_ICON_DISTANCE * scale
+  val offsetX = SELF_ACTION_LENGTHS[0] * scale + distance
   val x = start.x + offsetX
 
-  val range = context.getSwingDimension(POP_ICON_RANGE).toDouble()
+  val range = (POP_ICON_RANGE * scale).toDouble()
   val y = start.y + Math.sqrt(Math.max(range * range - offsetX * offsetX, 0.0)).toFloat()
 
-  val radius = context.getSwingDimension(POP_ICON_RADIUS).toFloat()
+  val radius = POP_ICON_RADIUS  * scale
 
   return Rectangle2D.Float(x, y, 2 * radius, 2 * radius)
 }
