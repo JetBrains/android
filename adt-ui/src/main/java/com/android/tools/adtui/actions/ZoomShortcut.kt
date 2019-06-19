@@ -48,10 +48,16 @@ private val zoomToFitShortcuts = listOf(
   KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_0, ACTION_MASK), null)
 )
 
+private val zoomToActualShortcuts = listOf(
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_SLASH, ACTION_MASK), null),
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_DIVIDE, ACTION_MASK), null)
+)
+
 enum class ZoomShortcut(shortcuts: List<KeyboardShortcut>) {
   ZOOM_IN(zoomInShortcuts),
   ZOOM_OUT(zoomOutShortcuts),
-  ZOOM_FIT(zoomToFitShortcuts);
+  ZOOM_FIT(zoomToFitShortcuts),
+  ZOOM_ACTUAL(zoomToActualShortcuts);
 
   private val shortcutSet: ShortcutSet
 
