@@ -61,11 +61,6 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
     expandableLabelHandler.install(this)
   }
 
-  override fun removeNotify() {
-    super.removeNotify()
-    expandableLabelHandler.remove()
-  }
-
   fun addLineElement(component: JComponent) {
     add(component, Placement.LINE)
   }
@@ -114,11 +109,6 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
     fun install(parent: Disposable) {
       val glassPane = IdeGlassPaneUtil.find(myComponent)
       glassPane.addMouseMotionPreprocessor(mousePreprocessor, parent)
-    }
-
-    fun remove() {
-      val glassPane = IdeGlassPaneUtil.find(myComponent)
-      glassPane.removeMouseMotionPreprocessor(mousePreprocessor)
     }
 
     override fun getCellRendererAndBounds(key: CollapsibleLabel): ComponentBounds? {
