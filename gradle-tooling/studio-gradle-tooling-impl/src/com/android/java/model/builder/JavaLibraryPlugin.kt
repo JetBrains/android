@@ -16,10 +16,12 @@
 
 package com.android.java.model.builder
 
-import javax.inject.Inject
+import com.android.java.model.builder.JavaModelBuilder.Companion.isGradleAtLeast
+import com.android.model.sources.builder.SourcesAndJavadocModelBuilder
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import javax.inject.Inject
 
 /** Custom plugin for Java Library.  */
 class JavaLibraryPlugin @Inject
@@ -29,5 +31,9 @@ internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin
     registry.register(JavaModelBuilder())
     registry.register(ArtifactModelBuilder())
     registry.register(GradlePluginModelBuilder())
+    // SourcesAndJavadocModelBuilder extends ParameterizedToolingModelBuilder, which is available since Gradle 4.4.
+    if (isGradleAtLeast(project.gradle.gradleVersion, "4.4")) {
+      registry.register(SourcesAndJavadocModelBuilder())
+    }
   }
 }
