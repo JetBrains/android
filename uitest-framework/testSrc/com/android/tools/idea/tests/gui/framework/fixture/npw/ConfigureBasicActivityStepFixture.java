@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -94,22 +93,9 @@ public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> 
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture<W> setTargetSourceSet(@NotNull String targetSourceSet) {
-    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Target Source Set:", JComboBox.class, true))
-      .selectItem(targetSourceSet);
-    return this;
-  }
-
-  @NotNull
   public ConfigureBasicActivityStepFixture<W> setSourceLanguage(@NotNull String sourceLanguage) {
     new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Source Language:", JComboBox.class, true))
       .selectItem(sourceLanguage);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureBasicActivityStepFixture<W> selectIncludeUrl(boolean select) {
-    selectCheckBoxWithText("Associate a URL with this Activity", select);
     return this;
   }
 }
