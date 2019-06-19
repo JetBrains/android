@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.common.model.NlModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.intellij.openapi.diagnostic.Logger;
+import java.util.List;
+import java.util.Locale;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class NlComponentTreeModel implements TreeModel {
   private final NlComponent myRoot;
@@ -45,17 +46,27 @@ final class NlComponentTreeModel implements TreeModel {
     return myRoot;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public Object getChild(@NotNull Object parent, int i) {
     if (!(parent instanceof NlComponent)) {
-      return null;
+      throw new IllegalArgumentException(String.format(Locale.US, "Parent can only be an NlComponent but is %s.", parent.toString()));
+    }
+    NlComponent component = (NlComponent)parent;
+
+    ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(component);
+    int count = handler == null ? ((NlComponent)parent).getChildCount() : handler.getComponentTreeChildCount(component);
+    if (i < 0 || i >= count) {
+      Logger.getInstance(NlComponentTreeModel.class).error(
+        String.format(Locale.US, "Index out of bounds for NlComponent.getChild. Index %d,  Parent: %s", i, ((NlComponent)parent).getTagName()));
+      // We return null because we logged the error before and according
+      // to the documentation of getChild, the object can be null if the index is illegal.
+      return "";
     }
 
-    NlComponent component = (NlComponent)parent;
-    ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(component);
 
-    return handler == null ? component.getChild(i) : handler.getComponentTreeChild(component, i);
+    Object object = handler == null ? component.getChild(i) : handler.getComponentTreeChild(component, i);
+    return object != null ? object : "";
   }
 
   @Override
