@@ -85,12 +85,8 @@ class ActionDecoratorTest : NavTestCase() {
 
     ActionDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), f1_to_f1)
 
-    assertDrawCommandsEqual(FillArrow(ArrowDirection.UP, Rectangle2D.Float(440f, 573.0f, 6.0f, 5.0f), ACTION),
-                 displayList.commands[0])
-    assertEquals(DrawSelfAction(Point2D.Float(459f, 519f), Point2D.Float(443f, 577f), ACTION),
-                 displayList.commands[1])
-    assertEquals(DrawIcon(Rectangle2D.Float(477f, 536.34937f, 8.0f, 8.0f), DrawIcon.IconType.POP_ACTION, ACTION),
-                 displayList.commands[2])
+    assertDrawCommandsEqual(DrawSelfAction(Rectangle2D.Float(409f, 469.0f, 50.0f, 100.0f), 0.5f, ACTION, true),
+                            displayList.commands[0])
   }
 
   fun testInvalidComponent() {
