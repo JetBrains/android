@@ -10,8 +10,8 @@ iml_module(
         "resources",
     ],
     iml_files = ["intellij.android.lang.iml"],
-    lint_baseline = "lint_baseline.xml",
-    tags = ["no_test_mac_psq"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = ["no_test_mac_psq"],  # b/113099009
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
@@ -52,9 +52,9 @@ iml_module(
     name = "intellij.android.lang.tests",
     iml_files = ["intellij.android.lang.tests.iml"],
     tags = [
-        "no_test_mac_psq",
-        "no_test_windows",
-    ],  # b/113099009
+        "no_test_mac_psq",  # b/113099009
+        "no_test_windows",  # b/135665870
+    ],
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
     test_coverage = True,
     test_data = glob(["testData/**"]) + [

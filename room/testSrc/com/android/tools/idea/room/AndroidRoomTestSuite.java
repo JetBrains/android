@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang;
+package com.android.tools.idea.room;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(AndroidLangTestSuite.class)  // a suite mustn't contain itself
-public class AndroidLangTestSuite extends IdeaTestSuiteBase {
+@JarTestSuiteRunner.ExcludeClasses(AndroidRoomTestSuite.class)  // a suite mustn't contain itself
+public class AndroidRoomTestSuite extends IdeaTestSuiteBase {
 
   static {
     symlinkToIdeaHome(
       "prebuilts/studio/sdk",
-      "tools/adt/idea/android-lang/testData",
-      "tools/adt/idea/android/annotations",
-      "tools/base/templates",
+      "tools/adt/idea/android/testData", // For AndroidManifest.xml used by AndroidTestCase
       "tools/idea/java"); // For the mock JDK.
   }
 }
-
