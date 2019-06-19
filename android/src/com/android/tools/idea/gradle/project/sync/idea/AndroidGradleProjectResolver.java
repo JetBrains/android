@@ -546,8 +546,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull
   @Override
   public ProjectImportExtraModelProvider getExtraModelProvider() {
-    // TODO: Change to configureAndGetExtraModelProvider() to ensure SVS in old sync.
-    return super.getExtraModelProvider();
+    return configureAndGetExtraModelProvider();
   }
 
   @Override
