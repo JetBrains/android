@@ -62,7 +62,7 @@ public class FrameworkResJarCreator {
 
   @VisibleForTesting
   static void createJar(@NotNull Path resDirectory, @NotNull Path jarFile) throws IOException {
-    FrameworkResourceRepository repository = FrameworkResourceRepository.create(resDirectory, (Set<String>)null, null);
+    FrameworkResourceRepository repository = FrameworkResourceRepository.create(resDirectory, (Set<String>)null, null, false);
     Set<String> languages = repository.getLanguageGroups();
 
     try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(jarFile))) {
