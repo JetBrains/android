@@ -25,5 +25,6 @@
     <orderEntry type="module" module-name="intellij.android.databinding" />
     <orderEntry type="module" module-name="intellij.android.naveditor" />
     <orderEntry type="module" module-name="intellij.android.layout-inspector" />
+    <orderEntry type="module" module-name="intellij.android.room" />
   </component>
 </module>
