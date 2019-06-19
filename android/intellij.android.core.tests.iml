@@ -121,7 +121,6 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools.apkparser:apkanalyzer" level="project" />
     <orderEntry type="library" scope="TEST" name="kxml2" level="project" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:testing" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-reflect" level="project" />
@@ -137,5 +136,17 @@
       </library>
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="org.jetbrains.intellij.deps.android.tools:perf-logger-tests" level="project" />
+    <orderEntry type="module-library" scope="TEST">
+      <library name="org.jetbrains.intellij.deps.android.tools:sdk-common-tests:26.3.0" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:sdk-common-tests:26.3.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.3.0/sdk-common-tests-26.3.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.3.0/sdk-common-tests-26.3.0-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>
