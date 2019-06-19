@@ -16,11 +16,9 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.scene.draw.ArrowDirection
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawShape
-import com.android.tools.idea.common.scene.draw.FillArrow
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
 import com.android.tools.idea.common.scene.draw.parse
@@ -28,11 +26,13 @@ import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
+import com.android.tools.idea.naveditor.scene.ArrowDirection
 import com.android.tools.idea.naveditor.scene.ConnectionDirection
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.getArrowPoint
 import com.android.tools.idea.naveditor.scene.getCurvePoints
 import com.android.tools.idea.naveditor.scene.getRegularActionIconRect
+import com.android.tools.idea.naveditor.scene.makeDrawArrowCommand
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.geom.GeneralPath
@@ -66,7 +66,9 @@ class DrawAction(@VisibleForTesting @SwingCoordinate val source: Rectangle2D.Flo
 
     val arrowDirection = getArrowDirection(direction)
     val arrowRectangle = getArrowRectangle(direction)
-    list.add(FillArrow(arrowDirection, arrowRectangle, color))
+    val drawArrow = makeDrawArrowCommand(arrowRectangle, arrowDirection, color)
+
+    list.add(drawArrow)
 
     if (isPopAction) {
       val iconRectangle = getRegularActionIconRect(source, dest, scale)

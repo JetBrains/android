@@ -16,11 +16,10 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.scene.draw.ArrowDirection
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawShape
-import com.android.tools.idea.common.scene.draw.FillArrow
+import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
 import com.android.tools.idea.common.scene.draw.parse
@@ -28,9 +27,11 @@ import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
+import com.android.tools.idea.naveditor.scene.ArrowDirection
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.SELF_ACTION_RADII
 import com.android.tools.idea.naveditor.scene.getSelfActionIconRect
+import com.android.tools.idea.naveditor.scene.makeDrawArrowCommand
 import com.android.tools.idea.naveditor.scene.selfActionPoints
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils
 import com.google.common.annotations.VisibleForTesting
@@ -69,7 +70,8 @@ class DrawSelfAction(@VisibleForTesting @SwingCoordinate val rectangle: Rectangl
     val height = NavSceneManager.ACTION_ARROW_PARALLEL * scale
     val x = points[4].x - width / 2
     val y = points[4].y - height
-    list.add(FillArrow(ArrowDirection.UP, Rectangle2D.Float(x, y, width, height), color))
+    val drawArrow = makeDrawArrowCommand(Rectangle2D.Float(x, y, width, height), ArrowDirection.UP, color)
+    list.add(drawArrow)
 
     if (isPopAction) {
       val iconRect = getSelfActionIconRect(points[0], scale)

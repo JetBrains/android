@@ -20,11 +20,11 @@ import com.android.tools.idea.common.scene.ConstantValue
 import com.android.tools.idea.common.scene.LerpValue
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawShape
-import com.android.tools.idea.common.scene.draw.FillArrow
 import com.android.tools.idea.common.scene.draw.FillShape
 import org.jetbrains.android.AndroidTestCase
 import java.awt.Shape
 import java.awt.geom.Line2D
+import java.awt.geom.Path2D
 
 fun assertDrawCommandsEqual(expected: DrawShape, actual: DrawCommand) {
   val drawShape = actual as DrawShape
@@ -83,15 +83,6 @@ fun assertDrawCommandsEqual(expected: DrawHeader, actual: DrawCommand) {
   AndroidTestCase.assertEquals(expected.hasDeepLink, drawHeader.hasDeepLink)
 }
 
-fun assertDrawCommandsEqual(expected: FillArrow, actual: DrawCommand) {
-  val fillArrow = actual as FillArrow
-
-  AndroidTestCase.assertEquals(expected.rectangle, fillArrow.rectangle)
-  AndroidTestCase.assertEquals(expected.direction, fillArrow.direction)
-  AndroidTestCase.assertEquals(expected.color, fillArrow.color)
-  AndroidTestCase.assertEquals(expected.level, fillArrow.level)
-}
-
 fun assertDrawCommandsEqual(expected: DrawSelfAction, actual: DrawCommand) {
   val drawSelfAction = actual as DrawSelfAction
 
@@ -148,4 +139,18 @@ fun assertDrawLinesEqual(expected: DrawShape, actual: DrawCommand) {
   AndroidTestCase.assertEquals(actualLine.y1, expectedLine.y1)
   AndroidTestCase.assertEquals(actualLine.x2, expectedLine.x2)
   AndroidTestCase.assertEquals(actualLine.y2, expectedLine.y2)
+}
+
+fun assertFillPathEqual(expected: FillShape, actual: DrawCommand) {
+  val fillShape = actual as FillShape
+
+  AndroidTestCase.assertEquals(expected.color, fillShape.color)
+
+  val expectedValue = expected.shape as ConstantValue<Shape>
+  val expectedPath = expectedValue.getValue(0) as Path2D.Float
+
+  val actualValue = actual.shape as ConstantValue<Shape>
+  val actualPath = actualValue.getValue(0) as Path2D.Float
+
+  AndroidTestCase.assertEquals(actualPath.currentPoint, expectedPath.currentPoint)
 }
