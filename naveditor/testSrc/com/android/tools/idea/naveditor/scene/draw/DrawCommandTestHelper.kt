@@ -101,6 +101,16 @@ fun assertDrawCommandsEqual(expected: DrawSelfAction, actual: DrawCommand) {
   AndroidTestCase.assertEquals(expected.isPopAction, drawSelfAction.isPopAction)
 }
 
+fun assertDrawCommandsEqual(expected: DrawAction, actual: DrawCommand) {
+  val drawAction = actual as DrawAction
+
+  AndroidTestCase.assertEquals(expected.source, drawAction.source)
+  AndroidTestCase.assertEquals(expected.dest, drawAction.dest)
+  AndroidTestCase.assertEquals(expected.scale, drawAction.scale)
+  AndroidTestCase.assertEquals(expected.color, drawAction.color)
+  AndroidTestCase.assertEquals(expected.isPopAction, drawAction.isPopAction)
+}
+
 fun assertAnimatedShapesEqual(expected: AnimatedValue<Shape>, actual: AnimatedValue<Shape>) {
   val constantValue = expected as? ConstantValue<Shape>
   if(constantValue != null) {

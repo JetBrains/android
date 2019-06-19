@@ -91,8 +91,7 @@ class ActionTargetTest : NavTestCase() {
     scene.buildDisplayList(list, 0, context)
 
     val displayListTemplate = "Clip,0,0,967,928\n" +
-                              "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,%1\$s\n" +
-                              "FillArrow,UP,435.25x532.0x6.0x5.0,%1\$s,0\n" +
+                              "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,0.5,%1\$s,false\n" +
                               "\n" +
                               "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
                               "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -155,20 +154,15 @@ class ActionTargetTest : NavTestCase() {
     // Arrows should be down for 2 and 3, right for 4, up for 5 and 6
     assertEquals(
       "Clip,0,0,1377,1428\n" +
-      "DrawAction,650.0x400.0x76.5x128.0,650.0x650.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,DOWN,685.25x630.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,650.0x400.0x76.5x128.0,650.0x650.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
-      "DrawAction,900.0x400.0x76.5x128.0,650.0x650.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,DOWN,685.25x630.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,900.0x400.0x76.5x128.0,650.0x650.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
-      "DrawAction,400.0x650.0x76.5x128.0,650.0x650.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,RIGHT,641.0x711.0x5.0x6.0,b2a7a7a7,0\n" +
+      "DrawAction,400.0x650.0x76.5x128.0,650.0x650.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
-      "DrawAction,650.0x900.0x76.5x128.0,650.0x650.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,UP,685.25x782.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,650.0x900.0x76.5x128.0,650.0x650.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
-      "DrawAction,900.0x900.0x76.5x128.0,650.0x650.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,UP,685.25x782.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,900.0x900.0x76.5x128.0,650.0x650.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,650.0x639.0x76.5x11.0,0.5,fragment1,true,false\n" +
       "DrawFragment,650.0x650.0x76.5x128.0,0.5,null\n" +
