@@ -26,21 +26,24 @@ import com.intellij.testFramework.IdeaTestCase
 import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Assert.assertArrayEquals
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
-import java.util.*
-import kotlin.collections.ArrayList
 
 class KeystoreStepTest : IdeaTestCase() {
   private lateinit var ideComponents: IdeComponents
   private lateinit var facets: MutableList<AndroidFacet>
+  private lateinit var myAndroidFacet1: AndroidFacet
+  private lateinit var myAndroidFacet2: AndroidFacet
   override fun setUp() {
     super.setUp()
     ideComponents = IdeComponents(myProject, testRootDisposable)
     facets = ArrayList()
+    myAndroidFacet1 = AndroidFacet(myModule, AndroidFacet.NAME, AndroidFacetConfiguration())
+    myAndroidFacet2 = AndroidFacet(myModule, AndroidFacet.NAME, AndroidFacetConfiguration())
   }
 
   fun testEnableEncryptedKeyExportFlagFalse() {
@@ -158,10 +161,10 @@ class KeystoreStepTest : IdeaTestCase() {
     assertEquals(true, keystoreStep.myModuleCombo.isEnabled)
   }
 
-  fun testMooduleDropDownDisabledWhenOnlyOneFacet() {
+  fun testModuleDropDownDisabledWhenOnlyOneFacet() {
     val wizard = setupWizardHelper()
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
-    facets.add(mock(AndroidFacet::class.java))
+    facets.add(myAndroidFacet1)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
     assertEquals(false, keystoreStep.myModuleCombo.isEnabled)
@@ -171,23 +174,20 @@ class KeystoreStepTest : IdeaTestCase() {
     // if the current selected facet is no longer in the list of facets, then it should be updated to the first one in the list
     val wizard = setupWizardHelper()
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
-    val mockFacet = mock(AndroidFacet::class.java)
-    val mockFacet2 = mock(AndroidFacet::class.java)
-    facets.add(mockFacet)
-    facets.add(mockFacet2)
+    facets.add(myAndroidFacet1)
+    facets.add(myAndroidFacet2)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
-    assertEquals(mockFacet, keystoreStep.myModuleCombo.selectedItem)
+    assertEquals(myAndroidFacet1, keystoreStep.myModuleCombo.selectedItem)
 
     // remove the selected facet
     keystoreStep.myFacets.removeAt(0)
 
     keystoreStep._init()
-    assertEquals(mockFacet2, keystoreStep.myModuleCombo.selectedItem)
+    assertEquals(myAndroidFacet2, keystoreStep.myModuleCombo.selectedItem)
   }
 
-  fun setupWizardHelper(): ExportSignedPackageWizard
-  {
+  fun setupWizardHelper(): ExportSignedPackageWizard {
     val testKeyStorePath = "/test/path/to/keystore"
     val testKeyAlias = "testkey"
 
