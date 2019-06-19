@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.tools.idea.common.scene.draw.ArrowDirection
-import com.android.tools.idea.common.scene.draw.FillArrow
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.scene.RefinableImage
@@ -48,10 +46,10 @@ class SerializationTest : TestCase() {
   fun testDrawAction() {
     val factory = { s: String -> DrawAction(s) }
 
-    testSerialization("DrawAction,10.0x20.0x30.0x40.0,50.0x60.0x70.0x80.0,ffffffff", DrawAction(
+    testSerialization("DrawAction,10.0x20.0x30.0x40.0,50.0x60.0x70.0x80.0,1.0,ffffffff,false", DrawAction(
       Rectangle2D.Float(10f, 20f, 30f, 40f),
-      Rectangle2D.Float(50f, 60f, 70f, 80f),
-      JBColor.WHITE), factory)
+      Rectangle2D.Float(50f, 60f, 70f, 80f), 1f,
+      JBColor.WHITE, false), factory)
   }
 
   fun testDrawTruncatedText() {
@@ -64,15 +62,6 @@ class SerializationTest : TestCase() {
     testSerialization("DrawTruncatedText,1,bar,50.0x60.0x70.0x80.0,ff0000ff,Helvetica:1:20,false",
         DrawTruncatedText(1, "bar", Rectangle2D.Float(50f, 60f, 70f, 80f), Color.BLUE,
                           Font("Helvetica", Font.BOLD, 20), false), factory)
-  }
-
-  fun testDrawArrow() {
-    val factory = { s: String -> FillArrow(s) }
-
-    testSerialization("FillArrow,RIGHT,10.0x20.0x30.0x40.0,ffff0000,0",
-                      FillArrow(ArrowDirection.RIGHT, Rectangle2D.Float(10f, 20f, 30f, 40f), Color.RED, 0), factory)
-    testSerialization("FillArrow,UP,60.0x70.0x80.0x90.0,ff0000ff,1",
-                      FillArrow(ArrowDirection.UP, Rectangle2D.Float(60f, 70f, 80f, 90f), Color.BLUE, 1), factory)
   }
 
   fun testDrawEmptyDesigner() {
@@ -101,15 +90,6 @@ class SerializationTest : TestCase() {
                       DrawSelfAction(Rectangle2D.Float(10f, 20f,30f, 40f), 1f, Color.RED, false), factory)
     testSerialization("DrawSelfAction,50.0x60.0x70.0x80.0,2.0,ff0000ff,true",
                       DrawSelfAction(Rectangle2D.Float(50f, 60f,70f, 80f), 2f, Color.BLUE, true), factory)
-  }
-
-  fun testDrawPlaceholder() {
-    val factory = { s: String -> DrawPlaceholder(s) }
-
-    testSerialization("DrawPlaceholder,10.0x20.0x30.0x40.0",
-                      DrawPlaceholder(Rectangle2D.Float(10f, 20f, 30f, 40f)), factory)
-    testSerialization("DrawPlaceholder,50.0x60.0x70.0x80.0",
-                      DrawPlaceholder(Rectangle2D.Float(50f, 60f, 70f, 80f)), factory)
   }
 
   fun testDrawActionHandle() {
