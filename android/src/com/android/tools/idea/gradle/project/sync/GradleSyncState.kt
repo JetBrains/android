@@ -608,8 +608,15 @@ open class GradleSyncState(
     notificationGroup.createNotification("", resultMessage, type.toNotificationType(), listener).notify(project)
   }
 
-  private fun syncPublisher(block: GradleSyncListener.() -> Unit) =
-    invokeLaterIfProjectAlive(project) { block.invoke(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)) }
+  private fun syncPublisher(block: GradleSyncListener.() -> Unit) {
+    val runnable = { block.invoke(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)) }
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      runnable()
+    }
+    else {
+      invokeLaterIfProjectAlive(project, runnable)
+    }
+  }
 
   private fun getSyncType(): GradleSyncStats.GradleSyncType = when {
     // Check in implied order (Compound requires SVS requires New Sync)
