@@ -20,10 +20,6 @@ import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.FillShape
-import com.android.tools.idea.common.scene.draw.buildString
-import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.rect2DToString
-import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BORDER
 import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_THICKNESS
@@ -35,12 +31,7 @@ import java.awt.geom.Rectangle2D
 private val STROKE = BasicStroke(REGULAR_FRAME_THICKNESS)
 
 class DrawPlaceholder(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2D.Float) : CompositeDrawCommand() {
-  private constructor(tokens: Array<String>)
-    : this(stringToRect2D(tokens[0]))
-
-  constructor(serialized: String) : this(parse(serialized, 1))
-
-  override fun serialize(): String = buildString(javaClass.simpleName, rect2DToString(rectangle))
+  override fun serialize(): String = ""
 
   override fun buildCommands(): List<DrawCommand> {
     val rect = FillShape(rectangle, PLACEHOLDER_BACKGROUND)
