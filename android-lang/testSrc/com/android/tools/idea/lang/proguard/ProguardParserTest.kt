@@ -53,11 +53,14 @@ abstract class ProguardParserTest : ParsingTestCase("no_data_path_needed",
   private fun getErrorMessage(psiFile: PsiFile?) = PsiTreeUtil.findChildOfType(psiFile, PsiErrorElement::class.java)?.errorDescription
 
   // TODO(xof): this one isn't duplicate but probably it should be available
-  protected fun checkNot(input: String) {
+  protected fun checkNot(input: String, expectedLexerError: String? = null) {
     try {
       check(input)
-    } catch (e: AssertionError) {
-      // expected
+    }
+    catch (e: AssertionError) {
+      if (expectedLexerError != null) {
+        assert(getErrorMessage(input) == expectedLexerError)
+      }
       return
     }
     fail()
@@ -68,29 +71,39 @@ abstract class ProguardParserTest : ParsingTestCase("no_data_path_needed",
     if (spaceRequired) {
       // TODO(b/72461769): The lexer is too lax for this to fail
       // checkNot("${flag}general.pro")
-    } else {
+    }
+    else {
       check("${flag}general.pro")
     }
     check("${flag} general.pro # with comment")
     check("${flag} 'name with spaces.pro'")
     check("${flag} \"name with spaces.pro\"")
 
-    checkNot("${flag} one.pro two.pro")
-    if(mandatory) {
-      checkNot("${flag}")
-      checkNot("${flag} ")
-      checkNot("${flag} # with comment")
-    } else {
+    checkNot("${flag} one.pro two.pro",
+             "ProguardTokenType.CRLF or ProguardTokenType.LINE_CMT expected, got 'two.pro'")
+    if (mandatory) {
+      val expectedLexerError = "ProguardTokenType.FILENAME_FLAG_ARG expected"
+      checkNot("${flag}", expectedLexerError)
+      checkNot("${flag} ", expectedLexerError)
+      checkNot("${flag} # with comment", expectedLexerError)
+    }
+    else {
       check("${flag}")
       check("${flag} ")
       check("${flag} # with comment")
     }
-    checkNot("${flag}'")
-    checkNot("${flag} '")
-    checkNot("${flag}\"")
-    checkNot("${flag} \"")
-    checkNot("${flag} ' # not a comment")
-    checkNot("${flag} \" # not a comment")
+    run {
+      val expectedLexerErrorStem = when {
+        mandatory -> "ProguardTokenType.FILENAME_FLAG_ARG expected, got "
+        else -> "ProguardTokenType.CRLF, ProguardTokenType.FILENAME_FLAG_ARG or ProguardTokenType.LINE_CMT expected, got "
+      }
+      checkNot("${flag}'", "$expectedLexerErrorStem'''")
+      checkNot("${flag} '", "$expectedLexerErrorStem'''")
+      checkNot("${flag}\"", "$expectedLexerErrorStem'\"'")
+      checkNot("${flag} \"", "$expectedLexerErrorStem'\"'")
+      checkNot("${flag} ' # not a comment", "$expectedLexerErrorStem'''")
+      checkNot("${flag} \" # not a comment", "$expectedLexerErrorStem'\"'")
+    }
   }
 
 }
