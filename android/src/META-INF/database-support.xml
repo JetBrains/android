@@ -11,7 +11,7 @@
   <actions>
     <action id="Android.UploadDatabase" class="org.jetbrains.android.database.AndroidUploadDatabaseAction" text="Upload"
             description="Uploads database to related device">
-      <add-to-group group-id="DatabaseViewPopupMenu" anchor="after" relative-to-action="DatabaseView.SynchronizeAction"/>
+      <add-to-group group-id="DatabaseViewPopupMenu" anchor="after" relative-to-action="DatabaseView.Refresh"/>
     </action>
   </actions>
 
