@@ -173,8 +173,17 @@ public class GradleFileSimpleMerger {
     }
 
     private Ast parseValue() {
+      return parseValue(false);
+    }
+
+    private Ast parseValue(boolean withAssignment) {
       if (myType == GroovyTokenTypes.mASSIGN) {
-        return parseValueList();
+        next();
+        if (myType == GroovyTokenTypes.mLBRACK) {
+          return parseValueList();
+        } else {
+          return parseValue(true);
+        }
       }
       else if (myType == GroovyElementTypes.STRING_SQ ||
                myType == GroovyElementTypes.STRING_TSQ ||
@@ -190,18 +199,14 @@ public class GradleFileSimpleMerger {
         String value = myLexer.getTokenText();
         next();
         skipNewLine();
-        return new ValueAst(value);
+        return new ValueAst(value, withAssignment);
       }
       return parseUnknown();
     }
 
     private Ast parseValueList() {
       LexerPosition pos = myLexer.getCurrentPosition();
-      assert myType == GroovyTokenTypes.mASSIGN;
-      next();
-      if (myType != GroovyTokenTypes.mLBRACK) {
-        return restoreAndParseUnknown(pos);
-      }
+      assert myType == GroovyTokenTypes.mLBRACK;
       next();
       List<String> values = Lists.newArrayListWithCapacity(10);
       if (!findStringLiteral(values)) {
@@ -541,13 +546,22 @@ public class GradleFileSimpleMerger {
    */
   private static class ValueAst extends Ast {
     private String myValue;
+    private boolean myWithAssignment;
 
     public ValueAst(@NotNull String value) {
       myValue = value;
     }
 
+    public ValueAst(@NotNull String value, boolean withAssignment) {
+      myValue = value;
+      myWithAssignment = withAssignment;
+    }
+
     @Override
     public void print(@NotNull PrintContext context) {
+      if (myWithAssignment) {
+        context.append("= ");
+      }
       context.append(myValue).append("\n");
     }
 
