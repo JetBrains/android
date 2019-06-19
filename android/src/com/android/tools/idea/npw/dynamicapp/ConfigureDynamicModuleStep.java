@@ -19,6 +19,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.gradle.util.DynamicAppUtils.baseIsInstantEnabled;
+import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static java.lang.String.format;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
@@ -28,13 +29,13 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewProjectModel;
+import com.android.tools.idea.npw.module.AndroidApiLevelComboBox;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.npw.project.FormFactorSdkControls;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.ui.TemplateIcon;
 import com.android.tools.idea.npw.validator.ModuleValidator;
@@ -65,13 +66,13 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
@@ -82,6 +83,7 @@ import org.jetbrains.annotations.Nullable;
  * "Minimum SDK".
  */
 public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatureModel> {
+  private final AndroidVersionsInfo myAndroidVersionsInfo = new AndroidVersionsInfo();
   private final ValidatorPanel myValidatorPanel;
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
@@ -92,14 +94,14 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   private JComboBox<Module> myBaseApplication;
   private JLabel myTemplateIconTitle;
   private JLabel myTemplateIconDetail;
-  private JPanel myFormFactorSdkControlsPanel;
   private JCheckBox myFusingCheckbox;
   private JBLabel myInstantModuleInfo;
   private JBLabel myInstantInfoIcon;
   private JTextField myModuleTitle;
   private JLabel myModuleTitleLabel;
   private JLabel myModuleNameLabel;
-  private FormFactorSdkControls myFormFactorSdkControls;
+  private JComboBox<Language> myLanguageCombo;
+  private AndroidApiLevelComboBox myApiLevelCombo;
 
   public ConfigureDynamicModuleStep(@NotNull DynamicFeatureModel model, @NotNull String basePackage, boolean isInstant) {
     super(model, message("android.wizard.module.config.title"));
@@ -170,8 +172,10 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myLanguageCombo), getModel().language);
+
     OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo;
-    myFormFactorSdkControls.init(androidSdkInfo, this);
+    myBindings.bind(androidSdkInfo, new SelectedItemProperty<>(myApiLevelCombo));
 
     AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_APP)
                       .stream()
@@ -200,10 +204,17 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
   @Override
   protected void onEntering() {
-    FormFactor formFactor = FormFactor.MOBILE;
     TemplateHandle templateHandle = getModel().getTemplateHandle();
+    int minSdkLevel = templateHandle.getMetadata().getMinSdk();
 
-    myFormFactorSdkControls.startDataLoading(formFactor, templateHandle.getMetadata().getMinSdk());
+    myAndroidVersionsInfo.loadLocalVersions();
+
+    // Pre-populate
+    List<AndroidVersionsInfo.VersionItem> versions = myAndroidVersionsInfo.getKnownTargetVersions(MOBILE, minSdkLevel);
+    myApiLevelCombo.init(MOBILE, versions);
+
+    myAndroidVersionsInfo.loadRemoteTargetVersions(MOBILE, minSdkLevel, items -> myApiLevelCombo.init(MOBILE, items));
+
     setTemplateThumbnail(templateHandle);
   }
 
@@ -254,8 +265,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     }));
 
     myModuleNameLabel = ContextHelpLabel.create(message("android.wizard.module.help.name"));
-    myFormFactorSdkControls = new FormFactorSdkControls();
-    myFormFactorSdkControls.showStatsPanel(false);
-    myFormFactorSdkControlsPanel = myFormFactorSdkControls.getRoot();
+    myApiLevelCombo = new AndroidApiLevelComboBox();
+    myLanguageCombo = new LanguageComboProvider().createComponent();
   }
 }
