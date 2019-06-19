@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isCompoundSync;
 import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
@@ -72,8 +73,12 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
+import com.intellij.util.messages.MessageBusConnection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -155,9 +160,8 @@ public class GradleSyncInvoker {
     Application application = ApplicationManager.getApplication();
     if (application.isUnitTestMode()) {
       application.invokeAndWait(syncTask);
-      return;
     }
-    if (request.runInBackground) {
+    else if (request.runInBackground) {
       TransactionGuard.getInstance().submitTransactionLater(project, syncTask);
     }
     else {
@@ -234,8 +238,50 @@ public class GradleSyncInvoker {
 
     boolean useNewGradleSync = NewGradleSync.isEnabled(project);
 
+    CountDownLatch latch = (request.generateSourcesOnSuccess && isCompoundSync(project)) ? createSourceGenerationLatch(project) : null;
+
     GradleSync gradleSync = useNewGradleSync ? new NewGradleSync(project) : new IdeaGradleSync(project);
     gradleSync.sync(request, listener);
+
+    if (latch != null) {
+      try {
+        if (!latch.await(1, TimeUnit.MINUTES)) {
+          throw new TimeoutException("Timed out waiting for source generation");
+        }
+      } catch (InterruptedException | TimeoutException e) {
+        throw new RuntimeException("Failed to wait for source generation to finish", e);
+      }
+    }
+  }
+
+
+  private static CountDownLatch createSourceGenerationLatch(@NotNull Project project) {
+    CountDownLatch latch = new CountDownLatch(1);
+
+    MessageBusConnection connection = project.getMessageBus().connect(project);
+    connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, new GradleSyncListener() {
+      @Override
+      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+        finish();
+      }
+
+      @Override
+      public void syncSkipped(@NotNull Project project) {
+        finish();
+      }
+
+      @Override
+      public void sourceGenerationFinished(@NotNull Project project) {
+        finish();
+      }
+
+      private void finish() {
+        connection.disconnect();
+        latch.countDown();
+      }
+    });
+
+    return latch;
   }
 
   @VisibleForTesting
