@@ -73,13 +73,6 @@ public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> 
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture<W> selectUseFragment() {
-    JCheckBox checkBox = robot().finder().find(target(), Matchers.byText(JCheckBox.class, "Use a Fragment"));
-    new JCheckBoxFixture(robot(), checkBox).select();
-    return this;
-  }
-
-  @NotNull
   public ConfigureBasicActivityStepFixture<W> enterTextFieldValue(@NotNull ActivityTextField activityField, @NotNull String text) {
     JTextComponent textField = findTextFieldWithLabel(activityField.getLabelText());
     robot().click(textField, MouseButton.LEFT_BUTTON, 3); // select all; particularly for pseudo-JTextComponent EditorComponentImpl
