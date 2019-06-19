@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.LerpEllipse
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
@@ -26,8 +27,10 @@ import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
+import java.awt.Color
 import java.awt.Font
 import java.awt.geom.Ellipse2D
+import java.awt.geom.Path2D
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
@@ -123,3 +126,39 @@ fun getHeaderRect(view: SceneView, rectangle: Rectangle2D.Float): Rectangle2D.Fl
   return Rectangle2D.Float(rectangle.x, rectangle.y - height, rectangle.width, height)
 }
 
+enum class ArrowDirection {
+  LEFT,
+  UP,
+  RIGHT,
+  DOWN
+}
+
+fun makeDrawArrowCommand(@SwingCoordinate rectangle: Rectangle2D.Float, direction: ArrowDirection, color: Color): DrawCommand {
+  val left = rectangle.x
+  val right = left + rectangle.width
+
+  val xValues = when (direction) {
+    ArrowDirection.LEFT -> floatArrayOf(right, left, right)
+    ArrowDirection.RIGHT -> floatArrayOf(left, right, left)
+    else -> floatArrayOf(left, (left + right) / 2, right)
+  }
+
+  val top = rectangle.y
+  val bottom = top + rectangle.height
+
+  val yValues = when (direction) {
+    ArrowDirection.UP -> floatArrayOf(bottom, top, bottom)
+    ArrowDirection.DOWN -> floatArrayOf(top, bottom, top)
+    else -> floatArrayOf(top, (top + bottom) / 2, bottom)
+  }
+
+  val path = Path2D.Float()
+  path.moveTo(xValues[0], yValues[0])
+
+  for (i in 1 until xValues.count()) {
+    path.lineTo(xValues[i], yValues[i])
+  }
+  path.closePath()
+
+  return FillShape(path, color)
+}
