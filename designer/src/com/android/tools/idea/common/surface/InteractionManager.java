@@ -347,17 +347,30 @@ public class InteractionManager implements Disposable {
   /**
    * Update the cursor to show the type of operation we expect on a mouse press:
    * <ul>
-   * <li>Over a selection handle, show a directional cursor depending on the position of
-   * the selection handle
-   * <li>Over a widget, show a move (hand) cursor
-   * <li>Otherwise, show the default arrow cursor
+   * <li>Over a resizable region, show the resize cursor.
+   * <li>Over a SceneView, show the cursor which provide by the Scene.
+   * <li>Otherwise, show the default arrow cursor.
    * </ul>
    */
   void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifier) {
     Cursor cursor = null;
     SceneView sceneView = mySurface.getSceneView(x, y);
     if (sceneView != null) {
-      cursor = sceneView.getCursor(x, y, modifier);
+      Dimension sceneViewSize = sceneView.getSize();
+      // Check if the mouse position is at the bottom-right corner of sceneView.
+      Rectangle resizeZone = new Rectangle(sceneView.getX() + sceneViewSize.width,
+                                           sceneView.getY() + sceneViewSize.height,
+                                           NlConstants.RESIZING_HOVERING_SIZE,
+                                           NlConstants.RESIZING_HOVERING_SIZE);
+      if (resizeZone.contains(x, y) && sceneView.getSurface().isResizeAvailable()) {
+        cursor = Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
+      }
+      else {
+        SceneContext context = SceneContext.get(sceneView);
+        context.setMouseLocation(x, y);
+        sceneView.getScene().mouseHover(context, getAndroidXDip(sceneView, x), getAndroidYDip(sceneView, y), modifier);
+        cursor = sceneView.getScene().getMouseCursor();
+      }
     }
     mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
   }
