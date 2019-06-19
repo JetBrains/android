@@ -98,7 +98,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="android.sdktools.sdklib" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.lint:lint-checks" level="project" />
@@ -148,5 +147,6 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="library" scope="TEST" name="http-client" level="project" />
   </component>
 </module>
