@@ -32,18 +32,47 @@ import org.jetbrains.plugins.gradle.model.ProjectImportExtraModelProvider
 
 @UsedInBuildAction
 class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions) : ProjectImportExtraModelProvider {
-  override fun populateBuildModels(controller: BuildController,
-                                   project: IdeaProject,
-                                   consumer: ProjectImportExtraModelProvider.BuildModelConsumer) {
-    // Here we go through each module and query Gradle for the following models in this order:
-    //   1 - Query for the AndroidProject for the module
-    //   2 - Query for the NativeAndroidProject (only if we also obtain an Android project)
-    //   3 - Query for the GlobalLibraryMap for the module (we ALWAYS do this reguardless of the other two models)
-    // If single variant sync is enabled then [findParameterizedAndroidModel] will use Gradles parameterized model builder API
-    // in order to stop Gradle from building the variant.
-    //   4 - (Single Variant Sync only) Work out which variant for which models we need to request, and request them.
-    //       See IdeaSelectedVariantChooser for more details.
-    // All of the requested models are registered back to IDEAs external project system via the BuildModelConsumer callback
+  override fun populateBuildModels(
+    controller: BuildController,
+    project: IdeaProject,
+    consumer: ProjectImportExtraModelProvider.BuildModelConsumer
+  ) {
+    populateAndroidModels(controller, project, consumer)
+    // Requesting ProjectSyncIssues must be performed last since all other model requests may produces addition issues.
+    populateProjectSyncIssues(controller, project, consumer)
+  }
+
+  override fun populateProjectModels(
+    controller: BuildController,
+    module: IdeaModule?,
+    consumer: ProjectImportExtraModelProvider.ProjectModelConsumer
+  ) {
+    // We don't yet have any Global models so if module equal null we just return
+    module
+      ?.let { controller.findModel(it.gradleProject, GradlePluginModel::class.java) }
+      ?.also { pluginModel -> consumer.consume(pluginModel, GradlePluginModel::class.java) }
+  }
+
+  /**
+   * Requests Android project models for the given [project] and registers them with the [consumer]
+   *
+   * We do this by going through each module and query Gradle for the following models:
+   *   1. Query for the AndroidProject for the module
+   *   2. Query for the NativeAndroidProject (only if we also obtain an Android project)
+   *   3. Query for the GlobalLibraryMap for the module (we ALWAYS do this reguardless of the other two models)
+   *   4. (Single Variant Sync only) Work out which variant for which models we need to request, and request them.
+   *      See IdeaSelectedVariantChooser for more details.
+   *
+   * If single variant sync is enabled then [findParameterizedAndroidModel] will use Gradles parameterized model builder API
+   * in order to stop Gradle from building the variant.
+   * All of the requested models are registered back to the external project system via the
+   * [ProjectImportExtraModelProvider.BuildModelConsumer] callback.
+   */
+  private fun populateAndroidModels(
+    controller: BuildController,
+    project: IdeaProject,
+    consumer: ProjectImportExtraModelProvider.BuildModelConsumer
+  ) {
     val androidModules: MutableList<IdeaAndroidModule> = mutableListOf()
     project.modules.forEach { module ->
       findParameterizedAndroidModel(controller, module.gradleProject, AndroidProject::class.java)?.also { androidProject ->
@@ -54,10 +83,6 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
         }
 
         androidModules.add(IdeaAndroidModule(module, androidProject, nativeAndroidProject))
-
-        controller.findModel(module.gradleProject, ProjectSyncIssues::class.java)?.also { projectSyncIssues ->
-          consumer.consume(module, projectSyncIssues, ProjectSyncIssues::class.java)
-        }
       }
     }
 
@@ -82,16 +107,15 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     }
   }
 
-  override fun populateProjectModels(controller: BuildController,
-                                     module: IdeaModule?,
-                                     consumer: ProjectImportExtraModelProvider.ProjectModelConsumer) {
-    // We don't yet have any Global models so if module equal null we just return
-    module?.let {
-      controller
-        .findModel(it.gradleProject, GradlePluginModel::class.java)
-        ?.also { pluginModel ->
-          consumer.consume(pluginModel, GradlePluginModel::class.java)
-        }
+  private fun populateProjectSyncIssues(
+    controller: BuildController,
+    project: IdeaProject,
+    consumer: ProjectImportExtraModelProvider.BuildModelConsumer
+  ) {
+    project.modules.forEach { module ->
+      controller.findModel(module.gradleProject, ProjectSyncIssues::class.java)?.also {  projectSyncIssues ->
+        consumer.consume(module, projectSyncIssues, ProjectSyncIssues::class.java)
+      }
     }
   }
 
