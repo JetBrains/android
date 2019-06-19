@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.dynamicfeature
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.dynamicapp.DeviceFeatureKind
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind
+import com.android.tools.idea.npw.platform.Language
+import com.android.tools.idea.npw.platform.Language.JAVA
+import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -135,7 +137,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_includeAtInstallTime() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME)
+    createDynamicModule(ideFrame, KOTLIN, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME)
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
@@ -157,7 +159,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_installOnDemandOnly() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, DownloadInstallKind.ON_DEMAND_ONLY)
+    createDynamicModule(ideFrame, JAVA, DownloadInstallKind.ON_DEMAND_ONLY)
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
@@ -179,7 +181,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_installOnDemandWithMinSdk() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
+    createDynamicModule(ideFrame, JAVA, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
@@ -205,7 +207,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_installOnDemandDeviceFeatures() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS) {
+    createDynamicModule(ideFrame, JAVA, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS) {
       addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test")
       addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test2")
       addConditionalDeliveryFeature(DeviceFeatureKind.GL_ES_VERSION, "0x2000000")
@@ -271,7 +273,7 @@ class AddDynamicFeatureTest {
   fun addLoginActivityToDynamicModule() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame)
+    createDynamicModule(ideFrame, JAVA)
       .invokeMenuPath("File", "New", "Activity", "Login Activity")
     NewActivityWizardFixture.find(ideFrame)
       .clickFinish()
@@ -315,7 +317,7 @@ class AddDynamicFeatureTest {
       assertThat(this).contains("implementation 'androidx.constraintlayout:constraintlayout:")
     }
 
-    createDynamicModule(ideFrame)
+    createDynamicModule(ideFrame, JAVA)
       .invokeMenuPath("File", "New", "Google", "Google Maps Activity")
     NewActivityWizardFixture.find(ideFrame)
       .clickFinish()
@@ -403,22 +405,24 @@ class AddDynamicFeatureTest {
   }
 
   private fun writeDistModuleToBaseManifest(isInstant: Boolean) {
-    val editor = guiTest.ideFrame().editor
-    editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
-    editor.moveBetween("\"http://schemas.android.com/apk/res/android\"", "")
-    editor.enterText("\nxmlns:dist=\"http://schemas.android.com/apk/distribution\"")
-    editor.moveBetween("google.simpleapplication\" >", "")
-    editor.enterText("""<dist:module dist:instant="$isInstant" />""")
+    guiTest.ideFrame().editor
+      .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
+      .moveBetween("\"http://schemas.android.com/apk/res/android\"", "")
+      .enterText("\nxmlns:dist=\"http://schemas.android.com/apk/distribution\"")
+      .moveBetween("google.simpleapplication\" >", "")
+      .enterText("""<dist:module dist:instant="$isInstant" />""")
   }
 
   private fun createDynamicModule(
     ideFrame: IdeFrameFixture,
+    lang: Language,
     downloadInstallKind: DownloadInstallKind = DownloadInstallKind.ON_DEMAND_ONLY,
     setFeatures: ConfigureDynamicFeatureDeliveryStepFixture<NewModuleWizardFixture>.() -> ConfigureDynamicFeatureDeliveryStepFixture<NewModuleWizardFixture> = { this }
   ): IdeFrameFixture {
     ideFrame.invokeMenuPath("File", "New", "New Module...")
-    return NewModuleWizardFixture.find(ideFrame)
+    NewModuleWizardFixture.find(ideFrame)
       .clickNextToDynamicFeature()
+      .setSourceLanguage(lang)
       .enterFeatureModuleName("MyDynamicFeature")
       .selectBaseApplication("app")
       .selectMinimumSdkApi("26")
@@ -433,6 +437,12 @@ class AddDynamicFeatureTest {
       .projectView
       .selectAndroidPane()
       .clickPath("MyDynamicFeature")
+
+    // Check we created the instrumented test files
+    val fileName = "MyDynamicFeature/src/androidTest/java/com/example/mydynamicfeature/ExampleInstrumentedTest.${lang.extension}"
+    assertThat(ideFrame.findFileByRelativePath(fileName)).isNotNull()
+
+    return ideFrame;
   }
 
   private fun createInstantDynamicModuleWithFusing(ideFrame: IdeFrameFixture): IdeFrameFixture {

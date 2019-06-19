@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import javax.swing.JCheckBox;
@@ -47,6 +48,13 @@ public class ConfigureDynamicFeatureStepFixture<W extends AbstractWizardFixture>
    JComboBoxFixture apiLevelComboBox =
       new JComboBoxFixture(robot(), robot().finder().findByName(target(), "baseComboBox", JComboBox.class));
     apiLevelComboBox.selectItem(baseName);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureDynamicFeatureStepFixture<W> setSourceLanguage(@NotNull Language sourceLanguage) {
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Language", JComboBox.class, true))
+      .selectItem(sourceLanguage.toString());
     return this;
   }
 

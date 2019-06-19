@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.dynamicapp
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.android.tools.idea.npw.template.TemplateHandle
@@ -46,6 +47,7 @@ class DynamicFeatureModel(
 ) : ModuleModel(project, templateHandle, projectSyncInvoker, "dynamicfeature") {
   @JvmField val featureTitle = StringValueProperty("Module Title")
   @JvmField val packageName = StringValueProperty()
+  @JvmField val language = OptionalValueProperty(getInitialSourceLanguage(project))
   @JvmField val androidSdkInfo = OptionalValueProperty<VersionItem>()
   @JvmField val baseApplication = OptionalValueProperty<Module>()
   @JvmField val featureOnDemand = BoolValueProperty(true)
@@ -78,6 +80,7 @@ class DynamicFeatureModel(
 
       TemplateValueInjector(newValues)
         .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
+        .setLanguage(language.value)
         .setBuildVersion(androidSdkInfo.value, project, false)
         .setBaseFeature(baseApplication.value)
 
