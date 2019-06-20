@@ -111,7 +111,9 @@ class ResourceDetailView(
       (e?.source as? SingleAssetCard)?.let { assetCard ->
         if (lastFocusedAsset != assetCard) {
           lastFocusedAsset?.selected = false
+          lastFocusedAsset?.focused = false
           assetCard.selected = true
+          assetCard.focused = true
           lastFocusedAsset = assetCard
         }
       }
