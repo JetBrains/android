@@ -41,4 +41,3 @@ class CachingData(val cacheFile: Path,
  * @see [PathManager.getSystemPath]
  */
 const val RESOURCE_CACHE_DIRECTORY = "caches/resources"
-
