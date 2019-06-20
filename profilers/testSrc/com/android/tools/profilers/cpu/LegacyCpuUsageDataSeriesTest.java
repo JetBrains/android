@@ -29,7 +29,7 @@ import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class CpuUsageDataSeriesTest {
+public class LegacyCpuUsageDataSeriesTest {
 
   private static final Range ANY_RANGE = new Range(0, 100);
 
@@ -38,11 +38,12 @@ public class CpuUsageDataSeriesTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuUsageDataSeriesTest", myService);
 
-  private CpuUsageDataSeries mySeries;
+  private LegacyCpuUsageDataSeries mySeries;
 
   @Test
   public void thisProcessCpuUsage() {
-    mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA, false);
+    mySeries = new LegacyCpuUsageDataSeries(
+      new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA, false);
     int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     int appTime = (int)(0.4 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
@@ -77,7 +78,8 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void otherProcessesCpuUsage() {
-    mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA, true);
+    mySeries = new LegacyCpuUsageDataSeries(
+      new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA, true);
     int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     List<SeriesData<Long>> seriesData = mySeries.getDataForRange(ANY_RANGE);
@@ -107,7 +109,8 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void emptyData() {
-    mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA, false);
+    mySeries = new LegacyCpuUsageDataSeries(
+      new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA, false);
     assertNotNull(mySeries);
     assertFalse(mySeries.getDataForRange(ANY_RANGE).isEmpty());
     myService.setEmptyUsageData(true);

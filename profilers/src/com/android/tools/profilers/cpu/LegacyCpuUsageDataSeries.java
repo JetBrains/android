@@ -24,21 +24,23 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
+ * Legacy class responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
-public class CpuUsageDataSeries implements DataSeries<Long> {
+public class LegacyCpuUsageDataSeries implements DataSeries<Long> {
   @NotNull
   private CpuServiceGrpc.CpuServiceBlockingStub myClient;
 
   private final Common.Session mySession;
   private final boolean myIsOtherProcess;
 
-  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client,
-                            Common.Session session,
-                            boolean isOtherProcess) {
+  public LegacyCpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client,
+                                  Common.Session session,
+                                  boolean isOtherProcess) {
     myClient = client;
     mySession = session;
     myIsOtherProcess = isOtherProcess;
@@ -54,6 +56,9 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
-    return CpuUsage.extractData(response.getDataList(), myIsOtherProcess);
+    return IntStream.range(0, response.getDataList().size() - 1)
+      // Calculate CPU usage percentage from two adjacent CPU usage data.
+      .mapToObj(index -> CpuUsage.getCpuUsageData(response.getData(index), response.getData(index + 1), myIsOtherProcess))
+      .collect(Collectors.toList());
   }
 }
