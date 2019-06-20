@@ -31,7 +31,7 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class StringResourceTable extends FrozenColumnTable {
+public final class StringResourceTable extends FrozenColumnTable<StringResourceTableModel> {
   private final TableCellRenderer myLocaleRenderer;
 
   @Nullable
@@ -44,7 +44,7 @@ public final class StringResourceTable extends FrozenColumnTable {
 
     setDefaultEditor(String.class, new StringTableCellEditor());
     setDefaultRenderer(String.class, new StringsCellRenderer());
-    setRowSorter(new ThreeStateTableRowSorter<>(getModel()));
+    setRowSorter(new FrozenColumnTableRowSorter<>(new ThreeStateTableRowSorter<>(getModel()), this));
 
     putInInputMap(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "delete");
     putInInputMap(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
@@ -59,11 +59,17 @@ public final class StringResourceTable extends FrozenColumnTable {
 
   @Nullable
   public StringResourceTableRowFilter getRowFilter() {
-    return (StringResourceTableRowFilter)getRowSorter().getRowFilter();
+    FrozenColumnTableRowSorter<StringResourceTableModel> sorter = getRowSorter();
+    assert sorter != null;
+
+    return (StringResourceTableRowFilter)sorter.getRowFilter();
   }
 
   public void setRowFilter(@Nullable StringResourceTableRowFilter filter) {
-    getRowSorter().setRowFilter(filter);
+    FrozenColumnTableRowSorter<StringResourceTableModel> sorter = getRowSorter();
+    assert sorter != null;
+
+    sorter.setRowFilter(filter);
   }
 
   @Nullable
@@ -104,23 +110,10 @@ public final class StringResourceTable extends FrozenColumnTable {
     return column;
   }
 
-  @NotNull
   @Override
-  public TableRowSorter<StringResourceTableModel> getRowSorter() {
-    //noinspection unchecked
-    return (TableRowSorter<StringResourceTableModel>)super.getRowSorter();
-  }
-
-  @NotNull
-  @Override
-  public StringResourceTableModel getModel() {
-    return (StringResourceTableModel)super.getModel();
-  }
-
-  @Override
-  public void setModel(@NotNull TableModel model) {
+  public void setModel(@NotNull StringResourceTableModel model) {
     super.setModel(model);
-    getRowSorter().setModel((StringResourceTableModel)model);
+    setRowSorter(new FrozenColumnTableRowSorter<>(new ThreeStateTableRowSorter<>(model), this));
 
     if (myColumnPreferredWidthsSet) {
       return;

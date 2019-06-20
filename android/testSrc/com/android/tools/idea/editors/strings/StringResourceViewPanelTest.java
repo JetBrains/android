@@ -24,12 +24,13 @@ import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Collections;
+import javax.swing.AbstractButton;
+import javax.swing.CellEditor;
+import javax.swing.DefaultCellEditor;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
-
-import javax.swing.*;
-import java.util.Collections;
 
 public final class StringResourceViewPanelTest extends AndroidTestCase {
   private Disposable myParentDisposable;
@@ -49,8 +50,6 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory));
 
     myPanel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(parent), myFacet));
-
-    myTable.getRowSorter().setSortKeys(Collections.singletonList(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
   }
 
   @Override
