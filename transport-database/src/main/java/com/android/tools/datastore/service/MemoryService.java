@@ -29,7 +29,6 @@ import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
@@ -54,8 +53,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
-import com.android.tools.profiler.proto.MemoryProfiler.ResolveNativeBacktraceRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
@@ -282,24 +279,11 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void getJNIGlobalRefsEvents(JNIGlobalRefsEventsRequest request,
-                                     StreamObserver<BatchJNIGlobalRefEvent> responseObserver) {
-    BatchJNIGlobalRefEvent result;
-    if (request.getLiveObjectsOnly()) {
-      result = myAllocationsTable.getJniReferencesSnapshot(request.getSession(), request.getEndTime());
-    }
-    else {
-      result = myAllocationsTable.getJniReferencesEventsFromRange(request.getSession(), request.getStartTime(), request.getEndTime());
-    }
-
-    responseObserver.onNext(result);
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void resolveNativeBacktrace(ResolveNativeBacktraceRequest request,
-                                     StreamObserver<NativeCallStack> responseObserver) {
-    NativeCallStack callStack = myAllocationsTable.resolveNativeBacktrace(request.getSession(), request.getBacktrace());
-    responseObserver.onNext(callStack);
+                                     StreamObserver<MemoryProfiler.JNIGlobalRefsEventsResponse> responseObserver) {
+    MemoryProfiler.JNIGlobalRefsEventsResponse response = MemoryProfiler.JNIGlobalRefsEventsResponse.newBuilder()
+      .addAllEvents(myAllocationsTable.getJniReferenceEvents(request.getSession(), request.getStartTime(), request.getEndTime()))
+      .build();
+    responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 
