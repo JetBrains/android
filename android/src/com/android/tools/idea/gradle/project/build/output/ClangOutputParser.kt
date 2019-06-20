@@ -23,6 +23,8 @@ import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
+import com.intellij.openapi.util.SystemInfo
+import com.intellij.util.io.isWritable
 import java.io.IOException
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -184,17 +186,10 @@ class ClangOutputParser : BuildOutputParser {
         }
         val lineNumber = lineString.toInt()
         val colNumber = colString.toInt()
-        val diagnosticClass = ClangDiagnosticClass.fromTag(diagnosticClassString)
+        val diagnosticClass = fromTag(diagnosticClassString)
         val detailedMessage = inclusionContextMap.getValue(path).let { inclusionContext ->
           val fileMessage = "$path:$lineNumber:$colNumber: ${diagnosticClass.tag}: $diagnosticMessage"
-          val inclusionContextMessage = if (inclusionContext.isEmpty()) {
-            ""
-          }
-          else {
-            "\n\nThis file is included from the following inclusion chain:\n" +
-            inclusionContext.joinToString("") { "$it\n" }
-          }
-          fileMessage + inclusionContextMessage
+          (inclusionContext.map { "In file included from $it:" } + fileMessage).joinToString("\n")
         }
         messageConsumer.accept(
           FileMessageEventImpl(reader.buildId,
@@ -220,7 +215,7 @@ class ClangOutputParser : BuildOutputParser {
                                diagnosticClass.toMessageEventKind(),
                                compilerMessageGroup,
                                diagnosticMessage,
-                               linkerErrorLine,
+                               augmentLinkerError(linkerErrorLine, path),
                                FilePosition(path.toFile(), lineNumber - 1, 0)))
       }
       else {
@@ -229,7 +224,7 @@ class ClangOutputParser : BuildOutputParser {
                            diagnosticClass.toMessageEventKind(),
                            compilerMessageGroup,
                            diagnosticMessage,
-                           linkerErrorLine))
+                           augmentLinkerError(linkerErrorLine, path)))
       }
     }
   }
@@ -243,6 +238,22 @@ class ClangOutputParser : BuildOutputParser {
   /** Simple data class representing a line in a file. */
   private data class LineInFile(val path: Path, val lineNumber: Int) {
     override fun toString() = "$path:$lineNumber"
+  }
+}
+
+/**
+ * Augments the linker error with hints about file being locked on Windows.
+ */
+private fun augmentLinkerError(message: String, soFilePath: Path): String {
+  if (SystemInfo.isWindows && !soFilePath.isWritable) {
+    // If the system is windows, the linker error could be caused by file locks on the so file. In that case, the error message is terribly
+    // misleading. Hence we want to provider a better message here. See b/124104842
+    return message + "\n\n" +
+           "File $soFilePath is not writable. This may be caused by insufficient permissions or files being locked by other processes. " +
+           "For example, LLDB locks .so files in a while debugging."
+  }
+  else {
+    return message
   }
 }
 

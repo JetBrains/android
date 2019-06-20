@@ -383,8 +383,7 @@ class ClangOutputParserTest {
       val (compilerGroup, msg) = pair
       Truth.assertThat(event.group).named("compiler group").endsWith(compilerGroup)
       // Details may contains file inclusion path in addition to the expected error itself.
-      Truth.assertThat(event.result.details).named("diagnostic details").startsWith(
-        msg.normalizeSeparator())
+      Truth.assertThat(event.result.details).named("diagnostic details").contains(msg.normalizeSeparator())
     }
   }
 
@@ -408,11 +407,9 @@ class ClangOutputParserTest {
       Truth.assertThat(group).isEqualTo("Clang Compiler [:app Debug arm64-v8a]")
       Truth.assertThat(message).isEqualTo("'unresolved.h' file not found")
       Truth.assertThat(result.details).isEqualTo("""
+          In file included from /usr/local/google/home/jeff/hello-world/native/source.cpp:8:
           /usr/local/google/home/jeff/hello-world/native/source.h:12:10: fatal error: 'unresolved.h' file not found
-
-          This file is included from the following inclusion chain:
-          /usr/local/google/home/jeff/hello-world/native/source.cpp:8
-          """.trimIndent().normalizeSeparator() + "\n")
+          """.trimIndent().normalizeSeparator())
       with((this as FileMessageEventImpl).result.filePosition) {
         Truth.assertThat(file.path).isEqualTo("/usr/local/google/home/jeff/hello-world/native/source.h".normalizeSeparator())
         // The following two numbers are one less than that from clang since Clang error output counts from 1 while Intellij counts from 0.
