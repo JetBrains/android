@@ -952,7 +952,6 @@ public class TemplateTest extends AndroidGradleTestCase {
       projectMap.put(ATTR_CPP_SUPPORT, true);
       templateMap.put(ATTR_CPP_SUPPORT, true);
       projectMap.put(ATTR_CPP_FLAGS, "");
-      templateMap.put("useFragment", true);
     });
     stopwatch.stop();
     System.out.println("Checked " + templateFile.getName() + " with cpp and fragments successfully in " + stopwatch.toString());
