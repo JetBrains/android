@@ -31,13 +31,14 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class SubTable extends JBTable implements DataProvider, PasteProvider {
-  private final FrozenColumnTable myFrozenColumnTable;
+final class SubTable<M extends TableModel> extends JBTable implements DataProvider, PasteProvider {
+  private final FrozenColumnTable<M> myFrozenColumnTable;
 
-  SubTable(@NotNull SubTableModel model, @NotNull FrozenColumnTable frozenColumnTable) {
+  SubTable(@NotNull SubTableModel model, @NotNull FrozenColumnTable<M> frozenColumnTable) {
     super(model);
 
     getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -51,7 +52,7 @@ final class SubTable extends JBTable implements DataProvider, PasteProvider {
   }
 
   @NotNull
-  FrozenColumnTable getFrozenColumnTable() {
+  FrozenColumnTable<M> getFrozenColumnTable() {
     return myFrozenColumnTable;
   }
 
