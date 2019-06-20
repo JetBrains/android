@@ -66,7 +66,7 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
    *
    * This is supposed to be passed to [SummaryStep].
    */
-  val summaryScreenViewModel = SummaryScreenViewModel(designAssetImporter, rendererManager, facet)
+  val summaryScreenViewModel = SummaryScreenViewModel(designAssetImporter, rendererManager, facet, getSourceSetsResDirs(facet))
 
   val fileCount: Int get() = assetSets.sumBy { it.assets.size }
 
