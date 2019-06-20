@@ -67,22 +67,22 @@ public class ProguardParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // FILENAME_FLAG_ARG
+  // SINGLE_QUOTED_STRING | DOUBLE_QUOTED_STRING | FLAG_ARG
   public static boolean filenameArg(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "filenameArg")) return false;
-    if (!nextTokenIs(b, FILENAME_FLAG_ARG)) return false;
     boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, FILENAME_FLAG_ARG);
-    exit_section_(b, m, FILENAME_ARG, r);
+    Marker m = enter_section_(b, l, _NONE_, FILENAME_ARG, "<filename arg>");
+    r = consumeToken(b, SINGLE_QUOTED_STRING);
+    if (!r) r = consumeToken(b, DOUBLE_QUOTED_STRING);
+    if (!r) r = consumeToken(b, FLAG_ARG);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // MANDATORY_FILENAME_FLAG_NAME filenameArg | OPTIONAL_FILENAME_FLAG_NAME filenameArg?
+  // mandatoryFilenameFlagName filenameArg | optionalFilenameFlagName filenameArg?
   public static boolean filenameFlag(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "filenameFlag")) return false;
-    if (!nextTokenIs(b, "<filename flag>", MANDATORY_FILENAME_FLAG_NAME, OPTIONAL_FILENAME_FLAG_NAME)) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, FILENAME_FLAG, "<filename flag>");
     r = filenameFlag_0(b, l + 1);
@@ -91,26 +91,28 @@ public class ProguardParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // MANDATORY_FILENAME_FLAG_NAME filenameArg
+  // mandatoryFilenameFlagName filenameArg
   private static boolean filenameFlag_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "filenameFlag_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, MANDATORY_FILENAME_FLAG_NAME);
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = mandatoryFilenameFlagName(b, l + 1);
+    p = r; // pin = 1
     r = r && filenameArg(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
   }
 
-  // OPTIONAL_FILENAME_FLAG_NAME filenameArg?
+  // optionalFilenameFlagName filenameArg?
   private static boolean filenameFlag_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "filenameFlag_1")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, OPTIONAL_FILENAME_FLAG_NAME);
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = optionalFilenameFlagName(b, l + 1);
+    p = r; // pin = 1
     r = r && filenameFlag_1_1(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
   }
 
   // filenameArg?
@@ -121,50 +123,31 @@ public class ProguardParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // multiLineFlag | filenameFlag comment? | singleLineFlag comment?
+  // filenameFlag comment? | otherFlag
   static boolean flag(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "flag")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = multiLineFlag(b, l + 1);
-    if (!r) r = flag_1(b, l + 1);
-    if (!r) r = flag_2(b, l + 1);
+    r = flag_0(b, l + 1);
+    if (!r) r = otherFlag(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // filenameFlag comment?
-  private static boolean flag_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "flag_1")) return false;
+  private static boolean flag_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "flag_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = filenameFlag(b, l + 1);
-    r = r && flag_1_1(b, l + 1);
+    r = r && flag_0_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // comment?
-  private static boolean flag_1_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "flag_1_1")) return false;
-    comment(b, l + 1);
-    return true;
-  }
-
-  // singleLineFlag comment?
-  private static boolean flag_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "flag_2")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = singleLineFlag(b, l + 1);
-    r = r && flag_2_1(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // comment?
-  private static boolean flag_2_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "flag_2_1")) return false;
+  private static boolean flag_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "flag_0_1")) return false;
     comment(b, l + 1);
     return true;
   }
@@ -221,6 +204,22 @@ public class ProguardParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // '@' | '-include' | '-applymapping' | '-obfuscationdictionary' | '-classobfuscationdictionary' | '-packageobfuscationdictionary'
+  static boolean mandatoryFilenameFlagName(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "mandatoryFilenameFlagName")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, "@");
+    if (!r) r = consumeToken(b, "-include");
+    if (!r) r = consumeToken(b, "-applymapping");
+    if (!r) r = consumeToken(b, "-obfuscationdictionary");
+    if (!r) r = consumeToken(b, "-classobfuscationdictionary");
+    if (!r) r = consumeToken(b, "-packageobfuscationdictionary");
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
   // FLAG_NAME FLAG_ARG* javaSection
   public static boolean multiLineFlag(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "multiLineFlag")) return false;
@@ -242,6 +241,52 @@ public class ProguardParser implements PsiParser, LightPsiParser {
       if (!consumeToken(b, FLAG_ARG)) break;
       if (!empty_element_parsed_guard_(b, "multiLineFlag_1", c)) break;
     }
+    return true;
+  }
+
+  /* ********************************************************** */
+  // '-printseeds' | '-printusage' | '-printmapping' | '-printconfiguration' | '-dump'
+  static boolean optionalFilenameFlagName(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "optionalFilenameFlagName")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, "-printseeds");
+    if (!r) r = consumeToken(b, "-printusage");
+    if (!r) r = consumeToken(b, "-printmapping");
+    if (!r) r = consumeToken(b, "-printconfiguration");
+    if (!r) r = consumeToken(b, "-dump");
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // multiLineFlag | singleLineFlag comment?
+  static boolean otherFlag(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "otherFlag")) return false;
+    if (!nextTokenIs(b, FLAG_NAME)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = multiLineFlag(b, l + 1);
+    if (!r) r = otherFlag_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // singleLineFlag comment?
+  private static boolean otherFlag_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "otherFlag_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = singleLineFlag(b, l + 1);
+    r = r && otherFlag_1_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // comment?
+  private static boolean otherFlag_1_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "otherFlag_1_1")) return false;
+    comment(b, l + 1);
     return true;
   }
 
