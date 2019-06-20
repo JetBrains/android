@@ -19,10 +19,12 @@ import com.android.SdkConstants
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.project.AndroidPackageUtils
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -71,13 +73,15 @@ class DesignAssetImporter {
     assetSet.designAssets.map { IntermediateAsset(it.file, resFolder.path, getFolderName(it), assetSet.name) }
 
   /**
-   * Copy the [DesignAsset]s into [folderName] within the provided [resFolder]
+   * Copy the [DesignAsset]s into [subDirName] within the provided [resFolder].
+   * @param subDirName the name of the resource subdirectory.
+   * @param resFolder the full path to the target resource folder.
    */
-  private fun copyAssetsInFolder(folderName: String,
+  private fun copyAssetsInFolder(subDirName: String,
                                  designAssets: List<IntermediateAsset>,
                                  resFolder: File) {
-    val folder = VfsUtil.findFileByIoFile(resFolder, true)
-    val directory = VfsUtil.createDirectoryIfMissing(folder, folderName)
+    val folder = VfsUtil.createDirectoryIfMissing(resFolder.path)
+    val directory = VfsUtil.createDirectoryIfMissing(folder, subDirName)
     designAssets.forEach {
       val resourceName = it.targetFileName
       if (it.sourceFile.fileSystem.protocol != LocalFileSystem.getInstance().protocol) {
@@ -121,3 +125,41 @@ fun getOrCreateDefaultResDirectory(androidFacet: AndroidFacet): File {
   return resDirectories.firstOrNull { it.exists() }
          ?: resDirectories.first().also { it.createNewFile() }
 }
+
+/**
+ * Returns a list of [SourceSetResDir] available in the provided [facet].
+ *
+ * If for some reason, no resource directory exist, it will return
+ * a default one.
+ *
+ * @see getOrCreateDefaultResDirectory
+ */
+fun getSourceSetsResDirs(facet: AndroidFacet): Array<SourceSetResDir> {
+  val resDirs = AndroidPackageUtils.getModuleTemplates(facet, null)
+    .flatMap { template ->
+      template.paths.resDirectories.map {
+        SourceSetResDir(it, template.name)
+      }
+    }.toTypedArray()
+
+  return if (resDirs.isEmpty()) {
+    arrayOf(SourceSetResDir(getOrCreateDefaultResDirectory(facet), "default"))
+  }
+  else {
+    resDirs
+  }
+}
+
+/**
+ * A utility data class used to represent a resource directory for a sourceSet.
+ */
+data class SourceSetResDir constructor(
+  /**
+   * The relative path of this resource directory from the project base path.
+   */
+  val absolutePath: File,
+
+  /**
+   * The name of the source set containing this directory
+   */
+  val sourceSetName: String)

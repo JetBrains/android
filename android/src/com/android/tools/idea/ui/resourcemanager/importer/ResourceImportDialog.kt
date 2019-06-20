@@ -31,14 +31,17 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ComponentValidator
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.JBCardLayout
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
@@ -52,6 +55,7 @@ import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.KeyboardFocusManager
 import java.awt.Rectangle
+import java.awt.event.ItemEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.beans.PropertyChangeListener
@@ -59,8 +63,10 @@ import java.util.IdentityHashMap
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import javax.swing.BorderFactory
+import javax.swing.GroupLayout
 import javax.swing.ImageIcon
 import javax.swing.JComponent
+import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JTextField
 import javax.swing.event.DocumentEvent
@@ -349,11 +355,20 @@ class ResourceImportDialog(
   }
 }
 
+/**
+ * UI of the second step of the resource wizard showing a summary of the file being imported.
+ */
 private class SummaryStep(private val viewModel: SummaryScreenViewModel) : StepAdapter() {
 
   private var root: JComponent? = null
 
-  private val preview = DetailedPreview()
+  private val preview = DetailedPreview().apply {
+    border = JBUI.Borders.emptyTop(6)
+  }
+
+  private val fileTree = createTree()
+
+  private var pendingFuture: CompletableFuture<*>? = null
 
   init {
     viewModel.updateCallback = this::update
@@ -363,13 +378,53 @@ private class SummaryStep(private val viewModel: SummaryScreenViewModel) : StepA
     root = JBSplitter(false, 0.5f).apply {
       isShowDividerControls = true
       isShowDividerIcon = true
-      firstComponent = JBScrollPane(createTree()).apply {
-        border = JBUI.Borders.merge(border, JBUI.Borders.empty(8), true)
-        background = UIUtil.getPanelBackground()
-      }
+      firstComponent = createFileTreePreview()
       secondComponent = preview
       dividerWidth = JBUI.scale(4)
     }
+  }
+
+  private fun createFileTreePreview() = JPanel(BorderLayout()).apply {
+    border = JBUI.Borders.merge(border, JBUI.Borders.empty(8), true)
+    add(createSourceSetSelectionCombo(), BorderLayout.NORTH)
+    add(JBScrollPane(fileTree).apply {
+      background = UIUtil.getPanelBackground()
+    })
+  }
+
+  /**
+   * Panel showing a dropdown to select the target source set
+   * and a tree of the file to be imported
+   */
+  private fun createSourceSetSelectionCombo() = JPanel().apply {
+    val groupLayout = GroupLayout(this)
+    layout = groupLayout
+    val label = JBLabel("Source Set:")
+    val comboBox = ComboBox<SourceSetResDir>(viewModel.availableResDirs).apply {
+      addItemListener { itemEvent ->
+        if (itemEvent.stateChange == ItemEvent.SELECTED) {
+          viewModel.selectedResDir = itemEvent.item as SourceSetResDir
+        }
+      }
+      renderer = object : ColoredListCellRenderer<SourceSetResDir>() {
+        override fun customizeCellRenderer(list: JList<out SourceSetResDir>,
+                                           value: SourceSetResDir,
+                                           index: Int,
+                                           selected: Boolean,
+                                           hasFocus: Boolean) {
+          append(value.sourceSetName)
+          append(" ")
+          append(viewModel.getUserFormattedPath(value.absolutePath), SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
+        }
+      }
+    }
+    groupLayout.setHorizontalGroup(groupLayout.createSequentialGroup()
+                                     .addComponent(label)
+                                     .addComponent(comboBox, 50, comboBox.preferredSize.width, Int.MAX_VALUE))
+
+    groupLayout.setVerticalGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                                   .addComponent(label)
+                                   .addComponent(comboBox))
   }
 
   override fun _commit(finishChosen: Boolean) {
@@ -381,6 +436,17 @@ private class SummaryStep(private val viewModel: SummaryScreenViewModel) : StepA
   override fun getComponent(): JComponent? = root
 
   private fun update() {
+    if (viewModel.fileTreeModel !== fileTree.model) {
+      val previousSelectionRow = fileTree.leadSelectionRow
+      fileTree.model = viewModel.fileTreeModel
+      TreeUtil.expandAll(fileTree)
+      if (previousSelectionRow >= 0) {
+        fileTree.setSelectionRow(previousSelectionRow)
+      }
+      else {
+        TreeUtil.selectPath(fileTree, TreeUtil.getFirstLeafNodePath(fileTree))
+      }
+    }
     preview.data = viewModel.metadata
     pendingFuture?.cancel(true)
     pendingFuture = viewModel.getPreview().whenComplete { icon, _ ->
@@ -389,15 +455,13 @@ private class SummaryStep(private val viewModel: SummaryScreenViewModel) : StepA
     }
   }
 
-  var pendingFuture: CompletableFuture<*>? = null
-  private fun createTree() = Tree(viewModel.getFileTreeModel()).apply {
+  private fun createTree() = Tree(viewModel.fileTreeModel).apply {
     cellRenderer = ProposedFileTreeCellRenderer()
     background = UIUtil.getTreeBackground()
-    TreeUtil.expandAll(this)
     addTreeSelectionListener { selectionEvent ->
       val node = selectionEvent.newLeadSelectionPath?.lastPathComponent as? ProposedFileTreeModel.Node
       viewModel.selectedFile = if (node != null && node.isLeaf()) node.file else null
     }
-    TreeUtil.selectPath(this, TreeUtil.getFirstLeafNodePath(this))
+    TreeUtil.expandAll(this)
   }
 }

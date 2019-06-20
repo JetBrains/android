@@ -100,7 +100,7 @@ fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName:
 }
 
 fun createFakeResDirectory(androidFacet: AndroidFacet): File? {
-  val fileStructure = FileStructure("/")
+  val fileStructure = FileStructure("")
   val defaultSourceProvider = SourceProviderStub(fileStructure)
   defaultSourceProvider.addResDirectory("res")
   val first = defaultSourceProvider.resDirectories.first()

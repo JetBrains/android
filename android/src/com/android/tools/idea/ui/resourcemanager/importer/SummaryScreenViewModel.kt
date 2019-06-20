@@ -19,6 +19,7 @@ import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.getMetadata
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.IconUtil
@@ -41,19 +42,31 @@ import kotlin.properties.Delegates
  *
  * [assetSetsToImport] first needs to be set with the [ResourceAssetSet] to import.
  *
- * To get the list of the target file paths, use [getFileTreeModel].
+ * To get the list of the target file paths, use [fileTreeModel].
  *
  * Finally the file are imported by calling [doImport] which delegates the call
  * to designAssetImporter.
  */
 class SummaryScreenViewModel(private val designAssetImporter: DesignAssetImporter,
                              private val rendererManager: DesignAssetRendererManager,
-                             private val facet: AndroidFacet) {
+                             private val facet: AndroidFacet,
+                             val availableResDirs: Array<SourceSetResDir>) {
 
-  var selectedFile: File? by Delegates.observable<File?>(null, { _, _, _ -> updateCallback() })
+  var selectedFile: File? by Delegates.observable<File?>(null, { _, old, new ->
+    if (!FileUtil.filesEqual(new, old)) {
+      updateCallback()
+    }
+  })
 
+  /**
+   * Callback registered by the view to be notified when this view-model changes.
+   */
   var updateCallback: () -> Unit = {}
 
+  /**
+   * A map of metadata where the key represent the name of the metadata and
+   * the value is a human readable version of the metadata.
+   */
   val metadata: Map<String, String>
     get() {
       val selectedFile = selectedFile ?: return emptyMap()
@@ -63,29 +76,52 @@ class SummaryScreenViewModel(private val designAssetImporter: DesignAssetImporte
   /**
    * The set of all the [ResourceAssetSet] ready to be imported.
    *
-   * Use [getFileTreeModel] to get a tree model of the target file structure
+   * Use [fileTreeModel] to get a tree model of the target file structure
    * of the file being imported.
    */
-  var assetSetsToImport: Set<ResourceAssetSet> = emptySet()
-    set(value) {
-      field = value
-      importingAsset = designAssetImporter.toIntermediateAssets(value)
-      targetToSource = importingAsset.associate { it.targetRelativePath to it.intermediateFile }
-    }
+  var assetSetsToImport: Set<ResourceAssetSet> by Delegates.observable(emptySet(), { _, _, _ ->
+    updateIntermediateAssets()
+  })
 
-  private val resDirectory = getOrCreateDefaultResDirectory(facet).path
+  private val absoluteResDirPath get() = selectedResDir.absolutePath
+
+  /**
+   * The [SourceSetResDir] chosen by the user.
+   */
+  var selectedResDir: SourceSetResDir by Delegates.observable(availableResDirs.first(), { _, old, new ->
+    if (old != new) {
+      updateIntermediateAssets()
+    }
+  })
 
   /**
    * The list of [assetSetsToImport] converted into [IntermediateAsset]
    */
-  private var importingAsset = designAssetImporter.toIntermediateAssets(assetSetsToImport, File(resDirectory))
+  private var importingAsset = designAssetImporter.toIntermediateAssets(assetSetsToImport, absoluteResDirPath)
 
+  /**
+   * A map used to convenience when the user select a file from the [fileTreeModel]
+   * to get the the right [VirtualFile].
+   */
   private var targetToSource: Map<String, VirtualFile> = emptyMap()
 
   private fun getPreviewFiles(): Set<File> = importingAsset
     .sortedBy { it.targetFolderName }
-    .map { File(resDirectory, it.targetRelativePath) }
+    .map { File(absoluteResDirPath, it.targetRelativePath) }
     .toSet()
+
+  /**
+   * Returns a [ProposedFileTreeModel] to be used in a [javax.swing.JTree]
+   * using a [com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer].
+   */
+  var fileTreeModel: ProposedFileTreeModel = ProposedFileTreeModel(absoluteResDirPath, getPreviewFiles())
+
+  private fun updateIntermediateAssets() {
+    importingAsset = designAssetImporter.toIntermediateAssets(assetSetsToImport)
+    targetToSource = importingAsset.associate { it.targetRelativePath to it.intermediateFile }
+    fileTreeModel = ProposedFileTreeModel(absoluteResDirPath, getPreviewFiles())
+    updateCallback()
+  }
 
   /**
    * Returns a [CompletableFuture] providing a [Icon] of the [selectedFile]
@@ -95,7 +131,7 @@ class SummaryScreenViewModel(private val designAssetImporter: DesignAssetImporte
    */
   fun getPreview(): CompletableFuture<Icon> {
     val selectedFile = selectedFile ?: return CompletableFuture.completedFuture(null)
-    val path = FileUtil.getRelativePath(resDirectory, selectedFile.path, File.separatorChar)
+    val path = FileUtil.getRelativePath(absoluteResDirPath, selectedFile)
     val virtualFile = targetToSource[path]
                       ?: return CompletableFuture.completedFuture(IconUtil.getEmptyIcon(true))
     return rendererManager
@@ -108,20 +144,29 @@ class SummaryScreenViewModel(private val designAssetImporter: DesignAssetImporte
    * Import the assets in [assetSetsToImport] into the project.
    */
   fun doImport() {
-    designAssetImporter.importDesignAssets(assetSetsToImport, facet)
+    designAssetImporter.importDesignAssets(assetSetsToImport, facet, absoluteResDirPath)
   }
 
   /**
-   * Returns a [ProposedFileTreeModel] to be used in a [javax.swing.JTree]
-   * using a [com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer].
+   * Returns the metadata to display to the user for the provided [selectedFile].
+   * @see VirtualFile.getMetadata
    */
-  fun getFileTreeModel(): ProposedFileTreeModel {
-    return ProposedFileTreeModel(File(resDirectory), getPreviewFiles())
-  }
-
   private fun getMetadata(selectedFile: File): Map<String, String> {
-    val path = FileUtil.getRelativePath(resDirectory, selectedFile.path, File.separatorChar)
+    val path = FileUtil.getRelativePath(absoluteResDirPath, selectedFile)
     val sourceFile = targetToSource[path] ?: return emptyMap()
     return sourceFile.getMetadata().mapKeys { it.key.metadataName }
+  }
+
+  /**
+   * Returns the path relative from the current module if [absolutePath] is
+   * within the module otherwise returns the absolutePath
+   **/
+  fun getUserFormattedPath(absolutePath: File): String {
+    val moduleDirPath = ModuleUtil.getModuleDirPath(facet.module)
+    if(FileUtil.isAncestor(moduleDirPath, absolutePath.path, false)) {
+      return absolutePath.relativeTo(File(moduleDirPath)).path
+    } else {
+      return absolutePath.path
+    }
   }
 }
