@@ -72,8 +72,8 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
   @NotNull
   int[] getSelectedModelRowIndices() {
     return Arrays.stream(getSelectedRows())
-                 .map(this::convertRowIndexToModel)
-                 .toArray();
+      .map(this::convertRowIndexToModel)
+      .toArray();
   }
 
   @NotNull
@@ -81,9 +81,9 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
     SubTableModel model = (SubTableModel)getModel();
 
     return Arrays.stream(getSelectedColumns())
-                 .map(this::convertColumnIndexToModel)
-                 .map(model::convertColumnIndexToDelegate)
-                 .toArray();
+      .map(this::convertColumnIndexToModel)
+      .map(model::convertColumnIndexToDelegate)
+      .toArray();
   }
 
   @NotNull
@@ -121,11 +121,11 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
     SubTableModel model = (SubTableModel)getModel();
 
     IntStream.range(0, dataModel.getColumnCount())
-             .map(model::convertColumnIndexToDelegate)
-             .filter(myFrozenColumnTable::includeColumn)
-             .map(model::convertColumnIndexToModel)
-             .mapToObj(modelColumnIndex -> getOrCreateColumn(map, modelColumnIndex, model))
-             .forEach(this::addColumn);
+      .map(model::convertColumnIndexToDelegate)
+      .filter(myFrozenColumnTable::includeColumn)
+      .map(model::convertColumnIndexToModel)
+      .mapToObj(modelColumnIndex -> getOrCreateColumn(map, modelColumnIndex, model))
+      .forEach(this::addColumn);
   }
 
   @NotNull

@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import org.jetbrains.annotations.NotNull;
-
+import java.util.function.IntSupplier;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
-import java.util.function.IntSupplier;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A view into a range of the delegate table's columns.
@@ -66,11 +65,6 @@ final class SubTableModel implements TableModel {
 
   boolean contains(int delegateColumnIndex) {
     return myStartColumnSupplier.getAsInt() <= delegateColumnIndex && delegateColumnIndex < myEndColumnSupplier.getAsInt();
-  }
-
-  @NotNull
-  TableModel delegate() {
-    return myDelegate;
   }
 
   @NotNull
