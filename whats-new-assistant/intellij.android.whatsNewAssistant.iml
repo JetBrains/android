@@ -13,7 +13,6 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="com.android.tools:repository" level="project" />
     <orderEntry type="library" name="com.android.tools.analytics-library:tracker" level="project" />
