@@ -26,10 +26,11 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
@@ -37,6 +38,7 @@ import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -60,6 +62,29 @@ import org.junit.runners.Parameterized.Parameters;
 
 
 public class LiveAllocationCaptureObjectTest {
+
+  // A fake symbolizer so that JNI reference instance objects have proper app+system callstacks.
+  @NotNull private static final NativeFrameSymbolizer FAKE_SYMBOLIZER = new NativeFrameSymbolizer() {
+    @NotNull
+    @Override
+    public Memory.NativeCallStack.NativeFrame symbolize(String abi, Memory.NativeCallStack.NativeFrame unsymbolizedFrame) {
+      long address = unsymbolizedFrame.getAddress();
+
+      // System frame.
+      if (address == ProfilersTestData.SYSTEM_NATIVE_ADDRESSES_BASE) {
+        return unsymbolizedFrame.toBuilder().setModuleName(ProfilersTestData.FAKE_SYSTEM_NATIVE_MODULE).build();
+      }
+      else {
+        int index = (int)((address - ProfilersTestData.NATIVE_ADDRESSES_BASE) % ProfilersTestData.FAKE_NATIVE_FUNCTION_NAMES.size());
+        return unsymbolizedFrame.toBuilder()
+          .setModuleName(ProfilersTestData.FAKE_NATIVE_MODULE_NAMES.get(index))
+          .setSymbolName(ProfilersTestData.FAKE_NATIVE_FUNCTION_NAMES.get(index))
+          .setFileName(ProfilersTestData.FAKE_NATIVE_SOURCE_FILE.get(index))
+          .build();
+      }
+    }
+  };
+
   @NotNull private final FakeTimer myTimer = new FakeTimer();
   @NotNull protected final FakeMemoryService myService = new FakeMemoryService();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LiveAllocationCaptureObjectTest",
@@ -78,6 +103,7 @@ public class LiveAllocationCaptureObjectTest {
 
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
+    myIdeProfilerServices.setNativeFrameSymbolizer(FAKE_SYMBOLIZER);
     myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer));
   }
 

@@ -17,7 +17,7 @@ package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.Symbol;
-import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
+import com.android.tools.profiler.proto.Memory.NativeCallStack;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.IOException;
