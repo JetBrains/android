@@ -370,9 +370,8 @@ public class AndroidGradleTests {
   public static void importProject(@NotNull Project project, GradleSyncInvoker.Request syncRequest) {
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
-      Project newProject = GradleProjectImporter.getInstance().importProjectNoSync(project.getName(), getBaseDirPath(project), request);
-
-      return syncProject(newProject, syncRequest);
+      GradleProjectImporter.getInstance().importProjectNoSync(request);
+      return syncProject(project, syncRequest);
     });
 
     AndroidGradleTests.checkSyncStatus(syncListener);
