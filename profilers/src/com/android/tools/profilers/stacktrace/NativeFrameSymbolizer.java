@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.stacktrace;
 
-import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
+import com.android.tools.profiler.proto.Memory.NativeCallStack;
 import org.jetbrains.annotations.NotNull;
 
 /**

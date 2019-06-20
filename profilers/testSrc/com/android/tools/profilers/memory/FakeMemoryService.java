@@ -52,8 +52,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
-import com.android.tools.profiler.proto.MemoryProfiler.ResolveNativeBacktraceRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
@@ -62,6 +60,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.ProfilersTestData;
 import io.grpc.stub.StreamObserver;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -95,30 +94,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   );
   // Difference between object tag and JNI reference value.
   private static final long JNI_REF_BASE = 0x50000000;
-
-  private static final Long NATIVE_ADDRESSES_BASE = 0xBAADF00Dl;
-  private static final List<String> NATIVE_FUNCTION_NAMES = Arrays.asList(
-    "NativeNamespace::Foo::FooMethodA(string, int)",
-    "NativeNamespace::Bar::BarMethodA(string, int)",
-    "NativeNamespace::Foo::FooMethodB(string, int)",
-    "NativeNamespace::Bar::BarMethodB(string, int)"
-  );
-
-  private static final List<String> NATIVE_SOURCE_FILE = Arrays.asList(
-    "/a/path/to/sources/foo.cc",
-    "/a/path/to/sources/bar.cc",
-    "/a/path/to/sources/foo.h",
-    "/a/path/to/sources/bar.h"
-  );
-
-  private static final List<String> NATIVE_MODULE_NAMES = Arrays.asList(
-    "/data/app/com.example.sum-000==/lib/arm64/libfoo.so",
-    "/data/app/com.example.sum-000==/lib/arm/libbar.so",
-    "/data/app/com.example.sum-000==/lib/x86/libfoo.so",
-    "/data/app/com.example.sum-000==/lib/x86_64/libbar.so"
-  );
-
-  private static final String SYSTEM_NATIVE_MODULE = "/system/lib64/libnativewindow.so";
 
   private Status myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
@@ -256,7 +231,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void getAllocationEvents(AllocationSnapshotRequest request,
                                   StreamObserver<MemoryProfiler.AllocationEventsResponse> responseObserver) {
-    BatchAllocationEvents events = getAllocationSample(request.getStartTime(), request.getEndTime());
+    BatchAllocationEvents events = getAllocationSample(request.getEndTime());
     responseObserver.onNext(MemoryProfiler.AllocationEventsResponse.newBuilder().addEvents(events).build());
     responseObserver.onCompleted();
   }
@@ -276,7 +251,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
    * {5s,7s}, tag = 5, class tag = 2, stack id = 2
    */
   @NotNull
-  private static BatchAllocationEvents getAllocationSample(long startTime, long endTime) {
+  private static BatchAllocationEvents getAllocationSample(long endTime) {
     BatchAllocationEvents.Builder sampleBuilder = BatchAllocationEvents.newBuilder();
     for (long i = 0; i < endTime; i += SEC_TO_NS) {
       int tag = (int)(i / SEC_TO_NS);
@@ -306,108 +281,54 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   @Override
   public void getJNIGlobalRefsEvents(JNIGlobalRefsEventsRequest request,
-                                     StreamObserver<BatchJNIGlobalRefEvent> responseObserver) {
+                                     StreamObserver<MemoryProfiler.JNIGlobalRefsEventsResponse> responseObserver) {
     // Just add JNI references for all allocated object from the same interval.
-    boolean liveObjectsOnly = request.getLiveObjectsOnly();
-    BatchAllocationEvents allocationSample = getAllocationSample(request.getStartTime(), request.getEndTime());
+    BatchAllocationEvents allocationSample = getAllocationSample(request.getEndTime());
 
-    Iterator<AllocationEvent> allocations;
-    if (liveObjectsOnly) {
-      // Only look at objects that are still alive at request end time.
-      // Instances that are allocated before (request.getEndTime() - ALLOC_EVENT_DURATION_NS) would have already been deallocated.
-      allocations = allocationSample.getEventsList().stream()
-        .filter(evt -> evt.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA &&
-                       evt.getTimestamp() >= request.getEndTime() - ALLOC_EVENT_DURATION_NS)
-        .iterator();
-    }
-    else {
-      // Consider all allocations that happen between (request.getStartTime() - ALLOC_EVENT_DURATION_NS) and request.getEndTime
-      // We need the additional allocation events before the start time because their info is needed to generate the deallocation events.
-      allocations = allocationSample.getEventsList().stream()
-        .filter(evt -> evt.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA &&
-                       (evt.getTimestamp() >= request.getStartTime() - ALLOC_EVENT_DURATION_NS &&
-                        evt.getTimestamp() < request.getEndTime()))
-        .iterator();
-    }
-
+    Iterator<AllocationEvent> allocations = allocationSample.getEventsList().stream()
+      .filter(evt -> evt.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA)
+      .iterator();
     BatchJNIGlobalRefEvent.Builder result = BatchJNIGlobalRefEvent.newBuilder();
     while (allocations.hasNext()) {
       AllocationEvent event = allocations.next();
       AllocationEvent.Allocation allocation = event.getAllocData();
-      if (liveObjectsOnly) {
-        JNIGlobalReferenceEvent.Builder jniEvent = JNIGlobalReferenceEvent.newBuilder()
-          .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
+
+      // A global ref creation event that matches the allocation time of the object.
+      JNIGlobalReferenceEvent.Builder createEvent = JNIGlobalReferenceEvent.newBuilder()
+        .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
+        .setObjectTag(allocation.getTag())
+        .setRefValue(allocation.getTag() + JNI_REF_BASE)
+        .setThreadId(allocation.getThreadId())
+        .setTimestamp(event.getTimestamp())
+        .setBacktrace(createBacktrace(allocation.getTag()));
+      result.addEvents(createEvent);
+
+      // A global ref deletion event that matches the deallocation time of the object (e.g. allocation time + ALLOC_EVENT_DURATION_NS)
+      if (event.getTimestamp() < request.getEndTime() - ALLOC_EVENT_DURATION_NS) {
+        JNIGlobalReferenceEvent.Builder deleteEvent = JNIGlobalReferenceEvent.newBuilder()
+          .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
           .setObjectTag(allocation.getTag())
           .setRefValue(allocation.getTag() + JNI_REF_BASE)
           .setThreadId(allocation.getThreadId())
-          .setTimestamp(event.getTimestamp())
+          .setTimestamp(event.getTimestamp() + ALLOC_EVENT_DURATION_NS)
           .setBacktrace(createBacktrace(allocation.getTag()));
-        result.addEvents(jniEvent);
-      }
-      else {
-        if (event.getTimestamp() < request.getEndTime() - ALLOC_EVENT_DURATION_NS) {
-          JNIGlobalReferenceEvent.Builder jniEvent = JNIGlobalReferenceEvent.newBuilder()
-            .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
-            .setObjectTag(allocation.getTag())
-            .setRefValue(allocation.getTag() + JNI_REF_BASE)
-            .setThreadId(allocation.getThreadId())
-            .setTimestamp(event.getTimestamp())
-            .setBacktrace(createBacktrace(allocation.getTag()));
-          result.addEvents(jniEvent);
-        }
-
-        if (event.getTimestamp() >= request.getStartTime()) {
-          JNIGlobalReferenceEvent.Builder jniEvent = JNIGlobalReferenceEvent.newBuilder()
-            .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
-            .setObjectTag(allocation.getTag())
-            .setRefValue(allocation.getTag() + JNI_REF_BASE)
-            .setThreadId(allocation.getThreadId())
-            .setTimestamp(event.getTimestamp())
-            .setBacktrace(createBacktrace(allocation.getTag()));
-          result.addEvents(jniEvent);
-        }
+        result.addEvents(deleteEvent);
       }
     }
 
     result.setTimestamp(request.getEndTime());
-    responseObserver.onNext(result.build());
+    responseObserver.onNext(MemoryProfiler.JNIGlobalRefsEventsResponse.newBuilder().addEvents(result.build()).build());
     responseObserver.onCompleted();
   }
 
   private static NativeBacktrace createBacktrace(int objTag) {
     NativeBacktrace.Builder result = NativeBacktrace.newBuilder();
-    result.addAddresses(NATIVE_ADDRESSES_BASE + objTag);
-    result.addAddresses(NATIVE_ADDRESSES_BASE + objTag + 1);
+    result.addAddresses(ProfilersTestData.NATIVE_ADDRESSES_BASE + objTag);
+    result.addAddresses(ProfilersTestData.NATIVE_ADDRESSES_BASE + objTag + 1);
+
+    // Add an extra address representing a system module to check that such frames are ignored.
+    result.addAddresses(ProfilersTestData.SYSTEM_NATIVE_ADDRESSES_BASE);
     return result.build();
-  }
-
-  @Override
-  public void resolveNativeBacktrace(ResolveNativeBacktraceRequest request,
-                                     StreamObserver<NativeCallStack> responseObserver) {
-    NativeCallStack.Builder result = NativeCallStack.newBuilder();
-    for (long addr : request.getBacktrace().getAddressesList()) {
-      int index = (int)(addr - NATIVE_ADDRESSES_BASE) % ALLOC_CONTEXT_NUM;
-      result.addFramesBuilder()
-        .setModuleName(NATIVE_MODULE_NAMES.get(index))
-        .setSymbolName(NATIVE_FUNCTION_NAMES.get(index))
-        .setFileName(NATIVE_SOURCE_FILE.get(index))
-        .setAddress(addr)
-        .setLineNumber(index + 100)
-        .setModuleOffset(addr);
-    }
-
-    /* Add an extra frame from a system module to check that such frames are ignored */
-    result.addFramesBuilder()
-      .setModuleName(SYSTEM_NATIVE_MODULE)
-      .setSymbolName("system_symbol_name()")
-      .setFileName("/path/android.cc")
-      // Set address as base - 1 to avoid conflicting with the addresses used in createBacktrace above.
-      .setAddress(NATIVE_ADDRESSES_BASE - 1)
-      .setLineNumber(1)
-      .setModuleOffset(NATIVE_ADDRESSES_BASE);
-
-    responseObserver.onNext(result.build());
-    responseObserver.onCompleted();
   }
 
   /**
