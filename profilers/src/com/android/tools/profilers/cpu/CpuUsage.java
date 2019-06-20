@@ -45,10 +45,10 @@ public class CpuUsage extends LineChartModel {
         profilers.getSession().getPid(),
         Common.Event.Kind.CPU_USAGE,
         profilers.getSession().getPid(),
-        events -> extractData(events.stream().map(event -> event.getCpuUsage()).collect(Collectors.toList()), false));
+        events -> extractData(events, false));
     }
     else {
-      series = new CpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), false);
+      series = new LegacyCpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), false);
     }
     myCpuSeries = new RangedContinuousSeries(getCpuSeriesLabel(), profilers.getTimeline().getViewRange(), myCpuRange, series,
                                              profilers.getTimeline().getDataRange());
@@ -70,18 +70,19 @@ public class CpuUsage extends LineChartModel {
   }
 
   /**
-   * Extracts CPU usage percentage data from a list of {@link Cpu.CpuUsageData}.
+   * Extracts CPU usage percentage data from a list of {@link Common.Event}.
    *
    * @return a list of SeriesData containing CPU usage percentage.
    */
-  protected static List<SeriesData<Long>> extractData(List<Cpu.CpuUsageData> dataList, boolean isOtherProcess) {
+  protected static List<SeriesData<Long>> extractData(List<Common.Event> dataList, boolean isOtherProcess) {
     return IntStream.range(0, dataList.size() - 1)
       // Calculate CPU usage percentage from two adjacent CPU usage data.
-      .mapToObj(index -> getCpuUsageData(dataList.get(index), dataList.get(index + 1), isOtherProcess))
+      .mapToObj(index -> getCpuUsageData(dataList.get(index).getCpuUsage(), dataList.get(index + 1).getCpuUsage(), isOtherProcess))
       .collect(Collectors.toList());
   }
 
-  private static SeriesData<Long> getCpuUsageData(Cpu.CpuUsageData prevData, Cpu.CpuUsageData data, boolean isOtherProcess) {
+  // TODO: make private after LegacyCpuUsageDataSeries is deprecated.
+  protected static SeriesData<Long> getCpuUsageData(Cpu.CpuUsageData prevData, Cpu.CpuUsageData data, boolean isOtherProcess) {
     long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getEndTimestamp());
     long elapsed = (data.getElapsedTimeInMillisec() - prevData.getElapsedTimeInMillisec());
     // TODO: consider using raw data instead of percentage to improve efficiency.
