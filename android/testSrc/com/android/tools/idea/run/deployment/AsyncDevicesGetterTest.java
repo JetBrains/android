@@ -35,18 +35,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public final class WorkerAsyncDevicesGetterTest {
+public final class AsyncDevicesGetterTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
-  private WorkerAsyncDevicesGetter myGetter;
+  private AsyncDevicesGetter myGetter;
 
   @Before
   public void setUp() {
     Clock clock = Mockito.mock(Clock.class);
     Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
 
-    myGetter = new WorkerAsyncDevicesGetter(myRule.getProject(), new KeyToConnectionTimeMap(clock));
+    myGetter = new AsyncDevicesGetter(myRule.getProject(), new KeyToConnectionTimeMap(clock));
   }
 
   @Test
@@ -95,7 +95,6 @@ public final class WorkerAsyncDevicesGetterTest {
       .setKey("Pixel_3_API_Q")
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
       .setAndroidDevice(pixel3ApiQAndroidDevice)
-      .setConnected(true)
       .build();
 
     Object expectedGooglePixel3Device = new PhysicalDevice.Builder()
@@ -125,7 +124,7 @@ public final class WorkerAsyncDevicesGetterTest {
     RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
     Mockito.when(configurationAndSettings.getConfiguration()).thenReturn(configuration);
 
-    myGetter.initChecker(configurationAndSettings, WorkerAsyncDevicesGetterTest::newAndroidFacet);
+    myGetter.initChecker(configurationAndSettings, AsyncDevicesGetterTest::newAndroidFacet);
     assertNull(myGetter.getChecker());
   }
 

@@ -16,11 +16,12 @@
 package com.android.tools.idea.tests.gui.framework.fixture.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.run.deployment.AsyncDevicesGetter;
 import com.android.tools.idea.run.deployment.Device;
+import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction;
 import com.android.tools.idea.tests.gui.framework.fixture.ComboBoxActionFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
@@ -77,8 +78,9 @@ public final class DeviceSelectorFixture {
   private boolean anyDeviceNameMatches(@NotNull String deviceName) {
     return GuiQuery.get(() -> {
       myToolbar.updateActionsImmediately();
+      ActionManager manager = ActionManager.getInstance();
 
-      return AsyncDevicesGetter.getService(myProject).get().stream()
+      return ((DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox")).getDevices(myProject).stream()
         .map(Device::getName)
         .anyMatch(name -> name.equals(deviceName));
     });
