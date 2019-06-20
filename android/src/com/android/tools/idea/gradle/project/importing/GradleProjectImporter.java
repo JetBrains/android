@@ -185,7 +185,7 @@ public class GradleProjectImporter {
       this.project = null;
     }
 
-    public Request(@Nullable Project project) {
+    public Request(@NotNull Project project) {
       this.project = project;
     }
   }
