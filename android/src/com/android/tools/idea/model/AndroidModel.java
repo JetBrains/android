@@ -16,18 +16,14 @@
 package com.android.tools.idea.model;
 
 import com.android.builder.model.AaptOptions;
-import com.android.builder.model.SourceProvider;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.databinding.DataBindingMode;
-import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -130,12 +126,6 @@ public interface AndroidModel {
    * @return {@code true} if the given file or directory is generated; {@code false} otherwise.
    */
   boolean isGenerated(@NotNull VirtualFile file);
-
-  /**
-   * @return Whether data binding is enabled for this model and whether it is support or X versions.
-   */
-  @NotNull
-  DataBindingMode getDataBindingMode();
 
   /**
    * @return A provider for finding .class output files and external .jars.

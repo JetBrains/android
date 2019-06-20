@@ -126,7 +126,6 @@ fun AndroidModuleModel.format(): String = "\n" + """
     artifactForAndroidTest = ${artifactForAndroidTest?.format()}
     testExecutionStrategy = $testExecutionStrategy
     flavorSourceProviders = ${flavorSourceProviders.format()}
-    dataBindingMode = $dataBindingMode
     classJarProvider = $classJarProvider
     namespacing = $namespacing
     desugaring = $desugaring
