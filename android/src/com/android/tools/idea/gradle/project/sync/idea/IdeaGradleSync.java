@@ -52,7 +52,6 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.registerAsNewProject;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.areCachedFilesMissing;
 import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isCompoundSync;
@@ -89,10 +88,6 @@ public class IdeaGradleSync implements GradleSync {
 
   @Override
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
-    if (myProjectInfo.isNewProject()) {
-      registerAsNewProject(myProject);
-    }
-
     if (SYNC_WITH_CACHED_MODEL_ONLY || request.useCachedGradleModels) {
       ProjectBuildFileChecksums buildFileChecksums = ProjectBuildFileChecksums.findFor((myProject));
       if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
