@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.uibuilder.layeredimage;
+package com.android.tools.idea.editors.layeredimage;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.editor.NlAbstractWindowManager;
