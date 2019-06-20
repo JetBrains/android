@@ -35,8 +35,11 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.execution.ui.RunContentManager;
+import com.intellij.execution.ui.RunContentManagerImpl;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.ui.content.Content;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -146,10 +149,20 @@ public class AndroidRunState implements RunProfileState {
         // Destroy the previous content and detach the previous process handler so that we don't end up with 2 run tabs
         // for the same launch (the existing one and the new one).
         if (previousDescriptor != null) {
-          if (!manager.removeRunContent(executor, previousDescriptor)) {
-            // In case there's an existing handler, it could pop up a dialog prompting the user to confirm. If the user
-            // cancels, removeRunContent will return false. In such case, stop the run.
-            return null;
+          Content previousContent = previousDescriptor.getAttachedContent();
+          if (previousContent == null) {
+            Logger.getInstance(AndroidRunState.class).warn("Descriptor without content.");
+          }
+          else {
+            Executor previousExecutor = RunContentManagerImpl.getExecutorByContent(previousContent);
+            if (previousExecutor == null) {
+              Logger.getInstance(AndroidRunState.class).warn("No executor found for content");
+            }
+            else if (!manager.removeRunContent(previousExecutor, previousDescriptor)) {
+              // In case there's an existing handler, it could pop up a dialog prompting the user to confirm. If the user
+              // cancels, removeRunContent will return false. In such case, stop the run.
+              return null;
+            }
           }
         }
         previousSessionProcessHandler.detachProcess();
