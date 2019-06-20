@@ -176,7 +176,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
       if (myCreateProject) {
         GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
         request.isNewProject = true;
-        importer.importProjectNoSync(project.getName(), destDir, request);
+        importer.importProjectNoSync(request);
       }
       else {
         GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_IMPORT_ADT_MODULE, syncListener);
