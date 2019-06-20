@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.GRADLE_EXECUTION_ERRORS;
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.finishFailedSync;
+import static com.android.tools.idea.gradle.util.GradleProjects.open;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -36,14 +42,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.unregisterAsNewProject;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.GRADLE_EXECUTION_ERRORS;
-import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.finishFailedSync;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleProjects.open;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   @NotNull private final Project myProject;
@@ -63,8 +61,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   public void onSuccess(@NotNull ExternalSystemTaskId taskId,
                         @Nullable DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
-    unregisterAsNewProject(myProject);
-
     if (mySyncListener != null) {
       mySyncListener.setupStarted(myProject);
     }
@@ -110,7 +106,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     if (errorMessage.contains(ExternalSystemBundle.message("error.resolve.already.running", ""))) {
       return;
     }
-    unregisterAsNewProject(myProject);
 
     // Initialize the "Gradle Sync" tool window, otherwise any sync errors will not be displayed to the user.
     invokeAndWaitIfNeeded((Runnable)() -> {
