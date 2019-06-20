@@ -60,10 +60,12 @@ final class SubTableModel implements TableModel {
    * Maps the index of the column in the delegate to the index of the column in this model.
    */
   int convertColumnIndexToModel(int delegateColumnIndex) {
-    int startDelegateColumnIndex = myStartColumnSupplier.getAsInt();
+    assert contains(delegateColumnIndex);
+    return delegateColumnIndex - myStartColumnSupplier.getAsInt();
+  }
 
-    assert startDelegateColumnIndex <= delegateColumnIndex && delegateColumnIndex < myEndColumnSupplier.getAsInt();
-    return delegateColumnIndex - startDelegateColumnIndex;
+  boolean contains(int delegateColumnIndex) {
+    return myStartColumnSupplier.getAsInt() <= delegateColumnIndex && delegateColumnIndex < myEndColumnSupplier.getAsInt();
   }
 
   @NotNull
