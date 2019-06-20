@@ -477,7 +477,7 @@ public class NewProjectModel extends WizardModel {
         request.javaLanguageLevel = initialLanguageLevel;
 
         // "Import project" opens the project and thus automatically triggers sync.
-        GradleProjectImporter.getInstance().importProjectNoSync(applicationName().get(), rootLocation, request);
+        GradleProjectImporter.getInstance().importProjectNoSync(request);
       }
       catch (IOException e) {
         Messages.showErrorDialog(e.getMessage(), message("android.wizard.project.create.error"));
