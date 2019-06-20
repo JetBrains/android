@@ -16,12 +16,7 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.util.ToolWindows.activateProjectView;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
-import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
-import static com.intellij.ide.impl.ProjectUtil.getBaseDir;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
-import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ExceptionUtil.rethrowUnchecked;
@@ -29,13 +24,11 @@ import static com.intellij.util.ExceptionUtil.rethrowUnchecked;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -85,22 +78,6 @@ public class GradleProjectImporter {
   }
 
   /**
-   * Imports the given Gradle project.
-   *
-   * @param selectedFile the selected build.gradle or the project's root directory.
-   */
-  @Nullable
-  public Project importProject(@NotNull VirtualFile selectedFile) {
-    VirtualFile projectFolder = findProjectFolder(selectedFile);
-    Project newProject = importProjectCore(projectFolder);
-    if (newProject != null) {
-      GradleProjectInfo.getInstance(newProject).setSkipStartupActivity(true);
-      myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, createNewProjectListener(projectFolder));
-    }
-    return newProject;
-  }
-
-  /**
    * Ensures presence of the top level Gradle build file and the .idea directory and, additionally, performs cleanup of the libraries
    * storage to force their re-import.
    */
@@ -124,11 +101,6 @@ public class GradleProjectImporter {
     return newProject;
   }
 
-  @NotNull
-  private static VirtualFile findProjectFolder(@NotNull VirtualFile selectedFile) {
-    return selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
-  }
-
   private void setUpLocalProperties(@NotNull File projectFolderPath) throws IOException {
     try {
       LocalProperties localProperties = new LocalProperties(projectFolderPath);
@@ -146,20 +118,6 @@ public class GradleProjectImporter {
   @NotNull
   private Logger getLogger() {
     return Logger.getInstance(getClass());
-  }
-
-  @NotNull
-  private static GradleSyncListener createNewProjectListener(@NotNull VirtualFile projectFolder) {
-    return new GradleSyncListener() {
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-        TransactionGuard.getInstance().submitTransactionLater(project, () -> {
-          setLastOpenedFile(project, projectFolder);
-          focusProjectWindow(project, false);
-          activateProjectView(project);
-        });
-      }
-    };
   }
 
   @NotNull
