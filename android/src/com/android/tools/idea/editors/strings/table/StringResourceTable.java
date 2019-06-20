@@ -120,7 +120,7 @@ public final class StringResourceTable extends FrozenColumnTable<StringResourceT
     }
 
     IntStream.range(0, getColumnCount())
-             .forEach(viewColumnIndex -> getColumn(viewColumnIndex).setPreferredWidth(getPreferredColumnWidth(viewColumnIndex)));
+      .forEach(viewColumnIndex -> getColumn(viewColumnIndex).setPreferredWidth(getPreferredColumnWidth(viewColumnIndex)));
 
     myColumnPreferredWidthsSet = true;
   }
@@ -129,8 +129,8 @@ public final class StringResourceTable extends FrozenColumnTable<StringResourceT
     int headerWidth = getPreferredHeaderWidth(viewColumnIndex);
 
     OptionalInt optionalMaxCellWidth = IntStream.range(0, getRowCount())
-                                                .map(viewRowIndex -> getPreferredCellWidth(viewRowIndex, viewColumnIndex))
-                                                .max();
+      .map(viewRowIndex -> getPreferredCellWidth(viewRowIndex, viewColumnIndex))
+      .max();
 
     int minColumnWidth = JBUI.scale(20);
     int columnWidth = Math.max(headerWidth, optionalMaxCellWidth.orElse(minColumnWidth));
@@ -175,7 +175,7 @@ public final class StringResourceTable extends FrozenColumnTable<StringResourceT
   }
 
   static class ThreeStateTableRowSorter<M extends TableModel> extends TableRowSorter<M> {
-    public ThreeStateTableRowSorter(M model) {
+    private ThreeStateTableRowSorter(M model) {
       super(model);
     }
 

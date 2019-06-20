@@ -472,14 +472,6 @@ public class FrozenColumnTable<M extends TableModel> {
     myScrollableTable.setDefaultRenderer(c, renderer);
   }
 
-  @Nullable
-  public final TableCellEditor getDefaultEditor(@NotNull Class<?> c) {
-    TableCellEditor editor = myFrozenTable.getDefaultEditor(c);
-    assert editor == myScrollableTable.getDefaultEditor(c);
-
-    return editor;
-  }
-
   final void setDefaultEditor(@NotNull @SuppressWarnings("SameParameterValue") Class<?> c, @NotNull TableCellEditor editor) {
     myFrozenTable.setDefaultEditor(c, editor);
     myScrollableTable.setDefaultEditor(c, editor);
