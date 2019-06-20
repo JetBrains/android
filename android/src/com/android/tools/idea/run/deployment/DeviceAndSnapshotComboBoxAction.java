@@ -147,8 +147,11 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @NotNull
-  private List<Device> getDevices(@NotNull Project project) {
-    return myDevicesGetterGetter.apply(project).get();
+  public List<Device> getDevices(@NotNull Project project) {
+    List<Device> devices = myDevicesGetterGetter.apply(project).get();
+    devices.sort(new DeviceComparator());
+
+    return devices;
   }
 
   @Nullable
