@@ -400,7 +400,9 @@ public class GradleFileSimpleMerger {
 
       Ast first = other;
       Ast similar = other.find(myId);
-      if (similar instanceof AstNode) {
+      // Excluding the case myId equals "apply" because the apply plugin syntax
+      // expects one line per plugin instead of being merged.
+      if (similar instanceof AstNode && !myId.equals(APPLY)) {
         first = other.remove(similar);
         AstNode node = (AstNode) similar;
         if (myParam == null) {
@@ -413,15 +415,29 @@ public class GradleFileSimpleMerger {
           myParam.merge(context, node.myParam);
         }
       }
+      else if (isInsertionPositionForApplyPlugin(other)) {
+        insertApplyPlugin((AstNode) other);
+        return;
+      }
       else if (similar != null) {
         getLogger().warn("Cannot merge AstNode with a non AstNode");
       }
+
       if (myNext != null && first != null) {
         myNext.merge(context, first);
       }
       else if (first != null) {
         myNext = first;
       }
+    }
+
+    private boolean isInsertionPositionForApplyPlugin(@NotNull Ast other) {
+      return myNext != null &&
+               myNext.myId != null &&
+               myNext.myId.equals(ANDROID) &&
+               other.myId != null &&
+               other.myId.equals(APPLY) &&
+               this != other;
     }
 
     @Override
@@ -477,6 +493,14 @@ public class GradleFileSimpleMerger {
         prev = node;
         node.myNext = null;
       }
+    }
+
+    private void insertApplyPlugin(@NotNull AstNode other) {
+      assert myId != null && myId.equals(APPLY);
+      assert myNext != null && myNext.myId != null && myNext.myId.equals(ANDROID);
+      assert other.myId != null && other.myId.equals(APPLY);
+      other.myNext = myNext;
+      myNext = other;
     }
 
     /**

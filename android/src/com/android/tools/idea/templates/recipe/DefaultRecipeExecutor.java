@@ -145,7 +145,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     // The attempt above to add the plugin using the GradleBuildModel failed, now attempt to add the plugin by appending the string.
     String destinationContents = buildFile.exists() ? nullToEmpty(readTextFile(buildFile)) : "";
     String applyPluginStatement = "apply plugin: '" + name + "'";
-    String result = destinationContents.isEmpty() ? applyPluginStatement : destinationContents + LINE_SEPARATOR + applyPluginStatement;
+    String result = myIO.mergeBuildFiles(applyPluginStatement, destinationContents, project, "");
     try {
       myIO.writeFile(this, result, buildFile);
     }
