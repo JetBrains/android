@@ -77,7 +77,7 @@ public class AndroidGradleProjectImportProvider extends ProjectImportProvider {
                                ModifiableModuleModel model,
                                ModulesProvider modulesProvider,
                                ModifiableArtifactModel artifactModel) {
-      GradleProjectImporter.getInstance().importProject(project.getBaseDir());
+      GradleProjectImporter.getInstance().importProjectCore(project.getBaseDir());
       return Collections.emptyList();
     }
   }

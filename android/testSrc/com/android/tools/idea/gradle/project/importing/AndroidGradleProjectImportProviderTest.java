@@ -43,6 +43,6 @@ public class AndroidGradleProjectImportProviderTest extends IdeaTestCase {
                                                          .collect(Collectors.toList());
     assertSize(1, androidProviders);
     androidProviders.get(0).getBuilder().commit(getProject());
-    verify(mockGradleProjectImporter, times(1)).importProject(eq(getProject().getBaseDir()));
+    verify(mockGradleProjectImporter, times(1)).importProjectCore(eq(getProject().getBaseDir()));
   }
 }
