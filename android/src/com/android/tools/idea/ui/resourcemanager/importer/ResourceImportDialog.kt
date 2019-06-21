@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.ComponentValidator
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.DocumentAdapter
@@ -146,7 +147,11 @@ class ResourceImportDialog(
 
   private fun addWizardSteps() {
     addStep(object : StepAdapter() {
-      override fun _commit(finishChosen: Boolean) = dialogViewModel.commit()
+      override fun _commit(finishChosen: Boolean) {
+        if (doValidateAll().isEmpty()) {
+          dialogViewModel.commit()
+        }
+      }
       override fun getComponent() = root
     })
     addStep(SummaryStep(dialogViewModel.summaryScreenViewModel))
@@ -224,7 +229,11 @@ class ResourceImportDialog(
     }
 
     private fun JTextField.installValidator() {
-      ComponentValidator(disposable).withValidator(Supplier { dialogViewModel.validateName(this.text, this) })
+      ComponentValidator(disposable).withValidator(Supplier {
+        dialogViewModel.validateName(this.text, this).also {
+          updateButtons()
+        }
+      })
         .installOn(this)
         .revalidate()
     }
@@ -312,12 +321,12 @@ class ResourceImportDialog(
   }
 
   override fun canGoNext(): Boolean {
-    return dialogViewModel.assetSets.isNotEmpty()
+    return dialogViewModel.assetSets.isNotEmpty() && doValidateAll().isEmpty()
   }
 
   override fun updateButtons(lastStep: Boolean, canGoNext: Boolean, firstStep: Boolean) {
     super.updateButtons(lastStep, canGoNext, firstStep)
-    if (isLastStep) {
+    if (lastStep) {
       nextButton.text = "Import"
     }
   }
@@ -326,7 +335,11 @@ class ResourceImportDialog(
     return STUDIO_HELP_PREFIX + "studio/write/resource-manager"
   }
 
-  override fun doValidate() = dialogViewModel.getValidationInfo()
+  override fun doValidate(): ValidationInfo? {
+    val result = dialogViewModel.getValidationInfo()
+    setErrorInfoAll(if (result != null) listOf(result) else emptyList())
+    return result
+  }
 
   override fun getValidationThreadToUse(): Alarm.ThreadToUse = Alarm.ThreadToUse.POOLED_THREAD
 
