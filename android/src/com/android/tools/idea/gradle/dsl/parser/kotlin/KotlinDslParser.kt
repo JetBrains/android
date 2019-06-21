@@ -37,6 +37,7 @@ import com.intellij.psi.PsiElement
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
+import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
@@ -55,6 +56,7 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -198,7 +200,20 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         // Then the block should be applied to subprojects.
         referenceName = "subprojects"
       }
-      val blockElement = dslFile.getBlockElement(listOf(referenceName), parent) ?: return
+      val blockElement : GradlePropertiesDslElement
+      // Check if this is a block with a methodCall as name, and get its correct name in such case. Ex: getByName("release") -> release.
+      if (expression.valueArgumentList != null && (expression.valueArgumentList as KtValueArgumentList).arguments.size == 1) {
+        val blockName =
+          (((expression.valueArgumentList as KtValueArgumentList).arguments[0].getArgumentExpression()
+            as KtStringTemplateExpression).entries[0] as KtLiteralStringTemplateEntry).text
+        blockElement = dslFile.getBlockElement(listOf(blockName), parent) ?: return
+        if (blockElement is AbstractFlavorTypeDslElement) {
+          blockElement.setMethodName(referenceName)
+        }
+      }
+      else {
+        blockElement = dslFile.getBlockElement(listOf(referenceName), parent) ?: return
+      }
       blockElements.add(blockElement)
       blockElements.forEach { block ->
         // Visit the children of this element, with the current block set as parent.
