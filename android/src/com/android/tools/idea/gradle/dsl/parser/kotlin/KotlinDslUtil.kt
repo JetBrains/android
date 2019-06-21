@@ -24,17 +24,27 @@ import com.intellij.psi.PsiElement
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 import java.math.BigDecimal
 
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
 internal fun KtCallExpression.isBlockElement() : Boolean {
-  return lambdaArguments.size == 1 && valueArgumentList == null
+  return lambdaArguments.size == 1 && (valueArgumentList == null || (valueArgumentList as KtValueArgumentList).arguments.size < 2)
 }
 
 internal fun KtCallExpression.name() : String? {
   return getCallNameExpression()?.getReferencedName()
+}
+
+/**
+ * Get the block name with the valid syntax in kotlin.
+ * If the block was read from the KTS script, we use the `methodName` to create the block name. Otherwise, if we want to write
+ * the block in the build file for the first time, we use maybeCreate because it tries to create the element only if it doesn't exist.
+ */
+internal fun getOriginalName(methodName : String?, blockName : String): String {
+  return if (methodName != null) "$methodName(\"$blockName\")" else "maybeCreate(\"$blockName\")"
 }
 
 @Throws(IncorrectOperationException::class)
