@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,17 @@ import com.android.tools.idea.templates.TemplateMetadata
 import org.junit.Test
 
 /**
- * Tests for [ChooseActivityTypeStep].
+ * Tests for [ChooseFragmentTypeStep].
  */
-class ChooseActivityTypeStepTest {
+class ChooseFragmentTypeStepTest {
 
-  private val messageKeys = ActivityGalleryStepMessageKeys()
+  private val messageKeys = FragmentGalleryStepMessageKeys()
 
   @Test
   fun testNoTemplateForExistingModule() {
     assertThat(validateTemplate(null, 5, 5,
                                 isNewModule = false, isAndroidxProject = false,
-                                messageKeys = messageKeys)).isEqualTo("No activity template was selected")
+                                messageKeys = messageKeys)).isEqualTo("No fragment template was selected")
   }
 
   @Test
@@ -52,7 +52,7 @@ class ChooseActivityTypeStepTest {
     assertThat(validateTemplate(template, 5, 5,
                                 isNewModule = true, isAndroidxProject = true,
                                 messageKeys = messageKeys))
-      .isEqualTo(message("android.wizard.activity.invalid.min.sdk", 9))
+      .isEqualTo(message("android.wizard.fragment.invalid.min.sdk", 9))
   }
 
   @Test
@@ -63,7 +63,7 @@ class ChooseActivityTypeStepTest {
     assertThat(validateTemplate(template, 5, 5,
                                 isNewModule = true, isAndroidxProject = true,
                                 messageKeys = messageKeys))
-      .isEqualTo(message("android.wizard.activity.invalid.min.build", 9))
+      .isEqualTo(message("android.wizard.fragment.invalid.min.build", 9))
   }
 
   @Test
@@ -74,6 +74,6 @@ class ChooseActivityTypeStepTest {
     assertThat(validateTemplate(template, 5, 5,
                                 isNewModule = false, isAndroidxProject = false,
                                 messageKeys = messageKeys))
-      .isEqualTo(message("android.wizard.activity.invalid.androidx"))
+      .isEqualTo(message("android.wizard.fragment.invalid.androidx"))
   }
 }
