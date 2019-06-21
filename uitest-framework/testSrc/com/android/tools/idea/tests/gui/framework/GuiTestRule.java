@@ -303,6 +303,11 @@ public class GuiTestRule implements TestRule {
 
   public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
     File projectDir = setUpProject(projectDirName);
+    return openProject(projectDir);
+  }
+
+  @NotNull
+  public IdeFrameFixture openProject(@NotNull File projectDir) {
     ApplicationManager.getApplication().invokeAndWait(() -> ProjectUtil.openOrImport(projectDir.getAbsolutePath(), null, true));
 
     Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length != 0);
