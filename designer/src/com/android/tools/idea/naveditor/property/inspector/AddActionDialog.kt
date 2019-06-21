@@ -255,7 +255,7 @@ open class AddActionDialog(
 
   private fun setUpComponents(model: NlModel) {
     val sourceRenderer = object : SimpleListCellRenderer<NlComponent>() {
-      override fun customize(list: JList<out NlComponent>?, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
+      override fun customize(list: JList<out NlComponent>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
         text = value?.uiName ?: "None"
       }
     }
