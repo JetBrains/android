@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.lang.databinding.validation
 
+import com.android.tools.idea.lang.databinding.psi.DbTokenTypes
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbId
+import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterList
+import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaExpression
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbVisitor
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 
 
 /**
@@ -53,6 +57,36 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
    * TODO: (b/135638810) Add additional methods here
    */
   private fun isViewDataBindingMethod(name: String) = name == "safeUnbox"
+
+  private fun toNames(parameters: PsiDbInferredFormalParameterList): List<String> {
+    val nameList = mutableListOf<String>()
+    var node = parameters.firstChild
+    while (node != null) {
+      if (node is LeafPsiElement && node.elementType == DbTokenTypes.IDENTIFIER) {
+        nameList.add(node.text)
+      }
+      node = node.nextSibling
+    }
+    return nameList
+  }
+
+  /**
+   * Returns true if the name is occurred in the lambda expression as a parameter.
+   *
+   * As we can not resolve parameter types for lambda expression, these
+   * parameters should be left unresolved without annotation.
+   */
+  private fun isLambdaParameter(psiElement: PsiElement, name: String): Boolean {
+    var element: PsiElement? = psiElement
+    while (element != null && element !is PsiDbLambdaExpression) {
+      element = element.parent
+    }
+    if (element == null) {
+      return false
+    }
+    val parameters = (element as PsiDbLambdaExpression).lambdaParameters.inferredFormalParameterList ?: return false
+    return toNames(parameters).any { it == name }
+  }
 
   /**
    * Annotates unresolvable [PsiDbId] with "Cannot find identifier" error.
@@ -91,9 +125,13 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
         }
 
         val expr = parent.expr
-        // Whitelist hidden methods for simpleRefExpr.
+        // Whitelist special-case names when there's no better way to check if they resolve to references
         if (expr == null) {
           if (isViewDataBindingMethod(id.text)) {
+            return
+          }
+          // TODO: (b/135948299) Once we can resolve lambda parameters, we don't need to whitelist their usages any more.
+          if (isLambdaParameter(id, id.text)) {
             return
           }
         }
