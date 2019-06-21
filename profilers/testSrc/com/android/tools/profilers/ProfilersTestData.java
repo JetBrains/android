@@ -136,6 +136,12 @@ public final class ProfilersTestData {
   }
 
   @NotNull
+  public static Common.Event.Builder generateMemoryGcData(long timestampUs, Memory.MemoryGcData gcData) {
+    long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
+    return Common.Event.newBuilder().setTimestamp(timestampNs).setKind(Common.Event.Kind.MEMORY_GC).setMemoryGc(gcData);
+  }
+
+  @NotNull
   public static Common.Event.Builder generateCpuThreadEvent(long timestampSeconds, int tid, String name, Cpu.CpuThreadData.State state) {
     return Common.Event.newBuilder()
       .setPid(SESSION_DATA.getPid())
@@ -149,25 +155,25 @@ public final class ProfilersTestData {
   public static void populateThreadData(@NotNull FakeTransportService service, long streamId) {
     service.addEventToStream(streamId,
                              ProfilersTestData.generateCpuThreadEvent(1, 1, "Thread 1", Cpu.CpuThreadData.State.RUNNING)
-                                   .build());
+                               .build());
     service.addEventToStream(streamId,
                              ProfilersTestData.generateCpuThreadEvent(8, 1, "Thread 1", Cpu.CpuThreadData.State.DEAD)
-                                   .build());
+                               .build());
     service.addEventToStream(streamId,
                              ProfilersTestData.generateCpuThreadEvent(6, 2, "Thread 2", Cpu.CpuThreadData.State.RUNNING)
-                                   .build());
+                               .build());
     service.addEventToStream(streamId,
                              ProfilersTestData.generateCpuThreadEvent(8, 2, "Thread 2", Cpu.CpuThreadData.State.STOPPED)
-                                   .build());
+                               .build());
     service.addEventToStream(streamId,
                              ProfilersTestData.generateCpuThreadEvent(10, 2, "Thread 2", Cpu.CpuThreadData.State.SLEEPING)
-                                   .build());
+                               .build());
     service.addEventToStream(streamId,
                              ProfilersTestData.generateCpuThreadEvent(12, 2, "Thread 2", Cpu.CpuThreadData.State.WAITING)
-                                   .build());
+                               .build());
     service.addEventToStream(streamId,
                              ProfilersTestData.generateCpuThreadEvent(15, 2, "Thread 2", Cpu.CpuThreadData.State.DEAD)
-                                   .build());
+                               .build());
   }
 
   // W = Wake lock, J = Job

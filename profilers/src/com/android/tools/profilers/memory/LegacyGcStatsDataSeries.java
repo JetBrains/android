@@ -27,11 +27,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public final class GcStatsDataSeries implements DataSeries<GcDurationData> {
+public final class LegacyGcStatsDataSeries implements DataSeries<GcDurationData> {
   @NotNull private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   @NotNull private final Common.Session mySession;
 
-  public GcStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, @NotNull Common.Session session) {
+  public LegacyGcStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, @NotNull Common.Session session) {
     myClient = client;
     mySession = session;
   }

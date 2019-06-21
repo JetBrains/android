@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.EaseOutModel;
 import com.android.tools.adtui.model.Interpolatable;
@@ -38,6 +39,7 @@ import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
@@ -51,12 +53,14 @@ import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.UnifiedEventDataSeries;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.event.EventMonitor;
@@ -85,6 +89,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -172,7 +177,20 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     mySelection = new MemoryProfilerSelection(this);
     myConfiguration = new MemoryProfilerConfiguration(this);
 
-    myGcStatsModel = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, mySessionData)));
+    DataSeries<GcDurationData> gcSeries =
+      getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled() ?
+      new UnifiedEventDataSeries<>(getStudioProfilers().getClient().getTransportClient(),
+                                   mySessionData.getStreamId(),
+                                   mySessionData.getPid(),
+                                   Common.Event.Kind.MEMORY_GC,
+                                   UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                   events -> events.stream()
+                                     .map(evt -> new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(evt.getTimestamp()),
+                                                                  new GcDurationData(
+                                                                    TimeUnit.NANOSECONDS.toMicros(evt.getMemoryGc().getDuration()))))
+                                     .collect(Collectors.toList())) :
+      new LegacyGcStatsDataSeries(myClient, mySessionData);
+    myGcStatsModel = new DurationDataModel<>(new RangedSeries<>(viewRange, gcSeries));
     myAllocationSamplingRateDataSeries = new AllocationSamplingRateDataSeries(myClient, mySessionData);
     myAllocationSamplingRateDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, myAllocationSamplingRateDataSeries));
     myDetailedMemoryUsage = new DetailedMemoryUsage(profilers, this);
@@ -430,7 +448,18 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   public void forceGarbageCollection() {
-    myClient.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(mySessionData).build());
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      getStudioProfilers().getClient().getTransportClient().execute(
+        Transport.ExecuteRequest.newBuilder()
+          .setCommand(Commands.Command.newBuilder()
+                        .setStreamId(mySessionData.getStreamId())
+                        .setPid(mySessionData.getPid())
+                        .setType(Commands.Command.CommandType.GC))
+          .build());
+    }
+    else {
+      myClient.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(mySessionData).build());
+    }
   }
 
   public DurationDataModel<CaptureDurationData<CaptureObject>> getHeapDumpSampleDurations() {
