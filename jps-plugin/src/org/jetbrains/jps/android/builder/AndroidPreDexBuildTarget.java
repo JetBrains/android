@@ -2,7 +2,7 @@ package org.jetbrains.jps.android.builder;
 
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashSet;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.AndroidJpsUtil;
@@ -186,7 +186,7 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
-      super(AndroidCommonUtils.PRE_DEX_BUILD_TARGET_TYPE_ID);
+      super(AndroidBuildCommonUtils.PRE_DEX_BUILD_TARGET_TYPE_ID);
     }
 
     @NotNull

@@ -1,7 +1,7 @@
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.util.containers.HashSet;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
@@ -75,7 +75,7 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
-      super(AndroidCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID, "Resource Caching");
+      super(AndroidBuildCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID, "Resource Caching");
     }
 
     @Override

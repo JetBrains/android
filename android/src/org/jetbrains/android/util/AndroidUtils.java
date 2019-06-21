@@ -777,7 +777,7 @@ public class AndroidUtils {
 
     for (String url : urls) {
       if (sdkHomeCanonicalPath != null) {
-        url = StringUtil.replace(url, AndroidCommonUtils.SDK_HOME_MACRO, sdkHomeCanonicalPath);
+        url = StringUtil.replace(url, AndroidBuildCommonUtils.SDK_HOME_MACRO, sdkHomeCanonicalPath);
       }
       result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
     }
