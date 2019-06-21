@@ -61,6 +61,9 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:kotlin-plugin",
+        "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
+        "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
+        "//tools/idea/uast/uast-common:intellij.platform.uast[module]",
     ],
 )

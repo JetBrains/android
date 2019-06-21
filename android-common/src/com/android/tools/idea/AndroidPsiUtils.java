@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,11 @@
 package com.android.tools.idea;
 
 import static com.android.SdkConstants.ANDROID_PKG;
-import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.R_CLASS;
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.tools.idea.res.ResourceHelper.getFolderType;
 import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
 import static kotlin.sequences.SequencesKt.generateSequence;
 
-import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -35,7 +30,6 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassOwner;
 import com.intellij.psi.PsiDirectory;
@@ -44,7 +38,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReferenceExpression;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -161,25 +154,6 @@ public class AndroidPsiUtils {
       }
       return PsiManager.getInstance(project).findDirectory(dir);
     });
-  }
-
-  /**
-   * Returns the root tag for the given {@link PsiFile}, if any, acquiring the read
-   * lock to do so if necessary
-   *
-   * @param file the file to look up the root tag for
-   * @return the corresponding root tag, if any
-   */
-  @Nullable
-  public static String getRootTagName(@NotNull PsiFile file) {
-    ResourceFolderType folderType = getFolderType(file);
-    if (folderType == ResourceFolderType.XML || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.DRAWABLE) {
-      if (file instanceof XmlFile) {
-        XmlTag rootTag = getRootTagSafely(((XmlFile)file));
-        return rootTag == null ? null : rootTag.getName();
-      }
-    }
-    return null;
   }
 
   /**
@@ -375,47 +349,6 @@ public class AndroidPsiUtils {
     }
 
     return ResourceType.fromClassName(((PsiClass)elemParent).getName());
-  }
-
-  /**
-   * Looks up the declared associated context/activity for the given XML file and
-   * returns the resolved fully qualified name if found
-   *
-   * @param module module containing the XML file
-   * @param xmlFile the XML file
-   * @return the associated fully qualified name, or null
-   */
-  @Nullable
-  public static String getDeclaredContextFqcn(@NotNull Module module, @NotNull XmlFile xmlFile) {
-    String context = getRootTagAttributeSafely(xmlFile, ATTR_CONTEXT, TOOLS_URI);
-    if (context != null && !context.isEmpty()) {
-      boolean startsWithDot = context.charAt(0) == '.';
-      if (startsWithDot || context.indexOf('.') == -1) {
-        // Prepend application package
-        String pkg = MergedManifestManager.getSnapshot(module).getPackage();
-        return startsWithDot ? pkg + context : pkg + '.' + context;
-      }
-      return context;
-    }
-    return null;
-  }
-
-  /**
-   * Looks up the declared associated context/activity for the given XML file and
-   * returns the associated class, if found
-   *
-   * @param module module containing the XML file
-   * @param xmlFile the XML file
-   * @return the associated class, or null
-   */
-  @Nullable
-  public static PsiClass getContextClass(@NotNull Module module, @NotNull XmlFile xmlFile) {
-    String fqn = getDeclaredContextFqcn(module, xmlFile);
-    if (fqn != null) {
-      Project project = module.getProject();
-      return JavaPsiFacade.getInstance(project).findClass(fqn, GlobalSearchScope.allScope(project));
-    }
-    return null;
   }
 
   /**
