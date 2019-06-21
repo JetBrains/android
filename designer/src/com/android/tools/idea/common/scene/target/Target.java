@@ -152,7 +152,7 @@ public interface Target {
 
   SceneComponent getComponent();
 
-  Cursor getMouseCursor(@JdkConstants.InputEventMask int modifier);
+  Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx);
 
   @AndroidDpCoordinate
   float getCenterX();

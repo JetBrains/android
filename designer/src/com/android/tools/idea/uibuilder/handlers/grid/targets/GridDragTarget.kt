@@ -152,7 +152,7 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
 
   override fun getPreferenceLevel() = Target.DRAG_LEVEL
 
-  override fun getMouseCursor(@JdkConstants.InputEventMask modifier: Int): Cursor? = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+  override fun getMouseCursor(@JdkConstants.InputEventMask modifiersEx: Int): Cursor? = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 
   override fun canChangeSelection() = true
 }

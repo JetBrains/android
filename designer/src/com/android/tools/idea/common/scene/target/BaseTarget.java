@@ -83,7 +83,7 @@ public abstract class BaseTarget implements Target {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifier) {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     return Cursor.getDefaultCursor();
   }
 
