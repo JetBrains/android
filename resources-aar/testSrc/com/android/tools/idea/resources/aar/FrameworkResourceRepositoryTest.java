@@ -40,6 +40,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.resources.base.BasicFileResourceItem;
 import com.android.utils.PathUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -298,13 +299,13 @@ public class FrameworkResourceRepositoryTest extends PlatformTestCase {
 
     String v1 = value1.getValue();
     String v2 = value2.getValue();
-    if (value1 instanceof AarFileResourceItem && value2 instanceof AarFileResourceItem) {
+    if (value1 instanceof BasicFileResourceItem && value2 instanceof BasicFileResourceItem) {
       PathString path1 = ResourceHelper.toFileResourcePathString(v1);
       PathString path2 = ResourceHelper.toFileResourcePathString(v2);
       if (!areEquivalentSources(path1, path2)) {
         return false;
       }
-    } else if ((value1 instanceof AarFileResourceItem) != (value2 instanceof AarFileResourceItem)) {
+    } else if ((value1 instanceof BasicFileResourceItem) != (value2 instanceof BasicFileResourceItem)) {
       return false;
     } else if (!Objects.equals(v1, v2)) {
       return false;

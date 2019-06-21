@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
-import com.android.tools.idea.resources.base.LoadableResourceRepository;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Resource repository containing resources of an Android library (AAR).
- */
-public interface AarResourceRepository extends LoadableResourceRepository {
+/** A filter used to select files when traversing the file system. */
+interface FileFilter {
+  /** Returns true to skip the file or directory, or false to accept it. */
+  boolean isIgnored(@NotNull Path fileOrDirectory, @NotNull BasicFileAttributes attrs);
 }

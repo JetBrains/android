@@ -42,7 +42,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
-import com.android.tools.idea.resources.aar.AarResourceItem
+import com.android.tools.idea.resources.base.BasicResourceItem
 import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
 import com.android.tools.idea.uibuilder.property2.support.EmptyBrowseActionIconButton
 import com.android.tools.idea.uibuilder.property2.support.HelpActions
@@ -356,7 +356,7 @@ open class NelePropertyItem(
       // AAR resources.
       localRepository.accept(object : ResourceVisitor {
         override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
-          if (resourceItem is AarResourceItem && resourceItem.visibility == ResourceVisibility.PUBLIC) {
+          if (resourceItem is BasicResourceItem && resourceItem.visibility == ResourceVisibility.PUBLIC) {
             valueSet.add(toName(resourceItem))
           }
           return ResourceVisitor.VisitResult.CONTINUE

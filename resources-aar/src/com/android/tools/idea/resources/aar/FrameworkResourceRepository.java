@@ -16,15 +16,20 @@
 package com.android.tools.idea.resources.aar;
 
 import static com.android.SdkConstants.FD_RES_RAW;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.resources.base.Base128InputStream;
+import com.android.tools.idea.resources.base.Base128OutputStream;
+import com.android.tools.idea.resources.base.BasicResourceItemBase;
+import com.android.tools.idea.resources.base.BasicValueResourceItemBase;
+import com.android.tools.idea.resources.base.NamespaceResolver;
+import com.android.tools.idea.resources.base.RepositoryConfiguration;
+import com.android.tools.idea.resources.base.RepositoryLoader;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
@@ -34,16 +39,13 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -53,7 +55,6 @@ import java.util.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-import org.xmlpull.v1.XmlPullParser;
 
 /**
  * Repository of resources of the Android framework. Most client code should use
@@ -81,8 +82,8 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private final Set<String> myLanguageGroups = new TreeSet<>();
   private int myNumberOfLanguageGroupsLoadedFromCache;
 
-  private FrameworkResourceRepository(@NotNull Loader loader) {
-    super(loader);
+  private FrameworkResourceRepository(@NotNull RepositoryLoader loader) {
+    super(loader, null);
   }
 
   /**
@@ -156,13 +157,13 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
                     @NotNull Set<String> languageGroupsLoadedFromSourceRepositoryOrCache) {
     Map<String, String> stringCache = Maps.newHashMapWithExpectedSize(10000);
     Map<NamespaceResolver, NamespaceResolver> namespaceResolverCache = new HashMap<>();
-    Set<AarConfiguration> configurationsToTakeOver =
+    Set<RepositoryConfiguration> configurationsToTakeOver =
         sourceRepository == null ? ImmutableSet.of() : copyFromRepository(sourceRepository, stringCache, namespaceResolverCache);
 
     // If not loading from a jar file, try to load from a cache file first. A separate cache file is not used
     // when loading from framework_res.jar since it already contains data in the cache format. Loading from
     // framework_res.jar or a cache file is significantly faster than reading individual resource files.
-    if (!loader.myLoadFromZipArchive && cachingData != null) {
+    if (!loader.isLoadingFromZipArchive() && cachingData != null) {
       loadFromPersistentCache(cachingData, languageGroups, languageGroupsLoadedFromSourceRepositoryOrCache, stringCache,
                               namespaceResolverCache);
     }
@@ -178,7 +179,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     freezeResources();
     takeOverConfigurations(configurationsToTakeOver);
 
-    if (!loader.myLoadFromZipArchive && cachingData != null) {
+    if (!loader.isLoadingFromZipArchive() && cachingData != null) {
       Executor executor = cachingData.getCacheCreationExecutor();
       if (executor != null && !languageGroupsLoadedFromSourceRepositoryOrCache.containsAll(myLanguageGroups)) {
         executor.execute(() -> createPersistentCache(cachingData, languageGroupsLoadedFromSourceRepositoryOrCache));
@@ -210,24 +211,24 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
    * @param sourceRepository the repository to copy resources from
    * @param stringCache the string cache to populate with the names of copied resources
    * @param namespaceResolverCache the namespace resolver cache to populate with namespace resolvers referenced by the copied resources
-   * @return the {@link AarConfiguration} objects referenced by the copied resources
+   * @return the {@link RepositoryConfiguration} objects referenced by the copied resources
    */
   @NotNull
-  private Set<AarConfiguration> copyFromRepository(@NotNull FrameworkResourceRepository sourceRepository,
-                                                   @NotNull Map<String, String> stringCache,
-                                                   @NotNull Map<NamespaceResolver, NamespaceResolver> namespaceResolverCache) {
+  private Set<RepositoryConfiguration> copyFromRepository(@NotNull FrameworkResourceRepository sourceRepository,
+                                                          @NotNull Map<String, String> stringCache,
+                                                          @NotNull Map<NamespaceResolver, NamespaceResolver> namespaceResolverCache) {
     Collection<ListMultimap<String, ResourceItem>> resourceMaps = sourceRepository.myResources.values();
 
     // Copy resources from the source repository, get AarConfigurations that need to be taken over by this repository,
     // and pre-populate string and namespace resolver caches.
-    Set<AarConfiguration> sourceConfigurations = Sets.newIdentityHashSet();
+    Set<RepositoryConfiguration> sourceConfigurations = Sets.newIdentityHashSet();
     for (ListMultimap<String, ResourceItem> resourceMap : resourceMaps) {
       for (ResourceItem item : resourceMap.values()) {
         addResourceItem(item);
 
-        sourceConfigurations.add(((AbstractAarResourceItem)item).getAarConfiguration());
-        if (item instanceof AbstractAarValueResourceItem) {
-          NamespaceResolver resolver = (NamespaceResolver)((AbstractAarValueResourceItem)item).getNamespaceResolver();
+        sourceConfigurations.add(((BasicResourceItemBase)item).getRepositoryConfiguration());
+        if (item instanceof BasicValueResourceItemBase) {
+          NamespaceResolver resolver = (NamespaceResolver)((BasicValueResourceItemBase)item).getNamespaceResolver();
           namespaceResolverCache.put(resolver, resolver);
         }
         String name = item.getName();
@@ -357,18 +358,18 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     return myNumberOfLanguageGroupsLoadedFromCache;
   }
 
-  private static class Loader extends AarSourceResourceRepository.Loader<FrameworkResourceRepository> {
+  private static class Loader extends RepositoryLoader<FrameworkResourceRepository> {
     @NotNull private final Set<String> myLoadedLanguageGroups;
     @Nullable private Set<String> myLanguageGroups;
 
     Loader(@NotNull Path resourceDirectoryOrFile, @Nullable Set<String> languageGroups) {
-      super(resourceDirectoryOrFile, null, ANDROID_NAMESPACE, null);
+      super(resourceDirectoryOrFile, null, ANDROID_NAMESPACE);
       myLanguageGroups = languageGroups;
       myLoadedLanguageGroups = new TreeSet<>();
     }
 
     Loader(@NotNull FrameworkResourceRepository sourceRepository, @Nullable Set<String> languageGroups) {
-      super(sourceRepository.myResourceDirectoryOrFile, null, ANDROID_NAMESPACE, null);
+      super(sourceRepository.myResourceDirectoryOrFile, null, ANDROID_NAMESPACE);
       myLanguageGroups = languageGroups;
       myLoadedLanguageGroups = new TreeSet<>(sourceRepository.myLanguageGroups);
     }
@@ -427,12 +428,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     }
 
     @Override
-    protected boolean useRTxt() {
-      return false; // Framework resources don't contain R.txt file.
-    }
-
-    @Override
-    protected void loadRepositoryContents(@NotNull FrameworkResourceRepository repository) {
+    public void loadRepositoryContents(@NotNull FrameworkResourceRepository repository) {
       super.loadRepositoryContents(repository);
 
       Set<String> languageGroups = myLanguageGroups == null ? repository.getLanguageGroups() : myLanguageGroups;
@@ -478,102 +474,8 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     }
 
     @Override
-    protected void loadPublicResourceNames() {
-      Path valuesFolder = myResourceDirectoryOrFile.resolve(SdkConstants.FD_RES_VALUES);
-      Path publicXmlFile = valuesFolder.resolve("public.xml");
-
-      try (InputStream stream = new BufferedInputStream(Files.newInputStream(publicXmlFile))) {
-        CommentTrackingXmlPullParser parser = new CommentTrackingXmlPullParser();
-        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-        parser.setInput(stream, UTF_8.name());
-
-        ResourceType groupType = null;
-        ResourceType lastType = null;
-        String lastTypeName = "";
-        while (true) {
-          int event = parser.nextToken();
-          if (event == XmlPullParser.START_TAG) {
-            if (parser.getName().equals(SdkConstants.TAG_PUBLIC)) {
-              String name = null;
-              String typeName = groupType == null ? null : groupType.getName();
-              for (int i = 0, n = parser.getAttributeCount(); i < n; i++) {
-                String attribute = parser.getAttributeName(i);
-
-                if (attribute.equals(SdkConstants.ATTR_NAME)) {
-                  name = parser.getAttributeValue(i);
-                  if (typeName != null) {
-                    // Skip attributes other than "type" and "name".
-                    break;
-                  }
-                }
-                else if (attribute.equals(SdkConstants.ATTR_TYPE)) {
-                  typeName = parser.getAttributeValue(i);
-                }
-              }
-
-              if (name != null && !name.startsWith("__removed") && (typeName != null || groupType != null) &&
-                  (parser.getLastComment() == null || !containsWord(parser.getLastComment(), "@hide"))) {
-                ResourceType type;
-                if (groupType != null) {
-                  type = groupType;
-                }
-                else {
-                  if (typeName.equals(lastTypeName)) {
-                    type = lastType;
-                  }
-                  else {
-                    type = ResourceType.fromXmlValue(typeName);
-                    lastType = type;
-                    lastTypeName = typeName;
-                  }
-                }
-
-                if (type != null) {
-                  Set<String> names = myPublicResources.computeIfAbsent(type, t -> new HashSet<>());
-                  names.add(name);
-                }
-                else {
-                  LOG.error("Public resource declaration \"" + name + "\" of type " + typeName + " points to unknown resource type.");
-                }
-              }
-            }
-            else if (parser.getName().equals(SdkConstants.TAG_PUBLIC_GROUP)) {
-              String typeName = parser.getAttributeValue(null, SdkConstants.ATTR_TYPE);
-              groupType = typeName == null ? null : ResourceType.fromXmlValue(typeName);
-            }
-          }
-          else if (event == XmlPullParser.END_TAG) {
-            if (parser.getName().equals(SdkConstants.TAG_PUBLIC_GROUP)) {
-              groupType = null;
-            }
-          }
-          else if (event == XmlPullParser.END_DOCUMENT) {
-            break;
-          }
-        }
-      } catch (NoSuchFileException e) {
-        // There is no public.xml. This not considered an error.
-      } catch (Exception e) {
-        LOG.error("Can't read and parse " + publicXmlFile.toString(), e);
-      }
-    }
-
-    /**
-     * Checks if the given text contains contains the given word.
-     */
-    private static boolean containsWord(@NotNull String text, @SuppressWarnings("SameParameterValue") @NotNull String word) {
-      int end = 0;
-      while (true) {
-        int start = text.indexOf(word, end);
-        if (start < 0) {
-          return false;
-        }
-        end = start + word.length();
-        if ((start == 0 || Character.isWhitespace(text.charAt(start))) &&
-            (end == text.length() || Character.isWhitespace(text.charAt(end)))) {
-          return true;
-        }
-      }
+    protected final void addResourceItem(@NotNull BasicResourceItemBase item, @NotNull FrameworkResourceRepository repository) {
+      repository.addResourceItem(item);
     }
 
     @Override
@@ -587,13 +489,13 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   }
 
   /**
-   * Redirects the {@link AarConfiguration} inherited from another repository to point to this one, so that
+   * Redirects the {@link RepositoryConfiguration} inherited from another repository to point to this one, so that
    * the other repository can be garbage collected. This has to be done after this repository is fully loaded.
    *
    * @param sourceConfigurations the configurations to reparent
    */
-  private void takeOverConfigurations(@NotNull Set<AarConfiguration> sourceConfigurations) {
-    for (AarConfiguration configuration : sourceConfigurations) {
+  private void takeOverConfigurations(@NotNull Set<RepositoryConfiguration> sourceConfigurations) {
+    for (RepositoryConfiguration configuration : sourceConfigurations) {
       configuration.transferOwnershipTo(this);
     }
   }

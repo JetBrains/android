@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar
+package com.android.tools.idea.resources.base
 
 import com.intellij.util.containers.ObjectIntHashMap
 import java.io.IOException
@@ -24,9 +24,9 @@ import java.io.IOException
  * [relativePath] path of the file relative to the resource directory, or null if the source file of the resource is not available
  * [configuration] configuration the resource file is associated with
  */
-internal data class AarSourceFile(val relativePath: String?, val configuration: AarConfiguration) {
+data class ResourceSourceFile(val relativePath: String?, val configuration: RepositoryConfiguration) {
   /**
-   * Serializes the AarSourceFile to the given stream.
+   * Serializes the ResourceSourceFile to the given stream.
    */
   @Throws(IOException::class)
   fun serialize(stream: Base128OutputStream, configIndexes: ObjectIntHashMap<String>) {
@@ -34,19 +34,19 @@ internal data class AarSourceFile(val relativePath: String?, val configuration: 
     stream.writeInt(configIndexes[configuration.folderConfiguration.qualifierString])
   }
 
-  val repository : AbstractAarResourceRepository
+  val repository : LoadableResourceRepository
     get() = configuration.repository
 
   companion object {
     /**
-     * Creates a AarSourceFile by reading its contents of the given stream.
+     * Creates a ResourceSourceFile by reading its contents of the given stream.
      */
     @JvmStatic
     @Throws(IOException::class)
-    fun deserialize(stream: Base128InputStream, configurations: List<AarConfiguration>): AarSourceFile {
+    fun deserialize(stream: Base128InputStream, configurations: List<RepositoryConfiguration>): ResourceSourceFile {
       val relativePath = stream.readString()
       val configIndex = stream.readInt()
-      return AarSourceFile(relativePath, configurations[configIndex])
+      return ResourceSourceFile(relativePath, configurations[configIndex])
     }
   }
 }
