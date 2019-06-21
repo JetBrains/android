@@ -19,7 +19,6 @@ import com.android.SdkConstants.ATTR_LAYOUT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
@@ -36,6 +35,7 @@ import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.resourceManagers.LocalResourceManager
+import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
 
 // TODO: ideally this wouldn't be a separate editor, and EnumEditor could just get the EnumSupport from the property itself.
@@ -63,7 +63,7 @@ class DestinationClassEditor(listener: NlEditingListener = Listener, comboBox: C
 
     for (resourceFile in resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
       .filterIsInstance<XmlFile>()) {
-      val contextClass = AndroidPsiUtils.getContextClass(module, resourceFile) ?: continue
+      val contextClass = AndroidUtils.getContextClass(module, resourceFile) ?: continue
       if (contextClass.qualifiedName == className) {
         return "@layout/" + FileUtil.getNameWithoutExtension(resourceFile.name)
       }
