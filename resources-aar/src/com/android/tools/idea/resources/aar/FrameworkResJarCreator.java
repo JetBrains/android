@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resources.aar;
 
+import com.android.tools.idea.resources.base.Base128OutputStream;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.ByteArrayOutputStream;

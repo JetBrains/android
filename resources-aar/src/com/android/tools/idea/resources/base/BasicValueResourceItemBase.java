@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.util.PathString;
@@ -27,11 +27,9 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Base class for AAR value resource items.
- */
-abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem {
-  @NotNull private final AarSourceFile mySourceFile;
+/** Base class for value resource items. */
+public abstract class BasicValueResourceItemBase extends BasicResourceItemBase {
+  @NotNull private final ResourceSourceFile mySourceFile;
   @NotNull private ResourceNamespace.Resolver myNamespaceResolver = ResourceNamespace.Resolver.EMPTY_RESOLVER;
 
   /**
@@ -42,10 +40,10 @@ abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem {
    * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
    */
-  AbstractAarValueResourceItem(@NotNull ResourceType type,
-                               @NotNull String name,
-                               @NotNull AarSourceFile sourceFile,
-                               @NotNull ResourceVisibility visibility) {
+  public BasicValueResourceItemBase(@NotNull ResourceType type,
+                                    @NotNull String name,
+                                    @NotNull ResourceSourceFile sourceFile,
+                                    @NotNull ResourceVisibility visibility) {
     super(type, name, visibility);
     mySourceFile = sourceFile;
   }
@@ -63,7 +61,7 @@ abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem {
 
   @Override
   @NotNull
-  final AarConfiguration getAarConfiguration() {
+  public final RepositoryConfiguration getRepositoryConfiguration() {
     return mySourceFile.getConfiguration();
   }
 
@@ -91,7 +89,7 @@ abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem {
   }
 
   @NotNull
-  final AarSourceFile getSourceFile() {
+  public final ResourceSourceFile getSourceFile() {
     return mySourceFile;
   }
 
@@ -99,7 +97,7 @@ abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem {
   public boolean equals(@Nullable Object obj) {
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
-    AbstractAarValueResourceItem other = (AbstractAarValueResourceItem)obj;
+    BasicValueResourceItemBase other = (BasicValueResourceItemBase)obj;
     return Objects.equals(mySourceFile, other.mySourceFile);
   }
 
@@ -109,10 +107,10 @@ abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem {
   }
 
   @Override
-  void serialize(@NotNull Base128OutputStream stream,
-                 @NotNull ObjectIntHashMap<String> configIndexes,
-                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
-                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+  public void serialize(@NotNull Base128OutputStream stream,
+                        @NotNull ObjectIntHashMap<String> configIndexes,
+                        @NotNull ObjectIntHashMap<ResourceSourceFile> sourceFileIndexes,
+                        @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
     super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
     int index = sourceFileIndexes.get(mySourceFile);
     assert index >= 0;
@@ -126,35 +124,35 @@ abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem {
    * Creates a resource item by reading its contents of the given stream.
    */
   @NotNull
-  static AbstractAarValueResourceItem deserialize(@NotNull Base128InputStream stream,
-                                                  @NotNull ResourceType resourceType,
-                                                  @NotNull String name,
-                                                  @NotNull ResourceVisibility visibility,
-                                                  @NotNull List<AarConfiguration> configurations,
-                                                  @NotNull List<AarSourceFile> sourceFiles,
-                                                  @NotNull List<ResourceNamespace.Resolver> namespaceResolvers) throws IOException {
-    AarSourceFile sourceFile = sourceFiles.get(stream.readInt());
+  static BasicValueResourceItemBase deserialize(@NotNull Base128InputStream stream,
+                                                @NotNull ResourceType resourceType,
+                                                @NotNull String name,
+                                                @NotNull ResourceVisibility visibility,
+                                                @NotNull List<RepositoryConfiguration> configurations,
+                                                @NotNull List<ResourceSourceFile> sourceFiles,
+                                                @NotNull List<ResourceNamespace.Resolver> namespaceResolvers) throws IOException {
+    ResourceSourceFile sourceFile = sourceFiles.get(stream.readInt());
     ResourceNamespace.Resolver resolver = namespaceResolvers.get(stream.readInt());
 
     switch (resourceType) {
       case ARRAY:
-        return AarArrayResourceItem.deserialize(stream, name, visibility, sourceFile, resolver);
+        return BasicArrayResourceItem.deserialize(stream, name, visibility, sourceFile, resolver);
 
       case ATTR:
-        return AarAttrResourceItem.deserialize(stream, name, visibility, sourceFile, resolver);
+        return BasicAttrResourceItem.deserialize(stream, name, visibility, sourceFile, resolver);
 
       case PLURALS:
-        return AarPluralsResourceItem.deserialize(stream, name, visibility, sourceFile, resolver);
+        return BasicPluralsResourceItem.deserialize(stream, name, visibility, sourceFile, resolver);
 
       case STYLE:
-        return AarStyleResourceItem.deserialize(stream, name, visibility, sourceFile, resolver, namespaceResolvers);
+        return BasicStyleResourceItem.deserialize(stream, name, visibility, sourceFile, resolver, namespaceResolvers);
 
       case STYLEABLE:
-        return AarStyleableResourceItem.deserialize(
+        return BasicStyleableResourceItem.deserialize(
             stream, name, visibility, sourceFile, resolver, configurations, sourceFiles, namespaceResolvers);
 
       default:
-        return AarValueResourceItem.deserialize(stream, resourceType, name, visibility, sourceFile, resolver);
+        return BasicValueResourceItem.deserialize(stream, resourceType, name, visibility, sourceFile, resolver);
     }
   }
 }

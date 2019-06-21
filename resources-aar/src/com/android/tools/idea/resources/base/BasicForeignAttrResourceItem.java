@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  * Resource item representing an attr resource that is defined in a namespace different from the namespace
  * of the owning AAR.
  */
-class AarForeignAttrResourceItem extends AarAttrResourceItem {
+public class BasicForeignAttrResourceItem extends BasicAttrResourceItem {
   @NotNull private final ResourceNamespace myNamespace;
 
   /**
@@ -44,14 +44,14 @@ class AarForeignAttrResourceItem extends AarAttrResourceItem {
 *        have corresponding numeric values.
    * @param valueDescriptionMap the the enum or flag value descriptions keyed by the value names
    */
-  AarForeignAttrResourceItem(@NotNull ResourceNamespace namespace,
-                             @NotNull String name,
-                             @NotNull AarSourceFile sourceFile,
-                             @Nullable String description,
-                             @Nullable String groupName,
-                             @NotNull Set<AttributeFormat> formats,
-                             @NotNull Map<String, Integer> valueMap,
-                             @NotNull Map<String, String> valueDescriptionMap) {
+  public BasicForeignAttrResourceItem(@NotNull ResourceNamespace namespace,
+                                      @NotNull String name,
+                                      @NotNull ResourceSourceFile sourceFile,
+                                      @Nullable String description,
+                                      @Nullable String groupName,
+                                      @NotNull Set<AttributeFormat> formats,
+                                      @NotNull Map<String, Integer> valueMap,
+                                      @NotNull Map<String, String> valueDescriptionMap) {
     super(name, sourceFile, ResourceVisibility.PUBLIC, description, groupName, formats, valueMap, valueDescriptionMap);
     myNamespace = namespace;
   }

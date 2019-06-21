@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
 import com.android.ide.common.rendering.api.DensityBasedResourceValue;
 import com.android.resources.Density;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Resource item representing a density-specific file resource inside an AAR, e.g. a drawable or a layout.
  */
-final class AarDensityBasedFileResourceItem extends AarFileResourceItem implements DensityBasedResourceValue {
+public final class BasicDensityBasedFileResourceItem extends BasicFileResourceItem implements DensityBasedResourceValue {
   @NotNull private final Density myDensity;
 
   /**
@@ -40,12 +40,12 @@ final class AarDensityBasedFileResourceItem extends AarFileResourceItem implemen
    * @param relativePath defines location of the resource. Exact semantics of the path may vary depending on the resource repository
    * @param density the screen density this resource is associated with
    */
-  AarDensityBasedFileResourceItem(@NotNull ResourceType type,
-                                  @NotNull String name,
-                                  @NotNull AarConfiguration configuration,
-                                  @NotNull ResourceVisibility visibility,
-                                  @NotNull String relativePath,
-                                  @NotNull Density density) {
+  public BasicDensityBasedFileResourceItem(@NotNull ResourceType type,
+                                           @NotNull String name,
+                                           @NotNull RepositoryConfiguration configuration,
+                                           @NotNull ResourceVisibility visibility,
+                                           @NotNull String relativePath,
+                                           @NotNull Density density) {
     super(type, name, configuration, visibility, relativePath);
     myDensity = density;
   }
@@ -60,7 +60,7 @@ final class AarDensityBasedFileResourceItem extends AarFileResourceItem implemen
   public boolean equals(@Nullable Object obj) {
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
-    AarDensityBasedFileResourceItem other = (AarDensityBasedFileResourceItem) obj;
+    BasicDensityBasedFileResourceItem other = (BasicDensityBasedFileResourceItem) obj;
     return myDensity == other.myDensity;
   }
 

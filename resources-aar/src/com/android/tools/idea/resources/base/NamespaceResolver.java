@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.tools.idea.resources.aar.Base128InputStream.StreamFormatException;
+import com.android.tools.idea.resources.base.Base128InputStream.StreamFormatException;
 import com.intellij.util.ArrayUtil;
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,8 +29,8 @@ import org.xmlpull.v1.XmlPullParserException;
  * Simple implementation of the {@link ResourceNamespace.Resolver} interface intended to be used
  * together with {@link XmlPullParser}.
  */
-final class NamespaceResolver implements ResourceNamespace.Resolver {
-  static final NamespaceResolver EMPTY = new NamespaceResolver(ArrayUtil.EMPTY_STRING_ARRAY);
+public final class NamespaceResolver implements ResourceNamespace.Resolver {
+  public static final NamespaceResolver EMPTY = new NamespaceResolver(ArrayUtil.EMPTY_STRING_ARRAY);
 
   /** Interleaved prefixes and the corresponding URIs in order of descending priority. */
   @NotNull private final String[] prefixesAndUris;
@@ -91,7 +91,7 @@ final class NamespaceResolver implements ResourceNamespace.Resolver {
   /**
    * Serializes the namespace resolver to the given stream.
    */
-  void serialize(@NotNull Base128OutputStream stream) throws IOException {
+  public void serialize(@NotNull Base128OutputStream stream) throws IOException {
     stream.writeInt(getNamespaceCount());
     for (String str : prefixesAndUris) {
       stream.writeString(str);
@@ -103,7 +103,7 @@ final class NamespaceResolver implements ResourceNamespace.Resolver {
    * @see #serialize(Base128OutputStream)
    */
   @NotNull
-  static NamespaceResolver deserialize(@NotNull Base128InputStream stream) throws IOException {
+  public static NamespaceResolver deserialize(@NotNull Base128InputStream stream) throws IOException {
     int n = stream.readInt() * 2;
     String[] prefixesAndUris = new String[n];
     for (int i = 0; i < n; i++) {

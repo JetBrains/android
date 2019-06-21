@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.resources.aar.Base128InputStream.StreamFormatException;
+import com.android.tools.idea.resources.base.Base128InputStream.StreamFormatException;
 import com.android.utils.HashCodes;
 import com.google.common.base.MoreObjects;
 import com.intellij.util.containers.ObjectIntHashMap;
@@ -30,14 +30,14 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** Base class for AAR resource items. */
-abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue {
+/** Base class for implementations of the {@link BasicResourceItem} interface. */
+public abstract class BasicResourceItemBase implements BasicResourceItem, ResourceValue {
   @NotNull private final String myName;
   // Store enums as their ordinals in byte form to minimize memory footprint.
   private final byte myTypeOrdinal;
   private final byte myVisibilityOrdinal;
 
-  AbstractAarResourceItem(@NotNull ResourceType type, @NotNull String name, @NotNull ResourceVisibility visibility) {
+  BasicResourceItemBase(@NotNull ResourceType type, @NotNull String name, @NotNull ResourceVisibility visibility) {
     myName = name;
     myTypeOrdinal = (byte)type.ordinal();
     myVisibilityOrdinal = (byte)visibility.ordinal();
@@ -111,21 +111,21 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
    * Returns the repository this resource belongs to.
    * <p>
    * Framework resource items may move between repositories with the same origin.
-   * @see AarConfiguration#transferOwnershipTo(AbstractAarResourceRepository)
+   * @see RepositoryConfiguration#transferOwnershipTo(LoadableResourceRepository)
    */
   @NotNull
-  protected final AbstractAarResourceRepository getRepository() {
-    return getAarConfiguration().getRepository();
+  public final LoadableResourceRepository getRepository() {
+    return getRepositoryConfiguration().getRepository();
   }
 
   @Override
   @NotNull
   public final FolderConfiguration getConfiguration() {
-    return getAarConfiguration().getFolderConfiguration();
+    return getRepositoryConfiguration().getFolderConfiguration();
   }
 
   @NotNull
-  abstract AarConfiguration getAarConfiguration();
+  public abstract RepositoryConfiguration getRepositoryConfiguration();
 
     @Override
   @NotNull
@@ -151,7 +151,7 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
     if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
-    AbstractAarResourceItem other = (AbstractAarResourceItem) obj;
+    BasicResourceItemBase other = (BasicResourceItemBase) obj;
     return myTypeOrdinal == other.myTypeOrdinal
         && myName.equals(other.myName)
         && myVisibilityOrdinal == other.myVisibilityOrdinal;
@@ -178,10 +178,10 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
   /**
    * Serializes the resource item to the given stream.
    */
-  void serialize(@NotNull Base128OutputStream stream,
-                 @NotNull ObjectIntHashMap<String> configIndexes,
-                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
-                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+  public void serialize(@NotNull Base128OutputStream stream,
+                        @NotNull ObjectIntHashMap<String> configIndexes,
+                        @NotNull ObjectIntHashMap<ResourceSourceFile> sourceFileIndexes,
+                        @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
     stream.writeInt((myTypeOrdinal << 1) + (isFileBased() ? 1 : 0));
     stream.writeString(myName);
     stream.writeInt(myVisibilityOrdinal);
@@ -191,10 +191,10 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
    * Creates a resource item by reading its contents of the given stream.
    */
   @NotNull
-  static AbstractAarResourceItem deserialize(@NotNull Base128InputStream stream,
-                                             @NotNull List<AarConfiguration> configurations,
-                                             @NotNull List<AarSourceFile> sourceFiles,
-                                             @NotNull List<ResourceNamespace.Resolver> namespaceResolvers) throws IOException {
+  public static BasicResourceItemBase deserialize(@NotNull Base128InputStream stream,
+                                                  @NotNull List<RepositoryConfiguration> configurations,
+                                                  @NotNull List<ResourceSourceFile> sourceFiles,
+                                                  @NotNull List<ResourceNamespace.Resolver> namespaceResolvers) throws IOException {
     int encodedType = stream.readInt();
     boolean isFileBased = (encodedType & 0x1) != 0;
     ResourceType resourceType = ResourceType.values()[encodedType >>> 1];
@@ -205,9 +205,9 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
     ResourceVisibility visibility = ResourceVisibility.values()[stream.readInt()];
 
     if (isFileBased) {
-      return AarFileResourceItem.deserialize(stream, resourceType, name, visibility, configurations);
+      return BasicFileResourceItem.deserialize(stream, resourceType, name, visibility, configurations);
     }
 
-    return AbstractAarValueResourceItem.deserialize(stream, resourceType, name, visibility, configurations, sourceFiles, namespaceResolvers);
+    return BasicValueResourceItemBase.deserialize(stream, resourceType, name, visibility, configurations, sourceFiles, namespaceResolvers);
   }
 }

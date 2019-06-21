@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -22,7 +22,7 @@ import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.resources.aar.Base128InputStream.StreamFormatException;
+import com.android.tools.idea.resources.base.Base128InputStream.StreamFormatException;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import com.intellij.openapi.diagnostic.Logger;
@@ -41,8 +41,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Resource item representing a style resource.
  */
-final class AarStyleResourceItem extends AbstractAarValueResourceItem implements StyleResourceValue {
-  private static final Logger LOG = Logger.getInstance(AarStyleResourceItem.class);
+public final class BasicStyleResourceItem extends BasicValueResourceItemBase implements StyleResourceValue {
+  private static final Logger LOG = Logger.getInstance(BasicStyleResourceItem.class);
 
   @Nullable private final String myParentStyle;
   /** Style items keyed by the namespace and the name of the attribute they define. */
@@ -57,11 +57,11 @@ final class AarStyleResourceItem extends AbstractAarValueResourceItem implements
    * @param parentStyle the parent style reference (package:type/entry)
    * @param styleItems the items of the style
    */
-  AarStyleResourceItem(@NotNull String name,
-                       @NotNull AarSourceFile sourceFile,
-                       @NotNull ResourceVisibility visibility,
-                       @Nullable String parentStyle,
-                       @NotNull Collection<StyleItemResourceValue> styleItems) {
+  public BasicStyleResourceItem(@NotNull String name,
+                                @NotNull ResourceSourceFile sourceFile,
+                                @NotNull ResourceVisibility visibility,
+                                @Nullable String parentStyle,
+                                @NotNull Collection<StyleItemResourceValue> styleItems) {
     super(ResourceType.STYLE, name, sourceFile, visibility);
     myParentStyle = parentStyle;
     ImmutableTable.Builder<ResourceNamespace, String, StyleItemResourceValue> tableBuilder = ImmutableTable.builder();
@@ -111,15 +111,15 @@ final class AarStyleResourceItem extends AbstractAarValueResourceItem implements
   public boolean equals(@Nullable Object obj) {
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
-    AarStyleResourceItem other = (AarStyleResourceItem) obj;
+    BasicStyleResourceItem other = (BasicStyleResourceItem) obj;
     return Objects.equals(myParentStyle, other.myParentStyle) && myStyleItemTable.equals(other.myStyleItemTable);
   }
 
   @Override
-  void serialize(@NotNull Base128OutputStream stream,
-                 @NotNull ObjectIntHashMap<String> configIndexes,
-                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
-                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+  public void serialize(@NotNull Base128OutputStream stream,
+                        @NotNull ObjectIntHashMap<String> configIndexes,
+                        @NotNull ObjectIntHashMap<ResourceSourceFile> sourceFileIndexes,
+                        @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
     super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
     stream.writeString(myParentStyle);
     stream.writeInt(myStyleItemTable.size());
@@ -133,16 +133,16 @@ final class AarStyleResourceItem extends AbstractAarValueResourceItem implements
   }
 
   /**
-   * Creates an AarStyleResourceItem by reading its contents of the given stream.
+   * Creates an BasicStyleResourceItem by reading its contents of the given stream.
    */
   @NotNull
-  static AarStyleResourceItem deserialize(@NotNull Base128InputStream stream,
-                                          @NotNull String name,
-                                          @NotNull ResourceVisibility visibility,
-                                          @NotNull AarSourceFile sourceFile,
-                                          @NotNull ResourceNamespace.Resolver resolver,
-                                          @NotNull List<ResourceNamespace.Resolver> namespaceResolvers) throws IOException {
-    AbstractAarResourceRepository repository = sourceFile.getRepository();
+  static BasicStyleResourceItem deserialize(@NotNull Base128InputStream stream,
+                                            @NotNull String name,
+                                            @NotNull ResourceVisibility visibility,
+                                            @NotNull ResourceSourceFile sourceFile,
+                                            @NotNull ResourceNamespace.Resolver resolver,
+                                            @NotNull List<ResourceNamespace.Resolver> namespaceResolvers) throws IOException {
+    LoadableResourceRepository repository = sourceFile.getRepository();
     ResourceNamespace namespace = repository.getNamespace();
     String libraryName = repository.getLibraryName();
     String parentStyle = stream.readString();
@@ -159,7 +159,7 @@ final class AarStyleResourceItem extends AbstractAarValueResourceItem implements
       styleItem.setNamespaceResolver(itemResolver);
       styleItems.add(styleItem);
     }
-    AarStyleResourceItem item = new AarStyleResourceItem(name, sourceFile, visibility, parentStyle, styleItems);
+    BasicStyleResourceItem item = new BasicStyleResourceItem(name, sourceFile, visibility, parentStyle, styleItems);
     item.setNamespaceResolver(resolver);
     return item;
   }
