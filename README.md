@@ -11,6 +11,7 @@ See the links below for implementation details and make sure to read
 * [Building webp](adt-ui/lib/libwebp/README.md)
 * [Color picker](android/src/com/android/tools/idea/ui/resourcechooser/colorpicker2/README.md)
 * [Custom languages](android-lang/src/com/android/tools/idea/lang/README.md)
+* [AndroidSql language support](android-lang/src/com/android/tools/idea/lang/androidSql/README.md)
 * [DOM](android/src/org/jetbrains/android/dom/README.md)
 * [Databinding](android-lang-databinding/README.md)
 * [Disposable system](android/docs/disposables.md)
