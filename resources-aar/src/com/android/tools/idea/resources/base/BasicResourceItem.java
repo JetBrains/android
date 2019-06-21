@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItemWithVisibility;
 
 /**
- * Interface to be implemented by all AAR resource items.
+ * Combination of {@link ResourceItemWithVisibility} and {@link ResourceValue} interfaces.
  */
-public interface AarResourceItem extends ResourceItemWithVisibility {
+public interface BasicResourceItem extends ResourceItemWithVisibility, ResourceValue {
 }

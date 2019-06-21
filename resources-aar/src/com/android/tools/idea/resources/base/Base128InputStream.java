@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -31,13 +31,13 @@ import org.jetbrains.annotations.Nullable;
  * variable-length encoding for integer values.
  * @see Base128OutputStream
  */
-class Base128InputStream extends BufferedInputStream {
+public class Base128InputStream extends BufferedInputStream {
   @Nullable private Map<String, String> myStringCache;
 
   /**
    * Wraps a given input stream.
    */
-  Base128InputStream(@NotNull InputStream stream) {
+  public Base128InputStream(@NotNull InputStream stream) {
     super(stream);
   }
 
@@ -48,7 +48,7 @@ class Base128InputStream extends BufferedInputStream {
    * @throws NoSuchFileException if the file does not exist
    * @throws IOException if any other error occurs
    */
-  Base128InputStream(@NotNull Path file) throws IOException {
+  public Base128InputStream(@NotNull Path file) throws IOException {
     super(Files.newInputStream(file));
   }
 

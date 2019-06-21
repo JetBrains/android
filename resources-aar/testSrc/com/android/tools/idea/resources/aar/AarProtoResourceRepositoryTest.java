@@ -40,6 +40,9 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceVisibility;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.resources.base.BasicAttrReference;
+import com.android.tools.idea.resources.base.BasicFileResourceItem;
+import com.android.tools.idea.resources.base.BasicResourceItem;
 import com.google.common.base.Splitter;
 import java.net.URI;
 import java.nio.file.Files;
@@ -395,7 +398,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
         return false;
       }
 
-      if (!forStyleableAttrs || !(attr1 instanceof AarAttrReference) && !(attr2 instanceof AarAttrReference)) {
+      if (!forStyleableAttrs || !(attr1 instanceof BasicAttrReference) && !(attr2 instanceof BasicAttrReference)) {
         if (!Objects.equals(attr1.getFormats(), attr2.getFormats())) {
           return false;
         }
@@ -473,12 +476,12 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     if (Objects.equals(v1, v2)) {
       return true;
     }
-    if (value1 instanceof AarFileResourceItem) {
+    if (value1 instanceof BasicFileResourceItem) {
       String temp = v1;
       v1 = v2;
       v2 = temp;
     }
-    if (value2 instanceof AarResourceItem) {
+    if (value2 instanceof BasicResourceItem) {
       if (v2.startsWith("apk:")) {
         String[] parts = v2.split(":");
         if (parts.length == 3 && parts[1].endsWith("/res.apk") &&

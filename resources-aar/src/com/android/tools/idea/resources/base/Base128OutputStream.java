@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -28,12 +28,12 @@ import org.jetbrains.annotations.Nullable;
  * variable-length encoding for integer values.
  * @see Base128InputStream
  */
-class Base128OutputStream extends BufferedOutputStream {
-  Base128OutputStream(@NotNull OutputStream stream) {
+public class Base128OutputStream extends BufferedOutputStream {
+  public Base128OutputStream(@NotNull OutputStream stream) {
     super(stream);
   }
 
-  Base128OutputStream(@NotNull Path file) throws IOException {
+  public Base128OutputStream(@NotNull Path file) throws IOException {
     super(Files.newOutputStream(file));
   }
 
