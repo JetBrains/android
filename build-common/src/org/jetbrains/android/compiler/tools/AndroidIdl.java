@@ -19,7 +19,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ArrayUtil;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.android.util.AndroidExecutionUtil;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +63,7 @@ public final class AndroidIdl {
     commands.add(file);
     commands.add(outFile);
 
-    LOG.info(AndroidCommonUtils.command2string(commands));
+    LOG.info(AndroidBuildCommonUtils.command2string(commands));
     return AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(commands));
   }
 

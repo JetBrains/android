@@ -58,7 +58,7 @@ import java.util.regex.Pattern;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidCommonUtils {
+public class AndroidBuildCommonUtils {
   @NonNls public static final String PROGUARD_CFG_FILE_NAME = "proguard-project.txt";
   public static final String SDK_HOME_MACRO = "%MODULE_SDK_HOME%";
   public static final String PROGUARD_SYSTEM_CFG_FILE_URL =
@@ -119,7 +119,7 @@ public class AndroidCommonUtils {
   /** Android Test Run Configuration Type Id, defined here so as to be accessible to both JPS and Android plugin. */
   @NonNls public static final String ANDROID_TEST_RUN_CONFIGURATION_TYPE = "AndroidTestRunConfigurationType";
 
-  private AndroidCommonUtils() {
+  private AndroidBuildCommonUtils() {
   }
 
   public static boolean isTestConfiguration(@NotNull String typeId) {

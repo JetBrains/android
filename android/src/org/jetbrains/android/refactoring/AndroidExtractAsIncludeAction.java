@@ -28,7 +28,7 @@ import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.dom.layout.Include;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -234,7 +234,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
     String includingLayout = SdkConstants.LAYOUT_RESOURCE_PREFIX + ResourceHelper.getResourceName(file);
     IncludeReference.setIncludingLayout(project, newFile, includingLayout);
 
-    final String resourceName = AndroidCommonUtils.getResourceName(ResourceType.LAYOUT.getName(), newFile.getName());
+    final String resourceName = AndroidBuildCommonUtils.getResourceName(ResourceType.LAYOUT.getName(), newFile.getName());
     final XmlTag includeTag = elementFactory.createTagFromText("<include layout=\"@layout/" + resourceName + "\"/>");
     parentTag.addAfter(includeTag, to);
     parentTag.deleteChildRange(from, to);
