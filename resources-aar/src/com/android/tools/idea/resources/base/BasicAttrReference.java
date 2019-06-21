@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
@@ -32,9 +32,9 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Resource value representing a reference to an attr resource, but potentially with its own description
- * and group name. Unlike {@link AarAttrResourceItem}, does not contain formats and enum or flag information.
+ * and group name. Unlike {@link BasicAttrResourceItem}, does not contain formats and enum or flag information.
  */
-class AarAttrReference extends AbstractAarValueResourceItem implements AttrResourceValue {
+public final class BasicAttrReference extends BasicValueResourceItemBase implements AttrResourceValue {
   @NotNull private final ResourceNamespace myNamespace;
   @Nullable private final String myDescription;
   @Nullable private final String myGroupName;
@@ -48,12 +48,12 @@ class AarAttrReference extends AbstractAarValueResourceItem implements AttrResou
    * @param description the description of the attr resource, if available
    * @param groupName the name of the attr group, if available
    */
-  AarAttrReference(@NotNull ResourceNamespace namespace,
-                   @NotNull String name,
-                   @NotNull AarSourceFile sourceFile,
-                   @NotNull ResourceVisibility visibility,
-                   @Nullable String description,
-                   @Nullable String groupName) {
+  public BasicAttrReference(@NotNull ResourceNamespace namespace,
+                            @NotNull String name,
+                            @NotNull ResourceSourceFile sourceFile,
+                            @NotNull ResourceVisibility visibility,
+                            @Nullable String description,
+                            @Nullable String groupName) {
     super(ResourceType.ATTR, name, sourceFile, visibility);
     myNamespace = namespace;
     myDescription = description;
@@ -100,7 +100,7 @@ class AarAttrReference extends AbstractAarValueResourceItem implements AttrResou
   public boolean equals(@Nullable Object obj) {
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
-    AarAttrReference other = (AarAttrReference) obj;
+    BasicAttrReference other = (BasicAttrReference) obj;
     return myNamespace.equals(other.myNamespace) &&
         Objects.equals(myDescription, other.myDescription) &&
         Objects.equals(myGroupName, other.myGroupName);
@@ -113,11 +113,11 @@ class AarAttrReference extends AbstractAarValueResourceItem implements AttrResou
   }
 
   @Override
-  void serialize(@NotNull Base128OutputStream stream,
-                 @NotNull ObjectIntHashMap<String> configIndexes,
-                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
-                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+  public void serialize(@NotNull Base128OutputStream stream,
+                        @NotNull ObjectIntHashMap<String> configIndexes,
+                        @NotNull ObjectIntHashMap<ResourceSourceFile> sourceFileIndexes,
+                        @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
     super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
-    AarAttrResourceItem.serializeAttrValue(this, getRepository().getNamespace(), stream);
+    BasicAttrResourceItem.serializeAttrValue(this, getRepository().getNamespace(), stream);
   }
 }

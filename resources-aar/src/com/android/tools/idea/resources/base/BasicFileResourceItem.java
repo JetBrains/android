@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -21,7 +21,7 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.resources.aar.Base128InputStream.StreamFormatException;
+import com.android.tools.idea.resources.base.Base128InputStream.StreamFormatException;
 import com.android.utils.HashCodes;
 import com.intellij.util.containers.ObjectIntHashMap;
 import java.io.IOException;
@@ -30,10 +30,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Resource item representing a file resource inside an AAR, e.g. a drawable or a layout.
+ * Resource item representing a file resource, e.g. a drawable or a layout.
  */
-class AarFileResourceItem extends AbstractAarResourceItem {
-  @NotNull private final AarConfiguration myConfiguration;
+public class BasicFileResourceItem extends BasicResourceItemBase {
+  @NotNull private final RepositoryConfiguration myConfiguration;
   @NotNull private final String myRelativePath;
 
   /**
@@ -45,11 +45,11 @@ class AarFileResourceItem extends AbstractAarResourceItem {
    * @param visibility the visibility of the resource
    * @param relativePath defines location of the resource. Exact semantics of the path may vary depending on the resource repository
    */
-  AarFileResourceItem(@NotNull ResourceType type,
-                      @NotNull String name,
-                      @NotNull AarConfiguration configuration,
-                      @NotNull ResourceVisibility visibility,
-                      @NotNull String relativePath) {
+  public BasicFileResourceItem(@NotNull ResourceType type,
+                               @NotNull String name,
+                               @NotNull RepositoryConfiguration configuration,
+                               @NotNull ResourceVisibility visibility,
+                               @NotNull String relativePath) {
     super(type, name, visibility);
     myConfiguration = configuration;
     myRelativePath = relativePath;
@@ -68,7 +68,7 @@ class AarFileResourceItem extends AbstractAarResourceItem {
 
   @Override
   @NotNull
-  AarConfiguration getAarConfiguration() {
+  public RepositoryConfiguration getRepositoryConfiguration() {
     return myConfiguration;
   }
 
@@ -79,7 +79,7 @@ class AarFileResourceItem extends AbstractAarResourceItem {
   }
 
   @Override
-  @Nullable
+  @NotNull
   public String getValue() {
     return getRepository().getResourceUrl(myRelativePath);
   }
@@ -107,7 +107,7 @@ class AarFileResourceItem extends AbstractAarResourceItem {
   public boolean equals(@Nullable Object obj) {
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
-    AarFileResourceItem other = (AarFileResourceItem) obj;
+    BasicFileResourceItem other = (BasicFileResourceItem) obj;
     return myConfiguration.equals(other.myConfiguration)
         && myRelativePath.equals(other.myRelativePath);
   }
@@ -118,10 +118,10 @@ class AarFileResourceItem extends AbstractAarResourceItem {
   }
 
   @Override
-  void serialize(@NotNull Base128OutputStream stream,
-                 @NotNull ObjectIntHashMap<String> configIndexes,
-                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
-                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+  public void serialize(@NotNull Base128OutputStream stream,
+                        @NotNull ObjectIntHashMap<String> configIndexes,
+                        @NotNull ObjectIntHashMap<ResourceSourceFile> sourceFileIndexes,
+                        @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
     super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
     stream.writeString(myRelativePath);
     String qualifierString = getConfiguration().getQualifierString();
@@ -132,26 +132,26 @@ class AarFileResourceItem extends AbstractAarResourceItem {
   }
 
   /**
-   * Creates an AarFileResourceItem by reading its contents of the given stream.
+   * Creates an BasicFileResourceItem by reading its contents of the given stream.
    */
   @NotNull
-  static AarFileResourceItem deserialize(@NotNull Base128InputStream stream,
-                                         @NotNull ResourceType resourceType,
-                                         @NotNull String name,
-                                         @NotNull ResourceVisibility visibility,
-                                         @NotNull List<AarConfiguration> configurations) throws IOException {
+  static BasicFileResourceItem deserialize(@NotNull Base128InputStream stream,
+                                           @NotNull ResourceType resourceType,
+                                           @NotNull String name,
+                                           @NotNull ResourceVisibility visibility,
+                                           @NotNull List<RepositoryConfiguration> configurations) throws IOException {
     String relativePath = stream.readString();
     if (relativePath == null) {
       throw StreamFormatException.invalidFormat();
     }
-    AarConfiguration configuration = configurations.get(stream.readInt());
+    RepositoryConfiguration configuration = configurations.get(stream.readInt());
     int encodedDensity = stream.readInt();
     if (encodedDensity == 0) {
-      return new AarFileResourceItem(resourceType, name, configuration, visibility, relativePath);
+      return new BasicFileResourceItem(resourceType, name, configuration, visibility, relativePath);
     }
 
     Density density = Density.values()[encodedDensity - 1];
-    return new AarDensityBasedFileResourceItem(resourceType, name, configuration, visibility, relativePath, density);
+    return new BasicDensityBasedFileResourceItem(resourceType, name, configuration, visibility, relativePath, density);
   }
 
   protected int getEncodedDensityForSerialization() {

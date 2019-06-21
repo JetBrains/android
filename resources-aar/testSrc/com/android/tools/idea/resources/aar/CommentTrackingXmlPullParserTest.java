@@ -22,6 +22,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.xmlpull.v1.XmlPullParser.END_DOCUMENT;
 import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
+import com.android.tools.idea.resources.base.CommentTrackingXmlPullParser;
 import java.io.Reader;
 import java.io.StringReader;
 import org.intellij.lang.annotations.Language;

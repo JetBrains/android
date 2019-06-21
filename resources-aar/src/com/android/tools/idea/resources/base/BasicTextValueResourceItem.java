@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resources.aar;
+package com.android.tools.idea.resources.base;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.TextResourceValue;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Resource item representing a value resource, e.g. a string or a color.
  */
-class AarTextValueResourceItem extends AarValueResourceItem implements TextResourceValue {
+public class BasicTextValueResourceItem extends BasicValueResourceItem implements TextResourceValue {
   private final String myRawXmlValue;
 
   /**
@@ -40,12 +40,12 @@ class AarTextValueResourceItem extends AarValueResourceItem implements TextResou
    * @param textValue the text value associated with the resource
    * @param rawXmlValue the raw xml value associated with the resource (see {@link ResourceValue#getRawXmlValue()})
    */
-  AarTextValueResourceItem(@NotNull ResourceType type,
-                           @NotNull String name,
-                           @NotNull AarSourceFile sourceFile,
-                           @NotNull ResourceVisibility visibility,
-                           @Nullable String textValue,
-                           @Nullable String rawXmlValue) {
+  public BasicTextValueResourceItem(@NotNull ResourceType type,
+                                    @NotNull String name,
+                                    @NotNull ResourceSourceFile sourceFile,
+                                    @NotNull ResourceVisibility visibility,
+                                    @Nullable String textValue,
+                                    @Nullable String rawXmlValue) {
     super(type, name, sourceFile, visibility, textValue);
     myRawXmlValue = rawXmlValue;
   }
@@ -60,7 +60,7 @@ class AarTextValueResourceItem extends AarValueResourceItem implements TextResou
   public boolean equals(@Nullable Object obj) {
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
-    AarTextValueResourceItem other = (AarTextValueResourceItem) obj;
+    BasicTextValueResourceItem other = (BasicTextValueResourceItem) obj;
     return Objects.equals(myRawXmlValue, other.myRawXmlValue);
   }
 
