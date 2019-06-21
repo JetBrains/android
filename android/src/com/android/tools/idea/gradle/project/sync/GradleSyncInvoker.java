@@ -238,7 +238,10 @@ public class GradleSyncInvoker {
 
     boolean useNewGradleSync = NewGradleSync.isEnabled(project);
 
-    CountDownLatch latch = (request.generateSourcesOnSuccess && isCompoundSync(project)) ? createSourceGenerationLatch(project) : null;
+    CountDownLatch latch =
+      (ApplicationManager.getApplication().isUnitTestMode() && request.generateSourcesOnSuccess && isCompoundSync(project))
+      ? createSourceGenerationLatch(project)
+      : null;
 
     GradleSync gradleSync = useNewGradleSync ? new NewGradleSync(project) : new IdeaGradleSync(project);
     gradleSync.sync(request, listener);
