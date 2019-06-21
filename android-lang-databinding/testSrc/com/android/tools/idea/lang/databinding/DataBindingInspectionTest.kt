@@ -359,4 +359,66 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.checkHighlighting()
   }
+
+  @Test
+  fun testDataBindingInspection_invalidIdAsMethodParameter() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        public void test(Model model) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{model.test(<error descr="Cannot find identifier 'modelY'">modelY</error>)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_validIdAsMethodParameter() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        public void test(Model model) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{model.test(model)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
 }

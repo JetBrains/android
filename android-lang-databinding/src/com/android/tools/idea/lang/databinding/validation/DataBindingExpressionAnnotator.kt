@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.validation
 
+import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbId
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
@@ -56,43 +57,48 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   /**
    * Annotates unresolvable [PsiDbId] with "Cannot find identifier" error.
    *
-   * A [PsiDbId] is unresolvable when none of its ancestors has
+   * A [PsiDbId] is unresolvable when its container expression does not have
    * a valid reference.
    *
-   * From db.bnf
+   * From db.bnf, we have three kinds of possible container expression:
+   * [PsiDbRefExpr], [PsiDbFunctionRefExpr] and [PsiDbFunctionRefExpr]
    *
    * ```
    * fake refExpr ::= expr? '.' id
    * simpleRefExpr ::= id {extends=refExpr elementType=refExpr}
    * qualRefExpr ::= expr '.' id {extends=refExpr elementType=refExpr}
    * functionRefExpr ::= expr '::' id
+   * callExpr ::= refExpr '(' expressionList? ')'
    * ```
-   * if the identifier's parent contains an unresolvable expression, we should annotate
-   * the expression instead.
+   *
+   * If the container is unresolvable because of its expr element, we will
+   * not annotate its id element.
    */
   override fun visitId(id: PsiDbId) {
     super.visitId(id)
 
-    var element = id.parent
-    while (element != null) {
-      if (element.reference != null) {
-        return
-      }
-      element = element.parent
+    val parent = id.parent
+    // Container expression has a valid reference as [PsiDbRefExpr] or [PsiDbFunctionRefExpr].
+    if (parent.reference != null) {
+      return
     }
 
-    when (val parent = id.parent) {
+    when (parent) {
       is PsiDbRefExpr -> {
-        val expr = parent.expr
+        // Container expression has a valid reference as [PsiDbCallExpr].
+        if ((parent.parent as? PsiDbCallExpr)?.reference != null) {
+          return
+        }
 
-        // Whitelist hidden methods for simpleRefExpr
+        val expr = parent.expr
+        // Whitelist hidden methods for simpleRefExpr.
         if (expr == null) {
           if (isViewDataBindingMethod(id.text)) {
             return
           }
         }
-        // Don't annotate this identifier because we're going to annotate the expression
-        // part of its parent element instead
+        // Don't annotate this id element because the container is unresolvable for
+        // its expr element.
         else if (expr.reference == null) {
           return
         }
