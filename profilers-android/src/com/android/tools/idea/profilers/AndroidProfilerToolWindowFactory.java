@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
+import com.android.tools.idea.profilers.commands.GcCommandHandler;
 import com.android.tools.idea.profilers.eventpreprocessor.EnergyUsagePreprocessor;
 import com.android.tools.idea.profilers.perfd.ProfilerServiceProxyManager;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -26,6 +27,7 @@ import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Agent;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.Transport;
@@ -168,6 +170,9 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
       if (StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get()) {
         proxy.registerEventPreprocessor(new EnergyUsagePreprocessor(TransportService.getInstance().getLogService()));
       }
+
+      GcCommandHandler gcCommandHandler = new GcCommandHandler(proxy.getDevice());
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.GC, gcCommandHandler::execute);
     }
 
     @Override

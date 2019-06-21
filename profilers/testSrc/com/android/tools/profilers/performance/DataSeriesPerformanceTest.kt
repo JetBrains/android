@@ -43,7 +43,7 @@ import com.android.tools.profilers.energy.LegacyMergedEnergyEventsDataSeries
 import com.android.tools.profilers.event.LifecycleEventDataSeries
 import com.android.tools.profilers.event.UserEventDataSeries
 import com.android.tools.profilers.memory.AllocStatsDataSeries
-import com.android.tools.profilers.memory.GcStatsDataSeries
+import com.android.tools.profilers.memory.LegacyGcStatsDataSeries
 import com.android.tools.profilers.memory.MemoryDataSeries
 import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
@@ -118,7 +118,8 @@ class DataSeriesPerformanceTest {
                                  Pair("Network-Open-Connections", NetworkOpenConnectionsDataSeries(client.networkClient, session)),
                                  Pair("Network-Traffic", NetworkTrafficDataSeries(client.networkClient, session,
                                                                                   NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
-                                 Pair("Memory-GC-Stats", GcStatsDataSeries(client.memoryClient, session)),
+                                 Pair("Memory-GC-Stats",
+                                      LegacyGcStatsDataSeries(client.memoryClient, session)),
                                  Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session) { sample -> sample.timestamp }),
                                  Pair("Memory-Allocation",
                                       AllocStatsDataSeries(studioProfilers, client.memoryClient) { sample -> sample.timestamp }),

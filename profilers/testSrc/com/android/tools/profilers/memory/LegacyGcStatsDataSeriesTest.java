@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
-public class GcStatsDataSeriesTest {
+public class LegacyGcStatsDataSeriesTest {
 
   private final FakeMemoryService myService = new FakeMemoryService();
 
@@ -48,7 +48,8 @@ public class GcStatsDataSeriesTest {
       .build();
     myService.setMemoryData(memoryData);
 
-    GcStatsDataSeries series = new GcStatsDataSeries(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA);
+    LegacyGcStatsDataSeries
+      series = new LegacyGcStatsDataSeries(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA);
     List<SeriesData<GcDurationData>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());
