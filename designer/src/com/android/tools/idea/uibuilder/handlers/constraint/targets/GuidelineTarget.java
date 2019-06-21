@@ -174,7 +174,7 @@ public class GuidelineTarget extends BaseTarget {
   }
 
   @Override
-  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifier) {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     if (myIsHorizontal) {
       return Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
     }

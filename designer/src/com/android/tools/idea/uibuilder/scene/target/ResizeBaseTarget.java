@@ -131,7 +131,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifier) {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     switch (myType) {
       case LEFT:
         return Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);

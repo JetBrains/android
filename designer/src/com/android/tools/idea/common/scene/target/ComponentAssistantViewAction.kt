@@ -117,8 +117,8 @@ class ComponentAssistantViewAction @JvmOverloads constructor(
                                   handler: ViewHandler,
                                   component: NlComponent,
                                   selectedChildren: MutableList<NlComponent>,
-                                  modifiers: Int) {
-    super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiers)
+                                  modifiersEx: Int) {
+    super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiersEx)
 
     val visible = (selectedChildren.size == 1).and(panelFactoryFactory(selectedChildren[0]) != null)
     presentation.setVisible(visible)

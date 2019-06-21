@@ -137,7 +137,7 @@ public class InteractionManager implements Disposable {
    * scenarios (such as on a drag interaction) we don't get access to it.
    */
   @InputEventMask
-  protected int myLastStateMask;
+  protected int myLastModifiersEx;
 
   /**
    * A timer used to control when to initiate a mouse hover action. It is active only when
@@ -269,15 +269,15 @@ public class InteractionManager implements Disposable {
    * Starts the given interaction.
    */
   private void startInteraction(@SwingCoordinate int x, @SwingCoordinate int y, @Nullable Interaction interaction,
-                                @InputEventMask int modifiers) {
+                                @InputEventMask int modifiersEx) {
     if (myCurrentInteraction != null) {
-      finishInteraction(x, y, modifiers, true);
+      finishInteraction(x, y, modifiersEx, true);
       assert myCurrentInteraction == null;
     }
 
     if (interaction != null) {
       myCurrentInteraction = interaction;
-      myCurrentInteraction.begin(x, y, modifiers);
+      myCurrentInteraction.begin(x, y, modifiersEx);
       myLayers = interaction.createOverlays();
     }
   }
@@ -294,8 +294,8 @@ public class InteractionManager implements Disposable {
    * Returns the most recently observed input event mask
    */
   @InputEventMask
-  public int getLastModifiers() {
-    return myLastStateMask;
+  public int getLastModifiersEx() {
+    return myLastModifiersEx;
   }
 
   /**
@@ -303,7 +303,7 @@ public class InteractionManager implements Disposable {
    */
   @TestOnly
   public void setModifier(@InputEventMask int modifier) {
-    myLastStateMask = modifier;
+    myLastModifiersEx = modifier;
   }
 
   /**
@@ -311,7 +311,7 @@ public class InteractionManager implements Disposable {
    */
   private void updateMouse(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (myCurrentInteraction != null) {
-      myCurrentInteraction.update(x, y, myLastStateMask);
+      myCurrentInteraction.update(x, y, myLastModifiersEx);
       mySurface.repaint();
     }
   }
@@ -324,12 +324,12 @@ public class InteractionManager implements Disposable {
    *                  interaction, in Swing coordinates.
    * @param y         The most recent mouse y coordinate applicable to the new
    *                  interaction, in Swing coordinates.
-   * @param modifiers The most recent modifier key state
+   * @param modifiersEx The most recent modifier key state
    * @param canceled  True if and only if the interaction was canceled.
    */
-  private void finishInteraction(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
+  private void finishInteraction(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx, boolean canceled) {
     if (myCurrentInteraction != null) {
-      myCurrentInteraction.end(x, y, modifiers, canceled);
+      myCurrentInteraction.end(x, y, modifiersEx, canceled);
       if (myLayers != null) {
         for (Layer layer : myLayers) {
           //noinspection SSBasedInspection
@@ -338,8 +338,8 @@ public class InteractionManager implements Disposable {
         myLayers = null;
       }
       myCurrentInteraction = null;
-      myLastStateMask = 0;
-      updateCursor(x, y, modifiers);
+      myLastModifiersEx = 0;
+      updateCursor(x, y, modifiersEx);
       mySurface.repaint();
     }
   }
@@ -420,7 +420,7 @@ public class InteractionManager implements Disposable {
 
       myLastMouseX = event.getX();
       myLastMouseY = event.getY();
-      myLastStateMask = event.getModifiers();
+      myLastModifiersEx = event.getModifiersEx();
 
       if (event.isPopupTrigger()) {
         NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
@@ -436,7 +436,7 @@ public class InteractionManager implements Disposable {
 
       Interaction interaction = getSurface().createInteractionOnClick(myLastMouseX, myLastMouseY);
       if (interaction != null) {
-        startInteraction(myLastMouseX, myLastMouseY, interaction, myLastStateMask);
+        startInteraction(myLastMouseX, myLastMouseY, interaction, myLastModifiersEx);
       }
     }
 
@@ -463,18 +463,18 @@ public class InteractionManager implements Disposable {
 
       int x = event.getX();
       int y = event.getY();
-      int modifiers = event.getModifiers();
+      int modifiersEx = event.getModifiersEx();
 
       if (myCurrentInteraction == null) {
-        boolean allowToggle = (modifiers & (InputEvent.SHIFT_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) != 0;
+        boolean allowToggle = (modifiersEx & (InputEvent.SHIFT_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) != 0;
         selectComponentAt(x, y, allowToggle, false);
         mySurface.repaint();
       }
       if (myCurrentInteraction == null) {
-        updateCursor(x, y, modifiers);
+        updateCursor(x, y, modifiersEx);
       }
       else {
-        finishInteraction(x, y, modifiers, false);
+        finishInteraction(x, y, modifiersEx, false);
         myCurrentInteraction = null;
       }
       mySurface.repaint();
@@ -505,7 +505,7 @@ public class InteractionManager implements Disposable {
       int xDip = getAndroidXDip(sceneView, x);
       int yDip = getAndroidYDip(sceneView, y);
       Scene scene = sceneView.getScene();
-      Target clickedTarget = scene.findTarget(context, xDip, yDip, myLastStateMask);
+      Target clickedTarget = scene.findTarget(context, xDip, yDip, myLastModifiersEx);
       SceneComponent clicked;
       if (clickedTarget != null) {
         clicked = clickedTarget.getComponent();
@@ -585,13 +585,13 @@ public class InteractionManager implements Disposable {
         return;
       }
 
-      int modifiers = event.getModifiers();
+      int modifiersEx = event.getModifiersEx();
       if (myCurrentInteraction != null) {
         myLastMouseX = x;
         myLastMouseY = y;
-        myLastStateMask = modifiers;
-        myCurrentInteraction.update(myLastMouseX, myLastMouseY, myLastStateMask);
-        updateCursor(x, y, modifiers);
+        myLastModifiersEx = modifiersEx;
+        myCurrentInteraction.update(myLastMouseX, myLastMouseY, myLastModifiersEx);
+        updateCursor(x, y, modifiersEx);
         mySurface.getLayeredPane().scrollRectToVisible(
           new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
                         2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
@@ -600,7 +600,7 @@ public class InteractionManager implements Disposable {
       else {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
         y = myLastMouseY;
-        myLastStateMask = modifiers;
+        myLastModifiersEx = modifiersEx;
         SceneView sceneView = mySurface.getSceneView(x, y);
         if (sceneView == null) {
           return;
@@ -640,9 +640,9 @@ public class InteractionManager implements Disposable {
         }
 
         if (interaction != null) {
-          startInteraction(x, y, interaction, modifiers);
+          startInteraction(x, y, interaction, modifiersEx);
         }
-        updateCursor(x, y, modifiers);
+        updateCursor(x, y, modifiersEx);
       }
 
       myHoverTimer.restart();
@@ -659,11 +659,11 @@ public class InteractionManager implements Disposable {
         handlePanInteraction(x, y);
         return;
       }
-      int modifier = event.getModifiers();
-      myLastStateMask = modifier;
+      int modifier = event.getModifiersEx();
+      myLastModifiersEx = modifier;
 
       mySurface.hover(x, y);
-      if ((myLastStateMask & InputEvent.BUTTON1_DOWN_MASK) != 0) {
+      if ((myLastModifiersEx & InputEvent.BUTTON1_DOWN_MASK) != 0) {
         if (myCurrentInteraction != null) {
           updateMouse(x, y);
           mySurface.repaint();
@@ -680,15 +680,15 @@ public class InteractionManager implements Disposable {
 
     @Override
     public void keyTyped(KeyEvent event) {
-      myLastStateMask = event.getModifiers();
+      myLastModifiersEx = event.getModifiersEx();
     }
 
     @Override
     public void keyPressed(KeyEvent event) {
-      int modifiers = event.getModifiers();
+      int modifiersEx = event.getModifiersEx();
       int keyCode = event.getKeyCode();
 
-      myLastStateMask = modifiers;
+      myLastModifiersEx = modifiersEx;
 
       Scene scene = mySurface.getScene();
       if (scene != null) {
@@ -702,7 +702,7 @@ public class InteractionManager implements Disposable {
       if (myCurrentInteraction != null) {
         // unless it's "Escape", which cancels the interaction
         if (keyCode == KeyEvent.VK_ESCAPE) {
-          finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true);
+          finishInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx, true);
           myIsInteractionCanceled = true;
           return;
         }
@@ -738,7 +738,7 @@ public class InteractionManager implements Disposable {
 
     @Override
     public void keyReleased(KeyEvent event) {
-      myLastStateMask = event.getModifiers();
+      myLastModifiersEx = event.getModifiersEx();
 
       Scene scene = mySurface.getScene();
       if (scene != null) {
@@ -753,7 +753,7 @@ public class InteractionManager implements Disposable {
 
       if (event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode()) {
         setPanning(false);
-        updateCursor(myLastMouseX, myLastMouseY, myLastStateMask);
+        updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
       }
     }
 
@@ -822,7 +822,7 @@ public class InteractionManager implements Disposable {
       SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
       if (sceneView != null && myCurrentInteraction instanceof DragDropInteraction) {
         DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
-        interaction.update(myLastMouseX, myLastMouseY, myLastStateMask);
+        interaction.update(myLastMouseX, myLastMouseY, myLastModifiersEx);
         if (interaction.acceptsDrop()) {
           DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
           interaction.setType(dragType);
@@ -849,7 +849,7 @@ public class InteractionManager implements Disposable {
     @Override
     public void dragExit(DropTargetEvent event) {
       if (myCurrentInteraction instanceof DragDropInteraction) {
-        finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true /* cancel interaction */);
+        finishInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx, true /* cancel interaction */);
       }
     }
 
@@ -876,7 +876,7 @@ public class InteractionManager implements Disposable {
         return null;
       }
       InsertType insertType = finishDropInteraction(dropAction, transferable);
-      finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, (insertType == null));
+      finishInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx, (insertType == null));
       return insertType;
     }
 
@@ -1065,7 +1065,7 @@ public class InteractionManager implements Disposable {
    * Cancels the current running interaction
    */
   public void cancelInteraction() {
-    finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true);
+    finishInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx, true);
   }
 
   @VisibleForTesting
