@@ -427,8 +427,8 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
   override fun newSelection(): List<SceneComponent> = newSelectedComponents
 
-  override fun getMouseCursor(@JdkConstants.InputEventMask modifier: Int): Cursor? {
-    return if ((modifier and InputEvent.ALT_MASK) != 0 && myComponent.isSelected) AdtUiCursors.MOVE
+  override fun getMouseCursor(@JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
+    return if ((modifiersEx and InputEvent.ALT_DOWN_MASK) != 0 && myComponent.isSelected) AdtUiCursors.MOVE
            else Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
   }
 

@@ -47,13 +47,13 @@ public abstract class LinearLayoutAction extends DirectViewAction {
                                  @NotNull ViewHandler handler,
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
-                                 @JdkConstants.InputEventMask int modifiers) {
+                                 @JdkConstants.InputEventMask int modifiersEx) {
     if (handler instanceof DelegatingViewGroupHandler) {
       handler = ((DelegatingViewGroupHandler)handler).getDelegateHandler();
     }
 
     if (handler instanceof LinearLayoutHandler) {
-      updatePresentation(presentation, editor, ((LinearLayoutHandler)handler), component, selectedChildren, modifiers);
+      updatePresentation(presentation, editor, ((LinearLayoutHandler)handler), component, selectedChildren, modifiersEx);
     }
     else {
       presentation.setVisible(false);

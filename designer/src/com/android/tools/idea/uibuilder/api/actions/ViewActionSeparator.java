@@ -74,7 +74,7 @@ public final class ViewActionSeparator extends AbstractViewAction {
                                  @NotNull ViewHandler handler,
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
-                                 @InputEventMask int modifiers) {
+                                 @InputEventMask int modifiersEx) {
   }
 
   @Override

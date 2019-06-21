@@ -101,12 +101,12 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
   }
 
   @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int startMask) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     myKeyframe = null;
 
     MotionSceneModel.KeyFrame kf = getSelectedKeyframe();
     if (kf == null || !kf.getName().equals("KeyPosition") || kf.getFramePosition() != getFramePosition()) {
-      super.begin(x, y, startMask);
+      super.begin(x, y, modifiersEx);
       return;
     }
 
@@ -147,10 +147,10 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     MotionSceneModel.KeyFrame keyFrame = getSelectedKeyframe();
     if (keyFrame == null || !keyFrame.getName().equals("KeyPosition")) {
-      super.update(x, y, modifiers);
+      super.update(x, y, modifiersEx);
       return;
     }
 
@@ -178,10 +178,10 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx, boolean canceled) {
     MotionSceneModel.KeyFrame keyFrame = getSelectedKeyframe();
     if (keyFrame == null || !keyFrame.getName().equals("KeyPosition")) {
-      super.end(x, y, modifiers, canceled);
+      super.end(x, y, modifiersEx, canceled);
       return;
     }
 
