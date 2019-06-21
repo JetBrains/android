@@ -12,7 +12,11 @@ iml_module(
     iml_files = ["intellij.android.lang.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = ["no_test_mac_psq"],
-    test_runtime_deps = ["//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions"],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
+        "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
@@ -22,6 +26,8 @@ iml_module(
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/configuration-store-impl:intellij.platform.configurationStore.impl",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
     ],
     # do not sort: must match IML order
     deps = [
