@@ -173,7 +173,7 @@ public class AndroidBuildCommonUtils {
         String[] msgs = event.getText().split("\\n");
         for (String msg : msgs) {
           msg = msg.trim();
-          String msglc = msg.toLowerCase();
+          String msglc = msg.toLowerCase(Locale.US);
           if (outputType == ProcessOutputTypes.STDERR) {
             if (WARNING_PATTERN.matcher(msglc).matches()) {
               myCategory = AndroidCompilerMessageKind.WARNING;
