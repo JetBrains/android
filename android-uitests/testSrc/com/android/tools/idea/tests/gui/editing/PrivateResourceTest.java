@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -24,6 +25,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.Proje
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +39,16 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class PrivateResourceTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+
+  @Before
+  public void setUp() {
+    StudioFlags.NEW_PSD_ENABLED.override(false);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NEW_PSD_ENABLED.clearOverride();
+  }
 
   /**
    * Verifies that private resources from libraries are not suggested to the
@@ -91,8 +104,8 @@ public class PrivateResourceTest {
 
     // Since the IDE shouldn't show private resource identifiers, the number of
     // suggested string resources should be small. At the time of writing, this
-    // PrivateResource project has 3 suggestions in the autocomplete list
-    assertThat(autoCompleteSuggestions).hasLength(3);
+    // PrivateResource project has 6 suggestions in the autocomplete list
+    assertThat(autoCompleteSuggestions).hasLength(6);
     assertThat(autoCompleteSuggestions).asList().contains("LookupElementBuilder: string=@string/app_name; handler=null");
 
     editor.enterText("abc_action_bar_home_description");
