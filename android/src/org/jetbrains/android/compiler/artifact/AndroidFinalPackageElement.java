@@ -20,7 +20,7 @@ import com.intellij.packaging.ui.PackagingElementPresentation;
 import com.intellij.util.xmlb.annotations.Attribute;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +65,7 @@ public class AndroidFinalPackageElement extends PackagingElement<AndroidFinalPac
 
     final String apkPath = AndroidRootUtil.getApkPath(facet);
     final String path = apkPath != null
-                        ? AndroidCommonUtils.addSuffixToFileName(apkPath, AndroidCommonUtils.ANDROID_FINAL_PACKAGE_FOR_ARTIFACT_SUFFIX)
+                        ? AndroidBuildCommonUtils.addSuffixToFileName(apkPath, AndroidBuildCommonUtils.ANDROID_FINAL_PACKAGE_FOR_ARTIFACT_SUFFIX)
                         : null;
     return path != null
            ? FileUtil.toSystemIndependentName(path) + "!/"

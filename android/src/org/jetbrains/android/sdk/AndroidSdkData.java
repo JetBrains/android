@@ -47,7 +47,7 @@ import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
-import static org.jetbrains.android.util.AndroidCommonUtils.parsePackageRevision;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.parsePackageRevision;
 
 /**
  * @author Eugene.Kudelevsky

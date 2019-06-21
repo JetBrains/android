@@ -29,7 +29,7 @@ import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.util.execution.ParametersListUtil;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.android.util.AndroidExecutionUtil;
 import org.jetbrains.annotations.NonNls;
@@ -55,7 +55,7 @@ public final class AndroidApt {
   private static final FileFilter PNG_FILES_FILTER = new FileFilter() {
     @Override
     public boolean accept(File file) {
-      return file.isDirectory() || FileUtilRt.extensionEquals(file.getName(), AndroidCommonUtils.PNG_EXTENSION);
+      return file.isDirectory() || FileUtilRt.extensionEquals(file.getName(), AndroidBuildCommonUtils.PNG_EXTENSION);
     }
   };
 
@@ -107,14 +107,14 @@ public final class AndroidApt {
     /* We actually need to delete the manifest.java as it may become empty and
     in this case aapt doesn't generate an empty one, but instead doesn't
     touch it */
-    final File manifestJavaFile = new File(packageFolderOsPath + File.separatorChar + AndroidCommonUtils.MANIFEST_JAVA_FILE_NAME);
+    final File manifestJavaFile = new File(packageFolderOsPath + File.separatorChar + AndroidBuildCommonUtils.MANIFEST_JAVA_FILE_NAME);
     if (manifestJavaFile.exists()) {
       if (!FileUtil.delete(manifestJavaFile)) {
         messages.get(AndroidCompilerMessageKind.ERROR).add("Unable to delete " + manifestJavaFile.getPath());
       }
     }
 
-    final File rJavaFile = new File(packageFolderOsPath + File.separatorChar + AndroidCommonUtils.R_JAVA_FILENAME);
+    final File rJavaFile = new File(packageFolderOsPath + File.separatorChar + AndroidBuildCommonUtils.R_JAVA_FILENAME);
     if (rJavaFile.exists()) {
       if (!FileUtil.delete(rJavaFile)) {
         messages.get(AndroidCompilerMessageKind.ERROR).add("Unable to delete " + rJavaFile.getPath());
@@ -126,7 +126,7 @@ public final class AndroidApt {
     for (int i = 0, n = libRTxtFilesAndPackages.size(); i < n; i++) {
       final String libPackage = libRTxtFilesAndPackages.get(i).getSecond();
       final String libPackageFolderOsPath = FileUtil.toSystemDependentName(outDirOsPath + '/' + libPackage.replace('.', '/'));
-      extraRJavaFiles[i] = new File(libPackageFolderOsPath + File.separatorChar + AndroidCommonUtils.R_JAVA_FILENAME);
+      extraRJavaFiles[i] = new File(libPackageFolderOsPath + File.separatorChar + AndroidBuildCommonUtils.R_JAVA_FILENAME);
     }
 
     for (File extraRJavaFile : extraRJavaFiles) {
@@ -159,7 +159,7 @@ public final class AndroidApt {
   private static void makeFieldsNotFinal(@NotNull File[] libRJavaFiles) throws IOException {
     for (File file : libRJavaFiles) {
       if (file.isFile()) {
-        final String fileContent = AndroidCommonUtils.readFile(file);
+        final String fileContent = AndroidBuildCommonUtils.readFile(file);
         FileUtil.writeToFile(file, fileContent.replace("public static final int ", "public static int "));
       }
     }
@@ -231,7 +231,7 @@ public final class AndroidApt {
       args.add(proguardCfgOutputFileOsPath);
     }
     final Map<AndroidCompilerMessageKind, List<String>> messages = AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(args));
-    LOG.info(AndroidCommonUtils.command2string(args));
+    LOG.info(AndroidBuildCommonUtils.command2string(args));
 
     if (!messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()) {
       return messages;
@@ -322,7 +322,7 @@ public final class AndroidApt {
       args.add("-C");
       args.add(outputPath);
 
-      LOG.info(AndroidCommonUtils.command2string(args));
+      LOG.info(AndroidBuildCommonUtils.command2string(args));
       return AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(args));
     }
     finally {
@@ -438,7 +438,7 @@ public final class AndroidApt {
       }
       args.add("-F");
       args.add(outputPath);
-      LOG.info(AndroidCommonUtils.command2string(args));
+      LOG.info(AndroidBuildCommonUtils.command2string(args));
       return AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(args));
     }
     finally {

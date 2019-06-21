@@ -28,7 +28,7 @@ import com.intellij.util.PathUtil;
 import com.intellij.util.PathsList;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,7 +60,7 @@ public class AndroidDxWrapper {
       return Collections.singletonMap(AndroidCompilerMessageKind.ERROR, Collections.singletonList("No Build Tools in the Android SDK."));
     }
 
-    String outFile = outputDir + File.separatorChar + AndroidCommonUtils.CLASSES_FILE_NAME;
+    String outFile = outputDir + File.separatorChar + AndroidBuildCommonUtils.CLASSES_FILE_NAME;
 
     final Map<AndroidCompilerMessageKind, List<String>> messages = new HashMap<AndroidCompilerMessageKind, List<String>>(2);
     messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<String>());
@@ -95,7 +95,7 @@ public class AndroidDxWrapper {
     if (!additionalVmParams.isEmpty()) {
       vmParamList.addParametersString(additionalVmParams);
     }
-    if (!AndroidCommonUtils.hasXmxParam(vmParamList.getParameters())) {
+    if (!AndroidBuildCommonUtils.hasXmxParam(vmParamList.getParameters())) {
       vmParamList.add("-Xmx" + maxHeapSize + "M");
     }
     final PathsList classPath = parameters.getClassPath();
@@ -113,7 +113,7 @@ public class AndroidDxWrapper {
       GeneralCommandLine commandLine = parameters.toCommandLine();
       LOG.info(commandLine.getCommandLineString());
       process = commandLine.createProcess();
-      AndroidCommonUtils.handleDexCompilationResult(process, commandLine.getCommandLineString(), outFile, messages, false);
+      AndroidBuildCommonUtils.handleDexCompilationResult(process, commandLine.getCommandLineString(), outFile, messages, false);
     }
     catch (ExecutionException e) {
       messages.get(AndroidCompilerMessageKind.ERROR).add("ExecutionException: " + e.getMessage());

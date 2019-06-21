@@ -282,7 +282,7 @@ public class AndroidResourceUtil {
       return PsiField.EMPTY_ARRAY;
     }
 
-    final String resourceName = AndroidCommonUtils.getResourceName(resourceType, file.getName());
+    final String resourceName = AndroidBuildCommonUtils.getResourceName(resourceType, file.getName());
     return findResourceFields(facet, resourceType, resourceName, onlyInOwnPackages);
   }
 

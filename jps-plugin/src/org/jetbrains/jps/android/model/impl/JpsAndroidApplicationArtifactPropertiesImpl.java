@@ -3,7 +3,7 @@ package org.jetbrains.jps.android.model.impl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.JpsAndroidApplicationArtifactProperties;
 import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
@@ -163,7 +163,7 @@ public class JpsAndroidApplicationArtifactPropertiesImpl extends JpsElementBase<
     final List<String> result = new ArrayList<String>(urls.size());
 
     for (String url : urls) {
-      result.add(StringUtil.replace(url, AndroidCommonUtils.SDK_HOME_MACRO, sdkHomePath));
+      result.add(StringUtil.replace(url, AndroidBuildCommonUtils.SDK_HOME_MACRO, sdkHomePath));
     }
     return result;
   }

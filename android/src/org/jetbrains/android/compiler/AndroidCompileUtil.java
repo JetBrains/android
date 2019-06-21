@@ -93,13 +93,13 @@ import java.util.regex.Matcher;
 public class AndroidCompileUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidCompileUtil");
 
-  private static final Key<Boolean> RELEASE_BUILD_KEY = new Key<Boolean>(AndroidCommonUtils.RELEASE_BUILD_OPTION);
+  private static final Key<Boolean> RELEASE_BUILD_KEY = new Key<Boolean>(AndroidBuildCommonUtils.RELEASE_BUILD_OPTION);
   @NonNls private static final String RESOURCES_CACHE_DIR_NAME = "res-cache";
   @NonNls private static final String GEN_MODULE_PREFIX = "~generated_";
 
   @NonNls public static final String OLD_PROGUARD_CFG_FILE_NAME = "proguard.cfg";
   public static final String UNSIGNED_SUFFIX = ".unsigned";
-  public static Key<String> PROGUARD_CFG_PATHS_KEY = Key.create(AndroidCommonUtils.PROGUARD_CFG_PATHS_OPTION);
+  public static Key<String> PROGUARD_CFG_PATHS_KEY = Key.create(AndroidBuildCommonUtils.PROGUARD_CFG_PATHS_OPTION);
 
   private AndroidCompileUtil() {
   }
@@ -133,7 +133,7 @@ public class AndroidCompileUtil {
     if (root == null) {
       return null;
     }
-    final VirtualFile proguardCfg = root.findChild(AndroidCommonUtils.PROGUARD_CFG_FILE_NAME);
+    final VirtualFile proguardCfg = root.findChild(AndroidBuildCommonUtils.PROGUARD_CFG_FILE_NAME);
     if (proguardCfg != null) {
       return new Pair<VirtualFile, Boolean>(proguardCfg, true);
     }
@@ -162,7 +162,7 @@ public class AndroidCompileUtil {
           for (String message : messageList) {
             String url = null;
             int line = -1;
-            Matcher matcher = AndroidCommonUtils.COMPILER_MESSAGE_PATTERN.matcher(message);
+            Matcher matcher = AndroidBuildCommonUtils.COMPILER_MESSAGE_PATTERN.matcher(message);
             if (matcher.matches()) {
               String fileName = matcher.group(1);
               if (new File(fileName).exists()) {
@@ -576,7 +576,7 @@ public class AndroidCompileUtil {
 
   public static boolean isFullBuild(@NotNull CompileScope scope) {
     final RunConfiguration c = CompileStepBeforeRun.getRunConfiguration(scope);
-    return c == null || !AndroidCommonUtils.isTestConfiguration(c.getType().getId());
+    return c == null || !AndroidBuildCommonUtils.isTestConfiguration(c.getType().getId());
   }
 
   public static boolean isReleaseBuild(@NotNull CompileContext context) {
