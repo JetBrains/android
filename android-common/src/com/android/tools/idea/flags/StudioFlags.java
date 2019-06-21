@@ -105,6 +105,11 @@ public final class StudioFlags {
     "Show experimental activity gallery which contains Kotlin templates passed through plugin in addition to the normal gallery",
     false);
 
+  public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(
+    NPW, "show.fragment.gallery", "Show fragment gallery",
+    "Show fragment gallery which contains fragment based templates",
+    false);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
   public static final Flag<Boolean> PROFILER_CPU_CAPTURE_STAGE = Flag.create(

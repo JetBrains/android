@@ -28,6 +28,8 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
+import com.android.tools.idea.npw.template.ChooseFragmentTypeStep;
+import com.android.tools.idea.npw.template.ChooseGalleryItemStep;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -48,6 +50,8 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.platform.templates.github.ZipUtil;
+import freemarker.template.TemplateException;
+import freemarker.template.TemplateModelException;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -81,6 +85,7 @@ public class TemplateManager {
 
   public static final String CATEGORY_OTHER = "Other";
   public static final String CATEGORY_ACTIVITY = "Activity";
+  public static final String CATEGORY_FRAGMENT = "Fragment";
   public static final String CATEGORY_AUTOMOTIVE = "Automotive";
   public static final String CATEGORY_ANDROID_AUTO = "Android Auto";
   private static final String ACTION_ID_PREFIX = "template.create.";
@@ -317,6 +322,14 @@ public class TemplateManager {
     return getTemplateList(formFactor, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES, EXCLUDED_TEMPLATES);
   }
 
+  /**
+   * Returns the list of currently available templates, for the specified FormFactor
+   */
+  @NotNull
+  public List<TemplateHandle> getFragmentTemplateList(@NotNull FormFactor formFactor) {
+    return getTemplateList(formFactor, NewAndroidComponentAction.FRAGMENT_CATEGORY, EXCLUDED_TEMPLATES);
+  }
+
   @NotNull
   public static List<File> getTemplatesFromDirectory(@NotNull File externalDirectory, boolean recursive) {
     List<File> templates = Lists.newArrayList();
@@ -490,40 +503,9 @@ public class TemplateManager {
 
         @Override
         public void actionPerformed(@NotNull AnActionEvent e) {
-          ProjectSyncInvoker projectSyncInvoker = new ProjectSyncInvoker.DefaultProjectSyncInvoker();
-
-          DataContext dataContext = e.getDataContext();
-          Module module = LangDataKeys.MODULE.getData(dataContext);
-          assert module != null;
-
-          VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-          assert targetFile != null;
-
-          VirtualFile targetDirectory = targetFile;
-          if (!targetDirectory.isDirectory()) {
-            targetDirectory = targetFile.getParent();
-            assert targetDirectory != null;
-          }
-
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          assert facet != null && facet.getConfiguration().getModel() != null;
-
-          List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
-          assert (!moduleTemplates.isEmpty());
-
-          String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
-          Project project = facet.getModule().getProject();
-
-          RenderTemplateModel renderModel = RenderTemplateModel.fromFacet(
-            facet, null, initialPackageSuggestion, moduleTemplates.get(0),
-            AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id), projectSyncInvoker, true);
-
-          NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker);
-          ChooseActivityTypeStep chooseActivityTypeStep =
-            new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
-          ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
-
-          new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();
+          showWizardDialog(e, CATEGORY_ACTIVITY,
+                           AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id),
+                          "New Android Activity");
         }
       };
       categoryGroup.add(galleryAction);
@@ -539,40 +521,9 @@ public class TemplateManager {
 
           @Override
           public void actionPerformed(@NotNull AnActionEvent e) {
-            ProjectSyncInvoker projectSyncInvoker = new ProjectSyncInvoker.DefaultProjectSyncInvoker();
-
-            DataContext dataContext = e.getDataContext();
-            Module module = LangDataKeys.MODULE.getData(dataContext);
-            assert module != null;
-
-            AndroidFacet facet = AndroidFacet.getInstance(module);
-            assert facet != null && facet.getConfiguration().getModel() != null;
-
-            VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-            assert targetFile != null;
-
-            VirtualFile targetDirectory = targetFile;
-            if (!targetDirectory.isDirectory()) {
-              targetDirectory = targetFile.getParent();
-              assert targetDirectory != null;
-            }
-            Project project = facet.getModule().getProject();
-
-            List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
-            assert (!moduleTemplates.isEmpty());
-
-            String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
-
-            RenderTemplateModel renderModel = RenderTemplateModel.fromFacet(
-              facet, null, initialPackageSuggestion, moduleTemplates.get(0),
-              AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id), projectSyncInvoker, true);
-
-            NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker);
-            ChooseActivityTypeStep chooseActivityTypeStep =
-              new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
-            ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
-
-            new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();
+            showWizardDialog(e, CATEGORY_ACTIVITY,
+                             AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id),
+                             "New Android Activity");
           }
         };
 
@@ -580,6 +531,25 @@ public class TemplateManager {
         categoryGroup.addSeparator();
         setPresentation(category, experimentalGalleryAction);
       }
+    }
+
+    if (StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.get() && category.equals(CATEGORY_FRAGMENT)) {
+      AnAction fragmentGalleryAction = new AnAction() {
+        @Override
+        public void update(@NotNull AnActionEvent e) {
+          updateAction(e, "Gallery...", true, true);
+        }
+
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent e) {
+          showWizardDialog(e, CATEGORY_FRAGMENT,
+                           AndroidBundle.message("android.wizard.fragment.add", FormFactor.MOBILE.id),
+                           "New Android Fragment");
+        }
+      };
+      categoryGroup.add(fragmentGalleryAction);
+      categoryGroup.addSeparator();
+      setPresentation(category, fragmentGalleryAction);
     }
 
     // Automotive category includes Car category templates. If a template is in both categories, use the automotive one.
@@ -608,6 +578,51 @@ public class TemplateManager {
       am.replaceAction(actionId, templateAction);
       categoryGroup.add(templateAction);
     }
+  }
+
+  private void showWizardDialog(@NotNull AnActionEvent e, String category, String commandName, String dialogTitle) {
+    ProjectSyncInvoker projectSyncInvoker = new ProjectSyncInvoker.DefaultProjectSyncInvoker();
+
+    DataContext dataContext = e.getDataContext();
+    Module module = LangDataKeys.MODULE.getData(dataContext);
+    assert module != null;
+
+    VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+    assert targetFile != null;
+
+    VirtualFile targetDirectory = targetFile;
+    if (!targetDirectory.isDirectory()) {
+      targetDirectory = targetFile.getParent();
+      assert targetDirectory != null;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null && facet.getConfiguration().getModel() != null;
+
+    List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
+    assert (!moduleTemplates.isEmpty());
+
+    String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
+    Project project = facet.getModule().getProject();
+
+    RenderTemplateModel renderModel = RenderTemplateModel.fromFacet(
+      facet, null, initialPackageSuggestion, moduleTemplates.get(0),
+      commandName, projectSyncInvoker, true);
+
+    NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker);
+    ChooseGalleryItemStep chooseTypeStep;
+    if (category.equals(CATEGORY_ACTIVITY)) {
+      chooseTypeStep =
+        new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
+    } else if (category.equals(CATEGORY_FRAGMENT)) {
+      chooseTypeStep =
+        new ChooseFragmentTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
+    } else {
+      throw new RuntimeException("Invalid category name: " + category);
+    }
+    ModelWizard wizard = new ModelWizard.Builder().addStep(chooseTypeStep).build();
+
+    new StudioWizardDialogBuilder(wizard, dialogTitle).build().show();
   }
 
   private static void setPresentation(String category, AnAction categoryGroup) {
