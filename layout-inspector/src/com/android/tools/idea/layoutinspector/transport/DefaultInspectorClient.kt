@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -96,7 +97,12 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance() && isConnected &&
           it.timestamp > lastResponseTimePerGroup.getOrDefault(it.groupId, Long.MIN_VALUE)) {
-        callback(it.layoutInspectorEvent)
+        try {
+          callback(it.layoutInspectorEvent)
+        }
+        catch (ex: Exception) {
+          Logger.getInstance(DefaultInspectorClient::class.java.name).warn(ex)
+        }
         lastResponseTimePerGroup[it.groupId] = it.timestamp
       }
       false
