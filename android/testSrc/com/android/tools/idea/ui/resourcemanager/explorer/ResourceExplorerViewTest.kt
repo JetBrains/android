@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
+import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -36,10 +38,14 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Point
+import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class ResourceExplorerViewTest {
 
@@ -120,11 +126,32 @@ class ResourceExplorerViewTest {
     assertEquals("res/drawable/png.png", openedFile)
   }
 
-  private fun createResourceExplorerView(viewModel: ResourceExplorerViewModel): ResourceExplorerView {
+  @Test
+  fun summaryViewTest() {
+    projectRule.fixture.copyDirectoryToProject("res/", "res/")
+    val viewModel = createViewModel(projectRule.module)
+    val view = createResourceExplorerView(viewModel, withSummaryView = true)
+
+    val summaryView = UIUtil.findComponentOfType(view, DetailedPreview::class.java)
+    assertNotNull(summaryView, "Summary view should be present")
+
+    val list = UIUtil.findComponentOfType(view, AssetListView::class.java)!!
+    list.ui = HeadlessListUI()
+    val pointOfFirstResource = list.indexToLocation(0)
+    // Click a resource.
+    simulateMouseClick(list, pointOfFirstResource, clickCount= 1)
+
+    // Confirm some basic data on the summary panel.
+    assertThat(summaryView.data).containsEntry("Name", "png")
+    assertThat(summaryView.data).containsEntry("Reference", "@drawable/png")
+  }
+
+  private fun createResourceExplorerView(viewModel: ResourceExplorerViewModel, withSummaryView: Boolean = false): ResourceExplorerView {
     val view = ResourceExplorerView(viewModel,
                                     ResourceImportDragTarget(
                                       projectRule.module.androidFacet!!,
-                                      ImportersProvider()))
+                                      ImportersProvider()),
+                                    withSummaryView)
     Disposer.register(disposable, view)
 
     val waitForAssetListToBeCreated = object : WaitFor(1000) {
@@ -138,6 +165,18 @@ class ResourceExplorerViewTest {
     val keyEvent = KeyEvent(component, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER, KeyEvent.CHAR_UNDEFINED)
     component.keyListeners.forEach {
       it.keyPressed(keyEvent)
+    }
+  }
+
+  private fun simulateMouseClick(component: JComponent, point: Point, clickCount: Int) {
+    runInEdtAndWait {
+      // A click is done through a mouse pressed & released event, followed by the actual mouse clicked event.
+      component.dispatchEvent(MouseEvent(
+        component, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
+      component.dispatchEvent(MouseEvent(
+        component, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
+      component.dispatchEvent(MouseEvent(
+        component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, clickCount, false))
     }
   }
 }
