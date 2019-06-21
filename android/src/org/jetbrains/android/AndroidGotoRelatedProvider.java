@@ -4,7 +4,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.navigation.GotoRelatedProvider;
@@ -29,6 +28,7 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -203,7 +203,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
       final List<PsiClass> psiContextClasses = new ArrayList<>();
 
       // Explicitly chosen in the layout/menu file with a tools:context attribute?
-      PsiClass declared = AndroidPsiUtils.getContextClass(module, file);
+      PsiClass declared = AndroidUtils.getContextClass(module, file);
       if (declared != null) {
         return Collections.singletonList(new GotoRelatedItem(declared, "JAVA"));
       }

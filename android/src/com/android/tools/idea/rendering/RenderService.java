@@ -23,7 +23,6 @@ import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.flags.StudioFlags;
@@ -70,6 +69,7 @@ import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -588,7 +588,7 @@ public class RenderService implements Disposable {
         }
 
         if (myPsiFile != null &&
-            TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(myPsiFile)) &&
+            TAG_PREFERENCE_SCREEN.equals(AndroidUtils.getRootTagName(myPsiFile)) &&
             !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
           // This means that user is using an outdated version of layoutlib. A warning to update has already been
           // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
