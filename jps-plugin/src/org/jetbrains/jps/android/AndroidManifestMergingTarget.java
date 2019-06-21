@@ -1,6 +1,6 @@
 package org.jetbrains.jps.android;
 
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
@@ -116,7 +116,7 @@ public class AndroidManifestMergingTarget extends ModuleBasedTarget<AndroidManif
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
-      super(AndroidCommonUtils.MANIFEST_MERGING_BUILD_TARGET_TYPE_ID);
+      super(AndroidBuildCommonUtils.MANIFEST_MERGING_BUILD_TARGET_TYPE_ID);
     }
 
     @NotNull

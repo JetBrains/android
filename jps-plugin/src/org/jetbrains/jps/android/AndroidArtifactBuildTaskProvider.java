@@ -2,7 +2,7 @@
 package org.jetbrains.jps.android;
 
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -106,8 +106,8 @@ public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider 
                                       ? new String(Base64.getDecoder().decode(keyPassword), StandardCharsets.UTF_8) : null;
       try {
         final Map<AndroidCompilerMessageKind,List<String>> messages =
-          AndroidCommonUtils.buildArtifact(artifactName, messagePrefix, sdkLocation, platform.getTarget(), artifactFilePath,
-                                           keyStorePath, myProps.getKeyAlias(), plainKeyStorePassword, plainKeyPassword);
+          AndroidBuildCommonUtils.buildArtifact(artifactName, messagePrefix, sdkLocation, platform.getTarget(), artifactFilePath,
+                                                keyStorePath, myProps.getKeyAlias(), plainKeyStorePassword, plainKeyPassword);
         AndroidJpsUtil.addMessages(context, messages, BUILDER_NAME, entryName);
       }
       catch (GeneralSecurityException e) {

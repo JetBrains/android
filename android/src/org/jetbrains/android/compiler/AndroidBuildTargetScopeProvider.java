@@ -13,7 +13,7 @@ import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactPropert
 import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.api.CmdlineProtoUtil;
 
@@ -91,19 +91,19 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
     }
     final List<TargetTypeBuildScope> result = new ArrayList<>();
     result.add(CmdlineProtoUtil.createTargetsScope(
-      AndroidCommonUtils.MANIFEST_MERGING_BUILD_TARGET_TYPE_ID, manifestMergingTargetIds, forceBuild));
+      AndroidBuildCommonUtils.MANIFEST_MERGING_BUILD_TARGET_TYPE_ID, manifestMergingTargetIds, forceBuild));
 
     if (fullBuild && !isProGuardUsed(project, baseScope)) {
       result.add(CmdlineProtoUtil.createTargetsScope(
-        AndroidCommonUtils.PRE_DEX_BUILD_TARGET_TYPE_ID, Collections.singletonList("only"), forceBuild));
+        AndroidBuildCommonUtils.PRE_DEX_BUILD_TARGET_TYPE_ID, Collections.singletonList("only"), forceBuild));
     }
     result.addAll(Arrays.asList(
-      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.AAR_DEPS_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
-      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.DEX_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
-      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID, allTargetIds, forceBuild),
-      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.RESOURCE_PACKAGING_BUILD_TARGET_ID, appTargetIds, forceBuild),
-      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
-      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.LIBRARY_PACKAGING_BUILD_TARGET_ID, libTargetIds, forceBuild)));
+      CmdlineProtoUtil.createTargetsScope(AndroidBuildCommonUtils.AAR_DEPS_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
+      CmdlineProtoUtil.createTargetsScope(AndroidBuildCommonUtils.DEX_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
+      CmdlineProtoUtil.createTargetsScope(AndroidBuildCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID, allTargetIds, forceBuild),
+      CmdlineProtoUtil.createTargetsScope(AndroidBuildCommonUtils.RESOURCE_PACKAGING_BUILD_TARGET_ID, appTargetIds, forceBuild),
+      CmdlineProtoUtil.createTargetsScope(AndroidBuildCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
+      CmdlineProtoUtil.createTargetsScope(AndroidBuildCommonUtils.LIBRARY_PACKAGING_BUILD_TARGET_ID, libTargetIds, forceBuild)));
     return result;
   }
 }

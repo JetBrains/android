@@ -19,7 +19,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -97,7 +97,7 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
       final String sdkHome = getCanonicalSdkHome();
 
       if (sdkHome != null) {
-        url = StringUtil.replace(url, sdkHome, AndroidCommonUtils.SDK_HOME_MACRO);
+        url = StringUtil.replace(url, sdkHome, AndroidBuildCommonUtils.SDK_HOME_MACRO);
       }
       result.add(url);
     }

@@ -27,7 +27,7 @@ import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -188,7 +188,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
   private static Computable<List<GotoRelatedItem>> collectRelatedJavaFiles(@NotNull final XmlFile file,
                                                                            @NotNull final AndroidFacet facet) {
     final String resType = ResourceType.LAYOUT.getName();
-    final String resourceName = AndroidCommonUtils.getResourceName(resType, file.getName());
+    final String resourceName = AndroidBuildCommonUtils.getResourceName(resType, file.getName());
     final PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, resType, resourceName, true);
 
     if (fields.length == 0 || fields.length > 1) {

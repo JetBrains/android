@@ -55,8 +55,8 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.*;
 import static org.jetbrains.android.compiler.AndroidCompileUtil.getOutputPackage;
 import static org.jetbrains.android.maven.AndroidMavenUtil.isMavenizedModule;
-import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
-import static org.jetbrains.android.util.AndroidCommonUtils.CLASSES_JAR_FILE_NAME;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.CLASSES_JAR_FILE_NAME;
 
 /**
  * @author Eugene.Kudelevsky

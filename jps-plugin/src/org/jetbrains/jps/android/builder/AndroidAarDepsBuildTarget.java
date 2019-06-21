@@ -1,7 +1,7 @@
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.openapi.util.Pair;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.AndroidJpsUtil;
@@ -73,14 +73,14 @@ public class AndroidAarDepsBuildTarget extends AndroidBuildTarget {
   @NotNull
   public static File getOutputFile(@NotNull JpsModule module, @NotNull BuildDataPaths dataPaths) {
     final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(dataPaths, module);
-    return new File(dir, AndroidCommonUtils.AAR_DEPS_JAR_FILE_NAME);
+    return new File(dir, AndroidBuildCommonUtils.AAR_DEPS_JAR_FILE_NAME);
   }
 
   public static class MyTargetType extends AndroidBuildTargetType<AndroidAarDepsBuildTarget> {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     MyTargetType() {
-      super(AndroidCommonUtils.AAR_DEPS_BUILD_TARGET_TYPE_ID, "AAR Dependencies Packaging");
+      super(AndroidBuildCommonUtils.AAR_DEPS_BUILD_TARGET_TYPE_ID, "AAR Dependencies Packaging");
     }
 
     @Nullable

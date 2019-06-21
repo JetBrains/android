@@ -29,7 +29,7 @@ import com.intellij.util.containers.HashSet;
 import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.android.compiler.tools.AndroidDxRunner;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -130,7 +130,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
         return false;
       }
     }
-    final File proguardCfgOutputFile = new File(dexOutputDir, AndroidCommonUtils.PROGUARD_CFG_OUTPUT_FILE_NAME);
+    final File proguardCfgOutputFile = new File(dexOutputDir, AndroidBuildCommonUtils.PROGUARD_CFG_OUTPUT_FILE_NAME);
 
     final AndroidProGuardStateStorage proGuardOptionsStorage =
       context.getProjectDescriptor().dataManager.getStorage(target, AndroidProGuardOptionsStorageProvider.INSTANCE);
@@ -150,7 +150,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
         proguardCfgFilePathsList.add(proguardCfgOutputFile.getPath());
         final String[] proguardCfgFilePaths = ArrayUtil.toStringArray(proguardCfgFilePathsList);
         final String outputJarPath =
-          FileUtil.toSystemDependentName(dexOutputDir.getPath() + '/' + AndroidCommonUtils.PROGUARD_OUTPUT_JAR_NAME);
+          FileUtil.toSystemDependentName(dexOutputDir.getPath() + '/' + AndroidBuildCommonUtils.PROGUARD_OUTPUT_JAR_NAME);
 
         final Pair<Boolean, AndroidProGuardStateStorage.MyState> pair = runProguardIfNecessary(
           extension, target, platform, context, outputJarPath, proguardCfgFilePaths,
@@ -242,7 +242,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
                                @NotNull CompileContext context,
                                @NotNull JpsModule module,
                                @NotNull BuildOutputConsumer outputConsumer) throws IOException {
-    final String outFilePath = outputDir + File.separatorChar + AndroidCommonUtils.CLASSES_FILE_NAME;
+    final String outFilePath = outputDir + File.separatorChar + AndroidBuildCommonUtils.CLASSES_FILE_NAME;
     return runDex(platform, outFilePath, compileTargets, context, module.getProject(), outputConsumer,
                   DEX_BUILDER_NAME, module.getName(), module);
   }
@@ -291,7 +291,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
       vmOptions = new ArrayList<String>();
       vmOptions.addAll(ParametersListUtil.parse(configuration.getVmOptions()));
 
-      if (!AndroidCommonUtils.hasXmxParam(vmOptions)) {
+      if (!AndroidBuildCommonUtils.hasXmxParam(vmOptions)) {
         vmOptions.add("-Xmx" + configuration.getMaxHeapSize() + "M");
       }
       programParamList.addAll(Arrays.asList("--optimize", Boolean.toString(configuration.isOptimize())));
@@ -341,7 +341,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
       .buildJavaCommandLine(javaExecutable, AndroidDxRunner.class.getName(),
                             Collections.<String>emptyList(), classPath, vmOptions, programParamList);
 
-    LOG.info(AndroidCommonUtils.command2string(commandLine));
+    LOG.info(AndroidBuildCommonUtils.command2string(commandLine));
 
     final String[] commands = ArrayUtil.toStringArray(commandLine);
     final Process process;
@@ -358,7 +358,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     messages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<String>());
     messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<String>());
 
-    AndroidCommonUtils.handleDexCompilationResult(process, StringUtil.join(commandLine, " "), outFilePath, messages, multiDex);
+    AndroidBuildCommonUtils.handleDexCompilationResult(process, StringUtil.join(commandLine, " "), outFilePath, messages, multiDex);
 
     AndroidJpsUtil.addMessages(context, messages, builderName, srcTargetName);
     final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
@@ -444,7 +444,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
       logsDir = proguardLogsDir;
     }
     else {
-      logsDir = new File(mainContentRoot.getPath() + '/' + AndroidCommonUtils.DIRECTORY_FOR_LOGS_NAME);
+      logsDir = new File(mainContentRoot.getPath() + '/' + AndroidBuildCommonUtils.DIRECTORY_FOR_LOGS_NAME);
     }
     final AndroidProGuardStateStorage.MyState newState = new AndroidProGuardStateStorage.MyState(
       proguardCfgFiles);
@@ -493,7 +493,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     final String[] libClassFilesDirOsPaths = ArrayUtil.toStringArray(libClassesDirs);
     final String[] externalJarOsPaths = ArrayUtil.toStringArray(externalJars);
     final String[] providedJarOsPaths = ArrayUtil.toStringArray(providedJars);
-    final String inputJarOsPath = AndroidCommonUtils.buildTempInputJar(classFilesDirOsPaths, libClassFilesDirOsPaths);
+    final String inputJarOsPath = AndroidBuildCommonUtils.buildTempInputJar(classFilesDirOsPaths, libClassFilesDirOsPaths);
 
     final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
 
@@ -517,9 +517,9 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.proguard", module.getName())));
 
     final Map<AndroidCompilerMessageKind, List<String>> messages =
-      AndroidCommonUtils.launchProguard(platform.getTarget(), platform.getSdkToolsRevision(), platform.getSdk().getHomePath(),
-                                        javaExecutable, proguardVmOptions, proguardCfgPaths, inputJarOsPath, externalJarOsPaths,
-                                        providedJarOsPaths, outputJarPath, logsDir.getPath());
+      AndroidBuildCommonUtils.launchProguard(platform.getTarget(), platform.getSdkToolsRevision(), platform.getSdk().getHomePath(),
+                                             javaExecutable, proguardVmOptions, proguardCfgPaths, inputJarOsPath, externalJarOsPaths,
+                                             providedJarOsPaths, outputJarPath, logsDir.getPath());
     AndroidJpsUtil.addMessages(context, messages, PRO_GUARD_BUILDER_NAME, module.getName());
     return messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()
            ? Pair.create(true, newState) : null;

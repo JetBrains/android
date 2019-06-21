@@ -27,7 +27,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static org.jetbrains.android.facet.AndroidRootUtil.getProjectPropertyValue;
 import static org.jetbrains.android.facet.AndroidRootUtil.getPropertyValue;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
-import static org.jetbrains.android.util.AndroidCommonUtils.platformToolPath;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.platformToolPath;
 import static org.jetbrains.android.util.AndroidUtils.ANDROID_TARGET_PROPERTY;
 
 import com.android.ddmlib.AndroidDebugBridge;

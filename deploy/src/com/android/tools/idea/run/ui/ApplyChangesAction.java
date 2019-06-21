@@ -27,7 +27,7 @@ import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
 import javax.swing.KeyStroke;
 
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class ApplyChangesAction extends BaseAction {
@@ -59,7 +59,7 @@ public class ApplyChangesAction extends BaseAction {
     if (runConfig != null) {
       ConfigurationType type = runConfig.getType();
       String id = type.getId();
-      if (AndroidCommonUtils.isTestConfiguration(id) || AndroidCommonUtils.isInstrumentationTestConfiguration(id)) {
+      if (AndroidBuildCommonUtils.isTestConfiguration(id) || AndroidBuildCommonUtils.isInstrumentationTestConfiguration(id)) {
         disableAction(e.getPresentation(), new DisableMessage(DisableMessage.DisableMode.DISABLED, "test project",
                                                               "the selected configuration is a test configuration"));
       }

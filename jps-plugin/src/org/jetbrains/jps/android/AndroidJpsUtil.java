@@ -14,7 +14,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.OrderedSet;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -120,7 +120,7 @@ public class AndroidJpsUtil {
       for (String message : entry.getValue()) {
         String filePath = null;
         int line = -1;
-        final Matcher matcher = AndroidCommonUtils.COMPILER_MESSAGE_PATTERN.matcher(message);
+        final Matcher matcher = AndroidBuildCommonUtils.COMPILER_MESSAGE_PATTERN.matcher(message);
 
         if (matcher.matches()) {
           filePath = matcher.group(1);
@@ -265,7 +265,7 @@ public class AndroidJpsUtil {
   private static void addAnnotationsJarIfNecessary(@NotNull AndroidPlatform platform, @NotNull Set<String> libs) {
     if (platform.needToAddAnnotationsJarToClasspath()) {
       final String sdkHomePath = platform.getSdk().getHomePath();
-      final String annotationsJarPath = FileUtil.toSystemIndependentName(sdkHomePath) + AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
+      final String annotationsJarPath = FileUtil.toSystemIndependentName(sdkHomePath) + AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
       libs.add(annotationsJarPath);
     }
   }
@@ -344,7 +344,7 @@ public class AndroidJpsUtil {
         if (depLibrary) {
           if (processor.isToProcess(AndroidDependencyType.ANDROID_LIBRARY_PACKAGE)) {
             final File intArtifactsDir = getDirectoryForIntermediateArtifacts(paths, depModule);
-            final File packagedClassesJar = new File(intArtifactsDir, AndroidCommonUtils.CLASSES_JAR_FILE_NAME);
+            final File packagedClassesJar = new File(intArtifactsDir, AndroidBuildCommonUtils.CLASSES_JAR_FILE_NAME);
             processor.processAndroidLibraryPackage(packagedClassesJar, depModule);
           }
           if (processor.isToProcess(AndroidDependencyType.ANDROID_LIBRARY_OUTPUT_DIRECTORY)) {
@@ -553,7 +553,7 @@ public class AndroidJpsUtil {
 
   public static boolean isLightBuild(@NotNull CompileContext context) {
     final String typeId = getRunConfigurationTypeId(context);
-    return typeId != null && AndroidCommonUtils.isTestConfiguration(typeId);
+    return typeId != null && AndroidBuildCommonUtils.isTestConfiguration(typeId);
   }
 
   @Nullable
@@ -562,7 +562,7 @@ public class AndroidJpsUtil {
   }
 
   public static boolean isReleaseBuild(@NotNull CompileContext context) {
-    if (Boolean.parseBoolean(context.getBuilderParameter(AndroidCommonUtils.RELEASE_BUILD_OPTION))) {
+    if (Boolean.parseBoolean(context.getBuilderParameter(AndroidBuildCommonUtils.RELEASE_BUILD_OPTION))) {
       return true;
     }
 
@@ -831,7 +831,7 @@ public class AndroidJpsUtil {
       return new ProGuardOptions(extension.getProguardConfigFiles(extension.getModule()));
     }
 
-    final String cfgPathsStrFromContext = context.getBuilderParameter(AndroidCommonUtils.PROGUARD_CFG_PATHS_OPTION);
+    final String cfgPathsStrFromContext = context.getBuilderParameter(AndroidBuildCommonUtils.PROGUARD_CFG_PATHS_OPTION);
     if (cfgPathsStrFromContext != null && !cfgPathsStrFromContext.isEmpty()) {
       final String[] paths = cfgPathsStrFromContext.split(File.pathSeparator);
 
@@ -1011,7 +1011,7 @@ public class AndroidJpsUtil {
         @Override
         public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type)
           throws Exception {
-          if (value != null && AndroidCommonUtils.PACKAGE_MANIFEST_ATTRIBUTE.equals(key)) {
+          if (value != null && AndroidBuildCommonUtils.PACKAGE_MANIFEST_ATTRIBUTE.equals(key)) {
             packageName.set(value.trim());
           }
         }

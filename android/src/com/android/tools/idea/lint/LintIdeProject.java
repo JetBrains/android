@@ -31,7 +31,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -59,7 +58,7 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -636,7 +635,7 @@ public class LintIdeProject extends Project {
             proguardFiles = new ArrayList<>();
 
             for (String osPath : AndroidUtils.urlsToOsPaths(urls, null)) {
-              if (!osPath.contains(AndroidCommonUtils.SDK_HOME_MACRO)) {
+              if (!osPath.contains(AndroidBuildCommonUtils.SDK_HOME_MACRO)) {
                 proguardFiles.add(new File(osPath));
               }
             }

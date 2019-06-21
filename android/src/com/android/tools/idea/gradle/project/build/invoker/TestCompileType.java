@@ -25,8 +25,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 
-import static org.jetbrains.android.util.AndroidCommonUtils.isInstrumentationTestConfiguration;
-import static org.jetbrains.android.util.AndroidCommonUtils.isTestConfiguration;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.isInstrumentationTestConfiguration;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.isTestConfiguration;
 
 public abstract class TestCompileType {
   public static final TestCompileType ALL = new TestCompileType() {
