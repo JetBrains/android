@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
+import com.android.tools.idea.ui.resourcemanager.rendering.DefaultIconProvider
+import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
 import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWrapper
 import com.android.tools.idea.ui.resourcemanager.widget.Section
 import com.android.tools.idea.ui.resourcemanager.widget.SectionList
@@ -43,6 +46,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.GuiUtils
 import com.intellij.ui.JBColor
+import com.intellij.ui.JBSplitter
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.concurrency.EdtExecutorService
@@ -70,6 +74,8 @@ import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTabbedPane
 import javax.swing.LayoutFocusTraversalPolicy
+import javax.swing.event.ListSelectionEvent
+import javax.swing.event.ListSelectionListener
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -113,7 +119,8 @@ private const val DELAY_BEFORE_LOADING_STATE = 100L // ms
  */
 class ResourceExplorerView(
   private val resourcesBrowserViewModel: ResourceExplorerViewModel,
-  private val resourceImportDragTarget: ResourceImportDragTarget
+  private val resourceImportDragTarget: ResourceImportDragTarget,
+  withSummaryView: Boolean = false
 ) : JPanel(BorderLayout()), Disposable, DataProvider {
 
   private var updatePending = false
@@ -176,6 +183,15 @@ class ResourceExplorerView(
   }
 
   /**
+   * A summary panel including some detailed information about the [ResourceAssetSet].
+   * May contain information like:
+   *
+   * An icon preview, name of the resource, the reference to use the resource (i.e @drawable/resource_name) and the default value of the
+   * resource or a table of the configurations and values defined in the [ResourceAssetSet].
+   */
+  private val summaryView = if (withSummaryView) DetailedPreview() else null
+
+  /**
    * Mouse listener to invoke the popup menu.
    *
    * This custom implementation is needed to ensure that the clicked element is selected
@@ -205,7 +221,6 @@ class ResourceExplorerView(
    * @see doSelectAssetAction
    */
   private val mouseClickListener = object : MouseAdapter() {
-    // TODO: Use selection listeners, listen to single click events.
     override fun mouseClicked(e: MouseEvent) {
       if (!(e.clickCount == 2 && e.button == MouseEvent.BUTTON1)) {
         return
@@ -262,6 +277,44 @@ class ResourceExplorerView(
     detailView.requestFocusInWindow()
   }
 
+  /**
+   * Update the [summaryView] panel.
+   * May populate the icon, the metadata and/or a [configuration, value] map.
+   */
+  private fun updateSummaryPreview() {
+    if (summaryView == null) return
+    val resourceAssetSet = sectionList.selectedValue as? ResourceAssetSet
+    if (resourceAssetSet == null) return
+
+    updateSummaryPreviewIcon()
+    summaryView.apply {
+      values = resourcesBrowserViewModel.getResourceConfigurationMap(resourceAssetSet)
+      data = resourcesBrowserViewModel.getResourceSummaryMap(resourceAssetSet)
+      validate()
+      repaint()
+    }
+  }
+
+  /**
+   * Update the icon in the [summaryView] panel, if any. Also used for the refresh callback in the preview provider.
+   */
+  private fun updateSummaryPreviewIcon() {
+    val assetSet = (sectionList.selectedValue as? ResourceAssetSet)?: return
+    val assetToPreview = assetSet.getHighestDensityAsset() as DesignAsset
+    summaryView?.let {
+      val previewProvider = resourcesBrowserViewModel.summaryPreviewManager.getPreviewProvider(assetToPreview.type)
+      summaryView.icon = if (!(previewProvider is DefaultIconProvider)) previewProvider.getIcon(
+        assetToPreview,
+        JBUI.scale(DetailedPreview.PREVIEW_ICON_SIZE),
+        JBUI.scale(DetailedPreview.PREVIEW_ICON_SIZE),
+        refreshCallback = {
+          updateSummaryPreviewIcon()
+        }
+      ) else null
+      summaryView.repaint()
+    }
+  }
+
   init {
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
 
@@ -271,15 +324,32 @@ class ResourceExplorerView(
       sectionList.getLists().filterIsInstance<AssetListView>().forEach(
         AssetListView::refilter)
     }
-
-    add(headerPanel, BorderLayout.NORTH)
-    add(sectionList)
-    add(footerPanel, BorderLayout.SOUTH)
+    add(getContentPanel())
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
       override fun getFirstComponent(p0: Container?): Component {
         return sectionList.getLists().firstOrNull() ?: this@ResourceExplorerView
       }
+    }
+  }
+
+  private fun getContentPanel(): JPanel {
+    val explorerListPanel = JPanel(BorderLayout()).apply {
+      add(headerPanel, BorderLayout.NORTH)
+      add(sectionList)
+      add(footerPanel, BorderLayout.SOUTH)
+    }
+    if (summaryView == null) {
+      return explorerListPanel
+    }
+
+    return JBSplitter(0.6f).apply {
+      explorerListPanel.border = BorderFactory.createMatteBorder(0, 0, 0, JBUI.scale(1), AdtUiUtils.DEFAULT_BORDER_COLOR)
+      isShowDividerControls = true
+      isShowDividerIcon = true
+      dividerWidth = JBUI.scale(10)
+      firstComponent = explorerListPanel
+      secondComponent = summaryView
     }
   }
 
@@ -401,6 +471,12 @@ class ResourceExplorerView(
       addMouseListener(popupHandler)
       addMouseListener(mouseClickListener)
       addKeyListener(keyListener)
+      this.addListSelectionListener(object: ListSelectionListener {
+        override fun valueChanged(e: ListSelectionEvent?) {
+          // TODO: Call listeners in ResourceExplorerView
+          updateSummaryPreview()
+        }
+      })
       thumbnailWidth = this@ResourceExplorerView.previewSize
       isGridMode = this@ResourceExplorerView.gridMode
     })
@@ -414,6 +490,7 @@ class ResourceExplorerView(
   }
 
   interface SelectionListener {
+    /** Triggers when the [ResourceAssetSet] selection changes. */
     fun onDesignAssetSetSelected(resourceAssetSet: ResourceAssetSet?)
   }
 
@@ -518,4 +595,3 @@ class ResourceExplorerView(
     }
   }
 }
-

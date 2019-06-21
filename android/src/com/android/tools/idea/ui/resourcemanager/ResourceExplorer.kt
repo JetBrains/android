@@ -70,7 +70,7 @@ class ResourceExplorer private constructor(
         importersProvider,
         resourceExplorerViewModel.filterOptions)
       val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
-      val toolbar = ResourceExplorerToolbar(toolbarViewModel)
+      val toolbar = ResourceExplorerToolbar.create(toolbarViewModel, moduleComboEnabled = true)
       val resourceExplorerView = ResourceExplorerView(
         resourceExplorerViewModel, resourceImportDragTarget)
       return ResourceExplorer(
@@ -95,9 +95,9 @@ class ResourceExplorer private constructor(
         importersProvider,
         resourceExplorerViewModel.filterOptions)
       val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
-      val toolbar = ResourceExplorerToolbar(toolbarViewModel)
+      val toolbar = ResourceExplorerToolbar.create(toolbarViewModel, moduleComboEnabled = false)
       val resourceExplorerView = ResourceExplorerView(
-        resourceExplorerViewModel, resourceImportDragTarget)
+        resourceExplorerViewModel, resourceImportDragTarget, withSummaryView = true)
       val explorer = ResourceExplorer(
         facet,
         resourceExplorerViewModel,
