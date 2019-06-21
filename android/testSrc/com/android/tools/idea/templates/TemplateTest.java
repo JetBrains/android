@@ -1602,7 +1602,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     String specialChars = "!@#$^&()_+=-.`~";
     String nonAsciiChars = "你所有的基地都属于我们";
-    return projectName + specialChars + ',' + nonAsciiChars;
+    return projectName + specialChars + nonAsciiChars;
   }
 
   @SuppressWarnings("SameParameterValue")
