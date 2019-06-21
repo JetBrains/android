@@ -16,11 +16,13 @@
 package com.android.tools.idea.ui.resourcemanager
 
 import com.android.ide.common.resources.ResourceItem
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog
 import com.intellij.openapi.util.Disposer
-
+import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
+import javax.swing.BorderFactory
 
 /** A [ResourceExplorer] used in a dialog for resource picking. */
 class ResourceExplorerDialog(facet: AndroidFacet) : ResourcePickerDialog(facet.module.project) {
@@ -35,7 +37,9 @@ class ResourceExplorerDialog(facet: AndroidFacet) : ResourcePickerDialog(facet.m
     doValidate()
   }
 
-  override fun createCenterPanel() = resourceExplorerPanel
+  override fun createCenterPanel() = resourceExplorerPanel.apply {
+    border = BorderFactory.createMatteBorder(0, 0, JBUI.scale(1), 0, AdtUiUtils.DEFAULT_BORDER_COLOR)
+  }
 
   override fun dispose() {
     super.dispose()

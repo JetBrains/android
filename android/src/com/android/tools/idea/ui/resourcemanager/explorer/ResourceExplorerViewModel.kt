@@ -21,8 +21,10 @@ import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
 import com.intellij.ui.speedSearch.SpeedSearch
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
@@ -53,6 +55,8 @@ interface ResourceExplorerViewModel {
 
   val assetPreviewManager: AssetPreviewManager
 
+  val summaryPreviewManager: AssetPreviewManager
+
   var facet: AndroidFacet
 
   val speedSearch: SpeedSearch
@@ -69,6 +73,22 @@ interface ResourceExplorerViewModel {
    * Delegate method to handle calls to [com.intellij.openapi.actionSystem.DataProvider.getData].
    */
   fun getData(dataId: String?, selectedAssets: List<Asset>): Any?
+
+  /**
+   * Returns a map of some specific resource details, typically: name, reference, type, configuration, value.
+   */
+  fun getResourceSummaryMap(resourceAssetSet: ResourceAssetSet): Map<String, String>
+
+  /**
+   * Returns a map for resource configurations, used to map each defined configuration with the resolved value of the resource and some
+   * extra details about the resolved value.
+   *
+   * Eg:
+   * > anydpi-v26 &emsp; | &emsp; Adaptive icon - ic_launcher.xml
+   *
+   * > hdpi &emsp;&emsp;&emsp;&emsp;&nbsp; | &emsp; Mip Map File - ic_launcher.png
+   */
+  fun getResourceConfigurationMap(resourceAssetSet: ResourceAssetSet): Map<String, String>
 
   /**
    * Action when selecting an [asset] (double click or select + ENTER key).
