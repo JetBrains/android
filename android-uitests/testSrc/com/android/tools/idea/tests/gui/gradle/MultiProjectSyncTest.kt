@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,7 +42,6 @@ class MultiProjectSyncTest {
     projectPath = guiTest.prepareMultipleLinkedProjects()
   }
 
-  @Ignore("This test reproduces issues like https://issuetracker.google.com/129612500")
   @Test
   fun testMultipleLinkedProjects() {
     // This test reproduces issues like https://issuetracker.google.com/129612500
