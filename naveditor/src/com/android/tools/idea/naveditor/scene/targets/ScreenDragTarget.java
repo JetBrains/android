@@ -113,7 +113,7 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
   }
 
   @Override
-  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifier) {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }
 

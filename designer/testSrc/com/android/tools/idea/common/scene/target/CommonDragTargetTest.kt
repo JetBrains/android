@@ -295,7 +295,7 @@ class CommonDragTargetTest : SceneTest() {
       myScene.select(listOf())
       val target = CommonDragTarget(textView)
       assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(0))
-      assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(InputEvent.ALT_MASK))
+      assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(InputEvent.ALT_DOWN_MASK))
     }
 
     run {
@@ -303,7 +303,7 @@ class CommonDragTargetTest : SceneTest() {
       myScene.select(listOf(textView))
       val target = CommonDragTarget(textView)
       assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(0))
-      assertEquals(AdtUiCursors.MOVE, target.getMouseCursor(InputEvent.ALT_MASK))
+      assertEquals(AdtUiCursors.MOVE, target.getMouseCursor(InputEvent.ALT_DOWN_MASK))
     }
   }
 

@@ -27,7 +27,7 @@ class SceneHitListenerTest : SceneTest() {
     val inner = myScene.getSceneComponent("inner")!!
 
     myInteraction.select(inner)
-    myInteraction.mouseDown(155f, 155f, InputEvent.ALT_MASK)
+    myInteraction.mouseDown(155f, 155f, InputEvent.ALT_DOWN_MASK)
 
     val dragTarget = inner.targets.filterIsInstance(CommonDragTarget::class.java)[0]
     assertEquals(dragTarget, myScene.interactingTarget)
