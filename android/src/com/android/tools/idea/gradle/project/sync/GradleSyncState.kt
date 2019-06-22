@@ -37,9 +37,7 @@ import com.android.tools.idea.gradle.util.GradleUtil.getLastKnownAndroidGradlePl
 import com.android.tools.idea.gradle.util.GradleUtil.getLastSuccessfulAndroidGradlePluginVersion
 import com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes
 import com.android.tools.idea.gradle.util.GradleVersions
-import com.android.tools.idea.gradle.variant.view.BuildVariantView
 import com.android.tools.idea.project.AndroidProjectInfo
-import com.android.tools.idea.project.IndexingSuspender
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.withProjectId
@@ -125,11 +123,6 @@ open class GradleSyncState(
     messageBus: MessageBus,
     projectStructure: ProjectStructure
   ) : this(project, androidProjectInfo, gradleProjectInfo, messageBus, projectStructure, StateChangeNotification(project))
-
-  init {
-    // Call in to make sure IndexingSuspender instance is constructed.
-    IndexingSuspender.ensureInitialised(project)
-  }
 
   companion object {
     @JvmField
