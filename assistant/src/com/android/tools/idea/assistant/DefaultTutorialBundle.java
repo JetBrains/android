@@ -483,6 +483,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @XmlElement(name = "image", type = Image.class)
     private Image myImage;
 
+    @XmlElement(name = "panel", type = Panel.class)
+    private Panel myPanel;
+
     @Override
     @NotNull
     public StepElementType getType() {
@@ -502,6 +505,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
       }
       else if (myImage != null) {
         myType = StepElementType.IMAGE;
+      }
+      else if (myPanel != null) {
+        myType = StepElementType.PANEL;
       }
       if (myType == null) {
         throw new RuntimeException("Unsupported StepElement.");
@@ -533,6 +539,12 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @Override
     public Image getImage() {
       return myImage;
+    }
+
+    @Nullable
+    @Override
+    public Panel getPanel() {
+      return myPanel;
     }
 
     @Override
@@ -682,6 +694,21 @@ public class DefaultTutorialBundle implements TutorialBundleData {
       return toString().equals(otherAction.toString());
     }
 
+  }
+
+  public static final class Panel {
+    @XmlAttribute(name = "factoryId") private String myFactoryId;
+
+    @NotNull
+    public String getFactoryId() {
+      return myFactoryId;
+    }
+
+    @Override
+    @NotNull
+    public String toString() {
+      return "Panel{myFactoryId='" + myFactoryId + "'}";
+    }
   }
 }
 
