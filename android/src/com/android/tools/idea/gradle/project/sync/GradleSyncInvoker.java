@@ -46,7 +46,6 @@ import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.project.IndexingSuspender;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.build.DefaultBuildDescriptor;
@@ -109,7 +108,7 @@ public class GradleSyncInvoker {
   }
 
   /**
-   * This method should not be called within a {@link DumbModeTask}, the {@link IndexingSuspender} will take care of ensuring that
+   * This method should not be called within a {@link DumbModeTask}, the platform will take care of ensuring that
    * sync is not run at the same time as indexing.
    */
   public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
@@ -118,7 +117,7 @@ public class GradleSyncInvoker {
   }
 
   /**
-   * This method should not be called within a {@link DumbModeTask}, the {@link IndexingSuspender} will take care of ensuring that
+   * This method should not be called within a {@link DumbModeTask}, the platform will take care of ensuring that
    * sync is not run at the same time as indexing.
    */
   public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
@@ -129,7 +128,7 @@ public class GradleSyncInvoker {
   }
 
   /**
-   * This method should not be called within a {@link DumbModeTask}, the {@link IndexingSuspender} will take care of ensuring that
+   * This method should not be called within a {@link DumbModeTask}, the platform will take care of ensuring that
    * sync is not run at the same time as indexing.
    */
   public void requestProjectSync(@NotNull Project project, @NotNull Request request) {
@@ -137,7 +136,7 @@ public class GradleSyncInvoker {
   }
 
   /**
-   * This method should not be called within a {@link DumbModeTask}, the {@link IndexingSuspender} will take care of ensuring that
+   * This method should not be called within a {@link DumbModeTask}, the platform will take care of ensuring that
    * sync is not run at the same time as indexing.
    */
   public void requestProjectSync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {

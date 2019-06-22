@@ -20,7 +20,6 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
-import com.android.tools.idea.project.IndexingSuspender;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -163,7 +162,6 @@ public final class MultiTemplateRenderer {
       new Task.Modal(myProject, message("android.compile.messages.generating.r.java.content.name"), false) {
         @Override
         public void run(@NotNull ProgressIndicator indicator) {
-          IndexingSuspender.ensureInitialised(myProject);
           multiRenderingStarted(myProject);
 
           // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first,
