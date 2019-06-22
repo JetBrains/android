@@ -514,6 +514,14 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> ADVANCED_JNI_ASSISTANCE = Flag.create(
+    EDITOR, "advanced.jni.assistance",
+    "Enable advanced JNI assistance",
+    "If enabled, additional inspection, completion, and refactoring supports are provided related to JNI. If disabled, some " +
+    "inspections related to JNI may stop working.",
+    true
+  );
+
   private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
   public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(
     ANALYZER, "enable.app.size.optimizer", "Enable size optimization suggestions in apk analyzer",
