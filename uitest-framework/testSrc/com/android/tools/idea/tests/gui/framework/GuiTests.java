@@ -54,6 +54,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
@@ -85,6 +86,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JLabelFixture;
@@ -622,12 +624,18 @@ public final class GuiTests {
       wait = Wait.seconds(90);
     }
 
-    wait
-      .expecting("background tasks to finish")
-      .until(() -> {
-        robot.waitForIdle();
-        return noProgressIndicator();
-      });
+    try {
+      wait
+        .expecting("background tasks to finish")
+        .until(() -> {
+          robot.waitForIdle();
+          return noProgressIndicator();
+        });
+    }
+    catch (WaitTimedOutError e) {
+      UsefulTestCase.printThreadDump();
+      throw e;
+    }
   }
 
   private static boolean noProgressIndicator() {
@@ -645,8 +653,14 @@ public final class GuiTests {
     AtomicBoolean isProjectIndexed = new AtomicBoolean();
     DumbService.getInstance(project).smartInvokeLater(() -> isProjectIndexed.set(true));
 
-    indexing.expecting("Project indexing to finish")
-      .until(isProjectIndexed::get);
+    try {
+      indexing.expecting("Project indexing to finish")
+        .until(isProjectIndexed::get);
+    }
+    catch (WaitTimedOutError e) {
+      UsefulTestCase.printThreadDump();
+      throw e;
+    }
   }
 
   public static void waitForProjectIndexingToFinish(@NotNull Project project) {
