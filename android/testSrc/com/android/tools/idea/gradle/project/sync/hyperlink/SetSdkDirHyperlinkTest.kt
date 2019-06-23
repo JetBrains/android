@@ -21,13 +21,16 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD
 import com.intellij.openapi.util.io.FileUtil.loadFile
 import junit.framework.TestCase
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import javax.swing.event.HyperlinkEvent
 
+@Ignore
 class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
+  @Ignore("Ignored while a fix to b/135781629 is worked out")
   @Test
-  fun testSdkDirHyperlinkUpdatesOnePropertiesFile() {
+  fun /*test*/SdkDirHyperlinkUpdatesOnePropertiesFile() {
     prepareProjectForImport(COMPOSITE_BUILD)
 
     // Delete the main local.properties file
@@ -41,8 +44,9 @@ class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
       .contains("sdk.dir=${AndroidSdks.getInstance().tryToChooseAndroidSdk()!!.location.absolutePath}"))
   }
 
+  @Ignore("Ignored while a fix to b/135781629 is worked out")
   @Test
-  fun testSdkDirHyperlinkUpdatesMultiplePropertiesFiles() {
+  fun /*test*/SdkDirHyperlinkUpdatesMultiplePropertiesFiles() {
     prepareProjectForImport(COMPOSITE_BUILD)
 
     // Delete all the properties files we want to re-create
