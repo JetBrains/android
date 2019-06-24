@@ -291,7 +291,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     }
 
     @Override
-    public void analyzeProjectStructure(@NotNull ProgressIndicator progressIndicator) {
+    public void analyzeProjectStructure() {
       analyzed = true;
     }
 

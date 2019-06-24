@@ -60,7 +60,7 @@ public class ProjectStructureTest extends IdeaTestCase {
     createJavaModule("javaLib", true /* buildable */);
 
     // Method to test:
-    myProjectStructure.analyzeProjectStructure(new EmptyProgressIndicator());
+    myProjectStructure.analyzeProjectStructure();
 
     // Verify that the app modules where properly identified.
     ImmutableList<Module> appModules = myProjectStructure.getAppModules();
@@ -104,7 +104,7 @@ public class ProjectStructureTest extends IdeaTestCase {
     Module leaf3 = createJavaModule("leaf3", false /* not buildable */);
 
     // Method to test:
-    myProjectStructure.analyzeProjectStructure(new EmptyProgressIndicator());
+    myProjectStructure.analyzeProjectStructure();
 
     // Verify that app and leaf modules are returned.
     ImmutableList<Module> leafModules = myProjectStructure.getLeafModules();
@@ -134,7 +134,7 @@ public class ProjectStructureTest extends IdeaTestCase {
     });
 
     // Method to test:
-    myProjectStructure.analyzeProjectStructure(new EmptyProgressIndicator());
+    myProjectStructure.analyzeProjectStructure();
 
     // Verify that the app modules where properly identified.
     ImmutableList<Module> appModules = myProjectStructure.getAppModules();
