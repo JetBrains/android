@@ -76,7 +76,7 @@ public class ProjectStructure {
     myProject = project;
   }
 
-  public void analyzeProjectStructure(@NotNull ProgressIndicator progressIndicator) {
+  public void analyzeProjectStructure() {
     AndroidPluginVersionsInProject pluginVersionsInProject = new AndroidPluginVersionsInProject();
 
     Queue<Module> appModules = new ConcurrentLinkedQueue<>();

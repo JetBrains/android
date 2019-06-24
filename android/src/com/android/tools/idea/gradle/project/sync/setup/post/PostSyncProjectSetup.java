@@ -246,7 +246,7 @@ public class PostSyncProjectSetup {
       RunConfigurationChecker.getInstance(myProject).ensureRunConfigsInvokeBuild();
 
       AndroidPluginVersionsInProject agpVersions = myProjectStructure.getAndroidPluginVersions();
-      myProjectStructure.analyzeProjectStructure(progressIndicator);
+      myProjectStructure.analyzeProjectStructure();
       boolean cleanProjectAfterSync = myProjectStructure.getAndroidPluginVersions().haveVersionsChanged(agpVersions);
 
       attemptToGenerateSources(request, cleanProjectAfterSync);
