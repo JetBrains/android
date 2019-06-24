@@ -268,7 +268,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       runnable.run();
     }
     else {
-      ApplicationManager.getApplication().invokeLater(runnable);
+      ApplicationManager.getApplication().invokeAndWait(runnable);
     }
   }
 
