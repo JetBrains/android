@@ -25,6 +25,7 @@ import static com.intellij.openapi.externalSystem.service.notification.Notificat
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static java.util.stream.Collectors.toList;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -82,13 +83,13 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
 
     // Verify sync issues are reported properly.
     List<NotificationData> messages = syncMessages.getNotifications();
-    assertThat(messages).hasSize(2);
-    NotificationData message = messages.get(0);
-
-    assertEquals(ERROR, message.getNotificationCategory());
-    assertEquals("Unresolved dependencies", message.getTitle());
-    assertThat(message.getMessage()).contains(
-      "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:");
+    List<NotificationData> relevantMessages = messages.stream()
+      .filter(m -> m.getNotificationCategory().equals(ERROR) &&
+                   m.getTitle().equals("Unresolved dependencies") &&
+                   m.getMessage().contains(
+                     "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
+      .collect(toList());
+    assertThat(relevantMessages).isNotEmpty();
   }
 
   public void testSingleVariantSyncAfterFailedIdeaSync() throws Exception {
