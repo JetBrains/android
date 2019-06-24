@@ -22,6 +22,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
@@ -57,6 +58,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     mySyncListener = syncListener;
   }
 
+  @WorkerThread
   @Override
   public void onSuccess(@NotNull ExternalSystemTaskId taskId,
                         @Nullable DataNode<ProjectData> projectInfo) {
@@ -94,6 +96,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     }
   }
 
+  @WorkerThread
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId) {
     IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
     task.populateProject(projectInfo, taskId, mySetupRequest, mySyncListener);
