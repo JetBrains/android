@@ -23,13 +23,10 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,39 +58,7 @@ public class IdeaSyncPopulateProjectTask {
                               @NotNull ExternalSystemTaskId taskId,
                               @Nullable PostSyncProjectSetup.Request setupRequest,
                               @Nullable GradleSyncListener syncListener) {
-    doPopulateProject(projectInfo, taskId, setupRequest, syncListener);
-  }
-
-  @WorkerThread
-  private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo,
-                                 @NotNull ExternalSystemTaskId taskId,
-                                 @Nullable PostSyncProjectSetup.Request setupRequest,
-                                 @Nullable GradleSyncListener syncListener) {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeAllMessages());
-
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      populate(projectInfo, taskId, setupRequest, syncListener);
-      return;
-    }
-
-    Task.Backgroundable task = new Task.Backgroundable(myProject, "Project Setup", false) {
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        populate(projectInfo, taskId, setupRequest, syncListener);
-      }
-    };
-    task.queue();
-  }
-
-  /**
-   * Reuse external system 'selective import' feature for importing of the project sub-set.
-   * And do not ignore projectNode children data, e.g. project libraries
-   */
-  @WorkerThread
-  private void populate(@NotNull DataNode<ProjectData> projectInfo,
-                        @NotNull ExternalSystemTaskId taskId,
-                        @Nullable PostSyncProjectSetup.Request setupRequest,
-                        @Nullable GradleSyncListener syncListener) {
     try {
       myDataManager.importData(projectInfo, myProject, true /* synchronous */);
       if (syncListener != null) {
