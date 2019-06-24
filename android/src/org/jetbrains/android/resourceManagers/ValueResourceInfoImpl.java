@@ -3,6 +3,7 @@ package org.jetbrains.android.resourceManagers;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.utils.HashCodes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -93,6 +94,22 @@ public final class ValueResourceInfoImpl implements ValueResourceInfo {
     }
 
     return getName().compareTo(other.getName());
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof ValueResourceInfo) {
+      ValueResourceInfo other = (ValueResourceInfo) obj;
+      return myFile.equals(other.getContainingFile()) &&
+             getType().equals(other.getType()) &&
+             getName().equals(other.getName());
+    }
+    return super.equals(obj);
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodes.mix(myFile.hashCode(), getType().hashCode(), getName().hashCode());
   }
 
   @Override
