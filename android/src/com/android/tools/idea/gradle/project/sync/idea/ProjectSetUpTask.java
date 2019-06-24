@@ -92,7 +92,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       runnable.run();
     }
     else {
-      TransactionGuard.getInstance().submitTransactionLater(myProject, runnable);
+      TransactionGuard.submitTransaction(myProject, runnable);
     }
   }
 
