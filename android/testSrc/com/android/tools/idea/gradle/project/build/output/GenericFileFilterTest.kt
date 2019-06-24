@@ -64,6 +64,13 @@ class GenericFileFilterTest {
     .checkFileLinks("""C:\path\to\file""")
 
   @Test
+  fun `recognize simple Windows path with forward slashes`() = getFilterResultAndCheckHighlightPositions("""
+    | C:/path/to/file
+      ^^^^^^^^^^^^^^^
+  """.trimIndent())
+    .checkFileLinks("""C:/path/to/file""")
+
+  @Test
   fun `recognize path with line number`() = getFilterResultAndCheckHighlightPositions("""
     | /path/to/file.c:3
       ^^^^^^^^^^^^^^^^^
