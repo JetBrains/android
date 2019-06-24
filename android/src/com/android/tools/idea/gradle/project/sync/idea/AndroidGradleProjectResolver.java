@@ -87,6 +87,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -140,6 +141,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
   @NotNull private final IdeDependenciesFactory myDependenciesFactory;
+  @NotNull private final ModalityState myModality;
 
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
@@ -164,6 +166,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
     myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
     myDependenciesFactory = dependenciesFactory;
+    myModality = ModalityState.defaultModalityState();
   }
 
   @Override
@@ -268,7 +271,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       runnable.run();
     }
     else {
-      ApplicationManager.getApplication().invokeLater(runnable);
+      ApplicationManager.getApplication().invokeAndWait(runnable, myModality);
     }
   }
 
