@@ -48,7 +48,6 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgrade;
-import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
@@ -67,7 +66,6 @@ import com.intellij.build.events.impl.FinishBuildEventImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
 import com.intellij.build.events.impl.SuccessResultImpl;
 import com.intellij.compiler.options.CompileStepBeforeRun;
-import com.intellij.concurrency.JobLauncher;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.RunManagerEx;
@@ -115,7 +113,6 @@ public class PostSyncProjectSetup {
   @NotNull private final PluginVersionUpgrade myPluginVersionUpgrade;
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
-  @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
   @NotNull private final RunManagerEx myRunManager;
 
   @NotNull
@@ -136,8 +133,7 @@ public class PostSyncProjectSetup {
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
-         new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerEx.getInstanceEx(project));
+         new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, RunManagerEx.getInstanceEx(project));
   }
 
   @VisibleForTesting
@@ -153,7 +149,6 @@ public class PostSyncProjectSetup {
                        @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
-                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
                        @NotNull RunManagerEx runManager) {
     myProject = project;
     myIdeInfo = ideInfo;
@@ -167,7 +162,6 @@ public class PostSyncProjectSetup {
     myPluginVersionUpgrade = pluginVersionUpgrade;
     myVersionCompatibilityChecker = versionCompatibilityChecker;
     myProjectBuilder = projectBuilder;
-    myModuleValidatorFactory = moduleValidatorFactory;
     myRunManager = runManager;
   }
 
@@ -198,12 +192,6 @@ public class PostSyncProjectSetup {
 
       ModuleManager moduleManager = ModuleManager.getInstance(myProject);
       List<Module> modules = Arrays.asList(moduleManager.getModules());
-      CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
-      JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, module -> {
-        moduleValidator.validate(module);
-        return true;
-      });
-      moduleValidator.fixAndReportFoundIssues();
 
       if (mySyncState.lastSyncFailed()) {
         failTestsIfSyncIssuesPresent();

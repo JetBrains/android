@@ -40,7 +40,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
-import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
@@ -52,8 +51,6 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
@@ -79,8 +76,6 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private PluginVersionUpgrade myVersionUpgrade;
   @Mock private VersionCompatibilityChecker myVersionCompatibilityChecker;
   @Mock private GradleProjectBuilder myProjectBuilder;
-  @Mock private CommonModuleValidator.Factory myModuleValidatorFactory;
-  @Mock private CommonModuleValidator myModuleValidator;
   @Mock private RunManagerEx myRunManager;
   @Mock private ExternalSystemTaskId myTaskId;
 
@@ -97,12 +92,11 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     Project project = getProject();
     myRunManager = RunManagerImpl.getInstanceImpl(project);
-    when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
     myProjectStructure = new ProjectStructureStub(project);
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
                                        myDependencySetupIssues, myProjectSetup, myModuleSetup, myVersionUpgrade,
-                                       myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory, myRunManager);
+                                       myVersionCompatibilityChecker, myProjectBuilder, myRunManager);
   }
 
   @Override
@@ -212,11 +206,6 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     verify(myDependencySetupIssues, times(1)).reportIssues();
     verify(myVersionCompatibilityChecker, times(1)).checkAndReportComponentIncompatibilities(project);
 
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      verify(myModuleValidator, times(1)).validate(module);
-    }
-
-    verify(myModuleValidator, times(1)).fixAndReportFoundIssues();
     verify(myProjectSetup, times(1)).setUpProject(myProgressIndicator, true);
     verify(mySyncState, times(1)).syncFailed(any(), any(), any());
     verify(mySyncState, never()).syncSucceeded();
