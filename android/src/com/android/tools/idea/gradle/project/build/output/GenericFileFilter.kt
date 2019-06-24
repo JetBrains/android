@@ -46,7 +46,7 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
               state = ParsingState.PATH
               pathStartIndex = i
             }
-            line[i] in 'A'..'Z' && line.startsWith(":\\", startIndex = i + 1) -> {
+            line[i] in 'A'..'Z' && (line.startsWith(":\\", startIndex = i + 1) || line.startsWith(":/", startIndex = i + 1) ) -> {
               // Start parsing a Windows path
               state = ParsingState.PATH
               pathStartIndex = i
