@@ -679,5 +679,13 @@ public final class StudioFlags {
     "If enabled, a notification will be shown",true);
   //endregion
 
-  private StudioFlags() {}
+  //region Compose
+  private static final FlagGroup COMPOSE = new FlagGroup(FLAGS, "compose", "Compose");
+  public static final Flag<Boolean> COMPOSE_PREVIEW = Flag.create(
+    COMPOSE, "compose.preview.enabled", "Enable the Compose preview",
+    "If enabled, a visual preview will be available for Compose.",
+    false);
+  //endregion
+
+  private StudioFlags() { }
 }
