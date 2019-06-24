@@ -244,6 +244,7 @@ public class GradleFiles {
    */
   @Nullable
   private static Integer computeHash(@NotNull VirtualFile file) {
+    if (!file.isValid()) return null;
     Document document = FileDocumentManager.getInstance().getDocument(file);
     return document == null ? null : document.getText().hashCode();
   }
