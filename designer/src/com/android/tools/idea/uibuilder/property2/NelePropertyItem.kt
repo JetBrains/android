@@ -451,7 +451,7 @@ open class NelePropertyItem(
   // region Implementation of browseButton
 
   private fun createBrowseButton(): ActionIconButton? {
-    if (name == ATTR_ID || type.resourceTypes.isEmpty()) {
+    if (name == ATTR_ID || type == NelePropertyType.DESTINATION || type.resourceTypes.isEmpty()) {
       return EmptyBrowseActionIconButton
     }
     return BrowseActionIconButton()

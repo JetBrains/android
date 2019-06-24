@@ -30,9 +30,11 @@ enum class NelePropertyType {
   ANIM,
   ARRAY,
   BOOLEAN,
+  CLASS_NAME,
   COLOR,
   COLOR_STATE_LIST,
   DIMENSION,
+  DESTINATION,
   DRAWABLE,
   ENUM,
   FLAGS,
@@ -62,6 +64,7 @@ enum class NelePropertyType {
       BOOLEAN -> EnumSet.of(ResourceType.BOOL)
       COLOR -> EnumSet.of(ResourceType.COLOR)
       COLOR_STATE_LIST -> EnumSet.of(ResourceType.COLOR)
+      DESTINATION -> EnumSet.of(ResourceType.ID)
       DIMENSION -> EnumSet.of(ResourceType.DIMEN)
       DRAWABLE -> EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP)
       FLAGS -> EnumSet.of(ResourceType.STRING)
