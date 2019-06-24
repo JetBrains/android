@@ -59,7 +59,7 @@ private const val ALL_FIELD = "_all"
  *
  * See also: https://developer.android.com/topic/libraries/data-binding/generated-binding#advanced_binding
  */
-class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet) :
+class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, private val qualifiedName: String) :
   AndroidLightClassBase(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL)) {
 
   /**
@@ -69,7 +69,6 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet) :
     get() = fieldCache.value.map { field -> field.name }.toTypedArray()
 
   private val fieldCache: CachedValue<Array<PsiField>>
-  private val qualifiedName: String = DataBindingUtil.getBrQualifiedName(facet)
   private val cacheLock = Any()
   private val containingFile: PsiFile
 
@@ -147,7 +146,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet) :
     return LightBRField(PsiManager.getInstance(project), field, this)
   }
 
-  override fun getQualifiedName(): String? {
+  override fun getQualifiedName(): String {
     return qualifiedName
   }
 
