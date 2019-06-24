@@ -31,6 +31,7 @@ import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static java.lang.System.currentTimeMillis;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
@@ -207,6 +208,7 @@ public class GradleSyncInvoker {
     return false; // stop sync.
   }
 
+  @WorkerThread
   private void sync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
     if (myIdeInfo.isAndroidStudio()) {
       // See https://code.google.com/p/android/issues/detail?id=169743
