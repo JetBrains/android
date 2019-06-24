@@ -39,7 +39,7 @@ public class DetailedCpuUsage extends CpuUsage {
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       long streamId = profilers.getSession().getStreamId();
       int pid = profilers.getSession().getPid();
-      others = new UnifiedEventDataSeries(
+      others = new UnifiedEventDataSeries<>(
         profilers.getClient().getTransportClient(),
         streamId,
         pid,

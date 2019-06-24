@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  * Generic numeric (Long) data series that allows the caller to customize which field within the {@link Common.Event} to use when when
  * querying for data.
  */
-public class UnifiedEventDataSeries implements DataSeries<Long> {
+public class UnifiedEventDataSeries<T> implements DataSeries<T> {
 
   public static final int DEFAULT_GROUP_ID = Common.Event.EventGroupIds.INVALID_VALUE;
 
@@ -42,7 +42,7 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
   private final int myPid;
   @NotNull private final Common.Event.Kind myKind;
   private final int myGroupId;
-  @NotNull private final Function<List<Common.Event>, List<SeriesData<Long>>> myDataExtractor;
+  @NotNull private final Function<List<Common.Event>, List<SeriesData<T>>> myDataExtractor;
 
   /**
    * @param client        the grpc client to request data from.
@@ -57,7 +57,7 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
                                 int pid,
                                 @NotNull Common.Event.Kind kind,
                                 int groupId,
-                                @NotNull Function<List<Common.Event>, List<SeriesData<Long>>> dataExtractor) {
+                                @NotNull Function<List<Common.Event>, List<SeriesData<T>>> dataExtractor) {
     myClient = client;
     myStreamId = streamId;
     myPid = pid;
@@ -67,18 +67,14 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
   }
 
   @Override
-  public List<SeriesData<Long>> getDataForRange(Range rangeUs) {
-    // TODO b/118319729 remove the one second buffer after our request supports buffering options.
-    long minNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()) - TimeUnit.SECONDS.toNanos(1);
-    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()) + TimeUnit.SECONDS.toNanos(1);
-
+  public List<SeriesData<T>> getDataForRange(Range rangeUs) {
     GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
       .setStreamId(myStreamId)
       .setPid(myPid)
       .setKind(myKind)
       .setGroupId(myGroupId)
-      .setFromTimestamp(minNs)
-      .setToTimestamp(maxNs)
+      .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
+      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
       .build();
     GetEventGroupsResponse response = myClient.getEventGroups(request);
     // We don't expect more than one data group in our numeric data series. This is to avoid having to sort the data from multiple groups
