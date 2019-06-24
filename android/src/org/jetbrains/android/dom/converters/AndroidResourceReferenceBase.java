@@ -87,14 +87,6 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
 
   @Override
   public boolean isReferenceTo(@NotNull PsiElement element) {
-    if (element instanceof LazyValueResourceElementWrapper) {
-      element = ((LazyValueResourceElementWrapper)element).computeElement();
-
-      if (element == null) {
-        return false;
-      }
-    }
-
     final ResolveResult[] results = multiResolve(false);
     final PsiFile psiFile = element.getContainingFile();
     final VirtualFile vFile = psiFile != null ? psiFile.getVirtualFile() : null;
