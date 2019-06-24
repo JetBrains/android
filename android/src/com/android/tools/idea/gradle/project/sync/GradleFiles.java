@@ -210,6 +210,7 @@ public class GradleFiles {
    */
   @Nullable
   private Integer computeHash(@NotNull VirtualFile file) {
+    if (!file.isValid()) return null;
     PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
 
     if (psiFile != null && psiFile.isValid()) {
