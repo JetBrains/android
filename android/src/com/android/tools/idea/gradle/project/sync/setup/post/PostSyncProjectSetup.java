@@ -81,7 +81,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.Key;
@@ -170,7 +169,6 @@ public class PostSyncProjectSetup {
    */
   @Slow
   public void setUpProject(@NotNull Request request,
-                           @NotNull ProgressIndicator progressIndicator,
                            @Nullable ExternalSystemTaskId taskId,
                            @Nullable GradleSyncListener syncListener) {
     try {
@@ -196,7 +194,7 @@ public class PostSyncProjectSetup {
       if (mySyncState.lastSyncFailed()) {
         failTestsIfSyncIssuesPresent();
 
-        myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
+        myProjectSetup.setUpProject(true /* sync failed */);
         // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
         // previous sync, and not the one from the sync that just ended.
         mySyncState.syncFailed("", null, syncListener);
@@ -240,7 +238,7 @@ public class PostSyncProjectSetup {
       SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
 
       findAndShowVariantConflicts();
-      myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
+      myProjectSetup.setUpProject(false /* sync successful */);
 
       modifyJUnitRunConfigurations();
       RunConfigurationChecker.getInstance(myProject).ensureRunConfigsInvokeBuild();

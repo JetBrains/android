@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
@@ -160,7 +159,7 @@ class SyncResultHandler {
         }
 
         runWhenProjectInitializedOnPooledThreadIfNotUnderTest(
-          () -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId, syncListener));
+          () -> myPostSyncProjectSetup.setUpProject(setupRequest, taskId, syncListener));
       }
       catch (Throwable e) {
         mySyncState.syncFailed(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
@@ -191,7 +190,7 @@ class SyncResultHandler {
     }
 
     runWhenProjectInitializedOnPooledThreadIfNotUnderTest(
-      () -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId, syncListener));
+      () -> myPostSyncProjectSetup.setUpProject(setupRequest, taskId, syncListener));
   }
 
   void onSyncFailed(@NotNull SyncExecutionCallback callback, @Nullable GradleSyncListener syncListener) {
