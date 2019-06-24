@@ -1,13 +1,20 @@
 apply plugin: 'com.android.dynamic-feature'
-
 android {
-	compileSdkVersion 27
-	defaultConfig {
-		versionCode 1
-		versionName "1.0"
-	}
+    compileSdkVersion 23
+
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+
 }
 
 dependencies {
-	implementation project(':app')
+    implementation project(':app')
 }
