@@ -56,7 +56,7 @@ public class ExpiredPreviewBuildSetupStepIdeaTest extends IdeaTestCase {
     when(myApplicationInfo.getFullVersion()).thenReturn("1.2 Preview");
     when(myApplicationInfo.getBuildDate()).thenReturn(simulateExpiredBuildDate());
 
-    mySetupStep.setUpProject(getProject(), null);
+    mySetupStep.setUpProject(getProject());
 
     List<NotificationMessage> messages = myNotification.getMessages();
     assertThat(messages).hasSize(1);
@@ -80,7 +80,7 @@ public class ExpiredPreviewBuildSetupStepIdeaTest extends IdeaTestCase {
     // Not expired yet.
     when(myApplicationInfo.getBuildDate()).thenReturn(Calendar.getInstance());
 
-    mySetupStep.setUpProject(getProject(), null);
+    mySetupStep.setUpProject(getProject());
 
     List<NotificationMessage> messages = myNotification.getMessages();
     assertThat(messages).isEmpty();
@@ -92,8 +92,8 @@ public class ExpiredPreviewBuildSetupStepIdeaTest extends IdeaTestCase {
     when(myApplicationInfo.getFullVersion()).thenReturn("1.2 Preview");
     when(myApplicationInfo.getBuildDate()).thenReturn(simulateExpiredBuildDate());
 
-    mySetupStep.setUpProject(getProject(), null);
-    mySetupStep.setUpProject(getProject(), null);
+    mySetupStep.setUpProject(getProject());
+    mySetupStep.setUpProject(getProject());
 
     // should be checked once only.
     verify(myApplicationInfo, times(1)).getFullVersion();
@@ -109,7 +109,7 @@ public class ExpiredPreviewBuildSetupStepIdeaTest extends IdeaTestCase {
   public void testSetUpProjectWithNonPreview() {
     when(myApplicationInfo.getFullVersion()).thenReturn("1.2");
 
-    mySetupStep.setUpProject(getProject(), null);
+    mySetupStep.setUpProject(getProject());
 
     List<NotificationMessage> messages = myNotification.getMessages();
     assertThat(messages).isEmpty();
