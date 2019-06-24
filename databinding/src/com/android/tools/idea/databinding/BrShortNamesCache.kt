@@ -50,7 +50,7 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
       {
         val facets = component.getDataBindingEnabledFacets()
         val allFields = facets
-          .map { facet -> DataBindingClassFactory.getOrCreateBrClassFor(facet) }
+          .mapNotNull(DataBindingClassFactory::getOrCreateBrClassFor)
           .flatMap { brClass -> brClass.allFieldNames.asIterable() }
           .toTypedArray()
 
@@ -65,7 +65,7 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
 
     return component.getDataBindingEnabledFacets()
       .filter { scope.isSearchInModuleContent(it.module) }
-      .map { DataBindingClassFactory.getOrCreateBrClassFor(it) }
+      .mapNotNull(DataBindingClassFactory::getOrCreateBrClassFor)
       .toTypedArray()
   }
 
