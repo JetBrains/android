@@ -46,32 +46,32 @@ public class ProjectSetupTest extends IdeaTestCase {
     when(mySetupStep1.invokeOnFailedSync()).thenReturn(true);
     when(mySetupStep2.invokeOnFailedSync()).thenReturn(false);
 
-    mySetup.setUpProject(myProgressIndicator, true /* sync failed */);
+    mySetup.setUpProject(true /* sync failed */);
 
     Project project = getProject();
-    verify(mySetupStep1, times(1)).setUpProject(project, myProgressIndicator);
-    verify(mySetupStep2, never()).setUpProject(project, myProgressIndicator);
+    verify(mySetupStep1, times(1)).setUpProject(project);
+    verify(mySetupStep2, never()).setUpProject(project);
   }
 
   public void testSetUpProjectWithSuccessfulSync() {
     when(mySetupStep1.invokeOnFailedSync()).thenReturn(true);
     when(mySetupStep2.invokeOnFailedSync()).thenReturn(false);
 
-    mySetup.setUpProject(myProgressIndicator, false /* sync successful */);
+    mySetup.setUpProject(false /* sync successful */);
 
     Project project = getProject();
-    verify(mySetupStep1, times(1)).setUpProject(project, myProgressIndicator);
-    verify(mySetupStep2, times(1)).setUpProject(project, myProgressIndicator);
+    verify(mySetupStep1, times(1)).setUpProject(project);
+    verify(mySetupStep2, times(1)).setUpProject(project);
   }
 
   public void testSetUpProjectWithWriteAccess() {
     when(mySetupStep1.invokeOnFailedSync()).thenReturn(true);
     when(mySetupStep2.invokeOnFailedSync()).thenReturn(false);
 
-    ApplicationManager.getApplication().runWriteAction(() -> mySetup.setUpProject(myProgressIndicator, false /* sync successful */));
+    ApplicationManager.getApplication().runWriteAction(() -> mySetup.setUpProject(false /* sync successful */));
 
     Project project = getProject();
-    verify(mySetupStep1, times(1)).setUpProject(project, myProgressIndicator);
-    verify(mySetupStep2, times(1)).setUpProject(project, myProgressIndicator);
+    verify(mySetupStep1, times(1)).setUpProject(project);
+    verify(mySetupStep2, times(1)).setUpProject(project);
   }
 }

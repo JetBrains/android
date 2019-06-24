@@ -86,7 +86,7 @@ public class SdkToolsVersionSetupStepTest extends IdeaTestCase {
 
     when(myIdeSdks.getAndroidSdkPath()).thenReturn(toolsDirectory.getParentFile());
 
-    mySetupStep.setUpProject(getProject(), null);
+    mySetupStep.setUpProject(getProject());
 
     List<NotificationMessage> messages = myNotification.getMessages();
     assertThat(messages).isEmpty();
@@ -105,7 +105,7 @@ public class SdkToolsVersionSetupStepTest extends IdeaTestCase {
 
     when(myIdeSdks.getAndroidSdkPath()).thenReturn(toolsDirectory.getParentFile());
 
-    mySetupStep.setUpProject(getProject(), null);
+    mySetupStep.setUpProject(getProject());
 
     List<NotificationMessage> messages = myNotification.getMessages();
     assertThat(messages).isEmpty();
@@ -116,7 +116,7 @@ public class SdkToolsVersionSetupStepTest extends IdeaTestCase {
   public void testSetUpProject_toolsMissing() {
     when(myIdeSdks.getAndroidSdkPath()).thenReturn(new File("fakePath"));
 
-    mySetupStep.setUpProject(getProject(), null);
+    mySetupStep.setUpProject(getProject());
 
     List<NotificationMessage> messages = myNotification.getMessages();
     assertThat(messages).hasSize(1);
@@ -137,7 +137,7 @@ public class SdkToolsVersionSetupStepTest extends IdeaTestCase {
 
     // We shutdown the executor and try again to make sure we'll not try to recompute the bubble as it has been already shown.
     myExecutorService.shutdown();
-    mySetupStep.setUpProject(getProject(), null);
+    mySetupStep.setUpProject(getProject());
   }
 
   public void testInvokeOnFailedSync() {
