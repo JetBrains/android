@@ -21,6 +21,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.resources.ResourceType
 import org.jetbrains.android.dom.AndroidDomUtil
+import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**
  * Temporary type resolver.
@@ -228,7 +229,11 @@ object TypeResolver {
       SdkConstants.ATTR_LISTFOOTER,
       SdkConstants.ATTR_LISTHEADER,
       SdkConstants.ATTR_LISTITEM -> NelePropertyType.LAYOUT
+      SdkConstants.ATTR_GRAPH,
       SdkConstants.ATTR_NAV_GRAPH -> NelePropertyType.NAVIGATION
+      NavigationSchema.ATTR_DESTINATION,
+      SdkConstants.ATTR_START_DESTINATION -> NelePropertyType.DESTINATION
+      SdkConstants.ATTR_NAME -> NelePropertyType.CLASS_NAME
 
       else -> null
     }
