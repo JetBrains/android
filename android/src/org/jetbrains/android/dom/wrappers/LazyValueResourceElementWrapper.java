@@ -119,6 +119,14 @@ public class LazyValueResourceElementWrapper extends RenameableFakePsiElement
     return element;
   }
 
+  @Override
+  public boolean isEquivalentTo(PsiElement another) {
+    if (another instanceof LazyValueResourceElementWrapper) {
+      return myResourceInfo.equals(((LazyValueResourceElementWrapper)another).getResourceInfo());
+    }
+    return super.isEquivalentTo(another);
+  }
+
   // Comparator useful for comparing one wrapper for priority sorting without having to actually compute the XML elements
   @Override
   public int compareTo(@NotNull LazyValueResourceElementWrapper other) {
