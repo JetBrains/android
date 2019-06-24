@@ -64,12 +64,12 @@ public class MemoryUsage extends LineChartModel {
                                                       int groupId,
                                                       Function<List<Common.Event>, List<SeriesData<Long>>> dataExtractor) {
     TransportServiceGrpc.TransportServiceBlockingStub client = profilers.getClient().getTransportClient();
-    UnifiedEventDataSeries series = new UnifiedEventDataSeries(client,
-                                                               profilers.getSession().getStreamId(),
-                                                               profilers.getSession().getPid(),
-                                                               Common.Event.Kind.MEMORY_USAGE,
-                                                               groupId,
-                                                               dataExtractor);
+    UnifiedEventDataSeries<Long> series = new UnifiedEventDataSeries<>(client,
+                                                                       profilers.getSession().getStreamId(),
+                                                                       profilers.getSession().getPid(),
+                                                                       Common.Event.Kind.MEMORY_USAGE,
+                                                                       groupId,
+                                                                       dataExtractor);
     return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series, profilers.getTimeline().getDataRange());
   }
 
