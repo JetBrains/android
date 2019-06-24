@@ -37,6 +37,7 @@ iml_module(
         "//tools/adt/idea/databinding:intellij.android.databinding[module]",
         "//tools/adt/idea/naveditor:intellij.android.naveditor[module]",
         "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module]",
+        "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module]",
         "//tools/adt/idea/room:intellij.android.room[module]",
     ],
 )
