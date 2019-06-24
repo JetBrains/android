@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea;
 
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -55,6 +56,7 @@ public class IdeaSyncPopulateProjectTask {
     myDataManager = dataManager;
   }
 
+  @WorkerThread
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
                               @NotNull ExternalSystemTaskId taskId,
                               @Nullable PostSyncProjectSetup.Request setupRequest,
@@ -62,6 +64,7 @@ public class IdeaSyncPopulateProjectTask {
     doPopulateProject(projectInfo, taskId, setupRequest, syncListener);
   }
 
+  @WorkerThread
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo,
                                  @NotNull ExternalSystemTaskId taskId,
                                  @Nullable PostSyncProjectSetup.Request setupRequest,
@@ -86,6 +89,7 @@ public class IdeaSyncPopulateProjectTask {
    * Reuse external system 'selective import' feature for importing of the project sub-set.
    * And do not ignore projectNode children data, e.g. project libraries
    */
+  @WorkerThread
   private void populate(@NotNull DataNode<ProjectData> projectInfo,
                         @NotNull ExternalSystemTaskId taskId,
                         @Nullable PostSyncProjectSetup.Request setupRequest,
