@@ -120,16 +120,6 @@ public class IndexingSuspender {
           activate(ActivationEvent.SETUP_STARTED, DeactivationEvent.SYNC_FINISHED);
         }
         break;
-      case BUILD_EXECUTOR_CREATED:
-        if (myDeactivationEvent == DeactivationEvent.SYNC_FINISHED) {
-          myDeactivationEvent = DeactivationEvent.BUILD_FINISHED;
-        }
-        break;
-      case BUILD_STARTED:
-        if (!myActivated) {
-          activate(ActivationEvent.BUILD_STARTED, DeactivationEvent.BUILD_FINISHED);
-        }
-        break;
       case TEMPLATE_RENDERING_STARTED:
         if (!myActivated) {
           activate(ActivationEvent.TEMPLATE_RENDERING_STARTED, DeactivationEvent.TEMPLATE_RENDERING_FINISHED);
@@ -282,14 +272,11 @@ public class IndexingSuspender {
     SYNC_TASK_CREATED,
     SYNC_STARTED,
     SETUP_STARTED,
-    BUILD_EXECUTOR_CREATED,
-    BUILD_STARTED,
     TEMPLATE_RENDERING_STARTED,
   }
 
   private enum DeactivationEvent {
     SYNC_FINISHED,
-    BUILD_FINISHED,
     TEMPLATE_RENDERING_FINISHED,
   }
 }
