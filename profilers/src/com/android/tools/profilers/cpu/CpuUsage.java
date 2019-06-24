@@ -39,7 +39,7 @@ public class CpuUsage extends LineChartModel {
     myCpuRange = new Range(0, 100);
     DataSeries<Long> series;
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      series = new UnifiedEventDataSeries(
+      series = new UnifiedEventDataSeries<>(
         profilers.getClient().getTransportClient(),
         profilers.getSession().getStreamId(),
         profilers.getSession().getPid(),
