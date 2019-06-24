@@ -302,9 +302,8 @@ filegroup(
             "//tools/base/profiler/app:perfa.jar",
             "//tools/base/profiler/app:perfa_okhttp.dex",
             "//tools/base/profiler/transform:profilers-transform.jar",
-            "//tools/base/profiler:perfetto-protos",
         ],
-    }),
+    }) + [ "//tools/base/profiler:perfetto-protos" ],
     visibility = ["//visibility:public"],
 )
 
