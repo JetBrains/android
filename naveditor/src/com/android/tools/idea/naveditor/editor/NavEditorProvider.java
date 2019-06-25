@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.naveditor.editor;
 
+import com.android.tools.idea.common.editor.DesignerEditor;
 import com.android.tools.idea.common.editor.DesignerEditorProvider;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerTypeRegistrar;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -39,7 +39,7 @@ public class NavEditorProvider extends DesignerEditorProvider {
 
   @NotNull
   @Override
-  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+  public DesignerEditor createDesignEditor(@NotNull Project project, @NotNull VirtualFile file) {
     return new NavEditor(file, project);
   }
 
