@@ -101,6 +101,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   private final Configuration myConfiguration;
   private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
+  /** Model name. This can be used when multiple models are displayed at the same time */
+  private final String myModelDisplayName;
   private NlComponent myRootComponent;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
@@ -121,29 +123,33 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @Slow
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
+                               @Nullable String modelDisplayName,
                                @NotNull AndroidFacet facet,
                                @NotNull VirtualFile file,
                                @NotNull ConfigurationManager configurationManager,
                                @NotNull Consumer<NlComponent> componentRegistrar) {
-    return new NlModel(parent, facet, file, configurationManager.getConfiguration(file), componentRegistrar);
+    return new NlModel(parent, modelDisplayName, facet, file, configurationManager.getConfiguration(file), componentRegistrar);
   }
 
   @Slow
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
+                               @Nullable String modelDisplayName,
                                @NotNull AndroidFacet facet,
                                @NotNull VirtualFile file,
                                @NotNull Consumer<NlComponent> componentRegistrar) {
-    return create(parent, facet, file, ConfigurationManager.getOrCreateInstance(facet), componentRegistrar);
+    return create(parent, modelDisplayName, facet, file, ConfigurationManager.getOrCreateInstance(facet), componentRegistrar);
   }
 
   @VisibleForTesting
   protected NlModel(@Nullable Disposable parent,
+                    @Nullable String modelDisplayName,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
                     @NotNull Consumer<NlComponent> componentRegistrar) {
     myFacet = facet;
+    myModelDisplayName = modelDisplayName;
     myFile = file;
     myConfiguration = configuration;
     myComponentRegistrar = componentRegistrar;
@@ -1098,6 +1104,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public long getId() {
     return myId;
+  }
+
+  @Nullable
+  public String getModelDisplayName() {
+    return myModelDisplayName;
   }
 
   @Override
