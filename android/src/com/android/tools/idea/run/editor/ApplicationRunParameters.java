@@ -264,13 +264,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
   }
 
   @Override
-  public JComponent getAnchor() {
-    return null;
-  }
-
-  @Override
-  public void setAnchor(JComponent anchor) {
-  }
+  public void dispose() {}
 
   private void updateBuildArtifactBeforeRunSetting() {
     Artifact newArtifact = null;
