@@ -58,7 +58,10 @@ public class IdeaSyncPopulateProjectTask {
                               @NotNull ExternalSystemTaskId taskId,
                               @Nullable PostSyncProjectSetup.Request setupRequest,
                               @Nullable GradleSyncListener syncListener) {
-    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeAllMessages());
+    invokeAndWaitIfNeeded((Runnable)() -> {
+      if (myProject.isDisposed()) return;
+      GradleSyncMessages.getInstance(myProject).removeAllMessages();
+    });
     try {
       myDataManager.importData(projectInfo, myProject, true /* synchronous */);
       if (syncListener != null) {
