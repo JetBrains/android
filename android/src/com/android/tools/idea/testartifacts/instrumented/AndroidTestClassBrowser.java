@@ -24,10 +24,11 @@ import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidTestClassBrowser extends AndroidClassBrowserBase {
+public class AndroidTestClassBrowser<T extends JComponent> extends AndroidClassBrowserBase<T> {
 
   public AndroidTestClassBrowser(@NotNull Project project,
                                  @NotNull ConfigurationModuleSelector moduleSelector,
