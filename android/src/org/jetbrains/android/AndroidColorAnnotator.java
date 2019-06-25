@@ -114,13 +114,15 @@ public class AndroidColorAnnotator implements Annotator {
       if (file != null && AndroidResourceUtil.isInResourceSubdirectory(file, null)) {
         if (element instanceof XmlTag) {
           Annotation annotation = holder.createInfoAnnotation(element, null);
-          annotation.setGutterIconRenderer(new ColorRenderer(element, null, true));
+          // TODO: put resource resolver
+          annotation.setGutterIconRenderer(new ColorRenderer(element, null, true, null));
         } else {
           assert element instanceof XmlAttributeValue;
           Color color = ResourceHelper.parseColor(value);
           if (color != null) {
             Annotation annotation = holder.createInfoAnnotation(element, null);
-            annotation.setGutterIconRenderer(new ColorRenderer(element, null, true));
+            // TODO: put resource resolver
+            annotation.setGutterIconRenderer(new ColorRenderer(element, null, true, null));
           }
         }
       }
@@ -184,7 +186,7 @@ public class AndroidColorAnnotator implements Annotator {
         // For java and kotlin files, we should open color resource picker only and set R.color.[resource_name] to the field.
         // TODO: Open color resource picker for java and kotlin files.
         boolean isClickable = AndroidAnnotatorUtil.getFileType(element) == XmlFileType.INSTANCE;
-        annotation.setGutterIconRenderer(new ColorRenderer(element, color, isClickable));
+        annotation.setGutterIconRenderer(new ColorRenderer(element, color, isClickable, configuration));
       }
     } else {
       assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
