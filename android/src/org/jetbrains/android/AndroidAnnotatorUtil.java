@@ -40,6 +40,8 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
+import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder;
+import com.android.tools.idea.ui.resourcechooser.ColorResourcePicker;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider;
@@ -76,7 +78,7 @@ import java.awt.MouseInfo;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.Icon;
-import javax.swing.JPanel;
+import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -330,14 +332,19 @@ public class AndroidAnnotatorUtil {
   public static class ColorRenderer extends GutterIconRenderer {
     private final PsiElement myElement;
     private final Color myColor;
-    private final Consumer<Color> mySetColorTask;
+    private final Consumer<String> mySetColorTask;
     private final boolean myIncludeClickAction;
+    @Nullable private final Configuration myConfiguration;
 
-    public ColorRenderer(@NotNull PsiElement element, @Nullable Color color, boolean includeClickAction) {
+    public ColorRenderer(@NotNull PsiElement element,
+                         @Nullable Color color,
+                         boolean includeClickAction,
+                         @Nullable Configuration configuration) {
       myElement = element;
       myColor = color;
       myIncludeClickAction = includeClickAction;
       mySetColorTask = createSetColorTask(myElement);
+      myConfiguration = configuration;
     }
 
     @NotNull
@@ -386,8 +393,7 @@ public class AndroidAnnotatorUtil {
 
     private void openNewColorPicker(@Nullable Color currentColor) {
       LightCalloutPopup dialog = new LightCalloutPopup();
-
-      JPanel panel = new ColorPickerBuilder()
+      JComponent colorPicker = new ColorPickerBuilder()
           .setOriginalColor(currentColor)
           .addSaturationBrightnessComponent()
           .addColorAdjustPanel(new MaterialGraphicalColorPipetteProvider())
@@ -399,13 +405,33 @@ public class AndroidAnnotatorUtil {
           .setFocusCycleRoot(true)
           .build();
 
-      dialog.show(panel, null, MouseInfo.getPointerInfo().getLocation());
+      JComponent popupContent;
+      if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && myConfiguration != null) {
+        // Use tabbed panel instead.
+        ColorResourcePicker resourcePicker = new ColorResourcePicker(myConfiguration);
+        // TODO: Use relative resource url instead.
+        resourcePicker.addColorResourcePickerListener(resource -> setColorStringAttribute(resource.getResourceUrl().toString()));
+        popupContent = new HorizontalTabbedPanelBuilder()
+          .addTab("Resources", resourcePicker)
+          .addTab("Custom", colorPicker)
+          .setDefaultPage(1)
+          .build();
+      }
+      else {
+        popupContent = colorPicker;
+      }
+
+      dialog.show(popupContent, null, MouseInfo.getPointerInfo().getLocation());
     }
 
     private void setColorToAttribute(@NotNull Color color) {
+      setColorStringAttribute(ResourceHelper.colorToString(color));
+    }
+
+    private void setColorStringAttribute(@NotNull String colorString) {
       Project project = myElement.getProject();
       TransactionGuard.submitTransaction(project, () ->
-        WriteCommandAction.runWriteCommandAction(project, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.consume(color))
+        WriteCommandAction.runWriteCommandAction(project, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.consume(colorString))
       );
     }
 
@@ -428,15 +454,15 @@ public class AndroidAnnotatorUtil {
     }
 
     @VisibleForTesting
-    public static Consumer<Color> createSetColorTask(@NotNull PsiElement element) {
+    public static Consumer<String> createSetColorTask(@NotNull PsiElement element) {
       if (element instanceof XmlTag) {
         XmlTagValue xmlTagValue = ((XmlTag)element).getValue();
-        return color -> xmlTagValue.setText(ResourceHelper.colorToString(color));
+        return colorString -> xmlTagValue.setText(colorString);
       }
       else if (element instanceof XmlAttributeValue) {
         XmlAttribute xmlAttribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
         if (xmlAttribute != null) {
-          return color -> xmlAttribute.setValue(ResourceHelper.colorToString(color));
+          return colorString -> xmlAttribute.setValue(colorString);
         }
       }
       // Unknown case, do nothing.

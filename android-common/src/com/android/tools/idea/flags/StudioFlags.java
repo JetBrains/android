@@ -281,6 +281,11 @@ public final class StudioFlags {
     "Enable this flag to display the design editors side-by-side with their text representation.",
     false);
 
+  public static final Flag<Boolean> NELE_RESOURCE_POPUP_PICKER = Flag.create(
+    NELE, "show.resource.popup.picker", "Enable popup  resource picker in layout editor.",
+    "Show the popup picker for resource picking or attribute customization in layout editor.",
+    true);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",

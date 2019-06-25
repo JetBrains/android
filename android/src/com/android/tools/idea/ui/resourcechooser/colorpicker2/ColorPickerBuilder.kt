@@ -151,7 +151,7 @@ class ColorPickerBuilder {
 
   fun addColorPickerListener(listener: ColorPickerListener) = apply { colorListeners.add(listener) }
 
-  fun build(): JPanel {
+  fun build(): JComponent {
     if (componentsToBuild.isEmpty()) {
       throw IllegalStateException("The Color Picker should have at least one picking component.")
     }
@@ -189,7 +189,7 @@ class ColorPickerBuilder {
     panel.isFocusTraversalPolicyProvider = true
     panel.focusTraversalPolicy = MyFocusTraversalPolicy(defaultFocusComponent)
 
-    actionMap.forEach { keyStroke, action ->
+    actionMap.forEach { (keyStroke, action) ->
       val key = keyStroke.toString()
       panel.actionMap.put(key, action)
       panel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(keyStroke, key)
@@ -204,5 +204,3 @@ class ColorPickerBuilder {
 private class MyFocusTraversalPolicy(val defaultComponent: Component?) : LayoutFocusTraversalPolicy() {
   override fun getDefaultComponent(aContainer: Container?): Component? = defaultComponent
 }
-
-private val color = JBColor.namedColor("UIDesigner.ColorPicker.foreground", PICKER_BACKGROUND_COLOR)
