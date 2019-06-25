@@ -164,6 +164,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
           tabPanel.myTemplateDesc.setText("<html>" + selectedTemplate.getTemplateDescription() + "</html>");
           tabPanel.myDocumentationLink.setVisible(selectedTemplate.isCppTemplate());
         }
+        canGoForward.set(selectedTemplate != null);
       };
 
       tabPanel.myGallery.addListSelectionListener(activitySelectedListener);
@@ -172,13 +173,13 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
 
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
     myLoadingPanel.stopLoading();
-    canGoForward.set(Boolean.TRUE);
   }
 
   @Override
   protected void onProceeding() {
     FormFactorInfo formFactorInfo = myFormFactors.get().get(myTabsPanel.getSelectedIndex());
     TemplateRenderer selectedTemplate = formFactorInfo.tabPanel.myGallery.getSelectedElement();
+    assert selectedTemplate != null;
 
     getModel().enableCppSupport().set(selectedTemplate.isCppTemplate());
     myNewProjectModuleModel.formFactor().set(formFactorInfo.formFactor);
