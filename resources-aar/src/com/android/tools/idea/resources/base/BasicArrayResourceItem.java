@@ -93,7 +93,7 @@ public final class BasicArrayResourceItem extends BasicValueResourceItemBase imp
   }
 
   /**
-   * Creates an BasicArrayResourceItem by reading its contents of the given stream.
+   * Creates an BasicArrayResourceItem by reading its contents from the given stream.
    */
   @NotNull
   static BasicArrayResourceItem deserialize(@NotNull Base128InputStream stream,

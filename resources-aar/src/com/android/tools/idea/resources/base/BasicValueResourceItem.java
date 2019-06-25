@@ -80,7 +80,7 @@ public class BasicValueResourceItem extends BasicValueResourceItemBase {
   }
 
   /**
-   * Creates an BasicValueResourceItem by reading its contents of the given stream.
+   * Creates an BasicValueResourceItem by reading its contents from the given stream.
    */
   @NotNull
   static BasicValueResourceItem deserialize(@NotNull Base128InputStream stream,

@@ -133,7 +133,7 @@ public final class BasicStyleResourceItem extends BasicValueResourceItemBase imp
   }
 
   /**
-   * Creates an BasicStyleResourceItem by reading its contents of the given stream.
+   * Creates an BasicStyleResourceItem by reading its contents from the given stream.
    */
   @NotNull
   static BasicStyleResourceItem deserialize(@NotNull Base128InputStream stream,

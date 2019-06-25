@@ -167,7 +167,7 @@ public class BasicAttrResourceItem extends BasicValueResourceItemBase implements
   }
 
   /**
-   * Creates an BasicAttrResourceItem by reading its contents of the given stream.
+   * Creates an BasicAttrResourceItem by reading its contents from the given stream.
    */
   @NotNull
   static BasicValueResourceItemBase deserialize(@NotNull Base128InputStream stream,
