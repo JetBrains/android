@@ -57,7 +57,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.ui.JBColor;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -406,7 +405,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     AtomicBoolean isRequestCancelled = new AtomicBoolean(false);
     myCancelPendingModelLoad = isRequestCancelled;
     CompletableFuture
-      .supplyAsync(() -> NlModel.create(null, facet, xmlFile.getVirtualFile(), mySurface.getComponentRegistrar()))
+      .supplyAsync(() -> NlModel.create(null, null, facet, xmlFile.getVirtualFile(), mySurface.getComponentRegistrar()))
       .thenAcceptAsync(model -> {
         // Set the default density to XXXHDPI for adaptive icon preview
         if (model.getType() == AdaptativeIconFileType.INSTANCE) {
