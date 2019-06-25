@@ -60,6 +60,8 @@ public class AndroidSdkInitializer implements Runnable {
     ANDROID_SDK_FOLDER_NAME,
     File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME
   };
+  // Default install location from users home dir.
+  @NonNls private static final String ANDROID_SDK_DEFAULT_INSTALL_DIR = File.separator + "Android" + File.separator + "Sdk";
 
   @Override
   public void run() {
@@ -181,6 +183,7 @@ public class AndroidSdkInitializer implements Runnable {
                               () -> System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV));
     sdkLocationCandidates.put("Last SDK used by Android tools",
                               () -> getLastSdkPathUsedByAndroidTools());
+    sdkLocationCandidates.put("Default install directory", () -> SystemProperties.getUserHome() + ANDROID_SDK_DEFAULT_INSTALL_DIR);
 
     for (Map.Entry<String, Callable<String>> locationCandidate : sdkLocationCandidates.entrySet()) {
       try {
