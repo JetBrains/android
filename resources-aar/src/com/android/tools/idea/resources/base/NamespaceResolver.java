@@ -99,7 +99,7 @@ public final class NamespaceResolver implements ResourceNamespace.Resolver {
   }
 
   /**
-   * Creates a namespace resolver by reading its contents of the given stream.
+   * Creates a namespace resolver by reading its contents from the given stream.
    * @see #serialize(Base128OutputStream)
    */
   @NotNull
