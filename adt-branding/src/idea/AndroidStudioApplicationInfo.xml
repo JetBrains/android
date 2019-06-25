@@ -48,6 +48,7 @@
 
   <statistics settings="https://dl.google.com/android/studio/stats/stat-assistant.xml"
               service="https://dl.google.com/android/studio/stats/upload"
+              event-log-settings=""
               service-key="android-studio" />
 
 </component>
