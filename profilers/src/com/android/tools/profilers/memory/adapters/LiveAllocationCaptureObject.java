@@ -41,7 +41,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsReques
 import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
 import com.android.tools.profiler.proto.MemoryProfiler.ResolveNativeBacktraceRequest;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -100,7 +100,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final TLongObjectHashMap<AllocationStack.StackFrame> myMethodIdMap;
   private final TIntObjectHashMap<ThreadId> myThreadIdMap;
 
-  private final MemoryServiceBlockingStub myClient;
+  private final ProfilerClient myClient;
   private final Common.Session mySession;
   private final long myCaptureStartTime;
   private final List<HeapSet> myHeapSets;
@@ -118,7 +118,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private Future myCurrentTask;
   @Nullable private String myInfoMessage;
 
-  public LiveAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
+  public LiveAllocationCaptureObject(@NotNull ProfilerClient client,
                                      @NotNull Common.Session session,
                                      long captureStartTime,
                                      @Nullable ExecutorService loadService,
@@ -165,7 +165,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @Override
   @NotNull
   public MemoryServiceGrpc.MemoryServiceBlockingStub getClient() {
-    return myClient;
+    return myClient.getMemoryClient();
   }
 
   @NotNull
@@ -283,7 +283,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     if (myContextEndTimeNs >= endTimeNs) {
       return;
     }
-    AllocationContextsResponse contextsResponse = myClient.getAllocationContexts(AllocationContextsRequest.newBuilder()
+    AllocationContextsResponse contextsResponse = getClient().getAllocationContexts(AllocationContextsRequest.newBuilder()
                                                                                    .setSession(mySession)
                                                                                    .setStartTime(myContextEndTimeNs)
                                                                                    .setEndTime(endTimeNs + QUERY_BUFFER_NS)
@@ -343,7 +343,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         }
 
         boolean hasNonFullTrackingRegion = !MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(
-          myClient, mySession, TimeUnit.NANOSECONDS.toMicros(newStartTimeNs), TimeUnit.NANOSECONDS.toMicros(newEndTimeNs));
+          getClient(), mySession, TimeUnit.NANOSECONDS.toMicros(newStartTimeNs), TimeUnit.NANOSECONDS.toMicros(newEndTimeNs));
 
         joiner.execute(() -> myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING));
         updateAllocationContexts(newEndTimeNs);
@@ -498,7 +498,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private void queryJavaInstanceSnapshot(long snapshotTimeNs, @NotNull List<InstanceObject> snapshotList) {
     // Retrieve all the event samples from the start of the session until the snapshot time.
     long sessionStartNs = mySession.getStartTimestamp();
-    AllocationEventsResponse response = myClient.getAllocationEvents(AllocationSnapshotRequest.newBuilder()
+    AllocationEventsResponse response = getClient().getAllocationEvents(AllocationSnapshotRequest.newBuilder()
                                                                        .setSession(mySession)
                                                                        .setStartTime(sessionStartNs)
                                                                        .setEndTime(snapshotTimeNs + QUERY_BUFFER_NS)
@@ -548,7 +548,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     }
     JNIGlobalRefsEventsRequest request = JNIGlobalRefsEventsRequest.newBuilder().setSession(mySession)
       .setLiveObjectsOnly(true).setEndTime(newTimeNs).build();
-    BatchJNIGlobalRefEvent jniBatch = myClient.getJNIGlobalRefsEvents(request);
+    BatchJNIGlobalRefEvent jniBatch = getClient().getJNIGlobalRefsEvents(request);
 
     for (JNIGlobalReferenceEvent event : jniBatch.getEventsList()) {
       if (event.getEventType() != JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF) {
@@ -595,7 +595,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
       return;
     }
 
-    AllocationEventsResponse response = myClient.getAllocationEvents(AllocationSnapshotRequest.newBuilder()
+    AllocationEventsResponse response = getClient().getAllocationEvents(AllocationSnapshotRequest.newBuilder()
                                                                        .setSession(mySession)
                                                                        .setStartTime(startTimeNs - QUERY_BUFFER_NS)
                                                                        .setEndTime(endTimeNs + QUERY_BUFFER_NS)
@@ -648,7 +648,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     }
     JNIGlobalRefsEventsRequest request =
       JNIGlobalRefsEventsRequest.newBuilder().setSession(mySession).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
-    BatchJNIGlobalRefEvent jniBatch = myClient.getJNIGlobalRefsEvents(request);
+    BatchJNIGlobalRefEvent jniBatch = getClient().getJNIGlobalRefsEvents(request);
 
     for (JNIGlobalReferenceEvent event : jniBatch.getEventsList()) {
       JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue());

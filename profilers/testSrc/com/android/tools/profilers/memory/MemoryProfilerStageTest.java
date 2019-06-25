@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Memory;
@@ -35,9 +36,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
@@ -209,20 +208,20 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Bypass the load mechanism in HeapDumpCaptureObject.
     myMockLoader.setReturnImmediateFuture(true);
     // Test the no-action cases
-    myService.setExplicitHeapDumpStatus(TriggerHeapDumpResponse.Status.FAILURE_UNKNOWN);
+    myService.setExplicitHeapDumpStatus(Memory.DumpStartStatus.Status.FAILURE_UNKNOWN);
     myStage.requestHeapDump();
     assertThat(myStage.getSelectedCapture()).isNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
-    myService.setExplicitHeapDumpStatus(TriggerHeapDumpResponse.Status.IN_PROGRESS);
+    myService.setExplicitHeapDumpStatus(Memory.DumpStartStatus.Status.IN_PROGRESS);
     myStage.requestHeapDump();
     assertThat(myStage.getSelectedCapture()).isNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
-    myService.setExplicitHeapDumpStatus(TriggerHeapDumpResponse.Status.UNSPECIFIED);
+    myService.setExplicitHeapDumpStatus(Memory.DumpStartStatus.Status.UNSPECIFIED);
     myStage.requestHeapDump();
     assertThat(myStage.getSelectedCapture()).isNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
 
-    myService.setExplicitHeapDumpStatus(TriggerHeapDumpResponse.Status.SUCCESS);
+    myService.setExplicitHeapDumpStatus(Memory.DumpStartStatus.Status.SUCCESS);
     myService.setExplicitHeapDumpInfo(5, 10);
     myStage.requestHeapDump();
 
