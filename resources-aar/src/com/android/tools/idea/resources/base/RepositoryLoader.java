@@ -448,7 +448,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   protected abstract void addResourceItem(@NotNull BasicResourceItemBase item, @NotNull T repository);
 
   private void parseValueResourceFile(@NotNull PathString file, @NotNull RepositoryConfiguration configuration) {
-    ResourceSourceFile sourceFile = new ResourceSourceFile(getResRelativePath(file), configuration);
+    ResourceSourceFile sourceFile = createResourceSourceFile(file, configuration);
 
     try (InputStream stream = newBufferedStream(file)) {
       myParser.setInput(stream, null);
@@ -489,6 +489,11 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
     addValueFileResources();
   }
 
+  @NotNull
+  protected ResourceSourceFile createResourceSourceFile(@NotNull PathString file, @NotNull RepositoryConfiguration configuration) {
+    return new ResourceSourceFileImpl(getResRelativePath(file), configuration);
+  }
+
   private void addValueResourceItem(@NotNull BasicValueResourceItemBase item) {
     ResourceType resourceType = item.getType();
     // Add attr and styleable resources to intermediate maps to post-process them in the processAttrsAndStyleables
@@ -515,7 +520,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   }
 
   private void parseIdGeneratingResourceFile(@NotNull PathString file, @NotNull RepositoryConfiguration configuration) {
-    ResourceSourceFile sourceFile = new ResourceSourceFile(getResRelativePath(file), configuration);
+    ResourceSourceFile sourceFile = createResourceSourceFile(file, configuration);
 
     try (InputStream stream = newBufferedStream(file)) {
       XmlPullParser parser = new KXmlParser();

@@ -40,6 +40,7 @@ import com.android.tools.idea.resources.base.NamespaceResolver;
 import com.android.tools.idea.resources.base.RepositoryConfiguration;
 import com.android.tools.idea.resources.base.RepositoryLoader;
 import com.android.tools.idea.resources.base.ResourceSourceFile;
+import com.android.tools.idea.resources.base.ResourceSourceFileImpl;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
@@ -480,7 +481,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     n = stream.readInt();
     List<ResourceSourceFile> newSourceFiles = new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
-      ResourceSourceFile sourceFile = ResourceSourceFile.deserialize(stream, configurations);
+      ResourceSourceFile sourceFile = ResourceSourceFileImpl.deserialize(stream, configurations);
       newSourceFiles.add(sourceFile);
     }
 
@@ -572,7 +573,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     private void createResourcesForRTxtIds(@NotNull AarSourceResourceRepository repository) {
       if (!myRTxtIds.isEmpty()) {
         RepositoryConfiguration configuration = getConfiguration(repository, FolderConfiguration.createDefault());
-        ResourceSourceFile sourceFile = new ResourceSourceFile(null, configuration);
+        ResourceSourceFile sourceFile = new ResourceSourceFileImpl(null, configuration);
         for (String name : myRTxtIds) {
           addIdResourceItem(name, sourceFile);
         }

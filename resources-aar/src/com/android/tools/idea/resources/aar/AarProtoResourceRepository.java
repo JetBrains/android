@@ -51,6 +51,7 @@ import com.android.tools.idea.resources.base.BasicValueResourceItem;
 import com.android.tools.idea.resources.base.RepositoryConfiguration;
 import com.android.tools.idea.resources.base.RepositoryLoader;
 import com.android.tools.idea.resources.base.ResourceSourceFile;
+import com.android.tools.idea.resources.base.ResourceSourceFileImpl;
 import com.android.tools.idea.resources.base.ResourceUrlParser;
 import com.android.utils.SdkUtils;
 import com.google.common.base.CharMatcher;
@@ -609,7 +610,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
         configuration.normalize();
       }
 
-      sourceFile = new ResourceSourceFile(sourcePath, new RepositoryConfiguration(repository, configuration));
+      sourceFile = new ResourceSourceFileImpl(sourcePath, new RepositoryConfiguration(repository, configuration));
       mySourceFileCache.put(sourcePathKey, configMsg, sourceFile);
       return sourceFile;
     }
