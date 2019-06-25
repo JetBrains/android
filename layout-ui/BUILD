@@ -14,6 +14,9 @@ iml_module(
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
     ],
     test_srcs = ["src/test/java"],
+    test_tags = [
+        "no_test_mac",  # b/127340859
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
