@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants
+import com.android.ide.common.rendering.api.ResourceValue
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
@@ -23,6 +24,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
+import com.android.tools.idea.ui.resourcechooser.ColorResourcePicker
+import com.android.tools.idea.ui.resourcechooser.ColorResourcePickerListener
+import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
@@ -36,7 +40,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.text.StringUtil
 import icons.StudioIcons
 import java.awt.Color
 import java.awt.Component
@@ -144,7 +148,7 @@ object ColorSelectionAction: AnAction("Select Color") {
   private fun selectFromColorDialog(location: Point, property: NelePropertyItem, initialColor: Color?, restoreFocusTo: Component?) {
     val dialog = LightCalloutPopup()
 
-    val panel = ColorPickerBuilder()
+    val colorPicker = ColorPickerBuilder()
       .setOriginalColor(initialColor)
       .addSaturationBrightnessComponent()
       .addColorAdjustPanel(MaterialGraphicalColorPipetteProvider())
@@ -162,7 +166,28 @@ object ColorSelectionAction: AnAction("Select Color") {
       })
       .build()
 
-    dialog.show(panel, null, location)
+    val popupContent: JComponent
+    val configuration = property.model.surface?.configuration
+    if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && configuration != null) {
+      // Use tabbed panel instead.
+      val resourcePicker = ColorResourcePicker(configuration)
+      resourcePicker.addColorResourcePickerListener (object : ColorResourcePickerListener {
+        override fun colorResourcePicked(resourceValue: ResourceValue) {
+          // TODO: Use relative resource url instead.
+          property.value = resourceValue.resourceUrl.toString()
+        }
+      })
+      popupContent = HorizontalTabbedPanelBuilder()
+        .addTab("Resources", resourcePicker)
+        .addTab("Custom", colorPicker)
+        .setDefaultPage(1)
+        .build()
+    }
+    else {
+      popupContent = colorPicker
+    }
+
+    dialog.show(popupContent, null, location)
   }
 
   private fun locationFromEvent(event: AnActionEvent): Point {
