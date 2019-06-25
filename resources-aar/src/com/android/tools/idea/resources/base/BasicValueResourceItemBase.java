@@ -121,7 +121,7 @@ public abstract class BasicValueResourceItemBase extends BasicResourceItemBase {
   }
 
   /**
-   * Creates a resource item by reading its contents of the given stream.
+   * Creates a resource item by reading its contents from the given stream.
    */
   @NotNull
   static BasicValueResourceItemBase deserialize(@NotNull Base128InputStream stream,

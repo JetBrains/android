@@ -119,7 +119,7 @@ public final class BasicPluralsResourceItem extends BasicValueResourceItemBase i
   }
 
   /**
-   * Creates an BasicPluralsResourceItem by reading its contents of the given stream.
+   * Creates an BasicPluralsResourceItem by reading its contents from the given stream.
    */
   @NotNull
   static BasicPluralsResourceItem deserialize(@NotNull Base128InputStream stream,
