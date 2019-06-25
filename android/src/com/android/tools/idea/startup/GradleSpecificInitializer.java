@@ -114,11 +114,13 @@ public class GradleSpecificInitializer implements Runnable {
     setUpGradleViewToolbarActions();
     checkInstallPath();
 
+/* b/137334921
     ActionManager actionManager = ActionManager.getInstance();
     // "Configure Plugins..." Not sure why it's called StartupWizard.
     AnAction pluginAction = actionManager.getAction("StartupWizard");
     // Never applicable in the context of android studio, so just set to invisible.
     pluginAction.getTemplatePresentation().setVisible(false);
+b/137334921 */
 
     // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
     // In unit tests, we only want to set up SDKs which are set up explicitly by the test itself, whereas initializers
