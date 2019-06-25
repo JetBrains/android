@@ -16,15 +16,21 @@
 package com.android.tools.idea.common.editor;
 
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.hint.ImplementationViewComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
+import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileEditor.TextEditorWithPreview;
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.ArrayUtil;
 import java.util.Arrays;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
@@ -36,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
  * {@link #createEditor(Project, VirtualFile)}, and specifying their ID via {@link #getEditorTypeId()}.
  */
 public abstract class DesignerEditorProvider implements FileEditorProvider, DumbAware {
+
   /**
    * Name of the class that handles the quick definition feature in IntelliJ.
    * This class should be used by quick definition only.
@@ -55,7 +62,37 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
 
   @NotNull
   @Override
-  public abstract FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file);
+  public final FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+    DesignerEditor designEditor = createDesignEditor(project, file);
+    if (!StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      return designEditor;
+    }
+    TextEditor textEditor = (TextEditor)TextEditorProvider.getInstance().createEditor(project, file);
+    return new TextEditorWithPreview(textEditor, designEditor, "Design") {
+      @Override
+      public void selectNotify() {
+        super.selectNotify();
+        // select/deselectNotify will be called when the user selects (clicks) or opens a new editor. However, in some cases, the editor
+        // might be deselected but still visible. We first check whether we should pay attention to the select/deselect so we only do
+        // something if we are visible
+        if (ArrayUtil.contains(this, FileEditorManager.getInstance(project).getSelectedEditors())) {
+          designEditor.getComponent().activate();
+        }
+      }
+
+      @Override
+      public void deselectNotify() {
+        super.deselectNotify();
+        // If we are still visible but the user deselected us, do not deactivate the model since we still need to receive updates
+        if (!ArrayUtil.contains(this, FileEditorManager.getInstance(project).getSelectedEditors())) {
+          designEditor.getComponent().deactivate();
+        }
+      }
+    };
+  }
+
+  @NotNull
+  public abstract DesignerEditor createDesignEditor(@NotNull Project project, @NotNull VirtualFile file);
 
   @NotNull
   @Override
@@ -69,6 +106,11 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
   @NotNull
   @Override
   public FileEditorPolicy getPolicy() {
+    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      // When using the split editor, we hide the default one since the split editor already includes the text-only view.
+      return FileEditorPolicy.HIDE_DEFAULT_EDITOR;
+    }
+
     if (AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
       return FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR;
     }

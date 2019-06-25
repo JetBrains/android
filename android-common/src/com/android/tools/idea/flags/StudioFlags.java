@@ -276,6 +276,11 @@ public final class StudioFlags {
     "Use the native version of layoutlib when rendering Android resources",
     false);
 
+  public static final Flag<Boolean> NELE_SPLIT_EDITOR = Flag.create(
+    NELE, "split.layout.editor", "Enable design editors and XML side-by-side view.",
+    "Enable this flag to display the design editors side-by-side with their text representation.",
+    false);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",
