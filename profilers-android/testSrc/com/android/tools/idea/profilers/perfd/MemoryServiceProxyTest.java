@@ -15,40 +15,62 @@
  */
 package com.android.tools.idea.profilers.perfd;
 
+import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
+import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.annotations.Nullable;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profilers.memory.LegacyAllocationConverter;
 import com.android.tools.idea.profilers.LegacyAllocationTracker;
-import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.memory.FakeMemoryService;
+import com.android.tools.profilers.memory.LegacyAllocationConverter;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
-
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
 
 public class MemoryServiceProxyTest {
   private static final Common.Session SESSION1 = Common.Session.newBuilder().setSessionId(1).setPid(1).build();
@@ -77,6 +99,7 @@ public class MemoryServiceProxyTest {
   private LegacyAllocationConverter myAllocationConverter;
   private boolean myReturnNullTrackingData;
   private IDevice myDevice;
+  private Map<String, ByteString> myProxyBytesCache = new HashMap<>();
 
   @Before
   public void setUp() {
@@ -94,7 +117,8 @@ public class MemoryServiceProxyTest {
     when(myDevice.isOnline()).thenReturn(true);
 
     ManagedChannel mockChannel = InProcessChannelBuilder.forName("MemoryServiceProxyTest").build();
-    myProxy = new MemoryServiceProxy(myDevice, mockChannel, Runnable::run, (device, process) -> getTracker(device, process));
+    myProxy = new MemoryServiceProxy(myDevice, mockChannel, Runnable::run, (device, process) -> getTracker(device, process),
+                                     myProxyBytesCache);
 
     // Monitoring two processes simultaneously
     myProxy.startMonitoringApp(MemoryStartRequest.newBuilder().setSession(SESSION1).build(), mock(StreamObserver.class));
@@ -265,13 +289,7 @@ public class MemoryServiceProxyTest {
     myProxy.getLegacyAllocationEvents(eventRequest, observer1);
     verify(observer1, times(1)).onNext(expected1);
     verify(observer1, times(1)).onCompleted();
-
-    DumpDataRequest dumpRequest = DumpDataRequest.newBuilder().setSession(SESSION1).setDumpTime(time1).build();
-    DumpDataResponse expected2 = DumpDataResponse.newBuilder().setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN).build();
-    StreamObserver<DumpDataResponse> observer2 = mock(StreamObserver.class);
-    myProxy.getLegacyAllocationDump(dumpRequest, observer2);
-    verify(observer2, times(1)).onNext(expected2);
-    verify(observer2, times(1)).onCompleted();
+    assertThat(myProxyBytesCache.get(Integer.toString(time1))).isEqualTo(ByteString.EMPTY);
   }
 
   @Test

@@ -15,10 +15,15 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
@@ -27,17 +32,14 @@ import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerTestUtils;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Rule;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.*;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class LegacyAllocationCaptureObjectTest {
 
@@ -60,7 +62,8 @@ public class LegacyAllocationCaptureObjectTest {
 
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA,
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
+                                        ProfilersTestData.SESSION_DATA,
                                         testInfo,
                                         myIdeProfilerServices.getFeatureTracker());
 
@@ -129,7 +132,8 @@ public class LegacyAllocationCaptureObjectTest {
 
     AllocationsInfo testInfo1 = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA,
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
+                                        ProfilersTestData.SESSION_DATA,
                                         testInfo1,
                                         myIdeProfilerServices.getFeatureTracker());
 

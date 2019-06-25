@@ -23,18 +23,18 @@ import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.datastore.database.MemoryStatsTable;
+import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
@@ -63,7 +63,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.profiler.proto.Transport;
 import io.grpc.stub.StreamObserver;
 import java.sql.Connection;
 import java.util.Arrays;
@@ -78,14 +78,18 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   private final Map<Long, PollRunner> myRunners = new HashMap<>();
   private final Map<Long, PollRunner> myJvmtiRunners = new HashMap<>();
+  private final UnifiedEventsTable myUnifiedTable;
   private final MemoryStatsTable myStatsTable;
   private final MemoryLiveAllocationTable myAllocationsTable;
   private final Consumer<Runnable> myFetchExecutor;
   private final DataStoreService myService;
   private final LogService myLogService;
 
-  // TODO Revisit fetch mechanism
-  public MemoryService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor, @NotNull LogService logService) {
+  public MemoryService(@NotNull DataStoreService dataStoreService,
+                       UnifiedEventsTable unifiedTable,
+                       Consumer<Runnable> fetchExecutor,
+                       @NotNull LogService logService) {
+    myUnifiedTable = unifiedTable;
     myLogService = logService;
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
@@ -147,37 +151,12 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       response = client.triggerHeapDump(request);
       // Saves off the HeapDumpInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
       // and results in a NOT_FOUND status when the profiler tries to pull the dump's data in quick successions.
-      if (response.getStatus() == TriggerHeapDumpResponse.Status.SUCCESS) {
+      if (response.getStatus().getStatus() == Memory.DumpStartStatus.Status.SUCCESS) {
         assert response.getInfo() != null;
         myStatsTable.insertOrReplaceHeapInfo(request.getSession(), response.getInfo());
       }
     }
     responseObserver.onNext(response);
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getHeapDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
-    DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
-    DumpDataResponse.Status status = myStatsTable.getHeapDumpStatus(request.getSession(), request.getDumpTime());
-    switch (status) {
-      case SUCCESS:
-        byte[] data = myStatsTable.getHeapDumpData(request.getSession(), request.getDumpTime());
-        assert data != null;
-        responseBuilder.setData(ByteString.copyFrom(data));
-        responseBuilder.setStatus(status);
-        break;
-      case NOT_READY:
-      case FAILURE_UNKNOWN:
-      case NOT_FOUND:
-        responseBuilder.setStatus(status);
-        break;
-      default:
-        responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-        break;
-    }
-
-    responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
   }
 
@@ -195,8 +174,8 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void importHeapDump(ImportHeapDumpRequest request, StreamObserver<ImportHeapDumpResponse> responseObserver) {
     ImportHeapDumpResponse.Builder responseBuilder = ImportHeapDumpResponse.newBuilder();
     myStatsTable.insertOrReplaceHeapInfo(request.getSession(), request.getInfo());
-    myStatsTable
-      .insertHeapDumpData(request.getSession(), request.getInfo().getStartTime(), DumpDataResponse.Status.SUCCESS, request.getData());
+    myUnifiedTable.insertBytes(request.getSession().getStreamId(), Long.toString(request.getInfo().getStartTime()),
+                               Transport.BytesResponse.newBuilder().setContents(request.getData()).build());
     responseBuilder.setStatus(ImportHeapDumpResponse.Status.SUCCESS);
     responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
@@ -240,37 +219,6 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
                                           StreamObserver<MemoryProfiler.LegacyAllocationContextsResponse> responseObserver) {
     responseObserver.onNext(myStatsTable.getLegacyAllocationContexts(request));
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getLegacyAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
-    DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
-
-    AllocationsInfo response = myStatsTable.getAllocationsInfo(request.getSession(), request.getDumpTime());
-    if (response == null) {
-      responseBuilder.setStatus(DumpDataResponse.Status.NOT_FOUND);
-    }
-    else if (response.getStatus() == AllocationsInfo.Status.FAILURE_UNKNOWN) {
-      responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-    }
-    else {
-      if (response.getLegacy()) {
-        byte[] data = myStatsTable.getLegacyAllocationDumpData(request.getSession(), request.getDumpTime());
-        if (data == null) {
-          responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
-        }
-        else {
-          responseBuilder.setStatus(DumpDataResponse.Status.SUCCESS);
-          responseBuilder.setData(ByteString.copyFrom(data));
-        }
-      }
-      else {
-        // O+ allocation does not have legacy data.
-        responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-      }
-    }
-    responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
   }
 
@@ -323,7 +271,8 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
-  public void getAllocationEvents(AllocationSnapshotRequest request, StreamObserver<MemoryProfiler.AllocationEventsResponse> responseObserver) {
+  public void getAllocationEvents(AllocationSnapshotRequest request,
+                                  StreamObserver<MemoryProfiler.AllocationEventsResponse> responseObserver) {
     MemoryProfiler.AllocationEventsResponse response = MemoryProfiler.AllocationEventsResponse.newBuilder()
       .addAllEvents(myAllocationsTable.getAllocationEvents(request.getSession(), request.getStartTime(), request.getEndTime()))
       .build();

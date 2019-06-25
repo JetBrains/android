@@ -19,22 +19,21 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
   @Nullable private MemoryProfilerStage myStage;
 
-  public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  public AllocationInfosDataSeries(@NotNull ProfilerClient client,
                                    @NotNull Common.Session session,
                                    @NotNull FeatureTracker featureTracker,
                                    @Nullable MemoryProfilerStage stage) {
@@ -48,7 +47,7 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
       .setSession(mySession)
       .setStartTime(rangeMinNs)
       .setEndTime(rangeMaxNs);
-    MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
+    MemoryProfiler.MemoryData response = myClient.getMemoryClient().getData(dataRequestBuilder.build());
     return response.getAllocationsInfoList();
   }
 

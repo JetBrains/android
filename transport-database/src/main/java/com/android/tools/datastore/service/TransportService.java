@@ -83,10 +83,11 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   @VisibleForTesting final AtomicInteger myNextCommandId = new AtomicInteger();
 
   public TransportService(@NotNull DataStoreService service,
+                          @NotNull UnifiedEventsTable unifiedTable,
                           Consumer<Runnable> fetchExecutor) {
     myService = service;
     myFetchExecutor = fetchExecutor;
-    myTable = new UnifiedEventsTable();
+    myTable = unifiedTable;
     myLegacyTable = new DeviceProcessTable();
   }
 

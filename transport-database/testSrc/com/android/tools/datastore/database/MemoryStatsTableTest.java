@@ -43,14 +43,11 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     List<Consumer<MemoryStatsTable>> methodCalls = new ArrayList<>();
     Common.Session session = Common.Session.getDefaultInstance();
     methodCalls.add((table) -> assertThat(table.getAllocationsInfo(session, 0)).isNull());
-    methodCalls.add((table) -> assertThat(table.getHeapDumpData(session, 0)).isNull());
     methodCalls.add((table) -> assertThat(table.getHeapDumpInfoByRequest(session, ListDumpInfosRequest.getDefaultInstance())).isEmpty());
-    methodCalls.add((table) -> assertThat(table.getHeapDumpStatus(session, 0)).isEqualTo(DumpDataResponse.Status.NOT_FOUND));
     methodCalls.add(
       (table) -> assertThat(table.getLegacyAllocationContexts(LegacyAllocationContextsRequest.newBuilder().addClassIds(1).build()))
         .isEqualTo(LegacyAllocationContextsResponse.getDefaultInstance()));
     methodCalls.add((table) -> assertThat(table.getLegacyAllocationData(session, 0)).isNull());
-    methodCalls.add((table) -> assertThat(table.getLegacyAllocationDumpData(session, 0)).isNull());
     methodCalls.add((table) -> {
       ArrayList<MemoryData.AllocStatsSample> stats = new ArrayList<>();
       stats.add(MemoryData.AllocStatsSample.getDefaultInstance());
@@ -61,7 +58,6 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
       samples.add(MemoryData.GcStatsSample.getDefaultInstance());
       table.insertGcStats(session, samples);
     });
-    methodCalls.add((table) -> table.insertHeapDumpData(session, 0, DumpDataResponse.Status.FAILURE_UNKNOWN, ByteString.EMPTY));
     methodCalls.add((table) -> {
       List<AllocatedClass> classes = new ArrayList<>();
       classes.add(AllocatedClass.getDefaultInstance());
@@ -74,7 +70,6 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     });
     methodCalls.add((table) -> table.insertOrReplaceAllocationsInfo(session, AllocationsInfo.getDefaultInstance()));
     methodCalls.add((table) -> table.insertOrReplaceHeapInfo(session, HeapDumpInfo.getDefaultInstance()));
-    methodCalls.add((table) -> table.updateLegacyAllocationDump(session, 0, null));
     methodCalls.add((table) -> table.updateLegacyAllocationEvents(session, 0, LegacyAllocationEventsResponse.getDefaultInstance()));
     methodCalls.add((table) -> table.getData(MemoryRequest.getDefaultInstance()));
     return methodCalls;
@@ -165,31 +160,6 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     verifyMemoryDataResultCounts(result, 0, 0, 0, 0, 0);
   }
 
-  @Test
-  public void testHeapDumpQueriesAfterInsertion() {
-    HeapDumpInfo sample = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(0).build();
-    getTable().insertOrReplaceHeapInfo(VALID_SESSION, sample);
-
-    // Test that Status is set to NOT_READY and dump data is null
-    assertThat(getTable().getHeapDumpStatus(VALID_SESSION, sample.getStartTime())).isEqualTo(DumpDataResponse.Status.NOT_READY);
-    assertThat(getTable().getHeapDumpData(VALID_SESSION, sample.getStartTime())).isNull();
-
-    // Update the HeapInfo with status and data and test that they returned correctly
-    byte[] rawBytes = new byte[]{'a', 'b', 'c'};
-    getTable()
-      .insertHeapDumpData(VALID_SESSION, sample.getStartTime(), DumpDataResponse.Status.SUCCESS, ByteString.copyFrom(rawBytes));
-
-    assertThat(getTable().getHeapDumpStatus(VALID_SESSION, sample.getStartTime())).isEqualTo(DumpDataResponse.Status.SUCCESS);
-    assertThat(getTable().getHeapDumpData(VALID_SESSION, sample.getStartTime())).isEqualTo(rawBytes);
-
-    // Test that querying for the invalid app id returns NOT FOUND
-    assertThat(getTable().getHeapDumpStatus(INVALID_SESSION, sample.getStartTime())).isEqualTo(DumpDataResponse.Status.NOT_FOUND);
-    assertThat(getTable().getHeapDumpData(INVALID_SESSION, sample.getStartTime())).isNull();
-
-    // Test that querying for the invalid session returns NOT FOUND
-    assertThat(getTable().getHeapDumpStatus(INVALID_SESSION, sample.getStartTime())).isEqualTo(DumpDataResponse.Status.NOT_FOUND);
-    assertThat(getTable().getHeapDumpData(INVALID_SESSION, sample.getStartTime())).isNull();
-  }
 
   @Test
   public void testLegacyAllocationsQueriesAfterInsertion() {
@@ -199,7 +169,6 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     // Tests that the info has been inserted into table, but the event response + dump data are still null
     assertThat(getTable().getAllocationsInfo(VALID_SESSION, sample.getStartTime())).isEqualTo(sample);
     assertThat(getTable().getLegacyAllocationData(VALID_SESSION, sample.getStartTime())).isNull();
-    assertThat(getTable().getLegacyAllocationDumpData(VALID_SESSION, sample.getStartTime())).isNull();
 
     int stackId = 1;
     LegacyAllocationEventsResponse events = LegacyAllocationEventsResponse
@@ -209,19 +178,14 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     getTable().updateLegacyAllocationEvents(VALID_SESSION, sample.getStartTime(), events);
     assertThat(getTable().getLegacyAllocationData(VALID_SESSION, sample.getStartTime())).isEqualTo(events);
 
-    byte[] rawBytes = new byte[]{'d', 'e', 'f'};
-    getTable().updateLegacyAllocationDump(VALID_SESSION, sample.getStartTime(), rawBytes);
-    assertThat(getTable().getLegacyAllocationDumpData(VALID_SESSION, sample.getStartTime())).isEqualTo(rawBytes);
 
     // Test that querying for the invalid app id returns null
     assertThat(getTable().getAllocationsInfo(INVALID_SESSION, sample.getStartTime())).isNull();
     assertThat(getTable().getLegacyAllocationData(INVALID_SESSION, sample.getStartTime())).isNull();
-    assertThat(getTable().getLegacyAllocationDumpData(INVALID_SESSION, sample.getStartTime())).isNull();
 
     // Test that querying for the invalid session returns null
     assertThat(getTable().getAllocationsInfo(INVALID_SESSION, sample.getStartTime())).isNull();
     assertThat(getTable().getLegacyAllocationData(INVALID_SESSION, sample.getStartTime())).isNull();
-    assertThat(getTable().getLegacyAllocationDumpData(INVALID_SESSION, sample.getStartTime())).isNull();
   }
 
   @Test
