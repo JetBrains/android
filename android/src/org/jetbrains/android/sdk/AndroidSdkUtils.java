@@ -488,6 +488,7 @@ public final class AndroidSdkUtils {
       data = getFirstAndroidModuleSdkData(project);
     }
     if (data == null) {
+      LOG.warn("Fail to find project SDK data.");
       return null;
     }
 
