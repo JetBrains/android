@@ -5,6 +5,8 @@ iml_module(
     name = "intellij.android.layout-ui",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.layout-ui.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    test_coverage = True,
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
