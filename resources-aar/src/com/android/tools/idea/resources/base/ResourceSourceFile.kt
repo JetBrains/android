@@ -20,33 +20,26 @@ import java.io.IOException
 
 /**
  * Represents an XML file from which an Android resource was created.
- *
- * [relativePath] path of the file relative to the resource directory, or null if the source file of the resource is not available
- * [configuration] configuration the resource file is associated with
  */
-data class ResourceSourceFile(val relativePath: String?, val configuration: RepositoryConfiguration) {
+interface ResourceSourceFile {
+  /**
+   * The path of the file relative to the resource directory, or null if the source file
+   * of the resource is not available.
+   */
+  val relativePath: String?
+
+  /**
+   * The configuration the resource file is associated with.
+   */
+  val configuration: RepositoryConfiguration
+
+  @JvmDefault
+  val repository : LoadableResourceRepository
+    get() = configuration.repository
+
   /**
    * Serializes the ResourceSourceFile to the given stream.
    */
   @Throws(IOException::class)
-  fun serialize(stream: Base128OutputStream, configIndexes: ObjectIntHashMap<String>) {
-    stream.writeString(relativePath)
-    stream.writeInt(configIndexes[configuration.folderConfiguration.qualifierString])
-  }
-
-  val repository : LoadableResourceRepository
-    get() = configuration.repository
-
-  companion object {
-    /**
-     * Creates a ResourceSourceFile by reading its contents of the given stream.
-     */
-    @JvmStatic
-    @Throws(IOException::class)
-    fun deserialize(stream: Base128InputStream, configurations: List<RepositoryConfiguration>): ResourceSourceFile {
-      val relativePath = stream.readString()
-      val configIndex = stream.readInt()
-      return ResourceSourceFile(relativePath, configurations[configIndex])
-    }
-  }
+  fun serialize(stream: Base128OutputStream, configIndexes: ObjectIntHashMap<String>)
 }
