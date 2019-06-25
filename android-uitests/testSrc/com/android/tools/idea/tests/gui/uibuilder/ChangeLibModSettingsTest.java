@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -22,6 +23,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFix
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +39,16 @@ public class ChangeLibModSettingsTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
+
+  @Before
+  public void setUp() {
+    StudioFlags.NEW_PSD_ENABLED.override(false);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NEW_PSD_ENABLED.clearOverride();
+  }
 
   /**
    * Verify module properties can be modified.
@@ -74,7 +87,7 @@ public class ChangeLibModSettingsTest {
       .clickPath(RIGHT_BUTTON, "MyTestApp", "library_module")
       .openFromMenu(ProjectStructureDialogFixture::find, "Open Module Settings")
       .selectPropertiesTab()
-      .setCompileSdkVersion("API 24: Android 7.0 (Nougat)")
+      .setCompileSdkVersion("API 28: Android 9.0 (Pie)")
       .setIgnoreAssetsPattern("TestIgnoreAssetsPattern")
       .setIncrementalDex(false)
       .setSourceCompatibility("1.7")
@@ -84,7 +97,7 @@ public class ChangeLibModSettingsTest {
       .open("/library_module/build.gradle")
       .getCurrentFileContents();
 
-    assertThat(gradleFileContents).contains("compileSdkVersion 24");
+    assertThat(gradleFileContents).contains("compileSdkVersion 28");
     assertThat(gradleFileContents).contains("aaptOptions {\n        ignoreAssetsPattern 'TestIgnoreAssetsPattern'\n    }");
     assertThat(gradleFileContents).contains("dexOptions {\n        incremental false\n    }");
     assertThat(gradleFileContents).contains(
