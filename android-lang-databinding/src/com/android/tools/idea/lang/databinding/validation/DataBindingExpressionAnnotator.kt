@@ -58,16 +58,20 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
    */
   private fun isViewDataBindingMethod(name: String) = name == "safeUnbox"
 
-  private fun toNames(parameters: PsiDbInferredFormalParameterList): List<String> {
-    val nameList = mutableListOf<String>()
+  private fun toElements(parameters: PsiDbInferredFormalParameterList): List<PsiElement> {
+    val identifierList = mutableListOf<PsiElement>()
     var node = parameters.firstChild
     while (node != null) {
       if (node is LeafPsiElement && node.elementType == DbTokenTypes.IDENTIFIER) {
-        nameList.add(node.text)
+        identifierList.add(node)
       }
       node = node.nextSibling
     }
-    return nameList
+    return identifierList
+  }
+
+  private fun toNames(parameters: PsiDbInferredFormalParameterList): List<String> {
+    return toElements(parameters).map { it.text }
   }
 
   /**
@@ -150,7 +154,25 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     annotateError(id, UNRESOLVED_IDENTIFIER, id.text)
   }
 
+  /**
+   * Annotates duplicate parameters in lambda expression.
+   *
+   * e.g.
+   * `@{(s, s) -> s.doSomething()}`
+   */
+  override fun visitInferredFormalParameterList(parameters: PsiDbInferredFormalParameterList) {
+    super.visitInferredFormalParameterList(parameters)
+    val nodes = toElements(parameters)
+    nodes.filter {
+      nodes.count { node -> it.text == node.text } > 1
+    }.forEach {
+      annotateError(it, DUPLICATE_CALLBACK_ARGUMENT, it.text)
+    }
+  }
+
   companion object {
     const val UNRESOLVED_IDENTIFIER = "Cannot find identifier '%s'"
+
+    const val DUPLICATE_CALLBACK_ARGUMENT = "Callback parameter '%s' is not unique"
   }
 }
