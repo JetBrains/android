@@ -184,8 +184,9 @@ class TransportEventPollerTest {
                                                endTime = { 1L },
                                                callback = { event ->
                                                  assertThat(event).isEqualTo(echoEvent)
-                                                 eventLatch1.countDown()
+                                                 // Update count before countDown() which could trigger await() immediately
                                                  receivedEventsCount1++
+                                                 eventLatch1.countDown()
                                                  eventLatch1.count == 0L
                                                },
                                                executor = MoreExecutors.directExecutor())
@@ -196,8 +197,9 @@ class TransportEventPollerTest {
                                                endTime = { 1L },
                                                callback = { event ->
                                                  assertThat(event).isEqualTo(echoEvent)
-                                                 eventLatch2.countDown()
+                                                 // Update count before countDown() which could trigger await() immediately
                                                  receivedEventsCount2++
+                                                 eventLatch2.countDown()
                                                  false
                                                },
                                                executor = MoreExecutors.directExecutor())
