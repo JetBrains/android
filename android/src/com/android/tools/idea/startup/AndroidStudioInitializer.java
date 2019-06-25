@@ -86,9 +86,11 @@ public class AndroidStudioInitializer implements Runnable {
     setUpMakeActions();
     disableGroovyLanguageInjection();
 
+/* b/137332550
     if (StudioFlags.CUSTOM_JAVA_NEW_CLASS_DIALOG.get()) {
       replaceNewClassDialog();
     }
+b/137332550 */
 
     setupAnalytics();
     disableIdeaJUnitConfigurations();
