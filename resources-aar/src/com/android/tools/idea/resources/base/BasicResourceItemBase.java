@@ -188,7 +188,7 @@ public abstract class BasicResourceItemBase implements BasicResourceItem, Resour
   }
 
   /**
-   * Creates a resource item by reading its contents of the given stream.
+   * Creates a resource item by reading its contents from the given stream.
    */
   @NotNull
   public static BasicResourceItemBase deserialize(@NotNull Base128InputStream stream,

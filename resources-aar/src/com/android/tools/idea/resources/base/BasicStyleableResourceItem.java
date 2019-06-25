@@ -86,7 +86,7 @@ public final class BasicStyleableResourceItem extends BasicValueResourceItemBase
   }
 
   /**
-   * Creates an basicStyleableResourceItem by reading its contents of the given stream.
+   * Creates an basicStyleableResourceItem by reading its contents from the given stream.
    */
   @NotNull
   static BasicStyleableResourceItem deserialize(@NotNull Base128InputStream stream,
