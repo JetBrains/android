@@ -85,6 +85,7 @@ public class ModelBuilder {
   private final Class<? extends DesignSurface> mySurfaceClass;
   @NotNull private final Consumer<NlComponent> myComponentConsumer;
   private Device myDevice;
+  private String myModelDisplayName;
 
   public ModelBuilder(@NotNull AndroidFacet facet,
                       @NotNull CodeInsightTestFixture fixture,
@@ -147,6 +148,12 @@ public class ModelBuilder {
     return this;
   }
 
+  @NotNull
+  public ModelBuilder setModelDisplayName(@NotNull String displayName) {
+    myModelDisplayName = displayName;
+    return this;
+  }
+
   public SyncNlModel build() {
     // Creates a design-time version of a model
     final Project project = myFacet.getModule().getProject();
@@ -179,7 +186,7 @@ public class ModelBuilder {
 
       DesignSurface surface = createSurface(project, mySurfaceClass);
       when(surface.getComponentRegistrar()).thenReturn(myComponentConsumer);
-      SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, xmlFile.getVirtualFile());
+      SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
       when(surface.getConfiguration()).thenReturn(model.getConfiguration());
       when(surface.getSceneScalingFactor()).thenCallRealMethod();
