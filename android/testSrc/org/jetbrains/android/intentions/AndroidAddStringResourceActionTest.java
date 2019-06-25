@@ -184,6 +184,10 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
     doTest();
   }
 
+  public void testDontUseResourceIdForArgWithoutStringResAnnotation() throws IOException {
+    doTest();
+  }
+
   private void doTest() throws IOException {
     doTest(getTestName(false), "strings.xml", null, true);
   }
