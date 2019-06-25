@@ -34,6 +34,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import org.jetbrains.kotlin.asJava.LightClassUtilsKt;
+import org.jetbrains.kotlin.psi.KtClass;
 
 /**
  * @author Eugene.Kudelevsky
@@ -68,6 +70,12 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
           final PsiClass aClass = (PsiClass)element;
 
           if (aClass.isInheritor(activityClass, true)) {
+            result.add(aClass);
+          }
+        } else if (element instanceof KtClass) {
+          final PsiClass aClass = LightClassUtilsKt.toLightClass((KtClass)element);
+
+          if (aClass != null && aClass.isInheritor(activityClass, true)) {
             result.add(aClass);
           }
         }
