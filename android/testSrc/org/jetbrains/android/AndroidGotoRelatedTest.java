@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.psi.KtClass;
 
 /**
  * @author Eugene.Kudelevsky
@@ -130,7 +131,7 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     doCheckLineMarkers(expectedTargetFiles, PsiFile.class);
   }
 
-  public void testLayoutToContext() throws Exception {
+  public void testLayoutToJavaContext() throws Exception {
     createManifest();
     VirtualFile layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml");
@@ -144,6 +145,15 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     Set<VirtualFile> expectedTargetFiles = ImmutableSet.of(activityFile, fragmentFile);
     doTestGotoRelatedFile(layout, expectedTargetFiles, PsiClass.class);
     doCheckLineMarkers(expectedTargetFiles, PsiClass.class);
+  }
+
+  public void testLayoutToKotlinContext() throws Exception {
+    createManifest();
+    VirtualFile layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");
+    VirtualFile activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.kt", "src/p1/p2/MyActivity.kt");
+    Set<VirtualFile> expectedTargetFiles = ImmutableSet.of(activityFile);
+    doTestGotoRelatedFile(layout, expectedTargetFiles, KtClass.class);
+    doCheckLineMarkers(expectedTargetFiles, KtClass.class);
   }
 
   public void testNestedActivity() throws Exception {
