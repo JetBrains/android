@@ -15,7 +15,14 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.ALLOCATIONS;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.LABEL;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.NATIVE_SIZE;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.RETAINED_SIZE;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.SHALLOW_SIZE;
+
 import com.android.tools.adtui.model.Range;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
@@ -23,30 +30,31 @@ import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.perflib.heap.ext.NativeRegistryPostProcessor;
 import com.android.tools.perflib.heap.io.InMemoryBuffer;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
-import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HeapDumpCaptureObject implements CaptureObject {
 
   @NotNull
-  private final MemoryServiceBlockingStub myClient;
+  private final ProfilerClient myClient;
 
   @NotNull
   private final Common.Session mySession;
@@ -82,7 +90,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   private final MemoryProfilerStage myStage;
 
-  public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
+  public HeapDumpCaptureObject(@NotNull ProfilerClient client,
                                @NotNull Common.Session session,
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap,
@@ -166,31 +174,17 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   @Override
   public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
-    DumpDataResponse response;
-    while (true) {
-      // TODO move this to another thread and complete before we notify
-      response = myClient.getHeapDump(DumpDataRequest.newBuilder()
-                                        .setSession(mySession)
-                                        .setDumpTime(myHeapDumpInfo.getStartTime()).build());
-      if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
-        break;
-      }
-      else if (response.getStatus() == DumpDataResponse.Status.NOT_READY) {
-        try {
-          Thread.sleep(50L);
-        }
-        catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          myIsLoadingError = true;
-          return false;
-        }
-        continue;
-      }
+    Transport.BytesResponse response = myClient.getTransportClient().getBytes(Transport.BytesRequest.newBuilder()
+                                                                                .setStreamId(mySession.getStreamId())
+                                                                                .setId(Long.toString(myHeapDumpInfo.getStartTime()))
+                                                                                .build());
+
+    if (response.getContents() == ByteString.EMPTY) {
       myIsLoadingError = true;
       return false;
     }
 
-    InMemoryBuffer buffer = new InMemoryBuffer(response.getData().asReadOnlyByteBuffer());
+    InMemoryBuffer buffer = new InMemoryBuffer(response.getContents().asReadOnlyByteBuffer());
     Snapshot snapshot;
     NativeRegistryPostProcessor nativeRegistryPostProcessor = new NativeRegistryPostProcessor();
     if (myProguardMap != null) {

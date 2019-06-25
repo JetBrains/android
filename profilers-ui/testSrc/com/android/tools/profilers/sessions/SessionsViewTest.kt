@@ -631,10 +631,6 @@ class SessionsViewTest {
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(hprofItem.artifact.session).isEqualTo(session)
 
-    myMemoryService.setExplicitSnapshotBuffer(ByteArray(0))
-    myMemoryService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.SUCCESS)
-    myMemoryService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.SUCCESS)
-
     // Makes sure we're in monitor stage.
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java)
     // Selecting on the HprofSessionArtifact should open Memory profiler and select the capture.

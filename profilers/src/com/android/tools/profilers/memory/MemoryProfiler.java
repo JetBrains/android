@@ -18,10 +18,9 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
@@ -33,10 +32,11 @@ import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
-import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfiler;
@@ -303,17 +303,16 @@ public class MemoryProfiler extends StudioProfiler {
                                         MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
   }
 
-  public static void saveHeapDumpToFile(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  public static void saveHeapDumpToFile(@NotNull ProfilerClient client,
                                         @NotNull Common.Session session,
                                         @NotNull HeapDumpInfo info,
                                         @NotNull OutputStream outputStream,
                                         @NotNull FeatureTracker featureTracker) {
-
-    DumpDataResponse response = client.getHeapDump(
-      DumpDataRequest.newBuilder().setSession(session).setDumpTime(info.getStartTime()).build());
-    if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
+    Transport.BytesResponse response = client.getTransportClient()
+      .getBytes(Transport.BytesRequest.newBuilder().setStreamId(session.getStreamId()).setId(Long.toString(info.getStartTime())).build());
+    if (response.getContents() != ByteString.EMPTY) {
       try {
-        response.getData().writeTo(outputStream);
+        response.getContents().writeTo(outputStream);
         featureTracker.trackExportHeap();
       }
       catch (IOException exception) {
@@ -322,16 +321,16 @@ public class MemoryProfiler extends StudioProfiler {
     }
   }
 
-  public static void saveLegacyAllocationToFile(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  public static void saveLegacyAllocationToFile(@NotNull ProfilerClient client,
                                                 @NotNull Common.Session session,
                                                 @NotNull AllocationsInfo info,
                                                 @NotNull OutputStream outputStream,
                                                 @NotNull FeatureTracker featureTracker) {
-    DumpDataResponse response = client.getLegacyAllocationDump(
-      DumpDataRequest.newBuilder().setSession(session).setDumpTime(info.getStartTime()).build());
-    if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
+    Transport.BytesResponse response = client.getTransportClient()
+      .getBytes(Transport.BytesRequest.newBuilder().setStreamId(session.getStreamId()).setId(Long.toString(info.getStartTime())).build());
+    if (response.getContents() != ByteString.EMPTY) {
       try {
-        response.getData().writeTo(outputStream);
+        response.getContents().writeTo(outputStream);
         featureTracker.trackExportAllocation();
       }
       catch (IOException exception) {

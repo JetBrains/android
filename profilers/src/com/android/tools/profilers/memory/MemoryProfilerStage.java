@@ -163,11 +163,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     mySessionData = profilers.getSession();
     myClient = profilers.getClient().getMemoryClient();
     HeapDumpSampleDataSeries heapDumpSeries =
-      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), mySessionData,
-                                   getStudioProfilers().getIdeServices().getFeatureTracker(), this);
+      new HeapDumpSampleDataSeries(profilers.getClient(), mySessionData, getStudioProfilers().getIdeServices().getFeatureTracker(), this);
     AllocationInfosDataSeries allocationSeries =
-      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), mySessionData,
-                                    getStudioProfilers().getIdeServices().getFeatureTracker(), this);
+      new AllocationInfosDataSeries(profilers.getClient(), mySessionData, getStudioProfilers().getIdeServices().getFeatureTracker(), this);
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
@@ -428,7 +426,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public void requestHeapDump() {
     TriggerHeapDumpResponse response = myClient.triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).build());
-    switch (response.getStatus()) {
+    switch (response.getStatus().getStatus()) {
       case SUCCESS:
         myPendingCaptureStartTime = response.getInfo().getStartTime();
         break;
@@ -719,6 +717,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
             // Capture loading failed.
             // TODO: loading has somehow failed - we need to inform users about the error status.
             selectCaptureDuration(null, null);
+
+            // Triggers the aspect to inform listeners that the heap content/filter has changed (become null).
+            refreshSelectedHeap();
           }
         }
         catch (InterruptedException exception) {

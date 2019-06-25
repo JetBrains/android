@@ -17,8 +17,9 @@ package com.android.tools.profilers.memory;
 
 import static com.android.tools.profilers.memory.adapters.CaptureObject.DEFAULT_HEAP_ID;
 
-import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocatedClass;
 import com.android.tools.profiler.proto.Memory.AllocationEvent;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
@@ -32,8 +33,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
@@ -123,10 +122,8 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   private Status myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
-  private TriggerHeapDumpResponse.Status myExplicitHeapDumpStatus = null;
+  private Memory.DumpStartStatus.Status myExplicitHeapDumpStatus = null;
   private HeapDumpInfo myExplicitHeapDumpInfo = null;
-  private DumpDataResponse.Status myExplicitDumpDataStatus = null;
-  private byte[] myExplicitSnapshotBuffer = null;
   private MemoryData myMemoryData = null;
   private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
   private LegacyAllocationEventsResponse.Builder myAllocationEventsBuilder = LegacyAllocationEventsResponse.newBuilder();
@@ -134,6 +131,18 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private int myTrackAllocationCount;
   private Common.Session mySession;
   private int mySamplingRate = 1;
+  private FakeTransportService myTransportService;
+
+  public FakeMemoryService() {
+    this(null);
+  }
+
+  // TODO b/121392346 remove after legacy pipeline deprecation.
+  // The TransportService is temporarily needed for heap dump import workflow to insert the byte buffers into the byte cache.
+  // In the new pipeline, this will be handled via a separate data stream.
+  public FakeMemoryService(@Nullable FakeTransportService transportService) {
+    myTransportService = transportService;
+  }
 
   @Override
   public void startMonitoringApp(MemoryStartRequest request,
@@ -197,19 +206,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
-  public void getHeapDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
-    DumpDataResponse.Builder response = DumpDataResponse.newBuilder();
-    if (myExplicitDumpDataStatus != null) {
-      response.setStatus(myExplicitDumpDataStatus);
-    }
-    if (myExplicitSnapshotBuffer != null) {
-      response.setData(ByteString.copyFrom(myExplicitSnapshotBuffer));
-    }
-    responseObserver.onNext(response.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
   public void getLegacyAllocationEvents(LegacyAllocationEventsRequest request,
                                         StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
     responseObserver.onNext(myAllocationEventsBuilder.build());
@@ -233,14 +229,12 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void importHeapDump(ImportHeapDumpRequest request, StreamObserver<ImportHeapDumpResponse> responseObserver) {
     ImportHeapDumpResponse.Builder responseBuilder = ImportHeapDumpResponse.newBuilder();
-    myExplicitDumpDataStatus = DumpDataResponse.Status.SUCCESS;
-    myExplicitHeapDumpInfo =
-      HeapDumpInfo.newBuilder()
-        .setSuccess(true)
-        .build();
+    myExplicitHeapDumpInfo = request.getInfo();
     myHeapDumpInfoBuilder.addInfos(myExplicitHeapDumpInfo);
-    myExplicitSnapshotBuffer = request.getData().toByteArray();
     responseBuilder.setStatus(ImportHeapDumpResponse.Status.SUCCESS);
+    if (myTransportService != null) {
+      myTransportService.addFile(Long.toString(request.getInfo().getStartTime()), request.getData());
+    }
     responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
   }
@@ -250,7 +244,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
                               StreamObserver<TriggerHeapDumpResponse> responseObserver) {
     TriggerHeapDumpResponse.Builder builder = TriggerHeapDumpResponse.newBuilder();
     if (myExplicitHeapDumpStatus != null) {
-      builder.setStatus(myExplicitHeapDumpStatus);
+      builder.setStatus(Memory.DumpStartStatus.newBuilder().setStatus(myExplicitHeapDumpStatus));
     }
     if (myExplicitHeapDumpInfo != null) {
       builder.setInfo(myExplicitHeapDumpInfo);
@@ -500,8 +494,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return this;
   }
 
-
-  public FakeMemoryService setExplicitHeapDumpStatus(@Nullable TriggerHeapDumpResponse.Status status) {
+  public FakeMemoryService setExplicitHeapDumpStatus(@Nullable Memory.DumpStartStatus.Status status) {
     myExplicitHeapDumpStatus = status;
     return this;
   }
@@ -538,16 +531,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
       AllocationStack.StackFrameWrapper.newBuilder().addFrames(
         AllocationStack.StackFrame.newBuilder().setClassName(klass).setMethodName(method).setLineNumber(line).build()
       )));
-    return this;
-  }
-
-  public FakeMemoryService setExplicitSnapshotBuffer(@NotNull byte[] bytes) {
-    myExplicitSnapshotBuffer = bytes;
-    return this;
-  }
-
-  public FakeMemoryService setExplicitDumpDataStatus(DumpDataResponse.Status status) {
-    myExplicitDumpDataStatus = status;
     return this;
   }
 

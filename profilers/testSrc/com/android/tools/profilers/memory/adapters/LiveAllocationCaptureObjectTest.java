@@ -117,7 +117,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testBasicDataLoad() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient,
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -156,7 +156,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testUnstartedSelectionEventsCancelled() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient,
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             null,
@@ -235,7 +235,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testSelectionWithFilter() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient,
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -309,7 +309,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testSelectionMinChanges() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient,
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -384,7 +384,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testSelectionMaxChanges() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient,
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -449,7 +449,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testSelectionShift() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient,
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -534,7 +534,7 @@ public class LiveAllocationCaptureObjectTest {
 
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient,
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -584,7 +584,7 @@ public class LiveAllocationCaptureObjectTest {
     // Class + method names in each StackFrame are lazy-loaded. Check that the method info are fetched correctly.
     @Test
     public void testLazyLoadedCallStack() throws Exception {
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient,
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -620,7 +620,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testSelectionWithJaveMethodFilter() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient,
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -667,7 +667,7 @@ public class LiveAllocationCaptureObjectTest {
 
     @Test
     public void testLazyLoadedCallStack() throws Exception {
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient,
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -703,7 +703,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testSelectionWithJaveMethodFilter() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient,
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,

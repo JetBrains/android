@@ -19,6 +19,7 @@ import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURAB
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.database.DataStoreTable;
+import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.service.CpuService;
 import com.android.tools.datastore.service.EnergyService;
 import com.android.tools.datastore.service.EventService;
@@ -191,12 +192,15 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    myTransportService = new TransportService(this, myFetchExecutor);
+    // TODO b/73538507 shared between all services to support inserting file content into generic byte cache (e.g. importing hprof)
+    // We should be able to keep this inside TransportService after legacy pipeline removal.
+    UnifiedEventsTable unifiedTable = new UnifiedEventsTable();
+    myTransportService = new TransportService(this, unifiedTable, myFetchExecutor);
     registerService(myTransportService);
     registerService(new ProfilerService(this, myLogService));
     registerService(new EventService(this, myFetchExecutor));
     registerService(new CpuService(this, myFetchExecutor, myLogService));
-    registerService(new MemoryService(this, myFetchExecutor, myLogService));
+    registerService(new MemoryService(this, unifiedTable, myFetchExecutor, myLogService));
     registerService(new NetworkService(this, myFetchExecutor));
     registerService(new EnergyService(this, myFetchExecutor, myLogService));
   }

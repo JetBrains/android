@@ -22,7 +22,9 @@ import static org.junit.Assert.assertArrayEquals;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.perflib.heap.SnapshotBuilder;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
@@ -31,7 +33,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
@@ -153,11 +154,9 @@ public class MemoryProfilerTest {
       .addReferences(1, 2)
       .addRoot(1);
     byte[] buffer = snapshotBuilder.getByteBuffer();
-    myMemoryService.setExplicitSnapshotBuffer(buffer);
-    myMemoryService.setExplicitDumpDataStatus(com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse.Status.SUCCESS);
-
+    myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    MemoryProfiler.saveHeapDumpToFile(myStudioProfiler.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, dumpInfo, baos,
+    MemoryProfiler.saveHeapDumpToFile(myStudioProfiler.getClient(), ProfilersTestData.SESSION_DATA, dumpInfo, baos,
                                       myStudioProfiler.getIdeServices().getFeatureTracker());
     assertArrayEquals(buffer, baos.toByteArray());
   }
