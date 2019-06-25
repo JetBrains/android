@@ -15,19 +15,35 @@
  */
 package com.android.tools.idea.profilers.perfd;
 
+import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
+import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.FAILURE_UNKNOWN;
+import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS;
+
 import com.android.annotations.Nullable;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.LegacyAllocationTracker;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.ServiceProxy;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.Memory.*;
+import com.android.tools.profiler.proto.Memory.AllocatedClass;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.idea.protobuf.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TLongObjectHashMap;
@@ -37,14 +53,15 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
-
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.*;
+import org.jetbrains.annotations.NotNull;
 
 public class MemoryServiceProxy extends ServiceProxy {
 
@@ -59,6 +76,7 @@ public class MemoryServiceProxy extends ServiceProxy {
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myServiceStub;
   @NotNull private final IDevice myDevice;
   @NotNull private BiFunction<IDevice, Integer, LegacyAllocationTracker> myTrackerSupplier;
+  @NotNull private final Map<String, ByteString> myProxyBytesCache;
 
   private boolean myUseLegacyTracking;
   private final Object myUpdatingDataLock;
@@ -72,13 +90,15 @@ public class MemoryServiceProxy extends ServiceProxy {
   public MemoryServiceProxy(@NotNull IDevice device,
                             @NotNull ManagedChannel channel,
                             @NotNull Executor fetchExecutor,
-                            @NotNull BiFunction<IDevice, Integer, LegacyAllocationTracker> legacyTrackerSupplier) {
+                            @NotNull BiFunction<IDevice, Integer, LegacyAllocationTracker> legacyTrackerSupplier,
+                            Map<String, ByteString> proxyBytesCache) {
     super(MemoryServiceGrpc.getServiceDescriptor());
 
     myServiceStub = MemoryServiceGrpc.newBlockingStub(channel);
     myDevice = device;
     myFetchExecutor = fetchExecutor;
     myTrackerSupplier = legacyTrackerSupplier;
+    myProxyBytesCache = proxyBytesCache;
     myUpdatingDataLock = new Object();
 
     if (!StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get() || myDevice.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O) {
@@ -207,40 +227,12 @@ public class MemoryServiceProxy extends ServiceProxy {
     responseObserver.onCompleted();
   }
 
-  /**
-   * Note: this call is blocking if there is an existing completed AllocationsInfo sample that is in the parsing stage.
-   */
-  public void getLegacyAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
-    assert myUseLegacyTracking;
-
-    TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(request.getSession().getSessionId());
-    if (datas == null || !datas.containsKey(request.getDumpTime()) || datas.get(request.getDumpTime()).myDataParsingLatch == null) {
-      responseObserver.onNext(DumpDataResponse.newBuilder().setStatus(DumpDataResponse.Status.NOT_FOUND).build());
-    }
-    else {
-      AllocationTrackingData data = datas.get(request.getDumpTime());
-      try {
-        assert data.myDataParsingLatch != null;
-        data.myDataParsingLatch.await();
-        synchronized (myUpdatingDataLock) {
-          assert data.myDumpDataResponse != null;
-          responseObserver.onNext(data.myDumpDataResponse);
-        }
-      }
-      catch (InterruptedException e) {
-        getLogger().error("Exception while waiting for Allocation Tracking parsing results: " + e);
-      }
-    }
-
-    responseObserver.onCompleted();
-  }
-
   public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                          StreamObserver<LegacyAllocationContextsResponse> responseObserver) {
+                                          StreamObserver<MemoryProfiler.LegacyAllocationContextsResponse> responseObserver) {
     assert myUseLegacyTracking;
 
 
-    LegacyAllocationContextsResponse.Builder builder = LegacyAllocationContextsResponse.newBuilder();
+    MemoryProfiler.LegacyAllocationContextsResponse.Builder builder = MemoryProfiler.LegacyAllocationContextsResponse.newBuilder();
     if (myAllocatedClasses.containsKey(request.getSession().getSessionId())) {
       TLongObjectHashMap<AllocatedClass> klasses = myAllocatedClasses.get(request.getSession().getSessionId());
       request.getClassIdsList().forEach(id -> {
@@ -348,19 +340,18 @@ public class MemoryServiceProxy extends ServiceProxy {
       assert datas.contains(infoId);
       AllocationTrackingData trackingData = datas.get(infoId);
       LegacyAllocationEventsResponse.Builder eventResponseBuilder = LegacyAllocationEventsResponse.newBuilder();
-      DumpDataResponse.Builder dumpResponseBuilder = DumpDataResponse.newBuilder();
       try {
         if (rawBytes == null) {
           eventResponseBuilder.setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN);
-          dumpResponseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
+          // Inserts an empty entry so that TransportServiceProxy don't go further down to the device daemon to look for an entry.
+          myProxyBytesCache.put(String.valueOf(infoId), ByteString.EMPTY);
         }
         else {
           eventResponseBuilder.addAllEvents(events).setStatus(LegacyAllocationEventsResponse.Status.SUCCESS);
-          dumpResponseBuilder.setData(ByteString.copyFrom(rawBytes)).setStatus(DumpDataResponse.Status.SUCCESS);
+          myProxyBytesCache.put(String.valueOf(infoId), ByteString.copyFrom(rawBytes));
         }
 
         trackingData.myEventsResponse = eventResponseBuilder.build();
-        trackingData.myDumpDataResponse = dumpResponseBuilder.build();
 
         classes.forEach(klass -> myAllocatedClasses.get(sessionId).put(klass.getClassId(), klass));
         stacks.forEach(stack -> myAllocationStacks.get(sessionId).put(stack.getStackId(), stack));
@@ -413,10 +404,6 @@ public class MemoryServiceProxy extends ServiceProxy {
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getLegacyAllocationContexts((LegacyAllocationContextsRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(MemoryServiceGrpc.METHOD_GET_LEGACY_ALLOCATION_DUMP,
-                  ServerCalls.asyncUnaryCall((request, observer) -> {
-                    getLegacyAllocationDump((DumpDataRequest)request, (StreamObserver)observer);
-                  }));
     overrides.put(MemoryServiceGrpc.METHOD_FORCE_GARBAGE_COLLECTION,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     forceGarbageCollection((ForceGarbageCollectionRequest)request, (StreamObserver)observer);
@@ -428,7 +415,6 @@ public class MemoryServiceProxy extends ServiceProxy {
   private static class AllocationTrackingData {
     @NotNull AllocationsInfo myInfo;
     LegacyAllocationEventsResponse myEventsResponse;
-    DumpDataResponse myDumpDataResponse;
     CountDownLatch myDataParsingLatch;
   }
 }
