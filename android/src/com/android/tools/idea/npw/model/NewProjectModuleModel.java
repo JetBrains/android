@@ -118,7 +118,7 @@ public final class NewProjectModuleModel extends WizardModel {
       addModuleToProject(companionModuleModel, FormFactor.MOBILE, myProjectModel, projectTemplateValues);
 
       companionRenderModel.getAndroidSdkInfo().setValue(androidSdkInfo().getValue());
-      companionModuleModel.getRenderTemplateValues().setValue(companionRenderModel.getTemplateValues());
+      companionModuleModel.setRenderTemplateModel(companionRenderModel);
 
       companionModuleModel.handleFinished();
       companionRenderModel.handleFinished();
@@ -126,13 +126,9 @@ public final class NewProjectModuleModel extends WizardModel {
     projectTemplateValues.put(ATTR_NUM_ENABLED_FORM_FACTORS, formFactorsCount);
 
     RenderTemplateModel newRenderTemplateModel = createMainRenderModel(projectLocation);
-    myNewModuleModel.getRenderTemplateValues().setValue(newRenderTemplateModel.getTemplateValues());
+    myNewModuleModel.setRenderTemplateModel(newRenderTemplateModel);
 
-    boolean noActivitySelected = newRenderTemplateModel.getTemplateHandle() == null;
-    if (noActivitySelected) {
-      myNewModuleModel.setDefaultRenderTemplateValues(newRenderTemplateModel, project);
-    }
-    else if (newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
+    if (newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
       addRenderDefaultTemplateValues(newRenderTemplateModel);
     }
 
@@ -140,8 +136,8 @@ public final class NewProjectModuleModel extends WizardModel {
 
     myNewModuleModel.handleFinished();
     if (newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
-      if (noActivitySelected) {
-        newRenderTemplateModel.handleSkipped();
+      if (newRenderTemplateModel.getTemplateHandle() == null) {
+        newRenderTemplateModel.handleSkipped(); // "No Activity" selected
       }
       else {
         newRenderTemplateModel.handleFinished();
