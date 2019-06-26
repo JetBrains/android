@@ -75,6 +75,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -706,11 +707,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  public void forceUserRequestedRefresh() {
+  public CompletableFuture<Void> forceUserRequestedRefresh() {
+    ArrayList<CompletableFuture<Void>> refreshFutures = new ArrayList<>();
     for (SceneManager sceneManager : myModelToSceneManagers.values()) {
       LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager) sceneManager;
-      layoutlibSceneManager.requestUserInitiatedRender();
+      refreshFutures.add(layoutlibSceneManager.requestUserInitiatedRender());
     }
+
+    return CompletableFuture.allOf(refreshFutures.toArray(new CompletableFuture[refreshFutures.size()]));
   }
 
   @Override

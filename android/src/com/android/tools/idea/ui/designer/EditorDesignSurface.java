@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.designer;
 
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.idea.configurations.Configuration;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -33,7 +34,9 @@ public abstract class EditorDesignSurface extends AdtPrimaryPanel {
   abstract public Configuration getConfiguration();
 
   /**
-   * When called, this will trigger a refresh of the layout. Only call this method if the action is initiated by the user.
+   * When called, this will trigger a refresh of the layout and returns a {@link CompletableFuture} that will complete when the refresh
+   * has completed.
+   * Only call this method if the action is initiated by the user.
    */
-  abstract public void forceUserRequestedRefresh();
+  abstract public CompletableFuture<Void> forceUserRequestedRefresh();
 }
