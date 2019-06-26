@@ -130,8 +130,6 @@ abstract class ChooseGalleryItemStep(moduleModel: NewModuleModel,
     else {
       moduleModel.renderTemplateValues.setValue(renderModel.templateValues)
     }
-
-    TemplateValueInjector(moduleModel.templateValues).setProjectDefaults(project, moduleModel.applicationName.get())
   }
 
 
