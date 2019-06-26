@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android;
 
+import static com.intellij.psi.search.GlobalSearchScope.notScope;
 import static com.intellij.util.ArrayUtilRt.find;
 import static com.intellij.psi.search.GlobalSearchScope.notScope;
 import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
@@ -37,6 +38,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
@@ -139,7 +141,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
         }
       }
     }
-    fillMap(className, myModule.getModuleWithDependenciesAndLibrariesScope(true), result, false);
+    fillMap(className, projectClassesScope(), result);
     return result;
   }
 
@@ -164,7 +166,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
     Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap = null;
     Map<String, PsiClass> map = new HashMap<>();
 
-    if (fillMap(className, myModule.getModuleWithDependenciesAndLibrariesScope(true), map, true)) {
+    if (fillMap(className, dependenciesClassesScope(), map)) {
       viewClassMap = new HashMap<>(map.size());
       SmartPointerManager manager = SmartPointerManager.getInstance(myModule.getProject());
 
@@ -176,16 +178,35 @@ class TagToClassMapperImpl implements TagToClassMapper {
     return viewClassMap != null ? viewClassMap : Collections.emptyMap();
   }
 
+  @NotNull
+  private GlobalSearchScope moduleResolveScope() {
+    return myModule.getModuleWithDependenciesAndLibrariesScope(false);
+  }
+
+  @NotNull
+  private GlobalSearchScope allLibrariesScope() {
+    return ProjectScope.getLibrariesScope(myModule.getProject());
+  }
+
+  @NotNull
+  private GlobalSearchScope projectClassesScope() {
+    return moduleResolveScope().intersectWith(notScope(allLibrariesScope()));
+  }
+
+  @NotNull
+  private GlobalSearchScope dependenciesClassesScope() {
+    return moduleResolveScope().intersectWith(allLibrariesScope());
+  }
+
   private boolean fillMap(@NotNull String className,
                           @NotNull GlobalSearchScope scope,
-                          @NotNull Map<String, PsiClass> map,
-                          boolean libClassesOnly) {
+                          @NotNull Map<String, PsiClass> map) {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
     PsiClass baseClass = ApplicationManager.getApplication().runReadAction((Computable<PsiClass>)() -> {
       PsiClass aClass;
       // facade.findClass uses index to find class by name, which might throw an IndexNotReadyException in dumb mode
       try {
-        aClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(true));
+        aClass = facade.findClass(className, moduleResolveScope());
       }
       catch (IndexNotReadyException e) {
         aClass = null;
@@ -204,9 +225,6 @@ class TagToClassMapperImpl implements TagToClassMapper {
     }
     try {
       ClassInheritorsSearch.search(baseClass, scope, true).forEach(c -> {
-        if (libClassesOnly && c.getManager().isInProject(c)) {
-          return true;
-        }
         String[] tagNames = getTagNamesByClass(c, api);
         for (String tagName : tagNames) {
           map.put(tagName, c);
