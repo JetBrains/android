@@ -418,7 +418,7 @@ public class NewProjectModel extends WizardModel {
         params.putAll(newModuleModel.getTemplateValues());
 
         // Set global parameters
-        Map<String, Object> renderTemplateValues = newModuleModel.getRenderTemplateValues().getValue();
+        Map<String, Object> renderTemplateValues = newModuleModel.getRenderTemplateModel().getValue().getTemplateValues();
         renderTemplateValues.putAll(myTemplateValues);
         newModuleModel.getTemplateValues().putAll(myTemplateValues);
       }

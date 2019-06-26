@@ -44,7 +44,7 @@ import java.util.HashMap
 
 class NewModuleModel : WizardModel {
   val isLibrary: BoolProperty = BoolValueProperty()
-  val renderTemplateValues: OptionalProperty<MutableMap<String, Any>> = OptionalValueProperty()
+  val renderTemplateModel: OptionalProperty<RenderTemplateModel> = OptionalValueProperty()
   val templateValues: MutableMap<String, Any> = hashMapOf()
   val project: OptionalProperty<Project>
   val moduleParent: String?
@@ -114,13 +114,8 @@ class NewModuleModel : WizardModel {
    * This method should be called if there is no "Activity Render Template" step (For example when creating a Library, or the activity
    * creation is skipped by the user)
    */
-  fun setDefaultRenderTemplateValues(renderModel: RenderTemplateModel, project: Project?) {
-    val renderTemplateValues = mutableMapOf<String, Any>()
-    TemplateValueInjector(renderTemplateValues)
-      .setBuildVersion(renderModel.androidSdkInfo.value, project)
-      .setModuleRoots(renderModel.template.get().paths, project!!.basePath!!, moduleName.get(), packageName.get())
-
-    this.renderTemplateValues.value = renderTemplateValues
+  fun setRenderTemplateModel(renderModel: RenderTemplateModel) {
+    this.renderTemplateModel.value = renderModel
   }
 
   public override fun handleFinished() {
@@ -153,17 +148,19 @@ class NewModuleModel : WizardModel {
         return false // If here, the user opted to skip creating any module at all, or is just adding a new Activity
       }
 
-      val renderTemplateValues = renderTemplateValues.valueOrNull
-
       myTemplateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary.get()
 
       val project = project.value
 
-      if (renderTemplateValues != null) {
+      renderTemplateModel.valueOrNull?.let {
+        val injector = TemplateValueInjector(it.templateValues)
+          .setBuildVersion(it.androidSdkInfo.value, project)
+          .setModuleRoots(it.template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
+
         if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
-          TemplateValueInjector(renderTemplateValues).setLanguage(language.value)
+          injector.setLanguage(language.value)
         }
-        myTemplateValues.putAll(renderTemplateValues)
+        myTemplateValues.putAll(it.templateValues)
       }
 
       // Returns false if there was a render conflict and the user chose to cancel creating the template
