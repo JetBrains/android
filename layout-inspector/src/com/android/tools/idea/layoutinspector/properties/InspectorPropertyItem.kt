@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.resource.DesignLookup
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.parseColor
@@ -75,7 +74,11 @@ open class InspectorPropertyItem(
     javaClass == other.javaClass
 
   override val helpSupport = object : HelpSupport {
-    override fun browse() { DesignLookup.gotoLayoutAttributeDefinition(this@InspectorPropertyItem) }
+    override fun browse() {
+      val (_, location) = model.layoutInspector?.layoutInspectorModel?.resourceLookup?.findFileLocations(this@InspectorPropertyItem, 1)
+                          ?: return
+      location.navigatable.navigate(true)
+    }
   }
 
   override val colorButton = createColorButton()

@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.ResolutionStackItem
-import com.android.tools.idea.layoutinspector.resource.DesignLookup
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.ptable2.PTableGroupItem
@@ -65,7 +64,8 @@ class ResolutionElementEditor(val model: PropertyEditorModel, editor: JComponent
 
   private fun updateFromModel() {
     val property = model.property as? InspectorPropertyItem
-    val locations = property?.let { DesignLookup.findFileLocations(property) } ?: emptyList()
+    val resourceLookup = property?.model?.layoutInspector?.layoutInspectorModel?.resourceLookup
+    val locations = property?.let { resourceLookup?.findFileLocations(property) } ?: emptyList()
     val hideLink = locations.isEmpty() || (property is PTableGroupItem && !model.isExpandedTableItem)
     linkPanel.isVisible = !hideLink
     isCustomHeight = !hideLink
