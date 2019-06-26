@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import java.awt.Dimension
 import java.awt.Rectangle
+import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import javax.swing.JComponent
 
@@ -163,7 +164,7 @@ private class TestDesignSurface(project: Project, disposible: Disposable) : Desi
 
   override fun createInteractionOnDrag(draggedSceneComponent: SceneComponent, primary: SceneComponent?) = null
 
-  override fun forceUserRequestedRefresh() = Unit
+  override fun forceUserRequestedRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 
   override fun getSelectableComponents(): List<NlComponent> = emptyList()
 }
