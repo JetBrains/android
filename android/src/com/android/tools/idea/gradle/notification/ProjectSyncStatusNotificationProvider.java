@@ -80,6 +80,10 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
 
+  public ProjectSyncStatusNotificationProvider(@NotNull Project project) {
+    this(GradleProjectInfo.getInstance(project), GradleSyncState.getInstance(project));
+  }
+
   public ProjectSyncStatusNotificationProvider(@NotNull GradleProjectInfo projectInfo, @NotNull GradleSyncState syncState) {
     myProjectInfo = projectInfo;
     mySyncState = syncState;
