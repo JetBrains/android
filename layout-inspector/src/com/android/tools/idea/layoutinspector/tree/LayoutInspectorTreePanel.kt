@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorView
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
@@ -97,7 +98,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     }
     val application = ApplicationManager.getApplication()
     application.executeOnPooledThread {
-      val loader = ComponentTreeLoader(event.tree)
+      val loader = ComponentTreeLoader(event.tree, layoutInspector?.layoutInspectorModel?.resourceLookup)
       val root = loader.loadRootView()
       val bytes = client?.getPayload(event.tree.payloadId) ?: return@executeOnPooledThread
       var viewRoot: InspectorView? = null
@@ -158,10 +159,11 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
       }
   }
 
-  private class ComponentTreeLoader(private val tree: ComponentTreeEvent) {
+  private class ComponentTreeLoader(private val tree: ComponentTreeEvent, private val resourceLookup: ResourceLookup?) {
     val stringTable = StringTable(tree.stringList)
 
     fun loadRootView(): ViewNode {
+      resourceLookup?.updateConfiguration(tree.resources, stringTable)
       return loadView(tree.root, null)
     }
 
