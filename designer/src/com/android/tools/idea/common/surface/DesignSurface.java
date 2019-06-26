@@ -945,12 +945,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Return the bounds which SceneView can draw on.
+   * Return the bounds which SceneView can draw invisible components.<br>
+   * The bounds is bigger than the size of SceneView and not overlaps to other SceneViews.
+   *
+   * component in this bounds, which may be outside the SceneView.
    * @param rectangle The rectangle to receive the dimension. If this is null, a new instance will be created.
    * @see JComponent#getBounds(Rectangle)
    */
   @NotNull
-  public abstract Rectangle getRenderableBoundsOfSceneView(@NotNull SceneView sceneView, @Nullable Rectangle rectangle);
+  public abstract Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle);
 
   /**
    * Return the SceneView under the given position
