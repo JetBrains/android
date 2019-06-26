@@ -50,28 +50,18 @@ public class DatabaseUpdate {
     }
   }
 
-  /**
-   * Returns a human readable description of the changes.
-   */
   @NotNull
-  public String getDiff() {
-    if (deletedEntities.isEmpty() && newEntities.isEmpty() && modifiedEntities.isEmpty()) {
-      return "";
-    }
+  public Map<String, EntityUpdate> getModifiedEntities() {
+    return modifiedEntities;
+  }
 
-    StringBuilder diff = new StringBuilder();
-    for (String tableName : deletedEntities.keySet()) {
-      diff.append(String.format("Table %s was deleted\n", tableName));
-    }
+  @NotNull
+  public Map<String, EntityBundle> getNewEntities() {
+    return newEntities;
+  }
 
-    for (String tableName : newEntities.keySet()) {
-      diff.append(String.format("Table %s was added\n", tableName));
-    }
-
-    for (String tableName : modifiedEntities.keySet()) {
-      diff.append(modifiedEntities.get(tableName).getDiff());
-    }
-
-    return diff.toString();
+  @NotNull
+  public Map<String, EntityBundle> getDeletedEntities() {
+    return deletedEntities;
   }
 }

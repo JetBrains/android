@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.room.update;
+package com.android.tools.idea.room.generators;
 
 import com.android.tools.idea.room.bundle.DatabaseBundle;
 import com.android.tools.idea.room.bundle.EntityBundle;
@@ -28,8 +28,12 @@ public class TestUtils {
     return new DatabaseBundle(version, "", entities, null, null);
   }
 
+  public static FieldBundle createFieldBundle(String columnName, String affinity, String defaultValue) {
+    return new FieldBundle("", columnName, affinity, false, defaultValue);
+  }
+
   public static FieldBundle createFieldBundle(String columnName) {
-    return new FieldBundle("", columnName, "", false, "");
+    return createFieldBundle(columnName, "", null);
   }
 
   public static EntityBundle createEntityBundle(String tableName, List<FieldBundle> fields) {
