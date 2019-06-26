@@ -309,7 +309,21 @@ open class MergedManifestManager(module: Module) {
     @JvmStatic
     fun getSnapshot(module: Module): MergedManifestSnapshot {
       val supplier = getInstance(module).supplier
-      return supplier.now ?: if (ApplicationManager.getApplication().isReadAccessAllowed) {
+      return supplier.now ?: getFreshSnapshot(module)
+    }
+
+    /**
+     * Returns a fresh [MergedManifestSnapshot] for the given [Module], blocking the calling
+     * thread to create one if necessary.
+     */
+    @Deprecated(
+      message = "To avoid blocking the calling thread, asynchronously respond to the future returned by getMergedManifest() instead.",
+      replaceWith = ReplaceWith("MergedManifestManager.getMergedManifest(module)")
+    )
+    @JvmStatic
+    fun getFreshSnapshot(module: Module): MergedManifestSnapshot {
+      val supplier = getInstance(module).supplier
+      return if (ApplicationManager.getApplication().isReadAccessAllowed) {
         // If we're holding the global write lock, blocking on the delegate supplier's
         // computation would create a deadlock since the worker thread needs the read
         // lock to create a new snapshot. If we're holding the read lock, we can't block
