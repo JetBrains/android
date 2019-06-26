@@ -31,7 +31,6 @@ import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
-import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -204,9 +203,6 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
     if (moduleModel.isLibrary().get()) {
       moduleModel.setDefaultRenderTemplateValues(myRenderModel, project);
-
-      new TemplateValueInjector(moduleModel.getTemplateValues())
-        .setProjectDefaults(project, moduleModel.getApplicationName().get());
     }
 
     myInstallRequests.clear();

@@ -136,9 +136,6 @@ public final class NewProjectModuleModel extends WizardModel {
       addRenderDefaultTemplateValues(newRenderTemplateModel);
     }
 
-    new TemplateValueInjector(myNewModuleModel.getTemplateValues())
-      .setProjectDefaults(project, myNewModuleModel.getApplicationName().get());
-
     projectTemplateValues.put(ATTR_IS_DYNAMIC_INSTANT_APP, myDynamicInstantApp.get());
 
     myNewModuleModel.handleFinished();
@@ -197,9 +194,6 @@ public final class NewProjectModuleModel extends WizardModel {
     File moduleTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_MODULE);
     NewModuleModel companionModuleModel = new NewModuleModel(projectModel, moduleTemplateFile);
     companionModuleModel.getModuleName().set(getModuleName(FormFactor.MOBILE));
-
-    new TemplateValueInjector(companionModuleModel.getTemplateValues())
-      .setProjectDefaults(projectModel.project().getValueOrNull(), companionModuleModel.getApplicationName().get());
 
     return companionModuleModel;
   }

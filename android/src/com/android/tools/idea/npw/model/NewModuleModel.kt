@@ -132,18 +132,25 @@ class NewModuleModel : WizardModel {
   }
 
   private inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
-    internal var myTemplateValues: MutableMap<String, Any> = HashMap(this@NewModuleModel.templateValues)
+    internal val myTemplateValues: MutableMap<String, Any> = HashMap()
+
+    @WorkerThread
+    override fun init() {
+      // By the time we run handleFinished(), we must have a Project
+      if (!project.get().isPresent) {
+        log.error("NewModuleModel did not collect expected information and will not complete. Please report this error.")
+      }
+
+      TemplateValueInjector(this@NewModuleModel.templateValues)
+        .setProjectDefaults(project.value, applicationName.get())
+
+      myTemplateValues.putAll(this@NewModuleModel.templateValues)
+    }
 
     @WorkerThread
     override fun doDryRun(): Boolean {
       if (templateFile.valueOrNull == null) {
         return false // If here, the user opted to skip creating any module at all, or is just adding a new Activity
-      }
-
-      // By the time we run handleFinished(), we must have a Project
-      if (!project.get().isPresent) {
-        log.error("NewModuleModel did not collect expected information and will not complete. Please report this error.")
-        return false
       }
 
       val renderTemplateValues = renderTemplateValues.valueOrNull
