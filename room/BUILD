@@ -6,7 +6,11 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.room.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    test_runtime_deps = ["//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions"],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
+        "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
@@ -16,6 +20,8 @@ iml_module(
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/configuration-store-impl:intellij.platform.configurationStore.impl",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
     ],
     # do not sort: must match IML order
     deps = [
@@ -23,6 +29,9 @@ iml_module(
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
+        "//tools/idea/.idea/libraries:gson",
+        "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
+        "//tools/idea/.idea/libraries:Guava",
     ],
 )
 
@@ -66,5 +75,7 @@ iml_module(
         "//tools/idea:intellij.platform.jps.build_and_others[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/idea/.idea/libraries:Guava",
     ],
 )
