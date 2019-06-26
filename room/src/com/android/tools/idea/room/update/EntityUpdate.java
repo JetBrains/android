@@ -17,7 +17,9 @@ package com.android.tools.idea.room.update;
 
 import com.android.tools.idea.room.bundle.EntityBundle;
 import com.android.tools.idea.room.bundle.FieldBundle;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,8 +28,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EntityUpdate {
   private String tableName;
-  private Map<String, FieldBundle> deletedFields;
-  private Map<String, FieldBundle> newFields;
+  private List<FieldBundle> deletedFields;
+  private List<FieldBundle> newFields;
+  private List<FieldBundle> modifiedFields;
+  private List<FieldBundle> unmodifiedFields;
 
   /**
    * @param oldEntity entity description from an older version of the database
@@ -35,36 +39,49 @@ public class EntityUpdate {
    */
   public EntityUpdate(@NotNull EntityBundle oldEntity, @NotNull EntityBundle newEntity) {
     tableName = oldEntity.getTableName();
-    deletedFields = new HashMap<>(oldEntity.getFieldsByColumnName());
-    newFields = new HashMap<>();
+    deletedFields = new ArrayList<>();
+    newFields = new ArrayList<>();
+    modifiedFields = new ArrayList<>();
+    unmodifiedFields = new ArrayList<>();
 
+    Map<String, FieldBundle> oldEntityFields = new HashMap<>(oldEntity.getFieldsByColumnName());
     for (FieldBundle newField : newEntity.getFields()) {
-      if (deletedFields.containsKey(newField.getColumnName())) {
-        deletedFields.remove(newField.getColumnName());
+      if (oldEntityFields.containsKey(newField.getColumnName())) {
+        FieldBundle oldField = oldEntityFields.remove(newField.getColumnName());
+        if (!oldField.isSchemaEqual(newField)) {
+          modifiedFields.add(newField);
+        } else {
+          unmodifiedFields.add(newField);
+        }
       } else {
-        newFields.put(newField.getColumnName(), newField);
+        newFields.add(newField);
       }
     }
+    deletedFields.addAll(oldEntityFields.values());
   }
 
-  /**
-   * Returns a human readable format of the changes
-   */
   @NotNull
-  public String getDiff() {
-    if (deletedFields.isEmpty() && newFields.isEmpty()) {
-      return "";
-    }
-    StringBuilder diff = new StringBuilder(String.format("Table %s was modified:\n", tableName));
+  public List<FieldBundle> getDeletedFields() {
+    return deletedFields;
+  }
 
-    for (String columnName : deletedFields.keySet()) {
-      diff.append(String.format("\tDeleted column %s\n", columnName));
-    }
+  @NotNull
+  public List<FieldBundle> getNewFields() {
+    return newFields;
+  }
 
-    for (String columnName : newFields.keySet()) {
-      diff.append(String.format("\tAdded column %s\n", columnName));
-    }
+  @NotNull
+  public List<FieldBundle> getModifiedFields() {
+    return modifiedFields;
+  }
 
-    return diff.toString();
+  @NotNull
+  public List<FieldBundle> getUnmodifiedFields() {
+    return unmodifiedFields;
+  }
+
+  @NotNull
+  public String getTableName() {
+    return tableName;
   }
 }
