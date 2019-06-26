@@ -106,7 +106,7 @@ public class TagToClassMapperImplTest extends AndroidTestCase {
     // Use a min API level that affects short names, to make sure it's used in up-to-date checks. See ResourceHelper.isViewPackageNeeded.
     runWriteCommandAction(getProject(), () -> myFacet.getManifest().addUsesSdk().getMinSdkVersion().setValue("21"));
 
-    countingMapper.getClassMap(SdkConstants.CLASS_VIEW);
+    countingMapper.getFrameworkClassMap(SdkConstants.CLASS_VIEW);
     assertThat(countingMapper.fullRebuilds.longValue()).named("Number of full rebuilds").isEqualTo(1);
 
     PsiFile layoutFile = myFixture.addFileToProject("res/layout/my_layout.xml", "<LinearLayout><<caret></LinearLayout>");
