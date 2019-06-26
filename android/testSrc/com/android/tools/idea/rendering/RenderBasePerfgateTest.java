@@ -26,6 +26,7 @@ import static org.mockito.Mockito.mock;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.perflogger.Metric;
 import com.android.tools.perflogger.Metric.MetricSample;
 import com.google.common.util.concurrent.Futures;
@@ -73,6 +74,7 @@ public class RenderBasePerfgateTest extends AndroidTestCase {
     try {
       RenderTestUtil.afterRenderTestCase();
     } finally {
+      StudioFlags.NELE_NATIVE_LAYOUTLIB.clearOverride();
       super.tearDown();
     }
   }
@@ -105,6 +107,38 @@ public class RenderBasePerfgateTest extends AndroidTestCase {
     };
 
     computeAndRecordMetric("render_time_base", "render_memory_base", computable);
+  }
+
+  public void testNativeBaseInflate() throws Exception {
+    StudioFlags.NELE_NATIVE_LAYOUTLIB.override(true);
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    ThrowableComputable<PerfgateRenderMetric, Exception> computable = () -> {
+      RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
+      PerfgateRenderMetric metric = getInflateMetric(task);
+      task.dispose().get(5, TimeUnit.SECONDS);
+      return metric;
+    };
+
+    computeAndRecordMetric("native_inflate_time_base", "native_inflate_memory_base", computable);
+  }
+
+  public void testNativeBaseRender() throws Exception {
+    StudioFlags.NELE_NATIVE_LAYOUTLIB.override(true);
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    ThrowableComputable<PerfgateRenderMetric, Exception> computable = () -> {
+      RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
+      PerfgateRenderMetric metric = getRenderMetric(task);
+      task.dispose().get(5, TimeUnit.SECONDS);
+      return metric;
+    };
+
+    computeAndRecordMetric("native_render_time_base", "native_render_memory_base", computable);
   }
 
   private static void computeAndRecordMetric(

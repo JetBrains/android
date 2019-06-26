@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
 import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.PerfgateRenderUtil.NUMBER_OF_SAMPLES
 import com.android.tools.idea.rendering.PerfgateRenderUtil.NUMBER_OF_WARM_UP
 import com.android.tools.idea.rendering.PerfgateRenderUtil.pruneOutliers
@@ -53,6 +54,7 @@ class RenderComplexPerfgateTest : AndroidGradleTestCase() {
       RenderTestUtil.afterRenderTestCase()
     }
     finally {
+      StudioFlags.NELE_NATIVE_LAYOUTLIB.clearOverride()
       super.tearDown()
     }
   }
@@ -99,6 +101,52 @@ class RenderComplexPerfgateTest : AndroidGradleTestCase() {
     }
 
     computeAndRecordMetric("render_time_complex", "render_memory_complex", computable)
+  }
+
+  fun testNativeComplexInflate() {
+    StudioFlags.NELE_NATIVE_LAYOUTLIB.override(true)
+    loadProject(PERFGATE_COMPLEX_LAYOUT)
+
+    val module = getModule("app")
+    val facet: AndroidFacet = module.androidFacet!!
+    val xmlPath = AndroidTestBase.getTestDataPath() +
+                  "/projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml"
+    val file =  LocalFileSystem.getInstance().findFileByPath(xmlPath)!!
+    //myFixture.addFileToProject("res/layout/activity_main.xml", COMPLEX_LAYOUT).virtualFile
+    val configuration = RenderTestUtil.getConfiguration(module, file)
+    val logger = mock<RenderLogger>(RenderLogger::class.java)
+
+    val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable{
+      val task = RenderTestUtil.createRenderTask(facet, file, configuration, logger)
+      val metric = getInflateMetric(task)
+      task.dispose().get(5, TimeUnit.SECONDS)
+      metric
+    }
+
+    computeAndRecordMetric("native_inflate_time_complex", "native_inflate_memory_complex", computable)
+  }
+
+  fun testNativeComplexRender() {
+    StudioFlags.NELE_NATIVE_LAYOUTLIB.override(true)
+    loadProject(PERFGATE_COMPLEX_LAYOUT)
+
+    val module = getModule("app")
+    val facet: AndroidFacet = module.androidFacet!!
+    val xmlPath = AndroidTestBase.getTestDataPath() +
+                  "/projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml"
+    val file =  LocalFileSystem.getInstance().findFileByPath(xmlPath)!!
+    //myFixture.addFileToProject("res/layout/activity_main.xml", COMPLEX_LAYOUT).virtualFile
+    val configuration = RenderTestUtil.getConfiguration(module, file)
+    val logger = mock<RenderLogger>(RenderLogger::class.java)
+
+    val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable{
+      val task = RenderTestUtil.createRenderTask(facet, file, configuration, logger)
+      val metric = getRenderMetric(task)
+      task.dispose().get(5, TimeUnit.SECONDS)
+      metric
+    }
+
+    computeAndRecordMetric("native_render_time_complex", "native_render_memory_complex", computable)
   }
 
   private fun computeAndRecordMetric(
