@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,70 +16,45 @@
 package com.android.tools.idea.observable.ui
 
 import com.android.tools.idea.observable.core.ObjectProperty
-import com.intellij.util.ArrayUtil
-import java.awt.event.ItemEvent
 import java.awt.event.ItemEvent.SELECTED
-import java.awt.event.ItemListener
 import javax.swing.JRadioButton
 
 /**
  * An observable property that wraps a group of radio buttons and exposes the selected one by mapping it
  * to one of the given objects, for example enum values.
- */
-class SelectedRadioButtonProperty<T>
-/**
- * @param selected the value corresponding to the initially selected radio button
+ *
+ * @param selected the value corresponding to the initially selected radio button. The value has to be present in the [values] array.
  * @param values the values to map the radio buttons to
  * @param radioButtons the radio buttons
  */
-(selected: T, private val values: Array<T>, vararg radioButtons: JRadioButton) : ObjectProperty<T>(), ItemListener {
-  private val myRadioButtons: Array<out JRadioButton>
+class SelectedRadioButtonProperty<T>(private var selected: T, values: Array<T>, vararg radioButtons: JRadioButton) : ObjectProperty<T>() {
+  private val myValueToButtonMap: Map<T, JRadioButton>
 
   init {
-    val selectedIndex = getSelectedIndex(selected, values)
-
-    if (values.size != radioButtons.size) {
-      val msg = "The number of values (${values.size}) doesn't match the number of radio buttons (${radioButtons.size})"
-      throw IllegalArgumentException(msg)
+    require(values.size == radioButtons.size) {
+      "The number of values (${values.size}) doesn't match the number of radio buttons (${radioButtons.size})"
     }
-    radioButtons[selectedIndex].isSelected = true
-    myRadioButtons = radioButtons
-    for (radioButton in radioButtons) {
-      radioButton.addItemListener(this)
-    }
-  }
-
-  override fun itemStateChanged(event: ItemEvent) {
-    if (event.stateChange == SELECTED) {
-      notifyInvalidated()
-    }
-  }
-
-  /**
-   * Returns the value corresponding to the selected radio button, or an empty optional value if no radio button is selected.
-   */
-  override fun get(): T {
-    for (i in myRadioButtons.indices) {
-      if (myRadioButtons[i].isSelected) {
-        return values[i]
+    myValueToButtonMap = values.zip(radioButtons).toMap()
+    myValueToButtonMap.forEach { (value, button) ->
+      button.addItemListener { event ->
+        if (event.stateChange == SELECTED) {
+          selected = value
+          notifyInvalidated()
+        }
       }
     }
-    throw IllegalStateException("No radio button is selected")
+    setDirectly(selected)
   }
 
   /**
-   * Selectes the radio button corresponding to the given value, or unselects all radio buttons if the value is not present.
+   * Returns the value corresponding to the selected radio button.
+   */
+  override fun get() = selected
+
+  /**
+   * Selects the radio button corresponding to the given value.
    */
   override fun setDirectly(value: T) {
-    val selectedIndex = getSelectedIndex(value, values)
-    myRadioButtons[selectedIndex].isSelected = true
-  }
-
-  private fun <T> getSelectedIndex(selected: T, values: Array<T>): Int {
-    val selectedIndex = ArrayUtil.find(values, selected)
-    if (selectedIndex < 0) {
-      throw IllegalArgumentException("Invalid selected value ($selected)")
-    }
-    return selectedIndex
+    requireNotNull(myValueToButtonMap[value]) { "Invalid selected value (${value})" }.isSelected = true
   }
 }
