@@ -34,9 +34,9 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
   private final Project myProject;
   private final EditorNotifications myNotifications;
 
-  public AndroidCodeStyleNotificationProvider(Project project, final EditorNotifications notifications) {
+  public AndroidCodeStyleNotificationProvider(Project project) {
     myProject = project;
-    myNotifications = notifications;
+    myNotifications = EditorNotifications.getInstance(project);
   }
 
   @NotNull
