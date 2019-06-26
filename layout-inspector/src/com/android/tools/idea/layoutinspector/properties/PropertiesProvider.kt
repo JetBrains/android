@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.resource.DesignLookup
 import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
@@ -68,6 +67,7 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
     private val stringTable = StringTable(properties.stringList)
     private val layout = stringTable[properties.layout]
     private val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
+    private val resourceLookup = model.layoutInspector?.layoutInspectorModel?.resourceLookup
 
     fun generate(): Table<String, String, InspectorPropertyItem> {
       for (property in properties.propertyList) {
@@ -118,7 +118,7 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
         val item = table[ANDROID_URI, name]
         val map = property.resolutionStackList
           .mapNotNull { stringTable[it] }
-          .associateWith { DesignLookup.findAttributeValue(item, it) }
+          .associateWith { resourceLookup?.findAttributeValue(item, it) }
           .filter { (ref, value) -> value != null || ref == item.view.layout }
           .toMutableMap()
         val firstRef = map.keys.firstOrNull()
