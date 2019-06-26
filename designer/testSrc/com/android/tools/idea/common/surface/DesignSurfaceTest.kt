@@ -134,7 +134,7 @@ private class TestDesignSurface(project: Project, disposible: Disposable) : Desi
 
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 
-  override fun getRenderableBoundsOfSceneView(sceneView: SceneView, rectangle: Rectangle?): Rectangle {
+  override fun getRenderableBoundsForInvisibleComponents(sceneView: SceneView, rectangle: Rectangle?): Rectangle {
     val rect = rectangle ?: Rectangle()
     rect.bounds = myScrollPane.viewport.viewRect
     return rect

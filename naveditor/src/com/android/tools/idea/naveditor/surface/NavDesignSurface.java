@@ -250,7 +250,7 @@ public class NavDesignSurface extends DesignSurface {
 
   @NotNull
   @Override
-  public Rectangle getRenderableBoundsOfSceneView(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
+  public Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
     Rectangle viewRect = myScrollPane.getViewport().getViewRect();
     if (rectangle == null) {
       rectangle = new Rectangle();
