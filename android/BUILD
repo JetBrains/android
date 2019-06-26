@@ -149,6 +149,7 @@ iml_module(
     name = "intellij.android.core.tests",
     iml_files = ["intellij.android.core.tests.iml"],
     javacopts = ["-XepAllErrorsAsWarnings"],
+    lint_timeout = "long",
     test_class = "com.android.tools.idea.IdeaTestSuite",
     test_coverage = True,
     # keep sorted
