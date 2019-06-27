@@ -58,6 +58,7 @@ iml_module(
         "//tools/adt/idea/designer/testData",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/idea:platform-build-info",
+        "//tools/idea/java/jdkAnnotations",
         "//prebuilts/studio/sdk:platforms/latest",
     ] + glob(["testData/**"]),
     # do not sort: must match IML order

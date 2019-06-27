@@ -32,7 +32,8 @@ class KotlinAndroidTestSuite : IdeaTestSuiteBase() {
 
       IdeaTestSuiteBase.symlinkToIdeaHome(
         "tools/adt/idea/android-kotlin/android-extensions-idea/testData",
-        "tools/adt/idea/android-kotlin/idea-android/testData")
+        "tools/adt/idea/android-kotlin/idea-android/testData",
+        "tools/idea/java")
     }
   }
 }
