@@ -135,23 +135,7 @@ public class LayoutLibraryLoader {
 
   @NotNull
   private static String getNativeLibraryPath(@NotNull String dataPath) {
-    return dataPath +
-           getPlatformName() +
-           (SystemInfo.is64Bit ? "/lib64/" : "/lib/") +
-           getLibName();
-  }
-
-  /**
-   * Returns the name of the native library associated with Layoutlib,
-   * with the correct file extension for the current platform.
-   */
-  @NotNull
-  public static String getLibName() {
-    String fileName = System.mapLibraryName("android_runtime");
-    if (SystemInfo.isMac) {
-      fileName = fileName.replace(".jnilib", ".dylib");
-    }
-    return fileName;
+    return dataPath + getPlatformName() + (SystemInfo.is64Bit ? "/lib64/" : "/lib/");
   }
 
   @NotNull
