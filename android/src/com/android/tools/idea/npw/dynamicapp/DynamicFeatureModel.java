@@ -50,6 +50,8 @@ import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.Map;
@@ -142,36 +144,42 @@ public class DynamicFeatureModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    AndroidModuleTemplate modulePaths = createDefaultTemplateAt(myProject.getBasePath(), moduleName().get()).getPaths();
-    Map<String, Object> myTemplateValues = Maps.newHashMap();
+    new Task.Modal(myProject, message("android.compile.messages.generating.r.java.content.name"), false) {
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        AndroidModuleTemplate modulePaths = createDefaultTemplateAt(myProject.getBasePath(), moduleName().get()).getPaths();
+        Map<String, Object> myTemplateValues = Maps.newHashMap();
 
-    new TemplateValueInjector(myTemplateValues)
-      .setModuleRoots(modulePaths, myProject.getBasePath(), moduleName().get(), packageName().get())
-      .setBuildVersion(androidSdkInfo().getValue(), myProject)
-      .setBaseFeature(baseApplication().getValue());
+        new TemplateValueInjector(myTemplateValues)
+          .setModuleRoots(modulePaths, myProject.getBasePath(), moduleName().get(), packageName().get())
+          .setBuildVersion(androidSdkInfo().getValue(), myProject)
+          .setBaseFeature(baseApplication().getValue());
 
-    myTemplateValues.put(ATTR_IS_DYNAMIC_FEATURE, true);
-    myTemplateValues.put(ATTR_MODULE_SIMPLE_NAME, nameToJavaPackage(moduleName().get()));
-    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_TITLE, featureTitle().get());
-    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_ON_DEMAND, featureOnDemand().get());
-    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_FUSING, featureFusing().get());
-    myTemplateValues.put(ATTR_IS_NEW_PROJECT, true);
-    myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, false);
-    myTemplateValues.put(ATTR_DYNAMIC_IS_INSTANT_MODULE, instantModule().get());
-    // Dynamic delivery conditions
-    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY, StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get());
-    myTemplateValues
-      .put(ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME);
-    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY,
-                         myDownloadInstallKind.getValue() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS);
-    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.ON_DEMAND_ONLY);
-    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST, myDeviceFeatures);
+        myTemplateValues.put(ATTR_IS_DYNAMIC_FEATURE, true);
+        myTemplateValues.put(ATTR_MODULE_SIMPLE_NAME, nameToJavaPackage(moduleName().get()));
+        myTemplateValues.put(ATTR_DYNAMIC_FEATURE_TITLE, featureTitle().get());
+        myTemplateValues.put(ATTR_DYNAMIC_FEATURE_ON_DEMAND, featureOnDemand().get());
+        myTemplateValues.put(ATTR_DYNAMIC_FEATURE_FUSING, featureFusing().get());
+        myTemplateValues.put(ATTR_IS_NEW_PROJECT, true);
+        myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, false);
+        myTemplateValues.put(ATTR_DYNAMIC_IS_INSTANT_MODULE, instantModule().get());
+        // Dynamic delivery conditions
+        myTemplateValues.put(ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY, StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get());
+        myTemplateValues
+          .put(ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME);
+        myTemplateValues.put(ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY,
+                             myDownloadInstallKind.getValue() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS);
+        myTemplateValues
+          .put(ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.ON_DEMAND_ONLY);
+        myTemplateValues.put(ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST, myDeviceFeatures);
 
-    File moduleRoot = modulePaths.getModuleRoot();
-    assert moduleRoot != null;
-    if (doDryRun(moduleRoot, myTemplateValues)) {
-      render(moduleRoot, myTemplateValues);
-    }
+        File moduleRoot = modulePaths.getModuleRoot();
+        assert moduleRoot != null;
+        if (doDryRun(moduleRoot, myTemplateValues)) {
+          render(moduleRoot, myTemplateValues);
+        }
+      }
+    }.queue();
   }
 
   private boolean doDryRun(@NotNull File moduleRoot, @NotNull Map<String, Object> templateValues) {
