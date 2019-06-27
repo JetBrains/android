@@ -64,7 +64,7 @@ class GradleSettingsCleanUpTask extends ProjectCleanUpTask {
         VirtualFile projectRootFolder = project.getBaseDir();
         projectRootFolder.refresh(false /* synchronous */, true /* recursive */);
 
-        if (GradleProjectImportUtil.canImportProjectFrom(projectRootFolder)) {
+        if (GradleProjectImportUtil.canSetupGradleProjectFrom(projectRootFolder)) {
           rootProjectCandidate = new GradleProjectSettings();
           rootProjectCandidate.setExternalProjectPath(externalProjectPath);
           projectsSettings.add(rootProjectCandidate);
