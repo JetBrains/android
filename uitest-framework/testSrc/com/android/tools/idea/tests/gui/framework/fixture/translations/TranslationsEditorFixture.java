@@ -159,8 +159,8 @@ public final class TranslationsEditorFixture {
   @NotNull
   public List<String> locales() {
     return GuiQuery.get(() -> IntStream.range(StringResourceTableModel.FIXED_COLUMN_COUNT, myTable.getColumnCount())
-                                       .mapToObj(myTable::getColumnName)
-                                       .collect(Collectors.toList()));
+      .mapToObj(myTable::getColumnName)
+      .collect(Collectors.toList()));
   }
 
   @Nullable
