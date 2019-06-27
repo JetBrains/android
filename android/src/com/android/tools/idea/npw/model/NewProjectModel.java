@@ -16,10 +16,8 @@
 package com.android.tools.idea.npw.model;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
 import static com.android.tools.idea.npw.platform.Language.JAVA;
 import static com.android.tools.idea.npw.platform.Language.KOTLIN;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
@@ -94,6 +92,7 @@ public class NewProjectModel extends WizardModel {
   private static final String PROPERTIES_CPP_SUPPORT_KEY = "SAVED_PROJECT_CPP_SUPPORT";
   private static final String EXAMPLE_DOMAIN = "example.com";
   private static final Pattern DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]");
+  private static final Pattern MODULE_NAME_GROUP = Pattern.compile(".*:"); // Anything before ":" belongs to the module parent name
 
   private final StringProperty myApplicationName = new StringValueProperty(message("android.wizard.module.config.new.application"));
   private final StringProperty myCompanyDomain = new StringValueProperty(getInitialDomain(true));
@@ -108,7 +107,6 @@ public class NewProjectModel extends WizardModel {
   private final MultiTemplateRenderer myMultiTemplateRenderer;
   private final OptionalValueProperty<Language> myLanguage = new OptionalValueProperty<>();
   private final BoolProperty myUseOfflineRepo = new BoolValueProperty();
-  private final BoolProperty myUseAndroidx = new BoolValueProperty();
 
   private static Logger getLogger() {
     return Logger.getInstance(NewProjectModel.class);
@@ -144,7 +142,6 @@ public class NewProjectModel extends WizardModel {
     myApplicationName.addConstraint(String::trim);
 
     myEnableCppSupport.set(getInitialCppSupport());
-    myUseAndroidx.set(getInitialUseAndroidxSupport());
     myLanguage.set(calculateInitialLanguage(PropertiesComponent.getInstance()));
   }
 
@@ -202,11 +199,6 @@ public class NewProjectModel extends WizardModel {
     return false;
   }
 
-  @NotNull
-  public BoolProperty useAndroidx() {
-    return myUseAndroidx;
-  }
-
   public OptionalProperty<Project> project() {
     return myProject;
   }
@@ -250,7 +242,7 @@ public class NewProjectModel extends WizardModel {
 
     // TODO: Figure out if this legacy behaviour, of including User Name, can be removed.
     String userName = includeUserName ? System.getProperty("user.name") : null;
-    return userName == null ? EXAMPLE_DOMAIN : toPackagePart(userName) + '.' + EXAMPLE_DOMAIN;
+    return userName == null ? EXAMPLE_DOMAIN : nameToJavaPackage(userName) + '.' + EXAMPLE_DOMAIN;
   }
 
   /**
@@ -285,7 +277,7 @@ public class NewProjectModel extends WizardModel {
       initialLanguage = (selectedOldUseKotlin || isFirstUsage) ? KOTLIN : JAVA;
 
       // Save now, otherwise the user may cancel the wizard, but the property for "isFirstUsage" will be set just because it was shown.
-      props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, initialLanguage.getName());
+      props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, initialLanguage.toString());
       props.unsetValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
     }
     else  {
@@ -298,36 +290,32 @@ public class NewProjectModel extends WizardModel {
     return initialLanguage == KOTLIN || askedBefore ? Optional.of(initialLanguage) : Optional.empty();
   }
 
-  /**
-   * Returns the initial value of the androidx support property. The value is true if we allow androidx to be the default
-   * and if androidx is available.
-   */
-  @NotNull
-  private Boolean getInitialUseAndroidxSupport() {
-    return NELE_USE_ANDROIDX_DEFAULT.get() && isAndroidxAvailable();
-  }
-
   private void saveWizardState() {
     // Set the property value
     PropertiesComponent props = PropertiesComponent.getInstance();
     props.setValue(PROPERTIES_CPP_SUPPORT_KEY, myEnableCppSupport.get());
-    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, myLanguage.getValue().getName());
+    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, myLanguage.getValue().toString());
     props.setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true);
-  }
-
-  @NotNull
-  public static String toPackagePart(@NotNull String s) {
-    s = s.replace('-', '_');
-    String name = DISALLOWED_IN_DOMAIN.matcher(s).replaceAll("").toLowerCase(Locale.US);
-    if (!name.isEmpty() && AndroidUtils.isReservedKeyword(name) != null) {
-      name = StringUtil.fixVariableNameDerivedFromPropertyName(name).toLowerCase(Locale.US);
-    }
-    return name;
   }
 
   @NotNull
   public static String sanitizeApplicationName(@NotNull String s) {
     return DISALLOWED_IN_DOMAIN.matcher(s).replaceAll("");
+  }
+
+  /**
+   * Converts the name of a Module, Application or User to a valid java package name segment.
+   * Invalid characters are removed, and reserved Java language names are converted to valid values.
+   */
+  @NotNull
+  public static String nameToJavaPackage(@NotNull String name) {
+    String res = name.replace('-', '_');
+    res = MODULE_NAME_GROUP.matcher(res).replaceAll("");
+    res = DISALLOWED_IN_DOMAIN.matcher(res).replaceAll("").toLowerCase(Locale.US);
+    if (!res.isEmpty() && AndroidUtils.isReservedKeyword(res) != null) {
+      res = StringUtil.fixVariableNameDerivedFromPropertyName(res).toLowerCase(Locale.US);
+    }
+    return res;
   }
 
   @Override
@@ -425,8 +413,6 @@ public class NewProjectModel extends WizardModel {
         }
       }
 
-      myTemplateValues.put(ATTR_ANDROIDX_SUPPORT, myUseAndroidx.get());
-
       Map<String, Object> params = Maps.newHashMap(myTemplateValues);
       for (NewModuleModel newModuleModel : getNewModuleModels()) {
         params.putAll(newModuleModel.getTemplateValues());
@@ -471,14 +457,6 @@ public class NewProjectModel extends WizardModel {
         getLogger().warn("Failed to update Gradle wrapper file", e);
       }
 
-      // This is required for Android plugin in IDEA
-      if (!IdeInfo.getInstance().isAndroidStudio()) {
-        final Sdk jdk = IdeSdks.getInstance().getJdk();
-        if (jdk != null) {
-          ApplicationManager.getApplication().runWriteAction(() -> ProjectRootManager.getInstance(project().getValue()).setProjectSdk(jdk));
-        }
-      }
-
       try {
         // Java language level; should be 7 for L and above
         LanguageLevel initialLanguageLevel = null;
@@ -499,7 +477,7 @@ public class NewProjectModel extends WizardModel {
         request.javaLanguageLevel = initialLanguageLevel;
 
         // "Import project" opens the project and thus automatically triggers sync.
-        GradleProjectImporter.getInstance().importProjectNoSync(applicationName().get(), rootLocation, request);
+        GradleProjectImporter.getInstance().importProjectNoSync(request);
       }
       catch (IOException e) {
         Messages.showErrorDialog(e.getMessage(), message("android.wizard.project.create.error"));

@@ -57,7 +57,7 @@ class EnergyEventsFetcherTest(private val useUnifiedEvents: Boolean) {
 
   @Before
   fun setUp() {
-    myEvents.forEach { event -> myTransportService.addEventToEventGroup(STREAM_ID, event) }
+    myEvents.forEach { event -> myTransportService.addEventToStream(STREAM_ID, event) }
   }
 
   @Test

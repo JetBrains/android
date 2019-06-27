@@ -17,7 +17,7 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -136,7 +136,7 @@ public interface CaptureObject extends MemoryObject {
   void saveToFile(@NotNull OutputStream outputStream) throws IOException;
 
   @Nullable
-  default MemoryProfiler.StackFrameInfoResponse getStackFrameInfoResponse(long methodId) {
+  default Memory.AllocationStack.StackFrame getStackFrame(long methodId) {
     return null;
   }
 

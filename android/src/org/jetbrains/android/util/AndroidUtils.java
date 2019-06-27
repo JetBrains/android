@@ -99,6 +99,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -458,14 +459,10 @@ public class AndroidUtils {
 
   @NotNull
   public static List<AndroidFacet> getApplicationFacets(@NotNull Project project) {
-    final List<AndroidFacet> result = new ArrayList<>();
-
-    for (AndroidFacet facet : ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
-      if (facet.getConfiguration().isAppProject()) {
-        result.add(facet);
-      }
-    }
-    return result;
+    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).stream()
+      .filter(facet -> facet.getConfiguration().isAppProject())
+      .sorted(Comparator.comparing(facet -> facet.getModule().getName()))
+      .collect(Collectors.toList());
   }
 
   @NotNull

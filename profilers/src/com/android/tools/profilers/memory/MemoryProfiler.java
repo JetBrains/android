@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
@@ -259,11 +258,11 @@ public class MemoryProfiler extends StudioProfiler {
           .setStatus(LegacyAllocationEventsResponse.Status.SUCCESS)
           .addAllEvents(converter.getAllocationEvents(info.getStartTime(), info.getEndTime()))
           .build();
-        AllocationContextsResponse contexts = AllocationContextsResponse.newBuilder()
-          .addAllAllocatedClasses(converter.getClassNames())
-          .addAllAllocationStacks(converter.getAllocationStacks())
+        ImportLegacyAllocationsRequest updateRequest = request.toBuilder()
+          .setAllocations(allocations)
+          .addAllClasses(converter.getClassNames())
+          .addAllStacks(converter.getAllocationStacks())
           .build();
-        ImportLegacyAllocationsRequest updateRequest = request.toBuilder().setAllocations(allocations).setContexts(contexts).build();
         myProfilers.getClient().getMemoryClient().importLegacyAllocations(updateRequest);
       }
       catch (Exception e) {

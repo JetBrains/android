@@ -135,14 +135,14 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
       .addAllStackIds(response.getEventsList().stream().map(LegacyAllocationEvent::getStackId).collect(Collectors.toSet()))
       .addAllClassIds(response.getEventsList().stream().map(LegacyAllocationEvent::getClassId).collect(Collectors.toSet()))
       .build();
-    MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.getLegacyAllocationContexts(contextRequest);
+    MemoryProfiler.LegacyAllocationContextsResponse contextsResponse = myClient.getLegacyAllocationContexts(contextRequest);
 
     // TODO remove this map, since we have built-in functionality in ClassDb now.
     Map<Integer, ClassDb.ClassEntry> classEntryMap = new HashMap<>();
     Map<Integer, Memory.AllocationStack> callStacks = new HashMap<>();
-    contextsResponse.getAllocatedClassesList().forEach(
+    contextsResponse.getClassesList().forEach(
       className -> classEntryMap.put(className.getClassId(), myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, className.getClassName())));
-    contextsResponse.getAllocationStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
+    contextsResponse.getStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
 
     // TODO make sure class IDs fall into a global pool
     for (LegacyAllocationEvent event : response.getEventsList()) {

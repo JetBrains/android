@@ -105,10 +105,10 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(testInstrumentationRunner.resolved.asTestValue(), nullValue())
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), nullValue())
 
-      // TODO(b/111630584): assertThat(testFunctionalTest.resolved.asTestValue(), equalTo(false))
+      assertThat(testFunctionalTest.resolved.asTestValue(), equalTo(false))
       assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(false))
 
-      // TODO(b/111630584): assertThat(testHandleProfiling.resolved.asTestValue(), nullValue())
+      assertThat(testHandleProfiling.resolved.asTestValue(), nullValue())
       assertThat(testHandleProfiling.parsedValue.asTestValue(), nullValue())
 
       assertThat(versionCode.resolved.asTestValue(), equalTo(1))
@@ -247,8 +247,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
         assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(targetSdkVersion.resolved.asTestValue()))
         assertThat(testApplicationId.parsedValue.asTestValue(), equalTo(testApplicationId.resolved.asTestValue()))
         assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo(testInstrumentationRunner.resolved.asTestValue()))
-        // TODO(b/111630584): assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(testFunctionalTest.resolved.asTestValue()))
-        // TODO(b/111630584): assertThat(testHandleProfiling.parsedValue.asTestValue(), equalTo(testHandleProfiling.resolved.asTestValue()))
+        assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(testFunctionalTest.resolved.asTestValue()))
+        assertThat(testHandleProfiling.parsedValue.asTestValue(), equalTo(testHandleProfiling.resolved.asTestValue()))
         // TODO(b/79531524): find out why it fails.
         // assertThat(versionCode.parsedValue.asTestValue(), equalTo(versionCode.resolved.asTestValue()))
         assertThat(versionName.parsedValue.asTestValue(), equalTo(versionName.resolved.asTestValue()))

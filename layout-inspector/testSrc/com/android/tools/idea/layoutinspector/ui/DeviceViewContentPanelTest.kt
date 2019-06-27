@@ -35,7 +35,6 @@ import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
-import javax.imageio.ImageIO
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -125,7 +124,7 @@ class DeviceViewContentPanelTest {
     childImageGraphics.color = Color.RED
     childImageGraphics.fillOval(0, 0, 50, 100)
 
-    model.root.children[VIEW1]!!.imageBottom = childImage
+    model.root.children[0].imageBottom = childImage
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)

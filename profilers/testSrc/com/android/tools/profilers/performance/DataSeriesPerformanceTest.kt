@@ -33,8 +33,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.CpuUsage
-import com.android.tools.profilers.cpu.CpuUsageDataSeries
+import com.android.tools.profilers.cpu.LegacyCpuUsageDataSeries
 import com.android.tools.profilers.cpu.LegacyCpuThreadCountDataSeries
 import com.android.tools.profilers.cpu.LegacyCpuThreadStateDataSeries
 import com.android.tools.profilers.energy.EnergyDuration
@@ -44,7 +43,7 @@ import com.android.tools.profilers.energy.LegacyMergedEnergyEventsDataSeries
 import com.android.tools.profilers.event.LifecycleEventDataSeries
 import com.android.tools.profilers.event.UserEventDataSeries
 import com.android.tools.profilers.memory.AllocStatsDataSeries
-import com.android.tools.profilers.memory.GcStatsDataSeries
+import com.android.tools.profilers.memory.LegacyGcStatsDataSeries
 import com.android.tools.profilers.memory.MemoryDataSeries
 import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
@@ -111,7 +110,7 @@ class DataSeriesPerformanceTest {
                                         LegacyEnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
                                         EnergyDuration.Kind.JOB)),
                                  Pair("Cpu-Usage",
-                                      CpuUsageDataSeries(client.cpuClient, session) { dataList -> CpuUsage.extractData(dataList, false) }),
+                                      LegacyCpuUsageDataSeries(client.cpuClient, session, false)),
                                  Pair("Cpu-Thread-Count",
                                       LegacyCpuThreadCountDataSeries(client.cpuClient, session)),
                                  Pair("Cpu-Thread-State",
@@ -119,7 +118,8 @@ class DataSeriesPerformanceTest {
                                  Pair("Network-Open-Connections", NetworkOpenConnectionsDataSeries(client.networkClient, session)),
                                  Pair("Network-Traffic", NetworkTrafficDataSeries(client.networkClient, session,
                                                                                   NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
-                                 Pair("Memory-GC-Stats", GcStatsDataSeries(client.memoryClient, session)),
+                                 Pair("Memory-GC-Stats",
+                                      LegacyGcStatsDataSeries(client.memoryClient, session)),
                                  Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session) { sample -> sample.timestamp }),
                                  Pair("Memory-Allocation",
                                       AllocStatsDataSeries(studioProfilers, client.memoryClient) { sample -> sample.timestamp }),

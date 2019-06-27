@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
@@ -45,6 +46,8 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -231,22 +234,50 @@ public class CpuProfiler extends StudioProfiler {
   @NotNull
   public static List<CpuTraceInfo> getTraceInfoFromRange(@NotNull ProfilerClient client,
                                                          @NotNull Common.Session session,
-                                                         @NotNull Range rangeUs) {
+                                                         @NotNull Range rangeUs,
+                                                         boolean newPipeline) {
     // Converts the range to nanoseconds before calling the service.
     long rangeMinNs = rangeUs.getMin() == Long.MIN_VALUE ? Long.MIN_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
     long rangeMaxNs = rangeUs.getMax() == Long.MAX_VALUE ? Long.MAX_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
 
-    GetTraceInfoResponse response = client.getCpuClient().getTraceInfo(GetTraceInfoRequest.newBuilder().
-      setSession(session).
-      setFromTimestamp(rangeMinNs).setToTimestamp(rangeMaxNs).build());
-    return response.getTraceInfoList().stream().collect(Collectors.toList());
+    List<CpuTraceInfo> traceInfoList = new ArrayList<>();
+    if (newPipeline) {
+      Transport.GetEventGroupsResponse response = client.getTransportClient().getEventGroups(
+        Transport.GetEventGroupsRequest.newBuilder()
+          .setStreamId(session.getStreamId())
+          .setPid(session.getPid())
+          .setKind(Common.Event.Kind.CPU_TRACE)
+          .setFromTimestamp(rangeMinNs)
+          .setToTimestamp(rangeMaxNs)
+          .build());
+      traceInfoList = response.getGroupsList().stream()
+        .map(group -> {
+          // We only care about the CpuTraceInfo stored in the very last event in the group.
+          Common.Event event = group.getEvents(group.getEventsCount() - 1);
+          Cpu.CpuTraceData traceData = event.getCpuTrace();
+          return traceData.hasTraceStarted() ? traceData.getTraceStarted().getTraceInfo() : traceData.getTraceEnded().getTraceInfo();
+        })
+        .sorted(Comparator.comparingLong(CpuTraceInfo::getFromTimestamp))
+        .collect(Collectors.toList());
+    }
+    else {
+      GetTraceInfoResponse response = client.getCpuClient().getTraceInfo(GetTraceInfoRequest.newBuilder()
+                                                                           .setSession(session)
+                                                                           .setFromTimestamp(rangeMinNs)
+                                                                           .setToTimestamp(rangeMaxNs)
+                                                                           .build());
+      traceInfoList.addAll(response.getTraceInfoList().stream().collect(Collectors.toList()));
+    }
+    return traceInfoList;
   }
 
   /**
    * Returns the list of all {@link CpuTraceInfo} for a given session.
    */
   @NotNull
-  public static List<CpuTraceInfo> getTraceInfoFromSession(@NotNull ProfilerClient client, @NotNull Common.Session session) {
-    return getTraceInfoFromRange(client, session, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+  public static List<CpuTraceInfo> getTraceInfoFromSession(@NotNull ProfilerClient client,
+                                                           @NotNull Common.Session session,
+                                                           boolean newPipeline) {
+    return getTraceInfoFromRange(client, session, new Range(Long.MIN_VALUE, Long.MAX_VALUE), newPipeline);
   }
 }

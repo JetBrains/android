@@ -16,6 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
@@ -70,6 +71,11 @@ class AndroidGradleProjectRule : NamedExternalResource() {
 
   fun requestSyncAndWait() {
     delegateTestCase.requestSyncAndWait()
+  }
+
+  fun requestSyncAndWait(request: GradleSyncInvoker.Request) {
+    val syncListener = delegateTestCase.requestSync(request)
+    AndroidGradleTests.checkSyncStatus(syncListener)
   }
 
   /**

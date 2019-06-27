@@ -87,6 +87,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -140,6 +141,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
   @NotNull private final IdeDependenciesFactory myDependenciesFactory;
+  @NotNull private final ModalityState myModality;
 
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
@@ -164,6 +166,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
     myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
     myDependenciesFactory = dependenciesFactory;
+    myModality = ModalityState.defaultModalityState();
   }
 
   @Override
@@ -251,7 +254,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // Since this is running in the Gradle connection thread we need to pass back to the UI thread to call the listeners as they may
     // require reading or writing and we want to provide the same context as the other listeners.
     // If we start these from the connection thread deadlocks can occur.
-    ApplicationManager.getApplication().invokeLater(() -> {
+    Runnable runnable = () -> {
       // Since this is run on the UI thread we need to check whether the project has been disposed.
       if (!project.isDisposed()) {
         GradleSyncState.getInstance(project).sourceGenerationFinished();
@@ -263,7 +266,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
         syncListener.sourceGenerationFinished(project);
       }
-    });
+    };
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      runnable.run();
+    }
+    else {
+      ApplicationManager.getApplication().invokeAndWait(runnable, myModality);
+    }
   }
 
   @Override
@@ -292,6 +301,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     String moduleName = gradleModule.getName();
 
     VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
+
+    // This model is used to work out whether Kapt is enabled.
+    KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
 
     if (androidProject != null) {
       Variant selectedVariant = myVariantSelector.findVariantToSelect(androidProject);
@@ -364,7 +376,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       gradlePluginList.addAll(gradlePluginModel.getGradlePluginList());
     }
     GradleModuleModel gradleModuleModel =
-      new GradleModuleModel(moduleName, gradleProject, gradlePluginList, buildFilePath, gradleVersion, agpVersion);
+      new GradleModuleModel(moduleName, gradleProject, gradlePluginList, buildFilePath, gradleVersion, agpVersion, kaptGradleModel);
     ideModule.createChild(GRADLE_MODULE_MODEL, gradleModuleModel);
 
     if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
@@ -537,8 +549,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull
   @Override
   public ProjectImportExtraModelProvider getExtraModelProvider() {
-    // TODO: Change to configureAndGetExtraModelProvider() to ensure SVS in old sync.
-    return super.getExtraModelProvider();
+    return configureAndGetExtraModelProvider();
   }
 
   @Override

@@ -81,19 +81,19 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
 
     val parser = HProfEventBasedParser(hprofFileChannel)
     try {
-      progress.text2 = "Create class definition map"
+      progress.text2 = "Collect heap metadata"
       progress.fraction = 0.0
 
       val hprofMetadata = HProfMetadata.create(parser)
 
-      progress.text2 = "Create class histogram"
+      progress.text2 = "Create histogram"
       progress.fraction = 0.1
 
       val histogram = Histogram.create(parser, hprofMetadata.classStore)
 
       val nominatedClasses = ClassNomination(histogram, 5).nominateClasses()
 
-      progress.text2 = "Create id mapping file"
+      progress.text2 = "Remap object IDs"
       progress.fraction = 0.2
 
       // Currently, there is a maximum count of supported instances. Produce simplified report
@@ -112,7 +112,7 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       parser.setIdRemappingFunction(remapIDsVisitor.getRemappingFunction())
       hprofMetadata.remapIds(remapIDsVisitor.getRemappingFunction())
 
-      progress.text2 = "Create object graph files"
+      progress.text2 = "Create reference graph"
       progress.fraction = 0.3
 
       val navigator = ObjectNavigator.createOnAuxiliaryFiles(

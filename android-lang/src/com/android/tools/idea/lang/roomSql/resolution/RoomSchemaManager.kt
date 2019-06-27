@@ -16,12 +16,17 @@
 package com.android.tools.idea.lang.roomSql.resolution
 
 import com.android.support.AndroidxName
+import com.android.tools.idea.kotlin.findAnnotation
+import com.android.tools.idea.kotlin.findArgumentExpression
+import com.android.tools.idea.kotlin.tryEvaluateConstant
 import com.android.tools.idea.lang.roomSql.RoomAnnotations
-import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
-import com.intellij.openapi.components.ServiceManager
+import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getScopeType
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.ModuleUtil
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiArrayInitializerMemberValue
@@ -35,20 +40,31 @@ import com.intellij.psi.PsiModifierList
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.impl.ResolveScopeManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch.searchPsiClasses
+import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiUtil
+import org.jetbrains.kotlin.asJava.elements.KtLightField
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtExpression
 
 private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
 
 /** Utility for constructing a [RoomSchema] using IDE indices. */
-class RoomSchemaManager(val project: Project) {
+class RoomSchemaManager(val module: Module, private val cachedValuesManager: CachedValuesManager) {
   companion object {
-    fun getInstance(project: Project): RoomSchemaManager? = ServiceManager.getService(project, RoomSchemaManager::class.java)
+    fun getInstance(module: Module): RoomSchemaManager = ModuleServiceManager.getService(module, RoomSchemaManager::class.java)!!
+  }
+
+  private val schemas = ScopeType.values().associate { it to createCachedValue(it) }
+
+  private fun createCachedValue(scope: ScopeType): CachedValue<RoomSchema> {
+    return cachedValuesManager.createCachedValue {
+      CachedValueProvider.Result(buildSchema(module, scope), PsiModificationTracker.MODIFICATION_COUNT)
+    }
   }
 
   /**
@@ -59,25 +75,25 @@ class RoomSchemaManager(val project: Project) {
    * @see PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT
    */
   fun getSchema(psiFile: PsiFile): RoomSchema? {
-    // Make sure the dependencies are right. This will be used in a follow-up change.
-    val module = ModuleUtil.findModuleForFile(psiFile.originalFile) ?: return null
-    val scopes = TestArtifactSearchScopes.getInstance(module)
+    val vFile = psiFile.originalFile.virtualFile ?: return null
+    if (!module.moduleContentScope.contains(vFile)) return null
 
-    return CachedValuesManager.getManager(project).getCachedValue(psiFile) {
-      CachedValueProvider.Result(buildSchema(psiFile), PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT)
-    }
+    val scopeType = module.getModuleSystem().getScopeType(vFile, module.project)
+    return schemas[scopeType]!!.value
   }
 
-  private val constantEvaluationHelper = JavaPsiFacade.getInstance(project).constantEvaluationHelper
-  private val pointerManager = SmartPointerManager.getInstance(project)
+  private val constantEvaluationHelper = JavaPsiFacade.getInstance(module.project).constantEvaluationHelper
+  private val pointerManager = SmartPointerManager.getInstance(module.project)
 
   /** Builds the schema using IJ indexes. */
-  private fun buildSchema(psiFile: PsiFile): RoomSchema? {
-    LOG.debug("Recalculating Room schema for file ", psiFile)
-    val scope = ResolveScopeManager.getInstance(project).getResolveScope(psiFile)
-    val psiFacade = JavaPsiFacade.getInstance(project) ?: return null
+  private fun buildSchema(module: Module, scopeType: ScopeType): RoomSchema? {
+    val scope = module.getModuleSystem().getResolveScope(scopeType)
 
-    if (!isRoomPresent(psiFacade, scope)) return null
+    if (!isRoomPresentInScope(scope)) return null
+
+    LOG.debug { "Recalculating Room schema for module ${module.name} for scope ${scopeType}" }
+
+    val psiFacade = JavaPsiFacade.getInstance(module.project) ?: return null
 
     // Some of this logic is repeated in [RoomReferenceSearchExecutor], make sure to keep them in sync.
     val entities = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.ENTITY) { createTable(it, RoomTable.Type.ENTITY) }
@@ -88,20 +104,11 @@ class RoomSchemaManager(val project: Project) {
     return RoomSchema(databases, entities + views, daos)
   }
 
-  private fun isRoomPresent(psiFacade: JavaPsiFacade, scope: GlobalSearchScope): Boolean {
-    RoomAnnotations.ENTITY.bothNames { name ->
-      if (psiFacade.findClass(name, scope) != null) {
-        return true
-      }
-    }
-    return false
-  }
-
   /**
    * Finds classes annotated with the given annotation (both old and new names) and processes them using the supplied [processor] function,
    * gathering non-null results.
    */
-  private fun <T: Any> processAnnotatedClasses(
+  private fun <T : Any> processAnnotatedClasses(
     psiFacade: JavaPsiFacade,
     scope: GlobalSearchScope,
     annotation: AndroidxName,
@@ -204,9 +211,9 @@ class RoomSchemaManager(val project: Project) {
     currentPrefix: String
   ): Sequence<RoomFieldColumn> {
     val newPrefix = embeddedAnnotation.findAttributeValue("prefix")
-      ?.let { constantEvaluationHelper.computeConstantExpression(it) }
-      ?.toString()
-        ?: ""
+                      ?.let { constantEvaluationHelper.computeConstantExpression(it) }
+                      ?.toString()
+                    ?: ""
 
     val embeddedClass = PsiUtil.resolveClassInClassTypeOnly(embeddedField.type) ?: return emptySequence()
 
@@ -234,24 +241,68 @@ class RoomSchemaManager(val project: Project) {
     annotationName: AndroidxName,
     annotationAttributeName: String
   ): Pair<String, PsiElement>?
-      where T : PsiModifierListOwner,
-            T : PsiNamedElement {
-    val nameAttribute = element.modifierList
+    where T : PsiModifierListOwner,
+          T : PsiNamedElement {
+    // First look for the annotation that can override the name:
+    return getAnnotationAndAnnotationName(element, annotationName, annotationAttributeName)
+           // Fall back to the name used in code:
+           ?: element.name?.let { it to element }
+  }
+
+  private fun KtLightField.getPropertyAnnotationExpression(
+    annotationName: AndroidxName,
+    annotationAttributeName: String
+  ): KtExpression? {
+    val annotationEntry = kotlinOrigin?.annotationEntries?.findAnnotation(annotationName) ?: return null
+    // Property annotation it is annotation without target
+    return if (annotationEntry.useSiteTarget == null) {
+      annotationEntry.findArgumentExpression(annotationAttributeName)
+    } else {
+      null
+    }
+  }
+
+  /**
+   * Returns annotation PsiElement and override name from it
+   *
+   * if there is no correct annotation returns null
+   */
+  private fun <T> getAnnotationAndAnnotationName(
+    element: T,
+    annotationName: AndroidxName,
+    annotationAttributeName: String
+  ): Pair<String, PsiElement>?
+    where T : PsiModifierListOwner,
+          T : PsiNamedElement {
+    var annotation: PsiElement? = element.modifierList
       ?.findAnnotation(annotationName)
       ?.findDeclaredAttributeValue(annotationAttributeName)
+    var name: String? = annotation?.let { constantEvaluationHelper.computeConstantExpression(it)?.toString() }
 
-    val name = nameAttribute
-      ?.let { constantEvaluationHelper.computeConstantExpression(it) }
-      ?.toString()
-        ?: element.name
-        ?: return null
+    // There is special case for KtLightField when we have annotation without target (property annotation) e.g @ColumnInfo(name = 'override_name')
+    // In that case element.modifierList.findAnnotation(annotationName) returns null because it searches only for annotation with FIELD target
+    if (name == null && element is KtLightField) {
+      val ktExpression = element.getPropertyAnnotationExpression(annotationName, annotationAttributeName)
+      name = ktExpression?.let { tryEvaluateConstant(it) }
+      if (name != null) annotation = ktExpression as PsiElement
+    }
 
-    return Pair(name, nameAttribute ?: element)
+    return name?.let { it to annotation!! }
   }
 
   private inline fun AndroidxName.bothNames(f: (String) -> Unit) {
     f(oldName())
     f(newName())
+  }
+
+  fun List<KtAnnotationEntry>.findAnnotation(qualifiedName: AndroidxName): KtAnnotationEntry? {
+    qualifiedName.bothNames { name ->
+      val result = findAnnotation(name)
+      if (result != null) {
+        return result
+      }
+    }
+    return null
   }
 
   fun PsiModifierList.findAnnotation(qualifiedName: AndroidxName): PsiAnnotation? {

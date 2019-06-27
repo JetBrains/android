@@ -26,7 +26,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.ArrowDirection;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.draw.DrawArrow;
+import com.android.tools.idea.common.scene.draw.FillArrow;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawCommandBase;
 import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
@@ -96,7 +96,7 @@ public class DrawAction extends DrawCommandBase {
     Rectangle2D.Float arrowRectangle = NavActionHelperKt.getArrowRectangle(sceneView, arrowPoint, direction);
 
 
-    list.add(new DrawArrow(0, arrowDirection, arrowRectangle, color));
+    list.add(new FillArrow(arrowDirection, arrowRectangle, color, 0));
 
     if (isPopAction) {
       Rectangle2D.Float iconRectangle = getRegularActionIconRect(source, dest, sceneContext);

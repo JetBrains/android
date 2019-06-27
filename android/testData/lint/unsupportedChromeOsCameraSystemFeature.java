@@ -1,0 +1,15 @@
+package test.pkg;
+
+import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+
+public class TestActivity extends Activity {
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    PackageManager pm = getPackageManager();
+    <error descr="You should look for any camera on the device, not just the rear"><caret>pm.hasSystemFeature(PackageManager.FEATURE_CAMERA)</error>;
+  }
+}

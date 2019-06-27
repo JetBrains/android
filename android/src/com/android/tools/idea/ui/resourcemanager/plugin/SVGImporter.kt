@@ -26,7 +26,9 @@ import java.io.File
 private val supportedFileTypes = setOf("svg")
 
 /**
- * Importer for SVGs
+ * Importer for SVGs.
+ *
+ * This importer uses the [Svg2Vector] library to convert SVG files to VectorDrawable.
  */
 class SVGImporter : ResourceImporter {
   override val presentableName = "SVG Importer"
@@ -50,7 +52,7 @@ class SVGImporter : ResourceImporter {
       Svg2Vector.parseSvgToXml(it, byteArrayOutputStream)
     } catch (e: Exception) {
       Logger.getInstance(SVGImporter::class.java).warn("Error converting ${it.absolutePath} to vector drawable - ${e.localizedMessage}")
-      return null;
+      return null
     }
     if (errors.isNotBlank()) {
       Logger.getInstance(SVGImporter::class.java).warn("Error converting ${it.absolutePath} to vector drawable:\n$errors")

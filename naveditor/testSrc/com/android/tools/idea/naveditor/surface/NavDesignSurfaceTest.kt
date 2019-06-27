@@ -283,7 +283,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     `when`(surface.layeredPane).thenReturn(mock(JComponent::class.java))
     `when`(surface.onDoubleClick(anyInt(), anyInt())).thenCallRealMethod()
-    val interactionManager = InteractionManager(surface)
+    val interactionManager = surface.interactionManager
     interactionManager.startListening()
 
     val view = NavView(surface, surface.sceneManager!!)

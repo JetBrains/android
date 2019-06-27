@@ -57,6 +57,7 @@ import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx
 public class NewAndroidComponentAction extends AnAction {
   // These categories will be using a new wizard
   public static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google", CATEGORY_AUTOMOTIVE);
+  public static Set<String> FRAGMENT_CATEGORY = ImmutableSet.of("Fragment");
 
   public static final DataKey<List<File>> CREATED_FILES = DataKey.create("CreatedFiles");
 

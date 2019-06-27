@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Cursor;
 import java.util.List;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -130,7 +131,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public Cursor getMouseCursor() {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifier) {
     switch (myType) {
       case LEFT:
         return Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);

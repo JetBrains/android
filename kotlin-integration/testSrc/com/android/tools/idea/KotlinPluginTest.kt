@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea
 
-import com.android.tools.idea.npw.model.JavaToKotlinHandler
+import com.android.tools.idea.npw.model.getKotlinVersion
 import org.jetbrains.android.AndroidTestCase
 
 class KotlinPluginTest : AndroidTestCase() {
@@ -24,7 +24,6 @@ class KotlinPluginTest : AndroidTestCase() {
     // This is a regression test for when Jetbrains accidentally released a Kotlin plugin with version 1.2.60-release-76,
     // where the "-release-76" suffix should not have been there. This broke some code in Studio; for example, Studio would
     // populate build.gradle with the wrong Kotlin version string, thereby breaking the search for Kotlin plugin artifacts.
-    val version = JavaToKotlinHandler.getJavaToKotlinConversionProvider().kotlinVersion
-    assert(!version.contains('-'))
+    assert(!getKotlinVersion().contains('-'))
   }
 }

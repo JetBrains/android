@@ -57,8 +57,7 @@ import kotlin.properties.Delegates
 class ResourceExplorerToolbarViewModel(
   facet: AndroidFacet,
   private val importersProvider: ImportersProvider,
-  private val filterOptions: FilterOptions,
-  private val facetUpdaterCallback: (AndroidFacet) -> Unit)
+  private val filterOptions: FilterOptions)
   : DataProvider, IdeView {
 
   /**
@@ -66,6 +65,8 @@ class ResourceExplorerToolbarViewModel(
    * view model changes.
    */
   var updateUICallback = {}
+
+  var facetUpdaterCallback: (AndroidFacet) -> Unit = {}
 
   var facet: AndroidFacet = facet
     set(newFacet) {

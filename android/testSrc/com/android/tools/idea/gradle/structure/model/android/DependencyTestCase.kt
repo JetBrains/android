@@ -29,6 +29,8 @@ import java.io.File
 
 abstract class DependencyTestCase : AndroidGradleTestCase() {
   override fun patchPreparedProject(projectRoot: File) {
+    // Override settings just for tests (e.g. sdk.dir)
+    AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath())
     // We need the wrapper for import to succeed
     createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION)
 

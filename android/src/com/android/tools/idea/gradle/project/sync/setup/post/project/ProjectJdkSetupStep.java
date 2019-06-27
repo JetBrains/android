@@ -55,7 +55,7 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
   }
 
   @Override
-  public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
+  public void setUpProject(@NotNull Project project) {
     LanguageLevel javaLangVersion = JDK_1_8;
     Sdk projectJdk = ProjectRootManager.getInstance(project).getProjectSdk();
     Sdk ideJdk;

@@ -522,10 +522,22 @@ public final class StudioProfilersTest {
 
     myTransportService.addDevice(device);
     myTransportService.addProcess(device, process);
-    myCpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
-                                .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                                                    .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP))
-                                .build());
+    Cpu.CpuTraceInfo traceInfo = Cpu.CpuTraceInfo.newBuilder()
+      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                          .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP))
+      .build();
+    if (myNewEventPipeline) {
+      myTransportService.addEventToStream(device.getDeviceId(), Common.Event.newBuilder()
+        .setGroupId(myTimer.getCurrentTimeNs())
+        .setPid(process.getPid())
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo).build()))
+        .build());
+    }
+    else {
+      myCpuService.addTraceInfo(traceInfo);
+    }
 
     // To make sure that StudioProfilers#update is called, which in a consequence polls devices and processes,
     // and starts a new session with the preferred process name.

@@ -782,6 +782,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
   }
 
+  @Override
   public boolean isResizeAvailable() {
     Configuration configuration = getConfiguration();
     if (configuration == null) {

@@ -32,8 +32,7 @@ internal fun JBTable.setupResultSetTable(queryTableModel: DefaultTableModel, col
   if (this.model != queryTableModel) {
     this.model = queryTableModel
     this.setDefaultRenderer(columnClass, ResultSetTreeCellRenderer())
-    // Turn off JTable's auto resize so that JScrollPane will show a horizontal
-    // scroll bar.
+    // Turn off JTable's auto resize so that JScrollPane will show a horizontal scroll bar.
     this.autoResizeMode = JTable.AUTO_RESIZE_OFF
     this.emptyText.text = "Table is empty"
   }
@@ -50,20 +49,15 @@ internal fun JBTable.setResultSetTableColumns() {
 }
 
 @AnyThread
-internal fun reportError(message: String, t: Throwable) {
+internal fun notifyError(message: String, t: Throwable) {
   if (t is CancellationException) {
     return
   }
 
   var errorMessage = message
-  t.message?.let {
-    errorMessage += ": " + t.message
-  }
+  t.message?.let { errorMessage += ": " + t.message }
 
-  val notification = Notification("Sqlite Viewer",
-                                  "Sqlite Viewer",
-                                  errorMessage,
-                                  NotificationType.WARNING)
+  val notification = Notification("Sqlite Viewer", "Sqlite Viewer", errorMessage, NotificationType.WARNING)
 
   Notifications.Bus.notify(notification)
 }

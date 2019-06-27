@@ -17,7 +17,7 @@ package com.android.tools.idea.transport.faketransport.commands
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Commands.Command
-import com.android.tools.profiler.proto.Transport.EventGroup
+import com.android.tools.profiler.proto.Common
 
 /**
  * Abstract class that manages test commands for the events framework. Commands are expected to behave in
@@ -30,5 +30,5 @@ abstract class CommandHandler(val timer: FakeTimer) {
    * Each command shall implement handle command. This method is expected to modify the events list passed in. The
    * set of events passed in will already be filtered to a specific stream so each command does not need to handle this.
    */
-  abstract fun handleCommand(command: Command, events: MutableList<EventGroup.Builder>)
+  abstract fun handleCommand(command: Command, events: MutableList<Common.Event>)
 }

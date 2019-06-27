@@ -30,22 +30,12 @@ class SqliteFileTypeDetector : FileTypeRegistry.FileTypeDetector {
   private val SQLITE3_FORMAT_HEADER = "SQLite format 3\u0000".toByteArray(Charsets.UTF_8)
 
   override fun detect(file: VirtualFile, firstBytes: ByteSequence, firstCharsIfText: CharSequence?): FileType? {
-    if (!SqliteViewer.isFeatureEnabled) {
-      return null
+    return when {
+      !SqliteViewer.isFeatureEnabled -> null
+      firstBytes.length() < SQLITE3_FORMAT_HEADER.size -> null
+      firstBytes.subSequence(0, SQLITE3_FORMAT_HEADER.size).toBytes() contentEquals SQLITE3_FORMAT_HEADER -> SqliteFileType
+      else -> null
     }
-
-    if (firstBytes.length() < SQLITE3_FORMAT_HEADER.size) {
-      return null
-    }
-
-    @Suppress("LoopToCallChain") // call chain is less readable
-    for (i in SQLITE3_FORMAT_HEADER.indices) {
-      if (SQLITE3_FORMAT_HEADER[i] != firstBytes.toBytes()[i]) {
-        return null
-      }
-    }
-
-    return SqliteFileType
   }
 
   override fun getVersion(): Int = 1

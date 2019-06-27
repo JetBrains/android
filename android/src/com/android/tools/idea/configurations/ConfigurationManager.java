@@ -23,7 +23,6 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TA
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.Bridge;
-import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
@@ -34,7 +33,6 @@ import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -50,7 +48,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -76,11 +73,6 @@ public class ConfigurationManager implements Disposable {
 
   @NotNull private final Module myModule;
   private final Map<VirtualFile, Configuration> myCache = ContainerUtil.createSoftValueMap();
-  private final Object myLocalesLock = new Object();
-  @GuardedBy("myLocalesLock")
-  @NotNull private ImmutableList<Locale> myLocales = ImmutableList.of();
-  @GuardedBy("myLocalesLock")
-  private long myLocalesCacheStamp = -1;
   private Device myDefaultDevice;
   private Locale myLocale;
   private IAndroidTarget myTarget;
@@ -132,6 +124,7 @@ public class ConfigurationManager implements Disposable {
 
   /**
    * Gets the {@link Configuration} associated with the given file
+   *
    * @return the {@link Configuration} for the given file
    */
   @Slow
@@ -170,7 +163,8 @@ public class ConfigurationManager implements Disposable {
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
     if (fileState != null) {
       matcher.adaptConfigSelection(true);
-    } else {
+    }
+    else {
       matcher.findAndSetCompatibleConfig(false);
     }
 
@@ -185,7 +179,7 @@ public class ConfigurationManager implements Disposable {
    * forked file. For example, if you create a landscape version of a layout, it will preserve the
    * screen size, locale, theme and render target of the existing layout.
    *
-   * @param file the file to create a configuration for
+   * @param file     the file to create a configuration for
    * @param baseFile the other file to base the configuration on
    * @return the new configuration
    */
@@ -209,12 +203,16 @@ public class ConfigurationManager implements Disposable {
     return configuration;
   }
 
-  /** Returns the associated persistence manager */
+  /**
+   * Returns the associated persistence manager
+   */
   public ConfigurationStateManager getStateManager() {
-    return ConfigurationStateManager.get(getModule().getProject());
+    return ConfigurationStateManager.get(myModule.getProject());
   }
 
-  /** Returns the list of available devices for the current platform and any custom user devices, if any */
+  /**
+   * Returns the list of available devices for the current platform and any custom user devices, if any
+   */
   @Slow
   @NotNull
   public ImmutableList<Device> getDevices() {
@@ -262,7 +260,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public IAndroidTarget[] getTargets() {
-    AndroidPlatform platform = AndroidPlatform.getInstance(getModule());
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     if (platform != null) {
       final AndroidSdkData sdkData = platform.getSdkData();
 
@@ -306,7 +304,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public String computePreferredTheme(@NotNull Configuration configuration) {
-    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(getModule());
+    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myModule);
 
     // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
 
@@ -344,18 +342,18 @@ public class ConfigurationManager implements Disposable {
   }
 
   @NotNull
-  public Module getModule() {
+  public final Module getModule() {
     return myModule;
   }
 
   @NotNull
   public Project getProject() {
-    return getModule().getProject();
+    return myModule.getProject();
   }
 
   @Override
   public void dispose() {
-    getModule().putUserData(KEY, null);
+    myModule.putUserData(KEY, null);
   }
 
   @Nullable
@@ -371,7 +369,8 @@ public class ConfigurationManager implements Disposable {
           if (id.equals("pixel")) {
             device = d;
             break;
-          } else if (id.equals("Galaxy Nexus")) {
+          }
+          else if (id.equals("Galaxy Nexus")) {
             device = d;
           }
         }
@@ -393,33 +392,15 @@ public class ConfigurationManager implements Disposable {
   }
 
   @NotNull
-  public ImmutableList<Locale> getLocales() {
-    // Get locales from modules, but not libraries!
-    LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(getModule());
-    assert projectResources != null;
-    synchronized (myLocalesLock) {
-      if (projectResources.getModificationCount() == myLocalesCacheStamp) {
-        return myLocales;
-      }
-    }
-
-    long modificationCount = projectResources.getModificationCount();
-    ImmutableList<Locale> locales = ResourceRepositoryUtil.getLocales(projectResources)
-      .stream()
-      .map(Locale::create)
-      .collect(ImmutableList.toImmutableList());
-
-    synchronized (myLocalesLock) {
-      myLocales = locales;
-      myLocalesCacheStamp = modificationCount;
-
-      return myLocales;
-    }
+  public ImmutableList<Locale> getLocalesInProject() {
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
+    assert repositoryManager != null;
+    return repositoryManager.getLocalesInProject();
   }
 
   @Nullable
   public IAndroidTarget getProjectTarget() {
-    AndroidPlatform platform = AndroidPlatform.getInstance(getModule());
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     return platform != null ? platform.getTarget() : null;
   }
 
@@ -429,7 +410,8 @@ public class ConfigurationManager implements Disposable {
       String localeString = getStateManager().getProjectState().getLocale();
       if (localeString != null) {
         myLocale = ConfigurationProjectState.fromLocaleString(localeString);
-      } else {
+      }
+      else {
         myLocale = Locale.ANY;
       }
     }
@@ -448,7 +430,9 @@ public class ConfigurationManager implements Disposable {
     }
   }
 
-  /** Returns the most recently used devices, in MRU order */
+  /**
+   * Returns the most recently used devices, in MRU order
+   */
   public List<Device> getRecentDevices() {
     List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
     if (deviceIds.isEmpty()) {
@@ -462,7 +446,8 @@ public class ConfigurationManager implements Disposable {
       Device device = getDeviceById(id);
       if (device != null) {
         devices.add(device);
-      } else {
+      }
+      else {
         iterator.remove();
       }
     }
@@ -511,7 +496,8 @@ public class ConfigurationManager implements Disposable {
       ConfigurationProjectState projectState = getStateManager().getProjectState();
       if (projectState.isPickTarget()) {
         myTarget = getDefaultTarget();
-      } else {
+      }
+      else {
         String targetString = projectState.getTarget();
         myTarget = ConfigurationProjectState.fromTargetString(this, targetString);
         if (myTarget == null) {
@@ -524,7 +510,9 @@ public class ConfigurationManager implements Disposable {
     return myTarget;
   }
 
-  /** Returns the best render target to use for the given minimum API level */
+  /**
+   * Returns the best render target to use for the given minimum API level
+   */
   @Nullable
   public IAndroidTarget getTarget(int min) {
     IAndroidTarget target = getTarget();
@@ -551,9 +539,9 @@ public class ConfigurationManager implements Disposable {
         // needlessly flush the bitmap cache for the project still using it, but that just
         // means the next render will need to fetch them again; from that point on both platform
         // bitmap sets are in memory.
-        AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, getModule());
+        AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, myModule);
         if (targetData != null) {
-          targetData.clearLayoutBitmapCache(getModule());
+          targetData.clearLayoutBitmapCache(myModule);
         }
       }
 
@@ -572,6 +560,7 @@ public class ConfigurationManager implements Disposable {
     return myStateVersion;
   }
 
+  @NotNull
   public ResourceResolverCache getResolverCache() {
     if (myResolverCache == null) {
       myResolverCache = new ResourceResolverCache(this);

@@ -299,8 +299,8 @@ abstract class BasePerspectiveConfigurable protected constructor(
         ) {
           context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_ADD)
           var synced = false
-          val chooseModuleTypeStep =
-              ChooseModuleTypeStep.createWithDefaultGallery(context.project.ideProject) { synced = true }
+          val chooseModuleTypeStep = // TODO(b/134652202)
+              ChooseModuleTypeStep.createWithDefaultGallery(context.project.ideProject, null) { synced = true }
           context.applyRunAndReparse {
             StudioWizardDialogBuilder(chooseModuleTypeStep, AndroidBundle.message("android.wizard.module.new.module.title"))
                 .setUxStyle(StudioWizardDialogBuilder.UxStyle.INSTANT_APP)

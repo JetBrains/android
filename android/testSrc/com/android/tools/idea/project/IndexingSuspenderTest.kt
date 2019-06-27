@@ -206,7 +206,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
     // this tests the correct event handling when build is triggered during sync (e.g., source generation)
     setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
     val syncState = GradleSyncState.getInstance(project)
-    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null)
+    syncState.syncStarted(GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null)
     syncState.setupStarted()
 
     val buildContext = BuildContext(project, listOf(":app:something"), BuildMode.DEFAULT_BUILD_MODE)
@@ -243,7 +243,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
 
     setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
     val syncState = GradleSyncState.getInstance(project)
-    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null)
+    syncState.syncStarted(GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null)
 
     // Perform "setup" by marking the module as namespaced:
     syncState.setupStarted()
@@ -271,7 +271,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
   }
 
   fun testTemplateRenderingRegularEventsWorkflow() {
-    setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
+    setUpIndexingSpecificExpectations(batchUpdateCount = 2, batchFileUpdateCount = 2)
 
     MultiTemplateRenderer.multiRenderingStarted(project)
     // We should start a batch update no matter what.
@@ -282,13 +282,13 @@ class IndexingSuspenderTest : IdeaTestCase() {
     syncState.syncTaskCreated(mock(GradleSyncInvoker.Request::class.java), null)
     MultiTemplateRenderer.multiRenderingFinished(project)
     // Yes, rendering finished but we were notified that sync is imminent, so suspension should continue.
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
-    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null)
+    syncState.syncStarted(GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null)
     // No change
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
     syncState.setupStarted()
     // No change
@@ -318,7 +318,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
   }
 
   fun testTemplateRenderingWhenSyncFailed() {
-    setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
+    setUpIndexingSpecificExpectations(batchUpdateCount = 2, batchFileUpdateCount = 2)
 
     MultiTemplateRenderer.multiRenderingStarted(project)
     // We should start a batch update no matter what.
@@ -329,13 +329,13 @@ class IndexingSuspenderTest : IdeaTestCase() {
     syncState.syncTaskCreated(mock(GradleSyncInvoker.Request::class.java), null)
     MultiTemplateRenderer.multiRenderingFinished(project)
     // Yes, rendering finished but we were notified that sync is imminent, so suspension should continue.
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
-    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null)
+    syncState.syncStarted(GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null)
     // No change
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
     syncState.setupStarted()
     // No change
@@ -351,7 +351,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
     setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
 
     val syncState = GradleSyncState.getInstance(project)
-    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null)
+    syncState.syncStarted(GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null)
     syncState.setupStarted()
 
     assertEquals(1, currentBatchUpdateLevel)

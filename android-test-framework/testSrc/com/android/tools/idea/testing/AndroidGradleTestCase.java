@@ -35,7 +35,6 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -72,7 +71,6 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
-import com.intellij.util.ThrowableConsumer;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
@@ -271,40 +269,29 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
-    return prepareProjectForImport(relativePath, this::patchPreparedProject);
-  }
+  protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath) throws IOException {
+    File projectSourceRoot = resolveTestDataPath(relativePath);
+    File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
 
-  @NotNull
-  private File prepareProjectForImport(@NotNull String relativePath, ThrowableConsumer<File, IOException> projectPatcher)
-    throws IOException {
-    File root = new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
-    if (!root.exists()) {
-      root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
-    }
-
-    Project project = myFixture.getProject();
-    File projectRoot = new File(toSystemDependentName(project.getBasePath()));
-
-    prepareProjectForImport(root, projectRoot, projectPatcher);
+    AndroidGradleTests.validateGradleProjectSource(projectSourceRoot);
+    AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectRoot, this::patchPreparedProject);
 
     return projectRoot;
   }
 
-  private void prepareProjectForImport(@NotNull File srcRoot,
-                                       @NotNull File projectRoot,
-                                       ThrowableConsumer<File, IOException> projectPatcher) throws IOException {
-    File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
-    File build = new File(srcRoot, FN_BUILD_GRADLE);
-    File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
-    File ktsBuild = new File(srcRoot, FN_BUILD_GRADLE_KTS);
-    assertTrue("Couldn't find build.gradle(.kts) or settings.gradle(.kts) in " + srcRoot.getPath(),
-               settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
-
-    AndroidGradleTests.prepareProjectForImportCore(srcRoot, projectRoot, findSdkPath(), projectPatcher);
+  @NotNull
+  public File resolveTestDataPath(@NotNull @SystemIndependent String relativePath) {
+    File root = new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
+    if (!root.exists()) {
+      root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
+    }
+    return root;
   }
 
-  protected static void defaultPatchPreparedProject(@NotNull File projectRoot) throws IOException {
+  protected final void defaultPatchPreparedProject(@NotNull File projectRoot) throws IOException {
+
+    // Override settings just for tests (e.g. sdk.dir)
+    AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
     // We need the wrapper for import to succeed
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
 
@@ -356,9 +343,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
   }
 
-  protected void importProject() throws Exception {
+  protected void importProject() {
     Project project = getProject();
-    AndroidGradleTests.importProject(project);
+    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest());
   }
 
   @NotNull
@@ -389,20 +376,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
     TestGradleSyncListener syncListener = requestSync(request);
-    checkStatus(syncListener);
+    AndroidGradleTests.checkSyncStatus(syncListener);
   }
 
   protected void requestSyncAndWait() throws Exception {
     TestGradleSyncListener syncListener = requestSync(request -> { });
-    checkStatus(syncListener);
-  }
-
-  private static void checkStatus(@NotNull TestGradleSyncListener syncListener) {
-    if (!syncListener.success) {
-      String cause =
-        !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
-      fail(cause);
-    }
+    AndroidGradleTests.checkSyncStatus(syncListener);
   }
 
   @NotNull
@@ -422,22 +401,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @NotNull
   private TestGradleSyncListener requestSync(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-    request.generateSourcesOnSuccess = false;
     requestConfigurator.consume(request);
     return requestSync(request);
   }
 
   @NotNull
   protected TestGradleSyncListener requestSync(@NotNull GradleSyncInvoker.Request request) throws Exception {
-    TestGradleSyncListener syncListener = new TestGradleSyncListener();
     refreshProjectFiles();
-
-    Project project = getProject();
-    GradleProjectInfo.getInstance(project).setImportedProject(true);
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request, syncListener);
-
-    syncListener.await();
-    return syncListener;
+    return AndroidGradleTests.syncProject(getProject(), request);
   }
 
   @NotNull

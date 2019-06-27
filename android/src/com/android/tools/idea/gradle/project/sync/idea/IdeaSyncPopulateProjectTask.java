@@ -15,24 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class IdeaSyncPopulateProjectTask {
   @NotNull private final Project myProject;
@@ -56,42 +53,15 @@ public class IdeaSyncPopulateProjectTask {
     myDataManager = dataManager;
   }
 
+  @WorkerThread
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
                               @NotNull ExternalSystemTaskId taskId,
                               @Nullable PostSyncProjectSetup.Request setupRequest,
                               @Nullable GradleSyncListener syncListener) {
-    doPopulateProject(projectInfo, taskId, setupRequest, syncListener);
-  }
-
-  private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo,
-                                 @NotNull ExternalSystemTaskId taskId,
-                                 @Nullable PostSyncProjectSetup.Request setupRequest,
-                                 @Nullable GradleSyncListener syncListener) {
-    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeAllMessages());
-
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      populate(projectInfo, taskId, new EmptyProgressIndicator(), setupRequest, syncListener);
-      return;
-    }
-
-    Task.Backgroundable task = new Task.Backgroundable(myProject, "Project Setup", false) {
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        populate(projectInfo, taskId, indicator, setupRequest, syncListener);
-      }
-    };
-    task.queue();
-  }
-
-  /**
-   * Reuse external system 'selective import' feature for importing of the project sub-set.
-   * And do not ignore projectNode children data, e.g. project libraries
-   */
-  private void populate(@NotNull DataNode<ProjectData> projectInfo,
-                        @NotNull ExternalSystemTaskId taskId,
-                        @NotNull ProgressIndicator indicator,
-                        @Nullable PostSyncProjectSetup.Request setupRequest,
-                        @Nullable GradleSyncListener syncListener) {
+    invokeAndWaitIfNeeded((Runnable)() -> {
+      if (myProject.isDisposed()) return;
+      GradleSyncMessages.getInstance(myProject).removeAllMessages();
+    });
     try {
       myDataManager.importData(projectInfo, myProject, true /* synchronous */);
       if (syncListener != null) {
@@ -103,7 +73,7 @@ public class IdeaSyncPopulateProjectTask {
         }
       }
       if (setupRequest != null) {
-        PostSyncProjectSetup.getInstance(myProject).setUpProject(setupRequest, indicator, taskId, syncListener);
+        PostSyncProjectSetup.getInstance(myProject).setUpProject(setupRequest, taskId, syncListener);
       }
     } catch (Throwable unexpected) {
       // See https://code.google.com/p/android/issues/detail?id=268806

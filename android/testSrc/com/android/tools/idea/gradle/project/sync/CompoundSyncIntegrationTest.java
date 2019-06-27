@@ -23,10 +23,9 @@ import com.android.tools.idea.gradle.project.sync.projectsystem.SyncWithSourceGe
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jetbrains.annotations.NotNull;
 
 public class CompoundSyncIntegrationTest extends SingleVariantSyncIntegrationTest {
 

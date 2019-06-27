@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.createTransferable
 import java.awt.Cursor
 import java.awt.GraphicsEnvironment
@@ -38,14 +38,14 @@ else {
 
 
 interface ResourceDragHandler {
-  fun registerSource(assetList: JList<DesignAssetSet>)
+  fun registerSource(assetList: JList<ResourceAssetSet>)
 }
 
 /**
  * DragHandler in headless mode
  */
 class HeadlessDragHandler internal constructor() : ResourceDragHandler {
-  override fun registerSource(assetList: JList<DesignAssetSet>) {
+  override fun registerSource(assetList: JList<ResourceAssetSet>) {
     // Do Nothing
   }
 }
@@ -55,7 +55,7 @@ class HeadlessDragHandler internal constructor() : ResourceDragHandler {
  */
 private class ResourceDragHandlerImpl internal constructor() : ResourceDragHandler {
 
-  override fun registerSource(assetList: JList<DesignAssetSet>) {
+  override fun registerSource(assetList: JList<ResourceAssetSet>) {
     assetList.dragEnabled = true
     assetList.dropMode = DropMode.ON
     assetList.transferHandler = object : TransferHandler() {
@@ -81,8 +81,8 @@ private class ResourceDragHandlerImpl internal constructor() : ResourceDragHandl
   }
 }
 
-private fun createDragPreview(jList: JList<DesignAssetSet>,
-                              assetSet: DesignAssetSet?,
+private fun createDragPreview(jList: JList<ResourceAssetSet>,
+                              assetSet: ResourceAssetSet?,
                               index: Int): BufferedImage {
   val component = jList.cellRenderer.getListCellRendererComponent(jList, assetSet, index, false, false)
   // The component having no parent to lay it out an set its size, we need to manually to it, otherwise
