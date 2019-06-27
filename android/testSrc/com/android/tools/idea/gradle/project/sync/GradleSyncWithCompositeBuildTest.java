@@ -62,11 +62,6 @@ import static java.util.stream.Collectors.toList;
 public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestCase {
 
   @Override
-  protected boolean useNewSyncInfrastructure() {
-    return false;
-  }
-
-  @Override
   protected boolean useSingleVariantSyncInfrastructure() {
     return false;
   }

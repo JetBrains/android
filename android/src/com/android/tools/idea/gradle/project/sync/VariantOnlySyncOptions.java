@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.ng.variantonly;
+package com.android.tools.idea.gradle.project.sync;
 
 import java.io.File;
 import java.io.Serializable;

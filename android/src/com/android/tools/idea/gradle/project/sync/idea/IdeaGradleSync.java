@@ -15,19 +15,39 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import com.android.SdkConstants;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static java.lang.System.currentTimeMillis;
+import static java.util.Arrays.asList;
+
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.sync.*;
+import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.GradleSync;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.collect.ImmutableList;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -36,11 +56,20 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.projectImport.ProjectOpenProcessor;
 import com.intellij.util.SystemProperties;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,24 +78,6 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
-import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.areCachedFilesMissing;
-import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isCompoundSync;
-import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isSingleVariantSync;
-import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
-import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.*;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
-import static java.lang.System.currentTimeMillis;
 
 public class IdeaGradleSync implements GradleSync {
   private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
@@ -115,15 +126,15 @@ public class IdeaGradleSync implements GradleSync {
 
     // Setup the settings for setup.
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = request.generateSourcesOnSuccess && !isCompoundSync(myProject);
+    setupRequest.generateSourcesAfterSync = request.generateSourcesOnSuccess && !GradleSyncState.isCompoundSync();
     setupRequest.cleanProjectAfterSync = request.cleanProject;
     setupRequest.usingCachedGradleModels = false;
 
     // Setup the settings for the resolver.
     // We enable compound sync if we have been requested to generate sources and compound sync is enabled.
-    boolean shouldUseCompoundSync = request.generateSourcesOnSuccess && isCompoundSync(myProject);
+    boolean shouldUseCompoundSync = request.generateSourcesOnSuccess && GradleSyncState.isCompoundSync();
     // We also pass through whether single variant sync should be enabled on the resolver, this allows fetchGradleModels to turn this off
-    boolean shouldUseSingleVariantSync = !request.forceFullVariantsSync && isSingleVariantSync(myProject);
+    boolean shouldUseSingleVariantSync = !request.forceFullVariantsSync && GradleSyncState.isSingleVariantSync();
     // We also need to pass the listener so that the callbacks can be used
     setProjectUserDataForAndroidGradleProjectResolver(shouldUseCompoundSync, shouldUseSingleVariantSync, listener);
 
@@ -238,4 +249,40 @@ public class IdeaGradleSync implements GradleSync {
 
     return builder.build();
   }
+
+  /**
+   * @return true if the expected jars from cached libraries don't exist on disk.
+   */
+  private static boolean areCachedFilesMissing(@NotNull Project project) {
+    final Ref<Boolean> missingFileFound = Ref.create(false);
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
+      rootManager.orderEntries().withoutModuleSourceEntries().withoutDepModules().forEach(entry -> {
+        for (OrderRootType type : OrderRootType.getAllTypes()) {
+          List<String> expectedUrls = asList(entry.getUrls(type));
+          // CLASSES root contains jar file and res folder, and none of them are guaranteed to exist. Fail validation only if
+          // all files are missing.
+          if (type.equals(CLASSES)) {
+            if (expectedUrls.stream().noneMatch(url -> VirtualFileManager.getInstance().findFileByUrl(url) != null)) {
+              missingFileFound.set(true);
+              return false; // Don't continue with processor.
+            }
+          }
+          // For other types of root, fail validation if any file is missing. This includes annotation processor, sources and javadoc.
+          else {
+            if (expectedUrls.stream().anyMatch(url -> VirtualFileManager.getInstance().findFileByUrl(url) == null)) {
+              missingFileFound.set(true);
+              return false; // Don't continue with processor.
+            }
+          }
+        }
+        return true;
+      });
+      if (missingFileFound.get()) {
+        return true;
+      }
+    }
+    return missingFileFound.get();
+  }
+
 }

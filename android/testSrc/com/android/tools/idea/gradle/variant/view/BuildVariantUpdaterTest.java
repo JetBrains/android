@@ -32,7 +32,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
+import com.android.tools.idea.gradle.project.sync.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
@@ -309,7 +309,6 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
 
   public void testCompoundSyncEnabled() {
     try {
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
 
@@ -336,7 +335,6 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
       verify(syncInvoker).requestProjectSync(eq(myProject), eq(request), any());
     }
     finally {
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
       StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
     }

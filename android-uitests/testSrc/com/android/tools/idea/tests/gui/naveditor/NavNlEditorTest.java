@@ -117,7 +117,6 @@ public class NavNlEditorTest {
   @Test
   public void testCreateAndDeleteWithSingleVariantSync() throws Exception {
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
-    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
     try {
       IdeFrameFixture frame = guiTest.importProject("Navigation");
       // Open file as XML and switch to design tab, wait for successful render
@@ -160,7 +159,6 @@ public class NavNlEditorTest {
     }
     finally {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
     }
   }
 

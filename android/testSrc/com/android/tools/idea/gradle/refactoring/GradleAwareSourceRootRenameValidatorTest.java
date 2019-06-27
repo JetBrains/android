@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.refactoring;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -32,14 +31,12 @@ import java.io.File;
  */
 public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestCase {
   private GradleAwareSourceRootRenameValidator myValidator;
-  private boolean myUseNewSyncInfra;
   private boolean myUseSingleVariantSync;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myValidator = new GradleAwareSourceRootRenameValidator();
-    myUseNewSyncInfra = StudioFlags.NEW_SYNC_INFRA_ENABLED.get();
     myUseSingleVariantSync = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
   }
 
@@ -47,7 +44,6 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
   protected void tearDown() throws Exception {
     try {
       // back to default value.
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(myUseNewSyncInfra);
       GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = myUseSingleVariantSync;
     }
     finally {
@@ -55,21 +51,12 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
     }
   }
 
-
   public void testIsInputValidWithIdeaSync() throws Exception {
-    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(false);
     GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
     verifyErrorMessage();
   }
 
-  public void testIsInputValidWithNewSync() throws Exception {
-    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
-    verifyErrorMessage();
-  }
-
   public void testIsInputValidWithSingleVariantSync() throws Exception {
-    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
     GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
     verifyErrorMessage();
   }
