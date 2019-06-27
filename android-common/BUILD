@@ -46,6 +46,7 @@ iml_module(
         "//tools/idea/platform/util:intellij.platform.util[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
+        "//tools/idea/platform/core-impl:intellij.platform.core.impl[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
@@ -59,5 +60,7 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/idea/.idea/libraries:kotlin-plugin",
+        "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
     ],
 )

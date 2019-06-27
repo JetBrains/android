@@ -18,7 +18,8 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.tools.idea.npw.assetstudio.wizard.WrappedFlowLayout
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetIcon
 import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.ui.resourcemanager.widget.Separator
@@ -74,18 +75,18 @@ private val BACK_BUTTON_SIZE = JBUI.size(20)
  *                     The callback receives this view as a parameter to allow the parent view to remove it.
  */
 class ResourceDetailView(
-  private val designAssetSet: DesignAssetSet,
+  private val designAssetSet: ResourceAssetSet,
   private val viewModel: ResourceExplorerViewModel,
   private val backCallback: (ResourceDetailView) -> Unit)
   : JPanel(BorderLayout()), DataProvider {
 
-  private val viewToAsset = WeakHashMap<AssetView, DesignAsset>(designAssetSet.designAssets.size)
+  private val viewToAsset = WeakHashMap<AssetView, DesignAsset>(designAssetSet.assets.size)
   private var lastFocusedAsset: AssetView? = null
 
   private val backAction = object : AnAction(AllIcons.Actions.Back) {
     init {
       templatePresentation.isEnabledAndVisible = true
-      ResourceManagerTracking.logDetailViewOpened(designAssetSet.designAssets.firstOrNull()?.type)
+      ResourceManagerTracking.logDetailViewOpened(designAssetSet.assets.firstOrNull()?.type)
     }
 
     override fun actionPerformed(e: AnActionEvent) = navigateBack()
@@ -110,7 +111,9 @@ class ResourceDetailView(
       (e?.source as? SingleAssetCard)?.let { assetCard ->
         if (lastFocusedAsset != assetCard) {
           lastFocusedAsset?.selected = false
+          lastFocusedAsset?.focused = false
           assetCard.selected = true
+          assetCard.focused = true
           lastFocusedAsset = assetCard
         }
       }
@@ -218,7 +221,7 @@ class ResourceDetailView(
 
   private fun openFile(asset: DesignAsset) {
     ResourceManagerTracking.logAssetOpened(asset.type)
-    viewModel.openFile(asset)
+    viewModel.doSelectAssetAction(asset)
   }
 
   override fun getData(dataId: String): Any? {

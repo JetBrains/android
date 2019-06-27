@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -24,6 +25,21 @@ import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_NATIVE_M
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 
 public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
+  private boolean mySavedSingleVariantSyncSetting = false;
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    // This test requires Single Variant Sync to be turned off
+    mySavedSingleVariantSyncSetting = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = mySavedSingleVariantSyncSetting;
+  }
 
   public void testWithModules() throws Exception {
     loadProject(DYNAMIC_APP);

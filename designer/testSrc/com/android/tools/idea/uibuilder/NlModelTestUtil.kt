@@ -50,6 +50,7 @@ fun createNlModelFromTagName(androidFacet: AndroidFacet,
   val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
   val file = LightLayoutFile(xmlContent)
   val model = NlModel.create(androidFacet.module,
+                             null,
                              androidFacet,
                              file,
                              configurationManager,

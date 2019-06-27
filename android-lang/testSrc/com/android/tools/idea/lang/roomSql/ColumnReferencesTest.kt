@@ -24,7 +24,6 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.TestActionEvent
 
 class ColumnReferencesTest : RoomLightTestCase() {
 
@@ -619,6 +618,111 @@ class ColumnReferencesTest : RoomLightTestCase() {
         myFixture.findUsages(myFixture.findField("com.example.User", "fullName"))
             .find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
+  }
+
+  fun testUsages_caseInsensitive_kotlin() {
+    myFixture.configureByText("User.kt",
+                              """
+        package com.example
+
+        import androidx.room.ColumnInfo
+        import androidx.room.Entity
+
+        @Entity
+        class User() {
+          val first<caret>Name: String?
+        }
+    """.trimIndent())
+
+    val element = myFixture.elementAtCaret;
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT FIRSTNAME FROM User") List<String> getNames();
+        }
+    """.trimIndent())
+
+    assertThat(
+      myFixture.findUsages(element)
+        .find { it.file!!.language == RoomSqlLanguage.INSTANCE })
+      .isNotNull()
+  }
+
+  fun testUsages_nameOverride_kotlin() {
+    myFixture.configureByText("User.kt",
+      """
+        package com.example
+
+        import androidx.room.ColumnInfo
+        import androidx.room.Entity
+
+        @Entity
+        class User() {
+          @ColumnInfo(name = "override_name") val original<caret>Name: String?
+        }
+    """.trimIndent())
+
+    val element = myFixture.elementAtCaret;
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT override_name FROM User") List<String> getNames();
+        }
+    """.trimIndent())
+
+    assertThat(
+      myFixture.findUsages(element)
+        .find { it.file!!.language == RoomSqlLanguage.INSTANCE })
+      .isNotNull()
+  }
+
+  fun testResolve_nameOverride_kotlin() {
+    myFixture.configureByText("User.kt",
+                              """
+        package com.example
+
+        import androidx.room.ColumnInfo
+        import androidx.room.Entity
+
+        @Entity
+        class User() {
+          @ColumnInfo(name = "override_name") val originalName: String?
+          @field:ColumnInfo(name = "override_name_field") val originalName_field: String?
+          @get:ColumnInfo(name = "override_name_get") var originalName_get: String?
+        }
+    """.trimIndent())
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT ove<caret>rride_name, override_name_field, override_name_get FROM User") List<String> getNames();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.referenceAtCaret.resolve()).isNotNull()
+    myFixture.moveCaret("|override_name_field")
+    assertThat(myFixture.referenceAtCaret.resolve()).isNotNull()
+
+    myFixture.moveCaret("|override_name_get")
+    // Room annotation works only for property annotation (annotationEntry.useSiteTarget == null) or for FIELD annotation
+    assertThat(myFixture.referenceAtCaret.resolve()).isNull()
   }
 
   fun testUsages_nameOverride_escaping() {

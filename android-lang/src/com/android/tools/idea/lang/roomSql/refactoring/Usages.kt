@@ -23,6 +23,7 @@ import com.android.tools.idea.lang.roomSql.STRING_LITERALS
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
 import com.android.tools.idea.lang.roomSql.psi.RoomNameElement
 import com.android.tools.idea.lang.roomSql.resolution.PsiElementForFakeColumn
+import com.android.tools.idea.lang.roomSql.resolution.RoomDependencyChecker
 import com.android.tools.idea.lang.roomSql.resolution.RoomSchema
 import com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager
 import com.android.tools.idea.lang.roomSql.resolution.SqlColumn
@@ -36,10 +37,12 @@ import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.application.QueryExecutorBase
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.cache.impl.id.ScanningIdIndexer
 import com.intellij.psi.search.searches.ReferencesSearch
@@ -47,6 +50,11 @@ import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.util.CommonProcessors
 import com.intellij.util.Processor
+import org.jetbrains.kotlin.asJava.toLightClass
+import org.jetbrains.kotlin.asJava.toLightElements
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
 /**
  * No-op [FindUsagesProvider] that provides the right [WordsScanner] for SQL.
@@ -69,11 +77,14 @@ class RoomIdIndexer : ScanningIdIndexer() {
 
 /**
  * `referencesSearch` that checks the word index for the right words (in case a table/column name is not the same as class name).
+ *
+ * Also it does case insensitive search.
  */
 class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>() {
   private fun getSchema(element: PsiElement) = ReadAction.compute<RoomSchema?, Nothing> {
     if (element.containingFile != null) {
-      RoomSchemaManager.getInstance(element.project)?.getSchema(element.containingFile)
+      val module = ModuleUtil.findModuleForPsiElement(element) ?: return@compute null
+      RoomSchemaManager.getInstance(module).getSchema(element.containingFile)
     } else {
       null
     }
@@ -86,13 +97,20 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     }
 
     val (words, referenceTarget) = runReadAction {
+
+      if (!RoomDependencyChecker.getInstance(element.project).isRoomPresent()) return@runReadAction null
+
       // Return early if possible: this method is called by various inspections on all kinds of PSI elements, in most cases we don't have to
       // do anything which means we don't block a FJ thread by building a Room schema.
       val definesSqlSchema = when (element) {
         is PsiElementForFakeColumn -> true
         is PsiClass -> element.definesSqlTable()
-        is PsiField -> {
-          val psiClass = element.containingClass
+        is PsiField, is KtProperty -> {
+          val psiClass: PsiClass? = if (element is PsiField) {
+            element.containingClass
+          } else {
+            (element as KtProperty).containingClass()?.toLightClass()
+          }
           // A subclass can be annotated with `@Entity`, making fields into SQL column definitions.
           !(psiClass == null || psiClass.hasModifier(JvmModifier.FINAL) && !psiClass.definesSqlTable())
         }
@@ -103,7 +121,18 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
         return@runReadAction null
       }
 
-      getNameDefinition(element)?.let(this::chooseWordsAndElement)
+      val schema = getSchema(element)
+      if (schema == null) {
+        //Case: module that element belongs to doesn't have schema, but subclass in another module can be annotated with `@Entity`.
+        //Therefore we want to make case insensitive search for that element
+        if (element is PsiNamedElement && element.name != null) {
+          Pair(setOf(element.name!!), element)
+        } else {
+          null
+        }
+      } else {
+        getNameDefinition(schema, element)?.let(this::chooseWordsAndElement)
+      }
     } ?: return
 
     // Note: QueryExecutorBase is a strange API: the naive way to implement it is to somehow find the references and feed them to the
@@ -155,22 +184,29 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     return Pair(words, definition.resolveTo)
   }
 
-  private fun getNameDefinition(element: PsiElement): SqlDefinition? {
+  private fun getNameDefinition(schema: RoomSchema, element: PsiElement): SqlDefinition? {
     return when (element) {
       is PsiClass -> {
-        getSchema(element)?.findTable(element)
+        schema.findTable(element)
       }
       is PsiField -> {
-        getSchema(element)
-          ?.findTable(element.containingClass ?: return null)
+        schema
+          .findTable(element.containingClass ?: return null)
           ?.columns
           ?.find { it.definingElement == element }
       }
       is PsiElementForFakeColumn -> {
-        getSchema(element.tablePsiElement)
-          ?.findTable(element.tablePsiElement)
+        schema
+          .findTable(element.tablePsiElement)
           ?.columns
           ?.find { PsiManager.getInstance(element.project).areElementsEquivalent(it.definingElement, element) }
+      }
+      is KtProperty -> {
+        val lightField = element.toLightElements().firstIsInstanceOrNull<PsiField>()
+        schema
+          .findTable(element.containingClass()?.toLightClass() ?: return null)
+          ?.columns
+          ?.find { it.definingElement == lightField }
       }
       else -> null
     }

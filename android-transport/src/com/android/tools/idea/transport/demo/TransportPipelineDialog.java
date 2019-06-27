@@ -154,7 +154,7 @@ public class TransportPipelineDialog extends DialogWrapper {
         event -> {
           // Add events to log
           myEventLog.append(event.toString());
-          return Unit.INSTANCE;
+          return false;
         });
       myTransportEventPoller.registerListener(mySelectedEventListener);
     });
@@ -207,7 +207,7 @@ public class TransportPipelineDialog extends DialogWrapper {
         myStreamIdMap.put(stream.getStreamId(), stream);
         myProcessesMap.put(stream.getStreamId(), new ArrayList<>());
         rebuildDevicesDropdown();
-        return Unit.INSTANCE;
+        return false;
       });
     myTransportEventPoller.registerListener(streamConnectedListener);
 
@@ -222,7 +222,7 @@ public class TransportPipelineDialog extends DialogWrapper {
         myStreamIdMap.remove(stream.getStreamId());
         myProcessesMap.remove(stream.getStreamId());
         rebuildDevicesDropdown();
-        return Unit.INSTANCE;
+        return false;
       });
     myTransportEventPoller.registerListener(streamDisconnectedListener);
 
@@ -237,7 +237,7 @@ public class TransportPipelineDialog extends DialogWrapper {
         myProcessesMap.get(process.getDeviceId()).add(process);
         myProcessIdMap.put(event.getGroupId(), process);
         rebuildDevicesDropdown();
-        return Unit.INSTANCE;
+        return false;
       });
     myTransportEventPoller.registerListener(processStartedListener);
 
@@ -253,7 +253,7 @@ public class TransportPipelineDialog extends DialogWrapper {
           myProcessesMap.get(process.getDeviceId()).remove(process);
         }
         rebuildDevicesDropdown();
-        return Unit.INSTANCE;
+        return false;
       });
     myTransportEventPoller.registerListener(processEndedListener);
   }
@@ -346,7 +346,7 @@ public class TransportPipelineDialog extends DialogWrapper {
       event -> {
         // If a process is selected, enable the UI once the agent is detected.
         toggleControls(true);
-        return Unit.INSTANCE;
+        return false;
       });
     myTransportEventPoller.registerListener(myAgentStatusListener);
   }

@@ -95,10 +95,10 @@ class AssetNameConverterTest {
 
   @Test
   fun classNameStripsSeveralSuffixesRecursively() {
-    for (s in AssetNameConverter.STRIP_CLASS_SUFFIXES) {
+    for (s in STRIP_CLASS_SUFFIXES) {
       run {
         // Simple suffixes like "Activity" or "Fragment" are stripped
-        val c = AssetNameConverter(Type.CLASS_NAME, "TestName" + s)
+        val c = AssetNameConverter(Type.CLASS_NAME, "TestName$s")
         assertThat(c.getValue(Type.CLASS_NAME)).isEqualTo("TestName")
         assertThat(c.getValue(Type.ACTIVITY)).isEqualTo("TestNameActivity")
         assertThat(c.getValue(Type.LAYOUT)).isEqualTo("activity_test_name")
@@ -107,7 +107,7 @@ class AssetNameConverterTest {
 
       run {
         // Combo suffixes like "ActivityActivity" are stripped
-        val c = AssetNameConverter(Type.CLASS_NAME, "TestName" + s + s)
+        val c = AssetNameConverter(Type.CLASS_NAME, "TestName$s$s")
         assertThat(c.getValue(Type.CLASS_NAME)).isEqualTo("TestName")
         assertThat(c.getValue(Type.ACTIVITY)).isEqualTo("TestNameActivity")
         assertThat(c.getValue(Type.LAYOUT)).isEqualTo("activity_test_name")

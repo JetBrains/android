@@ -17,6 +17,7 @@ package com.android.tools.idea.assistant.view;
 
 import com.android.tools.idea.assistant.AssistActionStateManager;
 import com.android.tools.idea.assistant.DefaultTutorialBundle;
+import com.android.tools.idea.assistant.PanelFactory;
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
@@ -59,6 +60,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -179,6 +181,16 @@ public class TutorialStep extends JPanel {
           catch (IOException e) {
             getLog().error("Cannot load image: " + imageSource, e);
           }
+          break;
+        case PANEL:
+          String factoryId = Objects.requireNonNull(element.getPanel()).getFactoryId();
+
+          PanelFactory panelFactory = PanelFactory.EP_NAME.getExtensionList().stream()
+            .filter(factory -> factory.getId().equals(factoryId))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("No PanelFactory exists for " + factoryId));
+
+          myContents.add(panelFactory.create());
           break;
         default:
           getLog().error("Found a StepElement of unknown type. " + element.toString());

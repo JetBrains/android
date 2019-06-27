@@ -17,8 +17,7 @@ package com.android.tools.idea.npw.project;
 
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
-import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static java.lang.String.format;
@@ -26,7 +25,6 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
-import com.android.sdklib.AndroidVersion.VersionCodes;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -105,7 +103,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JLabel myTemplateIconTitle;
   private JLabel myTemplateIconDetail;
   private JPanel myFormFactorSdkControlsPanel;
-  private JCheckBox myUseAndroidxCheck;
   private FormFactorSdkControls myFormFactorSdkControls;
 
 
@@ -139,7 +136,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     String basePackage = new DomainToPackageExpression(companyDomain, new StringValueProperty("")).get();
 
     Expression<String> computedPackageName = myProjectModel.applicationName()
-                                                           .transform(appName -> format("%s.%s", basePackage, toPackagePart(appName)));
+                                                           .transform(appName -> format("%s.%s", basePackage, nameToJavaPackage(appName)));
     TextProperty packageNameText = new TextProperty(myPackageName);
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(myProjectModel.packageName(), packageNameText);
@@ -158,7 +155,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myBindings.bindTwoWay(getModel().dynamicInstantApp(), new SelectedProperty(myInstantAppCheck));
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.language());
-    myBindings.bindTwoWay(myProjectModel.useAndroidx(), new SelectedProperty(myUseAndroidxCheck));
 
 
     myValidatorPanel.registerValidator(myProjectModel.applicationName(), new ProjectNameValidator());
@@ -186,21 +182,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myWearCheck.setVisible(formFactor == FormFactor.WEAR);
       myTvCheck.setVisible(formFactor == FormFactor.TV);
       myOfflineRepoCheck.setVisible(StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get());
-      myUseAndroidxCheck.setVisible(NELE_USE_ANDROIDX_DEFAULT.get()
-                                    && myProjectModel.isAndroidxAvailable());
-    });
-
-    myListeners.listenAndFire(androidSdkInfo, () -> {
-      VersionItem androidVersion = androidSdkInfo.getValueOrNull();
-      boolean isAndroidxOnly = androidVersion != null && androidVersion.getTargetApiLevel() >= VersionCodes.Q;
-      if (isAndroidxOnly) {
-        // No more app-compat after Q. Force androidx checkbox selection and disable it from change.
-        myUseAndroidxCheck.setSelected(true);
-        myUseAndroidxCheck.setEnabled(false);
-      }
-      else {
-        myUseAndroidxCheck.setEnabled(true);
-      }
     });
   }
 

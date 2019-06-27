@@ -216,10 +216,10 @@ public class MemoryServiceProxyTest {
     verify(observer3, times(1)).onCompleted();
 
     // Verify that ListAllocationContexts contains the stack/class info
-    AllocationContextsResponse expected4 = AllocationContextsResponse.newBuilder()
-      .addAllAllocatedClasses(myAllocationConverter.getClassNames())
-      .addAllAllocationStacks(myAllocationConverter.getAllocationStacks()).build();
-    StreamObserver<AllocationContextsResponse> observer4 = mock(StreamObserver.class);
+    LegacyAllocationContextsResponse expected4 = LegacyAllocationContextsResponse.newBuilder()
+      .addAllClasses(myAllocationConverter.getClassNames())
+      .addAllStacks(myAllocationConverter.getAllocationStacks()).build();
+    StreamObserver<LegacyAllocationContextsResponse> observer4 = mock(StreamObserver.class);
     myProxy.getLegacyAllocationContexts(
       LegacyAllocationContextsRequest.newBuilder().setSession(SESSION1).addClassIds(expectedEvents.get(0).getClassId())
         .addStackIds(expectedEvents.get(0).getStackId()).build(), observer4);
@@ -227,14 +227,14 @@ public class MemoryServiceProxyTest {
     verify(observer4, times(1)).onCompleted();
 
     // Verify that ListAllocationContexts for the wrong pid/capture time returns empty result.
-    StreamObserver<AllocationContextsResponse> observer5 = mock(StreamObserver.class);
+    StreamObserver<LegacyAllocationContextsResponse> observer5 = mock(StreamObserver.class);
     myProxy.getLegacyAllocationContexts(LegacyAllocationContextsRequest.newBuilder().build(), observer5);
-    verify(observer5, times(1)).onNext(AllocationContextsResponse.getDefaultInstance());
+    verify(observer5, times(1)).onNext(LegacyAllocationContextsResponse.getDefaultInstance());
     verify(observer5, times(1)).onCompleted();
-    StreamObserver<AllocationContextsResponse> observer6 = mock(StreamObserver.class);
+    StreamObserver<LegacyAllocationContextsResponse> observer6 = mock(StreamObserver.class);
     myProxy.getLegacyAllocationContexts(
       LegacyAllocationContextsRequest.newBuilder().build(), observer6);
-    verify(observer6, times(1)).onNext(AllocationContextsResponse.getDefaultInstance());
+    verify(observer6, times(1)).onNext(LegacyAllocationContextsResponse.getDefaultInstance());
     verify(observer6, times(1)).onCompleted();
   }
 

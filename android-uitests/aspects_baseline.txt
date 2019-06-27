@@ -25,9 +25,9 @@ com.android.tools.idea.configurations.ConfigurationManager.getDevices|com.androi
 com.android.tools.idea.configurations.ConfigurationManager.getDevices|com.android.tools.idea.configurations.ConfigurationManager.getDeviceById
 com.android.tools.idea.configurations.ConfigurationManager.getDevices|com.android.tools.idea.configurations.ConfigurationMatcher.findAndSetCompatibleConfig
 com.android.tools.idea.configurations.ConfigurationManager.getDevices|com.android.tools.idea.configurations.DeviceUtils.getSuitableDevices
-com.android.tools.idea.gradle.plugin.AndroidPluginInfo.find|com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly
-com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFiles|com.android.tools.idea.gradle.plugin.AndroidPluginInfo.find
-com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly|com.android.tools.idea.npw.template.TemplateValueInjector.determineGradlePluginVersion
+com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFiles|com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findInBuildFiles
+com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findInBuildFiles|com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles
+com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles|com.android.tools.idea.npw.template.TemplateValueInjector.determineGradlePluginVersion
 com.android.tools.idea.model.MergedManifestInfo.create|com.android.tools.idea.model.MergedManifestSupplier$getOrCreateSnapshot$$inlined$runReadAction$1.compute
 com.android.tools.idea.model.MergedManifestInfo.getMergedManifest|com.android.tools.idea.model.MergedManifestInfo.mergeManifests
 com.android.tools.idea.model.MergedManifestInfo.mergeManifests|com.android.tools.idea.model.MergedManifestInfo.create
@@ -62,11 +62,11 @@ com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.andr
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.editors.theme.ThemeResolver.resolveLocallyDefinedModuleThemes
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.res.ProjectResourceRepository.computeRepositories
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources
-com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.configurations.ConfigurationManager.getLocales
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.fonts.ProjectFonts.getFonts
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.AppResourceRepository.computeLocalRepositories
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceNotificationManager$ModuleEventObserver.registerListeners
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources
+com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.lambda$getLocalesAndLanguages$6
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog$ResourcePanel.allowEditing
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|org.jetbrains.android.AndroidResourceRenameResourceProcessor.findExistingNameConflicts
 com.android.tools.idea.uibuilder.palette.NlPaletteModel.getPalette|com.android.tools.idea.uibuilder.palette.DataModel.update

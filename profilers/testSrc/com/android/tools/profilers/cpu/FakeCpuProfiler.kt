@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Cpu.CpuTraceType
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.FakeIdeProfilerServices
@@ -27,7 +26,6 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.rules.ExternalResource
-import java.util.concurrent.TimeUnit
 
 /**
  * A JUnit rule for simulating CPU profiler events.
@@ -35,13 +33,15 @@ import java.util.concurrent.TimeUnit
 class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketransport.FakeGrpcChannel,
                       val transportService: FakeTransportService,
                       val cpuService: FakeCpuService,
-                      val timer: FakeTimer) : ExternalResource() {
+                      val timer: FakeTimer,
+                      val newPipeline: Boolean) : ExternalResource() {
 
   lateinit var ideServices: FakeIdeProfilerServices
   lateinit var stage: CpuProfilerStage
 
   override fun before() {
     ideServices = FakeIdeProfilerServices()
+    ideServices.enableEventsPipeline(newPipeline)
 
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), ideServices, timer)
     // One second must be enough for new devices (and processes) to be picked up
@@ -52,42 +52,19 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
     stage.studioProfilers.stage = stage
   }
 
+  override fun after() {
+    stage.studioProfilers.stop()
+  }
+
   fun startCapturing(success: Boolean = true) {
     assertThat(stage.captureState).isEqualTo(CpuProfilerStage.CaptureState.IDLE)
-
-    cpuService.setStartProfilingStatus(
-      when (success) {
-        true -> Cpu.TraceStartStatus.Status.SUCCESS
-        false -> Cpu.TraceStartStatus.Status.FAILURE
-      }
-    )
-
-    stage.startCapturing()
+    CpuProfilerTestUtils.startCapturing(stage, cpuService, transportService, success)
     assertThat(stage.captureState).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING)
   }
 
-  fun stopCapturing(traceId: Long, success: Boolean = true, fromUs: Long, toUs: Long, traceType: CpuTraceType, traceContent: ByteString) {
+  fun stopCapturing(success: Boolean = true, traceContent: ByteString) {
     assertThat(stage.captureState).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING)
-
-    cpuService.setStopProfilingStatus(
-      when (success) {
-        true -> {
-          cpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
-                                    .setTraceId(traceId)
-                                    .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                                                        .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                                                          .setTraceType(traceType)))
-                                    .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(fromUs))
-                                    .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(toUs))
-                                    .build())
-          Cpu.TraceStopStatus.Status.SUCCESS
-
-        }
-        false -> Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED
-      }
-    )
-    transportService.addFile(traceId.toString(), traceContent)
-
+    CpuProfilerTestUtils.stopCapturing(stage, cpuService, transportService, success, traceContent)
     stage.stopCapturing()
   }
 

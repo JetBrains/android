@@ -21,5 +21,7 @@
                     interface="com.android.tools.idea.assistant.AssistActionStateManager"/>
     <extensionPoint qualifiedName="com.android.tools.idea.assistant.assistantBundleCreator"
                     interface="com.android.tools.idea.assistant.AssistantBundleCreator"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.assistant.panelFactory"
+                    interface="com.android.tools.idea.assistant.PanelFactory"/>
   </extensionPoints>
 </idea-plugin>

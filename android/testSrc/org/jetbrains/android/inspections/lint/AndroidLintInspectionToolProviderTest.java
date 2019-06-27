@@ -166,7 +166,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       if (root == null) {
         sb.append("\n***If you set the environment variable " + ADT_SOURCE_TREE + " (or set it as a system property in the test run " +
                   "config) this test can automatically create/edit the files for you!***\n");
-        sb.append("\nAdd to android/src/META-INF/android-plugin.xml (and please try to preserve the case insensitive alphabetical " +
+        sb.append("\nAdd to android/src/org/jetbrains/android/inspections/lint/android-lint.xml (and please try to preserve the case insensitive alphabetical " +
                   "order):\n");
       }
       for (Issue issue : missing) {

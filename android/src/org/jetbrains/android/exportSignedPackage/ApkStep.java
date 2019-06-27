@@ -29,6 +29,19 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.JBUI;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -38,14 +51,6 @@ import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.SaveFileListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.util.*;
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -64,6 +69,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
   private final ExportSignedPackageWizard myWizard;
   private boolean myInited;
+  private boolean myIsBundle;
 
   @Nullable
   private static String getContentRootPath(Module module) {
@@ -77,6 +83,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
   public ApkStep(ExportSignedPackageWizard wizard) {
     myWizard = wizard;
+    myIsBundle = myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE);
     myApkPathLabel.setLabelFor(myApkPathField);
 
     myApkPathField.getButton().addActionListener(
@@ -105,7 +112,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
     Module module = facet.getModule();
 
     PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
-    String lastModule = properties.getValue(KeystoreStep.MODULE_PROPERTY);
+    String lastModule = properties.getValue(KeystoreStep.getModuleProperty(myIsBundle));
     String lastApkPath = properties.getValue(getApkPathPropertyName());
     if (lastApkPath != null && module.getName().equals(lastModule)) {
       myApkPathField.setText(FileUtil.toSystemDependentName(lastApkPath));
@@ -217,7 +224,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
     AndroidFacet facet = myWizard.getFacet();
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
-    properties.setValue(KeystoreStep.MODULE_PROPERTY, facet != null ? facet.getModule().getName() : "");
+    properties.setValue(KeystoreStep.getModuleProperty(myIsBundle), facet != null ? facet.getModule().getName() : "");
     properties.setValue(getApkPathPropertyName(), apkPath);
 
     File folder = new File(apkPath).getParentFile();

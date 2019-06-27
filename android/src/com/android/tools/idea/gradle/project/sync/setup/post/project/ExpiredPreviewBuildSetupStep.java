@@ -45,7 +45,7 @@ public class ExpiredPreviewBuildSetupStep extends ProjectSetupStep {
   }
 
   @Override
-  public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
+  public void setUpProject(@NotNull Project project) {
     if (myExpirationChecked) {
       return;
     }

@@ -20,28 +20,25 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ProjectManager
 
 class LiveInstanceStats {
-  fun createReport(): String {
-    val result = StringBuilder()
-
+  fun createReport(): String = buildString {
     // Count open projects
     val openProjects = ProjectManager.getInstance().openProjects
     val projectsOpenCount = openProjects.size
 
-    result.appendln("Projects open: $projectsOpenCount")
+    appendln("Projects open: $projectsOpenCount")
     openProjects.forEachIndexed { projectIndex, project ->
-      result.appendln("Project ${projectIndex + 1}:")
+      appendln("Project ${projectIndex + 1}:")
 
       val modulesCount = ModuleManager.getInstance(project).modules.count()
-      result.appendln("  Module count: $modulesCount")
+      appendln("  Module count: $modulesCount")
 
       val allEditors = FileEditorManager.getInstance(project).allEditors
       val typeToCount = allEditors.groupingBy { "${it.javaClass.name}[${it.file?.fileType?.javaClass?.name}]" }.eachCount()
-      result.appendln("  Editors opened: ${allEditors.size}. Counts by type:")
+      appendln("  Editors opened: ${allEditors.size}. Counts by type:")
       typeToCount.entries.sortedByDescending { it.value }.forEach { (typeString, count) ->
-        result.appendln("   * $count $typeString")
+        appendln("   * $count $typeString")
       }
-      result.appendln()
+      appendln()
     }
-    return result.toString()
   }
 }

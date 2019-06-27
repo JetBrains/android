@@ -17,13 +17,13 @@
 package org.jetbrains.kotlin.android.quickfix
 
 import com.android.SdkConstants
+import com.android.tools.idea.kotlin.hasBackingField
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.kotlin.android.hasBackingField
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*

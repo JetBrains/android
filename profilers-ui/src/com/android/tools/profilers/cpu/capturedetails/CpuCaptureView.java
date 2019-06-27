@@ -50,9 +50,9 @@ public class CpuCaptureView {
     myCapturePane = createCapturePane();
 
     myStage.getAspect().addDependency(myObserver)
-           .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
-           .onChange(CpuProfilerAspect.CAPTURE_STATE, this::onCaptureStateChanged)
-           .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCapturePane);
+      .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
+      .onChange(CpuProfilerAspect.CAPTURE_STATE, this::onCaptureStateChanged)
+      .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCapturePane);
     myStage.getCaptureParser().getAspect().addDependency(myObserver).onChange(CpuProfilerAspect.CAPTURE_PARSING, this::updateCapturePane);
     updateCapturePane();
   }
@@ -67,6 +67,7 @@ public class CpuCaptureView {
       // STARTING and STOPPING shouldn't change the panel displayed, so we return early.
       return;
     }
+
     updateCapturePane();
   }
 
@@ -114,7 +115,7 @@ public class CpuCaptureView {
       super(stageView, "Recording");
       // Disable the stop recording button on state transition.
       myStage.getAspect().addDependency(myObserver)
-             .onChange(CpuProfilerAspect.CAPTURE_STATE, () -> myStopRecordingButton.setEnabled(false));
+        .onChange(CpuProfilerAspect.CAPTURE_STATE, () -> myStopRecordingButton.setEnabled(false));
     }
 
     @Override

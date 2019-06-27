@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    ndkVersion "19.2.5345600"
+    ndkVersion "20.0.5594570"
     compileSdkVersion 23
     buildToolsVersion '23.0.2'
     defaultConfig {

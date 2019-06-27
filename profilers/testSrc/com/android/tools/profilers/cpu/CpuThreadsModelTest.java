@@ -116,17 +116,17 @@ public class CpuThreadsModelTest {
     if (myIsUnifiedPipeline) {
       long streamId = ProfilersTestData.SESSION_DATA.getStreamId();
       int pid = ProfilersTestData.SESSION_DATA.getPid();
-      myTransportService.addEventToEventGroup(
+      myTransportService.addEventToStream(
         streamId, ProfilersTestData.generateCpuThreadEvent(1, 104, "Thread 100", Cpu.CpuThreadData.State.RUNNING).build());
-      myTransportService.addEventToEventGroup(
+      myTransportService.addEventToStream(
         streamId, ProfilersTestData.generateCpuThreadEvent(1, 100, "Thread 100", Cpu.CpuThreadData.State.RUNNING).build());
-      myTransportService.addEventToEventGroup(
+      myTransportService.addEventToStream(
         streamId, ProfilersTestData.generateCpuThreadEvent(1, pid, "Main", Cpu.CpuThreadData.State.RUNNING).build());
-      myTransportService.addEventToEventGroup(
+      myTransportService.addEventToStream(
         streamId, ProfilersTestData.generateCpuThreadEvent(1, 101, "RenderThread", Cpu.CpuThreadData.State.RUNNING).build());
-      myTransportService.addEventToEventGroup(
+      myTransportService.addEventToStream(
         streamId, ProfilersTestData.generateCpuThreadEvent(1, 102, "A Named Thread", Cpu.CpuThreadData.State.RUNNING).build());
-      myTransportService.addEventToEventGroup(
+      myTransportService.addEventToStream(
         streamId, ProfilersTestData.generateCpuThreadEvent(1, 103, "RenderThread", Cpu.CpuThreadData.State.RUNNING).build());
     }
     else {

@@ -166,7 +166,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
     }
     else {
       ChooseModuleTypeStep chooseModuleTypeStep =
-        ChooseModuleTypeStep.createWithDefaultGallery(project, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
+        ChooseModuleTypeStep.createWithDefaultGallery(project, null, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
       builder.addStep(chooseModuleTypeStep);
     }
     myWizardAdapter = new IdeaWizardAdapter(hostWizard, builder.build());

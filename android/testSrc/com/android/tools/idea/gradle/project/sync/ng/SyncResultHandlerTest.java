@@ -79,7 +79,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     verify(mySyncListener).syncSucceeded(project);
     verify(mySyncListener, never()).syncFailed(any(), any());
 
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any(), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
   public void testOnSyncFailed() {
@@ -115,7 +115,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     verify(mySyncListener).syncSucceeded(project);
     verify(mySyncListener, never()).syncFailed(any(), any());
 
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any(), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
   public void testOnCompoundSyncModelsForOldPlugin() {

@@ -92,6 +92,8 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
 
   @Override
   protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
+    // Override settings just for tests (e.g. sdk.dir)
+    AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
     // In this overriden version we don't update versions of the Android plugin and use the one specified in the test project.
     updateVersionAndDependencies(projectRoot, getLocalRepositoriesForGroovy());
     AndroidGradleTests.createGradleWrapper(projectRoot, myTestSettings.gradleVersion);

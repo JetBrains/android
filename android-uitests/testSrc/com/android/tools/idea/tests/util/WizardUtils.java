@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.tests.util;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import org.jetbrains.annotations.NotNull;
 
 public final class WizardUtils {
@@ -24,6 +27,9 @@ public final class WizardUtils {
 
   public static void createNewProject(@NotNull GuiTestRule guiTest) {
     createNewProject(guiTest, "Empty Activity");
+
+    // Assert it opens the Code and Layout files on the editor
+    assertThat(FileEditorManager.getInstance(guiTest.ideFrame().getProject()).getOpenFiles()).hasLength(2);
   }
 
   public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity) {
@@ -36,7 +42,6 @@ public final class WizardUtils {
       .clickNext()
       .getConfigureNewAndroidProjectStep()
       .setSourceLanguage("Java")
-      .setUseAndroidX(true)
       .enterPackageName("com.google.myapplication")
       .wizard()
       .clickFinish();

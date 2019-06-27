@@ -61,6 +61,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.swing.JScrollPane;
@@ -791,7 +792,7 @@ public class MemoryClassifierViewTest {
     assertThat(rootNode.getChildCount()).isEqualTo(0);
 
     // Initial selection from 0 to 4
-    selectionRange.set(captureStartTime, captureStartTime + 4);
+    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
@@ -807,7 +808,7 @@ public class MemoryClassifierViewTest {
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
 
     // Expand right to 8
-    selectionRange.set(captureStartTime, captureStartTime + 8);
+    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(8));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 8, 6, 2, 2, 2));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2));
@@ -823,7 +824,7 @@ public class MemoryClassifierViewTest {
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_8, 0);
 
     // Shrink left to 4
-    selectionRange.setMin(captureStartTime + 4);
+    selectionRange.setMin(captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 4, 2, 2, 2));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2));
@@ -839,7 +840,7 @@ public class MemoryClassifierViewTest {
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_8, 0);
 
     // Shrink right to 4
-    selectionRange.setMax(captureStartTime + 4);
+    selectionRange.setMax(captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_4 = new LinkedList<>();
     expected_4_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 0, 0, 2, 2, 2));
     expected_4_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 0, 0, 1, 1, 1));
@@ -886,7 +887,7 @@ public class MemoryClassifierViewTest {
     assertThat(rootNode.getChildCount()).isEqualTo(0);
 
     // Initial selection from 0 to 4
-    selectionRange.set(captureStartTime, captureStartTime + 4);
+    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
@@ -918,7 +919,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Expand right to 8
-    selectionRange.setMax(captureStartTime + 8);
+    selectionRange.setMax(captureStartTime + TimeUnit.SECONDS.toMicros(8));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 3, 1, 1, 1));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2));
@@ -931,7 +932,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Shrink left to 4
-    selectionRange.setMin(captureStartTime + 4);
+    selectionRange.setMin(captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 2, 2, 1, 1, 1));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2));
@@ -1013,7 +1014,7 @@ public class MemoryClassifierViewTest {
     assertThat(rootNode.getChildCount()).isEqualTo(0);
 
     // Initial selection from 0 to 4
-    selectionRange.set(captureStartTime, captureStartTime + 4);
+    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
@@ -1044,7 +1045,7 @@ public class MemoryClassifierViewTest {
     assertThat(selectedNode).isEqualTo(childThatIsBar);
 
     // Expand right to 8
-    selectionRange.set(captureStartTime, captureStartTime + 8);
+    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(8));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 8, 6, 2, 2, 2));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2));
@@ -1067,7 +1068,7 @@ public class MemoryClassifierViewTest {
     assertThat(myStage.getSelectedInstanceObject()).isEqualTo(selectedInstance);
 
     // Shrink left to 4
-    selectionRange.setMin(captureStartTime + 4);
+    selectionRange.setMin(captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 4, 2, 2, 2));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2));

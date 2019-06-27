@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume
 import org.junit.Test
 
 class ModelMapPropertyImplTest : GradleFileModelTestCase() {
@@ -57,6 +58,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
   @Test
   fun testPropertyValues() {
     // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.
+    Assume.assumeTrue(isGroovy())
     val text = """
                ext {
                  propB = "2"
@@ -104,6 +106,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
   @Test
   fun testWritePropertyValues() {
     // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.
+    Assume.assumeTrue(isGroovy())
     val text = """
                ext {
                  propB = "2"
@@ -147,6 +150,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
   @Test
   fun testEditMapKeys() {
     // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.
+    Assume.assumeTrue(isGroovy())
     val text = """
                ext {
                  propB = "2"

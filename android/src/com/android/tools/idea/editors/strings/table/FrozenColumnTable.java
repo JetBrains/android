@@ -37,7 +37,6 @@ import javax.swing.Action;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
-import javax.swing.RowSorter;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
@@ -47,8 +46,8 @@ import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FrozenColumnTable {
-  private TableModel myModel;
+public class FrozenColumnTable<M extends TableModel> {
+  private M myModel;
 
   private final int myFrozenColumnCount;
   private final Collection<FrozenColumnTableListener> myListeners;
@@ -60,7 +59,10 @@ public class FrozenColumnTable {
   private int mySelectedRow;
   private int mySelectedColumn;
 
-  FrozenColumnTable(@NotNull TableModel model, int frozenColumnCount) {
+  @Nullable
+  private FrozenColumnTableRowSorter<M> myRowSorter;
+
+  FrozenColumnTable(@NotNull M model, int frozenColumnCount) {
     myModel = model;
     myFrozenColumnCount = frozenColumnCount;
     myListeners = new ArrayList<>();
@@ -74,7 +76,7 @@ public class FrozenColumnTable {
   }
 
   private void initFrozenTable() {
-    myFrozenTable = new SubTable(new SubTableModel(myModel, () -> 0, () -> myFrozenColumnCount), this);
+    myFrozenTable = new SubTable<>(new SubTableModel(myModel, () -> 0, () -> myFrozenColumnCount), this);
     myFrozenTable.setName("frozenTable");
 
     IntUnaryOperator converter = IntUnaryOperator.identity();
@@ -111,7 +113,7 @@ public class FrozenColumnTable {
   }
 
   private void initScrollableTable() {
-    myScrollableTable = new SubTable(new SubTableModel(myModel, () -> myFrozenColumnCount, myModel::getColumnCount), this);
+    myScrollableTable = new SubTable<>(new SubTableModel(myModel, () -> myFrozenColumnCount, myModel::getColumnCount), this);
     myScrollableTable.setName("scrollableTable");
 
     IntUnaryOperator converter = viewColumnIndex -> myFrozenTable.getColumnCount() + viewColumnIndex;
@@ -134,7 +136,7 @@ public class FrozenColumnTable {
     myScrollableTable.addMouseListener(new CellPopupTriggerListener(converter));
   }
 
-  private static final class HeaderPopupTriggerListener extends MouseAdapter {
+  private static final class HeaderPopupTriggerListener<M extends TableModel> extends MouseAdapter {
     private final IntUnaryOperator myConverter;
 
     private HeaderPopupTriggerListener(@NotNull IntUnaryOperator converter) {
@@ -164,7 +166,10 @@ public class FrozenColumnTable {
         return;
       }
 
-      FrozenColumnTable source = ((SubTable)header.getTable()).getFrozenColumnTable();
+      @SuppressWarnings("unchecked")
+      SubTable<M> subTable = (SubTable<M>)header.getTable();
+
+      FrozenColumnTable<M> source = subTable.getFrozenColumnTable();
       int frozenColumnTableIndex = myConverter.applyAsInt(subTableIndex);
       FrozenColumnTableEvent frozenColumnTableEvent = new FrozenColumnTableEvent(source, -1, frozenColumnTableIndex, point, header);
 
@@ -186,7 +191,7 @@ public class FrozenColumnTable {
     myListeners.forEach(listener -> listener.selectedCellChanged());
   }
 
-  private static final class CellPopupTriggerListener extends MouseAdapter {
+  private static final class CellPopupTriggerListener<M extends TableModel> extends MouseAdapter {
     private final IntUnaryOperator myConverter;
 
     private CellPopupTriggerListener(@NotNull IntUnaryOperator converter) {
@@ -208,9 +213,11 @@ public class FrozenColumnTable {
         return;
       }
 
-      SubTable subTable = (SubTable)event.getSource();
+      @SuppressWarnings("unchecked")
+      SubTable<M> subTable = (SubTable<M>)event.getSource();
+
       Point point = event.getPoint();
-      FrozenColumnTable source = subTable.getFrozenColumnTable();
+      FrozenColumnTable<M> source = subTable.getFrozenColumnTable();
       int viewRowIndex = subTable.rowAtPoint(point);
       int viewColumnIndex = myConverter.applyAsInt(subTable.columnAtPoint(point));
       FrozenColumnTableEvent frozenColumnTableEvent = new FrozenColumnTableEvent(source, viewRowIndex, viewColumnIndex, point, subTable);
@@ -465,30 +472,27 @@ public class FrozenColumnTable {
     myScrollableTable.setDefaultRenderer(c, renderer);
   }
 
-  @Nullable
-  public final TableCellEditor getDefaultEditor(@NotNull Class<?> c) {
-    TableCellEditor editor = myFrozenTable.getDefaultEditor(c);
-    assert editor == myScrollableTable.getDefaultEditor(c);
-
-    return editor;
-  }
-
   final void setDefaultEditor(@NotNull @SuppressWarnings("SameParameterValue") Class<?> c, @NotNull TableCellEditor editor) {
     myFrozenTable.setDefaultEditor(c, editor);
     myScrollableTable.setDefaultEditor(c, editor);
   }
 
-  @NotNull
-  RowSorter<? extends TableModel> getRowSorter() {
-    RowSorter<? extends TableModel> sorter = myFrozenTable.getRowSorter();
-    assert sorter == myScrollableTable.getRowSorter();
-
-    return sorter;
+  @Nullable
+  final FrozenColumnTableRowSorter<M> getRowSorter() {
+    return myRowSorter;
   }
 
-  final void setRowSorter(@NotNull RowSorter<? extends TableModel> sorter) {
-    myFrozenTable.setRowSorter(sorter);
-    myScrollableTable.setRowSorter(sorter);
+  final void setRowSorter(@Nullable FrozenColumnTableRowSorter<M> rowSorter) {
+    if (rowSorter == null) {
+      myFrozenTable.setRowSorter(null);
+      myScrollableTable.setRowSorter(null);
+    }
+    else {
+      myFrozenTable.setRowSorter(rowSorter.getFrozenTableRowSorter());
+      myScrollableTable.setRowSorter(rowSorter.getScrollableTableRowSorter());
+    }
+
+    myRowSorter = rowSorter;
   }
 
   public final void setRowSelectionInterval(int viewRowIndex1, int viewRowIndex2) {
@@ -602,11 +606,11 @@ public class FrozenColumnTable {
   }
 
   @NotNull
-  public TableModel getModel() {
+  public final M getModel() {
     return myModel;
   }
 
-  public void setModel(@NotNull TableModel model) {
+  public void setModel(@NotNull M model) {
     myModel = model;
 
     myFrozenTable.setModel(new SubTableModel(model, () -> 0, () -> myFrozenColumnCount));

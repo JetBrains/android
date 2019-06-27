@@ -43,9 +43,11 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
+import com.intellij.ui.ContextHelpLabel;
 import java.util.List;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +67,7 @@ public class ConfigureBenchmarkModuleStep extends SkippableWizardStep<NewBenchma
   private LabelWithEditButton myPackageName;
   private JComboBox<Language> myLanguageComboBox;
   private AndroidApiLevelComboBox myApiLevelComboBox;
+  private JLabel myModuleNameLabel;
 
   public ConfigureBenchmarkModuleStep(@NotNull NewBenchmarkModuleModel model, @NotNull String title, int minSdkLevel) {
     super(model, title);
@@ -148,5 +151,6 @@ public class ConfigureBenchmarkModuleStep extends SkippableWizardStep<NewBenchma
   private void createUIComponents() {
     myLanguageComboBox = new LanguageComboProvider().createComponent();
     myApiLevelComboBox = new AndroidApiLevelComboBox();
+    myModuleNameLabel = ContextHelpLabel.create(message("android.wizard.module.help.name"));
   }
 }

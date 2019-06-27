@@ -23,6 +23,8 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.transport.faketransport.commands.BeginSession;
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler;
 import com.android.tools.idea.transport.faketransport.commands.EndSession;
+import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
+import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
@@ -35,7 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class FakeTransportService extends TransportServiceGrpc.TransportServiceImplBase {
@@ -64,11 +67,12 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   private final Map<Long, Common.Device> myDevices;
   private final MultiMap<Common.Device, Common.Process> myProcesses;
   private final Map<String, ByteString> myCache;
-  private final Map<Long, List<Transport.EventGroup.Builder>> myStreamEvents;
+  private final Map<Long, List<Common.Event>> myStreamEvents;
   private final Map<Command.CommandType, CommandHandler> myCommandHandlers;
   private final FakeTimer myTimer;
   private boolean myThrowErrorOnGetDevices;
   private Common.AgentData myAgentStatus;
+  private final AtomicInteger myNextCommandId = new AtomicInteger();
 
   public FakeTransportService(@NotNull FakeTimer timer) {
     this(timer, true);
@@ -97,6 +101,8 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   private void initializeCommandHandlers() {
     setCommandHandler(Command.CommandType.BEGIN_SESSION, new BeginSession(myTimer));
     setCommandHandler(Command.CommandType.END_SESSION, new EndSession(myTimer));
+    setCommandHandler(Command.CommandType.START_CPU_TRACE, new StartCpuTrace(myTimer));
+    setCommandHandler(Command.CommandType.STOP_CPU_TRACE, new StopCpuTrace(myTimer));
   }
 
   /**
@@ -114,7 +120,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     myProcesses.putValue(myDevices.get(device.getDeviceId()), process);
     // The event pipeline expects process started / ended events. As such depending on the process state when passed in we add such events.
     if (process.getState() == Common.Process.State.ALIVE) {
-      addEventToEventGroup(device.getDeviceId(), Common.Event.newBuilder()
+      addEventToStream(device.getDeviceId(), Common.Event.newBuilder()
         .setTimestamp(myTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.PROCESS)
         .setGroupId(process.getPid())
@@ -124,7 +130,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
         .build());
     }
     if (process.getState() == Common.Process.State.DEAD) {
-      addEventToEventGroup(device.getDeviceId(), Common.Event.newBuilder()
+      addEventToStream(device.getDeviceId(), Common.Event.newBuilder()
         .setTimestamp(myTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.PROCESS)
         .setGroupId(process.getPid())
@@ -147,7 +153,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     // The event pipeline expects devices are connected via streams. So when a new devices is added we create a stream connected event.
     // likewise when a device is taken offline we create a stream disconnected event.
     if (device.getState() == Common.Device.State.ONLINE) {
-      addEventToEventGroup(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Common.Event.newBuilder()
+      addEventToStream(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Common.Event.newBuilder()
         .setTimestamp(myTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.STREAM)
         .setGroupId(device.getDeviceId())
@@ -159,7 +165,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
         .build());
     }
     if (device.getState() == Common.Device.State.OFFLINE || device.getState() == Common.Device.State.DISCONNECTED) {
-      addEventToEventGroup(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Common.Event.newBuilder()
+      addEventToStream(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Common.Event.newBuilder()
         .setTimestamp(myTimer.getCurrentTimeNs())
         .setGroupId(device.getDeviceId())
         .setKind(Common.Event.Kind.STREAM)
@@ -177,7 +183,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     myDevices.remove(oldDevice.getDeviceId());
     // Update device simply kills the old device and swaps it with a new device. As such we kill the old device by creating a
     // stream disconnected event for the events pipeline.
-    addEventToEventGroup(oldDevice.getDeviceId(), Common.Event.newBuilder()
+    addEventToStream(oldDevice.getDeviceId(), Common.Event.newBuilder()
       .setTimestamp(myTimer.getCurrentTimeNs())
       .setKind(Common.Event.Kind.STREAM)
       .setGroupId(oldDevice.getDeviceId())
@@ -191,7 +197,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
    * and are available via the GetEventGroups API.
    */
   public void addSession(Common.Session session, Common.SessionMetaData metadata) {
-    addEventToEventGroup(session.getStreamId(), Common.Event.newBuilder()
+    addEventToStream(session.getStreamId(), Common.Event.newBuilder()
       .setGroupId(session.getSessionId())
       .setPid(session.getPid())
       .setKind(Common.Event.Kind.SESSION)
@@ -208,7 +214,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
               .setType(Common.SessionData.SessionStarted.SessionType.FULL)))
       .build());
     if (session.getEndTimestamp() != Long.MAX_VALUE) {
-      addEventToEventGroup(session.getStreamId(), Common.Event.newBuilder()
+      addEventToStream(session.getStreamId(), Common.Event.newBuilder()
         .setGroupId(session.getSessionId())
         .setPid(session.getPid())
         .setKind(Common.Event.Kind.SESSION)
@@ -293,41 +299,33 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     return ((BeginSession)myCommandHandlers.get(Command.CommandType.BEGIN_SESSION)).getAgentAttachCalled();
   }
 
+  public CommandHandler getRegisteredCommand(Command.CommandType commandType) {
+    return myCommandHandlers.get(commandType);
+  }
+
   /**
-   * Helper method for finding an existing event group and updating its array of events, or creating an event group if one does not exist.
-   * The group to add to is taken from the group set on the event.
+   * Helper method for appending to the event list of a stream.
    */
-  public void addEventToEventGroup(long streamId, Common.Event event) {
+  public void addEventToStream(long streamId, Common.Event event) {
     synchronized (myStreamEvents) {
-      List<Transport.EventGroup.Builder> groups = getListForStream(streamId);
-      long groupId = event.getGroupId();
-      Optional<Transport.EventGroup.Builder> eventGroup = groups.stream().filter(group -> group.getGroupId() == groupId).findFirst();
-      if (eventGroup.isPresent()) {
-        eventGroup.get().addEvents(event);
-      }
-      else {
-        groups.add(Transport.EventGroup.newBuilder().setGroupId(groupId).addEvents(event));
-      }
+      getListForStream(streamId).add(event);
     }
   }
 
   /**
-   * Helper method for creating a list of event groups if one does not exist, otherwise returning the existing group.
+   * Helper method for creating a list of events for a stream if it does not exist, otherwise returning the event list.
    */
-  private List<Transport.EventGroup.Builder> getListForStream(long streamId) {
-    if (!myStreamEvents.containsKey(streamId)) {
-      myStreamEvents.put(streamId, new ArrayList<>());
-    }
-    return myStreamEvents.get(streamId);
+  private List<Common.Event> getListForStream(long streamId) {
+    return myStreamEvents.computeIfAbsent(streamId, id -> new ArrayList<>());
   }
 
   @Override
   public void execute(Transport.ExecuteRequest request, StreamObserver<Transport.ExecuteResponse> responseObserver) {
     assertThat(myCommandHandlers.containsKey(request.getCommand().getType()))
       .named("Missing command handler for: %s", request.getCommand().getType().toString()).isTrue();
-    myCommandHandlers.get(request.getCommand().getType())
-      .handleCommand(request.getCommand(), getListForStream(request.getCommand().getStreamId()));
-    responseObserver.onNext(Transport.ExecuteResponse.getDefaultInstance());
+    Command command = request.getCommand().toBuilder().setCommandId(myNextCommandId.incrementAndGet()).build();
+    myCommandHandlers.get(command.getType()).handleCommand(command, getListForStream(command.getStreamId()));
+    responseObserver.onNext(Transport.ExecuteResponse.newBuilder().setCommandId(command.getCommandId()).build());
     responseObserver.onCompleted();
   }
 
@@ -345,52 +343,61 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
         if (request.getStreamId() != EMPTY_REQUEST_VALUE && streamId != request.getStreamId()) {
           continue;
         }
-        for (Transport.EventGroup.Builder eventGroup : myStreamEvents.get(streamId)) {
-          ListIterator<Common.Event> it = eventGroup.getEventsList().listIterator();
-          while (it.hasNext()) {
-            Common.Event event = it.next();
-            if (request.getPid() != EMPTY_REQUEST_VALUE && request.getPid() != event.getPid()) {
+
+        // Map the list of events by kind then by group. Group Ids are uniquely within kind and this prevents different-kind events
+        // with conflicting groupids to be matched and inserted into the resulting EventGroups out of order.
+        Map<Common.Event.Kind, List<Common.Event>> kindEventsMap =
+          myStreamEvents.get(streamId).stream().collect(Collectors.groupingBy(Common.Event::getKind));
+        // We always expect the kind filter to be set from the request in our production code.
+        if (kindEventsMap.containsKey(request.getKind())) {
+          Map<Long, List<Common.Event>> groupEventMap = kindEventsMap.get(request.getKind()).stream()
+            .collect(Collectors.groupingBy(Common.Event::getGroupId));
+          for (Long groupId : groupEventMap.keySet()) {
+            if (request.getGroupId() != EMPTY_REQUEST_VALUE && request.getGroupId() != groupId) {
               continue;
             }
-            if (request.getGroupId() != EMPTY_REQUEST_VALUE && request.getGroupId() != event.getGroupId()) {
-              continue;
-            }
-            if (request.getFromTimestamp() != EMPTY_REQUEST_VALUE && request.getFromTimestamp() > event.getTimestamp()) {
-              // Event occurs before from_timestamp but it may still be included.
-              if (event.getIsEnded()) {
-                // No more events in this group. Exclude this event.
+
+            List<Common.Event> events = groupEventMap.get(groupId);
+            ListIterator<Common.Event> it = events.listIterator();
+            while (it.hasNext()) {
+              Common.Event event = it.next();
+              if (request.getPid() != EMPTY_REQUEST_VALUE && request.getPid() != event.getPid()) {
                 continue;
               }
-              if (it.hasNext() && eventGroup.getEvents(it.nextIndex()).getTimestamp() < request.getFromTimestamp()) {
-                // Next event occurs before from_timestamp as well. Exclude this event.
-                continue;
+              if (request.getFromTimestamp() != EMPTY_REQUEST_VALUE && request.getFromTimestamp() > event.getTimestamp()) {
+                // Event occurs before from_timestamp but it may still be included.
+                if (event.getIsEnded()) {
+                  // No more events in this group. Exclude this event.
+                  continue;
+                }
+                if (it.hasNext() && events.get(it.nextIndex()).getTimestamp() < request.getFromTimestamp()) {
+                  // Next event occurs before from_timestamp as well. Exclude this event.
+                  continue;
+                }
+                // Otherwise this event crosses from_timestamp boundary and should be included.
               }
-              // Otherwise this event crosses from_timestamp boundary and should be included.
-            }
-            if (request.getToTimestamp() != EMPTY_REQUEST_VALUE && request.getToTimestamp() < event.getTimestamp()) {
-              // Event occurs after to_timestamp but it may be included.
-              int previousIndex = it.previousIndex();
-              if (previousIndex < 0) {
-                // No previous event in this group. Exclude this event.
-                continue;
+              if (request.getToTimestamp() != EMPTY_REQUEST_VALUE && request.getToTimestamp() < event.getTimestamp()) {
+                // Event occurs after to_timestamp but it may be included.
+                // previousIndex() returns the element we just iterated, so -1 to get the previous element.
+                int previousIndex = it.previousIndex() - 1;
+                if (previousIndex < 0) {
+                  // No previous event in this group. Exclude this event.
+                  continue;
+                }
+                if (events.get(previousIndex).getTimestamp() > request.getToTimestamp()) {
+                  // Previous event occurs before to_timestamp. Exclude this event.
+                  continue;
+                }
+                // Otherwise this event crosses to_timestamp boundary and should be included.
               }
-              if (eventGroup.getEvents(previousIndex).getTimestamp() > request.getToTimestamp()) {
-                // Previous event occurs before to_timestamp. Exclude this event.
-                continue;
-              }
-              // Otherwise this event crosses to_timestamp boundary and should be included.
+
+              eventGroups.computeIfAbsent(event.getGroupId(), id -> Transport.EventGroup.newBuilder().setGroupId(id)).addEvents(event);
             }
-            if (request.getKind() != event.getKind()) {
-              continue;
-            }
-            if (!eventGroups.containsKey(eventGroup.getGroupId())) {
-              eventGroups.put(eventGroup.getGroupId(), Transport.EventGroup.newBuilder().setGroupId(eventGroup.getGroupId()));
-            }
-            eventGroups.get(eventGroup.getGroupId()).addEvents(event);
           }
         }
       }
     }
+
     Transport.GetEventGroupsResponse.Builder builder = Transport.GetEventGroupsResponse.newBuilder();
     for (Transport.EventGroup.Builder eventGroup : eventGroups.values()) {
       builder.addGroups(eventGroup);

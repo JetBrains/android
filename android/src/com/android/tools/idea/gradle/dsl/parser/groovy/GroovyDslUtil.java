@@ -786,7 +786,7 @@ public final class GroovyDslUtil {
 
   static void maybeUpdateName(@NotNull GradleDslElement element) {
     PsiElement oldName = element.getNameElement().getNamedPsiElement();
-    String newName = element.getNameElement().getUnsavedName();
+    String newName = element.getNameElement().getLocalName();
     PsiElement newElement;
     if (newName == null || oldName == null) {
       return;

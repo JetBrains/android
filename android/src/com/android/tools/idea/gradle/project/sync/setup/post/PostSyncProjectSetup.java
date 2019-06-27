@@ -48,7 +48,6 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgrade;
-import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
@@ -67,7 +66,6 @@ import com.intellij.build.events.impl.FinishBuildEventImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
 import com.intellij.build.events.impl.SuccessResultImpl;
 import com.intellij.compiler.options.CompileStepBeforeRun;
-import com.intellij.concurrency.JobLauncher;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.RunManagerEx;
@@ -83,7 +81,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.Key;
@@ -115,7 +112,6 @@ public class PostSyncProjectSetup {
   @NotNull private final PluginVersionUpgrade myPluginVersionUpgrade;
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
-  @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
   @NotNull private final RunManagerEx myRunManager;
 
   @NotNull
@@ -136,8 +132,7 @@ public class PostSyncProjectSetup {
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
-         new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerEx.getInstanceEx(project));
+         new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, RunManagerEx.getInstanceEx(project));
   }
 
   @VisibleForTesting
@@ -153,7 +148,6 @@ public class PostSyncProjectSetup {
                        @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
-                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
                        @NotNull RunManagerEx runManager) {
     myProject = project;
     myIdeInfo = ideInfo;
@@ -167,7 +161,6 @@ public class PostSyncProjectSetup {
     myPluginVersionUpgrade = pluginVersionUpgrade;
     myVersionCompatibilityChecker = versionCompatibilityChecker;
     myProjectBuilder = projectBuilder;
-    myModuleValidatorFactory = moduleValidatorFactory;
     myRunManager = runManager;
   }
 
@@ -176,7 +169,6 @@ public class PostSyncProjectSetup {
    */
   @Slow
   public void setUpProject(@NotNull Request request,
-                           @NotNull ProgressIndicator progressIndicator,
                            @Nullable ExternalSystemTaskId taskId,
                            @Nullable GradleSyncListener syncListener) {
     try {
@@ -198,17 +190,11 @@ public class PostSyncProjectSetup {
 
       ModuleManager moduleManager = ModuleManager.getInstance(myProject);
       List<Module> modules = Arrays.asList(moduleManager.getModules());
-      CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
-      JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, module -> {
-        moduleValidator.validate(module);
-        return true;
-      });
-      moduleValidator.fixAndReportFoundIssues();
 
       if (mySyncState.lastSyncFailed()) {
         failTestsIfSyncIssuesPresent();
 
-        myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
+        myProjectSetup.setUpProject(true /* sync failed */);
         // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
         // previous sync, and not the one from the sync that just ended.
         mySyncState.syncFailed("", null, syncListener);
@@ -252,20 +238,18 @@ public class PostSyncProjectSetup {
       SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
 
       findAndShowVariantConflicts();
-      myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
+      myProjectSetup.setUpProject(false /* sync successful */);
 
       modifyJUnitRunConfigurations();
       RunConfigurationChecker.getInstance(myProject).ensureRunConfigsInvokeBuild();
 
       AndroidPluginVersionsInProject agpVersions = myProjectStructure.getAndroidPluginVersions();
-      myProjectStructure.analyzeProjectStructure(progressIndicator);
+      myProjectStructure.analyzeProjectStructure();
       boolean cleanProjectAfterSync = myProjectStructure.getAndroidPluginVersions().haveVersionsChanged(agpVersions);
 
       attemptToGenerateSources(request, cleanProjectAfterSync);
       updateJavaLanguageLevel();
       notifySyncFinished(request);
-
-      TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
       myModuleSetup.setUpModules(null);
 

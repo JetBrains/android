@@ -25,6 +25,7 @@ import static com.intellij.openapi.externalSystem.service.notification.Notificat
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static java.util.stream.Collectors.toList;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -48,6 +49,11 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
     return true;
+  }
+
+  @Override
+  protected boolean useNewSyncInfrastructure() {
+    return false;
   }
 
   @Override
@@ -77,13 +83,13 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
 
     // Verify sync issues are reported properly.
     List<NotificationData> messages = syncMessages.getNotifications();
-    assertThat(messages).hasSize(2);
-    NotificationData message = messages.get(0);
-
-    assertEquals(ERROR, message.getNotificationCategory());
-    assertEquals("Unresolved dependencies", message.getTitle());
-    assertThat(message.getMessage()).contains(
-      "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:");
+    List<NotificationData> relevantMessages = messages.stream()
+      .filter(m -> m.getNotificationCategory().equals(ERROR) &&
+                   m.getTitle().equals("Unresolved dependencies") &&
+                   m.getMessage().contains(
+                     "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
+      .collect(toList());
+    assertThat(relevantMessages).isNotEmpty();
   }
 
   public void testSingleVariantSyncAfterFailedIdeaSync() throws Exception {
@@ -110,7 +116,8 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
     assertThat(ndkModuleModel.getNdkVariantNames()).doesNotContain(NdkModuleModel.DummyNdkVariant.variantNameWithAbi);
   }
 
-  public void testAddKotlinPluginToNonKotlinProject() throws Exception {
+  // This is ignored for now until the fix for KT-30076 is merged in.
+  public void /*test*/AddKotlinPluginToNonKotlinProject() throws Exception {
     loadSimpleApplication();
     // Verify that project is eligible for single-variant.
     assertFalse(PropertiesComponent.getInstance(getProject()).getBoolean((NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
@@ -147,7 +154,8 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
 
     // Verify that project is set as not eligible for single-variant.
     assertTrue(PropertiesComponent.getInstance(getProject()).getBoolean((NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
-    assertFalse(NewGradleSync.isSingleVariantSync(getProject()));
+    assertFalse(NewGradleSync.isEnabled(getProject()));
+    assertTrue(NewGradleSync.isSingleVariantSync(getProject()));
 
     // Verify that buildSrc module exists.
     List<String> moduleNames =

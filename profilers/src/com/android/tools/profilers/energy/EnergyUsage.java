@@ -31,7 +31,7 @@ public class EnergyUsage extends LineChartModel {
     myUsageRange = new Range(0, EnergyMonitor.MAX_EXPECTED_USAGE);
     DataSeries<Long> dataSeries;
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      dataSeries = new UnifiedEventDataSeries(
+      dataSeries = new UnifiedEventDataSeries<>(
         profilers.getClient().getTransportClient(),
         profilers.getSession().getStreamId(),
         profilers.getSession().getPid(),

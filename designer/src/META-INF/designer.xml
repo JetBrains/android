@@ -15,12 +15,12 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.layeredimage.LayeredImageEditorProvider" />
+    <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
   </extensions>
 
   <project-components>
     <component>
-      <implementation-class>com.android.tools.idea.uibuilder.layeredimage.LayersManager</implementation-class>
+      <implementation-class>com.android.tools.idea.editors.layeredimage.LayersManager</implementation-class>
     </component>
   </project-components>
 

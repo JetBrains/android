@@ -52,7 +52,7 @@ public class MissingPlatformsSetupStepTest extends IdeaTestCase {
   public void testSetUpProjectWithMissingPlatforms() {
     mySyncMessages.setMessageCount("SDK Setup Issues", 1);
 
-    mySetupStep.setUpProject(getProject(), null);
+    mySetupStep.setUpProject(getProject());
 
     List<SyncMessage> messages = mySyncMessages.getReportedMessages();
     assertThat(messages).hasSize(1);
@@ -67,7 +67,7 @@ public class MissingPlatformsSetupStepTest extends IdeaTestCase {
   public void testSetUpProjectWithoutMissingPlatforms() {
     mySyncMessages.setMessageCount("SDK Setup Issues", 0);
 
-    mySetupStep.setUpProject(getProject(), null);
+    mySetupStep.setUpProject(getProject());
 
     List<SyncMessage> messages = mySyncMessages.getReportedMessages();
     assertThat(messages).isEmpty();

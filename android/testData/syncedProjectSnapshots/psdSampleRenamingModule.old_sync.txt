@@ -5,7 +5,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml [-]
+        ModuleFile          : <PROJECT>/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -52,7 +52,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/basicBar/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/basicBar/debug [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/basicBar/debug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java [-]
@@ -179,7 +179,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -437,7 +437,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :nested2:trans:deep2
         LinkedProjectPath   : <PROJECT>/nested2/trans/deep2
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested2/trans/deep2/deep2.iml [-]
+        ModuleFile          : <PROJECT>/nested2/trans/deep2/deep2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -482,7 +482,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/debug
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTest/java [-]
@@ -525,7 +525,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/trans/deep2/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/trans/deep2/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -538,7 +538,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :dyn_feature
         LinkedProjectPath   : <PROJECT>/dyn_feature
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/dyn_feature/dyn_feature.iml [-]
+        ModuleFile          : <PROJECT>/dyn_feature/dyn_feature.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -583,7 +583,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/dyn_feature/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/dyn_feature/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/debug
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTest/java [-]
@@ -626,7 +626,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/dyn_feature/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/dyn_feature/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -639,7 +639,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :jav
         LinkedProjectPath   : <PROJECT>/jav
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jav/jav.iml [-]
+        ModuleFile          : <PROJECT>/jav/jav.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -664,7 +664,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/lib/lib.iml [-]
+        ModuleFile          : <PROJECT>/lib/lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -709,7 +709,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/lib/build/generated/source/buildConfig/debug
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/java [-]
@@ -752,7 +752,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1008,7 +1008,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :nested1
         LinkedProjectPath   : <PROJECT>/nested1
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested1/nested1.iml [-]
+        ModuleFile          : <PROJECT>/nested1/nested1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1053,7 +1053,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested1/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/nested1/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/nested1/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/nested1/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/nested1/build/generated/source/buildConfig/debug
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTest/java [-]
@@ -1096,7 +1096,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested1/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/nested1/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/nested1/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/nested1/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested1/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1110,7 +1110,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :nested1:deep
         LinkedProjectPath   : <PROJECT>/nested1/deep
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested1/deep/nested1-deep.iml [-]
+        ModuleFile          : <PROJECT>/nested1/deep/nested1-deep.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1155,7 +1155,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested1/deep/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/nested1/deep/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/debug
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTest/java [-]
@@ -1198,7 +1198,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/nested1/deep/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested1/deep/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1211,7 +1211,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :nested2
         LinkedProjectPath   : <PROJECT>/nested2
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested2/nested2.iml [-]
+        ModuleFile          : <PROJECT>/nested2/nested2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1256,7 +1256,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested2/build/generated/res/rs/androidTest/basic/debug [-]
             JavaResource        : file://<PROJECT>/nested2/build/generated/res/rs/basic/debug [-]
             JavaSource (test)   : file://<PROJECT>/nested2/build/generated/source/buildConfig/androidTest/basic/debug [-]
-            JavaSource          : file://<PROJECT>/nested2/build/generated/source/buildConfig/basic/debug [-]
+            JavaSource          : file://<PROJECT>/nested2/build/generated/source/buildConfig/basic/debug
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTest/java [-]
@@ -1341,7 +1341,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested2/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/nested2/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/nested2/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1355,7 +1355,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :nested2:deep
         LinkedProjectPath   : <PROJECT>/nested2/deep
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested2/deep/nested2-deep.iml [-]
+        ModuleFile          : <PROJECT>/nested2/deep/nested2-deep.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1400,7 +1400,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested2/deep/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/nested2/deep/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/debug
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTest/java [-]
@@ -1443,7 +1443,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/deep/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/deep/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1455,7 +1455,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : testPsdSampleRenamingModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testPsdSampleRenamingModule.iml [-]
+        ModuleFile          : <PROJECT>/testPsdSampleRenamingModule.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
@@ -1473,7 +1473,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :nested2:trans
         LinkedProjectPath   : <PROJECT>/nested2/trans
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested2/trans/trans.iml [-]
+        ModuleFile          : <PROJECT>/nested2/trans/trans.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle

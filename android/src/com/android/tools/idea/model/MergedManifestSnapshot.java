@@ -31,7 +31,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
-import com.android.tools.lint.checks.PermissionHolder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
@@ -70,7 +69,7 @@ public class MergedManifestSnapshot {
   @NotNull private final ImmutableMap<String, XmlNode.NodeKey> myNodeKeys;
   @Nullable private final Document myDocument;
   @NotNull private final ImmutableList<VirtualFile> myFiles;
-  @NotNull private final MergedManifestSnapshotFactory.ModulePermissions myHolder;
+  @NotNull private final ImmutablePermissionHolder myPermissions;
   private final boolean myAppHasCode;
   private final ImmutableList<Element> myActivities;
   private final ImmutableList<Element> myActivityAliases;
@@ -92,7 +91,7 @@ public class MergedManifestSnapshot {
                          @Nullable Boolean isDebuggable,
                          @Nullable Document document,
                          @Nullable ImmutableList<VirtualFile> manifestFiles,
-                         @NotNull MergedManifestSnapshotFactory.ModulePermissions permissionsHolder,
+                         @NotNull ImmutablePermissionHolder permissions,
                          boolean appHasCode,
                          @NotNull ImmutableList<Element> activities,
                          @NotNull ImmutableList<Element> activityAliases,
@@ -114,7 +113,7 @@ public class MergedManifestSnapshot {
     myIsDebuggable = isDebuggable;
     myDocument = document;
     myFiles = manifestFiles != null ? manifestFiles : ImmutableList.of();
-    myHolder = permissionsHolder;
+    myPermissions = permissions;
     myAppHasCode = appHasCode;
     myActivities = activities;
     myActivityAliases = activityAliases;
@@ -280,8 +279,8 @@ public class MergedManifestSnapshot {
   }
 
   @NotNull
-  public PermissionHolder getPermissionHolder() {
-    return myHolder;
+  public ImmutablePermissionHolder getPermissionHolder() {
+    return myPermissions;
   }
 
   @NotNull

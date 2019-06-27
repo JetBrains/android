@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 public class ImageAssetErrorCheckTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * Verifies that SVG images can be loaded in Asset Studio

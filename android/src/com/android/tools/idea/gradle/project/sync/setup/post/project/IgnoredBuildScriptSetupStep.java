@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
   @Override
-  public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
+  public void setUpProject(@NotNull Project project) {
     // Check build script
     File projectPath = getBaseDirPath(project);
     File projectBuildPath = getGradleBuildFilePath(projectPath);

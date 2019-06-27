@@ -225,7 +225,7 @@ open class GradleSyncState(
    * This method should only be called by the sync internals.
    * Please use [GradleSyncListener] and [subscribe] if you need to hook into sync.
    */
-  fun syncStarted(notifyUser: Boolean, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) : Boolean {
+  fun syncStarted(request: GradleSyncInvoker.Request, listener: GradleSyncListener?) : Boolean {
     lock.withLock {
       if (isSyncInProgress) {
         LOG.info("Sync already in progress for project '${project.name}'.")
@@ -245,7 +245,7 @@ open class GradleSyncState(
 
     addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started with$syncType$singleVariant sync", MessageType.INFO, null)
 
-    if (notifyUser) changeNotification.notifyStateChanged()
+    changeNotification.notifyStateChanged()
 
     // If this is the first Gradle sync for this project this session, make sure that GradleSyncResultPublisher
     // has been initialized so that it will begin broadcasting sync results on PROJECT_SYSTEM_SYNC_TOPIC.
@@ -608,8 +608,15 @@ open class GradleSyncState(
     notificationGroup.createNotification("", resultMessage, type.toNotificationType(), listener).notify(project)
   }
 
-  private fun syncPublisher(block: GradleSyncListener.() -> Unit) =
-    invokeLaterIfProjectAlive(project) { block.invoke(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)) }
+  private fun syncPublisher(block: GradleSyncListener.() -> Unit) {
+    val runnable = { block.invoke(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)) }
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      runnable()
+    }
+    else {
+      invokeLaterIfProjectAlive(project, runnable)
+    }
+  }
 
   private fun getSyncType(): GradleSyncStats.GradleSyncType = when {
     // Check in implied order (Compound requires SVS requires New Sync)

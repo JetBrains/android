@@ -22,32 +22,34 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.SqliteService
-import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteModel
-import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
-import com.android.tools.idea.sqlite.ui.ResultSetView
 import com.android.tools.idea.sqlite.ui.renderers.SchemaTreeCellRenderer
-import com.android.tools.idea.sqlite.ui.reportError
-import com.android.tools.idea.sqlite.ui.setResultSetTableColumns
-import com.android.tools.idea.sqlite.ui.setupResultSetTable
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.SimpleTextAttributes
+import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.ui.DoubleClickListener
+import com.intellij.ui.UIBundle
+import com.intellij.ui.tabs.TabInfo
+import com.intellij.ui.tabs.UiDecorator
+import com.intellij.ui.tabs.impl.JBEditorTabs
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.ui.JBUI
 import java.awt.event.InputEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.ArrayList
-import java.util.Vector
 import javax.swing.JComponent
-import javax.swing.table.DefaultTableModel
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
@@ -57,28 +59,17 @@ class SqliteViewImpl(
   fileEditor: FileEditor
 ) : SqliteView {
   private val listeners = ArrayList<SqliteViewListener>()
-  private val workBench: WorkBench<SqliteViewContext>
+  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", fileEditor)
   private val viewContext = SqliteViewContext()
-  private var panel: SqliteEditorPanel? = null
-  private val columnClass = SqliteColumnValue::class.java
-  private val tableModel: DefaultTableModel by lazy {
-    object : DefaultTableModel() {
-      override fun getColumnClass(columnIndex: Int): Class<*> {
-        // We need this so that our custom default cell renderer is active
-        return columnClass
-      }
-    }
-  }
+  private var panel = SqliteEditorPanel()
+  override val component: JComponent = workBench
 
-  override val tableView = TableViewResultSetImpl()
+  private val tabs = JBEditorTabs(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
+  private val openTabs = mutableMapOf<String, TabInfo>()
 
   init {
-    workBench = WorkBench(project, "Sqlite", fileEditor)
     Disposer.register(fileEditor, workBench)
   }
-
-  override val component: JComponent
-    get() = workBench
 
   override fun addListener(listener: SqliteViewListener) {
     listeners.add(listener)
@@ -95,156 +86,144 @@ class SqliteViewImpl(
   }
 
   override fun stopLoading() {
-    val panel = SqliteEditorPanel()
-    this.panel = panel
-
     panel.deviceIdText.text = model.sqliteFileId.deviceId
     panel.devicePathText.text = model.sqliteFileId.devicePath
-
-    resetView()
 
     val definitions = ArrayList<ToolWindowDefinition<SqliteViewContext>>()
     definitions.add(SchemaPanelToolContent.getDefinition())
     workBench.init(panel.mainPanel, viewContext, definitions)
 
     panel.openSqlEvalDialog.addActionListener { listeners.forEach{ it.openSqliteEvaluatorActionInvoked() } }
-  }
 
-  override fun resetView() {
-    tableModel.dataVector.clear()
-    tableModel.rowCount = 0
-    tableModel.columnCount = 0
-
-    panel?.resultSetTable?.emptyText?.clear()
-    panel?.resultSetTitleLabel?.text = ""
-    panel?.resultSetTable?.emptyText?.appendText("Double click on a table in the ")
-    panel?.resultSetTable?.emptyText?.appendText("Schema", SimpleTextAttributes.LINK_ATTRIBUTES) {
-      activateSchemaToolWindow()
+    tabs.apply {
+      isTabDraggingEnabled = true
+      setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(4, 10)) }
+      addTabMouseListener(TabMouseListener())
     }
-    panel?.resultSetTable?.emptyText?.appendText(" ToolWindow")
-  }
 
-  private fun activateSchemaToolWindow() {
-    viewContext.schemaTree?.let { tree ->
-      if (tree.selectionCount == 0) {
-        // Note: This assume root node is a reasonable node to focus
-        tree.model.root?.let { tree.setSelectionRow(0)}
-      }
-      tree.requestFocusInWindow()
-    }
+    panel.tabsRoot.add(tabs)
   }
 
   override fun displaySchema(schema: SqliteSchema) {
     viewContext.schema = schema
+    viewContext.schemaTree?.removeKeyListener(keyAdapter)
+    doubleClickListener.uninstall(viewContext.schemaTree)
+
     setupSchemaTree()
   }
 
-  private fun setupSchemaTree() {
-    viewContext.schemaTree?.let { tree ->
-      tree.cellRenderer = SchemaTreeCellRenderer()
-      val root = DefaultMutableTreeNode("Tables")
-      val schema = viewContext.schema
-      schema?.let {
-        it.tables.forEach { table ->
-          val tableNode = DefaultMutableTreeNode(table)
-          table.columns.forEach { column ->
-            val columnNode = DefaultMutableTreeNode(column)
-            tableNode.add(columnNode)
-          }
-          root.add(tableNode)
-        }
-      }
-      tree.model = DefaultTreeModel(root)
-      tree.addKeyListener(object : KeyAdapter() {
-        override fun keyPressed(e: KeyEvent) {
-          if (e.keyCode == KeyEvent.VK_ENTER) {
-            fireAction(tree, e)
-          }
-          super.keyPressed(e)
-        }
-      })
-      tree.toggleClickCount = 0
-      tree.addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent) {
-          if (e.clickCount == 2 && e.button == MouseEvent.BUTTON1) {
-            fireAction(tree, e)
-          }
-          super.mouseClicked(e)
-        }
-      })
-    }
+  override fun displayTable(tableName: String, component: JComponent) {
+    val tab = createSqliteExplorerTab(tableName, component)
+    tabs.addTab(tab)
+    tabs.select(tab, true)
+    openTabs[tableName] = tab
   }
 
-  private fun fireAction(tree: Tree, e: InputEvent) {
-    tree.selectionPath?.lastPathComponent?.let {
-      if (it is DefaultMutableTreeNode) {
-        val userObject = it.userObject
-        if (userObject is SqliteTable) {
-          listeners.forEach { l -> l.tableNodeActionInvoked(userObject) }
-          e.consume()
-        }
-      }
-    }
+  override fun focusTable(tableName: String) {
+    tabs.select(openTabs[tableName]!!, true)
   }
 
-  private fun setupResultSetTitle(title: String) {
-    panel?.resultSetTitleLabel?.let { it.text = title }
+  override fun closeTable(tableName: String) {
+    val tab = openTabs.remove(tableName)
+    tabs.removeTab(tab)
   }
 
   override fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable) {
-    var errorMessage = message
-    t.message?.let {
-      errorMessage += ": " + t.message
-    }
-
+    val errorMessage = if (t.message != null) "$message: ${t.message}" else message
     workBench.loadingStopped(errorMessage)
   }
 
-  inner class TableViewResultSetImpl : ResultSetView {
-    override fun startTableLoading(tableName: String?) {
-      // We know that in SqliteViewImpl the table name will never be null,
-      // because each table shown here corresponds to a real table in the database.
-      assert(tableName != null)
+  private fun createSqliteExplorerTab(tableName: String, tabContent: JComponent): TabInfo {
+    val tab = TabInfo(tabContent)
 
-      setupResultSetTitle("Contents of table: '$tableName'")
-      panel?.resultSetTable?.let { jbTable ->
-        jbTable.setupResultSetTable(tableModel, columnClass)
-        tableModel.rowCount = 0
-        tableModel.columnCount = 0
-        jbTable.setPaintBusy(true)
+    val tabActionGroup = DefaultActionGroup()
+    tabActionGroup.add(object : AnAction("Close tabs", "Click to close tab", AllIcons.Actions.Close) {
+      override fun actionPerformed(e: AnActionEvent) {
+        listeners.forEach { it.closeTableActionInvoked(tableName) }
+      }
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.hoveredIcon = AllIcons.Actions.CloseHovered
+        e.presentation.isVisible = true
+        e.presentation.text = UIBundle.message("tabbed.pane.close.tab.action.name")
+      }
+    })
+    tab.setTabLabelActions(tabActionGroup, ActionPlaces.EDITOR_TAB)
+    tab.icon = AllIcons.Nodes.DataTables
+    tab.text = tableName
+    return tab
+  }
+
+  private fun setupSchemaTree() {
+    if (viewContext.schemaTree == null || viewContext.schema == null)
+      return
+
+    val tree = viewContext.schemaTree!!
+    val schema = viewContext.schema!!
+
+    tree.cellRenderer = SchemaTreeCellRenderer()
+    val root = DefaultMutableTreeNode("Tables")
+    schema.tables.forEach { table ->
+      val tableNode = DefaultMutableTreeNode(table)
+      table.columns.forEach { column -> tableNode.add(DefaultMutableTreeNode(column)) }
+      root.add(tableNode)
+    }
+    tree.model = DefaultTreeModel(root)
+    tree.toggleClickCount = 0
+
+    tree.addKeyListener(keyAdapter)
+    doubleClickListener.installOn(tree)
+  }
+
+  private fun fireAction(tree: Tree, e: InputEvent) {
+    val lastPathComponent = tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode
+
+    val userObject = lastPathComponent?.userObject
+    if (userObject is SqliteTable) {
+      listeners.forEach { l -> l.tableNodeActionInvoked(userObject) }
+      e.consume()
+    }
+  }
+
+  private val keyAdapter = object : KeyAdapter() {
+    override fun keyPressed(event: KeyEvent) {
+      if (event.keyCode == KeyEvent.VK_ENTER) {
+        viewContext.schemaTree?.let { fireAction(it, event) }
       }
     }
+  }
 
-    override fun showTableColumns(columns: List<SqliteColumn>) {
-      panel?.resultSetTable?.let { table ->
-        columns.forEach { c ->
-          tableModel.addColumn(c.name)
-        }
+  private val doubleClickListener = object : DoubleClickListener() {
+    override fun onDoubleClick(event: MouseEvent): Boolean {
+      viewContext.schemaTree?.let { fireAction(it, event) }
+      return true
+    }
+  }
 
-        table.setResultSetTableColumns()
+  private inner class TabMouseListener : MouseAdapter() {
+    override fun mouseReleased(e: MouseEvent) {
+      if(e.button == 2) {
+        // TODO (b/135525331)
+        // mouse wheel click
+        //tabs.removeTab()
       }
-    }
-
-    override fun showTableRowBatch(rows: List<SqliteRow>) {
-      panel?.resultSetTable?.let {
-        rows.forEach { row ->
-          val values = Vector<SqliteColumnValue>()
-          row.values.forEach { values.addElement(it) }
-          tableModel.addRow(values)
-        }
-      }
-    }
-
-    override fun stopTableLoading() {
-      panel?.resultSetTable?.setPaintBusy(false)
-    }
-
-    override fun reportErrorRelatedToTable(tableName: String?, message: String, t: Throwable) {
-      reportError(message, t)
     }
   }
 
   class SchemaPanelToolContent : ToolContent<SqliteViewContext> {
+    companion object {
+      fun getDefinition(): ToolWindowDefinition<SqliteViewContext> {
+        return ToolWindowDefinition(
+          "Schema",
+          AllIcons.Nodes.DataTables,
+          "SCHEMA",
+          Side.LEFT,
+          Split.TOP,
+          AutoHide.DOCKED
+        ) { SchemaPanelToolContent() }
+      }
+    }
+
     private val schemaPanel = SqliteSchemaPanel()
 
     override fun getComponent(): JComponent {
@@ -259,20 +238,6 @@ class SqliteViewImpl(
      */
     override fun setToolContext(toolContext: SqliteViewContext?) {
       toolContext?.schemaTree = schemaPanel.tree
-    }
-
-    companion object {
-      fun getDefinition(): ToolWindowDefinition<SqliteViewContext> {
-        return ToolWindowDefinition(
-          "Schema",
-          AllIcons.Nodes.DataSchema,
-          "SCHEMA",
-          Side.LEFT,
-          Split.TOP,
-          AutoHide.DOCKED,
-          { SchemaPanelToolContent() }
-        )
-      }
     }
   }
 

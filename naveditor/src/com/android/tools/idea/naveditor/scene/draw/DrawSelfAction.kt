@@ -19,7 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.ArrowDirection
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawArrow
+import com.android.tools.idea.common.scene.draw.FillArrow
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
@@ -80,7 +80,7 @@ data class DrawSelfAction(@SwingCoordinate private val start: Point2D.Float,
       val arrowRectangle = getArrowRectangle(sceneView, arrowPoint, ConnectionDirection.BOTTOM)
       val end = Point2D.Float(arrowRectangle.x + arrowRectangle.width / 2, arrowRectangle.y + arrowRectangle.height - 1)
 
-      list.add(DrawArrow(0, ArrowDirection.UP, arrowRectangle, color))
+      list.add(FillArrow(ArrowDirection.UP, arrowRectangle, color))
       list.add(DrawSelfAction(start, end, color))
 
       if (isPopAction) {

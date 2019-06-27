@@ -53,6 +53,11 @@ abstract class PoliteAndroidVirtualFileListener(val project: Project) : VirtualF
    * (usually based on the file name or its extension). [VirtualFileEvent]s whose corresponding
    * [VirtualFile]s fail this test will be ignored before calling [isRelevant].
    *
+   * **Note:** When a [VirtualFile] corresponding to a directory is deleted, the VFS only fires
+   * events signaling the deletion of the directory. It *does not* fire a separate event for each
+   * descendant. This means that you may want to let directories pass through this filter so that
+   * the listener can determine if they contain relevant files in [isRelevant].
+   *
    * **Note:** For performance reasons, be sure to use [VirtualFile.getExtension] here if you need the
    * file extension, as opposed to [VirtualFile.getFileType], which actually reads from the file.
    */
@@ -61,6 +66,11 @@ abstract class PoliteAndroidVirtualFileListener(val project: Project) : VirtualF
   /**
    * Used to determine if a file is actually relevant to this listener. [VirtualFileEvent]s whose
    * corresponding [VirtualFile]s fail this test will not be processed by this listener.
+   *
+   * **Note:** When a [VirtualFile] corresponding to a directory is deleted, the VFS only fires
+   * events signaling the deletion of the directory. It *does not* fire a separate event for each
+   * descendant. This means that if [file] is a directory, you may want to check to see if it contains
+   * any relevant files.
    */
   protected abstract fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean
 

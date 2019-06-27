@@ -20,6 +20,7 @@ import com.android.tools.idea.common.scene.ConstantValue
 import com.android.tools.idea.common.scene.LerpValue
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawShape
+import com.android.tools.idea.common.scene.draw.FillArrow
 import com.android.tools.idea.common.scene.draw.FillShape
 import org.jetbrains.android.AndroidTestCase
 import java.awt.Shape
@@ -80,6 +81,15 @@ fun assertDrawCommandsEqual(expected: DrawHeader, actual: DrawCommand) {
   AndroidTestCase.assertEquals(expected.text, drawHeader.text)
   AndroidTestCase.assertEquals(expected.isStart, drawHeader.isStart)
   AndroidTestCase.assertEquals(expected.hasDeepLink, drawHeader.hasDeepLink)
+}
+
+fun assertDrawCommandsEqual(expected: FillArrow, actual: DrawCommand) {
+  val fillArrow = actual as FillArrow
+
+  AndroidTestCase.assertEquals(expected.rectangle, fillArrow.rectangle)
+  AndroidTestCase.assertEquals(expected.direction, fillArrow.direction)
+  AndroidTestCase.assertEquals(expected.color, fillArrow.color)
+  AndroidTestCase.assertEquals(expected.level, fillArrow.level)
 }
 
 fun assertAnimatedShapesEqual(expected: AnimatedValue<Shape>, actual: AnimatedValue<Shape>) {

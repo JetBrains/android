@@ -16,10 +16,16 @@
 package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
+import com.android.tools.idea.sqlite.ui.tableView.TableView
 
 interface SqliteEditorViewFactory {
   /**
    * Returns a [SqliteEvaluatorView]. The controller is responsible for calling [SqliteEvaluatorView.show].
    */
   fun createEvaluatorDialog(): SqliteEvaluatorView
+
+  /**
+   * Returns a [TableView].
+   */
+  fun createTableView(): TableView
 }

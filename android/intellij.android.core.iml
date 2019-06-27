@@ -119,8 +119,8 @@
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="module" module-name="intellij.android.smali" />
-    <orderEntry type="module" module-name="android.sdktools.java-lib-model" />
-    <orderEntry type="module" module-name="android.sdktools.java-lib-model-builder" />
+    <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
+    <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.platform.lang" />

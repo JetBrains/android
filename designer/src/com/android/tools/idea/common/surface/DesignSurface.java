@@ -703,6 +703,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /** Scroll to the center of a list of given components. Usually the center of the area containing these elements. */
   public abstract void scrollToCenter(@NotNull List<NlComponent> list);
 
+  /** Return true if the designed content is resizable, false otherwise */
+  public abstract boolean isResizeAvailable();
+
   public void setScrollPosition(@SwingCoordinate int x, @SwingCoordinate int y) {
     setScrollPosition(new Point(x, y));
   }

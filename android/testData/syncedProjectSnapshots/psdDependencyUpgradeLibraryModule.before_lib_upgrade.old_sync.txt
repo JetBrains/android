@@ -5,7 +5,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml [-]
+        ModuleFile          : <PROJECT>/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -52,7 +52,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug [-]
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/free/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/free/debug [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/free/debug [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/free/debug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java [-]
@@ -137,7 +137,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -394,7 +394,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : :jModuleK
         LinkedProjectPath   : <PROJECT>/jModuleK
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleK/jModuleK.iml [-]
+        ModuleFile          : <PROJECT>/jModuleK/jModuleK.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -469,7 +469,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : :jModuleL
         LinkedProjectPath   : <PROJECT>/jModuleL
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleL/jModuleL.iml [-]
+        ModuleFile          : <PROJECT>/jModuleL/jModuleL.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -508,7 +508,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : :jModuleM
         LinkedProjectPath   : <PROJECT>/jModuleM
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleM/jModuleM.iml [-]
+        ModuleFile          : <PROJECT>/jModuleM/jModuleM.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -547,7 +547,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : :jModuleZ
         LinkedProjectPath   : <PROJECT>/jModuleZ
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleZ/jModuleZ.iml [-]
+        ModuleFile          : <PROJECT>/jModuleZ/jModuleZ.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -638,7 +638,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : :mainModule
         LinkedProjectPath   : <PROJECT>/mainModule
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/mainModule/mainModule.iml [-]
+        ModuleFile          : <PROJECT>/mainModule/mainModule.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -685,7 +685,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/mainModule/build/generated/res/rs/androidTest/free/debug [-]
             JavaResource        : file://<PROJECT>/mainModule/build/generated/res/rs/free/debug [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/source/buildConfig/androidTest/free/debug [-]
-            JavaSource          : file://<PROJECT>/mainModule/build/generated/source/buildConfig/free/debug [-]
+            JavaSource          : file://<PROJECT>/mainModule/build/generated/source/buildConfig/free/debug
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/mainModule/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/java [-]
@@ -770,7 +770,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/mainModule/src/testFreeDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/mainModule/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/mainModule/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1056,7 +1056,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : :moduleA
         LinkedProjectPath   : <PROJECT>/moduleA
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleA/moduleA.iml [-]
+        ModuleFile          : <PROJECT>/moduleA/moduleA.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1101,7 +1101,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleA/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/moduleA/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/moduleA/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/moduleA/build/generated/source/buildConfig/debug
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/java [-]
@@ -1144,7 +1144,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleA/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleA/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1414,7 +1414,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : :moduleB
         LinkedProjectPath   : <PROJECT>/moduleB
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleB/moduleB.iml [-]
+        ModuleFile          : <PROJECT>/moduleB/moduleB.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1459,7 +1459,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleB/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/moduleB/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/moduleB/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/moduleB/build/generated/source/buildConfig/debug
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/java [-]
@@ -1502,7 +1502,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleB/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleB/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1766,7 +1766,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : :moduleC
         LinkedProjectPath   : <PROJECT>/moduleC
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleC/moduleC.iml [-]
+        ModuleFile          : <PROJECT>/moduleC/moduleC.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1811,7 +1811,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleC/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/moduleC/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/moduleC/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/moduleC/build/generated/source/buildConfig/debug
             JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/moduleC/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/java [-]
@@ -1854,7 +1854,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleC/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleC/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleC/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -2110,7 +2110,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : :moduleFlavor
         LinkedProjectPath   : <PROJECT>/moduleFlavor
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleFlavor/moduleFlavor.iml [-]
+        ModuleFile          : <PROJECT>/moduleFlavor/moduleFlavor.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2155,7 +2155,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleFlavor/build/generated/res/rs/androidTest/free/debug [-]
             JavaResource        : file://<PROJECT>/moduleFlavor/build/generated/res/rs/free/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/androidTest/free/debug [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/free/debug [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/free/debug
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/java [-]
@@ -2240,7 +2240,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleFlavor/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleFlavor/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -2253,7 +2253,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : :modulePlus
         LinkedProjectPath   : <PROJECT>/modulePlus
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/modulePlus/modulePlus.iml [-]
+        ModuleFile          : <PROJECT>/modulePlus/modulePlus.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2298,7 +2298,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/modulePlus/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/modulePlus/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/debug
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/java [-]
@@ -2341,7 +2341,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/modulePlus/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/modulePlus/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/modulePlus/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -2629,7 +2629,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : :jModuleZ:nestedZ
         LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleZ/nestedZ/nestedZ.iml [-]
+        ModuleFile          : <PROJECT>/jModuleZ/nestedZ/nestedZ.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -2660,7 +2660,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectId     : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testPsdDependencyUpgradeLibraryModule.iml [-]
+        ModuleFile          : <PROJECT>/testPsdDependencyUpgradeLibraryModule.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle

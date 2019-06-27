@@ -30,7 +30,8 @@ import com.android.tools.idea.res.ResolvableResourceItem;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.SampleDataResourceItem;
-import com.android.tools.idea.resources.aar.AarResourceItem;
+import com.android.tools.idea.resources.base.BasicResourceItem;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -109,8 +110,8 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
             if (item instanceof ResolvableResourceItem) {
               result.add(((ResolvableResourceItem)item).createResolveResult());
             }
-            else if (item instanceof AarResourceItem) {
-              result.add(new AarResourceResolveResult((AarResourceItem)item));
+            else if (item instanceof BasicResourceItem && !((BasicResourceItem)item).isUserDefined()) {
+              result.add(new AarResourceResolveResult((BasicResourceItem)item));
             }
             else {
               XmlTag tag = LocalResourceRepository.getItemTag(facet.getModule().getProject(), item);
@@ -151,7 +152,7 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
                                                                 @NotNull AndroidFacet facet) {
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
     ResourceRepository repository = namespace.equals(ResourceNamespace.ANDROID) ?
-                                    repositoryManager.getFrameworkResources(false) : repositoryManager.getAppResources();
+                                    repositoryManager.getFrameworkResources(ImmutableSet.of()) : repositoryManager.getAppResources();
     if (repository == null) {
       return PsiElement.EMPTY_ARRAY;
     }
@@ -259,7 +260,7 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
   private static class AarResourceResolveResult implements ResolveResult {
     @Nullable private final PsiElement myElement;
 
-    AarResourceResolveResult(@NotNull AarResourceItem resourceItem) {
+    AarResourceResolveResult(@NotNull BasicResourceItem resourceItem) {
       // TODO(sprigogin): Parse the attached source and obtain the corresponding element.
       myElement = null;
     }

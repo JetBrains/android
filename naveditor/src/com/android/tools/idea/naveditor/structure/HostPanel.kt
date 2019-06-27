@@ -21,10 +21,10 @@ import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_NAV_GRAPH
 import com.android.SdkConstants.VIEW_FRAGMENT
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.stripPrefixFromId
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.model.ModelListener
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -134,7 +134,7 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
         icon = StudioIcons.NavEditor.Tree.ACTIVITY
         val containingFile = value.containingFile?.name ?: "Unknown File"
         append(FileUtil.getNameWithoutExtension(containingFile))
-        append(" (${NlComponent.stripId(value.element?.getAttributeValue(ATTR_ID, ANDROID_URI)) ?: "no id"})")
+        append(" (${value.element?.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId) ?: "no id"})")
       }
     }
     list.addMouseListener(object : MouseAdapter() {

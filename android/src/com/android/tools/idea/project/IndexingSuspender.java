@@ -20,7 +20,6 @@ import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.startBatchUpda
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.npw.model.MultiTemplateRenderer;
@@ -30,7 +29,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +42,6 @@ public class IndexingSuspender {
 
   @NotNull private final Project myProject;
 
-  private boolean myScheduledAfterProjectInitialisation;
   @Nullable private DeactivationEvent myDeactivationEvent;
   private volatile boolean myActivated;
 
@@ -86,30 +83,6 @@ public class IndexingSuspender {
 
     LOG.info("Consuming IndexingSuspender activation event: " + event.toString());
     switch (event) {
-      case SYNC_STARTED:
-        if (!myProject.isInitialized()) {
-          if (myActivated) {
-            // Always mandatory to resume indexing during project initialisation, otherwise risking IDE deadlock
-            // during the initial refresh.
-            ensureDeactivated();
-          }
-          myScheduledAfterProjectInitialisation = true;
-          StartupManager.getInstance(myProject).runWhenProjectIsInitialized(
-            () -> {
-              if (myScheduledAfterProjectInitialisation) {
-                // This is expected to be executed on project setup once the project is initialised.
-                activate(ActivationEvent.SYNC_STARTED, DeactivationEvent.SYNC_FINISHED);
-                myScheduledAfterProjectInitialisation = false;
-              }
-            }
-          );
-        }
-        else {
-          if (!myActivated) {
-            activate(ActivationEvent.SYNC_STARTED, DeactivationEvent.SYNC_FINISHED);
-          }
-        }
-        break;
       case SETUP_STARTED:
         if (!myProject.isInitialized()) {
           clearStateConditions();
@@ -120,24 +93,9 @@ public class IndexingSuspender {
           activate(ActivationEvent.SETUP_STARTED, DeactivationEvent.SYNC_FINISHED);
         }
         break;
-      case BUILD_EXECUTOR_CREATED:
-        if (myDeactivationEvent == DeactivationEvent.SYNC_FINISHED) {
-          myDeactivationEvent = DeactivationEvent.BUILD_FINISHED;
-        }
-        break;
-      case BUILD_STARTED:
-        if (!myActivated) {
-          activate(ActivationEvent.BUILD_STARTED, DeactivationEvent.BUILD_FINISHED);
-        }
-        break;
       case TEMPLATE_RENDERING_STARTED:
         if (!myActivated) {
           activate(ActivationEvent.TEMPLATE_RENDERING_STARTED, DeactivationEvent.TEMPLATE_RENDERING_FINISHED);
-        }
-        break;
-      case SYNC_TASK_CREATED:
-        if (myDeactivationEvent == DeactivationEvent.TEMPLATE_RENDERING_FINISHED) {
-          myDeactivationEvent = DeactivationEvent.SYNC_FINISHED;
         }
         break;
     }
@@ -148,7 +106,6 @@ public class IndexingSuspender {
     // The guard below is against the situation when project initialisation completes after gradle sync.
     // In practice this won't happen, but for the sanity reasons it makes sense to render the deferred indexing suspender
     // activation into a no-op, if there is any.
-    myScheduledAfterProjectInitialisation = false;
     if (event == myDeactivationEvent) {
       ensureDeactivated();
     }
@@ -170,16 +127,6 @@ public class IndexingSuspender {
   private void subscribeToSyncAndBuildEvents() {
     LOG.info(String.format("Subscribing project '%1$s' to indexing suspender events (%2$s)", myProject.toString(), toString()));
     GradleSyncState.subscribe(myProject, new GradleSyncListener() {
-      @Override
-      public void syncTaskCreated(@NotNull Project project, @NotNull GradleSyncInvoker.Request request) {
-        consumeActivationEvent(ActivationEvent.SYNC_TASK_CREATED);
-      }
-
-      @Override
-      public void syncStarted(@NotNull Project project, boolean sourceGenerationRequested) {
-        consumeActivationEvent(ActivationEvent.SYNC_STARTED);
-      }
-
       @Override
       public void setupStarted(@NotNull Project project) {
         consumeActivationEvent(ActivationEvent.SETUP_STARTED);
@@ -279,17 +226,12 @@ public class IndexingSuspender {
   }
 
   private enum ActivationEvent {
-    SYNC_TASK_CREATED,
-    SYNC_STARTED,
     SETUP_STARTED,
-    BUILD_EXECUTOR_CREATED,
-    BUILD_STARTED,
     TEMPLATE_RENDERING_STARTED,
   }
 
   private enum DeactivationEvent {
     SYNC_FINISHED,
-    BUILD_FINISHED,
     TEMPLATE_RENDERING_FINISHED,
   }
 }

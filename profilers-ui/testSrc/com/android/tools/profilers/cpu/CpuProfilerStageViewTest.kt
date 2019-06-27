@@ -50,6 +50,8 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import org.mockito.Mockito
 import java.awt.Graphics2D
 import java.awt.Point
@@ -61,13 +63,24 @@ import javax.swing.SwingUtilities
 // Path to trace file. Used in test to build AtraceParser.
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
 
-class CpuProfilerStageViewTest {
+@RunWith(Parameterized::class)
+class CpuProfilerStageViewTest(newPipeline: Boolean) {
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters
+    fun data(): Collection<Boolean> {
+      return listOf(false, true)
+    }
+  }
 
   private val myTimer = FakeTimer()
 
   private val myComponents = FakeIdeProfilerComponents()
 
-  private val myIdeServices = FakeIdeProfilerServices()
+  private val myIdeServices = FakeIdeProfilerServices().apply {
+    enableEventsPipeline(newPipeline)
+  }
 
   private val myCpuService = FakeCpuService()
 
@@ -199,6 +212,7 @@ class CpuProfilerStageViewTest {
       CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
     val captureId = myStage.capture!!.traceId
     myStage.studioProfilers.sessionsManager.endCurrentSession()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     // Re-create the stage so that the capture is not cached
     myStage = CpuProfilerStage(myStage.studioProfilers)

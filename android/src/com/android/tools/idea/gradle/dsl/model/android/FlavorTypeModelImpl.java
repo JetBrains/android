@@ -29,7 +29,9 @@ import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -316,6 +318,9 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   protected <T> List<T> getTypeNameValuesElements(@NotNull Function<GradleDslExpressionList, T> producer, @NotNull String elementName) {
     List<T> result = Lists.newArrayList();
     for (GradleDslElement element : myDslElement.getPropertyElementsByName(elementName)) {
+      if (element instanceof GradleDslMethodCall) {
+        element = maybeConvertToExpressionList((GradleDslMethodCall)element);
+      }
       if (element instanceof GradleDslExpressionList) {
         GradleDslExpressionList list = (GradleDslExpressionList)element;
         T value = producer.apply(list);
@@ -348,6 +353,25 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
       }
     }
     return null;
+  }
+
+  /**
+   * This function converts {@link GradleDslMethodCall} to a {@link GradleDslExpressionList}. This is needed for cases where we parse
+   * statements in kotlin differently to Groovy. For example: a {@code buildConfigField} statement would be parsed to a GradleDslMethodCall,
+   * having the statement value(s) as arguments, at the parser level in kotlin. This is done to keep the DSL and PSI structures similar
+   * and make writing back to Kotlin files easy.
+   * We only need GradleDslExpressionList at the model level, and hence the utility of this function.
+   */
+  protected GradleDslExpression maybeConvertToExpressionList(GradleDslMethodCall methodCall) {
+    if (methodCall.getParent() != null && methodCall.getArgumentListPsiElement() != null) {
+      GradleDslExpressionList elementList = new GradleDslExpressionList(
+        methodCall.getParent(), methodCall.getArgumentListPsiElement(), false, methodCall.getNameElement());
+      for (GradleDslExpression argument : methodCall.getArguments()) {
+        elementList.addParsedElement(argument);
+      }
+      return elementList;
+    }
+    return methodCall;
   }
 
   /**

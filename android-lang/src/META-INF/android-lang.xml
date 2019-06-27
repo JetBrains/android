@@ -45,7 +45,8 @@
                            implementationClass="com.android.tools.idea.lang.roomSql.parser.RoomSqlParserDefinition"/>
     <lang.syntaxHighlighterFactory language="RoomSql"
                                    implementationClass="com.android.tools.idea.lang.roomSql.RoomSqlSyntaxHighlighterFactory"/>
-    <projectService serviceImplementation="com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager"/>
+    <moduleService serviceImplementation="com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.lang.roomSql.resolution.RoomDependencyChecker"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomDefinedTableNameImpl"
                              implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomSelectedTableNameImpl"
@@ -81,6 +82,11 @@
 
     <lang.braceMatcher language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomPairedBraceMatcher"/>
     <lang.quoteHandler language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomQuoteHandler"/>
+
+    <!-- Multidex keep files support -->
+    <fileTypeFactory implementation="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepFileTypeFactory"/>
+    <lang.parserDefinition language="MultiDexKeep" implementationClass="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepParserDefinition"/>
+
   </extensions>
 
   <extensions defaultExtensionNs="org.intellij.intelliLang">
