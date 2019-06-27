@@ -16,12 +16,9 @@
 package com.android.tools.idea.tests.gui.framework.fixture.translations;
 
 import com.android.tools.idea.editors.strings.table.FrozenColumnTable;
-import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.ObjIntConsumer;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
@@ -88,11 +85,8 @@ public final class FrozenColumnTableFixture {
   }
 
   @NotNull
-  public List<String> columnAt(int viewColumnIndex) {
-    return GuiQuery.getNonNull(() -> IntStream.range(0, myTarget.getRowCount())
-                                              .mapToObj(viewRowIndex -> myTarget.getValueAt(viewRowIndex, viewColumnIndex))
-                                              .map(Object::toString)
-                                              .collect(Collectors.toList()));
+  public Object columnAt(int viewColumnIndex) {
+    return GuiQuery.getNonNull(() -> myTarget.getColumnAt(viewColumnIndex));
   }
 
   public int getPreferredColumnWidth(int viewColumnIndex) {

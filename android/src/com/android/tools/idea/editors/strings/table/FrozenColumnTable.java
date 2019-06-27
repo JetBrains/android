@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBScrollPane;
 import java.awt.Component;
@@ -571,6 +572,18 @@ public class FrozenColumnTable<M extends TableModel> {
     }
 
     return myScrollableTable.getColumnName(viewColumnIndex - count);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public final Object getColumnAt(int viewColumnIndex) {
+    int count = myFrozenTable.getColumnCount();
+
+    if (viewColumnIndex < count) {
+      return myFrozenTable.getColumnAt(viewColumnIndex);
+    }
+
+    return myScrollableTable.getColumnAt(viewColumnIndex - count);
   }
 
   @NotNull
