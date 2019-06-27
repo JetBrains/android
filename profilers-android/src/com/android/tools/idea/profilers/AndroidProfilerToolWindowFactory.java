@@ -16,7 +16,6 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.commands.GcCommandHandler;
 import com.android.tools.idea.profilers.eventpreprocessor.EnergyUsagePreprocessor;
 import com.android.tools.idea.profilers.perfd.ProfilerServiceProxyManager;
@@ -31,10 +30,10 @@ import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.Transport;
-import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -76,10 +75,6 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
         }
       }
     });
-
-    // TODO move to non-project-dependent once service is fully migrated to be application-level
-    MessageBusConnection busConnection = project.getMessageBus().connect();
-    busConnection.subscribe(TransportDeviceManager.TOPIC, new ProfilerDeviceManagerListener(project));
   }
 
   @Override
@@ -88,6 +83,9 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     toolWindow.hide(null);
     toolWindow.setShowStripeButton(false);
     toolWindow.setStripeTitle(PROFILER_TOOL_WINDOW_TITLE);
+
+    MessageBusConnection busConnection = ApplicationManager.getApplication().getMessageBus().connect();
+    busConnection.subscribe(TransportDeviceManager.TOPIC, new ProfilerDeviceManagerListener());
   }
 
   private static void createContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
@@ -140,25 +138,19 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
   private static class ProfilerDeviceManagerListener implements TransportDeviceManager.TransportDeviceManagerListener {
     private final int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
 
-    @NotNull private final FeatureTracker myTracker;
-
-    public ProfilerDeviceManagerListener(@NotNull Project project) {
-      myTracker = new StudioFeatureTracker(project);
+    public ProfilerDeviceManagerListener() {
     }
 
     @Override
     public void onPreTransportDaemonStart(@NotNull Common.Device device) {
-      myTracker.trackPreTransportDaemonStarts(device);
     }
 
     @Override
     public void onStartTransportDaemonFail(@NotNull Common.Device device, @NotNull Exception exception) {
-      myTracker.trackTransportDaemonFailed(device, exception);
     }
 
     @Override
     public void onTransportProxyCreationFail(@NotNull Common.Device device, @NotNull Exception exception) {
-      myTracker.trackTransportProxyCreationFailed(device, exception);
     }
 
     @Override
