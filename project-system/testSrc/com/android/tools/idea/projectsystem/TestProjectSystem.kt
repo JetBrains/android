@@ -155,7 +155,7 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
   }
 
   override fun getSyncManager(): ProjectSystemSyncManager = object : ProjectSystemSyncManager {
-    override fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
+    override fun syncProject(reason: SyncReason): ListenableFuture<SyncResult> {
       emulateSync(SyncResult.SUCCESS)
       return Futures.immediateFuture(SyncResult.SUCCESS)
     }

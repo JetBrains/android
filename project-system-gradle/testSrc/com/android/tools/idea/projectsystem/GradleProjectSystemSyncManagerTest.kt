@@ -65,7 +65,7 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
     syncTopicConnection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncTopicListener)
   }
 
-  private fun emulateSync(requireSourceGeneration: Boolean, syncSuccessful: Boolean):
+  private fun emulateSync(syncSuccessful: Boolean, buildResult: BuildStatus?):
       ListenableFuture<SyncResult> {
 
     doAnswer({ invocation ->
@@ -83,13 +83,11 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
       }
     }).`when`(syncInvoker).requestProjectSync(any(), any())
 
-    return syncManager.syncProject(SyncReason.PROJECT_MODIFIED, requireSourceGeneration)
-  }
-
-  private fun emulateBuild(result: BuildStatus) {
-    ApplicationManager.getApplication().invokeAndWait {
-      gradleBuildState.buildFinished(result)
+    val listenableFuture = syncManager.syncProject(SyncReason.PROJECT_MODIFIED)
+    if (buildResult != null) {
+      ApplicationManager.getApplication().invokeAndWait { gradleBuildState.buildFinished(buildResult) }
     }
+    return listenableFuture
   }
 
   fun testSyncProject_uninitializedProject() {
@@ -106,20 +104,12 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
     // http://b/62543184
     `when`(gradleProjectInfo.isImportedProject).thenReturn(true)
 
-    project.getProjectSystem().getSyncManager().syncProject(SyncReason.PROJECT_LOADED, true)
+    project.getProjectSystem().getSyncManager().syncProject(SyncReason.PROJECT_LOADED)
     verify(syncInvoker, never()).requestProjectSync(same(project), any())
   }
 
-  fun testSyncProject_noSourceGeneration() {
-    val result = emulateSync(false, true)
-
-    assertThat(result.isDone).isTrue()
-    assertThat(result.get()).isSameAs(SyncResult.SUCCESS)
-    verify(syncTopicListener).syncEnded(SyncResult.SUCCESS)
-  }
-
   fun testSyncProject_sourceGenerationRequestedAndSyncFails() {
-    val result = emulateSync(true, false)
+    val result = emulateSync(false, BuildStatus.SUCCESS)
 
     assertThat(result.isDone).isTrue()
     assertThat(result.get()).isSameAs(SyncResult.FAILURE)
@@ -127,14 +117,13 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
   }
 
   fun testSyncProject_waitsForSourceGeneration() {
-    val result = emulateSync(true, true)
+    val result = emulateSync(true, null)
 
     assertThat(result.isDone).isFalse()
   }
 
   fun testSyncProject_sourceGenerationRequestedAndBuildFails() {
-    val result = emulateSync(true, true)
-    emulateBuild(BuildStatus.FAILED)
+    val result = emulateSync(true, BuildStatus.FAILED)
 
     assertThat(result.isDone).isTrue()
     assertThat(result.get()).isSameAs(SyncResult.SOURCE_GENERATION_FAILURE)
@@ -142,8 +131,7 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
   }
 
   fun testSyncProject_sourceGenerationSuccessful() {
-    val result = emulateSync(true, true)
-    emulateBuild(BuildStatus.SUCCESS)
+    val result = emulateSync(true, BuildStatus.SUCCESS)
 
     assertThat(result.isDone).isTrue()
     assertThat(result.get()).isSameAs(SyncResult.SUCCESS)
@@ -155,7 +143,7 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
   }
 
   fun testGetLastSyncResult_sameAsSyncResult() {
-    emulateSync(false, true)
+    emulateSync(true, BuildStatus.SUCCESS)
 
     assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.SUCCESS)
   }

@@ -43,7 +43,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
       else -> GradleSyncStats.Trigger.TRIGGER_USER_REQUEST
   }
 
-  private fun requestSync(project: Project, reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
+  private fun requestSync(project: Project, reason: SyncReason): ListenableFuture<SyncResult> {
     val trigger = convertReasonToTrigger(reason)
     val syncResult = SettableFuture.create<SyncResult>()
 
@@ -58,7 +58,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     }
 
     val request = GradleSyncInvoker.Request(trigger)
-    request.generateSourcesOnSuccess = requireSourceGeneration
+    request.generateSourcesOnSuccess = true
     request.runInBackground = true
 
     try {
@@ -75,20 +75,20 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     return syncResult
   }
 
-  override fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
+  override fun syncProject(reason: SyncReason): ListenableFuture<SyncResult> {
     val syncResult = SettableFuture.create<SyncResult>()
 
     when {
       isSyncInProgress() -> syncResult.setException(RuntimeException("A sync was requested while one is"
           + " already in progress. Use ProjectSystemSyncManager.isSyncInProgress to detect this scenario."))
 
-      project.isInitialized -> syncResult.setFuture(requestSync(project, reason, requireSourceGeneration))
+      project.isInitialized -> syncResult.setFuture(requestSync(project, reason))
 
       else -> StartupManager.getInstance(project).runWhenProjectIsInitialized {
         if (!GradleProjectInfo.getInstance(project).isImportedProject) {
           // http://b/62543184
           // If the project was created with the "New Project" wizard, there is no need to sync again.
-          syncResult.setFuture(requestSync(project, reason, requireSourceGeneration))
+          syncResult.setFuture(requestSync(project, reason))
         }
         else {
           syncResult.set(SyncResult.SKIPPED)

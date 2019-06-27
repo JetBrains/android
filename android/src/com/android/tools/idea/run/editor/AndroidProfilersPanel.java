@@ -204,7 +204,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
       // TODO change trigger to plugin upgrade trigger if it is created
       syncResult.setFuture(ProjectSystemUtil.getProjectSystem(myProject)
-        .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true));
+        .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED));
     });
 
     // Block until sync finishes
