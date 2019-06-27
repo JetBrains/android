@@ -17,16 +17,22 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.MemoryStatsTable;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class MemoryDataPoller extends PollRunner {
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;

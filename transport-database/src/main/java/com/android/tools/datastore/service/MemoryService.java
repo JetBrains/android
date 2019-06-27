@@ -30,6 +30,7 @@ import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
@@ -37,7 +38,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
@@ -151,7 +151,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       response = client.triggerHeapDump(request);
       // Saves off the HeapDumpInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
       // and results in a NOT_FOUND status when the profiler tries to pull the dump's data in quick successions.
-      if (response.getStatus().getStatus() == Memory.DumpStartStatus.Status.SUCCESS) {
+      if (response.getStatus().getStatus() == Memory.HeapDumpStatus.Status.SUCCESS) {
         assert response.getInfo() != null;
         myStatsTable.insertOrReplaceHeapInfo(request.getSession(), response.getInfo());
       }
