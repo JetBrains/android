@@ -21,12 +21,14 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
@@ -35,6 +37,7 @@ import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
@@ -42,6 +45,7 @@ import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
@@ -53,6 +57,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -187,7 +192,6 @@ public class MemoryProfiler extends StudioProfiler {
                              startTimestampEpochMs);
     // Bind the imported session with heap dump data through MemoryClient.
     HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
-      .setFileName(file.getName())
       .setStartTime(fileCreationTime)
       .setEndTime(fileCreationTime + 1)
       .build();
@@ -348,5 +352,40 @@ public class MemoryProfiler extends StudioProfiler {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
     builder.append(LocalDateTime.now().format(formatter));
     return builder.toString();
+  }
+
+  public static List<HeapDumpInfo> getHeapDumpsForSession(@NotNull ProfilerClient client,
+                                                          @NotNull Common.Session session,
+                                                          @NotNull Range rangeUs,
+                                                          @NotNull IdeProfilerServices profilerService) {
+
+    if (profilerService.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
+        .setStreamId(session.getStreamId())
+        .setPid(session.getPid())
+        .setKind(Common.Event.Kind.MEMORY_HEAP_DUMP)
+        .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
+        .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
+        .build();
+      Transport.GetEventGroupsResponse response = client.getTransportClient().getEventGroups(request);
+
+      List<HeapDumpInfo> infos = new ArrayList<>();
+      for (Transport.EventGroup group : response.getGroupsList()) {
+        // We only need the last event to get the most recent HeapDumpInfo
+        Common.Event lastEvent = group.getEvents(group.getEventsCount() - 1);
+        infos.add(lastEvent.getMemoryHeapdump().getInfo());
+      }
+      return infos;
+    }
+    else {
+      ListHeapDumpInfosResponse response = client.getMemoryClient().listHeapDumpInfos(
+        ListDumpInfosRequest.newBuilder()
+          .setSession(session)
+          .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
+          .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
+          .build());
+
+      return response.getInfosList();
+    }
   }
 }

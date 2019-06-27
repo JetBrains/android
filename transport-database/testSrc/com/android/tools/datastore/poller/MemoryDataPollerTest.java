@@ -15,7 +15,7 @@
  */
 package com.android.tools.datastore.poller;
 
-import static com.android.tools.profiler.proto.Memory.DumpStartStatus.Status.SUCCESS;
+import static com.android.tools.profiler.proto.Memory.HeapDumpStatus.Status.SUCCESS;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -26,16 +26,15 @@ import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.service.MemoryService;
-import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocatedClass;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
@@ -262,7 +261,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myFakeMemoryService.setTriggerHeapDumpInfo(DEFAULT_DUMP_INFO);
     TriggerHeapDumpRequest triggerHeapDumpRequest = TriggerHeapDumpRequest.newBuilder().setSession(TEST_SESSION).build();
     TriggerHeapDumpResponse expectedTrigger = TriggerHeapDumpResponse
-      .newBuilder().setStatus(Memory.DumpStartStatus.newBuilder().setStatus(SUCCESS)).setInfo(DEFAULT_DUMP_INFO).build();
+      .newBuilder().setStatus(Memory.HeapDumpStatus.newBuilder().setStatus(SUCCESS)).setInfo(DEFAULT_DUMP_INFO).build();
     StreamObserver<TriggerHeapDumpResponse> triggerHeapDumpObserver = mock(StreamObserver.class);
     myMemoryService.triggerHeapDump(triggerHeapDumpRequest, triggerHeapDumpObserver);
     validateResponse(triggerHeapDumpObserver, expectedTrigger);
@@ -313,7 +312,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     ListDumpInfosRequest request = ListDumpInfosRequest
       .newBuilder().setSession(TEST_SESSION).setStartTime(delayTimeFromBase(2)).setEndTime(Long.MAX_VALUE).build();
     ListHeapDumpInfosResponse expected = ListHeapDumpInfosResponse.newBuilder()
-      .addInfos(NOT_READY_DUMP_INFO.toBuilder().setEndTime(NOT_READY_DUMP_INFO.getStartTime() + 1).setSuccess(false)).build();
+      .addInfos(NOT_READY_DUMP_INFO.toBuilder().setEndTime(NOT_READY_DUMP_INFO.getStartTime() + 1).setSuccess(false).build())
+      .build();
     StreamObserver<ListHeapDumpInfosResponse> observer = mock(StreamObserver.class);
     myMemoryService.listHeapDumpInfos(request, observer);
     validateResponse(observer, expected);
@@ -472,7 +472,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     public void triggerHeapDump(TriggerHeapDumpRequest request,
                                 StreamObserver<TriggerHeapDumpResponse> responseObserver) {
       TriggerHeapDumpResponse.Builder builder = TriggerHeapDumpResponse.newBuilder();
-      builder.setStatus(Memory.DumpStartStatus.newBuilder().setStatus(SUCCESS));
+      builder.setStatus(Memory.HeapDumpStatus.newBuilder().setStatus(SUCCESS));
       if (myTriggerHeapDumpInfo != null) {
         builder.setInfo(myTriggerHeapDumpInfo);
       }

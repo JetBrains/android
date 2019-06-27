@@ -39,8 +39,10 @@ import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
@@ -425,10 +427,41 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   public void requestHeapDump() {
-    TriggerHeapDumpResponse response = myClient.triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).build());
-    switch (response.getStatus().getStatus()) {
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      assert getStudioProfilers().getProcess() != null;
+      Commands.Command dumpCommand = Commands.Command.newBuilder()
+        .setStreamId(mySessionData.getStreamId())
+        .setPid(mySessionData.getPid())
+        .setType(Commands.Command.CommandType.HEAP_DUMP)
+        .build();
+      Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
+        Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
+      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_HEAP_DUMP_STATUS,
+                                                                         getStudioProfilers().getIdeServices().getMainExecutor(),
+                                                                         event -> event.getCommandId() == response.getCommandId(),
+                                                                         () -> mySessionData.getStreamId(),
+                                                                         () -> mySessionData.getPid(),
+                                                                         event -> {
+                                                                           handleHeapDumpStart(event.getMemoryHeapdumpStatus().getStatus());
+                                                                           // unregisters the listener.
+                                                                           return true;
+                                                                         });
+      getStudioProfilers().getTransportPoller().registerListener(statusListener);
+    }
+    else {
+      TriggerHeapDumpResponse response = myClient.triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).build());
+      handleHeapDumpStart(response.getStatus());
+    }
+
+    getStudioProfilers().getTimeline().setStreaming(true);
+    getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
+    myInstructionsEaseOutModel.setCurrentPercentage(1);
+  }
+
+  private void handleHeapDumpStart(@NotNull Memory.HeapDumpStatus status) {
+    switch (status.getStatus()) {
       case SUCCESS:
-        myPendingCaptureStartTime = response.getInfo().getStartTime();
+        myPendingCaptureStartTime = status.getStartTime();
         break;
       case IN_PROGRESS:
         getLogger().debug(String.format("A heap dump for %d is already in progress.", mySessionData.getPid()));
@@ -439,10 +472,6 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       case UNRECOGNIZED:
         break;
     }
-
-    getStudioProfilers().getTimeline().setStreaming(true);
-    getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
-    myInstructionsEaseOutModel.setCurrentPercentage(1);
   }
 
   public void forceGarbageCollection() {

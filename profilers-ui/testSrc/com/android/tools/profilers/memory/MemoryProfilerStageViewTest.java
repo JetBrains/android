@@ -33,10 +33,10 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.Transport;
@@ -226,7 +226,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(deltaUs));
 
     // Triggering a heap dump should not affect the allocation recording duration
-    myService.setExplicitHeapDumpStatus(Memory.DumpStartStatus.Status.SUCCESS);
+    myService.setExplicitHeapDumpStatus(Memory.HeapDumpStatus.Status.SUCCESS);
     myService.setExplicitHeapDumpInfo(TimeUnit.SECONDS.toNanos(invalidTime), TimeUnit.SECONDS.toNanos(Long.MAX_VALUE));
     myStage.requestHeapDump();
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
@@ -569,7 +569,6 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
       .setStartTime(TimeUnit.MICROSECONDS.toNanos(3))
       .setEndTime(TimeUnit.MICROSECONDS.toNanos(4))
-      .setSuccess(true)
       .build();
     myService.addExplicitHeapDumpInfo(heapDumpInfo);
     HeapDumpCaptureObject heapDumpCapture = new HeapDumpCaptureObject(new ProfilerClient(getGrpcChannel().getName()),

@@ -208,20 +208,20 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Bypass the load mechanism in HeapDumpCaptureObject.
     myMockLoader.setReturnImmediateFuture(true);
     // Test the no-action cases
-    myService.setExplicitHeapDumpStatus(Memory.DumpStartStatus.Status.FAILURE_UNKNOWN);
+    myService.setExplicitHeapDumpStatus(Memory.HeapDumpStatus.Status.FAILURE_UNKNOWN);
     myStage.requestHeapDump();
     assertThat(myStage.getSelectedCapture()).isNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
-    myService.setExplicitHeapDumpStatus(Memory.DumpStartStatus.Status.IN_PROGRESS);
+    myService.setExplicitHeapDumpStatus(Memory.HeapDumpStatus.Status.IN_PROGRESS);
     myStage.requestHeapDump();
     assertThat(myStage.getSelectedCapture()).isNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
-    myService.setExplicitHeapDumpStatus(Memory.DumpStartStatus.Status.UNSPECIFIED);
+    myService.setExplicitHeapDumpStatus(Memory.HeapDumpStatus.Status.UNSPECIFIED);
     myStage.requestHeapDump();
     assertThat(myStage.getSelectedCapture()).isNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
 
-    myService.setExplicitHeapDumpStatus(Memory.DumpStartStatus.Status.SUCCESS);
+    myService.setExplicitHeapDumpStatus(Memory.HeapDumpStatus.Status.SUCCESS);
     myService.setExplicitHeapDumpInfo(5, 10);
     myStage.requestHeapDump();
 
