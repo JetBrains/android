@@ -29,7 +29,6 @@ public class AndroidModuleModelSerializationTest extends AndroidGradleTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
     }
     finally {
@@ -38,7 +37,6 @@ public class AndroidModuleModelSerializationTest extends AndroidGradleTestCase {
   }
 
   public void testSerialization() throws Exception {
-    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(false);
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(false);
 
     loadSimpleApplication();

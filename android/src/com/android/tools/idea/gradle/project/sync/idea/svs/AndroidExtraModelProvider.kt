@@ -22,7 +22,7 @@ import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.level2.GlobalLibraryMap
 import com.android.java.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
-import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions
+import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject

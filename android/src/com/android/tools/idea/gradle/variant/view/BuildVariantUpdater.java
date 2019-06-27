@@ -36,8 +36,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
-import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
+import com.android.tools.idea.gradle.project.sync.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
@@ -478,7 +477,7 @@ public class BuildVariantUpdater {
         variantName = ndkModuleModel.getVariantName(buildVariantName);
         abiName = ndkModuleModel.getAbiName(buildVariantName);
       }
-      boolean isCompoundSyncEnabled = NewGradleSync.isCompoundSync(project);
+      boolean isCompoundSyncEnabled = GradleSyncState.isCompoundSync();
       request.variantOnlySyncOptions =
         new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName,
                                    isCompoundSyncEnabled);
