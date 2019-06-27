@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.rendering.api.Result
-import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.PerfgateRenderUtil.NUMBER_OF_SAMPLES
 import com.android.tools.idea.rendering.PerfgateRenderUtil.NUMBER_OF_WARM_UP
@@ -30,17 +30,17 @@ import com.android.tools.perflogger.Metric
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Rule
 import org.mockito.Mockito.mock
-import java.awt.image.BufferedImage
-import java.io.File
 import java.util.ArrayList
 import java.util.concurrent.TimeUnit
-import javax.imageio.ImageIO
 
 class RenderComplexPerfgateTest : AndroidGradleTestCase() {
+
+  @get:Rule
+  val myRestoreFlagRule = RestoreFlagRule(StudioFlags.NELE_NATIVE_LAYOUTLIB)
 
   @Throws(Exception::class)
   override fun setUp() {
@@ -54,12 +54,12 @@ class RenderComplexPerfgateTest : AndroidGradleTestCase() {
       RenderTestUtil.afterRenderTestCase()
     }
     finally {
-      StudioFlags.NELE_NATIVE_LAYOUTLIB.clearOverride()
       super.tearDown()
     }
   }
 
   fun testComplexInflate() {
+    StudioFlags.NELE_NATIVE_LAYOUTLIB.override(false)
     loadProject(PERFGATE_COMPLEX_LAYOUT)
 
     val module = getModule("app")
@@ -82,6 +82,7 @@ class RenderComplexPerfgateTest : AndroidGradleTestCase() {
   }
 
   fun testComplexRender() {
+    StudioFlags.NELE_NATIVE_LAYOUTLIB.override(false)
     loadProject(PERFGATE_COMPLEX_LAYOUT)
 
     val module = getModule("app")
