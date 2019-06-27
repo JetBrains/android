@@ -169,7 +169,7 @@ public class IdeaGradleSync implements GradleSync {
     GradleSettings gradleSettings = GradleSettings.getInstance(project);
     Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
     if (projectsSettings.isEmpty()) {
-      if (project.getBasePath() != null && GradleProjectImportUtil.canImportProjectFrom(project.getBaseDir())) {
+      if (project.getBasePath() != null && GradleProjectImportUtil.canSetupGradleProjectFrom(project.getBaseDir())) {
         GradleProjectSettings projectSettings = new GradleProjectSettings();
         String externalProjectPath = toCanonicalPath(project.getBasePath());
         projectSettings.setExternalProjectPath(externalProjectPath);
