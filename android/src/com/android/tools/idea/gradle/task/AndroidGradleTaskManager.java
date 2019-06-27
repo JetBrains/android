@@ -67,7 +67,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @NotNull final List<String> taskNames,
                               @NotNull String projectPath,
                               @Nullable GradleExecutionSettings settings,
-                              @Nullable final String jvmAgentSetup,
+                              @Nullable final String jvmParametersSetup,
                               @NotNull final ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
     GradleBuildInvoker gradleBuildInvoker = findGradleInvoker(id, projectPath);
     if (gradleBuildInvoker != null) {
@@ -76,7 +76,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
 
       GradleExecutionSettings effectiveSettings =
         settings == null ? new GradleExecutionSettings(null, null, DistributionType.BUNDLED, false) : settings;
-      appendInitScriptArgument(taskNames, jvmAgentSetup, effectiveSettings);
+      appendInitScriptArgument(taskNames, jvmParametersSetup, effectiveSettings);
       // @formatter:off
       request.setJvmArguments(effectiveSettings.getJvmArguments())
              .setCommandLineArguments(effectiveSettings.getArguments())
