@@ -38,9 +38,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class TransportProxy {
 
+  public interface ProxyCommandHandler {
+    Transport.ExecuteResponse execute(Commands.Command command);
+  }
+
   private Server myProxyServer;
   @NotNull private final List<ServiceProxy> myProxyServices;
-  @NotNull private final Map<Commands.Command.CommandType, Function<Commands.Command, Transport.ExecuteResponse>> myProxyHandlers;
   @NotNull private IDevice myDevice;
   @NotNull private ManagedChannel myTransportChannel;
   @NotNull private final TransportServiceProxy myProxyService;
@@ -51,7 +54,6 @@ public final class TransportProxy {
     myDevice = ddmlibDevice;
     myTransportChannel = transportChannel;
     myProxyServices = new LinkedList<>();
-    myProxyHandlers = new HashMap<>();
     myProxyService = new TransportServiceProxy(ddmlibDevice, transportDevice, transportChannel, myProxyBytesCache);
   }
 
@@ -69,7 +71,7 @@ public final class TransportProxy {
    * from the device directly. e.g. pre-O memory allocation tracking and cpu traces.
    */
   public void registerProxyCommandHandler(Commands.Command.CommandType commandType,
-                                          Function<Commands.Command, Transport.ExecuteResponse> handler) {
+                                          ProxyCommandHandler handler) {
     myProxyService.registerCommandHandler(commandType, handler);
   }
 

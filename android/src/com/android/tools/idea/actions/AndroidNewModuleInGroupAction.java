@@ -18,10 +18,12 @@ package com.android.tools.idea.actions;
 
 import com.intellij.ide.projectView.impl.ModuleGroup;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.util.GradleProjects.getGradleModulePath;
 import static com.intellij.ide.projectView.impl.ModuleGroup.ARRAY_DATA_KEY;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 
@@ -41,6 +43,18 @@ public class AndroidNewModuleInGroupAction extends AndroidNewModuleAction {
     ModuleGroup[] moduleGroups = e.getData(ARRAY_DATA_KEY);
     Module[] modules = e.getData(MODULE_CONTEXT_ARRAY);
     e.getPresentation().setVisible(isNotEmpty(moduleGroups) || isNotEmpty(modules));
+  }
+
+  @Nullable
+  @Override
+  protected String getModulePath(@NotNull AnActionEvent e) {
+    Module module = LangDataKeys.MODULE.getData(e.getDataContext());
+    if (module == null) {
+      return null;
+    }
+
+    String modulePath = getGradleModulePath(module);
+    return (modulePath != null && modulePath.startsWith(":")) ? modulePath.substring(1) : "";
   }
 
   private static boolean isNotEmpty(@Nullable Object[] array) {

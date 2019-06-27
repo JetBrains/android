@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isCompoundSync;
 import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
@@ -30,6 +31,7 @@ import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static java.lang.System.currentTimeMillis;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
@@ -72,8 +74,12 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
+import com.intellij.util.messages.MessageBusConnection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -155,9 +161,8 @@ public class GradleSyncInvoker {
     Application application = ApplicationManager.getApplication();
     if (application.isUnitTestMode()) {
       application.invokeAndWait(syncTask);
-      return;
     }
-    if (request.runInBackground) {
+    else if (request.runInBackground) {
       TransactionGuard.getInstance().submitTransactionLater(project, syncTask);
     }
     else {
@@ -203,6 +208,7 @@ public class GradleSyncInvoker {
     return false; // stop sync.
   }
 
+  @WorkerThread
   private void sync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
     if (myIdeInfo.isAndroidStudio()) {
       // See https://code.google.com/p/android/issues/detail?id=169743
@@ -227,18 +233,60 @@ public class GradleSyncInvoker {
     // And any changes to gradle files after sync started will result in another sync needed.
     myPreSyncProjectCleanUp.cleanUp(project);
 
-    // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
-    // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
-    boolean isImportedProject = GradleProjectInfo.getInstance(project).isImportedProject();
-    if (!GradleSyncState.getInstance(project).syncStarted(!isImportedProject, request, listener)) {
+    if (!GradleSyncState.getInstance(project).syncStarted(request, listener)) {
       return;
     }
 
 
     boolean useNewGradleSync = NewGradleSync.isEnabled(project);
 
+    CountDownLatch latch =
+      (ApplicationManager.getApplication().isUnitTestMode() && request.generateSourcesOnSuccess && isCompoundSync(project))
+      ? createSourceGenerationLatch(project)
+      : null;
+
     GradleSync gradleSync = useNewGradleSync ? new NewGradleSync(project) : new IdeaGradleSync(project);
     gradleSync.sync(request, listener);
+
+    if (latch != null) {
+      try {
+        if (!latch.await(1, TimeUnit.MINUTES)) {
+          throw new TimeoutException("Timed out waiting for source generation");
+        }
+      } catch (InterruptedException | TimeoutException e) {
+        throw new RuntimeException("Failed to wait for source generation to finish", e);
+      }
+    }
+  }
+
+
+  private static CountDownLatch createSourceGenerationLatch(@NotNull Project project) {
+    CountDownLatch latch = new CountDownLatch(1);
+
+    MessageBusConnection connection = project.getMessageBus().connect(project);
+    connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, new GradleSyncListener() {
+      @Override
+      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+        finish();
+      }
+
+      @Override
+      public void syncSkipped(@NotNull Project project) {
+        finish();
+      }
+
+      @Override
+      public void sourceGenerationFinished(@NotNull Project project) {
+        finish();
+      }
+
+      private void finish() {
+        connection.disconnect();
+        latch.countDown();
+      }
+    });
+
+    return latch;
   }
 
   @VisibleForTesting
@@ -256,7 +304,7 @@ public class GradleSyncInvoker {
     // Create an external task so we can display messages associated to it in the build view
     ExternalSystemTaskId taskId = createFailedPreCheckSyncTaskWithStartMessage(project);
     syncState.setExternalSystemTaskId(taskId);
-    if (syncState.syncStarted(true, request, syncListener)) {
+    if (syncState.syncStarted(request, syncListener)) {
       syncState.syncFailed(failureCause, null, syncListener);
     }
 
@@ -313,7 +361,9 @@ public class GradleSyncInvoker {
     @VisibleForTesting
     @NotNull
     public static Request testRequest() {
-      return new Request(TRIGGER_TEST_REQUESTED);
+      Request request = new Request(TRIGGER_TEST_REQUESTED);
+      request.generateSourcesOnSuccess = false;
+      return request;
     }
 
     public Request(@NotNull GradleSyncStats.Trigger trigger) {

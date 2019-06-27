@@ -37,6 +37,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class ImageAssetGradleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * Verifies that vector drawable project can be deployed successfully

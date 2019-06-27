@@ -25,12 +25,14 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -178,7 +180,7 @@ public class AndroidTargetData {
       if (!(myTarget instanceof StudioEmbeddedRenderTarget)) {
         LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
       }
-      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues());
+      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), StudioFlags.NELE_NATIVE_LAYOUTLIB.get());
       Disposer.register(project, myLayoutLibrary);
     }
 
@@ -190,7 +192,7 @@ public class AndroidTargetData {
    */
   @NotNull
   private Map<String, Map<String, Integer>> getFrameworkEnumValues() {
-    ResourceRepository resources = getFrameworkResources(false);
+    ResourceRepository resources = getFrameworkResources(ImmutableSet.of());
     if (resources == null) {
       return Collections.emptyMap();
     }
@@ -254,15 +256,23 @@ public class AndroidTargetData {
     return myStaticConstantsData;
   }
 
+  /**
+   * Returns a repository of framework resources for the Android target. The returned repository is guaranteed
+   * to contain resources for the given set of languages plus the language-neutral ones, but may contain resources
+   * for more languages than was requested. The repository loads faster if the set of languages is smaller.
+   *
+   * @param languages the set of ISO 639 language codes
+   * @return the repository of Android framework resources
+   */
   @Nullable
-  public synchronized ResourceRepository getFrameworkResources(boolean withLocale) {
+  public synchronized ResourceRepository getFrameworkResources(@NotNull Set<String> languages) {
     File resFolderOrJar = myTarget.getFile(IAndroidTarget.RESOURCES);
     if (!resFolderOrJar.exists()) {
       LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.getPath()));
       return null;
     }
 
-    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar, withLocale);
+    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar, languages);
   }
 
   /**

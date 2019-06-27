@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.property;
 import static com.android.SdkConstants.ANDROID_ID_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.PropertiesManager;
@@ -48,22 +48,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
   @Nullable
   @Override
   public String getValue() {
-    return stripIdPrefix(super.getValue());
-  }
-
-  /**
-   * Like {@link com.android.tools.lint.detector.api.LintUtils#stripIdPrefix(String)} but doesn't return "" for a null id
-   */
-  private static String stripIdPrefix(@Nullable String id) {
-    if (id != null) {
-      if (id.startsWith(NEW_ID_PREFIX)) {
-        return id.substring(NEW_ID_PREFIX.length());
-      }
-      else if (id.startsWith(ID_PREFIX)) {
-        return id.substring(ID_PREFIX.length());
-      }
-    }
-    return id;
+    return super.getValue() != null ? stripPrefixFromId(super.getValue()) : null;
   }
 
   @Nullable
@@ -74,7 +59,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
 
   @Override
   public void setValue(Object value) {
-    String newId = value != null ? stripIdPrefix(value.toString()) : "";
+    String newId = value != null ? stripPrefixFromId(value.toString()) : "";
     String oldId = getValue();
     XmlTag tag = getTag();
     String newValue = !StringUtil.isEmpty(newId) && !newId.startsWith(ANDROID_ID_PREFIX) ? NEW_ID_PREFIX + newId : newId;

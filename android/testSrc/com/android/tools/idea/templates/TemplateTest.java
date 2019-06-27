@@ -366,9 +366,9 @@ public class TemplateTest extends AndroidGradleTestCase {
   private final ProjectStateCustomizer withKotlin = ((templateMap, projectMap) -> {
     projectMap.put(ATTR_KOTLIN_SUPPORT, true);
     projectMap.put(ATTR_KOTLIN_VERSION, TestUtils.getKotlinVersionForTests());
-    projectMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
+    projectMap.put(ATTR_LANGUAGE, Language.KOTLIN.toString());
     templateMap.put(ATTR_KOTLIN_SUPPORT, true);
-    templateMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
+    templateMap.put(ATTR_LANGUAGE, Language.KOTLIN.toString());
     templateMap.put(ATTR_PACKAGE_NAME, "test.pkg.in"); // Add in a Kotlin keyword ("in") in the package name to trigger escape code too
   });
 
@@ -390,8 +390,18 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewBasicActivityWithAndroidX() throws Exception {
+    checkCreateTemplate("activities", "BasicActivity", false, withAndroidx);
+  }
+
+  @TemplateCheck
   public void testNewBasicActivityWithKotlin() throws Exception {
     checkCreateTemplate("activities", "BasicActivity", false, withKotlin);
+  }
+
+  @TemplateCheck
+  public void testNewBasicActivityWithKotlinAndAndroidX() throws Exception {
+    checkCreateTemplate("activities", "BasicActivity", false, withAndroidxAndKotlin);
   }
 
   @TemplateCheck

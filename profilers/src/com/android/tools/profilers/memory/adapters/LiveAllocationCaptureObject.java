@@ -23,33 +23,30 @@ import static com.android.tools.profilers.memory.adapters.CaptureObject.Classifi
 import static com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.ALLOCATION_TIME;
 import static com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.DEALLOCATION_TIME;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocatedClass;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.Memory.AllocationEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
-import com.android.tools.profiler.proto.Memory.BatchAllocationSample;
 import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeResponse;
 import com.android.tools.profiler.proto.Memory.NativeBacktrace;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
 import com.android.tools.profiler.proto.MemoryProfiler.ResolveNativeBacktraceRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.stacktrace.ThreadId;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
@@ -60,7 +57,11 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -80,6 +81,11 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     return Logger.getInstance(LiveAllocationCaptureObject.class);
   }
 
+  // Buffer to ensure the queries include the before/after batched sample(s) that fall just outside of the query range, as those samples
+  // can contain events with timestamps that satisfy the query.
+  // In perfa, the batched samples are sent in 500ms but can take time to arrive. 5 seconds should be more than enough as a buffer.
+  private static final long QUERY_BUFFER_NS = TimeUnit.SECONDS.toNanos(5);
+
   @VisibleForTesting static final String SAMPLING_INFO_MESSAGE = "Selected region does not have full tracking. Data may be inaccurate.";
 
   @Nullable private MemoryProfilerStage myStage;
@@ -88,11 +94,11 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final ClassDb myClassDb;
   private final Map<ClassDb.ClassEntry, LiveAllocationInstanceObject> myClassMap;
   private final TIntObjectHashMap<LiveAllocationInstanceObject> myInstanceMap;
-  private final TIntObjectHashMap<AllocationStack> myCallstackMap;
+  private final TIntObjectHashMap<Memory.AllocationStack> myCallstackMap;
   // Mapping from unsymbolized addresses to symbolized native frames
   @NotNull private final TLongObjectHashMap<NativeCallStack.NativeFrame> myNativeFrameMap;
+  private final TLongObjectHashMap<AllocationStack.StackFrame> myMethodIdMap;
   private final TIntObjectHashMap<ThreadId> myThreadIdMap;
-  private final TLongObjectHashMap<StackFrameInfoResponse> myFrameInfoResponseMap;
 
   private final MemoryServiceBlockingStub myClient;
   private final Common.Session mySession;
@@ -101,10 +107,11 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final AspectObserver myAspectObserver;
   private final boolean myEnableJniRefsTracking;
 
-  private long myEventsEndTimeNs;
-  private long myContextEndTimeNs;
-  private long myPreviousQueryStartTimeNs;
-  private long myPreviousQueryEndTimeNs;
+  private long myContextEndTimeNs = Long.MIN_VALUE;
+  private long myPreviousQueryStartTimeNs = Long.MIN_VALUE;
+  private long myPreviousQueryEndTimeNs = Long.MIN_VALUE;
+  // Keeps track of the timestamps of all batched sample we have queried.
+  private ArrayList<Long> mySeenSampleTimestampsNs = new ArrayList<>();
 
   private Range myQueryRange;
 
@@ -128,8 +135,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myInstanceMap = new TIntObjectHashMap<>();
     myCallstackMap = new TIntObjectHashMap<>();
     myNativeFrameMap = new TLongObjectHashMap<>();
+    myMethodIdMap = new TLongObjectHashMap<>();
     myThreadIdMap = new TIntObjectHashMap<>();
-    myFrameInfoResponseMap = new TLongObjectHashMap<>();
 
     myClient = client;
     mySession = session;
@@ -147,11 +154,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     if (myEnableJniRefsTracking) {
       myHeapSets.add(new HeapSet(this, JNI_HEAP_NAME, JNI_HEAP_ID));
     }
-
-    myEventsEndTimeNs = Long.MIN_VALUE;
-    myContextEndTimeNs = Long.MIN_VALUE;
-    myPreviousQueryStartTimeNs = Long.MIN_VALUE;
-    myPreviousQueryEndTimeNs = Long.MIN_VALUE;
   }
 
   @Override
@@ -256,14 +258,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   @Nullable
   @Override
-  public StackFrameInfoResponse getStackFrameInfoResponse(long methodId) {
-    StackFrameInfoResponse frameInfo = myFrameInfoResponseMap.get(methodId);
-    if (frameInfo == null) {
-      frameInfo = getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder().setSession(getSession()).setMethodId(methodId).build());
-      myFrameInfoResponseMap.put(methodId, frameInfo);
-    }
-
-    return frameInfo;
+  public AllocationStack.StackFrame getStackFrame(long methodId) {
+    return myMethodIdMap.get(methodId);
   }
 
   @Override
@@ -287,32 +283,42 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     if (myContextEndTimeNs >= endTimeNs) {
       return;
     }
-    AllocationContextsResponse contextsResponse = myClient.getAllocationContexts(
-      AllocationContextsRequest.newBuilder().setSession(mySession).setStartTime(myContextEndTimeNs).setEndTime(endTimeNs).build());
+    AllocationContextsResponse contextsResponse = myClient.getAllocationContexts(AllocationContextsRequest.newBuilder()
+                                                                                   .setSession(mySession)
+                                                                                   .setStartTime(myContextEndTimeNs)
+                                                                                   .setEndTime(endTimeNs + QUERY_BUFFER_NS)
+                                                                                   .build());
 
-    for (AllocatedClass klass : contextsResponse.getAllocatedClassesList()) {
-      ClassDb.ClassEntry entry = myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, klass.getClassName(), klass.getClassId());
-      if (!myClassMap.containsKey(entry)) {
-        // TODO remove creation of instance object through the CLASS_DATA path. This should be handled by ALLOC_DATA.
-        // TODO pass in proper allocation time once this is handled via ALLOC_DATA.
-        LiveAllocationInstanceObject instance =
-          new LiveAllocationInstanceObject(this, entry, null, null, null, MemoryObject.INVALID_VALUE, MemoryObject.INVALID_VALUE);
-        instance.setAllocationTime(myCaptureStartTime);
-        myClassMap.put(entry, instance);
-        // TODO figure out what to do with java.lang.Class instance objects
+    for (Memory.BatchAllocationContexts contexts : contextsResponse.getContextsList()) {
+      for (AllocatedClass klass : contexts.getClassesList()) {
+        ClassDb.ClassEntry entry = myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, klass.getClassName(), klass.getClassId());
+        if (!myClassMap.containsKey(entry)) {
+          // TODO remove creation of instance object through the CLASS_DATA path. This should be handled by ALLOC_DATA.
+          // TODO pass in proper allocation time once this is handled via ALLOC_DATA.
+          LiveAllocationInstanceObject instance =
+            new LiveAllocationInstanceObject(this, entry, null, null, null, MemoryObject.INVALID_VALUE, MemoryObject.INVALID_VALUE);
+          instance.setAllocationTime(myCaptureStartTime);
+          myClassMap.put(entry, instance);
+          // TODO figure out what to do with java.lang.Class instance objects
+        }
       }
+      contexts.getMethodsList().forEach(method -> {
+        if (!myMethodIdMap.containsKey(method.getMethodId())) {
+          myMethodIdMap.put(method.getMethodId(), method);
+        }
+      });
+      contexts.getEncodedStacksList().forEach(callStack -> {
+        if (!myCallstackMap.contains(callStack.getStackId())) {
+          myCallstackMap.put(callStack.getStackId(), callStack);
+        }
+      });
+      contexts.getThreadInfosList().forEach(thread -> {
+        if (!myThreadIdMap.contains(thread.getThreadId())) {
+          myThreadIdMap.put(thread.getThreadId(), new ThreadId(thread.getThreadName()));
+        }
+      });
+      myContextEndTimeNs = Math.max(myContextEndTimeNs, contexts.getTimestamp());
     }
-    contextsResponse.getAllocationStacksList().forEach(callStack -> {
-      if (!myCallstackMap.contains(callStack.getStackId())) {
-        myCallstackMap.put(callStack.getStackId(), callStack);
-      }
-    });
-    contextsResponse.getAllocationThreadsList().forEach(thread -> {
-      if (!myThreadIdMap.contains(thread.getThreadId())) {
-        myThreadIdMap.put(thread.getThreadId(), new ThreadId(thread.getThreadName()));
-      }
-    });
-    myContextEndTimeNs = Math.max(myContextEndTimeNs, contextsResponse.getTimestamp());
   }
 
   /**
@@ -321,14 +327,18 @@ public class LiveAllocationCaptureObject implements CaptureObject {
    */
   private void loadTimeRange(@NotNull Range queryRange, @NotNull Executor joiner) {
     try {
+      // Ignore invalid range. This can happen when a selection range is cleared during the process of a new range being selected.
+      if (queryRange.isEmpty()) {
+        return;
+      }
+
       if (myCurrentTask != null) {
         myCurrentTask.cancel(false);
       }
       myCurrentTask = myExecutorService.submit(() -> {
         long newStartTimeNs = TimeUnit.MICROSECONDS.toNanos((long)queryRange.getMin());
         long newEndTimeNs = TimeUnit.MICROSECONDS.toNanos((long)queryRange.getMax());
-        // Special case for max-value newEndTimeNs, as that indicates querying the latest events.
-        if (newStartTimeNs == myPreviousQueryStartTimeNs && newEndTimeNs == myPreviousQueryEndTimeNs && newEndTimeNs != Long.MAX_VALUE) {
+        if (newStartTimeNs == myPreviousQueryStartTimeNs && newEndTimeNs == myPreviousQueryEndTimeNs) {
           return null;
         }
 
@@ -337,19 +347,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
         joiner.execute(() -> myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING));
         updateAllocationContexts(newEndTimeNs);
-
-        // myEventEndTimeNs represents latest timestamp we have event data
-        // If newEndTimeNs > myEventEndTimeNs + 1, we set newEndTimeNs as myEventEndTimeNs + 1
-        // We +1 because current range is left close and right open
-        if (newEndTimeNs > myEventsEndTimeNs + 1) {
-          LatestAllocationTimeResponse timeResponse =
-            myClient.getLatestAllocationTime(LatestAllocationTimeRequest.newBuilder().setSession(mySession).build());
-          myEventsEndTimeNs = Math.max(myEventsEndTimeNs, timeResponse.getTimestamp());
-          if (newEndTimeNs > myEventsEndTimeNs + 1) {
-            newEndTimeNs = myEventsEndTimeNs + 1;
-            newStartTimeNs = Math.min(newStartTimeNs, newEndTimeNs);
-          }
-        }
 
         // Snapshots data
         List<InstanceObject> snapshotList = new ArrayList<>();
@@ -421,7 +418,10 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         }
 
         myPreviousQueryStartTimeNs = newStartTimeNs;
-        myPreviousQueryEndTimeNs = newEndTimeNs;
+        // Samples that are within the query range may not have arrived from the daemon yet. If the query range is greater than the
+        // last sample we have seen. Set the last query timestamp to the last sample's timestmap, so that next time we will requery
+        // the range between (last-seen sample, newEndTimeNs).
+        myPreviousQueryEndTimeNs = Math.min(newEndTimeNs, getLastAllocationSampleTimestamp());
 
         joiner.execute(() -> {
           myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATED);
@@ -492,27 +492,54 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     return result;
   }
 
-  private void queryJavaInstanceSnapshot(long newTimeNs, @NotNull List<InstanceObject> setAllocationList) {
-    if (!myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled()) {
-      return;
+  /**
+   * Populates the input list with all instance objects that are alive at |snapshotTimeNs|.
+   */
+  private void queryJavaInstanceSnapshot(long snapshotTimeNs, @NotNull List<InstanceObject> snapshotList) {
+    // Retrieve all the event samples from the start of the session until the snapshot time.
+    long sessionStartNs = mySession.getStartTimestamp();
+    AllocationEventsResponse response = myClient.getAllocationEvents(AllocationSnapshotRequest.newBuilder()
+                                                                       .setSession(mySession)
+                                                                       .setStartTime(sessionStartNs)
+                                                                       .setEndTime(snapshotTimeNs + QUERY_BUFFER_NS)
+                                                                       .build());
+
+
+    Map<Integer, LiveAllocationInstanceObject> liveInstanceMap = new LinkedHashMap<>();
+    for (Memory.BatchAllocationEvents events : response.getEventsList()) {
+      if (events.getTimestamp() > getLastAllocationSampleTimestamp()) {
+        mySeenSampleTimestampsNs.add(events.getTimestamp());
+      }
+
+      // Only consider events up to but excluding the snapshot time.
+      Iterator<AllocationEvent> itr = events.getEventsList().stream().filter(evt -> evt.getTimestamp() < snapshotTimeNs).iterator();
+      while (itr.hasNext()) {
+        AllocationEvent event = itr.next();
+        LiveAllocationInstanceObject instance;
+        switch (event.getEventCase()) {
+          case ALLOC_DATA:
+            // Allocation - create an InstanceObject. This might be removed later if there is a corresponding FREE_DATA event.
+            AllocationEvent.Allocation allocation = event.getAllocData();
+            instance = getOrCreateInstanceObject(allocation.getTag(), allocation.getClassTag(), allocation.getStackId(),
+                                                 allocation.getThreadId(), allocation.getSize(), allocation.getHeapId());
+            instance.setAllocationTime(event.getTimestamp());
+            liveInstanceMap.put(allocation.getTag(), instance);
+            break;
+          case FREE_DATA:
+            // Deallocation - there should be a matching InstanceObject.
+            AllocationEvent.Deallocation deallocation = event.getFreeData();
+            liveInstanceMap.remove(deallocation.getTag());
+            // Don't keep deallocated objects around in the cache to avoid bloating memory.
+            myInstanceMap.remove(deallocation.getTag());
+            break;
+          case CLASS_DATA:
+            // ignore CLASS_DATA as they are handled via context updates.
+            break;
+        }
+      }
     }
 
-    BatchAllocationSample sampleResponse = myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setSession(mySession)
-                                                                     .setEndTime(newTimeNs).setLiveObjectsOnly(true).build());
-
-    for (AllocationEvent event : sampleResponse.getEventsList()) {
-      if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
-        AllocationEvent.Allocation allocation = event.getAllocData();
-        LiveAllocationInstanceObject instance =
-          getOrCreateInstanceObject(allocation.getTag(), allocation.getClassTag(), allocation.getStackId(), allocation.getThreadId(),
-                                    allocation.getSize(), allocation.getHeapId());
-        instance.setAllocationTime(event.getTimestamp());
-        setAllocationList.add(instance);
-      }
-      else {
-        assert false;
-      }
-    }
+    snapshotList.addAll(liveInstanceMap.values());
   }
 
   private void queryJniReferencesSnapshot(long newTimeNs, @NotNull List<InstanceObject> setAllocationList) {
@@ -552,7 +579,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
    * @param startTimeNs      start time to query data for.
    * @param endTimeNs        end time to query data for.
    * @param allocationList   Instances that were allocated within the query range will be added here.
-   * @param deallocatoinList Instances that were deallocated within the query range will be added here.
+   * @param deallocationList Instances that were deallocated within the query range will be added here.
    * @param resetInstance    Whether the InstanceObject's alloc/dealloc time information should reset if a corresponding allocation or
    *                         deallocation event has occurred. The {@link ClassifierSet} rely on the presence (or absence) of these time data
    *                         to determine whether the InstanceObject should be added (or removed) from the ClassifierSet. Also see {@link
@@ -561,34 +588,52 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private void queryJavaInstanceDelta(long startTimeNs,
                                       long endTimeNs,
                                       @NotNull List<InstanceObject> allocationList,
-                                      @NotNull List<InstanceObject> deallocatoinList,
+                                      @NotNull List<InstanceObject> deallocationList,
                                       boolean resetInstance) {
+    // Case for point-snapshot - we don't need to further query deltas.
     if (startTimeNs == endTimeNs) {
       return;
     }
 
-    BatchAllocationSample sampleResponse = myClient.getAllocations(
-      AllocationSnapshotRequest.newBuilder().setSession(mySession).setStartTime(startTimeNs).setEndTime(endTimeNs).build());
-
-    for (AllocationEvent event : sampleResponse.getEventsList()) {
-      if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
-        AllocationEvent.Allocation allocation = event.getAllocData();
-        LiveAllocationInstanceObject instance =
-          getOrCreateInstanceObject(allocation.getTag(), allocation.getClassTag(), allocation.getStackId(), allocation.getThreadId(),
-                                    allocation.getSize(), allocation.getHeapId());
-        instance.setAllocationTime(resetInstance ? Long.MIN_VALUE : event.getTimestamp());
-        allocationList.add(instance);
+    AllocationEventsResponse response = myClient.getAllocationEvents(AllocationSnapshotRequest.newBuilder()
+                                                                       .setSession(mySession)
+                                                                       .setStartTime(startTimeNs - QUERY_BUFFER_NS)
+                                                                       .setEndTime(endTimeNs + QUERY_BUFFER_NS)
+                                                                       .build());
+    for (Memory.BatchAllocationEvents events : response.getEventsList()) {
+      if (events.getTimestamp() > getLastAllocationSampleTimestamp()) {
+        mySeenSampleTimestampsNs.add(events.getTimestamp());
       }
-      else if (event.getEventCase() == AllocationEvent.EventCase.FREE_DATA) {
-        AllocationEvent.Deallocation deallocation = event.getFreeData();
-        LiveAllocationInstanceObject instance =
-          getOrCreateInstanceObject(deallocation.getTag(), deallocation.getClassTag(), deallocation.getStackId(),
-                                    deallocation.getThreadId(), deallocation.getSize(), deallocation.getHeapId());
-        instance.setDeallocTime(resetInstance ? Long.MAX_VALUE : event.getTimestamp());
-        deallocatoinList.add(instance);
-      }
-      else {
-        assert false;
+      // Only consider events between the delta range [start time, end time)
+      Iterator<AllocationEvent> itr =
+        events.getEventsList().stream()
+          .filter(evt -> evt.getTimestamp() >= startTimeNs && evt.getTimestamp() < endTimeNs)
+          .sorted(Comparator.comparingLong(AllocationEvent::getTimestamp))
+          .iterator();
+      while (itr.hasNext()) {
+        AllocationEvent event = itr.next();
+        LiveAllocationInstanceObject instance;
+        switch (event.getEventCase()) {
+          case ALLOC_DATA:
+            // New allocation - create an InstanceObject.
+            AllocationEvent.Allocation allocation = event.getAllocData();
+            instance = getOrCreateInstanceObject(allocation.getTag(), allocation.getClassTag(), allocation.getStackId(),
+                                                 allocation.getThreadId(), allocation.getSize(), allocation.getHeapId());
+            instance.setAllocationTime(resetInstance ? Long.MIN_VALUE : event.getTimestamp());
+            allocationList.add(instance);
+            break;
+          case FREE_DATA:
+            // New deallocation - there should be a matching InstanceObject.
+            AllocationEvent.Deallocation deallocation = event.getFreeData();
+            assert myInstanceMap.containsKey(deallocation.getTag());
+            instance = myInstanceMap.get(deallocation.getTag());
+            instance.setDeallocTime(resetInstance ? Long.MAX_VALUE : event.getTimestamp());
+            deallocationList.add(instance);
+            break;
+          case CLASS_DATA:
+            // ignore CLASS_DATA as they are handled via context updates.
+            break;
+        }
       }
     }
   }
@@ -675,5 +720,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     }
 
     return resolvedCallstack.build();
+  }
+
+  private long getLastAllocationSampleTimestamp() {
+    return mySeenSampleTimestampsNs.isEmpty() ? Long.MIN_VALUE : mySeenSampleTimestampsNs.get(mySeenSampleTimestampsNs.size() - 1);
   }
 }

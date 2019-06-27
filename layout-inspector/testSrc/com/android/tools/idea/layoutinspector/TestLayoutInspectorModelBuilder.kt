@@ -59,7 +59,8 @@ class InspectorViewDescriptor(private val drawId: Long,
 
   fun build(): ViewNode {
     val result = ViewNode(drawId, qualifiedName, null, x, y, width, height, viewId, textValue)
-    result.children.putAll(children.map { descriptor -> descriptor.build().let { it.drawId to it } })
+    children.forEach { result.children.add(it.build()) }
+    result.children.forEach { it.parent = result }
     return result
   }
 }

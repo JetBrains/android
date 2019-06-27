@@ -40,21 +40,21 @@ public class DetailedEnergyUsage extends LineChartModel {
       long streamId = profilers.getSession().getStreamId();
       int pid = profilers.getSession().getPid();
       // TODO(b/133430804): investigate ways to not query database multiple times.
-      cpuDataSeries = new UnifiedEventDataSeries(
+      cpuDataSeries = new UnifiedEventDataSeries<>(
         profilers.getClient().getTransportClient(),
         streamId,
         pid,
         Common.Event.Kind.ENERGY_USAGE,
         UnifiedEventDataSeries.DEFAULT_GROUP_ID,
         UnifiedEventDataSeries.fromFieldToDataExtractor(event -> (long)event.getEnergyUsage().getCpuUsage()));
-      networkDataSeries = new UnifiedEventDataSeries(
+      networkDataSeries = new UnifiedEventDataSeries<>(
         profilers.getClient().getTransportClient(),
         streamId,
         pid,
         Common.Event.Kind.ENERGY_USAGE,
         UnifiedEventDataSeries.DEFAULT_GROUP_ID,
         UnifiedEventDataSeries.fromFieldToDataExtractor(event -> (long)event.getEnergyUsage().getNetworkUsage()));
-      locationDataSeries = new UnifiedEventDataSeries(
+      locationDataSeries = new UnifiedEventDataSeries<>(
         profilers.getClient().getTransportClient(),
         streamId,
         pid,

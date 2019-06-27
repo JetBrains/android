@@ -44,10 +44,22 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import javax.swing.JButton
 import javax.swing.JLabel
 
-class CpuCaptureViewTest {
+@RunWith(Parameterized::class)
+class CpuCaptureViewTest(newPipeline: Boolean) {
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters
+    fun data(): Collection<Boolean> {
+      return listOf(false, true)
+    }
+  }
+
   @JvmField
   @Rule
   val grpcChannel: FakeGrpcChannel
@@ -65,7 +77,8 @@ class CpuCaptureViewTest {
                                   transportService, FakeProfilerService(timer),
                                   FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
-    cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, transportService = transportService, cpuService = cpuService, timer = timer)
+    cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, transportService = transportService, cpuService = cpuService, timer = timer,
+                                  newPipeline = newPipeline)
   }
 
   private lateinit var captureView: CpuCaptureView
@@ -121,7 +134,7 @@ class CpuCaptureViewTest {
       it.text == CpuProfilerToolbar.STOP_TEXT
     }
     assertThat(stopButton.isEnabled).isTrue()
-    cpuProfiler.stopCapturing(1, true, 10, 20, ART, CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))
+    cpuProfiler.stopCapturing(true, CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))
 
     assertThat(stopButton.isEnabled).isFalse()
   }

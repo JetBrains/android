@@ -27,12 +27,12 @@ import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.Memory.BatchAllocationSample;
-import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
@@ -43,8 +43,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
@@ -60,8 +58,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
 import com.android.tools.profiler.proto.MemoryProfiler.ResolveNativeBacktraceRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
@@ -230,12 +226,8 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     assert request.getInfo().getLegacy();
     myStatsTable.insertOrReplaceAllocationsInfo(request.getSession(), request.getInfo());
 
-    AllocationContextsResponse contexts = request.getContexts();
+    myStatsTable.insertLegacyAllocationContext(request.getSession(), request.getClassesList(), request.getStacksList());
     LegacyAllocationEventsResponse allocations = request.getAllocations();
-    if (!contexts.equals(AllocationContextsResponse.getDefaultInstance())) {
-      myStatsTable
-        .insertLegacyAllocationContext(request.getSession(), contexts.getAllocatedClassesList(), contexts.getAllocationStacksList());
-    }
     if (!allocations.equals(LegacyAllocationEventsResponse.getDefaultInstance())) {
       myStatsTable.updateLegacyAllocationEvents(request.getSession(), request.getInfo().getStartTime(), allocations);
     }
@@ -246,7 +238,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                          StreamObserver<AllocationContextsResponse> responseObserver) {
+                                          StreamObserver<MemoryProfiler.LegacyAllocationContextsResponse> responseObserver) {
     responseObserver.onNext(myStatsTable.getLegacyAllocationContexts(request));
     responseObserver.onCompleted();
   }
@@ -279,13 +271,6 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       }
     }
     responseObserver.onNext(responseBuilder.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getStackFrameInfo(StackFrameInfoRequest request,
-                                StreamObserver<StackFrameInfoResponse> responseObserver) {
-    responseObserver.onNext(myAllocationsTable.getStackFrameInfo(request.getSession(), request.getMethodId()));
     responseObserver.onCompleted();
   }
 
@@ -338,15 +323,10 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
-  public void getAllocations(AllocationSnapshotRequest request, StreamObserver<BatchAllocationSample> responseObserver) {
-    BatchAllocationSample response;
-    if (request.getLiveObjectsOnly()) {
-      response = myAllocationsTable.getSnapshot(request.getSession(), request.getEndTime());
-    }
-    else {
-      response =
-        myAllocationsTable.getAllocations(request.getSession(), request.getStartTime(), request.getEndTime());
-    }
+  public void getAllocationEvents(AllocationSnapshotRequest request, StreamObserver<MemoryProfiler.AllocationEventsResponse> responseObserver) {
+    MemoryProfiler.AllocationEventsResponse response = MemoryProfiler.AllocationEventsResponse.newBuilder()
+      .addAllEvents(myAllocationsTable.getAllocationEvents(request.getSession(), request.getStartTime(), request.getEndTime()))
+      .build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
@@ -375,17 +355,10 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
-  public void getLatestAllocationTime(LatestAllocationTimeRequest request,
-                                      StreamObserver<LatestAllocationTimeResponse> responseObserver) {
-    LatestAllocationTimeResponse response = myAllocationsTable.getLatestDataTimestamp(request.getSession());
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
-  }
-
-  @Override
   public void getAllocationContexts(AllocationContextsRequest request, StreamObserver<AllocationContextsResponse> responseObserver) {
-    AllocationContextsResponse response =
-      myAllocationsTable.getAllocationContexts(request.getSession(), request.getStartTime(), request.getEndTime());
+    MemoryProfiler.AllocationContextsResponse response = MemoryProfiler.AllocationContextsResponse.newBuilder()
+      .addAllContexts(myAllocationsTable.getAllocationContexts(request.getSession(), request.getStartTime(), request.getEndTime()))
+      .build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }

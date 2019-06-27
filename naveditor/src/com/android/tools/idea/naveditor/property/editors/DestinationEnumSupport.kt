@@ -16,8 +16,8 @@
 package com.android.tools.idea.naveditor.property.editors
 
 import com.android.SdkConstants
+import com.android.ide.common.resources.stripPrefixFromId
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlComponent.stripId
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
@@ -37,7 +37,7 @@ class DestinationEnumSupport(property: NlProperty, private val destinationGetter
   }
 
   override fun createFromResolvedValue(resolvedValue: String, value: String?, hint: String?): ValueWithDisplayString {
-    val component = destinationGetter(myProperty.components[0]).firstOrNull { it.id == stripId(resolvedValue) }
+    val component = destinationGetter(myProperty.components[0]).firstOrNull { it.id == stripPrefixFromId(resolvedValue) }
     return component?.let {getDisplayForDestination(it)} ?: ValueWithDisplayString("$resolvedValue (invalid)", resolvedValue)
   }
 }

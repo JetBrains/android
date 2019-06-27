@@ -34,6 +34,7 @@ public class AppBarConfigurationDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest();
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Test
   public void testDependencyDialog() throws Exception {

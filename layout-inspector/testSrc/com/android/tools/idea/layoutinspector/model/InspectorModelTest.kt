@@ -87,7 +87,7 @@ class InspectorModelTest {
 
     val newNodes = model.root.flatten().associateBy { it.drawId }
     assertSameElements(newNodes.keys, origNodes.keys.plus(VIEW3))
-    assertSameElements(origNodes[VIEW1]?.children?.values!!, newNodes[VIEW3])
+    assertSameElements(origNodes[VIEW1]?.children!!, newNodes[VIEW3])
   }
 
   @Test
@@ -151,7 +151,7 @@ class InspectorModelTest {
     assertSame(origNodes[VIEW2], newNodes[VIEW2])
 
     assertNotSame(origNodes[VIEW1], newNodes[VIEW4])
-    assertSameElements(model.root.children.keys, VIEW4, VIEW2)
+    assertSameElements(model.root.children.map { it.drawId }, VIEW4, VIEW2)
     assertEquals("v4Type", newNodes[VIEW4]?.qualifiedName)
     assertEquals("v3Type", newNodes[VIEW3]?.qualifiedName)
     assertEquals(8, newNodes[VIEW3]?.y)

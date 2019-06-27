@@ -87,7 +87,7 @@ class FmHasDependencyMethod(private val myParamMap: Map<String, Any>) : Template
 
     fun findCorrespondingModule(): Boolean? {
       val modulePath = myParamMap[TemplateMetadata.ATTR_PROJECT_OUT] as? String ?: return null
-      val module = FmUtil.findModule(modulePath) ?: return null
+      val module = findModule(modulePath) ?: return null
       val facet = AndroidFacet.getInstance(module) ?: return null
       // TODO: b/23032990
       val androidModel = AndroidModuleModel.get(facet) ?: return null

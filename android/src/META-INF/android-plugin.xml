@@ -72,6 +72,9 @@
       <implementation-class>com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild</implementation-class>
     </component>
     <component>
+      <implementation-class>com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionComponent</implementation-class>
+    </component>
+    <component>
       <implementation-class>com.android.tools.idea.project.SyncTimestamp</implementation-class>
     </component>
     <component>
@@ -534,7 +537,7 @@
     <externalAnnotator language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaResourceExternalAnnotator"/>
 
     <facet.toolWindow id="Logcat"
-                      facetIdList="android"
+                      facetIdList="android,apk"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.LOGCAT"
                       conditionClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"
@@ -546,7 +549,7 @@
                       icon="StudioIcons.Shell.ToolWindows.BUILD_VARIANTS"
                       factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
     <facet.toolWindow id="Device File Explorer"
-                      facetIdList="android"
+                      facetIdList="android,apk"
                       anchor="right"
                       secondary="true"
                       conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
@@ -766,6 +769,8 @@
 
     <projectImportProvider implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectImportProvider"/>
     <projectImportBuilder implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectImportProvider$AndroidGradleImportBuilder"/>
+    <consoleFilterProvider implementation="com.android.tools.idea.gradle.project.build.output.GenericFileFilterProvider"
+                           order="first"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">

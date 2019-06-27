@@ -69,7 +69,6 @@ object NavModelBuilderUtil {
       `when`<NlComponent>(surface.currentNavigation).then { model.components[0] }
       `when`(surface.extentSize).thenReturn(Dimension(500, 500))
       `when`(surface.scrollPosition).thenAnswer { Point(0, 0) }
-      `when`(surface.interactionManager).thenReturn(InteractionManager(surface))
 
       val sceneView = mock(SceneView::class.java)
       `when`<NlModel>(sceneView.model).thenReturn(model)

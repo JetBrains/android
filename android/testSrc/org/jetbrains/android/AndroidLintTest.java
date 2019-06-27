@@ -36,6 +36,7 @@ import com.android.tools.idea.lint.AndroidLintApplySharedPrefInspection;
 import com.android.tools.idea.lint.AndroidLintAuthLeakInspection;
 import com.android.tools.idea.lint.AndroidLintButtonOrderInspection;
 import com.android.tools.idea.lint.AndroidLintByteOrderMarkInspection;
+import com.android.tools.idea.lint.AndroidLintUnsupportedChromeOsCameraSystemFeatureInspection;
 import com.android.tools.idea.lint.AndroidLintContentDescriptionInspection;
 import com.android.tools.idea.lint.AndroidLintDeprecatedInspection;
 import com.android.tools.idea.lint.AndroidLintDisableBaselineAlignmentInspection;
@@ -61,6 +62,7 @@ import com.android.tools.idea.lint.AndroidLintInvalidPermissionInspection;
 import com.android.tools.idea.lint.AndroidLintInvalidUsesTagAttributeInspection;
 import com.android.tools.idea.lint.AndroidLintInvalidVectorPathInspection;
 import com.android.tools.idea.lint.AndroidLintInvalidWearFeatureAttributeInspection;
+import com.android.tools.idea.lint.AndroidLintLockedOrientationActivityInspection;
 import com.android.tools.idea.lint.AndroidLintManifestOrderInspection;
 import com.android.tools.idea.lint.AndroidLintMenuTitleInspection;
 import com.android.tools.idea.lint.AndroidLintMissingApplicationIconInspection;
@@ -71,6 +73,7 @@ import com.android.tools.idea.lint.AndroidLintMissingSuperCallInspection;
 import com.android.tools.idea.lint.AndroidLintMissingTvBannerInspection;
 import com.android.tools.idea.lint.AndroidLintNetworkSecurityConfigInspection;
 import com.android.tools.idea.lint.AndroidLintNewApiInspection;
+import com.android.tools.idea.lint.AndroidLintNonResizeableActivityInspection;
 import com.android.tools.idea.lint.AndroidLintNotInterpolatedInspection;
 import com.android.tools.idea.lint.AndroidLintObsoleteLayoutParamInspection;
 import com.android.tools.idea.lint.AndroidLintObsoleteSdkIntInspection;
@@ -92,6 +95,7 @@ import com.android.tools.idea.lint.AndroidLintScrollViewCountInspection;
 import com.android.tools.idea.lint.AndroidLintScrollViewSizeInspection;
 import com.android.tools.idea.lint.AndroidLintSelectableTextInspection;
 import com.android.tools.idea.lint.AndroidLintSignatureOrSystemPermissionsInspection;
+import com.android.tools.idea.lint.AndroidLintSourceLockedOrientationActivityInspection;
 import com.android.tools.idea.lint.AndroidLintSpUsageInspection;
 import com.android.tools.idea.lint.AndroidLintStopShipInspection;
 import com.android.tools.idea.lint.AndroidLintStringEscapingInspection;
@@ -702,6 +706,28 @@ public class AndroidLintTest extends AndroidTestCase {
     deleteManifest();
     doTestWithFix(new AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection(),
                   "Add uses-feature tag", "AndroidManifest.xml", "xml");
+  }
+
+  public void testInvalidOrientationSetOnActivity() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintLockedOrientationActivityInspection(),
+                  "Set screenOrientation=\"fullSensor\"", "AndroidManifest.xml", "xml");
+  }
+
+  public void testNonResizeableActivity() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintNonResizeableActivityInspection(),
+                  "Set resizeableActivity=\"true\"", "AndroidManifest.xml", "xml");
+  }
+
+  public void testActivityLockedOrientationSource() throws Exception {
+    doTestWithFix(new AndroidLintSourceLockedOrientationActivityInspection(),
+                  "Set the orientation to SCREEN_ORIENTATION_UNSPECIFIED", "/src/test/pkg/TestActivity.java", "java");
+  }
+
+  public void testUnsupportedChromeOsCameraSystemFeature() throws Exception {
+    doTestWithFix(new AndroidLintUnsupportedChromeOsCameraSystemFeatureInspection(),
+                  "Switch to look for FEATURE_CAMERA_ANY", "/src/test/pkg/TestActivity.java", "java");
   }
 
   /* Disabled: The mipmap check now only warns about mipmap usage in Gradle projects that use

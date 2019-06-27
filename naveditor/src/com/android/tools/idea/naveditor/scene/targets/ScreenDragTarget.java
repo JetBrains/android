@@ -25,6 +25,7 @@ import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.common.scene.target.MultiComponentTarget;
 import com.google.common.collect.ImmutableList;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -112,7 +113,7 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
   }
 
   @Override
-  public Cursor getMouseCursor() {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifier) {
     return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }
 

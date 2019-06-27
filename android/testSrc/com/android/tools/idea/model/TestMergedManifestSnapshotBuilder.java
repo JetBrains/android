@@ -47,7 +47,7 @@ public class TestMergedManifestSnapshotBuilder {
   private boolean myHasAppCode;
   @Nullable private Document myDocument;
   @Nullable private ImmutableList<VirtualFile> myFiles;
-  @Nullable private MergedManifestSnapshotFactory.ModulePermissions myHolder;
+  @Nullable private ImmutablePermissionHolder myPermissions;
   @Nullable private ImmutableList<Element> myActivities;
   @Nullable private ImmutableList<Element> myAliases;
   @Nullable private ImmutableList<Element> myServices;
@@ -162,8 +162,8 @@ public class TestMergedManifestSnapshotBuilder {
   }
 
   @NotNull
-  public TestMergedManifestSnapshotBuilder setPermissionsHolder(MergedManifestSnapshotFactory.ModulePermissions holder) {
-    myHolder = holder;
+  public TestMergedManifestSnapshotBuilder setPermissionsHolder(ImmutablePermissionHolder permissions) {
+    myPermissions = permissions;
     return this;
   }
 
@@ -203,7 +203,7 @@ public class TestMergedManifestSnapshotBuilder {
                                       myDebuggable,
                                       myDocument,
                                       myFiles,
-                                      myHolder != null ? myHolder : MergedManifestSnapshotFactory.ModulePermissions.NOP_MODULE_PERMISSIONS,
+                                      myPermissions != null ? myPermissions : ImmutablePermissionHolder.EMPTY,
                                       myHasAppCode,
                                       myActivities != null ? myActivities : ImmutableList.of(),
                                       myAliases != null ? myAliases : ImmutableList.of(),

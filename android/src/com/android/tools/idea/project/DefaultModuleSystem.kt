@@ -33,6 +33,7 @@ import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
+import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.util.toPathString
 import com.google.common.collect.ImmutableList
@@ -43,10 +44,11 @@ import com.intellij.openapi.roots.ModuleOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 
-class DefaultModuleSystem(val module: Module) :
+class DefaultModuleSystem(override val module: Module) :
   AndroidModuleSystem,
   ClassFileFinder by ModuleBasedClassFileFinder(module),
   SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
@@ -164,6 +166,12 @@ class DefaultModuleSystem(val module: Module) :
     return CapabilityNotSupported()
   }
 
-  override fun getModuleWithDependenciesAndLibrariesScope(includeTests: Boolean) = module.getModuleWithDependenciesAndLibrariesScope(
-    includeTests)
+  override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
+    val includeTests = when (scopeType) {
+      ScopeType.MAIN -> false
+      ScopeType.ANDROID_TEST, ScopeType.UNIT_TEST -> true
+      else -> error("unknown scope type")
+    }
+    return module.getModuleWithDependenciesAndLibrariesScope(includeTests)
+  }
 }

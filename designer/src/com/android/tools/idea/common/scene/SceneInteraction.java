@@ -57,8 +57,7 @@ public class SceneInteraction extends Interaction {
     int dpX = Coordinates.pxToDp(mySceneView, androidX);
     int dpY = Coordinates.pxToDp(mySceneView, androidY);
     Scene scene = mySceneView.getScene();
-    scene.updateModifiers(startMask);
-    scene.mouseDown(SceneContext.get(mySceneView), dpX, dpY);
+    scene.mouseDown(SceneContext.get(mySceneView), dpX, dpY, startMask);
   }
 
   /**
@@ -76,8 +75,7 @@ public class SceneInteraction extends Interaction {
     int dpX = Coordinates.pxToDp(mySceneView, androidX);
     int dpY = Coordinates.pxToDp(mySceneView, androidY);
     Scene scene = mySceneView.getScene();
-    scene.updateModifiers(modifiers);
-    scene.mouseDrag(SceneContext.get(mySceneView), dpX, dpY);
+    scene.mouseDrag(SceneContext.get(mySceneView), dpX, dpY, modifiers);
     mySceneView.getSurface().repaint();
   }
 
@@ -97,12 +95,11 @@ public class SceneInteraction extends Interaction {
     int dpX = Coordinates.pxToDp(mySceneView, androidX);
     int dpY = Coordinates.pxToDp(mySceneView, androidY);
     Scene scene = mySceneView.getScene();
-    scene.updateModifiers(modifiers);
     if (canceled) {
       scene.mouseCancel();
     }
     else {
-      scene.mouseRelease(SceneContext.get(mySceneView), dpX, dpY);
+      scene.mouseRelease(SceneContext.get(mySceneView), dpX, dpY, modifiers);
     }
     mySceneView.getSurface().repaint();
   }

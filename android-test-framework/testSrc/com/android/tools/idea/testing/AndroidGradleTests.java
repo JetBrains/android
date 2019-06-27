@@ -17,6 +17,10 @@ package com.android.tools.idea.testing;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -26,6 +30,7 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
@@ -33,7 +38,6 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -41,21 +45,17 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
 import java.io.File;
@@ -365,74 +365,56 @@ public class AndroidGradleTests {
   }
 
   /**
-   * Imports {@code project}, requests sync and waits for sync to complete.
+   * Imports {@code project}, syncs the project and checks the result.
    */
-  public static void importProject(@NotNull Project project) throws Exception {
-    Ref<Throwable> throwableRef = new Ref<>();
-    TestGradleSyncListener syncListener = new TestGradleSyncListener();
-    Disposable subscriptionDisposable = Disposer.newDisposable();
-    try {
-      ApplicationManager.getApplication().invokeAndWait(() -> {
-        try {
-          // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
-          // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
-          GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
-          Project newProject = GradleProjectImporter.getInstance().importProjectNoSync(project.getName(), getBaseDirPath(project), request);
+  public static void importProject(@NotNull Project project, GradleSyncInvoker.Request syncRequest) {
+    TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
+      GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
+      GradleProjectImporter.getInstance().importProjectNoSync(request);
+      return syncProject(project, syncRequest);
+    });
 
-          // It is essential to subscribe to notifications via [newProject] which may be different from the current project if
-          // a new project was requested.
-          GradleSyncState.subscribe(newProject, syncListener, subscriptionDisposable);
-
-          GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.testRequest();
-          syncRequest.generateSourcesOnSuccess = false;
-          GradleSyncInvoker.getInstance().requestProjectSync(newProject, syncRequest, null);
-        }
-        catch (Throwable e) {
-          throwableRef.set(e);
-        }
-      });
-
-      Throwable throwable = throwableRef.get();
-      if (throwable != null) {
-        if (throwable instanceof IOException) {
-          throw (IOException)throwable;
-        }
-        else if (throwable instanceof ConfigurationException) {
-          throw (ConfigurationException)throwable;
-        }
-        else {
-          throw new RuntimeException(throwable);
-        }
-      }
-      // NOTE: The following await does nothing since we request sync on the EDT thread and in tests sync runs synchronously and
-      //       requestProjectSync() does not exit until sync completes.
-      syncListener.await();
-    }
-    finally {
-      Disposer.dispose(subscriptionDisposable);
-    }
-    if (syncListener.failureMessage != null) {
-      TestCase.fail(syncListener.failureMessage);
-    }
+    AndroidGradleTests.checkSyncStatus(syncListener);
     AndroidTestBase.refreshProjectFiles();
   }
 
   public static void prepareProjectForImportCore(@NotNull File srcRoot,
                                                  @NotNull File projectRoot,
-                                                 @NotNull File sdkPath,
                                                  @NotNull ThrowableConsumer<File, IOException> patcher)
     throws IOException {
     TestCase.assertTrue(srcRoot.getPath(), srcRoot.exists());
 
     copyDir(srcRoot, projectRoot);
 
-    // Override settings just for tests (e.g. sdk.dir)
-    updateLocalProperties(projectRoot, sdkPath);
-
     patcher.consume(projectRoot);
 
     // Refresh project dir to have files under of the project.getBaseDir() visible to VFS.
     // Do it in a slower but reliable way.
     VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectRoot, true));
+  }
+
+  public static void validateGradleProjectSource(@NotNull File srcRoot) {
+    File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
+    File build = new File(srcRoot, FN_BUILD_GRADLE);
+    File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
+    File ktsBuild = new File(srcRoot, FN_BUILD_GRADLE_KTS);
+    TestCase.assertTrue("Couldn't find build.gradle(.kts) or settings.gradle(.kts) in " + srcRoot.getPath(),
+               settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
+  }
+
+  public static TestGradleSyncListener syncProject(@NotNull Project project,
+                                                   @NotNull GradleSyncInvoker.Request request) throws InterruptedException {
+    TestGradleSyncListener syncListener = new TestGradleSyncListener();
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, syncListener);
+    syncListener.await();
+    return syncListener;
+  }
+
+  public static void checkSyncStatus(@NotNull TestGradleSyncListener syncListener) {
+    if (!syncListener.success) {
+      String cause =
+        !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
+      TestCase.fail(cause);
+    }
   }
 }

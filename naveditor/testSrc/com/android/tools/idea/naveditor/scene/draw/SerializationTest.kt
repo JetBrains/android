@@ -16,10 +16,9 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.common.scene.draw.ArrowDirection
-import com.android.tools.idea.common.scene.draw.DrawArrow
+import com.android.tools.idea.common.scene.draw.FillArrow
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
-import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.intellij.ui.JBColor
 import junit.framework.TestCase
@@ -68,12 +67,12 @@ class SerializationTest : TestCase() {
   }
 
   fun testDrawArrow() {
-    val factory = { s: String -> DrawArrow(s) }
+    val factory = { s: String -> FillArrow(s) }
 
-    testSerialization("DrawArrow,0,RIGHT,10.0x20.0x30.0x40.0,ffff0000",
-                      DrawArrow(0, ArrowDirection.RIGHT, Rectangle2D.Float(10f, 20f, 30f, 40f), Color.RED), factory)
-    testSerialization("DrawArrow,1,UP,60.0x70.0x80.0x90.0,ff0000ff",
-                      DrawArrow(1, ArrowDirection.UP, Rectangle2D.Float(60f, 70f, 80f, 90f), Color.BLUE), factory)
+    testSerialization("FillArrow,RIGHT,10.0x20.0x30.0x40.0,ffff0000,0",
+                      FillArrow(ArrowDirection.RIGHT, Rectangle2D.Float(10f, 20f, 30f, 40f), Color.RED, 0), factory)
+    testSerialization("FillArrow,UP,60.0x70.0x80.0x90.0,ff0000ff,1",
+                      FillArrow(ArrowDirection.UP, Rectangle2D.Float(60f, 70f, 80f, 90f), Color.BLUE, 1), factory)
   }
 
   fun testDrawEmptyDesigner() {
@@ -137,11 +136,11 @@ class SerializationTest : TestCase() {
   fun testDrawHorizontalAction() {
     val factory = { s: String -> DrawHorizontalAction(s) }
 
-    testSerialization("DrawHorizontalAction,10.0x20.0x30.0x40.0,ffff0000,false",
-                      DrawHorizontalAction(Rectangle2D.Float(10f, 20f, 30f, 40f), Color.RED, false), factory)
+    testSerialization("DrawHorizontalAction,10.0x20.0x30.0x40.0,1.0,ffff0000,false",
+                      DrawHorizontalAction(Rectangle2D.Float(10f, 20f, 30f, 40f), 1f, Color.RED, false), factory)
 
-    testSerialization("DrawHorizontalAction,50.0x60.0x70.0x80.0,ff0000ff,true",
-                      DrawHorizontalAction(Rectangle2D.Float(50f, 60f, 70f, 80f), Color.BLUE, true), factory)
+    testSerialization("DrawHorizontalAction,50.0x60.0x70.0x80.0,2.0,ff0000ff,true",
+                      DrawHorizontalAction(Rectangle2D.Float(50f, 60f, 70f, 80f), 2f, Color.BLUE, true), factory)
   }
 
   fun testDrawLineToMouse() {

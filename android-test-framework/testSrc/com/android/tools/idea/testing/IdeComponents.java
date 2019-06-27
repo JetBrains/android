@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing;
 
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,6 +29,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.util.pico.DefaultPicoContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.stubbing.Answer;
 import org.picocontainer.ComponentAdapter;
 
 import java.lang.reflect.Field;
@@ -69,6 +71,12 @@ public final class IdeComponents implements Disposable {
   @NotNull
   public <T> T mockApplicationService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
+    doReplaceService(ApplicationManager.getApplication(), serviceType, mock, myUndoQueue);
+    return mock;
+  }
+  @NotNull
+  public <T> T mockApplicationServiceWithAnswer(@NotNull Class<T> serviceType, Answer<Object> runtimeExceptionAnswer) {
+    T mock = mock(serviceType, runtimeExceptionAnswer);
     doReplaceService(ApplicationManager.getApplication(), serviceType, mock, myUndoQueue);
     return mock;
   }

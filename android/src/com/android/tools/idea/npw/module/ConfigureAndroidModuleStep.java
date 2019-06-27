@@ -49,6 +49,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.ContextHelpLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,7 +59,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.TestOnly;
 
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -83,6 +84,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   private JPanel myPanel;
   private JTextField myAppName;
   private LabelWithEditButton myPackageName;
+  private JLabel myModuleNameLabel;
 
   @NotNull private RenderTemplateModel myRenderModel;
 
@@ -99,7 +101,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
       @NotNull
       @Override
       public String get() {
-        return String.format("%s.%s", basePackage, toPackagePart(model.getModuleName().get()));
+        return String.format("%s.%s", basePackage, nameToJavaPackage(model.getModuleName().get()));
       }
     };
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
@@ -111,7 +113,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     NewModuleModel moduleModel = getModel();
     Project project = moduleModel.getProject().getValue();
 
-    Expression<String> computedModuleName = new AppNameToModuleNameExpression(project, model.getApplicationName());
+    Expression<String> computedModuleName = new AppNameToModuleNameExpression(project, model.getApplicationName(), model.getModuleParent());
     BoolProperty isModuleNameSynced = new BoolValueProperty(true);
     myBindings.bind(moduleNameText, computedModuleName, isModuleNameSynced);
     myBindings.bind(model.getModuleName(), moduleNameText);
@@ -236,6 +238,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   private void createUIComponents() {
     myApiLevelCombo = new AndroidApiLevelComboBox();
     myLanguageCombo = new LanguageComboProvider().createComponent();
+    myModuleNameLabel = ContextHelpLabel.create(message("android.wizard.module.help.name"));
   }
 
   @Override

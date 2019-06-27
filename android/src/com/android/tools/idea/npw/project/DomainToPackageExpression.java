@@ -50,7 +50,7 @@ public class DomainToPackageExpression extends Expression<String> {
     list.add(myApplicationName.get());
 
     return list.stream()
-      .map(NewProjectModel::toPackagePart)
+      .map(NewProjectModel::nameToJavaPackage)
       .filter(s -> !s.isEmpty())
       .collect(Collectors.joining("."));
   }

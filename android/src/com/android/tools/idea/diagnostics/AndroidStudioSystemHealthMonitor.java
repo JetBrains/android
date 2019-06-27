@@ -20,6 +20,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
 import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable;
+import com.android.tools.idea.diagnostics.kotlin.KotlinPerfCounters;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.HistogramReport;
@@ -87,6 +88,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import org.HdrHistogram.Histogram;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -325,6 +328,16 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
 
     if (application.isInternal() || StatisticsUploadAssistant.isSendAllowed()) {
       initDataCollection();
+    }
+
+    if (application.isInternal()) {
+      try {
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        ObjectName beanName = new ObjectName("com.android.tools.idea.diagnostics.kotlin:type=KotlinPerfCounters");
+        mBeanServer.registerMBean(new KotlinPerfCounters(), beanName);
+      } catch (Exception ex) {
+        LOG.debug(ex);
+      }
     }
   }
 

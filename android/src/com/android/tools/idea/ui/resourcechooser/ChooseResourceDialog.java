@@ -34,6 +34,7 @@ import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroups;
 import com.android.tools.idea.ui.resourcechooser.icons.IconFactory;
 import com.android.tools.idea.ui.resourcechooser.preview.*;
 import com.android.tools.idea.ui.resourcechooser.util.SimpleTabUI;
+import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog;
 import com.android.tools.idea.util.DefaultIgnorable;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableMap;
@@ -111,7 +112,7 @@ import static com.android.SdkConstants.*;
  * <p>
  * TODO: Perform validation (such as cyclic layout resource detection for layout selection)
  */
-public class ChooseResourceDialog extends DialogWrapper {
+public class ChooseResourceDialog extends ResourcePickerDialog {
   private static final String TYPE_KEY = "ResourceType";
   private static final String FOLDER_TYPE_KEY = "ResourceFolderType";
   private static final String GRID_MODE_KEY = "ResourceChooserGridMode";
@@ -1144,6 +1145,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     getSelectedPanel().myReferencePanel.setLocationSettingsOpen(true);
   }
 
+  @Override
   public String getResourceName() {
     return myResultResourceName;
   }

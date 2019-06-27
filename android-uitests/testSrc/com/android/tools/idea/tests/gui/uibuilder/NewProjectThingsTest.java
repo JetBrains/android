@@ -28,13 +28,14 @@ import org.junit.runner.RunWith;
 public class NewProjectThingsTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * - Make sure we can build a default android things project
-   * - Make sure there is nothing broken whe using "lintOptions" - b/118374756
+   * - Make sure there is nothing broken when using "lintOptions" - b/118374756
    */
   @Test
-  public void scrollingActivityFollowedByBasicActivity() {
+  public void defaultAndroidThingsEmptyActivity() {
     guiTest
       .welcomeFrame()
       .createNewProject()

@@ -59,16 +59,19 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
   private final ProjectSyncInvoker myProjectSyncInvoker;
   private final JComponent myRootPanel;
   private final Project myProject;
+  private final String myModuleParent;
 
   private ASGallery<ModuleGalleryEntry> myFormFactorGallery;
   private Map<ModuleGalleryEntry, SkippableWizardStep> myModuleDescriptionToStepMap;
 
   public ChooseModuleTypeStep(@NotNull Project project,
+                              @Nullable String moduleParent,
                               @NotNull List<ModuleGalleryEntry> moduleGalleryEntries,
                               @NotNull ProjectSyncInvoker projectSyncInvoker) {
     super(message("android.wizard.module.new.module.header"));
 
     myProject = project;
+    myModuleParent = moduleParent;
     myModuleGalleryEntryList = sortModuleEntries(moduleGalleryEntries);
     myProjectSyncInvoker = projectSyncInvoker;
     myRootPanel = createGallery();
@@ -76,12 +79,13 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
   }
 
   @NotNull
-  public static ChooseModuleTypeStep createWithDefaultGallery(Project project, ProjectSyncInvoker projectSyncInvoker) {
+  public static ChooseModuleTypeStep createWithDefaultGallery(@NotNull Project project, @Nullable String moduleGroup,
+                                                              @NotNull ProjectSyncInvoker projectSyncInvoker) {
     ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
     for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
       moduleDescriptions.addAll(provider.getDescriptions(project));
     }
-    return new ChooseModuleTypeStep(project, moduleDescriptions, projectSyncInvoker);
+    return new ChooseModuleTypeStep(project, moduleGroup, moduleDescriptions, projectSyncInvoker);
   }
 
   @NotNull
@@ -96,7 +100,7 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
     List<ModelWizardStep> allSteps = Lists.newArrayList();
     myModuleDescriptionToStepMap = new HashMap<>();
     for (ModuleGalleryEntry moduleGalleryEntry : myModuleGalleryEntryList) {
-      NewModuleModel model = new NewModuleModel(myProject, myProjectSyncInvoker);
+      NewModuleModel model = new NewModuleModel(myProject, myModuleParent, myProjectSyncInvoker);
       if (moduleGalleryEntry instanceof ModuleTemplateGalleryEntry) {
         ModuleTemplateGalleryEntry templateEntry =  (ModuleTemplateGalleryEntry) moduleGalleryEntry;
         model.isLibrary().set(templateEntry.isLibrary());

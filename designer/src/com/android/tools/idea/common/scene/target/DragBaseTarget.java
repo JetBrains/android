@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModificatio
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBColor;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -237,7 +238,7 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
   }
 
   @Override
-  public Cursor getMouseCursor() {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifier) {
     return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }
 

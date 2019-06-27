@@ -34,6 +34,8 @@ import org.junit.runner.RunWith;
 public final class GridLayoutTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
+  @Rule
+  public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Test
   public void dragViewIntoEmptyGridLayout() throws Exception {

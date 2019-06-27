@@ -16,9 +16,11 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
+import com.android.tools.idea.ui.resourcemanager.model.Asset
+import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWrapper
 import com.android.tools.idea.ui.resourcemanager.widget.Section
 import com.android.tools.idea.ui.resourcemanager.widget.SectionList
@@ -105,9 +107,9 @@ private val LIST_MODE_BACKGROUND = UIUtil.getListBackground()
 private const val DELAY_BEFORE_LOADING_STATE = 100L // ms
 
 /**
- * View meant to display [com.android.tools.idea.ui.resourcemanager.model.DesignAsset] located
+ * View meant to display [com.android.tools.idea.ui.resourcemanager.model.Asset] located
  * in the project.
- * It uses an [ProjectResourcesBrowserViewModel] to populates the views
+ * It uses an [ResourceExplorerViewModelImpl] to populates the views
  */
 class ResourceExplorerView(
   private val resourcesBrowserViewModel: ResourceExplorerViewModel,
@@ -200,9 +202,10 @@ class ResourceExplorerView(
   /**
    * A mouse listener that opens a [ResourceDetailView] when double clicking
    * on an item from the list.
-   * @see openAssets
+   * @see doSelectAssetAction
    */
-  private val doubleClickListener = object : MouseAdapter() {
+  private val mouseClickListener = object : MouseAdapter() {
+    // TODO: Use selection listeners, listen to single click events.
     override fun mouseClicked(e: MouseEvent) {
       if (!(e.clickCount == 2 && e.button == MouseEvent.BUTTON1)) {
         return
@@ -211,7 +214,7 @@ class ResourceExplorerView(
       val index = assetListView.locationToIndex(e.point)
       if (index >= 0) {
         val designAssetSet = assetListView.model.getElementAt(index)
-        openAssets(designAssetSet)
+        doSelectAssetAction(designAssetSet)
       }
     }
   }
@@ -220,7 +223,7 @@ class ResourceExplorerView(
     override fun keyPressed(e: KeyEvent) {
       if (KeyEvent.VK_ENTER == e.keyCode) {
         val assetListView = e.source as AssetListView
-        openAssets(assetListView.selectedValue)
+        doSelectAssetAction(assetListView.selectedValue)
       }
     }
   }
@@ -228,17 +231,19 @@ class ResourceExplorerView(
   /**
    * Replace the content of the view with a [ResourceDetailView] for the provided [designAssetSet].
    */
-  private fun openAssets(designAssetSet: DesignAssetSet) {
-    if (designAssetSet.designAssets.size == 1) {
-      val asset = designAssetSet.designAssets.first()
+  private fun doSelectAssetAction(designAssetSet: ResourceAssetSet) {
+    if (designAssetSet.assets.size == 1) {
+      val asset = designAssetSet.assets.first()
+      if (!(asset is DesignAsset)) return // TODO: Show some sort of ui feedback. E.g: A warning icon on resource + error dialog.
       ResourceManagerTracking.logAssetOpened(asset.type)
-      resourcesBrowserViewModel.openFile(asset)
+      resourcesBrowserViewModel.doSelectAssetAction(asset)
       return
     }
+    // TODO: Should not show the DetailsView for ResourcePicker.
     showDetailView(designAssetSet)
   }
 
-  private fun showDetailView(designAssetSet: DesignAssetSet) {
+  private fun showDetailView(designAssetSet: ResourceAssetSet) {
     val parent = parent
     parent.remove(this)
     val previousSelectedValue = sectionList.selectedValue
@@ -278,11 +283,11 @@ class ResourceExplorerView(
     }
   }
 
-  private fun getSelectedAssets(): List<DesignAsset> {
+  private fun getSelectedAssets(): List<Asset> {
     return sectionList.getLists()
       .flatMap { it.selectedValuesList }
-      .filterIsInstance<DesignAssetSet>()
-      .flatMap(DesignAssetSet::designAssets)
+      .filterIsInstance<ResourceAssetSet>()
+      .flatMap(ResourceAssetSet::assets)
   }
 
   private fun populateResourcesLists() {
@@ -316,7 +321,7 @@ class ResourceExplorerView(
   private fun displayResources(resourceLists: List<ResourceSection>) {
     sectionListModel.clear()
     val sections = resourceLists
-      .filterNot { it.assets.isEmpty() }
+      .filterNot { it.assetSets.isEmpty() }
       .map(this::createSection)
       .toList()
     if (!sections.isEmpty()) {
@@ -327,7 +332,7 @@ class ResourceExplorerView(
     }
   }
 
-  private fun createLoadingSection() = AssetSection<DesignAssetSet>(
+  private fun createLoadingSection() = AssetSection<ResourceAssetSet>(
     resourcesBrowserViewModel.facet.module.name, null,
     AssetListView(emptyList(), null).apply {
       setPaintBusy(true)
@@ -335,7 +340,7 @@ class ResourceExplorerView(
       background = this@ResourceExplorerView.background
     })
 
-  private fun createEmptySection() = AssetSection<DesignAssetSet>(
+  private fun createEmptySection() = AssetSection<ResourceAssetSet>(
     resourcesBrowserViewModel.facet.module.name, null,
     AssetListView(emptyList(), null).apply {
       setEmptyText("No ${resourcesBrowserViewModel.selectedTabName.toLowerCase(Locale.US)} available")
@@ -390,11 +395,11 @@ class ResourceExplorerView(
   }
 
   private fun createSection(section: ResourceSection) =
-    AssetSection(section.libraryName, section.assets.size, AssetListView(section.assets, resourcesBrowserViewModel.speedSearch).apply {
+    AssetSection(section.libraryName, section.assetSets.size, AssetListView(section.assetSets, resourcesBrowserViewModel.speedSearch).apply {
       cellRenderer = DesignAssetCellRenderer(resourcesBrowserViewModel.assetPreviewManager)
       dragHandler.registerSource(this)
       addMouseListener(popupHandler)
-      addMouseListener(doubleClickListener)
+      addMouseListener(mouseClickListener)
       addKeyListener(keyListener)
       thumbnailWidth = this@ResourceExplorerView.previewSize
       isGridMode = this@ResourceExplorerView.gridMode
@@ -409,7 +414,7 @@ class ResourceExplorerView(
   }
 
   interface SelectionListener {
-    fun onDesignAssetSetSelected(designAssetSet: DesignAssetSet?)
+    fun onDesignAssetSetSelected(resourceAssetSet: ResourceAssetSet?)
   }
 
   private class AssetSection<T>(

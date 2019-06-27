@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -45,30 +46,6 @@ public class TestArtifactResolveScopeProvider extends ResolveScopeProvider {
       return null;
     }
 
-    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
-    if (testScopes == null) {
-      return null;
-    }
-
-    GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, true);
-    GlobalSearchScope excludeScope;
-
-    boolean inAndroidTest = testScopes.isAndroidTestSource(file);
-    boolean inUnitTest = testScopes.isUnitTestSource(file);
-
-    if (inAndroidTest && inUnitTest) {
-      excludeScope = testScopes.getSharedTestExcludeScope();
-    }
-    else if (inAndroidTest) {
-      excludeScope = testScopes.getAndroidTestExcludeScope();
-    }
-    else if (inUnitTest) {
-      excludeScope = testScopes.getUnitTestExcludeScope();
-    }
-    else {
-      return null;
-    }
-    // scope - excludeScope
-    return scope.intersectWith(GlobalSearchScope.notScope(excludeScope));
+    return ModuleSystemUtil.getResolveScope(ProjectSystemUtil.getModuleSystem(module), file);
   }
 }

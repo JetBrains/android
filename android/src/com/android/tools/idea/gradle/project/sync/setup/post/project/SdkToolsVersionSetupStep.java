@@ -83,7 +83,7 @@ public class SdkToolsVersionSetupStep extends ProjectSetupStep {
   }
 
   @Override
-  public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
+  public void setUpProject(@NotNull Project project) {
     if (myNewSdkVersionToolsInfoAlreadyShown || myNewSdkVersionToolsInfoCheckInProgress) {
       // If we're already running a check for this, we return this.
       // If the pop-up has been shown (and dismissed by the user) already, we don't try to show again.

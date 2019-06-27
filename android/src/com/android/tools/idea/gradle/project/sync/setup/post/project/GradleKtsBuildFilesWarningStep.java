@@ -31,7 +31,7 @@ public class GradleKtsBuildFilesWarningStep extends ProjectSetupStep {
   public static final Key<Boolean> HAS_KTS_BUILD_FILES = new Key<>("gradle.has.kts.files");
 
   @Override
-  public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
+  public void setUpProject(@NotNull Project project) {
     doSetUpProject(project, GradleUtil.hasKtsBuildFiles(project));
   }
 

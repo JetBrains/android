@@ -48,7 +48,7 @@ public class NewAutomotiveProjectTest {
 
   @Test
   public void testBuildMediaService() {
-    createAutomotiveProject("Media service", Language.JAVA, true);
+    createAutomotiveProject("Media service", Language.JAVA);
 
     guiTest.ideFrame().getEditor()
       .open("mobile/build.gradle") // Did we create a mobile "companion" module?
@@ -64,7 +64,7 @@ public class NewAutomotiveProjectTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
-  private void createAutomotiveProject(@NotNull String activityName, @NotNull Language language, boolean useAndroidx) {
+  private void createAutomotiveProject(@NotNull String activityName, @NotNull Language language) {
     guiTest.welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
@@ -73,9 +73,8 @@ public class NewAutomotiveProjectTest {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .setSourceLanguage(language.getName())
+      .setSourceLanguage(language.toString())
       .selectMinimumSdkApi(FormFactor.AUTOMOTIVE, "28")
-      .setUseAndroidX(useAndroidx)
       .wizard()
       .clickFinish();
 

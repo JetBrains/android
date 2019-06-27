@@ -232,8 +232,9 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(streamId);
     if (client != null) {
       Commands.Command command = request.getCommand();
-      request = request.toBuilder().setCommand(command.toBuilder().setCommandId(myNextCommandId.incrementAndGet())).build();
-      responseObserver.onNext(client.execute(request));
+      int commandId = myNextCommandId.incrementAndGet();
+      request = request.toBuilder().setCommand(command.toBuilder().setCommandId(commandId)).build();
+      responseObserver.onNext(client.execute(request).toBuilder().setCommandId(commandId).build());
     }
     else {
       responseObserver.onNext(ExecuteResponse.getDefaultInstance());

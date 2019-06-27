@@ -18,6 +18,9 @@
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="intellij.platform.uast" />
     <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="library" name="kotlin-plugin" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
   </component>
 </module>

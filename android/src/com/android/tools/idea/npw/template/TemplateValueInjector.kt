@@ -31,8 +31,8 @@ import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.npw.ThemeHelper
-import com.android.tools.idea.npw.model.JavaToKotlinHandler.getJavaToKotlinConversionProvider
 import com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain
+import com.android.tools.idea.npw.model.getKotlinVersion
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
@@ -302,7 +302,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   fun setLanguage(language: Language): TemplateValueInjector {
-    myTemplateValues[ATTR_LANGUAGE] = language.getName()
+    myTemplateValues[ATTR_LANGUAGE] = language.toString()
     myTemplateValues[ATTR_KOTLIN_SUPPORT] = language == Language.KOTLIN
     return this
   }
@@ -344,8 +344,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
 
   private fun addKotlinVersion() {
     // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
-    val provider = getJavaToKotlinConversionProvider()
-    val kotlinVersion = provider.kotlinVersion
+    val kotlinVersion = getKotlinVersion()
     myTemplateValues[ATTR_KOTLIN_VERSION] = kotlinVersion
     if (isEAP(kotlinVersion)) {
       myTemplateValues[ATTR_KOTLIN_EAP_REPO] = true
@@ -362,9 +361,8 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   private fun addAndroidxSupport(project: Project?) {
-    if (project != null) {
-      myTemplateValues[ATTR_ANDROIDX_SUPPORT] = project.isAndroidx()
-    }
+    // Note: New projects are always created with androidx dependencies
+    myTemplateValues[ATTR_ANDROIDX_SUPPORT] = project == null || !project.isInitialized || project.isAndroidx()
   }
 
   private fun addDebugKeyStore(templateValues: MutableMap<String, Any>, facet: AndroidFacet?) {
@@ -403,7 +401,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
       return versionInUse
     }
 
-    val androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(project)
+    val androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project)
     return androidPluginInfo?.pluginVersion ?: defaultGradleVersion
   }
 

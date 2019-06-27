@@ -110,6 +110,13 @@ public abstract class GradleFileMergerTestCase extends AndroidGradleTestCase {
                    "templates/MergedToplevelInject.gradle");
   }
 
+  public void testBuildscriptMergeIncludingSingleValueAssignment() throws Exception {
+    // To test the gradle files merge that include a single value assignment with the equal identifier
+    checkFileMerge("templates/BaseToplevelIncludingSingleValueAssignment.gradle",
+                   "templates/ToplevelInject.gradle",
+                   "templates/MergedToplevelIncludingSingleValueAssignment.gradle");
+  }
+
   public void testAddNewDependenciesBlock() throws Exception {
     checkFileMerge("templates/AddDependenciesBlock.gradle",
                    "templates/NewDependencies.gradle",

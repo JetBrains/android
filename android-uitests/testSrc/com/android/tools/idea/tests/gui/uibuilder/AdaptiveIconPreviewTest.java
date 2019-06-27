@@ -33,6 +33,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class AdaptiveIconPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Test
   public void densitySelector() throws IOException {

@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.ImageCacheRule
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.rendering.StubAssetPreviewManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockVirtualFile
@@ -59,7 +59,7 @@ class DesignAssetCellRendererTest {
     }
 
     val renderer = DesignAssetCellRenderer(assetPreviewManager)
-    val designAssetSet = DesignAssetSet("name", listOf(DesignAsset(MockVirtualFile("file.png"), emptyList(), ResourceType.DRAWABLE)))
+    val designAssetSet = ResourceAssetSet("name", listOf(DesignAsset(MockVirtualFile("file.png"), emptyList(), ResourceType.DRAWABLE)))
 
     val component = renderer.getListCellRendererComponent(jList, designAssetSet, 0, false, false) as JComponent
     val icon = UIUtil.findComponentsOfType(component, JLabel::class.java).first().icon as ImageIcon

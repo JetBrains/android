@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.handlers.grid.GridBarriers
 import com.android.tools.idea.uibuilder.handlers.grid.getGridBarriers
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.text.StringUtil
+import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Graphics2D
 
@@ -151,7 +152,7 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
 
   override fun getPreferenceLevel() = Target.DRAG_LEVEL
 
-  override fun getMouseCursor(): Cursor? = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+  override fun getMouseCursor(@JdkConstants.InputEventMask modifier: Int): Cursor? = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 
   override fun canChangeSelection() = true
 }

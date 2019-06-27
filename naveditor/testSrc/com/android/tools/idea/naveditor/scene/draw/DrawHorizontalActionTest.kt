@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.common.scene.draw.ArrowDirection
-import com.android.tools.idea.common.scene.draw.DrawArrow
+import com.android.tools.idea.common.scene.draw.FillArrow
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.util.ui.JBUI
@@ -28,6 +28,7 @@ import java.awt.geom.Rectangle2D
 private val ARROW_LINE = Line2D.Float(50f, 106f, 340f, 106f)
 private val ARROW_RECT = Rectangle2D.Float(340f, 100f, 10f, 12f)
 private val ICON_RECT = Rectangle2D.Float(52f, 87f, 14f, 14f)
+private const val SCALE = 1f
 private val COLOR = Color.BLUE
 private val STROKE = BasicStroke(JBUI.scale(3f), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
@@ -35,18 +36,17 @@ class DrawHorizontalActionTest : NavTestCase() {
   fun testDrawHorizontalAction() {
     val rectangle = Rectangle2D.Float(50f, 100f, 300f, 12f)
 
-    var drawAction = DrawHorizontalAction(rectangle, COLOR, false)
+    var drawAction = DrawHorizontalAction(rectangle, SCALE, COLOR, false)
 
     assertEquals(2, drawAction.commands.size)
     assertDrawLinesEqual(DrawShape(ARROW_LINE, COLOR, STROKE), drawAction.commands[0])
-    assertEquals(drawAction.commands[1], DrawArrow(1, ArrowDirection.RIGHT, ARROW_RECT, COLOR))
+    assertDrawCommandsEqual(FillArrow(ArrowDirection.RIGHT, ARROW_RECT, COLOR), drawAction.commands[1])
 
-    drawAction = DrawHorizontalAction(rectangle, COLOR, true)
+    drawAction = DrawHorizontalAction(rectangle, SCALE, COLOR, true)
 
     assertEquals(3, drawAction.commands.size)
     assertDrawLinesEqual(DrawShape(ARROW_LINE, COLOR, STROKE), drawAction.commands[0])
-    assertEquals(drawAction.commands[1], DrawArrow(1, ArrowDirection.RIGHT, ARROW_RECT, COLOR))
+    assertDrawCommandsEqual(FillArrow(ArrowDirection.RIGHT, ARROW_RECT, COLOR), drawAction.commands[1])
     assertEquals(drawAction.commands[2], DrawIcon(ICON_RECT, DrawIcon.IconType.POP_ACTION, COLOR))
-
   }
 }

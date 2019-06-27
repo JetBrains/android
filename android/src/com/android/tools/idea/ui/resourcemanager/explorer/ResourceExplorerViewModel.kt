@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
+import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.speedSearch.SpeedSearch
@@ -26,7 +30,7 @@ import java.util.concurrent.CompletableFuture
 /**
  * Interface for the view model of [com.android.tools.idea.ui.resourcemanager.view.ResourceExplorerView]
  *
- * The production implementation is [ProjectResourcesBrowserViewModel].
+ * The production implementation is [ResourceExplorerViewModelImpl].
  */
 interface ResourceExplorerViewModel {
   /**
@@ -53,6 +57,8 @@ interface ResourceExplorerViewModel {
 
   val speedSearch: SpeedSearch
 
+  val filterOptions: FilterOptions
+
   /**
    * Returns a list of [ResourceSection] with one section per namespace, the first section being the
    * one containing the resource of the current module.
@@ -62,12 +68,12 @@ interface ResourceExplorerViewModel {
   /**
    * Delegate method to handle calls to [com.intellij.openapi.actionSystem.DataProvider.getData].
    */
-  fun getData(dataId: String?, selectedAssets: List<DesignAsset>): Any?
+  fun getData(dataId: String?, selectedAssets: List<Asset>): Any?
 
   /**
-   * Opens an editor to display the [asset].
+   * Action when selecting an [asset] (double click or select + ENTER key).
    */
-  fun openFile(asset: DesignAsset)
+  val doSelectAssetAction: (asset: DesignAsset) -> Unit
 
   fun facetUpdated(newFacet: AndroidFacet, oldFacet: AndroidFacet)
 
@@ -79,4 +85,19 @@ interface ResourceExplorerViewModel {
    * the index of the Drawable tab.
    */
   fun getTabIndexForFile(virtualFile: VirtualFile): Int
+
+  /** Helper functions to create an instance of [ResourceExplorerViewModel].*/
+  companion object {
+    fun createResManagerViewModel(facet: AndroidFacet): ResourceExplorerViewModel
+      = ResourceExplorerViewModelImpl(facet, FilterOptionsParams(moduleDependenciesInitialValue = false, librariesInitialValue = false))
+
+
+    fun createResPickerViewModel(facet: AndroidFacet, doSelectAssetCallback: (resource: ResourceItem) -> Unit): ResourceExplorerViewModel
+      = ResourceExplorerViewModelImpl(
+      facet,
+      FilterOptionsParams(moduleDependenciesInitialValue = true, librariesInitialValue = false)) {
+      // Callback should not have ResourceExplorerAsset dependency, so we return ResourceItem.
+      asset -> doSelectAssetCallback.invoke(asset.resourceItem)
+    }
+  }
 }

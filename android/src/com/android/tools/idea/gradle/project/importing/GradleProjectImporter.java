@@ -16,12 +16,7 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.util.ToolWindows.activateProjectView;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
-import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
-import static com.intellij.ide.impl.ProjectUtil.getBaseDir;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
-import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ExceptionUtil.rethrowUnchecked;
@@ -29,17 +24,14 @@ import static com.intellij.util.ExceptionUtil.rethrowUnchecked;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.containers.ContainerUtilRt;
@@ -85,22 +77,6 @@ public class GradleProjectImporter {
   }
 
   /**
-   * Imports the given Gradle project.
-   *
-   * @param selectedFile the selected build.gradle or the project's root directory.
-   */
-  @Nullable
-  public Project importProject(@NotNull VirtualFile selectedFile) {
-    VirtualFile projectFolder = findProjectFolder(selectedFile);
-    Project newProject = importProjectCore(projectFolder);
-    if (newProject != null) {
-      GradleProjectInfo.getInstance(newProject).setSkipStartupActivity(true);
-      myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, createNewProjectListener(projectFolder));
-    }
-    return newProject;
-  }
-
-  /**
    * Ensures presence of the top level Gradle build file and the .idea directory and, additionally, performs cleanup of the libraries
    * storage to force their re-import.
    */
@@ -111,7 +87,8 @@ public class GradleProjectImporter {
     try {
       setUpLocalProperties(projectFolderPath);
       String projectName = projectFolder.getName();
-      newProject = importProjectNoSync(projectName, projectFolderPath, new Request());
+      newProject = createProject(projectName, projectFolderPath);
+      importProjectNoSync(new Request(newProject));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -122,11 +99,6 @@ public class GradleProjectImporter {
       newProject = null;
     }
     return newProject;
-  }
-
-  @NotNull
-  private static VirtualFile findProjectFolder(@NotNull VirtualFile selectedFile) {
-    return selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
   }
 
   private void setUpLocalProperties(@NotNull File projectFolderPath) throws IOException {
@@ -148,55 +120,14 @@ public class GradleProjectImporter {
     return Logger.getInstance(getClass());
   }
 
-  @NotNull
-  private static GradleSyncListener createNewProjectListener(@NotNull VirtualFile projectFolder) {
-    return new GradleSyncListener() {
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-        TransactionGuard.getInstance().submitTransactionLater(project, () -> {
-          setLastOpenedFile(project, projectFolder);
-          focusProjectWindow(project, false);
-          activateProjectView(project);
-        });
-      }
-    };
-  }
-
-  @NotNull
-  public Project importProjectNoSync(@NotNull String projectName,
-                                     @NotNull File projectFolderPath,
-                                     @NotNull Request request) throws IOException {
-    if (request.project != null) {
-      File projectBasePath = getBaseDirPath(request.project).getAbsoluteFile();
-      File requestedProjectPath = projectFolderPath.getAbsoluteFile();
-      if (0 != FileUtil.compareFiles(requestedProjectPath, projectBasePath)) {
-        LOG.error(
-          String.format("Requested project folder path %s differs from the actual project path %s", requestedProjectPath, projectBasePath),
-          new Throwable());
-      }
-    }
+  public void importProjectNoSync(@NotNull Request request) throws IOException {
+    File projectFolderPath = getBaseDirPath(request.project).getAbsoluteFile();
 
     ProjectFolder projectFolder = myProjectFolderFactory.create(projectFolderPath);
     projectFolder.createTopLevelBuildFile();
     projectFolder.createIdeaProjectFolder();
 
     Project newProject = request.project;
-
-    if (newProject == null) {
-      newProject = myNewProjectSetup.createProject(projectName, projectFolderPath.getPath());
-      GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
-      gradleSettings.setGradleVmOptions("");
-
-      String externalProjectPath = toCanonicalPath(projectFolderPath.getPath());
-      GradleProjectSettings projectSettings = gradleSettings.getLinkedProjectSettings(externalProjectPath);
-      if (projectSettings == null) {
-        Set<GradleProjectSettings> projects = ContainerUtilRt.newHashSet(gradleSettings.getLinkedProjectsSettings());
-        projectSettings = new GradleProjectSettings();
-        projectSettings.setExternalProjectPath(externalProjectPath);
-        projects.add(projectSettings);
-        gradleSettings.setLinkedProjectsSettings(projects);
-      }
-    }
 
     GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(newProject);
     projectInfo.setNewProject(request.isNewProject);
@@ -208,10 +139,29 @@ public class GradleProjectImporter {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
     }
+  }
+
+  @NotNull
+  private Project createProject(@NotNull String projectName,
+                                @NotNull File projectFolderPath) {
+    Project newProject;
+    newProject = myNewProjectSetup.createProject(projectName, projectFolderPath.getPath());
+    GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
+    gradleSettings.setGradleVmOptions("");
+
+    String externalProjectPath = toCanonicalPath(projectFolderPath.getPath());
+    GradleProjectSettings projectSettings = gradleSettings.getLinkedProjectSettings(externalProjectPath);
+    if (projectSettings == null) {
+      Set<GradleProjectSettings> projects = ContainerUtilRt.newHashSet(gradleSettings.getLinkedProjectsSettings());
+      projectSettings = new GradleProjectSettings();
+      projectSettings.setExternalProjectPath(externalProjectPath);
+      projects.add(projectSettings);
+      gradleSettings.setLinkedProjectsSettings(projects);
+    }
     return newProject;
   }
 
-  private void silenceUnlinkedGradleProjectNotificationIfNecessary(Project newProject) {
+  private static void silenceUnlinkedGradleProjectNotificationIfNecessary(Project newProject) {
     GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
     if (gradleSettings.getLinkedProjectsSettings().isEmpty()) {
       PropertiesComponent.getInstance(newProject).setValue(SHOW_UNLINKED_GRADLE_POPUP, false, true);
@@ -219,15 +169,11 @@ public class GradleProjectImporter {
   }
 
   public static class Request {
-    @Nullable public final Project project;
+    @NotNull public final Project project;
     @Nullable public LanguageLevel javaLanguageLevel;
     public boolean isNewProject;
 
-    public Request() {
-      this.project = null;
-    }
-
-    public Request(@Nullable Project project) {
+    public Request(@NotNull Project project) {
       this.project = project;
     }
   }

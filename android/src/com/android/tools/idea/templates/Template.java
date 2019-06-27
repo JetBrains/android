@@ -392,7 +392,6 @@ public class Template {
     TemplateMetadata metadata = getMetadata();
     assert metadata != null;
 
-    context.getParamMap().put(TemplateMetadata.ATTR_USE_NAV_CONTROLLER, StudioFlags.NPW_USE_NAV_CONTROLLER.get());
     enforceParameterTypes(metadata, context.getParamMap());
 
     try {

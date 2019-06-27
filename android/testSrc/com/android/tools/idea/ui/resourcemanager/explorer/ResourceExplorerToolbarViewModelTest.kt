@@ -36,7 +36,7 @@ class ResourceExplorerToolbarViewModelTest {
 
   @Before
   fun setUp() {
-    viewModel = ResourceExplorerToolbarViewModel(rule.module.androidFacet!!, ImportersProvider(), FilterOptions()) {}
+    viewModel = ResourceExplorerToolbarViewModel(rule.module.androidFacet!!, ImportersProvider(), FilterOptions.createDefault())
     rule.fixture.testDataPath = getTestDataDirectory()
   }
 

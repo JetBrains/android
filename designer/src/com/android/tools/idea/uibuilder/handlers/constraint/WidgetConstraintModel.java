@@ -603,7 +603,11 @@ public class WidgetConstraintModel implements SelectionListener {
 
     int currentValueInInt = 0;
     try {
-      currentValueInInt = Integer.parseInt(currentValue);
+      int dimenSuffixIndex = currentValue.indexOf("dp");
+      if (dimenSuffixIndex >= 0) {
+        currentValue = currentValue.substring(0, dimenSuffixIndex);
+      }
+      currentValueInInt = Integer.parseInt(currentValue.trim());
     } catch (NumberFormatException nfe) {
     }
 

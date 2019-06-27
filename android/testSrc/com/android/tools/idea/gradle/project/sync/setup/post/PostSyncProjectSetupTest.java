@@ -40,7 +40,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
-import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
@@ -52,8 +51,6 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
@@ -79,8 +76,6 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private PluginVersionUpgrade myVersionUpgrade;
   @Mock private VersionCompatibilityChecker myVersionCompatibilityChecker;
   @Mock private GradleProjectBuilder myProjectBuilder;
-  @Mock private CommonModuleValidator.Factory myModuleValidatorFactory;
-  @Mock private CommonModuleValidator myModuleValidator;
   @Mock private RunManagerEx myRunManager;
   @Mock private ExternalSystemTaskId myTaskId;
 
@@ -97,12 +92,11 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     Project project = getProject();
     myRunManager = RunManagerImpl.getInstanceImpl(project);
-    when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
     myProjectStructure = new ProjectStructureStub(project);
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
                                        myDependencySetupIssues, myProjectSetup, myModuleSetup, myVersionUpgrade,
-                                       myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory, myRunManager);
+                                       myVersionCompatibilityChecker, myProjectBuilder, myRunManager);
   }
 
   @Override
@@ -116,7 +110,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
+    mySetup.setUpProject(request, myTaskId, null);
     ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
     Project project = getProject();
     AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration(project, configurationFactory);
@@ -138,7 +132,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     tasks.add(newTask);
     myRunManager.setBeforeRunTasks(runConfiguration, tasks);
 
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
+    mySetup.setUpProject(request, myTaskId, null);
     assertSize(2, myRunManager.getBeforeRunTasks(runConfiguration));
 
     verify(myGradleProjectInfo, times(2)).setNewProject(false);
@@ -154,11 +148,11 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     request.usingCachedGradleModels = true;
     request.lastSyncTimestamp = lastSyncTimestamp;
 
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
+    mySetup.setUpProject(request, myTaskId, null);
 
     verify(mySyncState, times(1)).syncSkipped(lastSyncTimestamp, null);
     verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_CACHED_SETUP_FAILED);
-    verify(myProjectSetup, never()).setUpProject(myProgressIndicator, true);
+    verify(myProjectSetup, never()).setUpProject(true);
 
     verify(myGradleProjectInfo, times(1)).setNewProject(false);
     verify(myGradleProjectInfo, times(1)).setImportedProject(false);
@@ -172,7 +166,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     request.usingCachedGradleModels = false;
     request.lastSyncTimestamp = 1L;
 
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
+    mySetup.setUpProject(request, myTaskId, null);
 
     verify(mySyncState, times(1)).syncFailed(any(), any(), any());
     verify(mySyncState, never()).syncSucceeded();
@@ -180,14 +174,14 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
   public void testWithExceptionDuringProjectSetup() {
     when(mySyncState.lastSyncFailed()).thenReturn(false);
-    doThrow(new RuntimeException()).when(myProjectSetup).setUpProject(myProgressIndicator, false);
+    doThrow(new RuntimeException()).when(myProjectSetup).setUpProject(false);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     request.usingCachedGradleModels = false;
     request.lastSyncTimestamp = 1L;
 
     try {
-      mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
+      mySetup.setUpProject(request, myTaskId, null);
       fail();
     }
     catch (Throwable t) {
@@ -206,18 +200,13 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     request.generateSourcesAfterSync = true;
     request.cleanProjectAfterSync = true;
 
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
+    mySetup.setUpProject(request, myTaskId, null);
 
     Project project = getProject();
     verify(myDependencySetupIssues, times(1)).reportIssues();
     verify(myVersionCompatibilityChecker, times(1)).checkAndReportComponentIncompatibilities(project);
 
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      verify(myModuleValidator, times(1)).validate(module);
-    }
-
-    verify(myModuleValidator, times(1)).fixAndReportFoundIssues();
-    verify(myProjectSetup, times(1)).setUpProject(myProgressIndicator, true);
+    verify(myProjectSetup, times(1)).setUpProject(true);
     verify(mySyncState, times(1)).syncFailed(any(), any(), any());
     verify(mySyncState, never()).syncSucceeded();
 
@@ -240,7 +229,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
       }
     };
 
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
+    mySetup.setUpProject(request, myTaskId, null);
 
     // verify "clean" was invoked.
     verify(myProjectBuilder).cleanAndGenerateSources();
@@ -260,7 +249,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     when(mySyncState.lastSyncFailed()).thenReturn(false);
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
+    mySetup.setUpProject(request, myTaskId, null);
 
     // verify java language level was updated to 1.8.
     assertEquals(LanguageLevel.JDK_1_8, ex.getLanguageLevel());
@@ -302,7 +291,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     }
 
     @Override
-    public void analyzeProjectStructure(@NotNull ProgressIndicator progressIndicator) {
+    public void analyzeProjectStructure() {
       analyzed = true;
     }
 
