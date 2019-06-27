@@ -25,8 +25,8 @@ public class ResourcesAarTestSuite extends IdeaTestSuiteBase {
   static {
     symlinkToIdeaHome(
         "prebuilts/studio/layoutlib",
-        "tools/adt/idea/android/testData"
-    );
+        "tools/adt/idea/android/testData",
+        "tools/idea/java");
 
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");

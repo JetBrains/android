@@ -62,6 +62,7 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/base/templates",
         "//tools/idea:platform-build-info",
+        "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
     test_srcs = ["testSrc"],
