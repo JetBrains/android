@@ -392,7 +392,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
    */
   private fun determineGradlePluginVersion(project: Project?): GradleVersion {
     val defaultGradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-    if (project == null) {
+    if (project == null || !project.isInitialized) {
       return defaultGradleVersion
     }
 
