@@ -27,7 +27,7 @@ import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.perflib.heap.SnapshotBuilder;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
@@ -72,8 +72,8 @@ public class HeapDumpCaptureObjectTest {
   public void testHeapDumpObjectsGeneration() throws Exception {
     long startTimeNs = 3;
     long endTimeNs = 8;
-    MemoryProfiler.HeapDumpInfo dumpInfo =
-      MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    HeapDumpInfo dumpInfo =
+      HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA,
                                 dumpInfo, null, myIdeProfilerServices.getFeatureTracker(), myStage);
@@ -133,8 +133,8 @@ public class HeapDumpCaptureObjectTest {
   public void testDefaultHeapShowsUpWhenItIsNonEmpty() throws Exception {
     long startTimeNs = 3;
     long endTimeNs = 8;
-    MemoryProfiler.HeapDumpInfo dumpInfo =
-      MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    HeapDumpInfo dumpInfo =
+      HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA, dumpInfo,
                                 null,
@@ -168,7 +168,7 @@ public class HeapDumpCaptureObjectTest {
 
   @Test
   public void testLoadingFailure() throws Exception {
-    MemoryProfiler.HeapDumpInfo dumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(8).build();
+    HeapDumpInfo dumpInfo = HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(8).build();
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA, dumpInfo,
                                 null,

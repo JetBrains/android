@@ -30,7 +30,7 @@ import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.perflib.heap.ext.NativeRegistryPostProcessor;
 import com.android.tools.perflib.heap.io.InMemoryBuffer;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
