@@ -108,11 +108,6 @@ public final class FrozenColumnTableFixture {
   }
 
   @NotNull
-  public JPopupMenuFixture showHeaderPopupMenuAt(int viewColumnIndex) {
-    return new TableAndColumn(this, viewColumnIndex).apply((table, c) -> table.tableHeader().showPopupMenuAt(c));
-  }
-
-  @NotNull
   public JPopupMenuFixture showPopupMenuAt(@NotNull TableCell cell) {
     return new TableAndCell(this, cell).apply(JTableFixture::showPopupMenuAt);
   }
@@ -158,10 +153,6 @@ public final class FrozenColumnTableFixture {
         myTable = frozenColumnTable.myScrollableTable;
         myColumn = column - count;
       }
-    }
-
-    private <R> R apply(@NotNull BiFunction<JTableFixture, Integer, R> function) {
-      return function.apply(myTable, myColumn);
     }
 
     private void accept(@NotNull ObjIntConsumer<JTableFixture> consumer) {
