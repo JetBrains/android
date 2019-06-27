@@ -26,6 +26,7 @@ import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.Memory.BatchAllocationContexts;
 import com.android.tools.profiler.proto.Memory.BatchAllocationEvents;
 import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent;
 import com.android.tools.profiler.proto.Memory.NativeBacktrace;
 import com.android.tools.profiler.proto.MemoryProfiler;
@@ -33,7 +34,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
@@ -122,7 +122,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   private Status myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
-  private Memory.DumpStartStatus.Status myExplicitHeapDumpStatus = null;
+  private Memory.HeapDumpStatus.Status myExplicitHeapDumpStatus = null;
   private HeapDumpInfo myExplicitHeapDumpInfo = null;
   private MemoryData myMemoryData = null;
   private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
@@ -244,7 +244,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
                               StreamObserver<TriggerHeapDumpResponse> responseObserver) {
     TriggerHeapDumpResponse.Builder builder = TriggerHeapDumpResponse.newBuilder();
     if (myExplicitHeapDumpStatus != null) {
-      builder.setStatus(Memory.DumpStartStatus.newBuilder().setStatus(myExplicitHeapDumpStatus));
+      builder.setStatus(Memory.HeapDumpStatus.newBuilder().setStatus(myExplicitHeapDumpStatus));
     }
     if (myExplicitHeapDumpInfo != null) {
       builder.setInfo(myExplicitHeapDumpInfo);
@@ -494,7 +494,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return this;
   }
 
-  public FakeMemoryService setExplicitHeapDumpStatus(@Nullable Memory.DumpStartStatus.Status status) {
+  public FakeMemoryService setExplicitHeapDumpStatus(@Nullable Memory.HeapDumpStatus.Status status) {
     myExplicitHeapDumpStatus = status;
     return this;
   }

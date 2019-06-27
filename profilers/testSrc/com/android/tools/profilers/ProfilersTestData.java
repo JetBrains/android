@@ -142,6 +142,13 @@ public final class ProfilersTestData {
   }
 
   @NotNull
+  public static Common.Event.Builder generateMemoryHeapDumpData(long groupId, long timestampUs, Memory.HeapDumpInfo info) {
+    long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
+    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(groupId).setKind(Common.Event.Kind.MEMORY_HEAP_DUMP)
+      .setIsEnded(true).setMemoryHeapdump(Memory.MemoryHeapDumpData.newBuilder().setInfo(info));
+  }
+
+  @NotNull
   public static Common.Event.Builder generateCpuThreadEvent(long timestampSeconds, int tid, String name, Cpu.CpuThreadData.State state) {
     return Common.Event.newBuilder()
       .setPid(SESSION_DATA.getPid())
