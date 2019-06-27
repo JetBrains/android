@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
-import com.android.tools.idea.sqlite.ui.ResultSetView
+import com.android.tools.idea.sqlite.ui.tableView.TableView
+import javax.swing.JComponent
 
 /**
  * Abstraction over the UI component used to evaluate user-defined SQL instructions.
@@ -25,16 +26,13 @@ import com.android.tools.idea.sqlite.ui.ResultSetView
  *
  * @see [SqliteEvaluatorViewListener] for the listener interface.
  */
-interface SqliteEvaluatorView : ResultSetView {
+interface SqliteEvaluatorView {
+  /**
+   * The JComponent containing the view's UI.
+   */
+  val component: JComponent
+  val tableView: TableView
   fun show()
-  /**
-   * Clears the data from the UI and updates the view.
-   */
-  fun resetView()
-
-  /**
-   * Gives
-   */
   fun requestFocus()
   fun addListener(listener: SqliteEvaluatorViewListener)
   fun removeListener(listener: SqliteEvaluatorViewListener)

@@ -132,14 +132,14 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       XmlFile file = ReadAction.compute(() -> getFile());
       AndroidFacet facet = AndroidFacet.getInstance(file);
       assert facet != null;
-      return NlModel.create(myEditor, facet, myFile, mySurface.getConfigurationManager(facet), mySurface.getComponentRegistrar());
+      return NlModel.create(myEditor, null, facet, myFile, mySurface.getConfigurationManager(facet), mySurface.getComponentRegistrar());
     }, AppExecutorUtil.getAppExecutorService())
       .whenComplete((model, exception) -> {
         // We are running on the AppExecutorService so wait for goingToSetModel async operation to complete
         mySurface.goingToSetModel(model).join();
 
         if (exception == null) {
-          myWorkBench.setLoadingText("`Waiting for build to finish...");
+          myWorkBench.setLoadingText("Waiting for build to finish...");
           SyncUtil.runWhenSmartAndSyncedOnEdt(myProject, this, result -> {
             if (result.isSuccessful()) {
               initNeleModelOnEventDispatchThread(model);

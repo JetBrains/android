@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.explorer;
 
+import static com.android.tools.idea.concurrent.FutureUtils.ignoreResult;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
@@ -60,7 +62,6 @@ import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashSet;
 import java.awt.datatransfer.StringSelection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,6 +69,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -555,7 +557,6 @@ public class DeviceExplorerController {
     @UiThread
     @NotNull
     private ListenableFuture<Path> downloadFileEntryToDefaultLocation(@NotNull DeviceFileEntryNode treeNode) {
-      // Figure out local path, ask user in "Save As" dialog if required
       Path localPath;
       try {
         localPath = myFileManager.getDefaultLocalPathForEntry(treeNode.getEntry());
@@ -565,10 +566,7 @@ public class DeviceExplorerController {
 
       ListenableFuture<FileTransferSummary> futureSave = wrapFileTransfer(
         tracker -> addDownloadOperationWork(tracker, treeNode),
-        tracker -> {
-          ListenableFuture<Long> futureSize = downloadFileEntry(treeNode, localPath, tracker);
-          return myEdtExecutor.transform(futureSize, aLong -> null);
-        });
+        tracker -> ignoreResult(downloadFileEntry(treeNode, localPath, tracker)));
       return myEdtExecutor.transform(futureSave, summary -> localPath);
     }
 
@@ -753,9 +751,7 @@ public class DeviceExplorerController {
 
     public ListenableFuture<Void> addDownloadOperationWork(@NotNull FileTransferOperationTracker tracker,
                                                            @NotNull List<DeviceFileEntryNode> entryNodes) {
-      ListenableFuture<Void> futureWork =
-        executeFuturesInSequence(entryNodes.iterator(), node -> addDownloadOperationWork(tracker, node));
-      return myEdtExecutor.transform(futureWork, aVoid -> null);
+      return executeFuturesInSequence(entryNodes.iterator(), node -> addDownloadOperationWork(tracker, node));
     }
 
     public ListenableFuture<Void> addDownloadOperationWork(@NotNull FileTransferOperationTracker tracker,
@@ -1590,7 +1586,8 @@ public class DeviceExplorerController {
         stopLoadChildren(node);
         myLoadingNodesAlarms.cancelRequest(showLoadingNode);
       });
-      return myEdtExecutor.transform(futureEntries, entries -> null);
+
+      return ignoreResult(futureEntries);
     }
 
     @NotNull
@@ -1641,7 +1638,7 @@ public class DeviceExplorerController {
       Arrays.stream(oldSelections)
         .forEach(x -> restorePathSelection(treeSelectionModel, parentPath, x, newSelections));
 
-      TreePath[] newSelectionArray = ArrayUtil.toObjectArray(newSelections.stream().collect(Collectors.toList()), TreePath.class);
+      TreePath[] newSelectionArray = ArrayUtil.toObjectArray(new ArrayList<>(newSelections), TreePath.class);
       treeSelectionModel.addSelectionPaths(newSelectionArray);
     }
 
@@ -1715,7 +1712,7 @@ public class DeviceExplorerController {
             }
           }
         });
-        return myEdtExecutor.transform(futureIsLinkToDirectory, aBoolean -> null);
+        return ignoreResult(futureIsLinkToDirectory);
       });
     }
 
@@ -1732,7 +1729,7 @@ public class DeviceExplorerController {
     @NotNull private DefaultTreeModel myTreeModel;
     @NotNull private DeviceFileEntryNode myNode;
 
-    public ShowLoadingNodeRequest(@NotNull DefaultTreeModel treeModel, @NotNull DeviceFileEntryNode node) {
+    private ShowLoadingNodeRequest(@NotNull DefaultTreeModel treeModel, @NotNull DeviceFileEntryNode node) {
       myTreeModel = treeModel;
       myNode = node;
     }

@@ -22,7 +22,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.model.RESOURCE_URL_FLAVOR
 import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
@@ -61,7 +61,7 @@ class ResourceDataManagerTest {
       .appResources
       .getResources(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary")
       .first()
-    val colorAsset = DesignAsset.fromResourceItem(colorItem)!!
+    val colorAsset = Asset.fromResourceItem(colorItem)!!
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
     val psiArray = runInEdtAndGet { dataManager.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name, listOf(colorAsset)) as Array<PsiElement> }
@@ -83,7 +83,7 @@ class ResourceDataManagerTest {
   @Test
   fun getFilePsiElement() {
     val pngItem = rule.getPNGResourceItem()
-    val colorAsset = DesignAsset.fromResourceItem(pngItem)!!
+    val colorAsset = Asset.fromResourceItem(pngItem)!!
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
     val psiArray = runInEdtAndGet { dataManager.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name, listOf(colorAsset)) as Array<PsiElement> }

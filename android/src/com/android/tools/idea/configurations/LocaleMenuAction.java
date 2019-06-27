@@ -34,10 +34,12 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 public class LocaleMenuAction extends DropDownAction {
 
@@ -133,8 +135,8 @@ public class LocaleMenuAction extends DropDownAction {
   }
 
   /**
-   * Like {@link ConfigurationManager#getLocales} but filters out locales not compatible
-   * with language and region qualifiers in the current configuration's folder config
+   * Like {@link ResourceRepositoryManager#getLocalesInProject} but filters out locales not compatible
+   * with language and region qualifiers in the current configuration's folder config.
    *
    * @return the list of relevant locales in the project
    */

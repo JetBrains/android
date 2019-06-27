@@ -253,12 +253,6 @@ public class LayoutTestUtilities {
     return surface;
   }
 
-  public static InteractionManager createManager(DesignSurface surface) {
-    InteractionManager manager = new InteractionManager(surface);
-    manager.startListening();
-    return manager;
-  }
-
   public static DropTargetContext createDropTargetContext() {
     return mock(DropTargetContext.class);
   }

@@ -149,6 +149,7 @@ public class LayoutLibrary implements Disposable {
      *
      * @param platformProperties The build properties for the platform.
      * @param fontLocation the location of the fonts in the SDK target.
+     * @param nativeLibPath the absolute path of the JNI library for layoutlib.
      * @param icuDataPath the location of the ICU data used natively.
      * @param enumValueMap map attrName ⇒ { map enumFlagName ⇒ Integer value }. This is typically
      *          read from attrs.xml in the SDK target.
@@ -157,11 +158,12 @@ public class LayoutLibrary implements Disposable {
      */
     public boolean init(Map<String, String> platformProperties,
                         File fontLocation,
+                        String nativeLibPath,
                         String icuDataPath,
                         Map<String, Map<String, Integer>> enumValueMap,
                         LayoutLog log) {
         if (mBridge != null) {
-            return mBridge.init(platformProperties, fontLocation, icuDataPath, enumValueMap, log);
+            return mBridge.init(platformProperties, fontLocation, nativeLibPath, icuDataPath, enumValueMap, log);
         }
 
         return false;

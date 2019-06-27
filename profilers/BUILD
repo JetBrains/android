@@ -14,18 +14,18 @@ iml_module(
     ],  # b/113099009
     test_coverage = True,
     test_data = glob(["testData/**"]) + ["//prebuilts/tools:simpleperf"],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    test_runtime_deps = [
+    runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
     ],
-    test_srcs = ["testSrc"],
-    visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
@@ -38,12 +38,12 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/common:studio.android.sdktools.common[module]",
-        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/profilers-atrace:intellij.android.profilers.atrace[module]",
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
-        "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:perfetto-proto",

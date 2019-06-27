@@ -51,32 +51,30 @@ class CollectThreadInfoVisitor(private val threadsMap: TLongObjectHashMap<Thread
   private fun getStackFrameString(methodNameStringId: Long,
                                   sourceFilenameStringId: Long,
                                   classSerialNumber: Long,
-                                  lineNumber: Int): String {
-    val sb = StringBuilder()
+                                  lineNumber: Int): String = buildString {
     if (classSerialNumber != 0L) {
-      sb.append(classSerialNumberToNameMap[classSerialNumber])
-      sb.append(".")
+      append(classSerialNumberToNameMap[classSerialNumber])
+      append(".")
       if (methodNameStringId != 0L) {
-        sb.append(stringIdMap[methodNameStringId])
+        append(stringIdMap[methodNameStringId])
       }
       else {
-        sb.append("<unknown method>")
+        append("<unknown method>")
       }
     }
     else {
-      sb.append("<unknown location>")
+      append("<unknown location>")
     }
     if (lineNumber == -1) {
-      sb.append("(Native method)")
+      append("(Native method)")
     }
     else if (sourceFilenameStringId != 0L) {
-      sb.append("(${stringIdMap[sourceFilenameStringId]}")
+      append("(${stringIdMap[sourceFilenameStringId]}")
       if (lineNumber > 0) {
-        sb.append(":$lineNumber")
+        append(":$lineNumber")
       }
-      sb.append(")")
+      append(")")
     }
-    return sb.toString()
   }
 
   override fun visitStackTrace(stackTraceSerialNumber: Long, threadSerialNumber: Long, numberOfFrames: Int, stackFrameIds: LongArray) {

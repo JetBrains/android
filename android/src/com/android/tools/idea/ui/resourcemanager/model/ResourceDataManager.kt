@@ -50,9 +50,9 @@ private val SUPPORTED_DATA_FLAVORS = arrayOf(RESOURCE_URL_FLAVOR, DataFlavor.str
  */
 class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
 
-  private var selectedItems: List<DesignAsset>? = null
+  private var selectedItems: List<Asset>? = null
 
-  fun getData(dataId: String?, selectedAssets: List<DesignAsset>): Any? {
+  fun getData(dataId: String?, selectedAssets: List<Asset>): Any? {
     this.selectedItems = selectedAssets
     return when (dataId) {
       LangDataKeys.PSI_ELEMENT.name -> assetsToSingleElement()
@@ -78,7 +78,7 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
 
   private fun assetsToArrayPsiElements(): Array<out PsiElement> =
     selectedItems
-      ?.mapNotNull(DesignAsset::resourceItem)
+      ?.mapNotNull(Asset::resourceItem)
       ?.mapNotNull(this::findPsiElement)
       ?.filter { it.manager.isInProject(it) }
       ?.toTypedArray() ?: emptyArray()
@@ -118,7 +118,7 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
   }
 }
 
-fun createTransferable(assetSet: DesignAsset): Transferable {
+fun createTransferable(assetSet: Asset): Transferable {
   return object : Transferable {
     override fun getTransferData(flavor: DataFlavor?): Any? = when (flavor) {
       RESOURCE_URL_FLAVOR -> getResourceUrl(assetSet)
@@ -133,5 +133,5 @@ fun createTransferable(assetSet: DesignAsset): Transferable {
   }
 }
 
-private fun getResourceUrl(asset: DesignAsset) =
+private fun getResourceUrl(asset: Asset) =
   asset.resourceItem.referenceToSelf.resourceUrl

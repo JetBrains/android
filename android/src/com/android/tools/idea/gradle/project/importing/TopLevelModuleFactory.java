@@ -93,10 +93,7 @@ class TopLevelModuleFactory {
         // If sync fails, make sure that the project has a JDK, otherwise Groovy indices won't work (a common scenario where
         // users will update build.gradle files to fix Gradle sync.)
         // See: https://code.google.com/p/android/issues/detail?id=194621
-        Sdk jdk = myIdeSdks.getJdk();
-        if (jdk != null) {
-          model.setSdk(jdk);
-        }
+        model.inheritSdk();
       }
       model.commit();
 

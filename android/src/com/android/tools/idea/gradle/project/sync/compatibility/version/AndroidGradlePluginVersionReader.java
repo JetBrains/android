@@ -42,14 +42,14 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
     if (AndroidFacet.getInstance(module) == null) {
       return false;
     }
-    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(module.getProject());
+    AndroidPluginInfo pluginInfo = AndroidPluginInfo.findFromModel(module.getProject());
     return pluginInfo != null;
   }
 
   @Override
   @Nullable
   public String getComponentVersion(@NotNull Module module) {
-    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(module.getProject());
+    AndroidPluginInfo pluginInfo = AndroidPluginInfo.findFromModel(module.getProject());
     if (pluginInfo != null) {
       GradleVersion pluginVersion = pluginInfo.getPluginVersion();
       return pluginVersion != null ? pluginVersion.toString() : null;
@@ -68,7 +68,7 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
   public List<NotificationHyperlink> getQuickFixes(@NotNull Module module,
                                                    @Nullable VersionRange expectedVersion,
                                                    @Nullable PositionInFile location) {
-    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(module.getProject());
+    AndroidPluginInfo pluginInfo = AndroidPluginInfo.findFromModel(module.getProject());
     if (pluginInfo != null) {
       String version = LatestKnownPluginVersionProvider.INSTANCE.get();
       List<NotificationHyperlink> quickFixes = new ArrayList<>();

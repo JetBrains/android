@@ -40,7 +40,7 @@ iml_module(
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
         "//tools/adt/idea/android/lib:spantable[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
-        "//tools/adt/idea/property-editor:intellij.android.property-editor[module, test]",
+        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
@@ -57,6 +57,7 @@ iml_module(
         "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module, test]",
         "//tools/adt/idea/naveditor:intellij.android.naveditor[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
     ],
 )
 

@@ -30,6 +30,11 @@ import java.io.File
 /**
  * Immutable data object responsible for determining all the files that contribute to
  * the merged manifest of a particular [AndroidFacet] at a particular moment in time.
+ *
+ * Note that any navigation files are also considered contributors, since you can
+ * specify the <nav-graph> tag in your manifest and the navigation component will
+ * replace it at merge time with intent filters derived from the module's navigation
+ * files. See https://developer.android.com/guide/navigation/navigation-deep-link
  */
 data class MergedManifestContributors(
   @JvmField val primaryManifest: VirtualFile?,

@@ -18,12 +18,12 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
 import com.android.ide.common.gradle.model.GradleModelConverter
-import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersionRange
 import com.android.ide.common.repository.MavenRepositories
 import com.android.projectmodel.Library
+import com.android.repository.io.FileOpUtils
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
@@ -35,9 +35,10 @@ import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
+import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
-import com.android.tools.idea.templates.IdeGoogleMavenRepository
+import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.google.common.base.Predicates
 import com.google.common.collect.ArrayListMultimap
@@ -45,6 +46,7 @@ import com.google.common.collect.Multimap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
@@ -67,9 +69,9 @@ import java.util.Collections
 const val CHECK_DIRECT_GRADLE_DEPENDENCIES = false
 
 class GradleModuleSystem(
-  val module: Module,
+  override val module: Module,
   private val projectBuildModelHandler: ProjectBuildModelHandler,
-  @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository
+  @TestOnly private val repoUrlManager: RepositoryUrlManager = RepositoryUrlManager.get()
 ) : AndroidModuleSystem,
     ClassFileFinder by GradleClassFileFinder(module),
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
@@ -290,8 +292,8 @@ class GradleModuleSystem(
       val id = GradleCoordinateId(coordinate)
 
       // Always look for a stable version first. If none exists look for a preview version.
-      val latestVersion = mavenRepository.findVersion(id.groupId, id.artifactId, Predicates.alwaysTrue(), false)
-                          ?: mavenRepository.findVersion(id.groupId, id.artifactId, Predicates.alwaysTrue(), true)
+      val latestVersion = repoUrlManager.findVersion(id.groupId, id.artifactId, Predicates.alwaysTrue(), false, FileOpUtils.create())
+                          ?: repoUrlManager.findVersion(id.groupId, id.artifactId, Predicates.alwaysTrue(), true, FileOpUtils.create())
       if (latestVersion == null) {
         missing.add(coordinate)
       }
@@ -349,7 +351,7 @@ class GradleModuleSystem(
   }
 
   private fun findNextVersion(id: GradleCoordinateId, filter: (GradleVersion) -> Boolean, isPreview: Boolean): GradleVersion? {
-    return mavenRepository.findVersion(id.groupId, id.artifactId, filter, isPreview)
+    return repoUrlManager.findVersion(id.groupId, id.artifactId, filter, isPreview, FileOpUtils.create())
   }
 
   private data class GradleCoordinateId(val groupId: String, val artifactId: String) {
@@ -359,10 +361,26 @@ class GradleModuleSystem(
     fun isSameAs(coordinate: GradleCoordinate) = groupId == coordinate.groupId && artifactId == coordinate.artifactId
   }
 
-  override fun getModuleWithDependenciesAndLibrariesScope(includeTests: Boolean) = module.getModuleWithDependenciesAndLibrariesScope(
-    includeTests)
+  override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
+    val testScopes = getTestArtifactSearchScopes()
+    return when {
+      scopeType == ScopeType.MAIN -> module.getModuleWithDependenciesAndLibrariesScope(false)
+      testScopes == null -> module.getModuleWithDependenciesAndLibrariesScope(true)
+      else -> {
+        val excludeScope = when (scopeType) {
+          ScopeType.SHARED_TEST -> testScopes.sharedTestExcludeScope
+          ScopeType.UNIT_TEST -> testScopes.unitTestExcludeScope
+          ScopeType.ANDROID_TEST -> testScopes.androidTestExcludeScope
+          else -> error("Unknown test scope")
+        }
 
-  override fun getTestArtifactSearchScopes(module: Module): TestArtifactSearchScopes? = GradleTestArtifactSearchScopes.getInstance(module)
+        // Usual scope minus things to exclude:
+        module.getModuleWithDependenciesAndLibrariesScope(true).intersectWith(GlobalSearchScope.notScope(excludeScope))
+      }
+    }
+  }
+
+  override fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = GradleTestArtifactSearchScopes.getInstance(module)
 
   /**
    * Specifies a version incompatibility between [conflict1] from [module1] and [conflict2] from [module2].
@@ -492,7 +510,7 @@ class GradleModuleSystem(
         dependencyMap[id] = versionRange
         explicitMap[id] = explicitDependency
         moduleMap[id] = fromModule
-        mavenRepository
+        repoUrlManager
           .findCompileDependencies(id.groupId, id.artifactId, versionRange.min)
           .forEach { addDependency(it, explicitDependency, fromModule) }
       }

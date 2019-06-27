@@ -1,7 +1,24 @@
 package org.jetbrains.android.dom;
 
-import com.android.resources.ResourceUrl;
+import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.PREFIX_THEME_REF;
+import static com.android.SdkConstants.TAG_RESOURCES;
+import static com.android.SdkConstants.TAG_STYLE;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.URI_PREFIX;
+import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_END_DELIMITER;
+import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_START_DELIMITER;
+import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN;
+import static com.intellij.psi.xml.XmlTokenType.XML_DATA_CHARACTERS;
+
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.utils.Pair;
@@ -12,40 +29,48 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.PomTarget;
 import com.intellij.pom.PomTargetPsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.FakePsiElement;
-import com.intellij.psi.util.*;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiModificationTracker;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlToken;
 import com.intellij.reference.SoftReference;
-import com.intellij.util.xml.*;
+import com.intellij.util.xml.Converter;
+import com.intellij.util.xml.DomElement;
+import com.intellij.util.xml.DomManager;
+import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomAttributeChildDescription;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.converters.AttributeValueDocumentationProvider;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.intellij.psi.xml.XmlTokenType.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -79,16 +104,6 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       ValueResourceInfo resourceInfo = wrapper.getResourceInfo();
       ResourceType type = resourceInfo.getType();
       String name = resourceInfo.getName();
-
-      Module module = ModuleUtilCore.findModuleForPsiElement(element);
-      if (module == null) {
-        return null;
-      }
-      AndroidFacet facet = AndroidFacet.getInstance(element);
-      if (facet == null) {
-        return null;
-      }
-
       ResourceUrl url;
       ResourceUrl originalUrl = originalElement != null ? ResourceUrl.parse(originalElement.getText()) : null;
       if (originalUrl != null && name.equals(originalUrl.name)) {
@@ -98,25 +113,11 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         if (originalUrl != null) {
           isFramework = originalUrl.isFramework();
         } else {
-          // Figure out if this resource is a framework file.
-          // We really should store that info in the ValueResourceInfo instances themselves.
-          // For now, attempt to figure it out
-          FrameworkResourceManager frameworkResourceManager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
-          VirtualFile containingFile = resourceInfo.getContainingFile();
-          if (frameworkResourceManager != null) {
-            VirtualFile parent = containingFile.getParent();
-            if (parent != null) {
-              VirtualFile resDir = parent.getParent();
-              if (resDir != null) {
-                isFramework = frameworkResourceManager.isResourceDir(resDir);
-              }
-            }
-          }
+          isFramework = resourceInfo.getResource().getNamespace().equals(ResourceNamespace.ANDROID);
         }
-
         url = ResourceUrl.create(type, name, isFramework);
       }
-      return generateDoc(element, url);
+      return generateDoc(originalElement, url);
     } else if (element instanceof MyResourceElement) {
       return getResourceDocumentation(element, ((MyResourceElement)element).myResource);
     } else if (element instanceof XmlAttributeValue) {

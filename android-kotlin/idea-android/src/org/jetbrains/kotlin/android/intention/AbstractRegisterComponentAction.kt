@@ -19,7 +19,7 @@ package org.jetbrains.kotlin.android.intention
 import com.intellij.openapi.editor.Editor
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.android.insideBody
+import com.android.tools.idea.kotlin.insideBody
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.isAbstract

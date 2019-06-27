@@ -47,8 +47,8 @@ class ViewNode(val drawId: Long,
 
   private var tagPointer: SmartPsiElementPointer<XmlTag>? = null
 
-  // Map of drawId to child node
-  val children = mutableMapOf<Long, ViewNode>()
+  val children = mutableListOf<ViewNode>()
+  var parent: ViewNode? = null
 
   // imageBottom: the image painted before the sub views
   var imageBottom: Image? = null
@@ -62,8 +62,11 @@ class ViewNode(val drawId: Long,
       tagPointer = value?.let { SmartPointerManager.getInstance(value.project).createSmartPsiElementPointer(value) }
     }
 
+  val unqualifiedName: String
+    get() = qualifiedName.substringAfterLast('.')
+
   fun flatten(): Collection<ViewNode> {
-    return children.values.flatMap { it.flatten() }.plus(this)
+    return children.flatMap { it.flatten() }.plus(this)
   }
 
   companion object {

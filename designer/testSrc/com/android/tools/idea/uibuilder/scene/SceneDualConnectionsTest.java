@@ -29,7 +29,7 @@ import static com.android.SdkConstants.TEXT_VIEW;
 public class SceneDualConnectionsTest extends SceneTest {
 
   public void testDeleteLeft() {
-    myScene.updateModifiers(AdtUiUtils.getActionMask());
+    myInteraction.setModifiers(AdtUiUtils.getActionMask());
     myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.LEFT);
     myInteraction.mouseRelease("button", AnchorTarget.Type.LEFT);
@@ -54,7 +54,7 @@ public class SceneDualConnectionsTest extends SceneTest {
   }
 
   public void testDeleteTop() {
-    myScene.updateModifiers(AdtUiUtils.getActionMask());
+    myInteraction.setModifiers(AdtUiUtils.getActionMask());
     myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.TOP);
     myInteraction.mouseRelease("button", AnchorTarget.Type.TOP);
@@ -79,7 +79,7 @@ public class SceneDualConnectionsTest extends SceneTest {
   }
 
   public void testDeleteRight() {
-    myScene.updateModifiers(AdtUiUtils.getActionMask());
+    myInteraction.setModifiers(AdtUiUtils.getActionMask());
     myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.RIGHT);
     myInteraction.mouseRelease("button", AnchorTarget.Type.RIGHT);
@@ -104,7 +104,7 @@ public class SceneDualConnectionsTest extends SceneTest {
   }
 
   public void testDeleteBottom() {
-    myScene.updateModifiers(AdtUiUtils.getActionMask());
+    myInteraction.setModifiers(AdtUiUtils.getActionMask());
     myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.BOTTOM);
     myInteraction.mouseRelease("button", AnchorTarget.Type.BOTTOM);

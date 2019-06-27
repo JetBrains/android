@@ -27,14 +27,21 @@ import org.junit.Test
  * Tests for [ChooseActivityTypeStep].
  */
 class ChooseActivityTypeStepTest {
+
+  private val messageKeys = ActivityGalleryStepMessageKeys()
+
   @Test
   fun testNoTemplateForExistingModule() {
-    assertThat(validateTemplate(null, 5, 5, isNewModule = false, isAndroidxProject = false)).isEqualTo("No activity template was selected")
+    assertThat(validateTemplate(null, 5, 5,
+                                isNewModule = false, isAndroidxProject = false,
+                                messageKeys = messageKeys)).isEqualTo("No activity template was selected")
   }
 
   @Test
   fun testNoTemplateForNewModule() {
-    assertThat(validateTemplate(null, 5, 5, isNewModule = true, isAndroidxProject = false)).isEqualTo("")
+    assertThat(validateTemplate(null, 5, 5,
+                                isNewModule = true, isAndroidxProject = false,
+                                messageKeys = messageKeys)).isEqualTo("")
   }
 
   @Test
@@ -42,7 +49,9 @@ class ChooseActivityTypeStepTest {
     val template = mock(TemplateMetadata::class.java)
     `when`(template.minSdk).thenReturn(9)
 
-    assertThat(validateTemplate(template, 5, 5, isNewModule = true, isAndroidxProject = true))
+    assertThat(validateTemplate(template, 5, 5,
+                                isNewModule = true, isAndroidxProject = true,
+                                messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.activity.invalid.min.sdk", 9))
   }
 
@@ -51,7 +60,9 @@ class ChooseActivityTypeStepTest {
     val template = mock(TemplateMetadata::class.java)
     `when`(template.minBuildApi).thenReturn(9)
 
-    assertThat(validateTemplate(template, 5, 5, isNewModule = true, isAndroidxProject = true))
+    assertThat(validateTemplate(template, 5, 5,
+                                isNewModule = true, isAndroidxProject = true,
+                                messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.activity.invalid.min.build", 9))
   }
 
@@ -60,7 +71,9 @@ class ChooseActivityTypeStepTest {
     val template = mock(TemplateMetadata::class.java)
     `when`(template.androidXRequired).thenReturn(true)
 
-    assertThat(validateTemplate(template, 5, 5, isNewModule = false, isAndroidxProject = false))
+    assertThat(validateTemplate(template, 5, 5,
+                                isNewModule = false, isAndroidxProject = false,
+                                messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.activity.invalid.androidx"))
   }
 }

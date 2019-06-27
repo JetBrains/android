@@ -151,7 +151,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     JComponent eastToolbarComponent = myEastToolbar.getComponent();
     eastToolbarComponent.setName("NlRhsToolbar");
 
-    if (northToolbarComponent.isVisible()) {
+    if (northToolbarComponent.isVisible() || northEastToolbarComponent.isVisible()) {
       JComponent northPanel = new AdtPrimaryPanel(new BorderLayout());
       northPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()));
       northPanel.add(northToolbarComponent, BorderLayout.CENTER);

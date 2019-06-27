@@ -70,6 +70,7 @@ public final class AvdDeviceData {
   private BoolProperty myHasGyroscope = new BoolValueProperty();
   private BoolProperty myHasGps = new BoolValueProperty();
   private BoolProperty myHasProximitySensor = new BoolValueProperty();
+  private BoolProperty myHasSdCard = new BoolValueProperty();
   private OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<File>();
   private OptionalProperty<File> mySelectedSnapshotFile = new OptionalValueProperty<>(new File(""));
 
@@ -284,6 +285,11 @@ public final class AvdDeviceData {
   }
 
   @NotNull
+  public BoolProperty getHasSdCard() {
+    return myHasSdCard;
+  }
+
+  @NotNull
   public OptionalProperty<Software> software() {
     return mySoftware;
   }
@@ -424,6 +430,7 @@ public final class AvdDeviceData {
     myHasHardwareKeyboard.set(defaultHardware.getKeyboard() != Keyboard.NOKEY);
     myNavigation.setValue(defaultHardware.getNav());
     myDensity.set(defaultHardware.getScreen().getPixelDensity());
+    myHasSdCard.set(defaultHardware.hasSdCard());
 
     List<State> states = device.getAllStates();
 

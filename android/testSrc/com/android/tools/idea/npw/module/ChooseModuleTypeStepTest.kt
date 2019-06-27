@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.NPW_TEMPLATES_AUTOMOTIVE
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
@@ -27,14 +26,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 
 class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
-  override fun tearDown() {
-    try {
-      StudioFlags.NPW_BENCHMARK_TEMPLATE_MODULE.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
 
   fun testSortSingleModuleEntries() {
     assertThat(sort("Phone & Tablet Module")).containsExactly("Phone & Tablet Module").inOrder()
@@ -55,21 +46,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
                                           "Google Cloud Module", "Benchmark Module", "A", "Z").inOrder()
   }
 
-  fun testSortExistingModuleEntries_ShowBenchmarkModule() {
-    testSortExistingModuleEntries(true)
-  }
-
-  fun testSortExistingModuleEntries_HideBenchmarkModule() {
-    testSortExistingModuleEntries(false)
-  }
-
-  /**
-   * This test exists to ensure that template names have stayed consistent. If a template name has changed and we should update our
-   * module order, please update [ChooseModuleTypeStep.sortModuleEntries]
-   */
-  private fun testSortExistingModuleEntries(showBenchmarkModule: Boolean) {
-    // Note: Cloud Module is not in the class path, so we don't test it (is the last one anyway)
-    StudioFlags.NPW_BENCHMARK_TEMPLATE_MODULE.override(showBenchmarkModule)
+  fun testSortExistingModuleEntries() {
     val providers = listOf(ImportModuleGalleryEntryProvider(), NewAndroidModuleDescriptionProvider(),
                            NewDynamicAppModuleDescriptionProvider(), NewJavaModuleDescriptionProvider(),
                            NewBenchmarkModuleDescriptionProvider())
@@ -78,13 +55,13 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
     val sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).map { it.name }
 
     val expectedEntries = filterExpectedEntries(
-      showBenchmarkModule, "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant Dynamic Feature Module",
+      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant Dynamic Feature Module",
       "Automotive Module", "Wear OS Module", "Android TV Module", "Android Things Module", "Import Gradle Project",
       "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library", "Benchmark Module")
 
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
-  }
 
+  }
 
   private fun sort(vararg entries: String): List<String> {
     val moduleDescriptions = entries.map {
@@ -99,6 +76,6 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
     return sortedEntries.map { it.name }
   }
 
-  private fun filterExpectedEntries(showBenchmarkModule: Boolean, vararg expectedEntries: String): List<String> = expectedEntries
-    .filter { (NPW_TEMPLATES_AUTOMOTIVE.get() || it != "Automotive Module") && (showBenchmarkModule || it != "Benchmark Module") }
+  private fun filterExpectedEntries(vararg expectedEntries: String): List<String> = expectedEntries
+    .filter { (NPW_TEMPLATES_AUTOMOTIVE.get() || it != "Automotive Module") }
 }

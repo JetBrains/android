@@ -26,8 +26,6 @@ import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.AndroidPackageUtils
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.core.BoolProperty
-import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalProperty
@@ -247,7 +245,7 @@ class RenderTemplateModel private constructor(
     }
 
     private fun setInitialSourceLanguage(language: Language) {
-      PropertiesComponent.getInstance().setValue(PROPERTIES_RENDER_LANGUAGE_KEY, language.getName())
+      PropertiesComponent.getInstance().setValue(PROPERTIES_RENDER_LANGUAGE_KEY, language.toString())
     }
 
     private fun languagePropertyFromProject(project: Project?) = ObjectValueProperty(getInitialSourceLanguage(project)).apply {

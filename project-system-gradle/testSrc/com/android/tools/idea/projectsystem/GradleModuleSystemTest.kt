@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
+import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
@@ -64,6 +65,8 @@ class GradleModuleSystemTest : AndroidTestCase() {
     override fun error(throwable: Throwable, message: String?) {}
   }
 
+  private val repoUrlManager = RepositoryUrlManager(mavenRepository, mavenRepository, false)
+
   private val library1ModuleName = "library1"
   private val library1Path = AndroidTestCase.getAdditionalModulePath(library1ModuleName)
 
@@ -75,7 +78,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     _gradleDependencyManager = IdeComponents(project).mockProjectService(GradleDependencyManager::class.java)
-    _gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandler(project), mavenRepository)
+    _gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandler(project), repoUrlManager)
     assertThat(gradleModuleSystem.getResolvedDependentLibraries()).isEmpty()
   }
 
@@ -166,7 +169,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
     // Check that the version is picked up from the parent module:
     val module1 = getAdditionalModuleByName(library1ModuleName)!!
-    val gradleModuleSystem = GradleModuleSystem(module1, ProjectBuildModelHandler(project), mavenRepository)
+    val gradleModuleSystem = GradleModuleSystem(module1, ProjectBuildModelHandler(project), repoUrlManager)
 
     val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
       listOf(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7)))

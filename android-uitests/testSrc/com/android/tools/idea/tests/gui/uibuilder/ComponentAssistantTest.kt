@@ -34,6 +34,10 @@ class ComponentAssistantTest {
   @Rule
   val guiTest = GuiTestRule()
 
+  @JvmField
+  @Rule
+  val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
+
   @Before
   fun setUp() {
     StudioFlags.NELE_SAMPLE_DATA_UI.override(true)

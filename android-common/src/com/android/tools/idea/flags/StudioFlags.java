@@ -85,21 +85,9 @@ public final class StudioFlags {
     "Checkbox mark adds a path to shipped offline repo to local.properties and references it in build.gradle's dependencies",
     false);
 
-  public static final Flag<Boolean> NPW_USE_NAV_CONTROLLER = Flag.create(
-    NPW, "use.nav.controller", "Use Navigation Controller",
-    "Use Navigation Controller in a project that has multiple destinations, " +
-    "for example: Navigation Drawer Activity or Bottom Navigation Activity. This flag is used not to include the Navigation Component " +
-    "before it becomes stable.",
-    true);
-
   public static final Flag<Boolean> NPW_TEMPLATES_AUTOMOTIVE = Flag.create(
     NPW, "templates.automotive", "Include 'Automotive' templates in wizards",
     "Show 'Automotive' templates in 'New Project', 'New Module' and 'New component' wizards. Also present 'Automotive' devices in AVD.",
-    true);
-
-  public static final Flag<Boolean> NPW_BENCHMARK_TEMPLATE_MODULE = Flag.create(
-    NPW, "benchmark.template.module", "Enable benchmark module template",
-    "If enabled, the new module wizard will show an option to create a benchmark module",
     true);
 
   public static final Flag<Boolean> NPW_FIRST_RUN_SHOW = Flag.create(
@@ -111,6 +99,16 @@ public final class StudioFlags {
     NPW, "first.run.jdk.step", "Show JDK setup step",
     "Show JDK Setup Step in Welcome Wizard",
     true);
+
+  public static final Flag<Boolean> NPW_EXPERIMENTAL_ACTIVITY_GALLERY = Flag.create(
+    NPW, "experimental.activity.gallery", "Show experimental activity gallery",
+    "Show experimental activity gallery which contains Kotlin templates passed through plugin in addition to the normal gallery",
+    false);
+
+  public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(
+    NPW, "show.fragment.gallery", "Show fragment gallery",
+    "Show fragment gallery which contains fragment based templates",
+    false);
 
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
@@ -263,11 +261,6 @@ public final class StudioFlags {
     "Enable experimental version of the Scout inference system",
     false);
 
-  public static final Flag<Boolean> NELE_USE_ANDROIDX_DEFAULT = Flag.create(
-    NELE, "androidx.default", "Use AndroidX support library by default",
-    "Enable the use of androidx dependencies by default when the old support library is not present",
-    true);
-
   public static final Flag<Boolean> NELE_RENDER_DIAGNOSTICS = Flag.create(
     NELE, "diagnostics", "Enable rendering on-screen stats",
     "If enabled, the surface displays some debug information to diagnose performance",
@@ -277,6 +270,11 @@ public final class StudioFlags {
     NELE, "show.only.selection", "Show only selection boundaries when mouse is not hovered in layout",
     "Enable this flag to show selection boundaries without other decoration when mouse is not hovered in layout",
     true);
+
+  public static final Flag<Boolean> NELE_NATIVE_LAYOUTLIB = Flag.create(
+    NELE, "native.layoutlib", "Enable the native version of layoutlib",
+    "Use the native version of layoutlib when rendering Android resources",
+    false);
 
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
@@ -342,6 +340,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_PROPERTY_PANEL_ACTIONBAR = Flag.create(
     NELE, "property.panel.actionbar", "Property Panel Actionbar",
     "Support Actionbar in property panel",
+    false);
+
+  private static final FlagGroup NAV_EDITOR = new FlagGroup(FLAGS, "nav", "Navigation Editor");
+  public static final Flag<Boolean> NAV_NEW_PROPERTY_PANEL = Flag.create(
+    NAV_EDITOR, "new.property", "Enable the new Property Panel",
+    "Enable the new Property Panel",
     false);
 
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
@@ -420,6 +424,10 @@ public final class StudioFlags {
     RESOURCES_MANAGEMENT, "enabled", "Enable the new resources management tools",
     "If enabled, the new resource management tools are enabled. Subflags will also need to be enabled to enable all available new tools",
     true);
+  public static final Flag<Boolean> RESOURCE_EXPLORER_PICKER = Flag.create(
+    RESOURCES_MANAGEMENT, "picker", "Enable the resource explorer as picker",
+    "If enabled, the new resource management tools are used for the resource picker in the property panel.",
+    false);
 
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
@@ -508,6 +516,21 @@ public final class StudioFlags {
     "Enable gutter icon annotator to be run in background.",
     "Enable gutter icon annotator to be run after all other annotators and in the background.",
     true);
+
+  public static final Flag<Boolean> MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED = Flag.create(
+    EDITOR, "multidexkeepfile.support.enabled",
+    "Enable support for MultiDexKeepFile format",
+    "If enabled, it offers support (such as code completion) for the MultiDexKeepFile format.",
+    false
+  );
+
+  public static final Flag<Boolean> ADVANCED_JNI_ASSISTANCE = Flag.create(
+    EDITOR, "advanced.jni.assistance",
+    "Enable advanced JNI assistance",
+    "If enabled, additional inspection, completion, and refactoring supports are provided related to JNI. If disabled, some " +
+    "inspections related to JNI may stop working.",
+    true
+  );
 
   private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
   public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(

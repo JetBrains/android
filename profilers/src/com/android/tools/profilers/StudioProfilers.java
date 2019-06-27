@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
+import com.android.tools.idea.transport.poller.TransportEventPoller;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Device;
@@ -63,6 +64,7 @@ import io.grpc.StatusRuntimeException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -91,6 +93,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * The number of updates per second our simulated object models receive.
    */
   public static final int PROFILERS_UPDATE_RATE = 60;
+  public static final long TRANSPORT_POLLER_INTERVAL_NS = TimeUnit.MILLISECONDS.toNanos(500);
 
   @NotNull private final ProfilerClient myClient;
 
@@ -148,6 +151,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private long myRefreshDevices;
 
+  private long myEventPollingInternvalNs;
+
   private final Map<Common.SessionMetaData.SessionType, Runnable> mySessionChangeListener;
 
   /**
@@ -160,6 +165,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * If the agent status remains UNSPECIFIED after {@link AGENT_STATUS_MAX_RETRY_COUNT}, the profilers deem the process to be without agent.
    */
   public final Map<Long, Integer> mySessionIdToAgentStatusRetryMap = new HashMap<>();
+
+  private TransportEventPoller myTransportPoller;
 
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
@@ -234,6 +241,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myViewAxis = new ResizingAxisComponentModel.Builder(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT)
       .setGlobalRange(myTimeline.getDataRange()).build();
 
+    // Manage our own poll interval with the poller instead of using the ScheduledExecutorService helper provided in TransportEventPoller.
+    // The rest of the Studio code runs on its own updater and assumes all UI-related code (e.g. Aspect) be handled via the updating
+    // thread. Using the ScheduleExecutorService would violate that assumption and cause concurrency issues.
+    myTransportPoller = new TransportEventPoller(myClient.getTransportClient(), Comparator.comparing(Common.Event::getTimestamp));
+
     myUpdater.register(this);
   }
 
@@ -256,6 +268,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // inconsistency worse if we call these lines again.
     setProcess(null, null);
     changed(ProfilerAspect.STAGE);
+  }
+
+  @NotNull
+  public TransportEventPoller getTransportPoller() {
+    return myTransportPoller;
   }
 
   public Map<Common.Device, List<Common.Process>> getDeviceProcessMap() {
@@ -367,6 +384,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @Override
   public void update(long elapsedNs) {
+    myEventPollingInternvalNs += elapsedNs;
+    if (myEventPollingInternvalNs >= TRANSPORT_POLLER_INTERVAL_NS) {
+      myTransportPoller.poll();
+      myEventPollingInternvalNs = 0;
+    }
+
     myRefreshDevices += elapsedNs;
     if (myRefreshDevices < TimeUnit.SECONDS.toNanos(1)) {
       return;
@@ -625,7 +648,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       return false;
     }
 
-    List<Cpu.CpuTraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromSession(myClient, mySelectedSession);
+    List<Cpu.CpuTraceInfo> traceInfoList =
+      CpuProfiler.getTraceInfoFromSession(myClient, mySelectedSession, myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled());
     if (!traceInfoList.isEmpty()) {
       Cpu.CpuTraceInfo lastTraceInfo = traceInfoList.get(traceInfoList.size() - 1);
       if (lastTraceInfo.getConfiguration().getInitiationType() == Cpu.TraceInitiationType.INITIATED_BY_STARTUP) {

@@ -39,6 +39,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.MessagePool;
+import com.intellij.diagnostic.PerformanceWatcher;
+import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -47,13 +49,16 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.FrequentEventDetector;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.impl.CoreProgressManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
@@ -85,6 +90,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JLabelFixture;
@@ -97,6 +103,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.AssumptionViolatedException;
 
 public final class GuiTests {
+  private static final Logger LOG = Logger.getInstance(GuiTests.class);
 
   public static final String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
 
@@ -622,12 +629,19 @@ public final class GuiTests {
       wait = Wait.seconds(90);
     }
 
-    wait
-      .expecting("background tasks to finish")
-      .until(() -> {
-        robot.waitForIdle();
-        return noProgressIndicator();
-      });
+    try {
+      wait
+        .expecting("background tasks to finish")
+        .until(() -> {
+          robot.waitForIdle();
+          return noProgressIndicator();
+        });
+    }
+    catch (WaitTimedOutError e) {
+      PerformanceWatcher.getInstance().dumpThreads("waiting-background-tasks", true);
+      LOG.error("Timeout out waiting background tasks to finish" + ThreadDumper.dumpThreadsToString());
+      throw e;
+    }
   }
 
   private static boolean noProgressIndicator() {
@@ -645,8 +659,15 @@ public final class GuiTests {
     AtomicBoolean isProjectIndexed = new AtomicBoolean();
     DumbService.getInstance(project).smartInvokeLater(() -> isProjectIndexed.set(true));
 
-    indexing.expecting("Project indexing to finish")
-      .until(isProjectIndexed::get);
+    try {
+      indexing.expecting("Project indexing to finish")
+        .until(isProjectIndexed::get);
+    }
+    catch (WaitTimedOutError e) {
+      PerformanceWatcher.getInstance().dumpThreads("waiting-indexing", true);
+      LOG.error("Timeout out waiting project indexing to finish" + ThreadDumper.dumpThreadsToString());
+      throw e;
+    }
   }
 
   public static void waitForProjectIndexingToFinish(@NotNull Project project) {

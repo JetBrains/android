@@ -327,7 +327,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
 
     String gradlePath = GRADLE_PATH_SEPARATOR + module.getName();
     GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), gradlePath, getBaseDirPath(module.getProject()));
-    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null, null);
+    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null, null, null);
 
     gradleFacet.setGradleModuleModel(model);
   }

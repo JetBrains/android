@@ -59,6 +59,7 @@ public class NlPropertyTableTest {
   private Dimension myOriginalFrameSize;
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Before
   public void setUp() throws Exception {

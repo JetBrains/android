@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.ContentEntries.findChildContentEntries;
@@ -30,6 +29,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRE
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
+import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_KAPT;
 import static com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE;
 import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -528,13 +528,13 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     // Verify sync issues are reported properly.
     List<NotificationData> messages = syncMessages.getNotifications();
-    assertThat(messages).hasSize(4);
-    NotificationData message = messages.get(0);
-
-    assertEquals(ERROR, message.getNotificationCategory());
-    assertEquals("Unresolved dependencies", message.getTitle());
-    assertThat(message.getMessage())
-      .contains("Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:");
+    List<NotificationData> relevantMessages = messages.stream()
+      .filter(m -> m.getNotificationCategory().equals(ERROR) &&
+                   m.getTitle().equals("Unresolved dependencies") &&
+                   m.getMessage().contains(
+                     "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
+      .collect(toList());
+    assertThat(relevantMessages).isNotEmpty();
   }
 
   public void testSyncWithAARDependencyAddsSources() throws Exception {
@@ -859,6 +859,16 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     assertThat(expectedFailure).isEqualTo("setup project failed: Sync issues found!\n" +
                                           "Module 'app':\nRequested NDK version 'i am a good version' could not be parsed\n");
+  }
+
+  public void testKaptIsEnabled() throws Exception {
+    loadProject(KOTLIN_KAPT);
+
+    GradleModuleModel appModel = GradleFacet.getInstance(getModule("app")).getGradleModuleModel();
+    assertTrue(appModel.isKaptEnabled());
+
+    GradleModuleModel rootModel = GradleFacet.getInstance(getModule("lib")).getGradleModuleModel();
+    assertFalse(rootModel.isKaptEnabled());
   }
 
   @NotNull

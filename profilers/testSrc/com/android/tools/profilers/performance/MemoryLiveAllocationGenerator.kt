@@ -35,9 +35,7 @@ class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(conn
 
   override fun generate(timestamp: Long, properties: GeneratorProperties) {
     if (!hasGeneratedInfo || isWithinProbability(.05)) {
-      generateMethodInfo(properties)
-      generateStackInfo(timestamp, properties)
-      generateThreadInfo(timestamp, properties)
+      generateAllocationContexts(properties)
       hasGeneratedInfo = true
     }
     // Generate new allocations roughy a third of the time
@@ -65,10 +63,10 @@ class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(conn
                                    .setThreadId(threadIds[random.nextInt(threadIds.size)]))
                    .build())
     }
-    val sample = Memory.BatchAllocationSample.newBuilder()
+    val sample = Memory.BatchAllocationEvents.newBuilder()
       .addAllEvents(events)
       .build()
-    myTable.insertAllocationData(properties.session, sample)
+    myTable.insertAllocationEvents(properties.session, sample)
   }
 
   private fun generateJniRefData(properties: GeneratorProperties) {
@@ -77,7 +75,7 @@ class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(conn
     myTable.insertJniReferenceData(properties.session, sample)
   }
 
-  private fun generateMethodInfo(properties: GeneratorProperties) {
+  private fun generateAllocationContexts(properties: GeneratorProperties) {
     val method = mutableListOf<Memory.AllocationStack.StackFrame>()
     val methodCount = random.nextInt(128)
     for (i in 0..methodCount) {
@@ -90,26 +88,22 @@ class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(conn
                    .setMethodName("Some Name" + i)
                    .build())
     }
-    myTable.insertMethodInfo(properties.session, method)
-  }
 
-  private fun generateStackInfo(timestamp: Long, properties: GeneratorProperties) {
-    val stacks = mutableListOf<Memory.EncodedAllocationStack>()
+    val stacks = mutableListOf<Memory.AllocationStack>()
     val stackCount = random.nextInt(128)
-    val methodCount = random.nextInt(methodIds.size)
+    val frameCount = random.nextInt(methodIds.size)
     for (i in 0..stackCount) {
+      val frame = Memory.AllocationStack.EncodedFrameWrapper.newBuilder()
+      for (j in 0..frameCount) {
+        frame.addFrames(Memory.AllocationStack.EncodedFrame.newBuilder()
+                          .setMethodId(methodIds[j])
+                          .setLineNumber(random.nextInt())
+                          .build())
+      }
       stackIds.add(random.nextInt())
-      stacks.add(Memory.EncodedAllocationStack.newBuilder()
-                   .setStackId(stackIds[i])
-                   .setTimestamp(timestamp)
-                   .addAllMethodIds(methodIds.subList(0, methodCount))
-                   .addAllLineNumbers(random.ints(methodCount.toLong()).toArray().asIterable())
-                   .build())
+      stacks.add(Memory.AllocationStack.newBuilder().setEncodedStack(frame).build())
     }
-    myTable.insertStackInfo(properties.session, stacks)
-  }
 
-  private fun generateThreadInfo(timestamp: Long, properties: GeneratorProperties) {
     val info = mutableListOf<Memory.ThreadInfo>()
     val threads = random.nextInt(50)
     for (i in 0..threads) {
@@ -117,9 +111,14 @@ class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(conn
       info.add(Memory.ThreadInfo.newBuilder()
                  .setThreadId(threadIds[i])
                  .setThreadName("Some Name " + i)
-                 .setTimestamp(timestamp)
                  .build())
     }
-    myTable.insertThreadInfo(properties.session, info)
+
+    val batchContexts = Memory.BatchAllocationContexts.newBuilder()
+      .addAllMethods(method)
+      .addAllEncodedStacks(stacks)
+      .addAllThreadInfos(info)
+      .build()
+    myTable.insertAllocationContexts(properties.session, batchContexts)
   }
 }

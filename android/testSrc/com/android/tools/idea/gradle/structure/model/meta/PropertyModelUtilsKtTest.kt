@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
 
@@ -30,6 +32,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
   @Test
   fun testAsString() {
+    assumeTrue(isGroovy())
     val text = """
                ext {
                  propValue = 'value'
@@ -66,6 +69,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
   @Test
   fun testAsAny() {
+    assumeTrue(isGroovy())
     val text = """
                ext {
                  propValue = 'value'
@@ -189,6 +193,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
   @Test
   fun testDslText() {
+    assumeTrue(isGroovy())
     val text = """
                ext {
                  propValue = 'value'

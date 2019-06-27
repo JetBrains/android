@@ -17,32 +17,9 @@
 package org.jetbrains.kotlin.android
 
 import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiJavaFile
-import org.jetbrains.kotlin.android.configure.KotlinAndroidGradleModuleConfigurator
-import org.jetbrains.kotlin.idea.actions.JavaToKotlinAction
-import org.jetbrains.kotlin.idea.configuration.KotlinProjectConfigurator
-import org.jetbrains.kotlin.idea.configuration.getCanBeConfiguredModules
 import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 
 class ConvertJavaToKotlinProviderImpl : ConvertJavaToKotlinProvider {
-    override fun configureKotlin(project: Project) {
-        val configurator =
-          KotlinProjectConfigurator.EP_NAME.findExtension(KotlinAndroidGradleModuleConfigurator::class.java)
-          ?: throw RuntimeException("""
-            Could not find a KotlinProjectConfigurator, even though the Kotlin plugin is bundled with Studio.
-            Is the Kotlin plugin disabled?
-            """.trimIndent())
-        val nonConfiguredModules = getCanBeConfiguredModules(project, configurator)
-        configurator.configureSilently(project, nonConfiguredModules, bundledRuntimeVersion())
-    }
-
-    override fun getKotlinVersion(): String {
-        return bundledRuntimeVersion()
-    }
-
-    override fun convertToKotlin(project: Project, files: List<PsiJavaFile>): List<PsiFile> {
-        return JavaToKotlinAction.convertFiles(files, project, askExternalCodeProcessing = false)
-    }
+  override val kotlinVersion: String
+    get() = bundledRuntimeVersion()
 }

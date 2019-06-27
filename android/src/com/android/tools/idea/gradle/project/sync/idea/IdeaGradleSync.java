@@ -34,12 +34,14 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
+import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.projectImport.ProjectOpenProcessor;
 import com.intellij.util.SystemProperties;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectOpenProcessor;
@@ -52,7 +54,6 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.registerAsNewProject;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.areCachedFilesMissing;
 import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isCompoundSync;
@@ -89,10 +90,6 @@ public class IdeaGradleSync implements GradleSync {
 
   @Override
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
-    if (myProjectInfo.isNewProject()) {
-      registerAsNewProject(myProject);
-    }
-
     if (SYNC_WITH_CACHED_MODEL_ONLY || request.useCachedGradleModels) {
       ProjectBuildFileChecksums buildFileChecksums = ProjectBuildFileChecksums.findFor((myProject));
       if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
@@ -134,30 +131,12 @@ public class IdeaGradleSync implements GradleSync {
 
     // the sync should be aware of multiple linked gradle project with a single IDE project
     // and a linked gradle project can be located not in the IDE Project.baseDir
-    Set<String> androidProjectCandidatesPaths = new LinkedHashSet<>();
-    if (myProjectInfo.isImportedProject()) {
-      createGradleProjectSettingsIfNotExist(myProject);
-      Collection<GradleProjectSettings> projectsSettings = GradleSettings.getInstance(myProject).getLinkedProjectsSettings();
-      if (projectsSettings.size() == 1) {
-        androidProjectCandidatesPaths.add(projectsSettings.iterator().next().getExternalProjectPath());
-      }
-    }
-    else {
-      for (Module module : ProjectFacetManager.getInstance(myProject).getModulesWithFacet(GradleFacet.getFacetTypeId())) {
-        String projectPath = getExternalRootProjectPath(module);
-        if (projectPath != null) {
-          androidProjectCandidatesPaths.add(projectPath);
-        }
-      }
-    }
-    if (androidProjectCandidatesPaths.isEmpty()) {
-      // try to discover the project in the IDE project base dir.
-      String externalProjectPath = toCanonicalPath(getBaseDirPath(myProject).getPath());
-      if (new File(externalProjectPath, SdkConstants.FN_BUILD_GRADLE).isFile() ||
-          new File(externalProjectPath, SdkConstants.FN_SETTINGS_GRADLE).isFile()) {
-        androidProjectCandidatesPaths.add(externalProjectPath);
-      }
-    }
+    createGradleProjectSettingsIfNotExist(myProject);
+    Set<String> androidProjectCandidatesPaths = GradleSettings.getInstance(myProject)
+      .getLinkedProjectsSettings()
+      .stream()
+      .map(ExternalProjectSettings::getExternalProjectPath)
+      .collect(Collectors.toSet());
 
     if (androidProjectCandidatesPaths.isEmpty()) {
       GradleSyncState.getInstance(myProject).syncSkipped(currentTimeMillis(), listener);

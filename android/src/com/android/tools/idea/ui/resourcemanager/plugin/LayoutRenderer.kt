@@ -74,6 +74,7 @@ constructor(
   private val renderTaskProvider: RenderTaskProvider = ::createRenderTask
 ) : AndroidFacetScopedService(facet) {
 
+  // TODO make this class implement DesignAssetRenderer and register it as an extension
   @GuardedBy("disposalLock")
   private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<BufferedImage?>>()
 

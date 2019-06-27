@@ -45,7 +45,7 @@ class PsJavaModule(
     super.init(name, parentModule, parsedModel)
     this.resolvedModel = resolvedModel
     rootDir = resolvedModel?.contentRoots?.firstOrNull()?.rootDirPath
-    myDependencyCollection = null
+    myDependencyCollection?.let { it.refresh(); fireDependenciesReloadedEvent() }
   }
 
   override val dependencies: PsDeclaredJavaDependencyCollection

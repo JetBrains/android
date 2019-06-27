@@ -77,7 +77,7 @@ class NewSyncKotlinIntegrationTest : AndroidGradleTestCase() {
 
   private fun GradleModuleModel.copy(): GradleModuleModel? =
     GradleModuleModel(moduleName, taskNames, gradlePath, rootFolderPath,
-                      gradlePlugins, buildFilePath!!, gradleVersion!!, agpVersion)
+                      gradlePlugins, buildFilePath!!, gradleVersion!!, agpVersion, isKaptEnabled)
 
   private fun Module.verifyGradleFacetConfiguration(oldGradleModuleModel: GradleModuleModel?) {
     val facet = GradleFacet.getInstance(this)
@@ -233,8 +233,7 @@ class NewSyncKotlinIntegrationTest : AndroidGradleTestCase() {
     assertEquals(oldCompilerArguments.useOldClassFilesReading, compilerArguments.useOldClassFilesReading)
     assertEquals(oldCompilerArguments.declarationsOutputPath, compilerArguments.declarationsOutputPath)
     assertEquals(oldCompilerArguments.singleModule, compilerArguments.singleModule)
-    assertEquals(oldCompilerArguments.addCompilerBuiltIns, compilerArguments.addCompilerBuiltIns)
-    assertEquals(oldCompilerArguments.loadBuiltInsFromDependencies, compilerArguments.loadBuiltInsFromDependencies)
+    assertEquals(oldCompilerArguments.suppressMissingBuiltinsError, compilerArguments.suppressMissingBuiltinsError)
     assertArrayEquals(oldCompilerArguments.scriptResolverEnvironment, compilerArguments.scriptResolverEnvironment)
     assertEquals(oldCompilerArguments.useJavac, compilerArguments.useJavac)
     assertEquals(oldCompilerArguments.compileJava, compilerArguments.compileJava)

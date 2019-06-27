@@ -295,8 +295,8 @@ public class LifeCycleEventDataSeriesTest {
   private void buildActivityEvent(String name, ActivityStateData[] states, long contextHash) {
     if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
       for (ActivityStateData state : states) {
-        myTransportService.addEventToEventGroup(FAKE_DEVICE_ID,
-                                                Common.Event.newBuilder()
+        myTransportService.addEventToStream(FAKE_DEVICE_ID,
+                                            Common.Event.newBuilder()
                                                   .setKind(Common.Event.Kind.VIEW)
                                                   .setTimestamp(state.activityStateTime)
                                                   .setGroupId(name.hashCode())

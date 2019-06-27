@@ -368,7 +368,29 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
       .build()
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
     myMemoryService.setMemoryData(allocationInfos)
-    myCpuService.addTraceInfo(cpuTraceInfo)
+    if (useUnifiedEvents) {
+      myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
+        .setGroupId(session1Timestamp + cpuTraceTimestamp)
+        .setPid(session1.getPid())
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(session1Timestamp)
+        .setIsEnded(true)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+        .build())
+      myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
+        .setGroupId(session2Timestamp + cpuTraceTimestamp)
+        .setPid(session2.getPid())
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(session2Timestamp)
+        .setIsEnded(true)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+        .build())
+    }
+    else {
+      myCpuService.addTraceInfo(cpuTraceInfo)
+    }
     myManager.update()
 
     // The Hprof and CPU capture artifacts are now included and sorted in ascending order
@@ -448,7 +470,20 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
     val cpuTraceTimestamp = 20L
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
-    myCpuService.addTraceInfo(cpuTraceInfo)
+    if (useUnifiedEvents) {
+      myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
+        .setGroupId(cpuTraceTimestamp)
+        .setPid(process1.getPid())
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(myTimer.currentTimeNs)
+        .setIsEnded(true)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+        .build())
+    }
+    else {
+      myCpuService.addTraceInfo(cpuTraceInfo)
+    }
     myManager.update()
     assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
     // Repeated update should not fire the aspect.

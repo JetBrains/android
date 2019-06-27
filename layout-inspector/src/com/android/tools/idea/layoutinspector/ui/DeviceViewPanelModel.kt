@@ -99,7 +99,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     val subLevelList = levelList.find { it.none { (node, _) -> node.bounds.intersects(root.bounds) } }
                        ?: mutableListOf<Pair<ViewNode, Rectangle>>().also { levelList.add(it) }
     subLevelList.add(Pair(root, clip))
-    root.children.values.forEach { buildLevelLists(it, clip, levelListCollector, level + 1) }
+    root.children.forEach { buildLevelLists(it, clip, levelListCollector, level + 1) }
   }
 
   private fun rebuildRectsForLevel(transform: AffineTransform,

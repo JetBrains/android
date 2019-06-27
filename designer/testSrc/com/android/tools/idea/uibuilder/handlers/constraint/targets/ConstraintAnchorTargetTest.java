@@ -218,11 +218,11 @@ public class ConstraintAnchorTargetTest extends SceneTest {
       .toArray(AnchorTarget[]::new)[0];
 
     // Try to hover on Anchor
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), (int) leftAnchor.getCenterX(), (int) leftAnchor.getCenterY());
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), (int) leftAnchor.getCenterX(), (int) leftAnchor.getCenterY(), 0);
     assertTrue(leftAnchor.isMouseHovered());
 
     // Move mouse out to SceneView. Should not have any hovered Target.
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), -1, -1);
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), -1, -1, 0);
     myScene.getSceneComponents().stream()
       .flatMap(component -> component.getTargets().stream())
       .forEach(target -> assertFalse(target.isMouseHovered()));
@@ -239,9 +239,9 @@ public class ConstraintAnchorTargetTest extends SceneTest {
       .toArray(AnchorTarget[]::new)[0];
 
     // Try to hover on edge
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + 5);
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + 5, 0);
     assertFalse(leftEdgeAnchor.isMouseHovered());
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + inner.getDrawHeight() - 5);
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + inner.getDrawHeight() - 5, 0);
     assertFalse(leftEdgeAnchor.isMouseHovered());
   }
 
@@ -323,7 +323,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     myInteraction.mouseRelease("button3", AnchorTarget.Type.TOP);
     assertTrue(target.isConnected());
 
-    myScene.updateModifiers(AdtUiUtils.getActionMask());
+    myInteraction.setModifiers(AdtUiUtils.getActionMask());
     myInteraction.mouseDown("button3", AnchorTarget.Type.TOP);
     myInteraction.mouseRelease("button3", AnchorTarget.Type.TOP);
     assertFalse(target.isConnected());

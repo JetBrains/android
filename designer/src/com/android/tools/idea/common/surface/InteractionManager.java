@@ -44,7 +44,9 @@ import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
 import java.awt.Cursor;
@@ -77,17 +79,18 @@ import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import org.intellij.lang.annotations.JdkConstants;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
- * The {@linkplain InteractionManager} is is the central manager of interactions; it is responsible
- * for recognizing when particular interactions should begin and terminate. It
- * listens to the drag, mouse and keyboard systems to find out when to start
- * interactions and in order to update the interactions along the way.
+ * The {@linkplain InteractionManager} is is the central manager of interactions; it is responsible for
+ * recognizing when particular interactions should begin and terminate. It listens to the mouse and keyboard
+ * events to find out when to start interactions and in order to update the interactions along the way.
  */
-public class InteractionManager {
+public class InteractionManager implements Disposable {
   private static final int HOVER_DELAY_MS = Registry.intValue("ide.tooltip.initialDelay");
   private static final int SCROLL_END_TIME_MS = 500;
 
@@ -134,7 +137,7 @@ public class InteractionManager {
    * scenarios (such as on a drag interaction) we don't get access to it.
    */
   @InputEventMask
-  protected static int ourLastStateMask;
+  protected int myLastStateMask;
 
   /**
    * A timer used to control when to initiate a mouse hover action. It is active only when
@@ -182,6 +185,7 @@ public class InteractionManager {
    */
   public InteractionManager(@NotNull DesignSurface surface) {
     mySurface = surface;
+    Disposer.register(surface, this);
 
     myListener = new Listener();
 
@@ -198,6 +202,12 @@ public class InteractionManager {
         finishInteraction(0, 0, 0, false);
       }
     };
+  }
+
+  @Override
+  public void dispose() {
+    myHoverTimer.stop();
+    myScrollEndTimer.stop();
   }
 
   /**
@@ -259,7 +269,7 @@ public class InteractionManager {
    * Starts the given interaction.
    */
   private void startInteraction(@SwingCoordinate int x, @SwingCoordinate int y, @Nullable Interaction interaction,
-                                int modifiers) {
+                                @InputEventMask int modifiers) {
     if (myCurrentInteraction != null) {
       finishInteraction(x, y, modifiers, true);
       assert myCurrentInteraction == null;
@@ -284,8 +294,16 @@ public class InteractionManager {
    * Returns the most recently observed input event mask
    */
   @InputEventMask
-  public static int getLastModifiers() {
-    return ourLastStateMask;
+  public int getLastModifiers() {
+    return myLastStateMask;
+  }
+
+  /**
+   * TODO: Remove this function when test framework use real interaction for testing.
+   */
+  @TestOnly
+  public void setModifier(@InputEventMask int modifier) {
+    myLastStateMask = modifier;
   }
 
   /**
@@ -293,7 +311,7 @@ public class InteractionManager {
    */
   private void updateMouse(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (myCurrentInteraction != null) {
-      myCurrentInteraction.update(x, y, ourLastStateMask);
+      myCurrentInteraction.update(x, y, myLastStateMask);
       mySurface.repaint();
     }
   }
@@ -309,7 +327,7 @@ public class InteractionManager {
    * @param modifiers The most recent modifier key state
    * @param canceled  True if and only if the interaction was canceled.
    */
-  private void finishInteraction(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
+  private void finishInteraction(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     if (myCurrentInteraction != null) {
       myCurrentInteraction.end(x, y, modifiers, canceled);
       if (myLayers != null) {
@@ -320,9 +338,8 @@ public class InteractionManager {
         myLayers = null;
       }
       myCurrentInteraction = null;
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourLastStateMask = 0;
-      updateCursor(x, y);
+      myLastStateMask = 0;
+      updateCursor(x, y, modifiers);
       mySurface.repaint();
     }
   }
@@ -330,17 +347,30 @@ public class InteractionManager {
   /**
    * Update the cursor to show the type of operation we expect on a mouse press:
    * <ul>
-   * <li>Over a selection handle, show a directional cursor depending on the position of
-   * the selection handle
-   * <li>Over a widget, show a move (hand) cursor
-   * <li>Otherwise, show the default arrow cursor
+   * <li>Over a resizable region, show the resize cursor.
+   * <li>Over a SceneView, show the cursor which provide by the Scene.
+   * <li>Otherwise, show the default arrow cursor.
    * </ul>
    */
-  void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+  void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifier) {
     Cursor cursor = null;
     SceneView sceneView = mySurface.getSceneView(x, y);
     if (sceneView != null) {
-      cursor = sceneView.getCursor(x, y);
+      Dimension sceneViewSize = sceneView.getSize();
+      // Check if the mouse position is at the bottom-right corner of sceneView.
+      Rectangle resizeZone = new Rectangle(sceneView.getX() + sceneViewSize.width,
+                                           sceneView.getY() + sceneViewSize.height,
+                                           NlConstants.RESIZING_HOVERING_SIZE,
+                                           NlConstants.RESIZING_HOVERING_SIZE);
+      if (resizeZone.contains(x, y) && sceneView.getSurface().isResizeAvailable()) {
+        cursor = Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
+      }
+      else {
+        SceneContext context = SceneContext.get(sceneView);
+        context.setMouseLocation(x, y);
+        sceneView.getScene().mouseHover(context, getAndroidXDip(sceneView, x), getAndroidYDip(sceneView, y), modifier);
+        cursor = sceneView.getScene().getMouseCursor();
+      }
     }
     mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
   }
@@ -390,8 +420,7 @@ public class InteractionManager {
 
       myLastMouseX = event.getX();
       myLastMouseY = event.getY();
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourLastStateMask = event.getModifiers();
+      myLastStateMask = event.getModifiers();
 
       if (event.isPopupTrigger()) {
         NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
@@ -407,7 +436,7 @@ public class InteractionManager {
 
       Interaction interaction = getSurface().createInteractionOnClick(myLastMouseX, myLastMouseY);
       if (interaction != null) {
-        startInteraction(myLastMouseX, myLastMouseY, interaction, ourLastStateMask);
+        startInteraction(myLastMouseX, myLastMouseY, interaction, myLastStateMask);
       }
     }
 
@@ -442,7 +471,7 @@ public class InteractionManager {
         mySurface.repaint();
       }
       if (myCurrentInteraction == null) {
-        updateCursor(x, y);
+        updateCursor(x, y, modifiers);
       }
       else {
         finishInteraction(x, y, modifiers, false);
@@ -476,7 +505,7 @@ public class InteractionManager {
       int xDip = getAndroidXDip(sceneView, x);
       int yDip = getAndroidYDip(sceneView, y);
       Scene scene = sceneView.getScene();
-      Target clickedTarget = scene.findTarget(context, xDip, yDip);
+      Target clickedTarget = scene.findTarget(context, xDip, yDip, myLastStateMask);
       SceneComponent clicked;
       if (clickedTarget != null) {
         clicked = clickedTarget.getComponent();
@@ -556,13 +585,13 @@ public class InteractionManager {
         return;
       }
 
+      int modifiers = event.getModifiers();
       if (myCurrentInteraction != null) {
         myLastMouseX = x;
         myLastMouseY = y;
-        //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourLastStateMask = event.getModifiers();
-        myCurrentInteraction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
-        updateCursor(x, y);
+        myLastStateMask = modifiers;
+        myCurrentInteraction.update(myLastMouseX, myLastMouseY, myLastStateMask);
+        updateCursor(x, y, modifiers);
         mySurface.getLayeredPane().scrollRectToVisible(
           new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
                         2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
@@ -571,9 +600,7 @@ public class InteractionManager {
       else {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
         y = myLastMouseY;
-        int modifiers = event.getModifiers();
-        //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourLastStateMask = modifiers;
+        myLastStateMask = modifiers;
         SceneView sceneView = mySurface.getSceneView(x, y);
         if (sceneView == null) {
           return;
@@ -615,7 +642,7 @@ public class InteractionManager {
         if (interaction != null) {
           startInteraction(x, y, interaction, modifiers);
         }
-        updateCursor(x, y);
+        updateCursor(x, y, modifiers);
       }
 
       myHoverTimer.restart();
@@ -632,18 +659,18 @@ public class InteractionManager {
         handlePanInteraction(x, y);
         return;
       }
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourLastStateMask = event.getModifiers();
+      int modifier = event.getModifiers();
+      myLastStateMask = modifier;
 
       mySurface.hover(x, y);
-      if ((ourLastStateMask & InputEvent.BUTTON1_DOWN_MASK) != 0) {
+      if ((myLastStateMask & InputEvent.BUTTON1_DOWN_MASK) != 0) {
         if (myCurrentInteraction != null) {
           updateMouse(x, y);
           mySurface.repaint();
         }
       }
       else {
-        updateCursor(x, y);
+        updateCursor(x, y, modifier);
       }
 
       myHoverTimer.restart();
@@ -653,8 +680,7 @@ public class InteractionManager {
 
     @Override
     public void keyTyped(KeyEvent event) {
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourLastStateMask = event.getModifiers();
+      myLastStateMask = event.getModifiers();
     }
 
     @Override
@@ -662,14 +688,12 @@ public class InteractionManager {
       int modifiers = event.getModifiers();
       int keyCode = event.getKeyCode();
 
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourLastStateMask = modifiers;
+      myLastStateMask = modifiers;
 
       Scene scene = mySurface.getScene();
       if (scene != null) {
         // TODO: Make it so this step is only done when necessary. i.e Move to ConstraintSceneInteraction.keyPressed().
-        // Update scene modifiers. Since holding some of these keys might change some visuals, repaint.
-        scene.updateModifiers(ourLastStateMask);
+        // Since holding some of these keys might change some visuals, repaint.
         scene.needsRebuildList();
         scene.repaint();
       }
@@ -678,7 +702,7 @@ public class InteractionManager {
       if (myCurrentInteraction != null) {
         // unless it's "Escape", which cancels the interaction
         if (keyCode == KeyEvent.VK_ESCAPE) {
-          finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, true);
+          finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true);
           myIsInteractionCanceled = true;
           return;
         }
@@ -714,14 +738,12 @@ public class InteractionManager {
 
     @Override
     public void keyReleased(KeyEvent event) {
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourLastStateMask = event.getModifiers();
+      myLastStateMask = event.getModifiers();
 
       Scene scene = mySurface.getScene();
       if (scene != null) {
         // TODO: Make it so this step is only done when necessary. i.e Move to ConstraintSceneInteraction.keyReleased().
-        // Update scene modifiers. Since holding some of these keys might change some visuals, repaint.
-        scene.updateModifiers(ourLastStateMask);
+        // Since holding some of these keys might change some visuals, repaint.
         scene.needsRebuildList();
         scene.repaint();
       }
@@ -731,7 +753,7 @@ public class InteractionManager {
 
       if (event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode()) {
         setPanning(false);
-        updateCursor(myLastMouseX, myLastMouseY);
+        updateCursor(myLastMouseX, myLastMouseY, myLastStateMask);
       }
     }
 
@@ -800,7 +822,7 @@ public class InteractionManager {
       SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
       if (sceneView != null && myCurrentInteraction instanceof DragDropInteraction) {
         DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
-        interaction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
+        interaction.update(myLastMouseX, myLastMouseY, myLastStateMask);
         if (interaction.acceptsDrop()) {
           DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
           interaction.setType(dragType);
@@ -827,7 +849,7 @@ public class InteractionManager {
     @Override
     public void dragExit(DropTargetEvent event) {
       if (myCurrentInteraction instanceof DragDropInteraction) {
-        finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, true /* cancel interaction */);
+        finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true /* cancel interaction */);
       }
     }
 
@@ -854,7 +876,7 @@ public class InteractionManager {
         return null;
       }
       InsertType insertType = finishDropInteraction(dropAction, transferable);
-      finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, (insertType == null));
+      finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, (insertType == null));
       return insertType;
     }
 
@@ -1028,7 +1050,7 @@ public class InteractionManager {
    * @param x     x position of the cursor for the passed event
    * @param y     y position of the cursor for the passed event
    */
-  void handlePanInteraction(int x, int y) {
+  void handlePanInteraction(@SwingCoordinate int x, @SwingCoordinate int y) {
     DesignSurface surface = getSurface();
     Point position = surface.getScrollPosition();
     setPanning(true);
@@ -1043,7 +1065,7 @@ public class InteractionManager {
    * Cancels the current running interaction
    */
   public void cancelInteraction() {
-    finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, true);
+    finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true);
   }
 
   @VisibleForTesting

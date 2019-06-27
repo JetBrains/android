@@ -1,0 +1,27 @@
+{
+  parserClass="com.android.tools.idea.lang.multiDexKeep.parser.MultiDexKeepParser"
+
+  psiClassPrefix="MultiDexKeep"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.android.tools.idea.lang.multiDexKeep.psi"
+  psiImplPackage="com.android.tools.idea.lang.multiDexKeep.psi.impl"
+  psiImplUtilClass="com.android.tools.idea.lang.multiDexKeep.psi.PsiImplUtil"
+
+  elementTypeHolderClass="com.android.tools.idea.lang.multiDexKeep.psi.MultiDexKeepPsiTypes"
+  elementTypeClass="com.android.tools.idea.lang.multiDexKeep.psi.MultiDexKeepElementType"
+  tokenTypeClass="com.android.tools.idea.lang.multiDexKeep.psi.MultiDexKeepTokenType"
+
+  classHeader='generatedFilesHeader.txt'
+
+  tokens=[
+    EOL='regexp:\n'
+    STRING='regexp:[a-zA-Z0-9/.]+'
+  ]
+
+  generate=[names='long' java='8']
+}
+multiDexKeepFile ::= classNames
+classNames ::= (className | EOL)*
+className ::= STRING {
+  methods=[getReference]
+}

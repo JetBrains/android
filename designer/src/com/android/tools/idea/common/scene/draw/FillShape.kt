@@ -24,9 +24,9 @@ import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Shape
 
-class FillShape(@VisibleForTesting @SwingCoordinate val shape: AnimatedValue<Shape>,
-                @VisibleForTesting val color: Color,
-                level: Int = 0) : DrawCommandBase(level) {
+open class FillShape(@VisibleForTesting @SwingCoordinate val shape: AnimatedValue<Shape>,
+                     @VisibleForTesting val color: Color,
+                     level: Int = 0) : DrawCommandBase(level) {
   constructor(shape: Shape, color: Color, level: Int = 0) : this(ConstantValue<Shape>(shape), color, level)
 
   override fun serialize() = ""

@@ -24,6 +24,7 @@ import com.android.tools.idea.util.androidFacet
 import com.android.utils.concurrency.AsyncSupplier
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
@@ -33,6 +34,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 import java.time.Duration
 import java.util.concurrent.ExecutionException
 
@@ -52,6 +54,7 @@ private val RECOMPUTE_INTERVAL = Duration.ofMillis(50)
  */
 private class MergedManifestSupplier(private val facet: AndroidFacet) :
   AsyncSupplier<MergedManifestSnapshot>,
+  Disposable,
   ModificationTracker {
 
   private val delegate = ThrottlingAsyncSupplier(::getOrCreateSnapshotFromDelegate, ::snapshotUpToDate, RECOMPUTE_INTERVAL)
@@ -76,8 +79,18 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
   @GuardedBy("callingThreadLock")
   private var snapshotBeingComputedInCallingThread: ListenableFuture<MergedManifestSnapshot>? = null
 
+  var updateCallback: Runnable? = null
+    set(value) {
+      field = value
+      delegate.setUpdateCallback(value)
+    }
+
   init {
-    Disposer.register(facet, delegate)
+    Disposer.register(this, delegate)
+  }
+
+  override fun dispose() {
+    updateCallback = null
   }
 
   override fun getModificationCount() = delegate.modificationCount
@@ -115,17 +128,18 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
   fun getOrCreateSnapshotInCallingThread(): MergedManifestSnapshot {
     ApplicationManager.getApplication().assertReadAccessAllowed()
     val future = SettableFuture.create<MergedManifestSnapshot>()!!
-    val cached = synchronized(callingThreadLock) {
+    val snapshotBeingComputed = synchronized(callingThreadLock) {
       if (snapshotBeingComputedInCallingThread == null) {
         snapshotBeingComputedInCallingThread = future
       }
       snapshotBeingComputedInCallingThread!!
     }
-    if (cached === future) {
+    if (snapshotBeingComputed === future) {
       // No other calling thread was computing the merged manifest when we acquired
       // the lock, so we need to actually compute it on this thread.
+      val cachedSnapshot = now
       val snapshot = try {
-        getOrCreateSnapshot(now)
+        getOrCreateSnapshot(cachedSnapshot)
       }
       catch (t: Throwable) {
         synchronized(callingThreadLock) {
@@ -139,13 +153,16 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
         snapshotFromCallingThread = snapshot
       }
       future.set(snapshot)
+      if (snapshot !== cachedSnapshot) {
+        updateCallback?.run()
+      }
       return snapshot
     }
     // Otherwise, block on the already-executing computation and use the result.
     // It must be up to date because another thread can't invalidate the merged manifest
     // without the write lock, which it can't obtain until this thread gives up its read access.
     try {
-      return cached.get()
+      return snapshotBeingComputed.get()
     }
     catch (e: ExecutionException) {
       if (e.cause is ProcessCanceledException) {
@@ -225,11 +242,21 @@ open class MergedManifestManager(module: Module) {
     val facet = module.androidFacet
                 ?: throw IllegalArgumentException("Attempt to obtain manifest info from a non Android module: ${module.name}")
     supplier = MergedManifestSupplier(facet)
+    Disposer.register(facet, supplier)
   }
 
   companion object {
     @JvmStatic
     fun getInstance(module: Module) = ModuleServiceManager.getService(module, MergedManifestManager::class.java)!!
+
+    /**
+     * Registers a [callback] to be executed whenever the [module]'s merged manifest has been recomputed.
+     */
+    @JvmStatic
+    @TestOnly
+    fun setUpdateCallback(module: Module, callback: Runnable?) {
+      getInstance(module).supplier.updateCallback = callback
+    }
 
     /**
      * Convenience function for requesting a fresh [MergedManifestSnapshot] which, if necessary, will be calculated

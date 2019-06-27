@@ -160,6 +160,35 @@ class AvdOptionsModelTest : AndroidTestCase() {
     theDevice = optionsModel.device();
     theDevice.setNullableValue(myNonPlayDevice)
     assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(10, Storage.Unit.MiB))
+
+
+    // For the device without Sdcard
+    myNonPlayDevice?.defaultHardware?.setSdCard(false)
+    myGooglePlayDevice?.defaultHardware?.setSdCard(false)
+
+    // Google Play
+    optionsModel = AvdOptionsModel(myGooglePlayAvdInfo)
+    theDevice = optionsModel.device();
+    theDevice.setNullableValue(myGooglePlayDevice)
+    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(0, Storage.Unit.MiB))
+
+    // Non-Google Play (Google Play image, non-Play device)
+    optionsModel = AvdOptionsModel(myGooglePlayAvdInfo)
+    theDevice = optionsModel.device();
+    theDevice.setNullableValue(myNonPlayDevice)
+    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(0, Storage.Unit.MiB))
+
+    // Non-Google Play (non-Play image, Google-Play device)
+    optionsModel = AvdOptionsModel(myNonPlayAvdInfo)
+    theDevice = optionsModel.device();
+    theDevice.setNullableValue(myGooglePlayDevice)
+    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(0, Storage.Unit.MiB))
+
+    // Non-Google Play (non-Play image, non-Play device)
+    optionsModel = AvdOptionsModel(myNonPlayAvdInfo)
+    theDevice = optionsModel.device();
+    theDevice.setNullableValue(myNonPlayDevice)
+    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(0, Storage.Unit.MiB))
   }
 
   @Throws(Exception::class)

@@ -69,7 +69,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -87,6 +89,7 @@ public class IdeSdks {
   @NotNull private final Jdks myJdks;
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   @NotNull private final IdeInfo myIdeInfo;
+  @NotNull private final Map<String, LocalPackage> localPackagesByPrefix = new HashMap<>();
 
   @NotNull
   public static IdeSdks getInstance() {
@@ -138,14 +141,30 @@ public class IdeSdks {
     return null;
   }
 
+  /**
+   * Prefix is a string prefix match on SDK package can be like 'ndk', 'ndk:19', or a full package name like 'ndk;19.1.2'
+   */
   @Nullable
-  public LocalPackage getSpecificLocalPackage(@NotNull Revision version) {
+  public LocalPackage getSpecificLocalPackage(@NotNull String prefix) {
+    if (localPackagesByPrefix.containsKey(prefix)) {
+      return localPackagesByPrefix.get(prefix);
+    }
     AndroidSdkHandler sdkHandler = myAndroidSdks.tryToChooseSdkHandler();
-    return sdkHandler.getLatestLocalPackageForPrefix(
-      version.toString(),
+    LocalPackage result = sdkHandler.getLatestLocalPackageForPrefix(
+      prefix,
       null,
       true, // All specific version to be preview
       new StudioLoggerProgressIndicator(IdeSdks.class));
+    if (result != null) {
+      // Don't cache nulls so we can check again later.
+      setSpecificLocalPackage(prefix, result);
+    }
+    return result;
+  }
+
+  @VisibleForTesting
+  public void setSpecificLocalPackage(@NotNull String prefix, @NotNull LocalPackage localPackage) {
+    localPackagesByPrefix.put(prefix, localPackage);
   }
 
   @Nullable

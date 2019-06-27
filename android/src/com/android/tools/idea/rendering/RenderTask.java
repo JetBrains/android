@@ -183,7 +183,8 @@ public class RenderTask {
              @NotNull ImagePool imagePool,
              @Nullable ILayoutPullParserFactory parserFactory,
              boolean isSecurityManagerEnabled,
-             float quality) {
+             float quality,
+             @NotNull AllocationStackTrace allocationStackTraceElement) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -219,6 +220,8 @@ public class RenderTask {
                                       renderService.getPlatform(facet));
     myDefaultQuality = quality;
     restoreDefaultQuality();
+
+    allocationStackTraceElement.bind(this);
   }
 
   public void setQuality(float quality) {

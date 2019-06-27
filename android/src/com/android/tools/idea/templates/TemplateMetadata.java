@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,6 @@ import org.w3c.dom.NodeList;
  * An ADT template along with metadata
  */
 public class TemplateMetadata {
-  public static final String ATTR_PARENT_ACTIVITY_CLASS = "parentActivityClass";
   public static final String ATTR_IS_LAUNCHER = "isLauncher";
   public static final String ATTR_IS_LIBRARY_MODULE = "isLibraryProject";
   public static final String ATTR_TARGET_API = "targetApi";

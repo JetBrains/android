@@ -19,16 +19,13 @@ import com.android.resources.ScreenRound;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.configurations.Configuration;
 import com.google.common.collect.ImmutableList;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Shape;
 import java.awt.geom.Area;
@@ -202,13 +199,6 @@ public abstract class SceneView {
   @SwingCoordinate
   public int getContentTranslationY() {
     return 0;
-  }
-
-  @Nullable
-  public Cursor getCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
-    SceneContext.get(this).setMouseLocation(x, y);
-    getScene().mouseHover(SceneContext.get(this), Coordinates.getAndroidXDip(this, x), Coordinates.getAndroidYDip(this, y));
-    return getScene().getMouseCursor();
   }
 
   @NotNull

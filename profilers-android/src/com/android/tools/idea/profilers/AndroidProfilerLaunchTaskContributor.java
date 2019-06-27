@@ -41,9 +41,11 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.TransportService;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.ProfilerClient;
@@ -189,19 +191,33 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
         break;
     }
 
-    Cpu.CpuTraceConfiguration.UserOptions traceOptions = CpuProfilerConfigConverter.toProto(startupConfig);
     // TODO b/133321803 switch back to having daemon generates and provides the path.
     String traceFilePath = String.format(Locale.US, "%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, appPackageName, System.nanoTime());
-    CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest
-      .newBuilder()
-      .setDeviceId(profilerDevice.getDeviceId())
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                          .setAppName(appPackageName)
-                          .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP)
-                          .setAbiCpuArch(cpuAbi)
-                          .setTempPath(traceFilePath)
-                          .setUserOptions(traceOptions));
-    client.getCpuClient().startStartupProfiling(requestBuilder.build());
+    Cpu.CpuTraceConfiguration.UserOptions traceOptions = CpuProfilerConfigConverter.toProto(startupConfig);
+    Cpu.CpuTraceConfiguration configuration = Cpu.CpuTraceConfiguration.newBuilder()
+      .setAppName(appPackageName)
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP)
+      .setAbiCpuArch(cpuAbi)
+      .setTempPath(traceFilePath)
+      .setUserOptions(traceOptions)
+      .build();
+    if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
+      Commands.Command startCommand = Commands.Command.newBuilder()
+        .setStreamId(profilerDevice.getDeviceId())
+        .setType(Commands.Command.CommandType.START_CPU_TRACE)
+        .setStartCpuTrace(Cpu.StartCpuTrace.newBuilder().setConfiguration(configuration).build())
+        .build();
+      // TODO handle async error statuses.
+      client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
+                                            .setCommand(startCommand)
+                                            .build());
+    }
+    else {
+      CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest.newBuilder()
+        .setDeviceId(profilerDevice.getDeviceId())
+        .setConfiguration(configuration);
+      client.getCpuClient().startStartupProfiling(requestBuilder.build());
+    }
 
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
     featureTracker.trackCpuStartupProfiling(profilerDevice, ProfilingConfiguration.fromProto(traceOptions));

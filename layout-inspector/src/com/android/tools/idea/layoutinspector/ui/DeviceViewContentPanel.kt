@@ -158,7 +158,7 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
     if (viewSettings.drawBorders && view == selection) {
       g2.color = Color.BLACK
       g2.font = g2.font.deriveFont(20f)
-      g2.drawString(view.qualifiedName.substringAfterLast('.'), view.x + 5, view.y + 25)
+      g2.drawString(view.unqualifiedName, view.x + 5, view.y + 25)
     }
   }
 

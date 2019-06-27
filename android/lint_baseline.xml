@@ -387,14 +387,6 @@
 
     <issue
         id="ImplicitExecutor"
-        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/explorer/ProjectResourcesBrowserViewModel.kt"
-            line="157"/>
-    </issue>
-
-    <issue
-        id="ImplicitExecutor"
         message="Use `transform` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/gradle/structure/model/helpers/PropertyKnownValues.kt"

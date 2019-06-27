@@ -23,9 +23,9 @@ import javax.swing.event.ListDataListener
 /**
  * ListModel used to store the [DesignAsset] displayed in the resource explorer
  */
-class DesignAssetListModel : ListModel<DesignAssetSet> {
+class DesignAssetListModel : ListModel<ResourceAssetSet> {
 
-  private var designAssets: List<DesignAssetSet> = listOf()
+  private var designAssets: List<ResourceAssetSet> = listOf()
   private var dataListeners = EventListenerList()
 
   override fun removeListDataListener(listener: ListDataListener) {
@@ -41,7 +41,7 @@ class DesignAssetListModel : ListModel<DesignAssetSet> {
     dataListeners.add(ListDataListener::class.java, listener)
   }
 
-  fun setAssets(assets: Collection<DesignAssetSet>) {
+  fun setAssets(assets: Collection<ResourceAssetSet>) {
     designAssets = assets.toList()
     fireListContentChangedEvent()
   }

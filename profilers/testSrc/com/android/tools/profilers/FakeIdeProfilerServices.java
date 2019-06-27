@@ -63,19 +63,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
 
   /**
-   * Callback to be run after the executor calls its execute() method.
-   */
-  @Nullable
-  Runnable myOnExecute;
-
-  /**
-   * The pool executor runs code in a separate thread. Sometimes is useful to check the state of the profilers
-   * just before calling pool executor's execute method (e.g. verifying Stage's transient status before making a gRPC call).
-   */
-  @Nullable
-  Runnable myPrePoolExecute;
-
-  /**
    * Can toggle for tests via {@link #enableAtrace(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean myAtraceEnabled = false;
@@ -199,23 +186,13 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @NotNull
   @Override
   public Executor getMainExecutor() {
-    return (runnable) -> {
-      runnable.run();
-      if (myOnExecute != null) {
-        myOnExecute.run();
-      }
-    };
+    return (runnable) -> runnable.run();
   }
 
   @NotNull
   @Override
   public Executor getPoolExecutor() {
-    return (runnable) -> {
-      if (myPrePoolExecute != null) {
-        myPrePoolExecute.run();
-      }
-      runnable.run();
-    };
+    return (runnable) -> runnable.run();
   }
 
   @Override
@@ -433,14 +410,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
     myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
-  }
-
-  public void setOnExecute(@Nullable Runnable onExecute) {
-    myOnExecute = onExecute;
-  }
-
-  public void setPrePoolExecutor(@Nullable Runnable prePoolExecute) {
-    myPrePoolExecute = prePoolExecute;
   }
 
   public void enableAtrace(boolean enabled) {

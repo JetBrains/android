@@ -48,7 +48,7 @@ iml_module(
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
         "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module]",
-        "//tools/adt/idea/property-editor:intellij.android.property-editor[module]",
+        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
     ],
 )
 
@@ -64,6 +64,7 @@ iml_module(
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/framework_res",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android:test_deps.zip",
@@ -72,7 +73,6 @@ iml_module(
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
-        "//tools/adt/idea/resources-aar:framework_res",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/build-system/previous-versions:2.2.0.zip",
@@ -139,6 +139,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
-        "//tools/adt/idea/property-editor:intellij.android.property-editor[module, test]",
+        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
     ],
 )

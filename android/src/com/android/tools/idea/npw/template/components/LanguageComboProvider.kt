@@ -31,7 +31,7 @@ class LanguageComboProvider : ComponentProvider<ComboBox<*>>() {
   override fun createComponent(): ComboBox<Language> = ComboBox(DefaultComboBoxModel(Language.values())).apply {
     renderer = object : ListCellRendererWrapper<Language>() {
       override fun customize(list: JList<*>, value: Language?, index: Int, selected: Boolean, hasFocus: Boolean) {
-        setText(value?.getName() ?: message("android.wizard.language.combo.empty"))
+        setText(value?.toString() ?: message("android.wizard.language.combo.empty"))
       }
     }
     toolTipText = message("android.wizard.language.combo.tooltip")

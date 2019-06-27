@@ -63,7 +63,7 @@ class ConfigureAndroidModuleStepTest : AndroidGradleTestCase() {
     `when`(moduleManager.modules).thenReturn(Module.EMPTY_ARRAY)
 
     val basePackage = "com.example"
-    val newModuleModel = NewModuleModel(project, ProjectSyncInvoker.DefaultProjectSyncInvoker())
+    val newModuleModel = NewModuleModel(project, null, ProjectSyncInvoker.DefaultProjectSyncInvoker())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
 
     Disposer.register(testRootDisposable, newModuleModel)
@@ -80,11 +80,42 @@ class ConfigureAndroidModuleStepTest : AndroidGradleTestCase() {
   }
 
   /**
+   * When adding a parent to a module name (eg :parent:module_name), the package name should ignore the parent, but the module name don't.
+   */
+  fun testModuleNamesWithParent() {
+    val project = mock(Project::class.java)
+    val moduleManager = mock(ModuleManager::class.java)
+
+    `when`(project.getComponent(ModuleManager::class.java)).thenReturn(moduleManager)
+    `when`<String>(project.basePath).thenReturn("/")
+    `when`(moduleManager.modules).thenReturn(Module.EMPTY_ARRAY)
+
+    val basePackage = "com.example"
+    val parentName = "parent"
+    val newModuleModel = NewModuleModel(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker())
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
+
+    Disposer.register(testRootDisposable, newModuleModel)
+    Disposer.register(testRootDisposable, configureAndroidModuleStep)
+    myInvokeStrategy.updateAllSteps()
+
+    fun assertModuleNameIsCorrectAfterSettingApplicationName(applicationName: String) {
+      newModuleModel.applicationName.set(applicationName)
+      myInvokeStrategy.updateAllSteps()
+      val moduleNameWithoutParent = applicationName.replace(" ", "").toLowerCase()
+      assertThat(newModuleModel.moduleName.get()).isEqualTo(":$parentName:$moduleNameWithoutParent")
+      assertThat(newModuleModel.packageName.get()).isEqualTo("$basePackage.$moduleNameWithoutParent")
+    }
+
+    listOf("My Application", "Some what Longer LibName", "lib").forEach { assertModuleNameIsCorrectAfterSettingApplicationName(it) }
+  }
+
+  /**
    * This tests assumes Project without androidx configuration.
    * Selecting API <28 should allow the use of "Go Forward", and API >=28 should stop the user from "Go Forward"
    */
   fun testSelectAndroid_Q_onNonAndroidxProjects() {
-    val newModuleModel = NewModuleModel(project, ProjectSyncInvoker.DefaultProjectSyncInvoker())
+    val newModuleModel = NewModuleModel(project, null, ProjectSyncInvoker.DefaultProjectSyncInvoker())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title")
 
     Disposer.register(testRootDisposable, newModuleModel)

@@ -39,12 +39,12 @@ import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatem
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.AllocatedClass;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
@@ -66,14 +66,17 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
 
   public enum MemoryStatements {
     INSERT_SAMPLE("INSERT OR IGNORE INTO Memory_Samples (Session, Timestamp, Type, Data) VALUES (?, ?, ?, ?)"),
-    QUERY_MEMORY(String.format(Locale.US, "SELECT Data FROM Memory_Samples WHERE Session = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
-                               MemorySamplesType.MEMORY.ordinal())),
-    QUERY_ALLOC_STATS(String.format(Locale.US, "SELECT Data FROM Memory_Samples WHERE Session = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
-                                    MemorySamplesType.ALLOC_STATS.ordinal())),
+    QUERY_MEMORY(
+      String.format(Locale.US, "SELECT Data FROM Memory_Samples WHERE Session = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
+                    MemorySamplesType.MEMORY.ordinal())),
+    QUERY_ALLOC_STATS(
+      String.format(Locale.US, "SELECT Data FROM Memory_Samples WHERE Session = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
+                    MemorySamplesType.ALLOC_STATS.ordinal())),
 
     // TODO: gc stats are duration data so we should account for end time. In reality this is usually sub-ms so it might not matter?
-    QUERY_GC_STATS(String.format(Locale.US, "SELECT Data FROM Memory_Samples WHERE Session = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
-                                 MemorySamplesType.GC_STATS.ordinal())),
+    QUERY_GC_STATS(
+      String.format(Locale.US, "SELECT Data FROM Memory_Samples WHERE Session = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
+                    MemorySamplesType.GC_STATS.ordinal())),
 
     INSERT_OR_REPLACE_HEAP_INFO(
       "INSERT OR REPLACE INTO Memory_HeapDump (Session, StartTime, EndTime, Status, InfoData) VALUES (?, ?, ?, ?, ?)"),
@@ -342,9 +345,9 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
   }
 
   @NotNull
-  public AllocationContextsResponse getLegacyAllocationContexts(@NotNull LegacyAllocationContextsRequest request) {
+  public LegacyAllocationContextsResponse getLegacyAllocationContexts(@NotNull LegacyAllocationContextsRequest request) {
 
-    AllocationContextsResponse.Builder builder = AllocationContextsResponse.newBuilder();
+    LegacyAllocationContextsResponse.Builder builder = LegacyAllocationContextsResponse.newBuilder();
     // TODO optimize queries
     try {
       for (int i = 0; i < request.getClassIdsCount(); i++) {
@@ -352,7 +355,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
           executeQuery(QUERY_LEGACY_ALLOCATED_CLASS, request.getSession().getSessionId(), request.getClassIds(i));
         if (classResultSet.next()) {
           AllocatedClass data = AllocatedClass.newBuilder().mergeFrom(classResultSet.getBytes(1)).build();
-          builder.addAllocatedClasses(data);
+          builder.addClasses(data);
         }
       }
 
@@ -361,7 +364,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
           executeQuery(QUERY_LEGACY_ALLOCATION_STACK, request.getSession().getSessionId(), request.getStackIds(i));
         if (stackResultSet.next()) {
           AllocationStack data = AllocationStack.newBuilder().mergeFrom(stackResultSet.getBytes(1)).build();
-          builder.addAllocationStacks(data);
+          builder.addStacks(data);
         }
       }
     }

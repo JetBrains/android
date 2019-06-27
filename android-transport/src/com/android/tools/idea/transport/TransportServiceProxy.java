@@ -28,6 +28,7 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Commands.Command.CommandType;
 import com.android.tools.profiler.proto.Common;
@@ -45,7 +46,6 @@ import com.android.tools.profiler.proto.Transport.GetProcessesResponse;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.idea.protobuf.ByteString;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -76,7 +76,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,7 +102,7 @@ public class TransportServiceProxy extends ServiceProxy
   private final boolean myIsDeviceApiSupported;
   private final LinkedBlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
   private Thread myEventsListenerThread;
-  private final Map<CommandType, Function<Command, ExecuteResponse>> myCommandHandlers = new HashMap<>();
+  private final Map<CommandType, TransportProxy.ProxyCommandHandler> myCommandHandlers = new HashMap<>();
   private final List<TransportEventPreprocessor> myEventPreprocessors = new ArrayList<>();
   @NotNull private final Map<String, ByteString> myProxyBytesCache;
 
@@ -136,7 +135,7 @@ public class TransportServiceProxy extends ServiceProxy
     AndroidDebugBridge.addClientChangeListener(this);
   }
 
-  public void registerCommandHandler(CommandType commandType, Function<Command, ExecuteResponse> handler) {
+  public void registerCommandHandler(CommandType commandType, TransportProxy.ProxyCommandHandler handler) {
     myCommandHandlers.put(commandType, handler);
   }
 
@@ -396,7 +395,7 @@ public class TransportServiceProxy extends ServiceProxy
     Command command = request.getCommand();
     ExecuteResponse response;
     if (myCommandHandlers.containsKey(command.getType())) {
-      response = myCommandHandlers.get(command.getType()).apply(command);
+      response = myCommandHandlers.get(command.getType()).execute(command);
     }
     else {
       response = myServiceStub.execute(request);

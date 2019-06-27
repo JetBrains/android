@@ -61,6 +61,6 @@ interface TestArtifactSearchScopes {
   companion object {
     /** Returns a [TestArtifactSearchScopes] instance for a given [module] or null the module doesn't support separate test artifacts. */
     @JvmStatic
-    fun getInstance(module: Module) = module.getModuleSystem().getTestArtifactSearchScopes(module)
+    fun getInstance(module: Module) = module.getModuleSystem().getTestArtifactSearchScopes()
   }
 }

@@ -100,6 +100,8 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
 
   @Override
   protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
+    // Override settings just for tests (e.g. sdk.dir)
+    AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
     // We need the wrapper for import to succeed
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
 
