@@ -76,21 +76,21 @@ import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
 
-private val MAX_CELL_WIDTH = JBUI.scale(300)
-private val LIST_CELL_SIZE = JBUI.scale(60)
-private val MIN_CELL_WIDTH = JBUI.scale(150)
+private val MAX_CELL_WIDTH get() = JBUI.scale(300)
+private val LIST_CELL_SIZE get() = JBUI.scale(60)
+private val MIN_CELL_WIDTH get() = JBUI.scale(150)
 private const val DEFAULT_GRID_MODE = false
-private val DEFAULT_CELL_WIDTH = LIST_CELL_SIZE
-private val SECTION_HEADER_SECONDARY_COLOR = JBColor.border()
+private val DEFAULT_CELL_WIDTH get() = LIST_CELL_SIZE
+private val SECTION_HEADER_SECONDARY_COLOR get() = JBColor.border()
 
-private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
+private val SECTION_HEADER_BORDER get() = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(4, 4, 8, 4),
   JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
 )
 
-private val SECTION_LIST_BORDER = JBUI.Borders.empty()
+private val SECTION_LIST_BORDER get() = JBUI.Borders.empty()
 
-private val SECTION_HEADER_LABEL_FONT = JBUI.Fonts.label().deriveFont(mapOf(
+private val SECTION_HEADER_LABEL_FONT get() = JBUI.Fonts.label().deriveFont(mapOf(
   TextAttribute.WEIGHT to TextAttribute.WEIGHT_SEMIBOLD,
   TextAttribute.SIZE to JBUI.scale(14f)
 ))
