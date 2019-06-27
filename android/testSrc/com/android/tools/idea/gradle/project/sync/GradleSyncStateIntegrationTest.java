@@ -46,7 +46,6 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
 
   public void testCompoundSyncEnabled() throws Exception {
     try {
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
 
@@ -61,7 +60,6 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
       verify(myGradleSyncListener).sourceGenerationFinished(eq(getProject()));
     }
     finally {
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
       StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
     }

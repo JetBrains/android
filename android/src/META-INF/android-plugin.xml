@@ -411,7 +411,6 @@
     <applicationService serviceInterface="com.android.tools.idea.fonts.DownloadableFontCacheService"
                         serviceImplementation="com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl" />
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.ng.ExtraGradleSyncModelsManager"/>
     <applicationService serviceImplementation="com.android.tools.idea.concurrency.AndroidIoManager"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.ddms.screenrecord.ScreenRecorderPersistentOptions"/>
@@ -796,14 +795,10 @@
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectCleanupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep"/>
-    <extensionPoint qualifiedName="com.android.gradle.sync.extraGradleSyncJavaModels"
-                    interface="com.android.tools.idea.gradle.project.sync.ng.ExtraGradleSyncJavaModels"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.forcedPluginVersionUpgradeStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginVersionUpgradeStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.recommendedPluginVersionUpgradeStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep"/>
-    <extensionPoint qualifiedName="com.android.gradle.sync.extraGradleSyncAndroidModels"
-                    interface="com.android.tools.idea.gradle.project.sync.ng.ExtraGradleSyncAndroidModels"/>
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler"/>

@@ -35,10 +35,6 @@ public class CompoundAveragePerfTest extends GradleSyncPerformanceTestCase {
     return SYNC_AVERAGE_PERF_PROJECT;
   }
 
-  @Override
-  protected boolean useNewSyncInfrastructure() {
-    return true;
-  }
 
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {

@@ -55,7 +55,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels.VariantOnlyModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.lint.detector.api.Desugaring;
@@ -188,19 +187,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   private void populateVariantsByName() {
     myAndroidProject.forEachVariant(variant -> myVariantsByName.put(variant.getName(), variant));
-  }
-
-  /**
-   * Inject the Variant-Only Sync model to existing AndroidProject.
-   * Since the build files were not changed from last sync, only SyncIssues and Variant models need to be injected.
-   *
-   * @param moduleModel The module model obtained from Variant-Only sync.
-   * @param factory     IdeDependenciesFactory that handles GlobalLibraryMap for DependencyGraph.
-   */
-  public void addVariantOnlyModuleModel(@NotNull VariantOnlyModuleModel moduleModel, @NotNull IdeDependenciesFactory factory) {
-    myAndroidProject.addVariants(moduleModel.getVariants(), factory);
-    myAndroidProject.addSyncIssues(moduleModel.getAndroidProject().getSyncIssues());
-    populateVariantsByName();
   }
 
   /**

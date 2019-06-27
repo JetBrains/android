@@ -15,34 +15,31 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
-import com.google.common.collect.ImmutableMap;
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import static org.junit.Assert.fail;
 
+import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier;
+import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import static org.junit.Assert.fail;
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 public class PublicMethodsBuildActionTest {
 
   @Test
   public void testOutputBuildActionAgainstGuava() throws IOException, ClassNotFoundException {
     testActionAgainstJar(OutputBuildAction.class, getGuavaJar());
-  }
-
-  @Test
-  public void testSyncActionAgainstGuava() throws IOException, ClassNotFoundException {
-    testActionAgainstJar(SyncAction.class, getGuavaJar());
   }
 
   @Test

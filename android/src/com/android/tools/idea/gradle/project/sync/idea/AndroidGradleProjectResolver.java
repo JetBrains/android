@@ -74,9 +74,9 @@ import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
-import com.android.tools.idea.gradle.project.sync.ng.SelectedVariantCollector;
-import com.android.tools.idea.gradle.project.sync.ng.SelectedVariants;
-import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions;
+import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
+import com.android.tools.idea.gradle.project.sync.SelectedVariants;
+import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
