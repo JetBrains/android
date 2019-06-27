@@ -332,7 +332,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     assert ApplicationManager.getApplication().isDispatchThread();
 
     ListenableFuture<ProjectSystemSyncManager.SyncResult> syncResult = ProjectSystemUtil.getProjectSystem(project)
-      .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, false);
+      .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
 
     Futures.addCallback(syncResult, new FutureCallback<ProjectSystemSyncManager.SyncResult>() {
       @Override
