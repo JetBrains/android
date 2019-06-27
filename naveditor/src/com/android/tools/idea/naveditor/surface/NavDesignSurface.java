@@ -289,7 +289,7 @@ public class NavDesignSurface extends DesignSurface {
       // If it didn't work, it's probably because the nav library isn't included. Prompt for it to be added.
       else if (requestAddDependency(facet)) {
         ListenableFuture<?> syncResult = ProjectSystemUtil.getSyncManager(getProject())
-          .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
+          .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
         // When sync is done, try to create the schema again.
         Futures.addCallback(syncResult, new FutureCallback<Object>() {
           @Override
