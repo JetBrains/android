@@ -54,11 +54,6 @@ public class GradleDistributionCleanUpTaskTest extends GradleSyncIntegrationTest
   }
 
   @Override
-  protected boolean useNewSyncInfrastructure() {
-    return false;
-  }
-
-  @Override
   protected boolean useSingleVariantSyncInfrastructure() {
     return false;
   }

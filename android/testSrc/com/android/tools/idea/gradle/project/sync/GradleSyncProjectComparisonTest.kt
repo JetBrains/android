@@ -80,25 +80,15 @@ import java.io.File
                --jvmopt='-DUPDATE_TEST_SNAPSHOTS' --test_output=streamed --runs_per_test=3
  */
 abstract class GradleSyncProjectComparisonTest(
-    private val useNewSync: Boolean,
     private val singleVariantSync: Boolean = false
 ) : GradleSyncIntegrationTestCase(), SnapshotComparisonTest {
-  override fun useNewSyncInfrastructure(): Boolean = useNewSync
   override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
   override fun useCompoundSyncInfrastructure(): Boolean = false
 
-  class NewSyncGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest(useNewSync = true)
+  class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest()
 
-  class NewSyncSingleVariantGradleSyncProjectComparisonTest :
-      GradleSyncProjectComparisonTest(useNewSync = true, singleVariantSync = true) {
-    /** TODO(b/124504437): Enable this test */
-    override fun testNdkProjectSync() = Unit
-  }
-
-  class OldSyncGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest(useNewSync = false)
-
-  class OldSyncSingleVariantGradleSyncProjectComparisonTest :
-      GradleSyncProjectComparisonTest(useNewSync = false, singleVariantSync = true) {
+  class SingleVariantGradleSyncProjectComparisonTest :
+      GradleSyncProjectComparisonTest(singleVariantSync = true) {
     /** TODO(b/124504437): Enable this test */
     override fun testNdkProjectSync() = Unit
   }
@@ -106,10 +96,7 @@ abstract class GradleSyncProjectComparisonTest(
   override val snapshotDirectoryName = "syncedProjectSnapshots"
   override val snapshotSuffixes = listOfNotNull(
     // Suffixes to use to override the default expected result.
-    ".new_sync.single_variant".takeIf { useNewSync && singleVariantSync },
-    ".old_sync.single_variant".takeIf { !useNewSync && singleVariantSync },
-    ".new_sync".takeIf { useNewSync },
-    ".old_sync".takeIf { !useNewSync },
+    ".single_variant".takeIf { singleVariantSync },
     ""
   )
 
