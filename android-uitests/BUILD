@@ -114,6 +114,7 @@ iml_module(
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
     ],
 )
 
