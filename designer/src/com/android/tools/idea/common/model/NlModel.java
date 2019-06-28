@@ -1157,14 +1157,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           notifyModifiedViaUpdateQueue(ChangeType.EDIT);
           break;
         case IMAGE_RESOURCE_CHANGED:
-          RefreshRenderAction.clearCache(getConfiguration());
+          RefreshRenderAction.clearCache(ImmutableList.of(getConfiguration()));
           notifyModified(ChangeType.RESOURCE_CHANGED);
           break;
         case GRADLE_SYNC:
         case PROJECT_BUILD:
         case VARIANT_CHANGED:
         case SDK_CHANGED:
-          RefreshRenderAction.clearCache(getConfiguration());
+          RefreshRenderAction.clearCache(ImmutableList.of(getConfiguration()));
           notifyModified(ChangeType.BUILD);
           break;
         case CONFIGURATION_CHANGED:

@@ -198,6 +198,7 @@ public class Scene implements SelectionListener, Disposable {
   }
 
   public boolean isInRTL() {
+    // TODO: Update to support multi-model
     Configuration configuration = myDesignSurface.getConfiguration();
     if (configuration == null) {
       return false;
@@ -210,6 +211,7 @@ public class Scene implements SelectionListener, Disposable {
   }
 
   public int getRenderedApiLevel() {
+    // TODO: Update to support multi-model
     Configuration configuration = myDesignSurface.getConfiguration();
     if (configuration != null) {
       IAndroidTarget target = configuration.getTarget();
