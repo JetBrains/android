@@ -755,6 +755,18 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewSettingsFragmentWithAndroidX() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "SettingsFragment", true, withAndroidx);
+  }
+
+  @TemplateCheck
+  public void testNewSettingsFragmentWithAndroidXAndKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "SettingsFragment", false, withAndroidxAndKotlin);
+  }
+
+  @TemplateCheck
   public void testNewViewModelFragment() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "ViewModelFragment");
