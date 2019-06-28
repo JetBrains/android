@@ -328,15 +328,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Add an {@link NlModel} to DesignSurface. If it is added before then nothing happens.
+   * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, only
+   * the refresh will be triggered.
+   * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
    * @param model the added {@link NlModel}
    */
-  public void addModel(@NotNull NlModel model) {
-    addModelImpl(model);
+  @NotNull
+  public CompletableFuture<Void> addModel(@NotNull NlModel model) {
+    SceneManager modelSceneManager = addModelImpl(model);
 
     // We probably do not need to request a render for all models but it is currently the
     // only point subclasses can override to disable the layoutlib render behaviour.
-    requestRender()
+    return modelSceneManager.requestRender()
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
         zoomToFit();
@@ -381,7 +384,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     reactivateInteractionManager();
     zoomToFit();
-    requestRender();
   }
 
   /**
