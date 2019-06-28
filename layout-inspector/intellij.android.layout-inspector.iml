@@ -31,5 +31,7 @@
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="layoutinspector-proto" level="project" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
+    <orderEntry type="module" module-name="intellij.android.wizard" />
+    <orderEntry type="module" module-name="intellij.android.wizard.model" />
   </component>
 </module>

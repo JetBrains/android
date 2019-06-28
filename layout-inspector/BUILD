@@ -56,6 +56,8 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:layoutinspector-proto",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
+        "//tools/adt/idea/wizard:intellij.android.wizard[module]",
+        "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
     ],
 )
 

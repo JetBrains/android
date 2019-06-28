@@ -38,8 +38,12 @@ import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import java.awt.Image
 import java.util.Collections
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import javax.swing.Icon
 import javax.swing.JComponent
+
+private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 
 class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
@@ -47,6 +51,9 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   private val componentTree: JComponent
   private val componentTreeModel: ComponentTreeModel
   private val componentTreeSelectionModel: ComponentTreeSelectionModel
+
+  private val loadStartTime = AtomicLong(-1)
+  private val latestLoadTime = AtomicLong(-1)
 
   init {
     val (tree, model, selectionModel) = ComponentTreeBuilder()
@@ -87,32 +94,36 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     }
   }
 
-  private var loadInProgress = false
-
   private fun loadComponentTree(event: LayoutInspectorEvent) {
-    synchronized(loadInProgress) {
-      if (loadInProgress) {
-        return
-      }
-      loadInProgress = true
+    val time = System.currentTimeMillis()
+    if (time - loadStartTime.get() < LOAD_TIMEOUT) {
+      return
     }
-    val application = ApplicationManager.getApplication()
-    application.executeOnPooledThread {
+    val root = try {
       val loader = ComponentTreeLoader(event.tree, layoutInspector?.layoutInspectorModel?.resourceLookup)
-      val root = loader.loadRootView()
-      val bytes = client?.getPayload(event.tree.payloadId) ?: return@executeOnPooledThread
+      val rootView = loader.loadRootView()
+      val bytes = client?.getPayload(event.tree.payloadId) ?: return
       var viewRoot: InspectorView? = null
       if (bytes.isNotEmpty()) {
         viewRoot = SkiaParser.getViewTree(bytes)
       }
       if (viewRoot != null) {
-        val imageLoader = ComponentImageLoader(root, viewRoot)
+        val imageLoader = ComponentImageLoader(rootView, viewRoot)
         imageLoader.loadImages()
       }
+      rootView
+    }
+    finally {
+      loadStartTime.set(0)
+    }
 
-      application.invokeLater {
+    ApplicationManager.getApplication().invokeLater {
+      synchronized(latestLoadTime) {
+        if (latestLoadTime.get() > time) {
+          return@invokeLater
+        }
+        latestLoadTime.set(time)
         layoutInspector?.layoutInspectorModel?.update(root)
-        loadInProgress = false
       }
     }
   }
