@@ -86,7 +86,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       }
     }
 
-    if (!androidModules.isEmpty()) {
+    if (androidModules.isNotEmpty()) {
       val module = androidModules[0].ideaModule
       controller.findModel(module.gradleProject, GlobalLibraryMap::class.java)?.also { globalLibraryMap ->
         consumer.consume(module, globalLibraryMap, GlobalLibraryMap::class.java)
@@ -103,7 +103,10 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
                            ?: throw IllegalStateException("Single variant sync requested, but SelectedVariants were null!")
     chooseSelectedVariants(controller, androidModules, selectedVariants, syncActionOptions.shouldGenerateSources())
     androidModules.forEach { module ->
-      consumer.consume(module.ideaModule, module.variantGroup, VariantGroup::class.java)
+      // Variants can be empty if single-variant sync is enabled but not supported for current module.
+      if (module.variantGroup.variants.isNotEmpty()) {
+        consumer.consume(module.ideaModule, module.variantGroup, VariantGroup::class.java)
+      }
     }
   }
 
@@ -113,7 +116,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     consumer: ProjectImportExtraModelProvider.BuildModelConsumer
   ) {
     project.modules.forEach { module ->
-      controller.findModel(module.gradleProject, ProjectSyncIssues::class.java)?.also {  projectSyncIssues ->
+      controller.findModel(module.gradleProject, ProjectSyncIssues::class.java)?.also { projectSyncIssues ->
         consumer.consume(module, projectSyncIssues, ProjectSyncIssues::class.java)
       }
     }
