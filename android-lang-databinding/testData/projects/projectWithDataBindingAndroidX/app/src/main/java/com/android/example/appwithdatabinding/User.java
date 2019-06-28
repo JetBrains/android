@@ -1,5 +1,6 @@
 package com.android.example.appwithdatabinding;
 
+import android.view.View;
 import androidx.databinding.BaseObservable;
 import androidx.databinding.Bindable;
 

@@ -54,6 +54,11 @@ enum class DataBindingMode constructor(
   @JvmField
   val bindingAdapter: String,
   /**
+   * The qualified name for the BindingMethods annotation
+   */
+  @JvmField
+  val bindingMethods: String,
+  /**
    * The qualified name for the LiveData class
    */
   @JvmField
@@ -68,7 +73,7 @@ enum class DataBindingMode constructor(
   /**
    * Project does not use data binding
    */
-  NONE("", "", "", "", "", "", "", arrayOf()),
+  NONE("", "", "", "", "", "", "", "", arrayOf()),
   /**
    * Project uses data binding in the androidx namespace
    */
@@ -79,6 +84,7 @@ enum class DataBindingMode constructor(
     SdkConstants.CLASS_DATA_BINDING_BINDABLE.newName(),
     SdkConstants.CLASS_DATA_BINDING_BASE_BINDING.newName(),
     SdkConstants.BINDING_ADAPTER_ANNOTATION.newName(),
+    SdkConstants.BINDING_METHODS_ANNOTATION.newName(),
     SdkConstants.CLASS_LIVE_DATA.newName(),
     arrayOf(SdkConstants.CLASS_OBSERVABLE_BOOLEAN.newName(),
             SdkConstants.CLASS_OBSERVABLE_BYTE.newName(),
@@ -100,6 +106,7 @@ enum class DataBindingMode constructor(
     SdkConstants.CLASS_DATA_BINDING_BINDABLE.oldName(),
     SdkConstants.CLASS_DATA_BINDING_BASE_BINDING.oldName(),
     SdkConstants.BINDING_ADAPTER_ANNOTATION.oldName(),
+    SdkConstants.BINDING_METHODS_ANNOTATION.oldName(),
     SdkConstants.CLASS_LIVE_DATA.oldName(),
     arrayOf(SdkConstants.CLASS_OBSERVABLE_BOOLEAN.oldName(),
             SdkConstants.CLASS_OBSERVABLE_BYTE.oldName(),
