@@ -36,6 +36,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
@@ -278,7 +279,7 @@ public class GradleFiles {
 
     List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(myProject).getModules());
     JobLauncher jobLauncher = JobLauncher.getInstance();
-    jobLauncher.invokeConcurrentlyUnderProgress(modules, null, false, false, (module) -> {
+    Processor<Module> processor = (module) -> {
       VirtualFile buildFile = getGradleBuildFile(module);
       if (buildFile != null) {
         File path = VfsUtilCore.virtualToIoFile(buildFile);
@@ -300,7 +301,14 @@ public class GradleFiles {
         }
       }
       return true;
-    });
+    };
+    if (ApplicationManager.getApplication().isUnitTestMode() || ApplicationManager.getApplication().isHeadlessEnvironment()){
+      for(Module module: modules) {
+        processor.process(module);
+      }
+    } else {
+      jobLauncher.invokeConcurrentlyUnderProgress(modules, null, false, false, processor);
+    }
 
     storeExternalBuildFiles(externalBuildFiles);
 
