@@ -22,9 +22,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface PsiDbInferredFormalParameterList extends PsiElement {
-
-  @NotNull
-  List<PsiDbInferredFormalParameter> getInferredFormalParameterList();
+public interface PsiDbInferredFormalParameter extends PsiElement {
 
 }
