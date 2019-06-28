@@ -88,6 +88,8 @@ public class DeploymentTest {
 
   @Before
   public void before() throws Exception {
+    DeployerTestUtils.prepareStudioInstaller();
+
     // Build the server and configure it to use the default ADB command handlers.
     myAdbServer = new FakeAdbServer.Builder()
       .installDefaultCommandHandlers()
@@ -130,6 +132,8 @@ public class DeploymentTest {
 
     AdbService.getInstance().dispose();
     AndroidDebugBridge.disableFakeAdbServerMode();
+
+    DeployerTestUtils.removeStudioInstaller();
   }
 
   @Test
