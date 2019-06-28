@@ -45,6 +45,7 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -1438,10 +1439,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public abstract boolean isLayoutDisabled();
 
-  @Nullable
+  @NotNull
   @Override
-  public Configuration getConfiguration() {
-    return getModel() != null ? getModel().getConfiguration() : null;
+  public ImmutableCollection<Configuration> getConfigurations() {
+    return getModels().stream()
+      .map(NlModel::getConfiguration)
+      .collect(ImmutableList.toImmutableList());
   }
 
   @NotNull

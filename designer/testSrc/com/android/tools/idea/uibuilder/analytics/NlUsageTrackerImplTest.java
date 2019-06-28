@@ -357,7 +357,7 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     when(surface.getAnalyticsManager()).thenReturn(analyticsManager);
     when(surface.getScale()).thenReturn(0.50);
     Configuration configuration = getConfigurationMock();
-    when(surface.getConfiguration()).thenReturn(configuration);
+    when(surface.getConfigurations()).thenReturn(ImmutableList.of(configuration));
 
     return new NlUsageTrackerImpl(SYNC_EXECUTOR, surface, usageTracker::logNow);
   }

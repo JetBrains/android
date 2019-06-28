@@ -94,7 +94,7 @@ class NavScreenDecoratorTest : NavTestCase() {
     val origThumbnailManager = ThumbnailManager.getInstance(myFacet)
     val thumbnailManager = mock(ThumbnailManager::class.java)
     val resultImage = RefinableImage()
-    val configuration = model.surface.configuration!!
+    val configuration = model.surface.configurations.single()
     val dimensions = Dimension(100, 200)
 
     // This is just so createDrawImageCommand can complete without blowing up

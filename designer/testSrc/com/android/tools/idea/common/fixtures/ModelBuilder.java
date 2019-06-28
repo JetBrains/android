@@ -42,6 +42,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.utils.XmlUtils;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -188,7 +189,7 @@ public class ModelBuilder {
       when(surface.getComponentRegistrar()).thenReturn(myComponentConsumer);
       SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
-      when(surface.getConfiguration()).thenReturn(model.getConfiguration());
+      when(surface.getConfigurations()).thenReturn(ImmutableList.of(model.getConfiguration()));
       when(surface.getSceneScalingFactor()).thenCallRealMethod();
 
       // TODO: NlDesignSurface should not be referenced from here.
