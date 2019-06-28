@@ -27,26 +27,32 @@ import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.DbTokenTypes
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
+import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameter
+import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterList
 import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
-import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPackage
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.xml.XmlAttribute
 import com.intellij.util.ProcessingContext
 import org.jetbrains.android.dom.converters.DataBindingVariableTypeConverter
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 /**
  * For references found inside DataBinding expressions. For references inside `<data>` tags,
@@ -59,6 +65,8 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbCallExpr::class.java), CallExprReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbFunctionRefExpr::class.java), FunctionRefExprReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbLiteralExpr::class.java), LiteralExprReferenceProvider())
+    registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbInferredFormalParameter::class.java),
+                                        InferredFormalParameterReferenceProvider())
   }
 
   /**
@@ -225,6 +233,51 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       return psiModelClass.findMethods(methodExpr.text, staticOnly = false)
         .map { modelMethod -> PsiMethodReference(element, modelMethod) }
         .toTypedArray()
+    }
+  }
+
+  /**
+   * Provides references for [PsiDbInferredFormalParameter]
+   *
+   * From db.bnf:
+   *
+   * ```
+   * inferredFormalParameterList ::= inferredFormalParameter (',' inferredFormalParameter)*
+   *
+   * inferredFormalParameter ::= IDENTIFIER
+   * ```
+   *
+   * Example: `view1` and `view2` in `@{(view1, view2) -> model.save(view1, view2)}`
+   *
+   * These references are usually from binding methods and binding adapter methods.
+   * For example, if the expression is with `android:onClick`, we first get its binding method `android.view.View.setOnClickListener`
+   * and its only parameter type as OnClickListener. Then, we find the only method `onClick` with its parameter `android.view.View`.
+   */
+  private class InferredFormalParameterReferenceProvider : PsiReferenceProvider() {
+    override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+      val facet = AndroidFacet.getInstance(element) ?: return arrayOf()
+      val mode = DataBindingUtil.getDataBindingMode(facet)
+
+      // Finds the first listener method associated with the XML attribute this data binding expression is assigned to.
+      // See also: DataBindingXmlAttributeReferenceContributor, which is responsible for searching through and finding the binding adapters.
+      val listenerMethod = (element.containingFile.context?.parent as? XmlAttribute)?.references?.filterIsInstance<PsiParameterReference>()
+        ?.firstNotNullResult { reference ->
+          (reference.resolve() as? PsiParameter)?.type?.let { PsiModelClass(it, mode) }
+        }
+        ?.let { psiModelClass ->
+          val listenerMethods = psiModelClass.allMethods.filter { it.isAbstract }
+          if (listenerMethods.size == 1) {
+            listenerMethods[0]
+          }
+          else null
+        } ?: return arrayOf()
+
+      // Associate this expression's parameters with the listener method.
+      val parameter = element as PsiDbInferredFormalParameter
+      val parameterList = parameter.parent as PsiDbInferredFormalParameterList
+      val index = parameterList.inferredFormalParameterList.indexOf(parameter)
+      val listenerParameter = listenerMethod.psiMethod.parameterList.parameters.getOrNull(index) ?: return arrayOf()
+      return arrayOf(PsiParameterReference(element, listenerParameter))
     }
   }
 
