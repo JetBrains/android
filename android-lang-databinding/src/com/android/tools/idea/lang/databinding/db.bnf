@@ -240,6 +240,13 @@ lambdaExpression
 
 lambdaParameters
   ::= '(' inferredFormalParameterList? ')'
-  |   IDENTIFIER
+  |   inferredFormalSingleParameterList
 
-inferredFormalParameterList ::= IDENTIFIER (',' IDENTIFIER)*
+inferredFormalParameterList ::= inferredFormalParameter (',' inferredFormalParameter)*
+
+// Although inferredFormatParameterList and inferredFormatSingleParameterList are different for the parser, they are
+// fundamentally the same concept (e.g. "(value) -> ..." is equivalent to "value -> ..."), so we make sure we generate
+// PSI that allows us to treat these as the same case.
+inferredFormalSingleParameterList ::= inferredFormalParameter {extends=inferredFormalParameterList elementType=inferredFormalParameterList}
+
+inferredFormalParameter ::= IDENTIFIER

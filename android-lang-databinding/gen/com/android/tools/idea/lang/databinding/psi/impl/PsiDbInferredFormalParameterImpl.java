@@ -28,25 +28,19 @@ import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
 import com.android.tools.idea.lang.databinding.psi.DataBindingPsiElement;
 import com.android.tools.idea.lang.databinding.psi.*;
 
-public class PsiDbInferredFormalParameterListImpl extends DataBindingPsiElement implements PsiDbInferredFormalParameterList {
+public class PsiDbInferredFormalParameterImpl extends DataBindingPsiElement implements PsiDbInferredFormalParameter {
 
-  public PsiDbInferredFormalParameterListImpl(@NotNull ASTNode node) {
+  public PsiDbInferredFormalParameterImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiDbVisitor visitor) {
-    visitor.visitInferredFormalParameterList(this);
+    visitor.visitInferredFormalParameter(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof PsiDbVisitor) accept((PsiDbVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @NotNull
-  public List<PsiDbInferredFormalParameter> getInferredFormalParameterList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, PsiDbInferredFormalParameter.class);
   }
 
 }

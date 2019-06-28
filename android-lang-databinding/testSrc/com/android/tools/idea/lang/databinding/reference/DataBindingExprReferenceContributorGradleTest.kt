@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.databinding
+package com.android.tools.idea.lang.databinding.reference
 
 import com.android.ide.common.blame.Message
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.lang.databinding.LangDataBindingTestData.PROJECT_WITH_DATA_BINDING_ANDROID_X
 import com.android.tools.idea.lang.databinding.LangDataBindingTestData.PROJECT_WITH_DATA_BINDING_SUPPORT
+import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -37,11 +40,11 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 /**
- * Tests for DataBinding Reference and Completion from Observable Classes
+ * Tests for data binding elements that have references outside the module.
  */
 @RunsInEdt
 @RunWith(Parameterized::class)
-class DataBindingObservableTest(private val mode: DataBindingMode) {
+class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindingMode) {
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
@@ -49,9 +52,6 @@ class DataBindingObservableTest(private val mode: DataBindingMode) {
                          DataBindingMode.ANDROIDX)
   }
 
-  /**
-   * AndroidGradleProjectRule is needed for importing LiveData and ObservableField
-   */
   private val projectRule = AndroidGradleProjectRule()
 
   @get:Rule
@@ -134,5 +134,83 @@ class DataBindingObservableTest(private val mode: DataBindingMode) {
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(xmlStrValue.isReferenceTo(javaStrValue)).isTrue()
     assertThat(xmlStrValue.resolve()).isEqualTo(javaStrValue)
+  }
+
+  @Test
+  fun dbReferencesBindingMethods() {
+    val assembleDebug = projectRule.invokeTasks("assembleDebug")
+    assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
+      .that(assembleDebug.isBuildSuccessful).isTrue()
+    val syncState = GradleSyncState.getInstance(projectRule.project)
+    assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
+    VirtualFileManager.getInstance().syncRefresh()
+    UIUtil.dispatchAllInvocationEvents()
+
+    val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    fixture.configureFromExistingVirtualFile(layoutFile)
+
+    // Move to android:onClick="@{v<caret>iew -> vo.saveView(view)}"/>
+    moveCaretToString("iew -> vo.save")
+    // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
+    fixture.configureFromExistingVirtualFile(layoutFile)
+    val parameterReference = fixture.getReferenceAtCaretPosition()!!
+
+    val psiMethod = fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick",
+                                                                                             false)[0].sourceElement!! as PsiMethod
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0]))
+    assertThat(parameterReference.resolve()).isEqualTo(psiMethod.parameterList.parameters[0])
+  }
+
+  @Test
+  fun dbReferencesBindingAdapters() {
+    val assembleDebug = projectRule.invokeTasks("assembleDebug")
+    assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
+      .that(assembleDebug.isBuildSuccessful).isTrue()
+    val syncState = GradleSyncState.getInstance(projectRule.project)
+    assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
+    VirtualFileManager.getInstance().syncRefresh()
+    UIUtil.dispatchAllInvocationEvents()
+
+    val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    fixture.configureFromExistingVirtualFile(layoutFile)
+
+    // Move to app:onClick2=="@{v<caret>iew2 -> vo.saveView(view2)}"/>
+    moveCaretToString("iew2 -> vo.save")
+    // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
+    fixture.configureFromExistingVirtualFile(layoutFile)
+    val parameterReference = fixture.getReferenceAtCaretPosition()!!
+
+    val psiMethod = fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick",
+                                                                                             false)[0].sourceElement!! as PsiMethod
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0]))
+    assertThat(parameterReference.resolve()).isEqualTo(psiMethod.parameterList.parameters[0])
+  }
+
+  @Test
+  fun dbAttributeWithoutPrefixReferencesBindingAdapters() {
+    val assembleDebug = projectRule.invokeTasks("assembleDebug")
+    assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
+      .that(assembleDebug.isBuildSuccessful).isTrue()
+    val syncState = GradleSyncState.getInstance(projectRule.project)
+    assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
+    VirtualFileManager.getInstance().syncRefresh()
+    UIUtil.dispatchAllInvocationEvents()
+
+    val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    fixture.configureFromExistingVirtualFile(layoutFile)
+
+    // Move to onClick3="@{v<caret>iew3 -> vo.saveView(view3)}"/>
+    moveCaretToString("iew3 -> vo.save")
+    // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
+    fixture.configureFromExistingVirtualFile(layoutFile)
+    val parameterReference = fixture.getReferenceAtCaretPosition()!!
+
+    val psiMethod = fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick",
+                                                                                             false)[0].sourceElement!! as PsiMethod
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0]))
+    assertThat(parameterReference.resolve()).isEqualTo(psiMethod.parameterList.parameters[0])
   }
 }
