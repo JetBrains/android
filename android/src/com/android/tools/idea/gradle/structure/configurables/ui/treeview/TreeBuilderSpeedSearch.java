@@ -32,7 +32,6 @@ import javax.swing.*;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
-import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeListener;
@@ -49,7 +48,6 @@ import static java.lang.Character.isLetterOrDigit;
 import static javax.swing.SwingUtilities.getAncestorOfClass;
 
 public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
-  private static final TreePath[] EMPTY_TREE_PATH = new TreePath[0];
   @NonNls private static final String ENTERED_PREFIX_PROPERTY_NAME = "enteredPrefix";
 
   @NotNull private final AbstractBaseTreeBuilder myTreeBuilder;
@@ -243,7 +241,7 @@ public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
   @Override
   public void findAndSelectElement(@NotNull String searchQuery) {
     String pattern = searchQuery.trim();
-    clearSelection(myTree);
+    myTree.clearSelection();
 
     if (searchQuery.isEmpty()) {
       return;
@@ -285,10 +283,6 @@ public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
         }
       }, false, false);
     });
-  }
-
-  private static void clearSelection(@NotNull JTree tree) {
-    tree.setSelectionPaths(EMPTY_TREE_PATH);
   }
 
   @NotNull
