@@ -28,6 +28,7 @@ import com.android.tools.idea.common.surface.PanZoomListener;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -75,7 +76,8 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     mySurface.addListener(this);
     mySurface.addPanZoomListener(this);
     if (myConfiguration == null) {
-      myConfiguration = mySurface.getConfiguration();
+      // TODO: Update to support multiple configurations
+      myConfiguration = Iterables.getFirst(mySurface.getConfigurations(), null);
       if (myConfiguration != null) {
         myConfiguration.addListener(this);
       }
@@ -227,16 +229,6 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     }
     myModel = model;
     myNorthToolbar.updateActionsImmediately();
-    Configuration surfaceConfiguration = surface.getConfiguration();
-    if (surfaceConfiguration != myConfiguration) {
-      if (myConfiguration != null) {
-        myConfiguration.removeListener(this);
-      }
-      myConfiguration = surfaceConfiguration;
-      if (myConfiguration != null) {
-        myConfiguration.addListener(this);
-      }
-    }
     DesignerEditorFileType surfaceLayoutType = surface.getLayoutType();
     if (surfaceLayoutType != myLayoutType) {
       myLayoutType = surfaceLayoutType;
