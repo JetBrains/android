@@ -20,7 +20,7 @@ import com.android.tools.idea.project.AndroidNotificationStub.NotificationMessag
 import com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep.InstallSdkToolsHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.mockito.Mock;
 
 import java.io.File;
@@ -35,7 +35,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SdkToolsVersionSetupStep}.
  */
-public class SdkToolsVersionSetupStepTest extends IdeaTestCase {
+public class SdkToolsVersionSetupStepTest extends JavaProjectTestCase {
   @Mock private IdeSdks myIdeSdks;
 
   private AndroidNotificationStub myNotification;

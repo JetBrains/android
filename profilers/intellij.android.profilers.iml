@@ -14,7 +14,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.perflib" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.profilers.atrace" />
@@ -24,6 +23,19 @@
     <orderEntry type="library" name="com.android.tools:annotations" level="project" />
     <orderEntry type="library" name="com.android.tools.ddms:ddmlib" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools:testutils" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
+    <orderEntry type="library" name="org.jetbrains.intellij.deps.android.tools:perflib" level="project" />
+    <orderEntry type="module-library" scope="TEST">
+      <library name="org.jetbrains.intellij.deps.android.tools:perflib-tests" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:perflib-tests:26.3.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/perflib-tests/26.3.0/perflib-tests-26.3.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/perflib-tests/26.3.0/perflib-tests-26.3.0-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="library" scope="TEST" name="org.jetbrains.intellij.deps.android.tools:perf-logger-tests" level="project" />
   </component>
 </module>

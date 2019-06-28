@@ -16,7 +16,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.ComboboxWithBrowseButton;
@@ -26,10 +26,10 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.util.ArrayUtil;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
@@ -211,8 +211,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     final JComboBox apkPathComboBoxComponent = myApkPathCombo.getComboBox();
     apkPathComboBoxComponent.setEditable(true);
     apkPathComboBoxComponent.setModel(new DefaultComboBoxModel(getDefaultApks(module)));
-    apkPathComboBoxComponent.setMinimumSize(new Dimension(JBUI.scale(10), apkPathComboBoxComponent.getMinimumSize().height));
-    apkPathComboBoxComponent.setPreferredSize(new Dimension(JBUI.scale(10), apkPathComboBoxComponent.getPreferredSize().height));
+    apkPathComboBoxComponent.setMinimumSize(new Dimension(JBUIScale.scale(10), apkPathComboBoxComponent.getMinimumSize().height));
+    apkPathComboBoxComponent.setPreferredSize(new Dimension(JBUIScale.scale(10), apkPathComboBoxComponent.getPreferredSize().height));
 
     myApkPathCombo.addBrowseFolderListener(project, new FileChooserDescriptor(true, false, false, false, false, false) {
       @Override
@@ -306,7 +306,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         result.add(FileUtil.toSystemDependentName(buildDirectory + '/' + AndroidCompileUtil.getApkName(module)));
       }
     }
-    return ArrayUtil.toStringArray(result);
+    return ArrayUtilRt.toStringArray(result);
   }
 
   @Override
@@ -434,7 +434,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   @NotNull
   private String getSelectedCustomKeystorePath() {
     final String path = myCustomDebugKeystoreField.getText().trim();
-    return !path.isEmpty() ? VfsUtil.pathToUrl(FileUtil.toSystemIndependentName(path)) : "";
+    return !path.isEmpty() ? VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(path)) : "";
   }
 
   private boolean checkRelativePath(String relativePathFromConfig, String absPathFromTextField) {
@@ -642,7 +642,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myNativeLibsFolder.setText(libsAbsPath != null ? libsAbsPath : "");
 
     myCustomDebugKeystoreField.setText(FileUtil.toSystemDependentName(
-      VfsUtil.urlToPath(configuration.getState().CUSTOM_DEBUG_KEYSTORE_PATH)));
+      VfsUtilCore.urlToPath(configuration.getState().CUSTOM_DEBUG_KEYSTORE_PATH)));
 
     final boolean runProguard = configuration.getState().RUN_PROGUARD;
     myRunProguardCheckBox.setSelected(runProguard);

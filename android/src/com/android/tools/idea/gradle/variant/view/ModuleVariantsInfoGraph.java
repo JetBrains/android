@@ -30,6 +30,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.ScalableIcon;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil.ComponentStyle;
 import com.intellij.util.ui.UIUtil.FontSize;
@@ -239,7 +240,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
       int w = (int)cellState.getWidth();
       int h = (int)cellState.getHeight();
 
-      float scale = JBUI.scale((float)getScale());
+      float scale = JBUIScale.scale((float)getScale());
       // scale the font in the vertex
       float defaultFontSize = getFontSize(FontSize.SMALL);
       Font newFont = myVertexRenderer.getFont().deriveFont(defaultFontSize * scale);

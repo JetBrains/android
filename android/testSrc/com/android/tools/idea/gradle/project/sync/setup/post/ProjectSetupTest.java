@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.mockito.Mock;
 
 import static org.mockito.Mockito.*;
@@ -27,7 +27,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ProjectSetup}.
  */
-public class ProjectSetupTest extends IdeaTestCase {
+public class ProjectSetupTest extends JavaProjectTestCase {
   @Mock ProjectSetupStep mySetupStep1;
   @Mock ProjectSetupStep mySetupStep2;
   @Mock ProgressIndicator myProgressIndicator;

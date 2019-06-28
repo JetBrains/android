@@ -18,6 +18,7 @@ package com.android.tools.idea.ui;
 import com.android.tools.idea.stats.Distribution;
 import com.android.tools.idea.stats.DistributionService;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -44,8 +45,8 @@ public class DistributionChartComponent extends JPanel {
   private static final Color TEXT_COLOR = new Color(0xFEFEFE);
   private static final Color API_LEVEL_COLOR = new Color(0, 0, 0, 77);
 
-  private static final int INTER_SECTION_SPACING = JBUI.scale(1);
-  private static final int HEADER_TO_BODY_SPACING = JBUI.scale(4);
+  private static final int INTER_SECTION_SPACING = JBUIScale.scale(1);
+  private static final int HEADER_TO_BODY_SPACING = JBUIScale.scale(4);
 
   /* Strings appearing in the header of the distribution table */
   private static final String STR_ANDROID_PLATFORM = "ANDROID PLATFORM";
@@ -58,12 +59,12 @@ public class DistributionChartComponent extends JPanel {
   private static final double MIN_PERCENTAGE_HEIGHT = 0.06;
   private static final double EXPANSION_ON_SELECTION = 1.063882064;
   private static final double RIGHT_GUTTER_PERCENTAGE = 0.209708738;
-  private static final int TOP_PADDING = JBUI.scale(40);
-  private static final int NAME_OFFSET = JBUI.scale(50);
-  private static final int MIN_API_FONT_SIZE = JBUI.scale(18);
-  private static final int MAX_API_FONT_SIZE = JBUI.scale(45);
-  private static final int API_OFFSET = JBUI.scale(120);
-  private static final int NUMBER_OFFSET = JBUI.scale(10);
+  private static final int TOP_PADDING = JBUIScale.scale(40);
+  private static final int NAME_OFFSET = JBUIScale.scale(50);
+  private static final int MIN_API_FONT_SIZE = JBUIScale.scale(18);
+  private static final int MAX_API_FONT_SIZE = JBUIScale.scale(45);
+  private static final int API_OFFSET = JBUIScale.scale(120);
+  private static final int NUMBER_OFFSET = JBUIScale.scale(10);
 
   private static Font MEDIUM_WEIGHT_FONT;
   private static Font REGULAR_WEIGHT_FONT;
@@ -150,9 +151,9 @@ public class DistributionChartComponent extends JPanel {
     if (MEDIUM_WEIGHT_FONT == null) {
       REGULAR_WEIGHT_FONT = new Font("Sans", Font.PLAIN, 12);
       MEDIUM_WEIGHT_FONT = new Font("Sans", Font.BOLD, 12);
-      VERSION_NAME_FONT = REGULAR_WEIGHT_FONT.deriveFont(JBUI.scale((float)16.0));
-      VERSION_NUMBER_FONT = REGULAR_WEIGHT_FONT.deriveFont(JBUI.scale((float)20.0));
-      TITLE_FONT = MEDIUM_WEIGHT_FONT.deriveFont(JBUI.scale((float)16.0));
+      VERSION_NAME_FONT = REGULAR_WEIGHT_FONT.deriveFont(JBUIScale.scale((float)16.0));
+      VERSION_NUMBER_FONT = REGULAR_WEIGHT_FONT.deriveFont(JBUIScale.scale((float)20.0));
+      TITLE_FONT = MEDIUM_WEIGHT_FONT.deriveFont(JBUIScale.scale((float)16.0));
     }
   }
 

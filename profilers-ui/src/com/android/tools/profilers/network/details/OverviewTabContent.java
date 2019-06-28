@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.network.details;
 
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
-
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
@@ -43,12 +41,15 @@ import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.BoldLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.PlatformColors;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Cursor;
-import java.awt.Dimension;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -57,15 +58,8 @@ import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
-import javax.swing.BoxLayout;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.JTextArea;
-import javax.swing.SwingConstants;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
 /**
  * Tab which shows a bunch of useful, high level information for a network request.
@@ -203,7 +197,7 @@ final class OverviewTabContent extends TabContent {
     Range range = new Range(httpData.getStartTimeUs(),
                             httpData.getEndTimeUs() > 0 ? httpData.getEndTimeUs() : httpData.getStartTimeUs() + 1);
     ConnectionsStateChart connectionsChart = new ConnectionsStateChart(httpData, range);
-    connectionsChart.getComponent().setMinimumSize(new Dimension(0, JBUI.scale(28)));
+    connectionsChart.getComponent().setMinimumSize(new Dimension(0, JBUIScale.scale(28)));
     connectionsChart.setHeightGap(0);
     panel.add(connectionsChart.getComponent());
 
@@ -225,7 +219,7 @@ final class OverviewTabContent extends TabContent {
     legendModel.add(receivedLegend);
 
     // TODO: Add waiting time in (currently hidden because it's always 0)
-    LegendComponent legend = new LegendComponent.Builder(legendModel).setLeftPadding(0).setVerticalPadding(JBUI.scale(8)).build();
+    LegendComponent legend = new LegendComponent.Builder(legendModel).setLeftPadding(0).setVerticalPadding(JBUIScale.scale(8)).build();
     legend.setFont(STANDARD_FONT);
     legend.configure(sentLegend,
                      new LegendConfig(LegendConfig.IconType.BOX, connectionsChart.getColors().getColor(NetworkState.SENDING)));

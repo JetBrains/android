@@ -213,7 +213,7 @@ public abstract class AbstractSyncMessages implements Disposable {
       issueEvent = new AndroidSyncIssueEvent(taskId, notification, title);
     }
     SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
-    syncViewManager.onEvent(issueEvent);
+    syncViewManager.onEvent(taskId, issueEvent);
     myShownFailures.computeIfAbsent(taskId, key -> new ArrayList<>()).addAll(((AndroidSyncIssueEventResult)issueEvent.getResult()).getFailures());
   }
 

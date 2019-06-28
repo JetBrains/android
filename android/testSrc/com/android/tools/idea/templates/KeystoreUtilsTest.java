@@ -17,7 +17,7 @@ package com.android.tools.idea.templates;
 
 import freemarker.template.TemplateModelException;
 import junit.framework.TestCase;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.AndroidTestBase;
 
 import java.io.File;
 
@@ -34,7 +34,7 @@ public class KeystoreUtilsTest extends TestCase {
   }
 
   public void testSha1() throws Exception {
-    String certPath = AndroidTestCase.getTestDataPath() + File.separator + "signingKey" + File.separator + "debug.keystore";
+    String certPath = AndroidTestBase.getTestDataPath() + File.separator + "signingKey" + File.separator + "debug.keystore";
     check(certPath, "6B:D1:08:20:E4:95:86:82:19:3C:36:D8:C2:C9:52:CB:A8:19:1A:54");
   }
 }

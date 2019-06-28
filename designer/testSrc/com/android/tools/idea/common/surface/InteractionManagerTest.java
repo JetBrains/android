@@ -34,13 +34,9 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import java.awt.*;
@@ -361,7 +357,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     Mockito.when(surface.getScrollPosition()).thenReturn(moved);
     int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
                           (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
-                                            : InputEvent.CTRL_DOWN_MASK);
+                                              : InputEvent.CTRL_DOWN_MASK);
 
     assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_PRESSED, modifierKeyMask), 0, 0));
     Mockito.verify(surface).setCursor(AdtUiCursors.GRABBING);

@@ -15,17 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.palette2;
 
-import static com.android.SdkConstants.ANDROIDX_PKG;
-import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
-import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.IMAGE_VIEW;
-import static com.android.SdkConstants.MATERIAL2_PKG;
-import static com.android.SdkConstants.RECYCLER_VIEW;
-import static com.android.SdkConstants.SCROLL_VIEW;
-import static com.android.SdkConstants.SWITCH;
-import static com.android.SdkConstants.TEXT_VIEW;
-import static com.android.SdkConstants.VIEW_FRAGMENT;
-
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
@@ -34,15 +23,17 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.UIUtil;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * The Palette UI will interact exclusively with this data model.
@@ -142,7 +133,7 @@ public class DataModel {
       return;
     }
     myFavoriteItems.add(item.getId());
-    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtil.toStringArray(myFavoriteItems));
+    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtilRt.toStringArray(myFavoriteItems));
     update();
   }
 
@@ -151,7 +142,7 @@ public class DataModel {
       return;
     }
     myFavoriteItems.remove(item.getId());
-    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtil.toStringArray(myFavoriteItems));
+    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtilRt.toStringArray(myFavoriteItems));
     update();
     if (myCurrentSelectedGroup == COMMON) {
       createFilteredItems(COMMON);

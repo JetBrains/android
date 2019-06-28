@@ -23,6 +23,7 @@ import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +61,7 @@ public class NlBooleanEditor extends BaseComponentEditor implements NlComponentE
     super(listener);
     myCheckbox = new ThreeStateCheckBox();
     myCheckbox.addActionListener(this::checkboxChanged);
-    myPanel = new AdtSecondaryPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
+    myPanel = new AdtSecondaryPanel(new BorderLayout(JBUIScale.scale(HORIZONTAL_COMPONENT_GAP), 0));
     myPanel.add(myCheckbox, BorderLayout.LINE_START);
     myPanel.setBorder(
       JBUI.Borders.empty(verticalSpacing, HORIZONTAL_SPACING + StandardDimensions.OUTER_BORDER_UNSCALED, verticalSpacing, 0));

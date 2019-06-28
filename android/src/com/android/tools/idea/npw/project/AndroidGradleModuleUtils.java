@@ -30,11 +30,12 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidGradleModuleUtils {
 
@@ -78,7 +79,7 @@ public class AndroidGradleModuleUtils {
       if (!gradlewFile.isFile()) {
         throw new IOException("Could not find gradle wrapper. Command line builds may not work properly.");
       }
-      FileUtil.setExecutableAttribute(gradlewFile.getPath(), true);
+      FileUtil.setExecutable(gradlewFile);
     }
   }
 

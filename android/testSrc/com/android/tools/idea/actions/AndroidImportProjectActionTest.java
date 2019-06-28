@@ -22,7 +22,7 @@ import com.google.common.base.Joiner;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +32,7 @@ import java.io.IOException;
 /**
  * Tests for {@link AndroidImportProjectAction}.
  */
-public class AndroidImportProjectActionTest extends IdeaTestCase {
+public class AndroidImportProjectActionTest extends JavaProjectTestCase {
   private VirtualFile myProjectRootDir;
 
   @Override

@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android;
 
@@ -48,7 +48,7 @@ import com.intellij.testFramework.fixtures.*;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
@@ -280,7 +280,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     List<String> newRoots = new ArrayList<>(roots);
     newRoots.removeAll(myAllowedRoots);
 
-    String[] newRootsArray = ArrayUtil.toStringArray(newRoots);
+    String[] newRootsArray = ArrayUtilRt.toStringArray(newRoots);
     VfsRootAccess.allowRootAccess(disposable, newRootsArray);
     myAllowedRoots.addAll(newRoots);
 

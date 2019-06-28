@@ -28,7 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
@@ -40,7 +40,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link JavaModuleSetup}.
  */
-public class JavaModuleSetupTest extends IdeaTestCase {
+public class JavaModuleSetupTest extends JavaProjectTestCase {
   @Mock private ModuleSetupContext myContext;
   @Mock private JavaModuleModel myJavaModel;
   @Mock private JavaModuleSetupStep mySetupStep1;

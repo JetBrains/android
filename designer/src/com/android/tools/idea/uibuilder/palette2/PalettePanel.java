@@ -44,6 +44,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
@@ -204,7 +205,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
         // Use getCellBounds() instead if possible.
         Rectangle rect = myItemList.getCellBounds(0, 0);
         int width = rect != null ? rect.width : myItemList.getWidth();
-        if (event.getX() < width - JBUI.scale(DOWNLOAD_WIDTH) || event.getX() >= myItemList.getWidth()) {
+        if (event.getX() < width - JBUIScale.scale(DOWNLOAD_WIDTH) || event.getX() >= myItemList.getWidth()) {
           // Ignore mouse clicks that are outside the download button
           return;
         }

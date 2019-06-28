@@ -22,6 +22,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,8 +99,8 @@ public class AttributesPanel {
     myPalette.setShowCheckeredBackground(true);
 
     // Stop the combo box long items from blocking the right panel from being able to be made small.
-    myThemeCombo.setMinimumSize(new Dimension(JBUI.scale(10), myThemeCombo.getMinimumSize().height));
-    myThemeCombo.setPreferredSize(new Dimension(JBUI.scale(10), myThemeCombo.getPreferredSize().height));
+    myThemeCombo.setMinimumSize(new Dimension(JBUIScale.scale(10), myThemeCombo.getMinimumSize().height));
+    myThemeCombo.setPreferredSize(new Dimension(JBUIScale.scale(10), myThemeCombo.getPreferredSize().height));
 
     myThemeCombo.setMaximumRowCount(MAX_SIZE_THEME_SELECTOR);
 

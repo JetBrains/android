@@ -24,12 +24,11 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLayeredPane;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -69,7 +68,7 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
     mySplitter = new ThreeComponentsSplitter();
     mySplitter.setOpaque(false);
     mySplitter.setInnerComponent(myContainer);
-    mySplitter.setDividerWidth(JBUI.scale(0));
+    mySplitter.setDividerWidth(JBUIScale.scale(0));
     mySide = Side.LEFT;
     Disposer.register(this, mySplitter);
 
@@ -162,7 +161,7 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
   private int getToolWidth(@NotNull AttachedToolWindow<T> tool) {
     int width = myPropertiesComponent.getInt(getUnscaledWidthPropertyName(), -1);
     if (width != -1) {
-      return JBUI.scale(width);
+      return JBUIScale.scale(width);
     }
     int scaledWidth = myPropertiesComponent.getInt(getScaledWidthPropertyName(), -1);
     if (scaledWidth == -1) {

@@ -32,7 +32,7 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -50,7 +50,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ContentRootsModuleSetupStep}.
  */
-public class ContentRootsModuleSetupStepTest extends IdeaTestCase {
+public class ContentRootsModuleSetupStepTest extends JavaProjectTestCase {
   @Mock private AndroidContentEntriesSetup.Factory myFactory;
   @Mock private AndroidContentEntriesSetup mySetup;
   @Mock private AndroidModuleModel myAndroidModel;

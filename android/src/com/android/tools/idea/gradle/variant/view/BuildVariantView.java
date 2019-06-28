@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -40,6 +41,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.JBUI;
@@ -59,12 +61,11 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.text.Collator;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 import static com.intellij.ui.TableUtil.scrollSelectionToVisible;
-import static com.intellij.util.ui.JBUI.scale;
 import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
 import static com.intellij.util.ui.UIUtil.getToolTipBackground;
 
@@ -288,7 +289,7 @@ public class BuildVariantView {
       Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
       setBackground(color == null ? getToolTipBackground() : color);
       setBorder(BorderFactory.createEmptyBorder(1, 15, 1, 15)); // Same as EditorNotificationPanel
-      setPreferredSize(new Dimension(-1, scale(24)));
+      setPreferredSize(new Dimension(-1, JBUIScale.scale(24)));
 
       JLabel textLabel = new JLabel("Variant selection conflicts found.");
       textLabel.setOpaque(false);
@@ -303,7 +304,7 @@ public class BuildVariantView {
           navigateConflicts(true);
         }
       };
-      nextConflictAction.copyFrom(actionManager.getAction(IdeActions.ACTION_NEXT_OCCURENCE));
+      ActionUtil.copyFrom(nextConflictAction, IdeActions.ACTION_NEXT_OCCURENCE);
       group.add(nextConflictAction);
 
       AnAction prevConflictAction = new AnAction() {
@@ -312,7 +313,7 @@ public class BuildVariantView {
           navigateConflicts(false);
         }
       };
-      prevConflictAction.copyFrom(actionManager.getAction(IdeActions.ACTION_PREVIOUS_OCCURENCE));
+      ActionUtil.copyFrom(prevConflictAction, IdeActions.ACTION_PREVIOUS_OCCURENCE);
       group.add(prevConflictAction);
 
       ActionToolbar toolbar = actionManager.createActionToolbar("AndroidBuildVariantViewNotifications", group, true);

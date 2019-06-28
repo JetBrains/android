@@ -25,7 +25,7 @@ import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -122,7 +122,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     Section[] sections = {getSetupTypeSection(), getSdkFolderSection(), getDownloadSizeSection(packages), getPackagesSection(packages)};
 
     StringBuilder builder = new StringBuilder("<html><head>");
-    builder.append(UIUtil.getCssFontDeclaration(UIUtil.getLabelFont(), UIUtil.getLabelForeground(), null, null)).append("</head><body>");
+    builder.append(UIUtil.getCssFontDeclaration(StartupUiUtil.getLabelFont(), UIUtil.getLabelForeground(), null, null)).append("</head><body>");
 
     for (Section section : sections) {
       if (!section.isEmpty()) {

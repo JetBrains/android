@@ -27,7 +27,7 @@ import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -41,7 +41,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tets for {@link ForcedPluginPreviewVersionUpgradeStep}.
  */
-public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase {
+public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends JavaProjectTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private AndroidPluginGeneration myPluginGeneration;
   @Mock private AndroidPluginVersionUpdater myVersionUpdater;

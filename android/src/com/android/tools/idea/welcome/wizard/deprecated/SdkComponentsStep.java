@@ -42,6 +42,7 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -49,7 +50,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -339,7 +339,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     splitter.setFirstComponent(ScrollPaneFactory.createScrollPane(myContentPanel, false));
     splitter.setSecondComponent(ScrollPaneFactory.createScrollPane(myComponentDescription, false));
 
-    myComponentDescription.setFont(UIUtil.getLabelFont());
+    myComponentDescription.setFont(StartupUiUtil.getLabelFont());
     myComponentDescription.setEditable(false);
     myComponentDescription.setBorder(BorderFactory.createEmptyBorder(WizardConstants.STUDIO_WIZARD_INSET_SIZE,
                                                                      WizardConstants.STUDIO_WIZARD_INSET_SIZE,

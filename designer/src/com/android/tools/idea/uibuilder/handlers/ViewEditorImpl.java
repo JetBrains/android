@@ -45,14 +45,14 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
@@ -225,7 +225,7 @@ public class ViewEditorImpl extends ViewEditor {
                                   @Nullable Predicate<String> filter,
                                   @Nullable String currentValue) {
     Module module = myModel.getModule();
-    String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
+    String[] superTypesArray = ArrayUtilRt.toStringArray(superTypes);
 
     Predicate<PsiClass> psiFilter = ChooseClassDialog.getIsPublicAndUnrestrictedFilter();
     if (filter == null) {

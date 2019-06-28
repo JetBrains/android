@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle;
 
 import com.android.annotations.Nullable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import org.jetbrains.annotations.NotNull;
 
 public class ProjectLibraries {
@@ -31,7 +31,7 @@ public class ProjectLibraries {
 
   @Nullable
   public Library findMatchingLibrary(@NotNull String nameRegEx) {
-    LibraryTable table = ProjectLibraryTable.getInstance(myProject);
+    LibraryTable table = LibraryTablesRegistrar.getInstance().getLibraryTable(myProject);
     for (Library library : table.getLibraries()) {
       String name = library.getName();
       if (name != null && name.matches(nameRegEx)) {

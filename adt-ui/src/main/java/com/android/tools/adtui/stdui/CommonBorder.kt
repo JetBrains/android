@@ -22,6 +22,7 @@ import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.adtui.stdui.StandardDimensions.INNER_BORDER_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.OUTER_BORDER_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.VERTICAL_PADDING
+import com.intellij.ui.JreHiDpiUtil
 import com.intellij.util.IJSwingUtilities
 import com.intellij.util.ui.UIUtil
 import java.awt.*
@@ -29,6 +30,8 @@ import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
 import javax.swing.border.Border
 import kotlin.math.max
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 /**
  * A [Border] that has curved edges.
@@ -48,7 +51,7 @@ class CommonBorder(private val cornerRadius: Float,
 
   override fun getBorderInsets(component: Component): Insets {
     val insets: Insets = padding.clone() as Insets
-    val inset = Math.round(INNER_BORDER_WIDTH + OUTER_BORDER_WIDTH)
+    val inset = (INNER_BORDER_WIDTH + OUTER_BORDER_WIDTH).roundToInt()
     insets.left += inset
     insets.right += inset
     insets.top += inset
@@ -109,7 +112,7 @@ class CommonBorder(private val cornerRadius: Float,
                               stroke: Float,
                               cornerRadius: Float,
                               backgroundColor: Color = UIUtil.TRANSPARENT_COLOR) {
-    val builder = PathBuilder(UIUtil.isJreHiDPI(g2), rect, stroke, cornerRadius, padding)
+    val builder = PathBuilder(JreHiDpiUtil.isJreHiDPI(g2), rect, stroke, cornerRadius, padding)
 
     if (backgroundColor != UIUtil.TRANSPARENT_COLOR) {
       g2.color = backgroundColor
@@ -161,7 +164,7 @@ class CommonBorder(private val cornerRadius: Float,
       bottom = rect.y + rect.height
       corner = cornerRadius + stroke / 2f
       curve1 = cornerRadius / 2f
-      curve2 = cornerRadius - cornerRadius * Math.sqrt(3.0).toFloat() / 2f
+      curve2 = cornerRadius - cornerRadius * sqrt(3.0).toFloat() / 2f
       if (stroke > 1f || hiDpi) {
         rect.applyInset(-stroke / 2f)
       }

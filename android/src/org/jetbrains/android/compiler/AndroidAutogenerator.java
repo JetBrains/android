@@ -20,7 +20,11 @@ import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.ReadonlyStatusHandler;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -649,7 +653,7 @@ public class AndroidAutogenerator {
             }
           }
 
-          final File bcFile = new File(item.myRawDirPath, FileUtil.getNameWithoutExtension(file.getName()) + ".bc");
+          final File bcFile = new File(item.myRawDirPath, FileUtilRt.getNameWithoutExtension(file.getName()) + ".bc");
           final VirtualFile vBcFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(bcFile);
 
           if (vBcFile != null) {
@@ -724,7 +728,7 @@ public class AndroidAutogenerator {
           if (module.getProject().isDisposed() || module.isDisposed()) {
             return;
           }
-          String className = FileUtil.getNameWithoutExtension(generatedFile);
+          String className = FileUtilRt.getNameWithoutExtension(generatedFile.getName());
           AndroidCompileUtil.removeDuplicatingClasses(module, aPackage, className, generatedFile, sourceRootPath);
         }
       });
@@ -762,7 +766,7 @@ public class AndroidAutogenerator {
   public static VirtualFile[] getSourceRootsForModuleAndDependencies(@NotNull Module module, boolean includingTests) {
     Set<VirtualFile> result = new HashSet<>();
     fillSourceRoots(module, new HashSet<>(), result, includingTests);
-    return VfsUtil.toVirtualFileArray(result);
+    return VfsUtilCore.toVirtualFileArray(result);
   }
 
   @Nullable

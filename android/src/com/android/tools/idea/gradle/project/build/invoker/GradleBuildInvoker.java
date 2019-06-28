@@ -413,18 +413,18 @@ public class GradleBuildInvoker {
           StartBuildEventImpl event = new StartBuildEventImpl(new DefaultBuildDescriptor(id, executionName, workingDir, eventTime),
                                                               "running...");
           event.withRestartAction(restartAction).withExecutionFilter(new AndroidReRunBuildFilter(workingDir));
-          myBuildEventDispatcher.onEvent(event);
+          myBuildEventDispatcher.onEvent(id, event);
         }
 
         @Override
         public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
           if (event instanceof ExternalSystemBuildEvent) {
             BuildEvent buildEvent = ((ExternalSystemBuildEvent)event).getBuildEvent();
-            myBuildEventDispatcher.onEvent(buildEvent);
+            myBuildEventDispatcher.onEvent(event.getId(), buildEvent);
           }
           else if (event instanceof ExternalSystemTaskExecutionEvent) {
             BuildEvent buildEvent = convert(((ExternalSystemTaskExecutionEvent)event));
-            myBuildEventDispatcher.onEvent(buildEvent);
+            myBuildEventDispatcher.onEvent(event.getId(), buildEvent);
           }
         }
 
@@ -443,14 +443,14 @@ public class GradleBuildInvoker {
         public void onSuccess(@NotNull ExternalSystemTaskId id) {
           FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "successful",
                                                                 new SuccessResultImpl());
-          myBuildEventDispatcher.onEvent(event);
+          myBuildEventDispatcher.onEvent(id, event);
         }
 
         @Override
         public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
           String title = executionName + " failed";
           FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
-          myBuildEventDispatcher.onEvent(new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult));
+          myBuildEventDispatcher.onEvent(id, new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult));
         }
 
         @Override
@@ -458,7 +458,7 @@ public class GradleBuildInvoker {
           super.onCancel(id);
           // Cause build view to show as skipped all pending tasks (b/73397414)
           FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "cancelled", new SkippedResultImpl());
-          myBuildEventDispatcher.onEvent(event);
+          myBuildEventDispatcher.onEvent(id, event);
           myBuildEventDispatcher.close();
         }
       };

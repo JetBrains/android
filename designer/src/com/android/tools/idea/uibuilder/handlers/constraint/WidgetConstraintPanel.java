@@ -15,11 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_BOTTOM;
-import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_LEFT;
-import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_RIGHT;
-import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_TOP;
-
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
@@ -28,26 +23,22 @@ import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.plaf.basic.BasicSliderUI;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
-import javax.swing.SwingConstants;
-import javax.swing.plaf.basic.BasicSliderUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.*;
 
 /**
  * UI component for Constraint Inspector
@@ -203,12 +194,12 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
 
   static class WidgetSliderUI extends BasicSliderUI {
     private static final JBDimension THUMB_SIZE = JBUI.size(18);
-    private static final int TRACK_THICKNESS = JBUI.scale(5);
-    private static final int ARC_SIZE = JBUI.scale(2);
+    private static final int TRACK_THICKNESS = JBUIScale.scale(5);
+    private static final int ARC_SIZE = JBUIScale.scale(2);
     private static final int SLIDER_LENGTH = 120;
     private static final Dimension V_SIZE = new Dimension(THUMB_SIZE.width, SLIDER_LENGTH);
     private static final Dimension H_SIZE = new Dimension(SLIDER_LENGTH, THUMB_SIZE.height);
-    @NotNull private static Font SMALL_FONT = new Font("Helvetica", Font.PLAIN, JBUI.scaleFontSize(10));
+    @NotNull private static Font SMALL_FONT = new Font("Helvetica", Font.PLAIN, JBUIScale.scaleFontSize((float)10));
     private ColorSet mColorSet;
 
     WidgetSliderUI(JSlider s, ColorSet colorSet) {

@@ -56,6 +56,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.ContentManagerAdapter;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import net.jcip.annotations.GuardedBy;
@@ -87,7 +88,6 @@ import static com.intellij.openapi.ui.MessageType.INFO;
 import static com.intellij.openapi.util.text.StringUtil.formatDuration;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
-import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -285,10 +285,10 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }
 
         if (isRunBuildAction) {
-          ((BuildActionExecuter)operation).forTasks(toStringArray(gradleTasks));
+          ((BuildActionExecuter)operation).forTasks(ArrayUtilRt.toStringArray(gradleTasks));
         }
         else {
-          ((BuildLauncher)operation).forTasks(toStringArray(gradleTasks));
+          ((BuildLauncher)operation).forTasks(ArrayUtilRt.toStringArray(gradleTasks));
         }
 
         operation.withCancellationToken(cancellationTokenSource.token());

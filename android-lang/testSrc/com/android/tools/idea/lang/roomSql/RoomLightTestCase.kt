@@ -20,9 +20,9 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 
-abstract class RoomLightTestCase : LightCodeInsightFixtureTestCase() {
+abstract class RoomLightTestCase : LightJavaCodeInsightFixtureTestCase() {
   override fun setUp() {
     super.setUp()
 

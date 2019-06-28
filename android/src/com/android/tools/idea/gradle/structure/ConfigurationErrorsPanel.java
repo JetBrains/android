@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2014 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.gradle.structure;
 
 import com.google.common.collect.Lists;
@@ -28,6 +14,7 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.ui.components.labels.LinkListener;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.*;
 import org.jetbrains.annotations.NonNls;
@@ -287,7 +274,7 @@ class ConfigurationErrorsPanel extends JPanel implements Disposable, ListDataLis
       Window window = SwingUtilities.getWindowAncestor(this);
       if (window != null) {
         Dimension preferredSize = getPreferredSize();
-        setPreferredSize(new Dimension(preferredSize.width, JBUI.scale(200)));
+        setPreferredSize(new Dimension(preferredSize.width, JBUIScale.scale(200)));
         setMinimumSize(getPreferredSize());
       }
     }
@@ -458,7 +445,7 @@ class ConfigurationErrorsPanel extends JPanel implements Disposable, ListDataLis
         int maxHeight = Math.max(buttonsPrefSize.height, preferredSize.height);
 
         Insets insets = getInsets();
-        return new Dimension(Math.min(size.width - JBUI.scale(20), preferredSize.width), maxHeight + insets.top + insets.bottom);
+        return new Dimension(Math.min(size.width - JBUIScale.scale(20), preferredSize.width), maxHeight + insets.top + insets.bottom);
       }
 
       return super.getPreferredSize();

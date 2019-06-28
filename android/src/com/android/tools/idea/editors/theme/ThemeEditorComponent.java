@@ -61,7 +61,7 @@ import com.intellij.ui.MutableCollectionComboBoxModel;
 import com.intellij.ui.PopupMenuListenerAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -1120,7 +1120,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       return;
     }
 
-    Font regularFont = UIUtil.getLabelFont();
+    Font regularFont = StartupUiUtil.getLabelFont();
 
     int regularFontSize = getFontMetrics(regularFont).getHeight();
     Font headerFont = regularFont.deriveFont(regularFontSize * ThemeEditorConstants.ATTRIBUTES_HEADER_FONT_SCALE);

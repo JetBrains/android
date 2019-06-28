@@ -15,23 +15,13 @@
  */
 package com.android.tools.idea.common.scene;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionListener;
-import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.MultiComponentTarget;
@@ -52,22 +42,19 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ui.JBUI;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.event.InputEvent;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
+import com.intellij.ui.scale.JBUIScale;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+import java.awt.event.InputEvent;
+import java.util.List;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static com.android.SdkConstants.*;
 
 /**
  * A Scene contains a hierarchy of SceneComponent representing the bounds
@@ -80,7 +67,7 @@ import org.jetbrains.annotations.Nullable;
 public class Scene implements SelectionListener, Disposable {
 
   @SwingCoordinate
-  private static final int DRAG_THRESHOLD = JBUI.scale(10);
+  private static final int DRAG_THRESHOLD = JBUIScale.scale(10);
 
   private final DesignSurface myDesignSurface;
   private final SceneManager mySceneManager;

@@ -43,6 +43,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.reference.SoftReference;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -621,7 +622,7 @@ public class CanvasResizeInteraction extends Interaction {
         graphics.dispose();
         myOrientationImage = image;
       }
-      UIUtil.drawImage(g2d, image, null, 0, 0);
+      StartupUiUtil.drawImage(g2d, image, null, 0, 0);
     }
 
     public synchronized void reset() {
@@ -702,7 +703,7 @@ public class CanvasResizeInteraction extends Interaction {
         graphics.dispose();
         buckets.put(screenSizeBucket, new SoftReference<>(bucket));
       }
-      UIUtil.drawImage(g2d, bucket, null, 0, 0);
+      StartupUiUtil.drawImage(g2d, bucket, null, 0, 0);
     }
 
     @NotNull

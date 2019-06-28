@@ -30,7 +30,7 @@ import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiUtil;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +89,7 @@ public class LightBrClass extends AndroidLightClassBase {
             for (String variable : variableNames) {
               result[i++] = createPsiField(project, elementFactory, variable);
             }
-            myCachedFieldNames = ArrayUtil.toStringArray(variableNames);
+            myCachedFieldNames = ArrayUtilRt.toStringArray(variableNames);
             return result;
           }
 

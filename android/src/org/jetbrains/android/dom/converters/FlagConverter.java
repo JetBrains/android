@@ -2,7 +2,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.intellij.psi.PsiElement;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.ResolvingConverter;
@@ -56,7 +56,7 @@ public class FlagConverter extends DelimitedListConverter<String> {
   protected Object[] getReferenceVariants(final ConvertContext context, final GenericDomValue<? extends List<String>> value) {
     List<String> variants = new ArrayList<>(myValues);
     filterVariants(variants, value);
-    return ArrayUtil.toStringArray(variants);
+    return ArrayUtilRt.toStringArray(variants);
   }
 
   @Override

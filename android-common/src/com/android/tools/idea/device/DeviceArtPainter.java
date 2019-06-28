@@ -26,7 +26,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.reference.SoftReference;
 import com.intellij.ui.Gray;
 import com.intellij.util.PathUtil;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -296,7 +296,7 @@ public class DeviceArtPainter {
 
     if (withRetina) {
       //noinspection ConstantConditions
-      UIUtil.drawImage(g, image, x, y, null);
+      StartupUiUtil.drawImage(g, image, x, y, null);
     } else {
       g.drawImage(image, x, y, null);
     }

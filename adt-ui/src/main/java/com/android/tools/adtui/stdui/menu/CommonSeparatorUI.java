@@ -16,7 +16,7 @@
 package com.android.tools.adtui.stdui.menu;
 
 import com.android.tools.adtui.stdui.StandardColors;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
@@ -45,6 +45,6 @@ public class CommonSeparatorUI extends BasicSeparatorUI {
 
   @Override
   public Dimension getPreferredSize(JComponent c) {
-    return new Dimension(0, JBUI.scale(1));
+    return new Dimension(0, JBUIScale.scale(1));
   }
 }

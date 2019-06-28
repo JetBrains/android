@@ -18,7 +18,7 @@ package com.android.tools.adtui.workbench;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SideBorder;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -38,7 +38,7 @@ class MinimizedPanel<T> extends JPanel implements SideModel.Listener<T> {
   MinimizedPanel(@NotNull Side side, @NotNull SideModel<T> model) {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     setBorder(IdeBorderFactory.createBorder(side.isLeft() ? SideBorder.RIGHT : SideBorder.LEFT));
-    setPreferredSize(new Dimension(JBUI.scale(20), 0));
+    setPreferredSize(new Dimension(JBUIScale.scale(20), 0));
     setBackground(JBColor.white);
     setOpaque(false);
     myModel = model;

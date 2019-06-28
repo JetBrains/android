@@ -23,13 +23,14 @@ import com.google.common.collect.Lists;
 import com.intellij.concurrency.JobLauncher;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -73,6 +74,14 @@ public class GradleFiles {
 
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
+  public static class UpdateHashesStartupActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      // Populate build file hashes on project startup.
+      getInstance(project).updateFileHashes();
+    }
+  }
+
   @NotNull
   public static GradleFiles getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleFiles.class);
@@ -110,13 +119,6 @@ public class GradleFiles {
 
 
     GradleSyncState.subscribe(myProject, mySyncListener);
-    // Populate build file hashes on creation.
-    if (myProject.isInitialized()) {
-      updateFileHashes();
-    }
-    else {
-      StartupManager.getInstance(myProject).registerPostStartupActivity(this::updateFileHashes);
-    }
   }
 
   @NotNull
@@ -208,6 +210,7 @@ public class GradleFiles {
    */
   @Nullable
   private Integer computeHash(@NotNull VirtualFile file) {
+    if (!file.isValid()) return null;
     PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
 
     if (psiFile != null && psiFile.isValid()) {
@@ -275,12 +278,12 @@ public class GradleFiles {
 
     List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(myProject).getModules());
     JobLauncher jobLauncher = JobLauncher.getInstance();
-    jobLauncher.invokeConcurrentlyUnderProgress(modules, null, (module) -> {
+    jobLauncher.invokeConcurrentlyUnderProgress(modules, null, false, false, (module) -> {
       VirtualFile buildFile = getGradleBuildFile(module);
       if (buildFile != null) {
         File path = VfsUtilCore.virtualToIoFile(buildFile);
         if (path.isFile()) {
-          putHashForFile(fileHashes, buildFile);
+          ReadAction.run(() -> putHashForFile(fileHashes, buildFile));
         }
       }
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
@@ -291,7 +294,7 @@ public class GradleFiles {
             VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
             externalBuildFiles.add(virtualFile);
             if (virtualFile != null) {
-              putHashForFile(fileHashes, virtualFile);
+              ReadAction.run(() -> putHashForFile(fileHashes, virtualFile));
             }
           }
         }

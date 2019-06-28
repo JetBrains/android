@@ -22,7 +22,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ObsoleteModuleDisposer}.
  */
-public class ObsoleteModuleDisposerTest extends IdeaTestCase {
+public class ObsoleteModuleDisposerTest extends JavaProjectTestCase {
   @Mock private IdeModifiableModelsProvider myModelsProvider;
   @Mock private ModuleDisposer myModuleDisposer;
 

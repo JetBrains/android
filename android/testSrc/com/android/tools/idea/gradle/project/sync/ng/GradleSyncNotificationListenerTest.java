@@ -24,7 +24,7 @@ import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemProgre
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemProgressEventUnsupportedImpl;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemTaskExecutionEvent;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -38,7 +38,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleSyncNotificationListener}.
  */
-public class GradleSyncNotificationListenerTest extends IdeaTestCase {
+public class GradleSyncNotificationListenerTest extends JavaProjectTestCase {
   @Mock private ProgressIndicator myIndicator;
   @Mock private ExternalSystemTaskId myTaskId;
   @Mock private BuildEventDispatcher myBuildEventDispatcher;
@@ -87,7 +87,7 @@ public class GradleSyncNotificationListenerTest extends IdeaTestCase {
     verify(myIndicator).setText("Gradle Sync: Execution 2");
 
     // Sync view only shows execution event
-    verify(myBuildEventDispatcher, times(2)).onEvent(myEventCaptor.capture());
+    verify(myBuildEventDispatcher, times(2)).onEvent(myTaskId, myEventCaptor.capture());
     List<BuildEvent> capturedEvents = myEventCaptor.getAllValues();
     assertThat(capturedEvents).hasSize(2);
     assertThat(capturedEvents.get(0).getMessage()).isEqualTo("Execution 1");
@@ -109,7 +109,7 @@ public class GradleSyncNotificationListenerTest extends IdeaTestCase {
     myListener.onCancel(myTaskId);
     verify(myBuildEventDispatcher).close();
 
-    verify(myBuildEventDispatcher).onEvent(myEventCaptor.capture());
+    verify(myBuildEventDispatcher).onEvent(myTaskId, myEventCaptor.capture());
     List<BuildEvent> capturedEvents = myEventCaptor.getAllValues();
     assertThat(capturedEvents).hasSize(1);
     assertThat(capturedEvents.get(0)).isInstanceOf(FinishBuildEvent.class);

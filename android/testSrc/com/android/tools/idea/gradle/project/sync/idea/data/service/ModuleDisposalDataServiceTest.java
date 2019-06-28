@@ -23,7 +23,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.mockito.Mock;
 
@@ -38,7 +38,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ModuleDisposalDataService}.
  */
-public class ModuleDisposalDataServiceTest extends IdeaTestCase {
+public class ModuleDisposalDataServiceTest extends JavaProjectTestCase {
   @Mock private ModuleDisposer myModuleDisposer;
 
   private ModuleDisposalDataService myDataService;

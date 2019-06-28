@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2013 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.diagnostics.error;
 
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -26,6 +12,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +24,6 @@ public class IdeaITNProxy {
   public static List<Pair<String, String>> getKeyValuePairs(@Nullable String login,
                                                             @Nullable String password,
                                                             ErrorBean error,
-                                                            String compilationTimestamp,
                                                             Application application,
                                                             ApplicationInfoEx appInfo,
                                                             ApplicationNamesInfo namesInfo,
@@ -65,7 +51,6 @@ public class IdeaITNProxy {
     params.add(Pair.create("app.version.minor", appInfo.getMinorVersion()));
     params.add(Pair.create("app.build.date", format(appInfo.getBuildDate())));
     params.add(Pair.create("app.build.date.release", format(appInfo.getMajorReleaseBuildDate())));
-    params.add(Pair.create("app.compilation.timestamp", compilationTimestamp));
 
     params.add(Pair.create("update.channel.status", updateSettings.getSelectedChannelStatus().getCode()));
     params.add(Pair.create("update.ignored.builds", StringUtil.join(updateSettings.getIgnoredBuildNumbers(), ",")));

@@ -58,6 +58,7 @@ import com.intellij.openapi.roots.ExternalLibraryDescriptor;
 import com.intellij.openapi.roots.JavaProjectModelModifier;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -77,7 +78,6 @@ import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigura
 import static com.android.tools.idea.gradle.util.GradleProjects.getAndroidModel;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.intellij.openapi.roots.libraries.LibraryUtil.findLibrary;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -352,7 +352,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   private static JavaLibrary findMatchedLibrary(@NotNull Library library, @NotNull BaseArtifact artifact) {
     Dependencies dependencies = artifact.getDependencies();
     for (JavaLibrary gradleLibrary : dependencies.getJavaLibraries()) {
-      String libraryName = getNameWithoutExtension(gradleLibrary.getJarFile());
+      String libraryName = FileUtilRt.getNameWithoutExtension(gradleLibrary.getJarFile().getName());
       if (libraryName.equals(library.getName())) {
         return gradleLibrary;
       }

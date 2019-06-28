@@ -21,7 +21,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.EaseOutModel;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -199,7 +199,7 @@ public class InstructionsPanel extends JPanel {
      */
     private static final Color INSTRUCTIONS_BACKGROUND = new JBColor(new Color(0xD8464646, true), new Color(0xD8E6E6E6, true));
     private static final Color INSTRUCTIONS_FOREGROUND = new JBColor(new Color(0xFFFFFF), new Color(0x000000));
-    public static final int DEFAULT_PADDING_PX = JBUI.scale(12);
+    public static final int DEFAULT_PADDING_PX = JBUIScale.scale(12);
 
     private int myArcWidth;
     private int myArcHeight;

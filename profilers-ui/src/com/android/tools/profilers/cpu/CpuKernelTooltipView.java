@@ -23,7 +23,7 @@ import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -52,13 +52,13 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
     myTimeline = view.getTimeline();
     myTooltip = tooltip;
     // TODO(b/109661512): Move vgap scale into TabularLayout
-    myContent = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));
+    myContent = new JPanel(new TabularLayout("*").setVGap(JBUIScale.scale(8)));
     myThread = createTooltipLabel();
     myProcess = createTooltipLabel();
     myDuration = createTooltipLabel();
     myCpu = createTooltipLabel();
     // TODO(b/109661512): Move vgap scale into TabularLayout
-    myUnavailableDetails = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(1)));
+    myUnavailableDetails = new JPanel(new TabularLayout("*").setVGap(JBUIScale.scale(1)));
     tooltip.addDependency(this).onChange(CpuKernelTooltip.Aspect.CPU_KERNEL_THREAD_SLICE_INFO, this::threadSliceInfoChanged);
   }
 

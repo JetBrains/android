@@ -20,7 +20,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +56,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     myHeaderPane.setBorder(new EmptyBorder(topSegmentInsets));
     Font font = myTitleLabel.getFont();
     if (font == null) {
-      font = UIUtil.getLabelFont();
+      font = StartupUiUtil.getLabelFont();
     }
     font = new Font(font.getName(), font.getStyle() | Font.BOLD, font.getSize() + 4);
     myTitleLabel.setFont(font);

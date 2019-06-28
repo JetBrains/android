@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.testing.Facets;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -46,7 +46,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 /**
  * Tests for {@link DependenciesExtractor}.
  */
-public class DependenciesExtractorTest extends IdeaTestCase {
+public class DependenciesExtractorTest extends JavaProjectTestCase {
   private AndroidProjectStub myAndroidProject;
   private VariantStub myVariant;
   private ModuleFinder myModuleFinder;

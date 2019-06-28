@@ -22,6 +22,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.model.NavCoordinate
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import java.awt.Font
 import java.awt.Graphics2D
@@ -45,30 +46,30 @@ const val DRAW_ACTION_HANDLE_DRAG_LEVEL = DRAW_ACTION_HANDLE_LEVEL + 1
 
 @JvmField
 @NavCoordinate
-val INNER_RADIUS_SMALL = JBUI.scale(5f)
+val INNER_RADIUS_SMALL = JBUIScale.scale(5f)
 @JvmField
 @NavCoordinate
-val INNER_RADIUS_LARGE = JBUI.scale(8f)
+val INNER_RADIUS_LARGE = JBUIScale.scale(8f)
 @JvmField
 @NavCoordinate
-val OUTER_RADIUS_SMALL = JBUI.scale(7f)
+val OUTER_RADIUS_SMALL = JBUIScale.scale(7f)
 @JvmField
 @NavCoordinate
-val OUTER_RADIUS_LARGE = JBUI.scale(11f)
+val OUTER_RADIUS_LARGE = JBUIScale.scale(11f)
 
 @JvmField
 @NavCoordinate
-val FRAGMENT_BORDER_SPACING = JBUI.scale(2f)
+val FRAGMENT_BORDER_SPACING = JBUIScale.scale(2f)
 @JvmField
 @NavCoordinate
-val ACTION_HANDLE_OFFSET = FRAGMENT_BORDER_SPACING.toInt() + JBUI.scale(2)
+val ACTION_HANDLE_OFFSET = FRAGMENT_BORDER_SPACING.toInt() + JBUIScale.scale(2)
 
 @NavCoordinate
-val HEADER_ICON_SIZE = JBUI.scale(14f)
+val HEADER_ICON_SIZE = JBUIScale.scale(14f)
 @NavCoordinate
-val HEADER_TEXT_PADDING = JBUI.scale(2f)
+val HEADER_TEXT_PADDING = JBUIScale.scale(2f)
 @NavCoordinate
-val HEADER_PADDING = JBUI.scale(8f)
+val HEADER_PADDING = JBUIScale.scale(8f)
 
 @JvmField
 @NavCoordinate

@@ -26,7 +26,7 @@ import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -47,14 +47,14 @@ public class BrShortNamesCache extends PsiShortNamesCache {
       AndroidFacet[] facets = myComponent.getDataBindingEnabledFacets();
       String[] result;
       if (facets.length == 0) {
-        result = ArrayUtil.EMPTY_STRING_ARRAY;
+        result = ArrayUtilRt.EMPTY_STRING_ARRAY;
       } else {
         Set<String> allFields = Sets.newHashSet();
         for (AndroidFacet facet : facets) {
           LightBrClass brClass = DataBindingUtil.getOrCreateBrClassFor(facet);
           Collections.addAll(allFields, brClass.getAllFieldNames());
         }
-        result = ArrayUtil.toStringArray(allFields);
+        result = ArrayUtilRt.toStringArray(allFields);
       }
       return CachedValueProvider.Result.create(result, myComponent);
     }, false);
@@ -87,7 +87,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
   @Override
   public String[] getAllClassNames() {
     if (!isEnabled()) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
+      return ArrayUtilRt.EMPTY_STRING_ARRAY;
     }
     return BR_CLASS_NAME_LIST;
   }
@@ -132,7 +132,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public String[] getAllMethodNames() {
-    return ArrayUtil.EMPTY_STRING_ARRAY;
+    return ArrayUtilRt.EMPTY_STRING_ARRAY;
   }
 
   @Override
@@ -163,7 +163,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
   @Override
   public String[] getAllFieldNames() {
     if (!isEnabled()) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
+      return ArrayUtilRt.EMPTY_STRING_ARRAY;
     }
     return myAllFieldNamesCache.getValue();
   }

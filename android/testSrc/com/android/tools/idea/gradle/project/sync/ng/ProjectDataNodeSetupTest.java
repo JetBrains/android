@@ -19,7 +19,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.mockito.Mock;
 
 import java.util.Collection;
@@ -31,7 +31,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ProjectDataNodeSetup}.
  */
-public class ProjectDataNodeSetupTest extends IdeaTestCase {
+public class ProjectDataNodeSetupTest extends JavaProjectTestCase {
   @Mock private SyncProjectModels mySyncProjectModels;
   private ProjectDataNodeSetup mySetup;
 

@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
@@ -60,11 +61,6 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       ValueResourceInfo info = ((LazyValueResourceElementWrapper)element).getResourceInfo();
       return "value resource '" + info.getName() + "' [" + info.getContainingFile().getName() + "]";
     }
-    return null;
-  }
-
-  @Override
-  public List<String> getUrlFor(PsiElement element, PsiElement originalElement) {
     return null;
   }
 
@@ -489,11 +485,6 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       return new MyResourceElement(element, value);
     }
 
-    return null;
-  }
-
-  @Override
-  public PsiElement getDocumentationElementForLink(PsiManager psiManager, String link, PsiElement context) {
     return null;
   }
 

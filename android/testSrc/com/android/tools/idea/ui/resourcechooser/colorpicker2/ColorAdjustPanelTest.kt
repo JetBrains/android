@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.JavaProjectTestCase
 import java.awt.Color
 import java.awt.Dimension
 
-class ColorAdjustPanelTest : IdeaTestCase() {
+class ColorAdjustPanelTest : JavaProjectTestCase() {
 
   fun testChangeModelColorWillUpdateAllComponent() {
     val model = ColorPickerModel()

@@ -16,11 +16,11 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
-import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;
@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +65,7 @@ public class NlFlagsEditor extends BaseComponentEditor implements NlComponentEdi
     myValue = new CustomTextField();
     myValue.setEditable(false);
     myValue.setFocusable(true);
-    myPanel = new AdtSecondaryPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
+    myPanel = new AdtSecondaryPanel(new BorderLayout(JBUIScale.scale(HORIZONTAL_COMPONENT_GAP), 0));
     myPanel.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, HORIZONTAL_SPACING, VERTICAL_SPACING, 0));
     myPanel.add(myValue, BorderLayout.CENTER);
     myPanel.add(button, BorderLayout.LINE_END);

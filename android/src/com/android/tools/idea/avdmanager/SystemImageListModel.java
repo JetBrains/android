@@ -43,6 +43,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,8 +58,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * A table model for a {@link SystemImageList}
@@ -204,14 +205,14 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         return releaseDisplayName(systemImage);
       }
     },
-    new SystemImageColumnInfo("API Level", JBUI.scale(100)) {
+    new SystemImageColumnInfo("API Level", JBUIScale.scale(100)) {
       @Nullable
       @Override
       public String valueOf(SystemImageDescription systemImage) {
         return systemImage.getVersion().getApiString();
       }
     },
-    new SystemImageColumnInfo("ABI", JBUI.scale(100)) {
+    new SystemImageColumnInfo("ABI", JBUIScale.scale(100)) {
       @Nullable
       @Override
       public String valueOf(SystemImageDescription systemImage) {
@@ -293,7 +294,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
           panel.setForeground(table.getForeground());
         }
         panel.setOpaque(true);
-        Font labelFont = UIUtil.getLabelFont();
+        Font labelFont = StartupUiUtil.getLabelFont();
         if (column == 0) {
           label.setFont(labelFont.deriveFont(Font.BOLD));
         }

@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom.converters;
 
 import com.intellij.openapi.module.Module;
@@ -8,7 +9,7 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.*;
@@ -107,7 +108,7 @@ public class InstrumentationTargetPackageConverter extends Converter<String> imp
           return true;
         }
       });
-      return ArrayUtil.toStringArray(result);
+      return ArrayUtilRt.toStringArray(result);
     }
 
     private void processApkPackageAttrs(@NotNull Processor<GenericAttributeValue<String>> processor) {

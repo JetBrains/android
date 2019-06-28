@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.JavaProjectTestCase
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.mock
 
-class SyncIssueRegisterTest : IdeaTestCase() {
+class SyncIssueRegisterTest : JavaProjectTestCase() {
   private var register : SyncIssueRegister? = null
 
   @Before

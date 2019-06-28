@@ -22,35 +22,19 @@ import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnch
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Uses a SceneDraw to render an iconic form of the widget
@@ -91,17 +75,17 @@ public class SingleWidgetView extends JPanel {
   /**
    * size of the empty square in between the constraint controls
    */
-  private static final int MIDDLE_SPACE = JBUI.scale(6);
+  private static final int MIDDLE_SPACE = JBUIScale.scale(6);
 
   /**
    * Length of a constraint symbol
    */
-  private static final int CONSTRAINT_LENGTH = JBUI.scale(9);
+  private static final int CONSTRAINT_LENGTH = JBUIScale.scale(9);
 
   /**
    * Width of a constraint symbol
    */
-  private static final int CONSTRAINT_WIDTH = JBUI.scale(4);
+  private static final int CONSTRAINT_WIDTH = JBUIScale.scale(4);
 
   /**
    * Size of the JComponent painting horizontal constraint symbols
@@ -117,26 +101,26 @@ public class SingleWidgetView extends JPanel {
   /**
    * Radius for round controls like the connect button
    */
-  private static final int CIRCLE_CONTROL_RADIUS = JBUI.scale(5);
+  private static final int CIRCLE_CONTROL_RADIUS = JBUIScale.scale(5);
 
   /**
    * Size of a repeating pattern for wrap and spring constraint
    */
-  private static final int CONSTRAINT_PATTERN_SIZE = JBUI.scale(2);
+  private static final int CONSTRAINT_PATTERN_SIZE = JBUIScale.scale(2);
 
-  private static final int DROP_DOWN_WIDTH = JBUI.scale(60);
+  private static final int DROP_DOWN_WIDTH = JBUIScale.scale(60);
 
-  private static final int DROP_DOWN_HEIGHT = JBUI.scale(25);
+  private static final int DROP_DOWN_HEIGHT = JBUIScale.scale(25);
 
   /**
    * Offset between a dropdown and the box
    */
-  private static final int DROPDOWN_OFFSET = JBUI.scale(12);
+  private static final int DROPDOWN_OFFSET = JBUIScale.scale(12);
 
   /**
    * Size of the square representing the widget
    */
-  public static final int BOX_SIZE = JBUI.scale(60);
+  public static final int BOX_SIZE = JBUIScale.scale(60);
 
   /* Constants for the different states for a constraint */
   public final static int MATCH_CONSTRAINT = 1;
@@ -189,12 +173,12 @@ public class SingleWidgetView extends JPanel {
   /**
    * Radius of the connect button
    */
-  private final static int CONNECT_BUTTON_RADIUS = JBUI.scale(7);
+  private final static int CONNECT_BUTTON_RADIUS = JBUIScale.scale(7);
 
   /**
    * Margins between the Box and the bar representing the type of constraint
    */
-  public static final int BAR_OUTSIDE_MARGINS = CONNECT_BUTTON_RADIUS + JBUI.scale(2);
+  public static final int BAR_OUTSIDE_MARGINS = CONNECT_BUTTON_RADIUS + JBUIScale.scale(2);
 
   public SingleWidgetView(@NotNull ColorSet colorSet, @NotNull WidgetConstraintModel widgetModel) {
     super(null);
@@ -655,10 +639,10 @@ public class SingleWidgetView extends JPanel {
     boolean mMouseIn;
     final ColorSet mColorSet;
 
-    private static final int KILL_BUTTON_SIZE = JBUI.scale(5);
+    private static final int KILL_BUTTON_SIZE = JBUIScale.scale(5);
     private static final Dimension size = JBUI.size(KILL_BUTTON_SIZE * 2);
     private ActionListener mListener;
-    private static final int CROSS_BAR_SIZE = size.width - JBUI.scale(1);
+    private static final int CROSS_BAR_SIZE = size.width - JBUIScale.scale(1);
 
     @Override
     public void paint(Graphics g) {
@@ -1063,13 +1047,13 @@ public class SingleWidgetView extends JPanel {
     final int mX2;
     final int mY2;
     private final boolean mDisplay;
-    private static final float[] dash1 = {JBUI.scale(2.0f), JBUI.scale(2.0f)};
-    private static final float STROKE_WIDTH = JBUI.scale(2f);
+    private static final float[] dash1 = {JBUIScale.scale(2.0f), JBUIScale.scale(2.0f)};
+    private static final float STROKE_WIDTH = JBUIScale.scale(2f);
     private static final Stroke FULL_STROKE = new BasicStroke(STROKE_WIDTH);
     private static final Stroke DASH_STROKE = new BasicStroke(STROKE_WIDTH,
                                                               BasicStroke.CAP_BUTT,
                                                               BasicStroke.JOIN_MITER,
-                                                              JBUI.scale(2.0f), dash1, 0.0f);
+                                                              JBUIScale.scale(2.0f), dash1, 0.0f);
 
     Line(int x1, int y1, int x2, int y2, boolean display) {
       mX1 = x1;
@@ -1103,7 +1087,7 @@ public class SingleWidgetView extends JPanel {
   }
 
   private static class LineArrow implements Graphic {
-    private static final int LINE_TIP_SPACING = JBUI.scale(2);
+    private static final int LINE_TIP_SPACING = JBUIScale.scale(2);
     final int mX1;
     final int mY1;
     final int mX2;

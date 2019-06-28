@@ -24,7 +24,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -41,7 +41,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidModuleProcessor}.
  */
-public class AndroidModuleProcessorTest extends IdeaTestCase {
+public class AndroidModuleProcessorTest extends JavaProjectTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private AndroidModuleValidator.Factory myModuleValidatorFactory;
   @Mock private GradleModuleModels myAppModels;

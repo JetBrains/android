@@ -28,7 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.File;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link GradleProjectInfo}.
  */
-public class GradleProjectInfoTest extends IdeaTestCase {
+public class GradleProjectInfoTest extends JavaProjectTestCase {
   private GradleProjectInfo myProjectInfo;
 
   @Override

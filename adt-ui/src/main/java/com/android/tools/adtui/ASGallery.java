@@ -25,10 +25,10 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBDimension;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -361,7 +361,7 @@ public class ASGallery<E> extends JBList {
   @Override
   public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
     // 10 pixels, so that mouse wheel/track pad scrolling is smoother.
-    return JBUI.scale(10);
+    return JBUIScale.scale(10);
   }
 
   @Override

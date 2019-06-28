@@ -20,29 +20,17 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
-import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawCommand
-import com.android.tools.idea.common.scene.draw.DrawFilledRoundRectangle
-import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
-import com.android.tools.idea.common.scene.draw.DrawTruncatedText
-import com.android.tools.idea.naveditor.model.NavCoordinate
-import com.android.tools.idea.naveditor.model.effectiveDestination
-import com.android.tools.idea.naveditor.model.getEffectiveSource
-import com.android.tools.idea.naveditor.model.includeFileName
-import com.android.tools.idea.naveditor.model.isAction
-import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
-import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
-import com.android.tools.idea.naveditor.scene.convertToRoundRect
-import com.android.tools.idea.naveditor.scene.flatten
-import com.android.tools.idea.naveditor.scene.regularFont
+import com.android.tools.idea.common.scene.draw.*
+import com.android.tools.idea.naveditor.model.*
+import com.android.tools.idea.naveditor.scene.*
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.scale.JBUIScale
 import java.awt.Font
 
 
 // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
 @NavCoordinate
-private val NAVIGATION_ARC_SIZE = JBUI.scale(12f)
+private val NAVIGATION_ARC_SIZE = JBUIScale.scale(12f)
 
 /**
  * [SceneDecorator] for the whole of a navigation flow (that is, the root component).

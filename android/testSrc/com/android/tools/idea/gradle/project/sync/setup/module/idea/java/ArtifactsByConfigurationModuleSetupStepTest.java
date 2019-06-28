@@ -22,11 +22,12 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.Computable;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -43,13 +44,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ArtifactsByConfigurationModuleSetupStep}.
  */
-public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
+public class ArtifactsByConfigurationModuleSetupStepTest extends JavaProjectTestCase {
 
   private ArtifactsByConfigurationModuleSetupStep mySetupStep;
 
@@ -105,7 +105,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
   }
 
   private Library createLibrary(@NotNull File jarFilePath) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(getProject());
     return ApplicationManager.getApplication().runWriteAction((Computable<Library>)() -> {
       Library library1 = libraryTable.createLibrary(createLibraryName(jarFilePath));
       Library.ModifiableModel libraryModel = library1.getModifiableModel();
@@ -117,7 +117,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
   }
 
   private void assertJarIsLibrary(@NotNull File jarFilePath) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(getProject());
     Library[] libraries = libraryTable.getLibraries();
     assertThat(libraries).hasLength(1);
 
@@ -135,7 +135,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
 
   @NotNull
   private String createLibraryName(@NotNull File jarFilePath) {
-    return getModule().getName() + "." + getNameWithoutExtension(jarFilePath);
+    return getModule().getName() + "." + FileUtilRt.getNameWithoutExtension(jarFilePath.getName());
   }
 
   public void testDoSetUpModuleWithCompiledJar() throws IOException {
@@ -160,7 +160,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
 
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    LibraryTable libraryTable = com.intellij.openapi.roots.libraries.LibraryTablesRegistrar.getInstance().getLibraryTable(project);
     Library[] libraries = libraryTable.getLibraries();
     assertThat(libraries).isEmpty();
 

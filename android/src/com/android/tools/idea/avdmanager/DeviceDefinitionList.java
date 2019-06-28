@@ -33,7 +33,7 @@ import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
@@ -58,8 +58,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * Lists the available device definitions by category
@@ -423,7 +423,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       myDeviceCategoryMap.get(category).add(d);
     }
     Set<String> categories = myDeviceCategoryMap.keySet();
-    String[] categoryArray = ArrayUtil.toStringArray(categories);
+    String[] categoryArray = ArrayUtilRt.toStringArray(categories);
     myCategoryModel.setItems(Lists.newArrayList(categoryArray));
   }
 

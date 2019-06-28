@@ -13,8 +13,8 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ArrayUtil;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -81,7 +81,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
       }
     });
 
-    myContentPanel.setPreferredSize(new Dimension(myContentPanel.getPreferredSize().width, JBUI.scale(250)));
+    myContentPanel.setPreferredSize(new Dimension(myContentPanel.getPreferredSize().width, JBUIScale.scale(250)));
   }
 
   @Override
@@ -146,16 +146,16 @@ class ApkStep extends ExportSignedPackageWizardStep {
   @NotNull
   private static String[] parseAndCheckProguardCfgPaths(@NotNull String pathsStr) {
     if (pathsStr.isEmpty()) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
+      return ArrayUtilRt.EMPTY_STRING_ARRAY;
     }
     final String[] paths = pathsStr.split(File.pathSeparator);
 
     if (paths.length == 0) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
+      return ArrayUtilRt.EMPTY_STRING_ARRAY;
     }
     for (String path : paths) {
       if (LocalFileSystem.getInstance().refreshAndFindFileByPath(path) == null) {
-        return ArrayUtil.EMPTY_STRING_ARRAY;
+        return ArrayUtilRt.EMPTY_STRING_ARRAY;
       }
     }
     return paths;

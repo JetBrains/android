@@ -19,7 +19,6 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.junit" />
     <orderEntry type="module" module-name="intellij.java.execution.impl" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.build:builder-model" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools:common" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools:sdk-common" level="project" />

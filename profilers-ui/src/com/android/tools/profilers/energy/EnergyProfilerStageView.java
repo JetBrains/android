@@ -28,8 +28,8 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
-import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
@@ -78,7 +78,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     verticalSplitter.setSecondComponent(myEventsPanel);
 
     myDetailsView = new EnergyDetailsView(this);
-    myDetailsView.setMinimumSize(new Dimension(JBUI.scale(450), (int)myDetailsView.getMinimumSize().getHeight()));
+    myDetailsView.setMinimumSize(new Dimension(JBUIScale.scale(450), (int)myDetailsView.getMinimumSize().getHeight()));
     myDetailsView.setVisible(false);
     JBSplitter splitter = new JBSplitter(false, 0.6f);
     splitter.setFirstComponent(verticalSplitter);

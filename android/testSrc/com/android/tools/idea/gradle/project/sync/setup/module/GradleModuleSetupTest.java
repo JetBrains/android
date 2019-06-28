@@ -29,8 +29,10 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+
 import java.io.IOException;
+
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.gradle.tooling.model.GradleProject;
 import org.mockito.Mock;
 
@@ -50,7 +52,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleModuleSetup}.
  */
-public class GradleModuleSetupTest extends IdeaTestCase {
+public class GradleModuleSetupTest extends JavaProjectTestCase {
   @Mock private GradleModuleModels myModuleModels;
   @Mock private GradleSyncState mySyncState;
 

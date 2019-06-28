@@ -5,7 +5,7 @@ import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.compiler.tools.AndroidApkBuilder;
@@ -161,7 +161,7 @@ public class AndroidPackagingBuilder extends AndroidTargetBuilder<BuildRootDescr
     final String resPackagePath = resPackage.getPath();
 
     final String classesDexFilePath = classesDexFile.getPath();
-    final String[] externalJars = ArrayUtil.toStringArray(externalJarsSet);
+    final String[] externalJars = ArrayUtilRt.toStringArray(externalJarsSet);
     Arrays.sort(externalJars);
 
     final List<AndroidNativeLibData> additionalNativeLibs = extension.getAdditionalNativeLibs();

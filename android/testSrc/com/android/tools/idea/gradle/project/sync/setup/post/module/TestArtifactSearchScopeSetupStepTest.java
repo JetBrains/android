@@ -2,7 +2,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.module;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
@@ -11,7 +11,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link TestArtifactSearchScopeSetupStep}.
  */
-public class TestArtifactSearchScopeSetupStepTest extends IdeaTestCase {
+public class TestArtifactSearchScopeSetupStepTest extends JavaProjectTestCase {
   private TestArtifactSearchScopeSetupStep mySetupStep;
 
   @Override

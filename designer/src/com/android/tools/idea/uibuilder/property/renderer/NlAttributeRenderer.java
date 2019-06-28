@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableCellRenderer;
@@ -22,7 +23,6 @@ import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
 import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor;
 import com.intellij.openapi.util.SystemInfo;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

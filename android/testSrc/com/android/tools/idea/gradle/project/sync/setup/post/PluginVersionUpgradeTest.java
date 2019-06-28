@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -36,7 +36,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link PluginVersionUpgrade}.
  */
-public class PluginVersionUpgradeTest extends IdeaTestCase {
+public class PluginVersionUpgradeTest extends JavaProjectTestCase {
   @Mock PluginVersionUpgradeStep myUpgradeStep1;
   @Mock PluginVersionUpgradeStep myUpgradeStep2;
   @Mock PluginVersionUpgradeStep myUpgradeStep3;

@@ -15,16 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
-import static com.intellij.util.ui.JBUI.scale;
-
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import org.jetbrains.annotations.NotNull;
 
 public class ConstraintResizeTarget extends ResizeBaseTarget {

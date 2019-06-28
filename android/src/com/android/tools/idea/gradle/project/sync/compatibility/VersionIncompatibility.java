@@ -18,20 +18,20 @@ package com.android.tools.idea.gradle.project.sync.compatibility;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.VersionRange;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.util.PositionInFile;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.util.PositionInFile;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker.VERSION_COMPATIBILITY_ISSUE_GROUP;
-import static com.intellij.util.ArrayUtil.toStringArray;
 
 class VersionIncompatibility {
   @NotNull private final Module myModule;
@@ -103,7 +103,7 @@ class VersionIncompatibility {
       List<String> lines = Splitter.on("\\n").omitEmptyStrings().splitToList(failureMsg);
       textLines.addAll(lines);
     }
-    String[] text = toStringArray(textLines);
+    String[] text = ArrayUtilRt.toStringArray(textLines);
 
     if (position != null) {
       message = new SyncMessage(project, VERSION_COMPATIBILITY_ISSUE_GROUP, messageType, position, text);

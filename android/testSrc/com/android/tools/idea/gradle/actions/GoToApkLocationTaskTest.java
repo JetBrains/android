@@ -23,7 +23,7 @@ import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.gradle.tooling.BuildCancelledException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.verify;
 /**
  * Tests for {@link GoToApkLocationTask}.
  */
-public class GoToApkLocationTaskTest extends IdeaTestCase {
+public class GoToApkLocationTaskTest extends JavaProjectTestCase {
   private static final String NOTIFICATION_TITLE = "Build APK";
 
   @Mock private AndroidNotification myMockNotification;

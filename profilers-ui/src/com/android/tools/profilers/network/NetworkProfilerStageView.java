@@ -15,22 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
-import static com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH;
-import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
-import static com.android.tools.profilers.ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING;
-import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER;
-import static com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN;
-import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
-
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.LegendConfig;
-import com.android.tools.adtui.RangeTooltipComponent;
-import com.android.tools.adtui.SelectionComponent;
-import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.instructions.InstructionsPanel;
@@ -42,42 +27,28 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.ProfilerLayeredPane;
-import com.android.tools.profilers.ProfilerScrollbar;
-import com.android.tools.profilers.ProfilerTimeline;
-import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
-import com.android.tools.profilers.StageView;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.event.EventMonitorView;
-import com.android.tools.profilers.event.LifecycleTooltip;
-import com.android.tools.profilers.event.LifecycleTooltipView;
-import com.android.tools.profilers.event.UserEventTooltip;
-import com.android.tools.profilers.event.UserEventTooltipView;
+import com.android.tools.profilers.*;
+import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.network.details.ConnectionDetailsView;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Dimension;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
-import javax.swing.BorderFactory;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 import sun.swing.SwingUtilities2;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
+
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
+import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
@@ -99,7 +70,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
 
     myConnectionDetails = new ConnectionDetailsView(this);
-    myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
+    myConnectionDetails.setMinimumSize(new Dimension(JBUIScale.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
     myConnectionsView = new ConnectionsView(this);
     ThreadsView threadsView = new ThreadsView(this);
 

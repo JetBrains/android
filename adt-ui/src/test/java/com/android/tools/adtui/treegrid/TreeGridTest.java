@@ -17,7 +17,7 @@ package com.android.tools.adtui.treegrid;
 
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.UIUtil;
 import junit.framework.TestCase;
 import org.intellij.lang.annotations.MagicConstant;
@@ -441,7 +441,7 @@ public class TreeGridTest extends TestCase {
           case "g3":
             return new Object[]{"a3", "b3", "c3", "d3"};
           default:
-            return ArrayUtil.EMPTY_OBJECT_ARRAY;
+            return ArrayUtilRt.EMPTY_OBJECT_ARRAY;
         }
       }
 

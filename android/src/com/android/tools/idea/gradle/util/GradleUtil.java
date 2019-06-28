@@ -15,61 +15,9 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.SdkConstants.DOT_GRADLE;
-import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
-import static com.android.SdkConstants.FD_RES_CLASS;
-import static com.android.SdkConstants.FD_SOURCE_GEN;
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
-import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
-import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
-import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
-import static com.google.common.base.Splitter.on;
-import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.notification.NotificationType.WARNING;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
-import static com.intellij.openapi.ui.Messages.getQuestionIcon;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.intellij.util.ArrayUtil.toStringArray;
-import static com.intellij.util.SystemProperties.getUserHome;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
-import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
-import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
-import static icons.StudioIcons.Shell.Filetree.INSTANT_APPS;
-import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
-import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
-import static org.jetbrains.jps.model.serialization.PathMacroUtil.DIRECTORY_STORE_NAME;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
-
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.MavenCoordinates;
-import com.android.builder.model.NativeAndroidProject;
+import com.android.builder.model.*;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -107,15 +55,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import javax.swing.Icon;
+import com.intellij.util.ArrayUtilRt;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
@@ -125,6 +65,43 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+
+import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.android.SdkConstants.*;
+import static com.android.builder.model.AndroidProject.*;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
+import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
+import static com.google.common.base.Splitter.on;
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.notification.NotificationType.WARNING;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
+import static com.intellij.openapi.ui.Messages.getQuestionIcon;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.util.SystemProperties.getUserHome;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+import static icons.StudioIcons.Shell.Filetree.*;
+import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
+import static org.jetbrains.jps.model.serialization.PathMacroUtil.DIRECTORY_STORE_NAME;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 /**
  * Utilities related to Gradle.
@@ -471,7 +448,7 @@ public final class GradleUtil {
   @NotNull
   public static String getDefaultPhysicalPathFromGradlePath(@NotNull String gradlePath) {
     List<String> segments = getPathSegments(gradlePath);
-    return join(toStringArray(segments));
+    return join(ArrayUtilRt.toStringArray(segments));
   }
 
   /**

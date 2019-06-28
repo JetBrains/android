@@ -35,6 +35,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.*;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
@@ -408,7 +409,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return AvdManagerConnection.getAvdDisplayName(info);
       }
     },
-    new AvdIconColumnInfo("Play Store", JBUI.scale(75)) {
+    new AvdIconColumnInfo("Play Store", JBUIScale.scale(75)) {
       private final HighlightableIconPair emptyIconPair = new HighlightableIconPair(null);
       private final HighlightableIconPair playStoreIconPair = new HighlightableIconPair(StudioIcons.Avd.DEVICE_PLAY_STORE);
 
@@ -456,7 +457,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         };
       }
     },
-    new AvdColumnInfo("API", JBUI.scale(50)) {
+    new AvdColumnInfo("API", JBUIScale.scale(50)) {
       @NotNull
       @Override
       public String valueOf(AvdInfo avdInfo) {
@@ -486,7 +487,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return targetString(info.getAndroidVersion(), info.getTag());
       }
     },
-    new AvdColumnInfo("CPU/ABI", JBUI.scale(60)) {
+    new AvdColumnInfo("CPU/ABI", JBUIScale.scale(60)) {
       @NotNull
       @Override
       public String valueOf(AvdInfo avdInfo) {
@@ -571,7 +572,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     }
 
     AvdIconColumnInfo(@NotNull String name) {
-      this(name, JBUI.scale(50));
+      this(name, JBUIScale.scale(50));
     }
 
     @Nullable
@@ -682,7 +683,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
       super(name);
       myNumVisibleActions = numVisibleActions;
-      myWidth = numVisibleActions == -1 ? -1 : JBUI.scale(45) * numVisibleActions + JBUI.scale(75);
+      myWidth = numVisibleActions == -1 ? -1 : JBUIScale.scale(45) * numVisibleActions + JBUIScale.scale(75);
     }
 
     AvdActionsColumnInfo(@NotNull String name) {

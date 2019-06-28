@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,7 +76,7 @@ public class TextEditor extends BaseComponentEditor {
           getEditor().getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
           if (drawBorder) {
             getEditor().setBorder(
-              new CommonBorder(1f, new DefaultCommonBorderModel(), JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING)));
+              new CommonBorder(1f, new DefaultCommonBorderModel(), JBInsets.create(VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING)));
           }
         }
 

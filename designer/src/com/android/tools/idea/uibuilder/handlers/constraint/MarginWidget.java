@@ -16,12 +16,12 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
-import javax.swing.JComboBox;
-import javax.swing.JTextField;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Widget to support margin editing on the ui
@@ -39,7 +39,7 @@ public class MarginWidget extends JComboBox<String> {
     super(new CollectionComboBoxModel<>(Arrays.asList(str)));
     setEditable(true);
     JTextField textField = (JTextField)getEditor().getEditorComponent();
-    textField.setFont(textField.getFont().deriveFont((float)JBUI.scaleFontSize(12f)));
+    textField.setFont(textField.getFont().deriveFont((float)JBUIScale.scaleFontSize(12f)));
     initComboBox(name);
     setName(name);
   }

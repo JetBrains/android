@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 
 import java.awt.*;
@@ -46,7 +47,7 @@ public class ThemeEditorConstants {
   /** Attribute cell label template */
   public static final String ATTRIBUTE_LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s";
   /** Attribute cell gap between the label and the swatch */
-  public static final int ATTRIBUTE_ROW_GAP = JBUI.scale(7);
+  public static final int ATTRIBUTE_ROW_GAP = JBUIScale.scale(7);
   /** Attribute cell top + bottom margins */
-  public static final int ATTRIBUTE_MARGIN = JBUI.scale(16);
+  public static final int ATTRIBUTE_MARGIN = JBUIScale.scale(16);
 }

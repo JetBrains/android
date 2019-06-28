@@ -27,15 +27,17 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+
 import java.io.File;
 import java.io.IOException;
+
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link ReImportGradleProjectAction}.
  */
-public class ReImportGradleProjectActionTest extends IdeaTestCase {
+public class ReImportGradleProjectActionTest extends JavaProjectTestCase {
   @Mock private GradleProjectImporter myImporter;
   @Mock GradleSyncState mySyncState;
   @Mock private AnActionEvent myEvent;

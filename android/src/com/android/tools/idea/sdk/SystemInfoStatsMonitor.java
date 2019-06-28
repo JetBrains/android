@@ -24,7 +24,6 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.startup.AndroidSdkInitializer;
-import com.android.utils.NullLogger;
 import com.google.common.base.Joiner;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;

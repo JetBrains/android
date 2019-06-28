@@ -37,7 +37,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.EventListener;
 import java.util.List;
 
 import static com.intellij.ide.ui.UISettings.setupAntialiasing;

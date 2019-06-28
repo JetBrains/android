@@ -23,7 +23,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
@@ -34,7 +34,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ProjectSetupImpl}.
  */
-public class ProjectSetupImplTest extends IdeaTestCase {
+public class ProjectSetupImplTest extends JavaProjectTestCase {
   @Mock private ModuleSetup.Factory myModuleSetupFactory;
   @Mock private SyncProjectModelsSetup myModuleSetup;
   @Mock private VariantOnlyProjectModelsSetup myVariantOnlyModuleSetup;

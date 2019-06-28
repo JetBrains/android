@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.stats.UsageTrackerUtils;
-import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServices;
 import com.android.tools.idea.structure.services.ServiceCategory;
@@ -75,6 +74,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.ui.popup.list.GroupedItemsListRenderer;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ThreeState;
@@ -90,8 +90,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
@@ -677,7 +677,7 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
     @Override
     public Dimension getMinimumSize() {
       Dimension original = super.getMinimumSize();
-      return new Dimension(Math.max(original.width, JBUI.scale(100)), original.height);
+      return new Dimension(Math.max(original.width, JBUIScale.scale(100)), original.height);
     }
 
     @Nullable

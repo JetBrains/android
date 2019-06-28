@@ -47,8 +47,8 @@ import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.openapi.wm.IdeGlassPaneUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
 import icons.StudioIcons;
@@ -56,13 +56,15 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.function.BiFunction;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
 import static com.android.tools.profilers.ProfilerFonts.H4_FONT;
-import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
 import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
 import static com.android.tools.profilers.sessions.SessionsView.SESSION_EXPANDED_WIDTH;
 import static com.android.tools.profilers.sessions.SessionsView.SESSION_IS_COLLAPSED;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
@@ -474,7 +476,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       mySplitter.setFirstSize(0);
     }
     else {
-      mySplitter.setDividerMouseZoneSize(JBUI.scale(10));
+      mySplitter.setDividerMouseZoneSize(JBUIScale.scale(10));
       mySessionsView.getComponent().setMinimumSize(mySessionsView.getComponentMinimizeSize(true));
       mySplitter
         .setFirstSize(myProfiler.getIdeServices().getPersistentProfilerPreferences().getInt(SESSION_EXPANDED_WIDTH, 0));

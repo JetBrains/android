@@ -7,7 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.platform.lang.impl" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="freemarker" level="project" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.spellchecker" scope="TEST" />
@@ -19,7 +19,7 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom.impl" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="freemarker" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.lang.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.compiler" scope="TEST" />
@@ -32,7 +32,6 @@
     <orderEntry type="module" module-name="intellij.groovy.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.properties.psi" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.instant-run-client" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.diff.impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="intellij.java.compiler.impl" scope="TEST" />
@@ -45,7 +44,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.properties.psi.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
@@ -99,7 +97,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="android.sdktools.sdklib" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.lint:lint-checks" level="project" />
@@ -110,7 +107,6 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools:annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:crash" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.build:manifest-merger" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
@@ -123,7 +119,6 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools.apkparser:apkanalyzer" level="project" />
     <orderEntry type="library" scope="TEST" name="kxml2" level="project" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:testing" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-reflect" level="project" />
@@ -138,5 +133,19 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" scope="TEST" name="org.jetbrains.intellij.deps.android.tools:perf-logger-tests" level="project" />
+    <orderEntry type="module-library" scope="TEST">
+      <library name="org.jetbrains.intellij.deps.android.tools:sdk-common-tests:26.3.0" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:sdk-common-tests:26.3.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.3.0/sdk-common-tests-26.3.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.3.0/sdk-common-tests-26.3.0-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="library" scope="TEST" name="http-client" level="project" />
   </component>
 </module>

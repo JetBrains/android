@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcechooser.util;
 
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import sun.swing.SwingUtilities2;
 
@@ -57,7 +58,7 @@ public class SimpleTabUI extends BasicTabbedPaneUI {
     int w = width - insets.right - insets.left;
     int h = height - insets.top - insets.bottom;
 
-    int thickness = JBUI.scale(1);
+    int thickness = JBUIScale.scale(1);
     g.setColor(OnePixelDivider.BACKGROUND);
 
     // use fillRect instead of drawLine with thickness as drawLine has bugs on OS X retina

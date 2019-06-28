@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetail
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.mockito.Mock;
 
@@ -35,7 +35,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
-public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
+public class UnresolvedDependenciesReporterTest extends JavaProjectTestCase {
   @Mock private SyncIssue mySyncIssue;
   @Mock private GradleSettings myGradleSettings;
 

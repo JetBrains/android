@@ -27,7 +27,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
@@ -39,7 +39,11 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactProperties;
 import com.intellij.packaging.impl.compiler.ArtifactCompileScope;
@@ -49,6 +53,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.compiler.artifact.*;
@@ -482,7 +487,7 @@ public class AndroidCompileUtil {
     final ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
     for (PsiClass c : classes) {
       PsiFile psiFile = c.getContainingFile();
-      if (className.equals(FileUtil.getNameWithoutExtension(psiFile.getName()))) {
+      if (className.equals(FileUtilRt.getNameWithoutExtension(psiFile.getName()))) {
         VirtualFile virtualFile = psiFile.getVirtualFile();
         if (virtualFile != null && Comparing.equal(projectFileIndex.getSourceRootForFile(virtualFile), sourceRoot)) {
           final String path = virtualFile.getPath();
@@ -526,7 +531,7 @@ public class AndroidCompileUtil {
       return null;
     }
 
-    final String pngCacheDirPath = VfsUtil.urlToPath(projectOutputDirUrl) + '/' + RESOURCES_CACHE_DIR_NAME + '/' + module.getName();
+    final String pngCacheDirPath = VfsUtilCore.urlToPath(projectOutputDirUrl) + '/' + RESOURCES_CACHE_DIR_NAME + '/' + module.getName();
     final String pngCacheDirOsPath = FileUtil.toSystemDependentName(pngCacheDirPath);
 
     final File pngCacheDir = new File(pngCacheDirOsPath);
@@ -744,7 +749,7 @@ public class AndroidCompileUtil {
       return false;
     }
 
-    final Module module = ModuleUtil.findModuleForFile(child, project);
+    final Module module = ModuleUtilCore.findModuleForFile(child, project);
     if (module == null) {
       return true;
     }
@@ -844,7 +849,7 @@ public class AndroidCompileUtil {
       }
     }
 
-    return ArrayUtil.toStringArray(result);
+    return ArrayUtilRt.toStringArray(result);
   }
 
   // support for lib<->lib and app<->lib circular dependencies

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings.CompositeBuild;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link ModuleFinder}.
  */
-public class ModuleFinderTest extends IdeaTestCase {
+public class ModuleFinderTest extends JavaProjectTestCase {
   private GradleProjectSettings myProjectSettings;
   private ModuleFinder myFinder;
 

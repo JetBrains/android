@@ -8,7 +8,6 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.io.TestFileSystemBuilder;
 import com.intellij.util.io.TestFileSystemItem;
@@ -75,7 +74,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
   public void test1() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
-    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
+    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtilRt.EMPTY_STRING_ARRAY, executor, null).getFirst();
     rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
@@ -476,7 +475,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     addPathPatterns(executor, androidSdk);
 
     final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
-    final JpsModule libModule = addAndroidModule("lib", ArrayUtil.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", ArrayUtilRt.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
 
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
@@ -550,7 +549,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
         return super.doCreateProcess(args, environment);
       }
     };
-    setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
+    setUpSimpleAndroidStructure(ArrayUtilRt.EMPTY_STRING_ARRAY, executor, null).getFirst();
     rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
@@ -723,7 +722,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
   public void testResOverlay() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
-    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
+    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtilRt.EMPTY_STRING_ARRAY, executor, null).getFirst();
     final JpsAndroidModuleProperties props = ((JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module)).getProperties();
     props.RES_OVERLAY_FOLDERS = Arrays.asList("/res-overlay");
     rebuildAndroidProject();
@@ -925,7 +924,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     addPathPatterns(executor, androidSdk);
 
     final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
-    final JpsModule libModule = addAndroidModule("lib", ArrayUtil.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", ArrayUtilRt.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
 
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
@@ -1340,7 +1339,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final String outputPath = getAbsolutePath("out/production/" + moduleName);
     final String testOutputPath = getAbsolutePath("out/test/" + moduleName);
 
-    final JpsModule module = addModule(moduleName, ArrayUtil.EMPTY_STRING_ARRAY,
+    final JpsModule module = addModule(moduleName, ArrayUtilRt.EMPTY_STRING_ARRAY,
                                        outputPath, testOutputPath, androidSdk);
     module.getContentRootsList().addUrl(JpsPathUtil.pathToUrl(root));
 

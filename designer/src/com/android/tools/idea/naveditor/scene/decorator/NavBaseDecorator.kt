@@ -21,13 +21,13 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.scale.JBUIScale
 import java.awt.Color
 
 @SwingCoordinate
-val REGULAR_FRAME_THICKNESS = JBUI.scale(1f)
+val REGULAR_FRAME_THICKNESS = JBUIScale.scale(1f)
 @SwingCoordinate
-val HIGHLIGHTED_FRAME_THICKNESS = JBUI.scale(2f)
+val HIGHLIGHTED_FRAME_THICKNESS = JBUIScale.scale(2f)
 
 
 abstract class NavBaseDecorator : SceneDecorator() {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
+import com.intellij.openapi.util.io.FileUtilRt;
 import org.gradle.tooling.model.GradleModuleVersion;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.Serializable;
 
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
 
 /**
@@ -49,7 +49,7 @@ public class JarLibraryDependency implements Serializable {
   public static String getDependencyName(@NotNull File binaryPath, boolean resolved) {
     if (resolved) {
       // Gradle API doesn't provide library name at the moment.
-      return binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(binaryPath.getPath());
+      return binaryPath.isFile() ? FileUtilRt.getNameWithoutExtension(binaryPath.getName()) : sanitizeFileName(binaryPath.getPath());
     }
     else {
       // Gradle uses names like 'unresolved dependency - commons-collections commons-collections 3.2' for unresolved dependencies.

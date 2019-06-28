@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.theme.preview;
 
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -44,6 +43,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.Query;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
@@ -62,8 +62,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 
@@ -466,7 +466,7 @@ public class AndroidThemePreviewPanel extends Box implements ConfigurationHolder
       float reverseDeviceScale =
         Density.DEFAULT_DENSITY / (float)configuration.getDeviceState().getHardware().getScreen().getPixelDensity().getDpiValue();
       // we combine our scale, the reverse device scale, and the platform scale into 1 scale factor.
-      myAndroidPreviewPanel.setScale(JBUI.scale(reverseDeviceScale * myScale));
+      myAndroidPreviewPanel.setScale(JBUIScale.scale(reverseDeviceScale * myScale));
     }
   }
 

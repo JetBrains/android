@@ -25,6 +25,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +40,6 @@ import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ArrayUtil.toStringArray;
 
 /**
  * Collects and reports dependencies that were not correctly set up during a Gradle sync.
@@ -150,7 +150,7 @@ public class DependencySetupIssues {
           String msg = String.format("Linking to library '%1$s' instead.", backupLibraryName);
           messageLines.add(msg);
         }
-        mySyncMessages.report(new SyncMessage(MISSING_DEPENDENCIES, missingModule.issueType, toStringArray(messageLines)));
+        mySyncMessages.report(new SyncMessage(MISSING_DEPENDENCIES, missingModule.issueType, ArrayUtilRt.toStringArray(messageLines)));
       }
     }
   }

@@ -18,13 +18,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.JBUI;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import javax.swing.Icon;
-import javax.swing.SwingConstants;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class GutterIconRenderer extends com.intellij.openapi.editor.markup.GutterIconRenderer implements DumbAware {
   private final PsiElement myElement;
@@ -75,8 +75,8 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   }
 
   private static class GutterIconClickAction extends AnAction {
-    private final static int PREVIEW_MAX_WIDTH = JBUI.scale(128);
-    private final static int PREVIEW_MAX_HEIGHT = JBUI.scale(128);
+    private final static int PREVIEW_MAX_WIDTH = JBUIScale.scale(128);
+    private final static int PREVIEW_MAX_HEIGHT = JBUIScale.scale(128);
     private final static String PREVIEW_TEXT = "Click Image to Open Resource";
 
     private final VirtualFile myFile;

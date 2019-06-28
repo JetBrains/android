@@ -28,7 +28,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -216,7 +216,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
     properties.setValue(PROPERTY_APK_PATH, apkFolder);
     //noinspection unchecked
-    properties.setValues(PROPERTY_BUILD_VARIANTS, ArrayUtil.toStringArray(buildVariants));
+    properties.setValues(PROPERTY_BUILD_VARIANTS, ArrayUtilRt.toStringArray(buildVariants));
     properties.setValue(PROPERTY_V1_SIGN, myV1JarSignatureCheckBox.isSelected());
     properties.setValue(PROPERTY_V2_SIGN, myV2FullAPKSignatureCheckBox.isSelected());
   }

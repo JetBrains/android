@@ -20,14 +20,11 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.cpu.atrace.AtraceFrame;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
-import com.intellij.util.ui.JBUI;
-import java.util.concurrent.TimeUnit;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.util.concurrent.TimeUnit;
 
 public class CpuFrameTooltipView extends ProfilerTooltipView {
   @NotNull private final CpuFrameTooltip myTooltip;
@@ -48,7 +45,7 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
     myTooltip = tooltip;
     myContent = new JPanel(new TabularLayout("*").setVGap(12));
 
-    myMainFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(4)));
+    myMainFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUIScale.scale(4)));
 
     JLabel mainThreadLabel = createTooltipLabel();
     mainThreadLabel.setText("Main Thread");
@@ -60,7 +57,7 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
     myMainFramePanel.add(myMainFrameCpuText, new TabularLayout.Constraint(2, 0));
     myMainFramePanel.add(myMainFrameTotalTimeText, new TabularLayout.Constraint(4, 0));
 
-    myRenderFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(4)));
+    myRenderFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUIScale.scale(4)));
 
     JLabel renderThreadLabel = createTooltipLabel();
     renderThreadLabel.setText("Render Thread");

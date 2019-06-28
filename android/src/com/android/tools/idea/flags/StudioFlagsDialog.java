@@ -39,6 +39,7 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -175,11 +176,11 @@ public final class StudioFlagsDialog extends DialogWrapper {
           }
 
           JBLabel name = new JBLabel(flag.getDisplayName());
-          name.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+          name.setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
           name.setToolTipText(flag.getId());
 
           JTextArea description = new JTextArea(flag.getDescription());
-          description.setFont(UIUtil.getLabelFont());
+          description.setFont(StartupUiUtil.getLabelFont());
           description.setLineWrap(true);
           description.setWrapStyleWord(true);
           description.setEditable(false);

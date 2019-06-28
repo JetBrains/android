@@ -480,7 +480,7 @@ public class AndroidApkBuilder {
   }
 
   public static boolean checkFileForPackaging(@NotNull File file) {
-    String fileName = FileUtil.getNameWithoutExtension(file);
+    String fileName = FileUtilRt.getNameWithoutExtension(file.getName());
     if (!fileName.isEmpty()) {
       final String extension = FileUtilRt.getExtension(file.getName());
 

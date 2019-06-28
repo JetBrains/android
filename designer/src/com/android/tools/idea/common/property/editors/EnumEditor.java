@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.property.editors;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
@@ -32,10 +33,10 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.sun.java.swing.plaf.windows.WindowsComboBoxUI;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -90,7 +91,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
                        boolean comboEditable) {
     super(listener);
     myAddedValueIndex = -1; // nothing added
-    myPanel = new JPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
+    myPanel = new JPanel(new BorderLayout(JBUIScale.scale(HORIZONTAL_COMPONENT_GAP), 0));
     myPanel.setFocusable(false);
     myBrowsePanel = browsePanel;
 

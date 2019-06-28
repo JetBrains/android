@@ -22,20 +22,10 @@ import com.android.tools.idea.common.model.Coordinates.getSwingDimension
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
-import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawFilledRoundRectangle
-import com.android.tools.idea.common.scene.draw.DrawRectangle
-import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
-import com.android.tools.idea.common.scene.draw.DrawTruncatedText
+import com.android.tools.idea.common.scene.draw.*
 import com.android.tools.idea.naveditor.model.NavCoordinate
-import com.android.tools.idea.naveditor.scene.DRAW_ACTIVITY_BORDER_LEVEL
-import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
-import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
-import com.android.tools.idea.naveditor.scene.NavColorSet
-import com.android.tools.idea.naveditor.scene.convertToRoundRect
-import com.android.tools.idea.naveditor.scene.growRectangle
-import com.android.tools.idea.naveditor.scene.scaledFont
-import com.intellij.util.ui.JBUI
+import com.android.tools.idea.naveditor.scene.*
+import com.intellij.ui.scale.JBUIScale
 import java.awt.Font
 import java.awt.geom.Rectangle2D
 
@@ -45,14 +35,14 @@ import java.awt.geom.Rectangle2D
 
 // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
 @NavCoordinate
-private val ACTIVITY_ARC_SIZE = JBUI.scale(12f)
+private val ACTIVITY_ARC_SIZE = JBUIScale.scale(12f)
 @NavCoordinate
-private val ACTIVITY_PADDING = JBUI.scale(8f)
+private val ACTIVITY_PADDING = JBUIScale.scale(8f)
 @NavCoordinate
-private val ACTIVITY_TEXT_HEIGHT = JBUI.scale(26f)
+private val ACTIVITY_TEXT_HEIGHT = JBUIScale.scale(26f)
 @SwingCoordinate
 @VisibleForTesting
-val ACTIVITY_BORDER_WIDTH = JBUI.scale(1f)
+val ACTIVITY_BORDER_WIDTH = JBUIScale.scale(1f)
 
 object ActivityDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {

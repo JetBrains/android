@@ -17,12 +17,12 @@ package com.android.tools.idea.fd.gradle;
 
 import com.android.builder.model.InstantRun;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.util.ReflectionUtil;
 
 import java.util.stream.Collectors;
 
-public class InstantRunGradleSupportTest extends IdeaTestCase {
+public class InstantRunGradleSupportTest extends JavaProjectTestCase {
   /**
    * Check that the set of fields in {@link InstantRun} is not changed without updating consumers.
    *

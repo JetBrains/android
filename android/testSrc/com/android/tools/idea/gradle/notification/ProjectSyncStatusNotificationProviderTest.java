@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -34,7 +34,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ProjectSyncStatusNotificationProvider}.
  */
-public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
+public class ProjectSyncStatusNotificationProviderTest extends JavaProjectTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncState mySyncState;
   @Mock private GradleSyncSummary mySyncSummary;

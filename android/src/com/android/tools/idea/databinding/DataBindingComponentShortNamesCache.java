@@ -25,6 +25,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
@@ -71,7 +72,7 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
     if (isEnabled()) {
       return ourClassNames;
     } else {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
+      return ArrayUtilRt.EMPTY_STRING_ARRAY;
     }
   }
 
@@ -110,7 +111,7 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public String[] getAllMethodNames() {
-    return ArrayUtil.EMPTY_STRING_ARRAY;
+    return ArrayUtilRt.EMPTY_STRING_ARRAY;
   }
 
   @Override
@@ -127,7 +128,7 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public String[] getAllFieldNames() {
-    return ArrayUtil.EMPTY_STRING_ARRAY;
+    return ArrayUtilRt.EMPTY_STRING_ARRAY;
   }
 
   @Override

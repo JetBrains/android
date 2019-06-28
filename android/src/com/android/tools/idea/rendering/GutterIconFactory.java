@@ -30,6 +30,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.Gray;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -222,7 +223,7 @@ public class GutterIconFactory {
           g.setColor(Gray.TRANSPARENT);
           g.fillRect(0, 0, bg.getWidth(), bg.getHeight());
           //noinspection ConstantConditions
-          UIUtil.drawImage(g, image, 0, 0, null);
+          StartupUiUtil.drawImage(g, image, 0, 0, null);
           g.dispose();
           image = bg;
         }
@@ -257,7 +258,7 @@ public class GutterIconFactory {
     @SuppressWarnings("ConstantConditions")
     @Override
     public synchronized void paintIcon(Component c, Graphics g, int x, int y) {
-      UIUtil.drawImage(g, getImage(), x, y, null);
+      StartupUiUtil.drawImage(g, getImage(), x, y, null);
     }
   }
 }

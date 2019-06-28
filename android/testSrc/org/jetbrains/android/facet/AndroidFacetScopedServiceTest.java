@@ -19,13 +19,13 @@ import com.android.tools.idea.testing.Facets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link AndroidFacetScopedService}.
  */
-public class AndroidFacetScopedServiceTest extends IdeaTestCase {
+public class AndroidFacetScopedServiceTest extends JavaProjectTestCase {
   private AndroidFacet myFacet;
   private MyAndroidFacetScopedService myService;
 

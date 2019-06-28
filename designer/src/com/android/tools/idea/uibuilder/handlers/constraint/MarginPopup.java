@@ -18,19 +18,19 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 public class MarginPopup extends JPanel {
   private JBTextField myTextField = new JBTextField();
@@ -125,19 +125,19 @@ public class MarginPopup extends JPanel {
 
     gc.gridx = 3;
     gc.gridwidth = 1;
-    gc.insets.bottom = JBUI.scale(0);
-    gc.insets.left = JBUI.scale(2);
-    gc.insets.right = JBUI.scale(5);
-    gc.insets.top = JBUI.scale(2);
+    gc.insets.bottom = JBUIScale.scale(0);
+    gc.insets.left = JBUIScale.scale(2);
+    gc.insets.right = JBUIScale.scale(5);
+    gc.insets.top = JBUIScale.scale(2);
     add(new JBLabel("dp"), gc);
 
     gc.gridwidth = 1;
 
     gc.gridy = 1;
-    gc.insets.bottom = JBUI.scale(0);
-    gc.insets.left = JBUI.scale(0);
-    gc.insets.right = JBUI.scale(0);
-    gc.insets.top = JBUI.scale(0);
+    gc.insets.bottom = JBUIScale.scale(0);
+    gc.insets.left = JBUIScale.scale(0);
+    gc.insets.right = JBUIScale.scale(0);
+    gc.insets.top = JBUIScale.scale(0);
     ((AbstractDocument)myTextField.getDocument()).setDocumentFilter(new DocumentFilter() {
       @Override
       public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
@@ -157,12 +157,14 @@ public class MarginPopup extends JPanel {
       b.setMargin(margin);
       b.addActionListener(myDefaultListener);
       gc.gridx = i;
-      gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);
-      gc.insets.right = JBUI.scale((i == 3) ? 5 : 0);
+      int i2 = (i == 0) ? 5 : 0;
+      gc.insets.left = JBUIScale.scale(i2);
+      int i1 = (i == 3) ? 5 : 0;
+      gc.insets.right = JBUIScale.scale(i1);
       add(b, gc);
     }
     gc.gridy = 2;
-    gc.insets.bottom = JBUI.scale(7);
+    gc.insets.bottom = JBUIScale.scale(7);
     for (int i = 0; i < myHistoryButtons.length; i++) {
       myHistoryButtons[i] = new JButton("XXX");
       myHistoryButtons[i].setPreferredSize(myHistoryButtons[i].getPreferredSize());
@@ -176,8 +178,10 @@ public class MarginPopup extends JPanel {
       myHistoryButtons[i].addActionListener(myDefaultListener);
 
       gc.gridx = i;
-      gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);
-      gc.insets.right = JBUI.scale((i == 3) ? 5 : 0);
+      int i2 = (i == 0) ? 5 : 0;
+      gc.insets.left = JBUIScale.scale(i2);
+      int i1 = (i == 3) ? 5 : 0;
+      gc.insets.right = JBUIScale.scale(i1);
       //Insets in = myHistoryButtons[i].getMargin();
       add(myHistoryButtons[i], gc);
     }
