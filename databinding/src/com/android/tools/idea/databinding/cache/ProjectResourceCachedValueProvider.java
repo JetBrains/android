@@ -15,18 +15,25 @@
  */
 package com.android.tools.idea.databinding.cache;
 
+import static com.android.tools.idea.databinding.ViewBindingUtil.isViewBindingEnabled;
+
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.util.ArrayUtil;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * A utility cache that can be used if results from multiple resource repositories are being merged into one.
@@ -81,8 +88,16 @@ abstract public class ProjectResourceCachedValueProvider<T, V> implements Cached
   }
 
   @NotNull
-  protected AndroidFacet[] getFacets() {
-    return myComponent.getDataBindingEnabledFacets();
+  private AndroidFacet[] getFacets() {
+    AndroidFacet[] viewBindingEnabledFacets = Arrays.stream(ModuleManager.getInstance(myComponent.getProject()).getModules())
+      .map(module -> AndroidFacet.getInstance(module))
+      .filter(Objects::nonNull)
+      .filter(facet -> isViewBindingEnabled(facet))
+      .toArray(AndroidFacet[]::new);
+    if (ArrayUtil.isEmpty(viewBindingEnabledFacets)) {
+      return myComponent.getDataBindingEnabledFacets();
+    }
+    return viewBindingEnabledFacets;
   }
 
   private static long calculateModificationCountFrom(List<ModificationTracker> dependencies) {
