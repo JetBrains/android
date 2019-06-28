@@ -39,9 +39,9 @@ public class AdaptiveIconActionGroups extends ToolbarActionGroups {
     DefaultActionGroup group = new DefaultActionGroup();
     NlModel model = mySurface.getModel();
     if (model != null) {
-      group.add(new DensityMenuAction(model));
     }
     group.add(new ShapeMenuAction((NlDesignSurface)mySurface));
+    // TODO(b/136258816): Update to support multi-model
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
     return group;
   }

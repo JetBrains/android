@@ -72,6 +72,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -590,7 +591,7 @@ public class NavDesignSurface extends DesignSurface {
       metricsEventType = ACTIVATE_LAYOUT;
     }
     if (id != null) {
-      Configuration configuration = getConfiguration();
+      Configuration configuration = Iterables.getOnlyElement(getConfigurations(), null);
       ResourceResolver resolver = configuration != null ? configuration.getResourceResolver() : null;
       ResourceValue value = resolver != null ? resolver.findResValue(id, false) : null;
       String fileName = value != null ? value.getValue() : null;
