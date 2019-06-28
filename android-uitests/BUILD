@@ -318,7 +318,13 @@ java_test(
         "//tools/base/deploy/deployer:test_apks",
     ] + glob([
         "testData/simple/**",
-    ]),
+    ]) + select({
+        "//tools/base/bazel:windows": [],
+        "//conditions:default": [
+            "//tools/base/deploy/installer:test-installer",
+            "//tools/base/deploy/installer:bash_bridge",
+        ],
+    }),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.deploy.DeploymentTest"],
     tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
