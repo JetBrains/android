@@ -39,6 +39,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
@@ -120,7 +121,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
           return;
         }
         if (ProjectAttachProcessor.canAttachToProject()) {
-          Project openedProject = PlatformProjectOpenProcessor.doOpenProject(file, project, false, -1, null, false);
+          Project openedProject = PlatformProjectOpenProcessor.doOpenProject(file, project, -1, null, EnumSet.noneOf(PlatformProjectOpenProcessor.Option.class));
           setLastOpenedFile(openedProject, file);
         }
         else {
