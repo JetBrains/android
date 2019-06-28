@@ -120,9 +120,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = new HashMap<>();
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = new HashMap<>();
   @NotNull private Map<String, IdeVariant> myVariantsByName = new HashMap<>();
-  @NotNull private Set<String> myVariantNames = new HashSet<>();
-  private boolean myUsingSingleVariantSync;
-
   @NotNull private Set<File> myExtraGeneratedSourceFolders = new HashSet<>();
 
   @Nullable
@@ -160,7 +157,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                             @Nullable Collection<Variant> variantsToAdd,
                             @Nullable ProjectSyncIssues syncIssues) {
     myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
-    myUsingSingleVariantSync = variantsToAdd != null;
 
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
@@ -192,12 +188,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   private void populateVariantsByName() {
     myAndroidProject.forEachVariant(variant -> myVariantsByName.put(variant.getName(), variant));
-    if (myUsingSingleVariantSync) {
-      myVariantNames = new HashSet<>(myAndroidProject.getVariantNames());
-    }
-    else {
-      myVariantNames = new HashSet<>(myVariantsByName.keySet());
-    }
   }
 
   /**
@@ -662,7 +652,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public Collection<String> getVariantNames() {
-    return myVariantNames;
+    return myAndroidProject.getVariantNames();
   }
 
   @Nullable
@@ -751,18 +741,12 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return null;
   }
 
-  @VisibleForTesting
-  boolean isUsingSingleVariantSync() {
-    return myUsingSingleVariantSync;
-  }
-
   private void writeObject(ObjectOutputStream out) throws IOException {
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
     out.writeObject(myAndroidProject);
     out.writeObject(mySelectedVariantName);
-    out.writeBoolean(myUsingSingleVariantSync);
   }
 
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -771,7 +755,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myRootDirPath = (File)in.readObject();
     myAndroidProject = (IdeAndroidProject)in.readObject();
     String variantName = (String)in.readObject();
-    myUsingSingleVariantSync = in.readBoolean();
 
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);

@@ -18,11 +18,12 @@ package com.android.tools.idea.gradle.project.model;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.*;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidModuleModelSerializationTest extends AndroidGradleTestCase {
   @Override
@@ -49,23 +50,6 @@ public class AndroidModuleModelSerializationTest extends AndroidGradleTestCase {
     assertAreEqual(androidModel, androidModelCopy);
   }
 
-  public void testSerializationWithSingleVariantSyncEnabled() throws Exception {
-    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
-    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
-
-    loadSimpleApplication();
-
-    Module appModule = getModule("app");
-    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
-    assertTrue(androidModel.isUsingSingleVariantSync());
-
-    AndroidModuleModel androidModelCopy = serializeAndDeserialize(androidModel);
-    assertAreEqual(androidModel, androidModelCopy);
-
-    assertTrue(androidModelCopy.isUsingSingleVariantSync());
-    assertThat(androidModelCopy.getVariantNames()).containsExactly("debug", "release");
-  }
-
   @NotNull
   private static AndroidModuleModel serializeAndDeserialize(@NotNull AndroidModuleModel androidModel) throws IOException, ClassNotFoundException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -87,7 +71,6 @@ public class AndroidModuleModelSerializationTest extends AndroidGradleTestCase {
     assertEquals(androidModel1.getModuleName(), androidModel2.getModuleName());
     assertEquals(androidModel1.getRootDirPath(), androidModel2.getRootDirPath());
     assertEquals(androidModel1.getSelectedVariant(), androidModel2.getSelectedVariant());
-    assertEquals(androidModel1.isUsingSingleVariantSync(), androidModel2.isUsingSingleVariantSync());
     assertEquals(androidModel1.getVariantNames(), androidModel2.getVariantNames());
     assertEquals(androidModel1.getAndroidProject(), androidModel2.getAndroidProject());
   }
