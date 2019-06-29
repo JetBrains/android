@@ -17,37 +17,26 @@ package com.android.tools.idea.resources.aar;
 
 import static com.android.SdkConstants.FD_DATA;
 import static com.android.SdkConstants.FD_RES;
+import static com.android.tools.idea.res.ResourceAsserts.assertThat;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
-import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
-import com.android.ide.common.rendering.api.DensityBasedResourceValue;
-import com.android.ide.common.rendering.api.PluralsResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleItemResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceItemWithVisibility;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.ide.common.util.PathString;
-import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.resources.base.BasicFileResourceItem;
 import com.android.utils.PathUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,10 +44,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -125,14 +112,7 @@ public class FrameworkResourceRepositoryTest extends PlatformTestCase {
     for (int i = 0; i < expectedItems.size(); i++) {
       ResourceItem expectedItem = expectedItems.get(i);
       ResourceItem actualItem = actualItems.get(i);
-      assertWithMessage("Different ResourceItem at position " + i).that(areEquivalent(expectedItem, actualItem)).isTrue();
-      assertWithMessage("Different FolderConfiguration at position " + i)
-          .that(actualItem.getConfiguration()).isEqualTo(expectedItem.getConfiguration());
-      ResourceValue expectedValue = expectedItem.getResourceValue();
-      ResourceValue actualValue = actualItem.getResourceValue();
-      if (!areEquivalentResourceValues(expectedValue, actualValue)) {
-        assertWithMessage("Different ResourceValue at position " + i).that(actualValue).isEqualTo(expectedValue);
-      }
+      assertThat(actualItem).isEquivalentTo(expectedItem);
     }
 
     for (ResourceType type : ResourceType.values()) {
@@ -145,204 +125,9 @@ public class FrameworkResourceRepositoryTest extends PlatformTestCase {
       for (int i = 0; i < expectedPublic.size(); i++) {
         ResourceItem expectedItem = expectedPublic.get(i);
         ResourceItem actualItem = actualPublic.get(i);
-        assertWithMessage("Public resource difference at position " + i + " for type " + type.getName())
-            .that(areEquivalent(expectedItem, actualItem)).isTrue();
+        assertThat(actualItem).isEquivalentTo(expectedItem);
       }
     }
-  }
-
-  private static boolean areEquivalent(@NotNull ResourceItem item1, @NotNull ResourceItem item2) {
-    if (!item1.getType().equals(item2.getType())) {
-      return false;
-    }
-    if (!item1.getNamespace().equals(item2.getNamespace())) {
-      return false;
-    }
-    if (!item1.getName().equals(item2.getName())) {
-      return false;
-    }
-    if (!Objects.equals(item1.getLibraryName(), item2.getLibraryName())) {
-      return false;
-    }
-    if (item1.isFileBased() != item2.isFileBased()) {
-      return false;
-    }
-    if (item1.isFileBased() && !areEquivalentSources(item1.getSource(), item2.getSource())) {
-      return false;
-    }
-    if (!areEquivalentSources(item1.getOriginalSource(), item2.getOriginalSource())) {
-      return false;
-    }
-    return true;
-  }
-
-  private static boolean areEquivalentResourceValues(@Nullable ResourceValue value1, @Nullable ResourceValue value2) {
-    if (value1 == value2) {
-      return true;
-    }
-    if (value1 == null || value2 == null) {
-      return false;
-    }
-    if (!value1.getResourceType().equals(value2.getResourceType())) {
-      return false;
-    }
-    if (!value1.getNamespace().equals(value2.getNamespace())) {
-      return false;
-    }
-    if (!value1.getName().equals(value2.getName())) {
-      return false;
-    }
-    if (!Objects.equals(value1.getLibraryName(), value2.getLibraryName())) {
-      return false;
-    }
-
-    Density density1 = value1 instanceof DensityBasedResourceValue ? ((DensityBasedResourceValue)value1).getResourceDensity() : null;
-    Density density2 = value2 instanceof DensityBasedResourceValue ? ((DensityBasedResourceValue)value2).getResourceDensity() : null;
-    if (!Objects.equals(density1, density2)) {
-      return false;
-    }
-
-    if (value1 instanceof StyleableResourceValue && value2 instanceof StyleableResourceValue) {
-      List<AttrResourceValue> attrs1 = ((StyleableResourceValue)value1).getAllAttributes();
-      List<AttrResourceValue> attrs2 = ((StyleableResourceValue)value2).getAllAttributes();
-      if (attrs1.size() != attrs2.size()) {
-        return false;
-      }
-      for (int i = 0; i < attrs1.size(); i++) {
-        if (!areEquivalentResourceValues(attrs1.get(i), attrs2.get(i))) {
-          return false;
-        }
-      }
-    } else if ((value1 instanceof StyleableResourceValue) != (value2 instanceof StyleableResourceValue)) {
-      return false;
-    }
-
-    if (value1 instanceof AttrResourceValue && value2 instanceof AttrResourceValue) {
-      AttrResourceValue attr1 = (AttrResourceValue)value1;
-      AttrResourceValue attr2 = (AttrResourceValue)value2;
-      if (!Objects.equals(attr1.getDescription(), attr2.getDescription())) {
-        return false;
-      }
-      if (!Objects.equals(attr1.getGroupName(), attr2.getGroupName())) {
-        return false;
-      }
-      if (!Objects.equals(attr1.getFormats(), attr2.getFormats())) {
-        return false;
-      }
-      Map<String, Integer> attrValues1 = attr1.getAttributeValues();
-      Map<String, Integer> attrValues2 = attr2.getAttributeValues();
-      if (!attrValues1.equals(attrValues2)) {
-        return false;
-      }
-      for (String valueName: attrValues1.keySet()) {
-        if (!Objects.equals(attr1.getValueDescription(valueName), attr2.getValueDescription(valueName))) {
-          return false;
-        }
-      }
-    } else if ((value1 instanceof AttrResourceValue) != (value2 instanceof AttrResourceValue)) {
-      return false;
-    }
-
-    if (value1 instanceof StyleResourceValue && value2 instanceof StyleResourceValue) {
-      StyleResourceValue style1 = (StyleResourceValue)value1;
-      StyleResourceValue style2 = (StyleResourceValue)value2;
-      if (!Objects.equals(style1.getParentStyle(), style2.getParentStyle())) {
-        return false;
-      }
-      Collection<StyleItemResourceValue> items1 = style1.getDefinedItems();
-      Collection<StyleItemResourceValue> items2 = style2.getDefinedItems();
-      if (items1.size() != items2.size()) {
-        return false;
-      }
-      Iterator<StyleItemResourceValue> it1 = items1.iterator();
-      Iterator<StyleItemResourceValue> it2 = items2.iterator();
-      while (it1.hasNext()) {
-        StyleItemResourceValue item1 = it1.next();
-        StyleItemResourceValue item2 = it2.next();
-        if (!areEquivalentResourceValues(item1, item2)) {
-          return false;
-        }
-      }
-    } else if ((value1 instanceof StyleResourceValue) != (value2 instanceof StyleResourceValue)) {
-      return false;
-    }
-
-    if (value1 instanceof ArrayResourceValue && value2 instanceof ArrayResourceValue) {
-      ArrayResourceValue array1 = (ArrayResourceValue)value1;
-      ArrayResourceValue array2 = (ArrayResourceValue)value2;
-      if (array1.getElementCount() != array2.getElementCount()) {
-        return false;
-      }
-      for (int i = 0; i < array1.getElementCount(); i++) {
-        if (!array1.getElement(i).equals(array2.getElement(i))) {
-          return false;
-        }
-      }
-    } else if ((value1 instanceof ArrayResourceValue) != (value2 instanceof ArrayResourceValue)) {
-      return false;
-    }
-
-    if (value1 instanceof PluralsResourceValue && value2 instanceof PluralsResourceValue) {
-      PluralsResourceValue plural1 = (PluralsResourceValue)value1;
-      PluralsResourceValue plural2 = (PluralsResourceValue)value2;
-      if (plural1.getPluralsCount() != plural2.getPluralsCount()) {
-        return false;
-      }
-      for (int i = 0; i < plural1.getPluralsCount(); i++) {
-        if (!plural1.getQuantity(i).equals(plural2.getQuantity(i)) || !plural1.getValue(i).equals(plural2.getValue(i))) {
-          return false;
-        }
-      }
-    } else if ((value1 instanceof PluralsResourceValue) != (value2 instanceof PluralsResourceValue)) {
-      return false;
-    }
-
-    String v1 = value1.getValue();
-    String v2 = value2.getValue();
-    if (value1 instanceof BasicFileResourceItem && value2 instanceof BasicFileResourceItem) {
-      PathString path1 = ResourceHelper.toFileResourcePathString(v1);
-      PathString path2 = ResourceHelper.toFileResourcePathString(v2);
-      if (!areEquivalentSources(path1, path2)) {
-        return false;
-      }
-    } else if ((value1 instanceof BasicFileResourceItem) != (value2 instanceof BasicFileResourceItem)) {
-      return false;
-    } else if (!Objects.equals(v1, v2)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  private static boolean areEquivalentSources(@Nullable PathString path1, @Nullable PathString path2) {
-    if (Objects.equals(path1, path2)) {
-      return true;
-    }
-    if (path1 != null && path2 != null) {
-      URI filesystemUri1 = path1.getFilesystemUri();
-      URI filesystemUri2 = path2.getFilesystemUri();
-      URI nonFileUri = filesystemUri2;
-      if (filesystemUri2.getScheme().equals("file") && !filesystemUri1.getScheme().equals("file")) {
-        PathString temp = path1;
-        path1 = path2;
-        path2 = temp;
-        nonFileUri = path1.getFilesystemUri();
-      }
-      String portablePath1 = path1.getPortablePath();
-      String portablePath2 = path2.getPortablePath();
-      if (nonFileUri.getScheme().equals("jar")) {
-        int offset1 = indexOfEnd(portablePath1, "/res/");
-        int offset2 = indexOfEnd(portablePath2, "/res/");
-        return portablePath1.length() - offset1 == portablePath2.length() - offset2 &&
-               portablePath1.regionMatches(offset1, portablePath2, offset2, portablePath1.length() - offset1);
-      }
-    }
-    return false;
-  }
-
-  private static int indexOfEnd(@NotNull String stringToSearch, @SuppressWarnings("SameParameterValue") @NotNull String toSearchFor) {
-    int index = stringToSearch.indexOf(toSearchFor);
-    return index < 0 ? index : index + toSearchFor.length();
   }
 
   private static void checkContents(@NotNull ResourceRepository repository) {
