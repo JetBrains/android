@@ -19,7 +19,6 @@ import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.RULER_SIZE_PX;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 
 import com.android.sdklib.devices.Device;
@@ -70,10 +69,12 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -133,6 +134,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @SwingCoordinate private int myScreenX = DEFAULT_SCREEN_OFFSET_X;
   @SwingCoordinate private int myScreenY = DEFAULT_SCREEN_OFFSET_Y;
   private boolean myIsCanvasResizing = false;
+  private boolean myIsShowModelNames = false;
   private boolean myStackVertically;
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
@@ -211,6 +213,21 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public boolean isLayoutDisabled() {
     return myIsCanvasResizing;
+  }
+
+  public boolean isShowModelNames() {
+    boolean displayModelNameFlag = StudioFlags.NELE_DISPLAY_MODEL_NAME.get();
+    if (!displayModelNameFlag) {
+      Logger.getInstance(getClass()).info("Displaying model name is not enabled.");
+    }
+    return displayModelNameFlag && myIsShowModelNames;
+  }
+
+  /**
+   * Set to display the model names on the top of SceneViews or not.
+   */
+  public void setShowModelNames(boolean displayed) {
+    myIsShowModelNames = displayed;
   }
 
   @NotNull
@@ -310,6 +327,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return rectangle;
     }
 
+    // Graphic for measuring the name label size.
+    Graphics g = getGraphics();
+
     int leftBound = viewRect.x;
     int topBound = viewRect.y;
     int rightBound = viewRect.x + viewRect.width;
@@ -331,7 +351,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         // The top side of SceneView shouldn't cover other SceneViews.
         SceneView previousSceneView = sceneViews.get(index - 1);
         int previousBottom = previousSceneView.getY() + previousSceneView.getSize().height;
-        rectangle.y = Math.max(topBound, (previousBottom + sceneView.getY()) / 2);
+        rectangle.y = Math.max(topBound, (previousBottom + sceneView.getY() - sceneView.getNameLabelHeight(g)) / 2);
       }
 
       // Calculate bottom bound (represent by height).
@@ -343,7 +363,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         // The bottom side of SceneView shouldn't cover other SceneViews.
         SceneView nextSceneView = sceneViews.get(index + 1);
         int bottom = sceneView.getY() + sceneView.getSize().height;
-        rectangle.height = Math.min(bottomBound, (bottom + nextSceneView.getY()) / 2) - rectangle.y;
+        rectangle.height = Math.min(bottomBound, (bottom + nextSceneView.getY() - nextSceneView.getNameLabelHeight(g)) / 2) - rectangle.y;
       }
     }
     else {
@@ -524,9 +544,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
       if (myStackVertically) {
         // top/bottom stacking
+        // Graphic for measuring the size of name label.
+        Graphics g = getGraphics();
+        nextY += sceneView.getNameLabelHeight(g);
         sceneView.setLocation(nextX, nextY);
         nextY += sceneView.getSize().height + SCREEN_DELTA;
         if (secondView != null) {
+          nextY += secondView.getNameLabelHeight(g);
           secondView.setLocation(nextX, nextY);
           nextY += secondView.getSize().height + SCREEN_DELTA;
         }
@@ -588,14 +612,18 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * @return the required height to display all {@link SceneView}s.
    */
   private int getRequiredHeight() {
+    // Graphic for measuring the name label size of SceneView.
+    Graphics g = getGraphics();
     int requiredHeight = 0;
     if (myStackVertically) {
       for (SceneManager sceneManager : myModelToSceneManagers.values()) {
         SceneView view = sceneManager.getSceneView();
+        requiredHeight += view.getNameLabelHeight(g);
         requiredHeight += view.getSize().height;
         requiredHeight += SCREEN_DELTA;
         SceneView secondView = ((LayoutlibSceneManager)sceneManager).getSecondarySceneView();
         if (secondView != null) {
+          requiredHeight += secondView.getNameLabelHeight(g);
           requiredHeight += secondView.getSize().height;
           requiredHeight += SCREEN_DELTA;
         }

@@ -19,13 +19,18 @@ import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,11 +39,27 @@ import org.jetbrains.annotations.Nullable;
  * This is actually painted by {@link ScreenViewLayer}.
  */
 abstract class ScreenViewBase extends SceneView {
+
+  /**
+   * Distance between the bottom bound of model name and top bound of SceneView.
+   */
+  @SwingCoordinate private static final int NAME_LABEL_BOTTOM_MARGIN_PX = 5;
+
   private final ColorSet myColorSet = new AndroidColorSet();
   protected boolean myIsSecondary;
 
   public ScreenViewBase(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
     super(surface, manager);
+  }
+
+  @Override
+  public int getNameLabelHeight(@NotNull Graphics graphics) {
+    if (StudioFlags.NELE_DISPLAY_MODEL_NAME.get() && getSurface().isShowModelNames()) {
+      Font font = graphics.getFont();
+      FontMetrics metrics = graphics.getFontMetrics(font);
+      return metrics.getHeight() + NAME_LABEL_BOTTOM_MARGIN_PX;
+    }
+    return 0;
   }
 
   /**

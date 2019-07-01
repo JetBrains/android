@@ -347,6 +347,11 @@ public final class StudioFlags {
     "Support Actionbar in property panel",
     false);
 
+  public static final Flag<Boolean> NELE_DISPLAY_MODEL_NAME = Flag.create(
+    NELE, "display.model.name", "Display Model Name",
+    "Enable the feature which can display the model name in Layout Editor.",
+    true);
+
   private static final FlagGroup NAV_EDITOR = new FlagGroup(FLAGS, "nav", "Navigation Editor");
   public static final Flag<Boolean> NAV_NEW_PROPERTY_PANEL = Flag.create(
     NAV_EDITOR, "new.property", "Enable the new Property Panel",
