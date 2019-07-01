@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -71,6 +72,6 @@ public abstract class AndroidStudioGradleAction extends AnAction {
       return false;
     }
     GradleProjectInfo info = GradleProjectInfo.getInstance(project);
-    return info.isBuildWithGradle() && !info.getAndroidModules().isEmpty();
+    return info.isBuildWithGradle() && (!info.getAndroidModules().isEmpty() || IdeInfo.getInstance().isAndroidStudio());
   }
 }
