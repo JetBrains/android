@@ -28,6 +28,7 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.android.tools.perflogger.Metric;
 import com.android.tools.perflogger.Metric.MetricSample;
 import com.google.common.util.concurrent.Futures;
@@ -39,11 +40,8 @@ import java.util.concurrent.TimeUnit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Rule;
 
 public class RenderBasePerfgateTest extends AndroidTestCase {
-
-  @Rule public final RestoreFlagRule myRestoreFlagRule = new RestoreFlagRule<>(StudioFlags.NELE_NATIVE_LAYOUTLIB);
 
   @Language("XML")
   private static final String SIMPLE_LAYOUT = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -78,6 +76,8 @@ public class RenderBasePerfgateTest extends AndroidTestCase {
     try {
       RenderTestUtil.afterRenderTestCase();
     } finally {
+      StudioFlags.NELE_NATIVE_LAYOUTLIB.clearOverride();
+      FrameworkResourceRepositoryManager.getInstance().clearCache();
       super.tearDown();
     }
   }
