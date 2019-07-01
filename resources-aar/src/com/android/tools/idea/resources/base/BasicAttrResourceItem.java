@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
  * Resource item representing an attr resource.
  */
 public class BasicAttrResourceItem extends BasicValueResourceItemBase implements AttrResourceValue {
-  @NotNull private final Set<AttributeFormat> myFormats;
+  @NotNull private Set<AttributeFormat> myFormats;
   /** The keys are enum or flag names, the values are corresponding numeric values. */
   @NotNull private final Map<String, Integer> myValueMap;
   /** The keys are enum or flag names, the values are the value descriptions. */
@@ -84,6 +84,15 @@ public class BasicAttrResourceItem extends BasicValueResourceItemBase implements
     return myFormats;
   }
 
+  /**
+   * Replaces the set of the allowed attribute formats. Intended to be called only by the resource repository code.
+   *
+   * @param formats the new set of the allowed attribute formats
+   */
+  public final void setFormats(@NotNull Set<AttributeFormat> formats) {
+    myFormats = ImmutableSet.copyOf(formats);
+  }
+
   @Override
   @NotNull
   public final Map<String, Integer> getAttributeValues() {
@@ -125,7 +134,10 @@ public class BasicAttrResourceItem extends BasicValueResourceItemBase implements
    */
   @NotNull
   public BasicAttrReference createReference() {
-    return new BasicAttrReference(getNamespace(), getName(), getSourceFile(), getVisibility(), myDescription, myGroupName);
+    BasicAttrReference attrReference =
+        new BasicAttrReference(getNamespace(), getName(), getSourceFile(), getVisibility(), myDescription, myGroupName);
+    attrReference.setNamespaceResolver(getNamespaceResolver());
+    return attrReference;
   }
 
   @Override

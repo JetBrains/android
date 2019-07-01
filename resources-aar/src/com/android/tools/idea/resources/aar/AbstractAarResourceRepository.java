@@ -145,7 +145,12 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
 
   @Override
   @NotNull
-  public String getDisplayName() {
+  public final String getDisplayName() {
     return myLibraryName == null ? "Android Framework" : myLibraryName;
+  }
+
+  @Override
+  public final boolean containsUserDefinedResources() {
+    return false;
   }
 }

@@ -92,6 +92,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
+        "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module, test]",

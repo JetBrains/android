@@ -18,7 +18,6 @@ package com.android.tools.idea.res;
 import com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl.CacheInvalidator;
 import com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl.ManageLruProjectFilesTask;
 import com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl.PruneTask;
-import com.google.common.collect.Lists;
 import com.intellij.mock.MockProgressIndicator;
 import com.intellij.mock.MockProjectEx;
 import com.intellij.openapi.Disposable;
@@ -27,29 +26,53 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.picocontainer.MutablePicoContainer;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-
 /**
- * Tests the ResourceFolderRepositoryFileCache.
+ * Tests for {@link ResourceFolderRepositoryFileCacheImpl}.
  */
 public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
+  private ResourceFolderRepositoryFileCacheImpl myOldFileCacheService;
 
-  private ResourceFolderRepositoryFileCache myOldFileCacheService;
+  @NotNull
+  private static ResourceFolderRepositoryFileCacheImpl getCache() {
+    return (ResourceFolderRepositoryFileCacheImpl)ResourceFolderRepositoryFileCacheService.get();
+  }
+
+  @NotNull
+  private static ResourceFolderRepositoryFileCacheImpl overrideCacheService(ResourceFolderRepositoryFileCacheImpl newCache) {
+    MutablePicoContainer applicationContainer = (MutablePicoContainer)ApplicationManager.getApplication().getPicoContainer();
+
+    // Use a file cache that has per-test root directories instead of sharing the system directory.
+    // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
+    ResourceFolderRepositoryFileCacheImpl oldCache =
+        (ResourceFolderRepositoryFileCacheImpl)applicationContainer.getComponentInstance(ResourceFolderRepositoryFileCache.class.getName());
+    applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache.class.getName());
+    applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache.class.getName(), newCache);
+    return oldCache;
+  }
+
+  @NotNull
+  private VirtualFile getResourceDir() {
+    List<VirtualFile> resourceDirectories = ResourceFolderManager.getInstance(myFacet).getFolders();
+    assertNotNull(resourceDirectories);
+    assertSize(1, resourceDirectories);
+    return resourceDirectories.get(0);
+  }
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    ResourceFolderRepositoryFileCache cache = new ResourceFolderRepositoryFileCacheImpl(
-      new File(myFixture.getTempDirPath()));
+    ResourceFolderRepositoryFileCacheImpl cache = new ResourceFolderRepositoryFileCacheImpl(new File(myFixture.getTempDirPath()));
     myOldFileCacheService = overrideCacheService(cache);
   }
 
@@ -63,49 +86,29 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     }
   }
 
-  private static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
-    MutablePicoContainer applicationContainer = (MutablePicoContainer)
-      ApplicationManager.getApplication().getPicoContainer();
-
-    // Use a file cache that has per-test root directories instead of sharing the system directory.
-    // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
-    ResourceFolderRepositoryFileCache oldCache =
-      (ResourceFolderRepositoryFileCache)applicationContainer.getComponentInstance(ResourceFolderRepositoryFileCache.class.getName());
-    applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache.class.getName());
-    applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache.class.getName(), newCache);
-    return oldCache;
-  }
-
-  private VirtualFile getResourceDir() {
-    List<VirtualFile> resourceDirectories = ResourceFolderManager.getInstance(myFacet).getFolders();
-    assertNotNull(resourceDirectories);
-    assertSize(1, resourceDirectories);
-    return resourceDirectories.get(0);
-  }
-
-  public void testInvalidationBlocksDirectoryQuery() throws Exception {
-    ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
+  public void testInvalidationBlocksDirectoryQuery() {
+    ResourceFolderRepositoryFileCacheImpl cache = getCache();
 
     VirtualFile resDir = getResourceDir();
-    File resCacheDir = cache.getResourceDir(getProject(), resDir);
+    Path resCacheDir = cache.getCachingData(getProject(), resDir, null).getCacheFile();
     assertNotNull(resCacheDir);
     assertTrue(cache.isValid());
 
     // Now invalidate, and check blocked.
     cache.invalidate();
     assertFalse(cache.isValid());
-    resCacheDir = cache.getResourceDir(getProject(), resDir);
-    assertNull(resCacheDir);
+    ResourceFolderRepositoryCachingData cachingData = cache.getCachingData(getProject(), resDir, null);
+    assertNull(cachingData);
 
     // Remove the invalidation stamp. We can use the cache again.
     cache.delete();
-    resCacheDir = cache.getResourceDir(getProject(), resDir);
+    resCacheDir = cache.getCachingData(getProject(), resDir, null).getCacheFile();
     assertNotNull(resCacheDir);
     assertTrue(cache.isValid());
   }
 
   public void testLRUListManagement() throws Exception {
-    ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
+    ResourceFolderRepositoryFileCacheImpl cache = getCache();
     File rootDir = cache.getRootDir();
     assertNotNull(rootDir);
 
@@ -114,8 +117,8 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
 
     // Try adding one.
     int lruLimit = 4;
-    List<Pair<Project, File>> curProjectFiles = Lists.newArrayList();
-    List<File> projectsToRemove = ManageLruProjectFilesTask.updateLRUList(getProject(), projectCacheList, lruLimit);
+    List<Pair<Project, File>> curProjectFiles = new ArrayList<>();
+    List<File> projectsToRemove = ManageLruProjectFilesTask.updateLruList(getProject(), projectCacheList, lruLimit);
     assertEmpty(projectsToRemove);
     assertSize(1, projectCacheList);
     curProjectFiles.add(Pair.create(getProject(), cache.getProjectDir(getProject()).toFile()));
@@ -132,7 +135,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
       Path mockProjectCacheDir = cache.getProjectDir(mockProject);
       assertNotNull(mockProjectCacheDir);
       curProjectFiles.add(Pair.create(mockProject, mockProjectCacheDir.toFile()));
-      projectsToRemove = ManageLruProjectFilesTask.updateLRUList(mockProject, projectCacheList, lruLimit);
+      projectsToRemove = ManageLruProjectFilesTask.updateLruList(mockProject, projectCacheList, lruLimit);
       if (curProjectFiles.size() > lruLimit) {
         assertSize(1, projectsToRemove);
         assertContainsElements(projectsToRemove, curProjectFiles.get(numOverLimit).second);
@@ -146,7 +149,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     }
 
     // Try pushing one of the elements still on the list to the front.
-    projectsToRemove = ManageLruProjectFilesTask.updateLRUList(curProjectFiles.get(numOverLimit + 1).first, projectCacheList, lruLimit);
+    projectsToRemove = ManageLruProjectFilesTask.updateLruList(curProjectFiles.get(numOverLimit + 1).first, projectCacheList, lruLimit);
     assertEmpty(projectsToRemove);
     assertEquals(projectCacheList.get(0), curProjectFiles.get(numOverLimit + 1).second);
 
@@ -162,15 +165,15 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     List<File> projectDirList = addProjectDirectories(lruLimit, overLimit);
 
     // Now add current project to front, sweep, and check.
-    ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
+    ResourceFolderRepositoryFileCacheImpl cache = getCache();
     Path curProjectCacheDir = cache.getProjectDir(getProject());
     assertNotNull(curProjectCacheDir);
     FileUtil.ensureExists(curProjectCacheDir.toFile());
-    List<File> removed = ManageLruProjectFilesTask.updateLRUList(getProject(), projectDirList, lruLimit * 2);
+    List<File> removed = ManageLruProjectFilesTask.updateLruList(getProject(), projectDirList, lruLimit * 2);
     assertEmpty(removed);
     ++overLimit;
     ManageLruProjectFilesTask task = new ManageLruProjectFilesTask(getProject());
-    task.maintainLRUCache(lruLimit);
+    task.maintainLruCache(lruLimit);
 
     for (int i = 0; i < lruLimit + overLimit; ++i) {
       if (i < lruLimit) {
@@ -188,14 +191,14 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     List<File> projectDirList = addProjectDirectories(lruLimit, overLimit);
 
     // Check that the expected directories exist before invalidation.
-    ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
+    ResourceFolderRepositoryFileCacheImpl cache = getCache();
     assertTrue(cache.isValid());
     ManageLruProjectFilesTask task = new ManageLruProjectFilesTask(getProject());
-    task.maintainLRUCache(lruLimit);
+    task.maintainLruCache(lruLimit);
     Path curProjectCacheDir = cache.getProjectDir(getProject());
     assertNotNull(curProjectCacheDir);
     FileUtil.ensureExists(curProjectCacheDir.toFile());
-    List<File> removed = ManageLruProjectFilesTask.updateLRUList(getProject(), projectDirList, lruLimit * 2);
+    List<File> removed = ManageLruProjectFilesTask.updateLruList(getProject(), projectDirList, lruLimit * 2);
     assertEmpty(removed);
     ++overLimit;
     for (int i = 0; i < lruLimit + overLimit; ++i) {
@@ -211,7 +214,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     CacheInvalidator invalidator = new CacheInvalidator();
     invalidator.invalidateCaches();
     assertFalse(cache.isValid());
-    task.maintainLRUCache(lruLimit);
+    task.maintainLruCache(lruLimit);
     for (int i = 0; i < lruLimit + overLimit; ++i) {
       assertFalse(projectDirList.get(i).exists());
     }
@@ -219,8 +222,8 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
   }
 
   private List<File> addProjectDirectories(int lruLimit, int overLimit) throws IOException {
-    ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
-    List<File> projectDirList = Lists.newArrayList();
+    ResourceFolderRepositoryFileCacheImpl cache = getCache();
+    List<File> projectDirList = new ArrayList<>();
     // Fill the cache directory with a bunch of mock project directories.
     for (int i = 0; i < lruLimit + overLimit; ++i) {
       Project mockProject = new MockProjectWithName(getProject(), "p" + i);
@@ -228,7 +231,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
       assertNotNull(mockProjectCacheDir);
       FileUtil.ensureExists(mockProjectCacheDir.toFile());
       assertTrue(Files.exists(mockProjectCacheDir));
-      List<File> removed = ManageLruProjectFilesTask.updateLRUList(mockProject, projectDirList, lruLimit * 2);
+      List<File> removed = ManageLruProjectFilesTask.updateLruList(mockProject, projectDirList, lruLimit * 2);
       assertEmpty(removed);
     }
     // Serialize it.
@@ -239,9 +242,9 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
   }
 
   public void testPruneResourceCachesInProject() throws IOException {
-    ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
+    ResourceFolderRepositoryFileCacheImpl cache = getCache();
     VirtualFile resourceDir = getResourceDir();
-    File resourceCacheDir = cache.getResourceDir(getProject(), resourceDir);
+    File resourceCacheDir = cache.getCachingData(getProject(), resourceDir, null).getCacheFile().toFile();
     assertNotNull(resourceCacheDir);
     FileUtil.ensureExists(resourceCacheDir);
     // Add a dummy directories alongside the real cache directory.
@@ -256,64 +259,13 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     assertTrue(resourceCacheDir.exists());
   }
 
-  public void testCacheVersionCheck() throws IOException {
-    ResourceFolderRepositoryFileCacheImpl cache =
-      (ResourceFolderRepositoryFileCacheImpl)ResourceFolderRepositoryFileCacheService.get();
-    // Creating the root dir the first time gives us a stamp file.
-    File rootDir = cache.getRootDir();
-    assertNotNull(rootDir);
-    assertTrue(cache.isVersionSame(rootDir));
-
-    // If we delete the cache, it'll be empty without a stamp file.
-    cache.delete();
-    assertFalse(rootDir.exists());
-    assertFalse(cache.isVersionSame(rootDir));
-
-    // If we imagine a situation before the stamp file was introduced into the codebase
-    // (root dir is made and it has content, but no stamp file) it is not valid.
-    assertTrue(rootDir.mkdirs());
-    List<File> files = addProjectDirectories(3, 0);
-    for (File file : files) {
-      assertTrue(file.exists());
-    }
-    assertFalse(cache.isVersionSame(rootDir));
-    assertFalse(cache.isValid());
-
-    // Now try setting up the correct version and a few directories (stamping happens automatically).
-    cache.delete();
-    files = addProjectDirectories(3, 0);
-    for (File file : files) {
-      assertTrue(file.exists());
-    }
-    assertTrue(cache.isVersionSame(rootDir));
-    assertTrue(cache.isValid());
-
-    // Now try overwriting version stamp with a too old version.
-    cache.stampVersion(rootDir, ResourceFolderRepositoryFileCacheImpl.EXPECTED_CACHE_VERSION - 1);
-    assertFalse(cache.isVersionSame(rootDir));
-    assertFalse(cache.isValid());
-    // The management task should clean up old files if the version is invalid.
-    ManageLruProjectFilesTask task = new ManageLruProjectFilesTask(getProject());
-    task.performInDumbMode(new MockProgressIndicator());
-    assertFalse(rootDir.exists());
-    for (File file : files) {
-      assertFalse(file.exists());
-    }
-    assertFalse(cache.isVersionSame(rootDir));
-    // However, once anything grabs the root dir again, it is stamped and valid again.
-    rootDir = cache.getRootDir();
-    assertNotNull(rootDir);
-    assertTrue(cache.isVersionSame(rootDir));
-    assertTrue(cache.isValid());
-  }
-
   /**
    * Mock project that will use different directory names (vs the standard Mock, which has an empty name).
    */
   private static class MockProjectWithName extends MockProjectEx {
     private final String myName;
 
-    public MockProjectWithName(@NotNull Disposable parentDisposable, String name) {
+    MockProjectWithName(@NotNull Disposable parentDisposable, @NotNull String name) {
       super(parentDisposable);
       myName = name;
     }

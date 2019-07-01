@@ -36,7 +36,6 @@ import org.jetbrains.android.util.AndroidResourceUtil
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 
-
 /**
  * [DataFlavor] for [ResourceUrl]
  */
@@ -119,11 +118,15 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
 }
 
 fun createTransferable(assetSet: Asset): Transferable {
+  val resourceUrl = assetSet.resourceItem.referenceToSelf.resourceUrl
+
   return object : Transferable {
-    override fun getTransferData(flavor: DataFlavor?): Any? = when (flavor) {
-      RESOURCE_URL_FLAVOR -> getResourceUrl(assetSet)
-      DataFlavor.stringFlavor -> getResourceUrl(assetSet).toString()
-      else -> null
+    override fun getTransferData(flavor: DataFlavor?): Any? {
+      return when (flavor) {
+        RESOURCE_URL_FLAVOR -> resourceUrl
+        DataFlavor.stringFlavor -> resourceUrl.toString()
+        else -> null
+      }
     }
 
     override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean = flavor in SUPPORTED_DATA_FLAVORS
@@ -132,6 +135,3 @@ fun createTransferable(assetSet: Asset): Transferable {
 
   }
 }
-
-private fun getResourceUrl(asset: Asset) =
-  asset.resourceItem.referenceToSelf.resourceUrl

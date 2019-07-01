@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class BasicArrayResourceItem extends BasicValueResourceItemBase implements ArrayResourceValue {
   @NotNull private final List<String> myElements;
+  private final int myDefaultIndex;
 
   /**
    * Initializes the resource.
@@ -41,13 +42,17 @@ public final class BasicArrayResourceItem extends BasicValueResourceItemBase imp
    * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
    * @param elements the elements  or the array
+   * @param defaultIndex the default index for the {@link #getValue()} method
    */
   public BasicArrayResourceItem(@NotNull String name,
                                 @NotNull ResourceSourceFile sourceFile,
                                 @NotNull ResourceVisibility visibility,
-                                @NotNull List<String> elements) {
+                                @NotNull List<String> elements,
+                                int defaultIndex) {
     super(ResourceType.ARRAY, name, sourceFile, visibility);
     myElements = elements;
+    assert elements.isEmpty() || defaultIndex < elements.size();
+    myDefaultIndex = defaultIndex;
   }
 
   @Override
@@ -69,7 +74,7 @@ public final class BasicArrayResourceItem extends BasicValueResourceItemBase imp
   @Override
   @Nullable
   public String getValue() {
-    return myElements.isEmpty() ? null : myElements.get(0);
+    return myElements.isEmpty() ? null : myElements.get(myDefaultIndex);
   }
 
   @Override
@@ -90,6 +95,7 @@ public final class BasicArrayResourceItem extends BasicValueResourceItemBase imp
     for (String element : myElements) {
       stream.writeString(element);
     }
+    stream.writeInt(myDefaultIndex);
   }
 
   /**
@@ -106,7 +112,11 @@ public final class BasicArrayResourceItem extends BasicValueResourceItemBase imp
     for (int i = 0; i < n; i++) {
       elements.add(stream.readString());
     }
-    BasicArrayResourceItem item = new BasicArrayResourceItem(name, sourceFile, visibility, elements);
+    int defaultIndex = stream.readInt();
+    if (!elements.isEmpty() && defaultIndex >= elements.size()) {
+      throw Base128InputStream.StreamFormatException.invalidFormat();
+    }
+    BasicArrayResourceItem item = new BasicArrayResourceItem(name, sourceFile, visibility, elements, defaultIndex);
     item.setNamespaceResolver(resolver);
     return item;
   }
