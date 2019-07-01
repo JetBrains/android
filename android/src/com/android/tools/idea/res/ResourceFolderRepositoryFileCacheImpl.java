@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.tools.idea.res.AndroidPluginVersion.getAndroidPluginVersion;
+
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Sets;
-import com.google.common.io.Closeables;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.caches.CachesInvalidator;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,8 +32,6 @@ import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -43,10 +41,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -56,21 +57,16 @@ import org.jetbrains.annotations.Nullable;
  * Manages a local file cache for ResourceFolderRepository state, for faster project reload.
  */
 class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryFileCache {
-  private static final String CACHE_DIRECTORY = "resource_folder_cache";
+  private static final String CACHE_DIRECTORY = "caches/project_resources";
   private static final String INVALIDATE_CACHE_STAMP = "invalidate_caches_stamp.dat";
 
-  static final int EXPECTED_CACHE_VERSION = 1;
-  private static final String CACHE_VERSION_FILENAME = "cache_version";
-  // The cache version previously read from the CACHE_VERSION_FILENAME (to avoid re-reading).
-  private Integer myCacheVersion = null;
+  @NotNull private final File myRootDir;
 
-  private final File myRootDir;
-
-  public ResourceFolderRepositoryFileCacheImpl() {
+  ResourceFolderRepositoryFileCacheImpl() {
     myRootDir = new File(PathManager.getSystemPath(), CACHE_DIRECTORY);
   }
 
-  public ResourceFolderRepositoryFileCacheImpl(File rootDirParent) {
+  ResourceFolderRepositoryFileCacheImpl(@NotNull File rootDirParent) {
     myRootDir = new File(rootDirParent, CACHE_DIRECTORY);
   }
 
@@ -80,14 +76,39 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
   @Override
   @Nullable
-  public File getResourceDir(@NotNull Project project, @NotNull VirtualFile resourceDir) {
+  public ResourceFolderRepositoryCachingData getCachingData(@NotNull Project project,
+                                                            @NotNull VirtualFile resourceDir,
+                                                            @Nullable Executor cacheCreationExecutor) {
+    String codeVersion = getAndroidPluginVersion();
+    if (codeVersion == null) {
+      return null;
+    }
+
+    File cacheFile = getCacheFile(project, resourceDir);
+    if (cacheFile == null) {
+      return null;
+    }
+    return new ResourceFolderRepositoryCachingData(cacheFile.toPath(), isValid(), codeVersion, cacheCreationExecutor);
+  }
+
+  @Override
+  public void createDirForProject(@NotNull Project project) throws IOException {
+    Path dir = getProjectDir(project);
+    if (dir == null) {
+      throw new IOException();
+    }
+    FileUtil.ensureExists(dir.toFile());
+  }
+
+  @Nullable
+  private File getCacheFile(@NotNull Project project, @NotNull VirtualFile resourceDir) {
     // If directory is dirty, we cannot use the cache yet.
     if (!isValid()) {
       return null;
     }
     // Make up filename with hashCodes. Try to tolerate hash collisions:
-    // The blob file contents will list the original resourceDir as data source, so if there there is a
-    // hash collision we will detect during load and ignore the blob.
+    // The cache file contents will list the original resourceDir as data source, so a potential
+    // hash collision will be detected during loading and the cache file will be ignored.
     Path projectComponent = getProjectDir(project);
     if (projectComponent == null) {
       return null;
@@ -97,9 +118,9 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     return projectComponent.resolve(dirComponent).toFile();
   }
 
-  @Override
   @Nullable
-  public File getRootDir() {
+  @VisibleForTesting
+  File getRootDir() {
     File cacheRootDir = myRootDir;
     if (!cacheRootDir.exists()) {
       // If this is the first time the root directory is created, stamp it with a version.
@@ -107,7 +128,6 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
         getLogger().error(String.format("Failed to create cache root directory %1$s", cacheRootDir));
         return null;
       }
-      stampVersion(cacheRootDir, EXPECTED_CACHE_VERSION);
     }
     if (!cacheRootDir.isDirectory()) {
       getLogger().error(String.format("Cache root dir %1$s is not a directory", cacheRootDir));
@@ -116,9 +136,15 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     return cacheRootDir;
   }
 
-  @Override
+  /**
+   * Returns the parent directory where caches for a given project is stored.
+   * Doesn't matter if the cache is invalidated.
+   *
+   * @return the project cache dir, or null on IO exceptions
+   */
+  @VisibleForTesting
   @Nullable
-  public Path getProjectDir(@NotNull Project project) {
+  Path getProjectDir(@NotNull Project project) {
     File rootDir = getRootDir();
     if (rootDir == null) {
       return null;
@@ -136,7 +162,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       return;
     }
     File stamp = new File(rootDir, INVALIDATE_CACHE_STAMP);
-    String errMsg = "failed to write cache invalidating stamp file " + stamp;
+    String errMsg = "Failed to write cache invalidating stamp file " + stamp;
     try {
       if (!stamp.createNewFile()) {
         getLogger().error(errMsg);
@@ -147,8 +173,11 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     }
   }
 
-  @Override
-  public void delete() {
+  /**
+   * Deletes the cache from disk, clearing the invalidation stamp.
+   */
+  @VisibleForTesting
+  void delete() {
     File cacheRootDir = getRootDir();
     if (cacheRootDir == null) {
       return;
@@ -167,72 +196,19 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
     // Finally, delete the stamp and the directory.
     FileUtil.delete(cacheRootDir);
-    myCacheVersion = null;
   }
 
-  @Override
-  public boolean isValid() {
+  /**
+   * Checks if the cache is valid (not invalidated).
+   */
+  @VisibleForTesting
+  boolean isValid() {
     File rootDir = getRootDir();
     if (rootDir == null) {
       return false;
     }
-    if (!isVersionSame(rootDir)) {
-      return false;
-    }
     File stamp = new File(rootDir, INVALIDATE_CACHE_STAMP);
     return !stamp.exists();
-  }
-
-  @VisibleForTesting
-  boolean isVersionSame(@NotNull File rootDir) {
-    if (myCacheVersion != null) {
-      return myCacheVersion == EXPECTED_CACHE_VERSION;
-    }
-    File versionFile = new File(rootDir, CACHE_VERSION_FILENAME);
-    if (!versionFile.exists()) {
-      return false;
-    }
-    try {
-      final DataInputStream in = new DataInputStream(new FileInputStream(versionFile));
-      try {
-        myCacheVersion = in.readInt();
-      }
-      finally {
-        in.close();
-      }
-    }
-    catch (FileNotFoundException e) {
-      getLogger().error("Could not read cache version from file: " + versionFile, e);
-      return false;
-    }
-    catch (IOException e) {
-      getLogger().error("Could not read cache version from file: " + versionFile, e);
-      return false;
-    }
-    return myCacheVersion == EXPECTED_CACHE_VERSION;
-  }
-
-  @Override
-  @VisibleForTesting
-  public void stampVersion(@NotNull File rootDir, int version) {
-    File versionFile = new File(rootDir, CACHE_VERSION_FILENAME);
-    try {
-      FileUtil.ensureExists(rootDir);
-      final DataOutputStream out = new DataOutputStream(new FileOutputStream(versionFile));
-      try {
-        out.writeInt(version);
-        myCacheVersion = version;
-      }
-      finally {
-        out.close();
-      }
-    }
-    catch (FileNotFoundException e) {
-      getLogger().error("Could not write cache version to file: " + versionFile, e);
-    }
-    catch (IOException e) {
-      getLogger().error("Could not write cache version to file: " + versionFile, e);
-    }
   }
 
   /**
@@ -250,7 +226,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
     private static final int MAX_PROJECT_CACHES = 12;
 
-    public ManageLruProjectFilesTask(@NotNull Project project) {
+    ManageLruProjectFilesTask(@NotNull Project project) {
       myProject = project;
     }
 
@@ -259,13 +235,13 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       if (myProject.isDisposed()) {
         return;
       }
-      maintainLRUCache(MAX_PROJECT_CACHES);
+      maintainLruCache(MAX_PROJECT_CACHES);
     }
 
     @VisibleForTesting
-    void maintainLRUCache(int maxProjectCaches) {
+    void maintainLruCache(int maxProjectCaches) {
       assert maxProjectCaches > 0;
-      ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
+      ResourceFolderRepositoryFileCacheImpl cache = getCache();
       File cacheRootDir = cache.getRootDir();
       if (cacheRootDir == null) {
         return;
@@ -275,10 +251,11 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
         cache.delete();
         return;
       }
+
       synchronized (PROJECT_LRU_LOCK) {
         try {
           List<File> projectsList = loadListOfProjectCaches(cacheRootDir);
-          List<File> projectsToRemove = updateLRUList(myProject, projectsList, maxProjectCaches);
+          List<File> projectsToRemove = updateLruList(myProject, projectsList, maxProjectCaches);
           pruneOldProjects(cacheRootDir, projectsToRemove);
           writeListOfProjectCaches(cacheRootDir, projectsList);
         }
@@ -289,56 +266,35 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     }
 
     @VisibleForTesting
+    @NotNull
     static List<File> loadListOfProjectCaches(@NotNull File cacheRootDir) throws IOException {
       File lruFile = new File(cacheRootDir, LRU_FILE);
-      if (!lruFile.exists()) {
-        return ContainerUtil.newArrayList();
+      try (ObjectInputStream stream = new ObjectInputStream(new FileInputStream(lruFile))) {
+        return (List<File>)stream.readObject();
       }
-      FileInputStream fin = null;
-      try {
-        fin = new FileInputStream(lruFile);
-        ObjectInputStream ois = new ObjectInputStream(fin);
-        try {
-          return (List<File>)ois.readObject();
-        }
-        catch (ClassNotFoundException e) {
-          throw new IOException(e);
-        }
-        catch (ClassCastException e) {
-          throw new IOException(e);
-        }
-        finally {
-          Closeables.close(ois, false);
-        }
+      catch (FileNotFoundException e) {
+        return new ArrayList<>();
       }
-      finally {
-        Closeables.close(fin, false);
+      catch (ClassNotFoundException e) {
+        throw new IOException(e);
+      }
+      catch (ClassCastException e) {
+        throw new IOException(e);
       }
     }
 
     @VisibleForTesting
     static void writeListOfProjectCaches(@NotNull File cacheRootDir, List<File> projectsList) throws IOException {
       File lruFile = new File(cacheRootDir, LRU_FILE);
-      FileOutputStream fos = null;
-      try {
-        fos = new FileOutputStream(lruFile);
-        ObjectOutputStream oos = new ObjectOutputStream(fos);
-        try {
-          oos.writeObject(projectsList);
-        }
-        finally {
-          Closeables.close(oos, false);
-        }
-      }
-      finally {
-        Closeables.close(fos, false);
+      try (ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream(lruFile))) {
+        stream.writeObject(projectsList);
       }
     }
 
     @VisibleForTesting
-    static List<File> updateLRUList(Project currentProject, List<File> projectsList, int maxProjectCaches) {
-      List<File> projectsToRemove = ContainerUtil.newArrayList();
-      Path currentProjectPath = ResourceFolderRepositoryFileCacheService.get().getProjectDir(currentProject);
+    static List<File> updateLruList(@NotNull Project currentProject, @NotNull List<File> projectsList, int maxProjectCaches) {
+      List<File> projectsToRemove = new ArrayList<>();
+      Path currentProjectPath = getCache().getProjectDir(currentProject);
       if (currentProjectPath == null) {
         return projectsToRemove;
       }
@@ -352,7 +308,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       return projectsToRemove;
     }
 
-    private static void pruneOldProjects(@NotNull File cacheRootDir, List<File> projectsToRemove) {
+    private static void pruneOldProjects(@NotNull File cacheRootDir, @NotNull List<File> projectsToRemove) {
       // Only attempt to remove directories that are a sub dir of the root.
       File[] subCaches = cacheRootDir.listFiles();
       if (subCaches == null) {
@@ -371,6 +327,11 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     }
   }
 
+  @NotNull
+  private static ResourceFolderRepositoryFileCacheImpl getCache() {
+    return (ResourceFolderRepositoryFileCacheImpl)ResourceFolderRepositoryFileCacheService.get();
+  }
+
   /**
    * Task that prunes unused resource directory caches within a given Project (which may come about
    * e.g., if one has moved a resource directory from one module to another).
@@ -378,7 +339,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   static class PruneTask extends DumbModeTask {
     @NotNull private final Project myProject;
 
-    public PruneTask(@NotNull Project project) {
+    PruneTask(@NotNull Project project) {
       myProject = project;
     }
 
@@ -388,16 +349,16 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
         return;
       }
 
-      ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
+      ResourceFolderRepositoryFileCacheImpl cache = getCache();
       Path projectCacheBase = cache.getProjectDir(myProject);
       if (projectCacheBase == null || !Files.exists(projectCacheBase)) {
         return;
       }
       List<AndroidFacet> facets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID);
       Map<VirtualFile, AndroidFacet> resDirectories = AndroidResourceUtil.getResourceDirectoriesForFacets(facets);
-      Set<File> usedCacheDirectories = Sets.newHashSet();
+      Set<File> usedCacheDirectories = new HashSet<>();
       for (VirtualFile resourceDir : resDirectories.keySet()) {
-        File dir = cache.getResourceDir(myProject, resourceDir);
+        File dir = cache.getCacheFile(myProject, resourceDir);
         ContainerUtil.addIfNotNull(usedCacheDirectories, dir);
       }
       File[] cacheFiles = projectCacheBase.toFile().listFiles();

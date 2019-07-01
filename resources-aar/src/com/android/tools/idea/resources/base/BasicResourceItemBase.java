@@ -93,7 +93,7 @@ public abstract class BasicResourceItemBase implements BasicResourceItem, Resour
 
   @Override
   public final boolean isUserDefined() {
-    return false;
+    return getRepository().containsUserDefinedResources();
   }
 
   @Override

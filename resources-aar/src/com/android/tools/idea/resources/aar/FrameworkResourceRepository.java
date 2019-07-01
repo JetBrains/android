@@ -26,11 +26,13 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.resources.base.Base128InputStream;
 import com.android.tools.idea.resources.base.Base128OutputStream;
+import com.android.tools.idea.resources.base.BasicResourceItem;
 import com.android.tools.idea.resources.base.BasicResourceItemBase;
 import com.android.tools.idea.resources.base.BasicValueResourceItemBase;
 import com.android.tools.idea.resources.base.NamespaceResolver;
 import com.android.tools.idea.resources.base.RepositoryConfiguration;
 import com.android.tools.idea.resources.base.RepositoryLoader;
+import com.android.tools.idea.resources.base.ResourceSerializationUtil;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
@@ -78,13 +80,13 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private static final Map<String, String> LANGUAGE_TO_GROUP = ImmutableMap.of("rm", "it");
   private static final String RESOURCES_TABLE_PREFIX = "resources_";
   private static final String RESOURCE_TABLE_SUFFIX = ".bin";
+  private static final String COMPILED_9PNG_EXTENSION = ".compiled.9.png";
 
   private static final Logger LOG = Logger.getInstance(FrameworkResourceRepository.class);
-  private static final String COMPILED_9PNG_EXTENSION = ".compiled.9.png";
 
   private final Set<String> myLanguageGroups = new TreeSet<>();
   private int myNumberOfLanguageGroupsLoadedFromCache;
-  private boolean myUseCompiled9Patches;
+  private final boolean myUseCompiled9Patches;
 
   private FrameworkResourceRepository(@NotNull RepositoryLoader loader, boolean useCompiled9Patches) {
     super(loader, null);
@@ -201,12 +203,6 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
   @Override
   @NotNull
-  public String getDisplayName() {
-    return "Android framework";
-  }
-
-  @Override
-  @NotNull
   public Set<ResourceType> getResourceTypes(@NotNull ResourceNamespace namespace) {
     return namespace == ANDROID_NAMESPACE ? Sets.immutableEnumSet(myResources.keySet()) : ImmutableSet.of();
   }
@@ -257,8 +253,8 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       if (!loadedLanguages.contains(language)) {
         Path cacheFile = fileNameGenerator.getCacheFile(language);
         try (Base128InputStream stream = new Base128InputStream(cacheFile)) {
-          byte[] header = getCacheFileHeader(s -> writeCacheHeaderContent(cachingData, language, s));
-          if (!validateHeader(header, stream)) {
+          byte[] header = ResourceSerializationUtil.getCacheFileHeader(s -> writeCacheHeaderContent(cachingData, language, s));
+          if (!ResourceSerializationUtil.validateContents(header, stream)) {
             // Cache file header doesn't match.
             if (language.isEmpty()) {
               break; // Don't try to load language-specific resources if language-neutral ones could not be loaded.
@@ -279,7 +275,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
           cleanupAfterFailedLoadingFromCache();
           loadedLanguages.clear();
           myNumberOfLanguageGroupsLoadedFromCache = 0;
-          LOG.warn("Unable to load from cache file " + cacheFile.toString(), e);
+          LOG.warn("Failed to load from cache file " + cacheFile.toString(), e);
           break;
         }
       }
@@ -291,8 +287,9 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     for (String language : myLanguageGroups) {
       if (!languagesToSkip.contains(language)) {
         Path cacheFile = fileNameGenerator.getCacheFile(language);
-        byte[] header = getCacheFileHeader(stream -> writeCacheHeaderContent(cachingData, language, stream));
-        createPersistentCache(cacheFile, header, config -> language.equals(getLanguageGroup(config)));
+        byte[] header = ResourceSerializationUtil.getCacheFileHeader(stream -> writeCacheHeaderContent(cachingData, language, stream));
+        ResourceSerializationUtil.createPersistentCache(
+            cacheFile, header, stream -> writeToStream(stream, config -> language.equals(getLanguageGroup(config))));
       }
     }
   }
@@ -367,22 +364,21 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   @NotNull
   private String updateResourcePath(@NotNull String relativeResourcePath) {
     if (myUseCompiled9Patches && relativeResourcePath.endsWith(DOT_9PNG)) {
-      relativeResourcePath =
-        StringUtil.replaceSubstring(relativeResourcePath,
-                                    TextRange.create(relativeResourcePath.length() - DOT_9PNG.length(), relativeResourcePath.length()),
-                                    COMPILED_9PNG_EXTENSION);
+      return StringUtil.replaceSubstring(relativeResourcePath,
+                                         TextRange.create(relativeResourcePath.length() - DOT_9PNG.length(), relativeResourcePath.length()),
+                                         COMPILED_9PNG_EXTENSION);
     }
     return relativeResourcePath;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public String getResourceUrl(@NotNull String relativeResourcePath) {
     return super.getResourceUrl(updateResourcePath(relativeResourcePath));
   }
 
-  @NotNull
   @Override
+  @NotNull
   public PathString getSourceFile(@NotNull String relativeResourcePath, boolean forFileResource) {
     return super.getSourceFile(updateResourcePath(relativeResourcePath), forFileResource);
   }
@@ -506,7 +502,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     }
 
     @Override
-    protected final void addResourceItem(@NotNull BasicResourceItemBase item, @NotNull FrameworkResourceRepository repository) {
+    protected final void addResourceItem(@NotNull BasicResourceItem item, @NotNull FrameworkResourceRepository repository) {
       repository.addResourceItem(item);
     }
 

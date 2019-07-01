@@ -583,7 +583,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
           elements.add(text);
         }
       }
-      return new BasicArrayResourceItem(resourceName, sourceFile, visibility, elements);
+      return new BasicArrayResourceItem(resourceName, sourceFile, visibility, elements, 0);
     }
 
     @NotNull
@@ -593,7 +593,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       for (Resources.Plural.Entry entryMsg : pluralMsg.getEntryList()) {
         values.put(decodeArity(entryMsg.getArity()), decode(entryMsg.getItem()));
       }
-      return new BasicPluralsResourceItem(resourceName, sourceFile, visibility, values);
+      return new BasicPluralsResourceItem(resourceName, sourceFile, visibility, values, null);
     }
 
     @NotNull
