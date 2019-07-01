@@ -49,13 +49,14 @@ abstract public class SceneManager implements Disposable {
   @SuppressWarnings("NullableProblems")
   @NotNull private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
+
   public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull RenderSettings renderSettings) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
 
     myScene = new Scene(this, myDesignSurface, renderSettings);
-    }
+  }
 
   /**
    * Create the SceneView

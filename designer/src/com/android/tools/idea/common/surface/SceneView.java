@@ -27,6 +27,7 @@ import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.configurations.Configuration;
 import com.google.common.collect.ImmutableList;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
@@ -101,6 +102,14 @@ public abstract class SceneView {
   public Dimension getSize() {
     return getSize(null);
   }
+
+  /**
+   * Get the height of the name label which displays the name on the top of SceneView.
+   * The value is sum of text height and space between text and SceneView.
+   *
+   * @param graphics The graphics to provide the font size for measuring.
+   */
+  abstract public int getNameLabelHeight(@NotNull Graphics graphics);
 
   @NotNull
   abstract public Dimension getPreferredSize(@Nullable Dimension dimension);
