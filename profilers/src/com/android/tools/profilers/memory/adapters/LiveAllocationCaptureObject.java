@@ -348,7 +348,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         }
 
         boolean hasNonFullTrackingRegion = !MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(
-          getClient(), mySession, TimeUnit.NANOSECONDS.toMicros(newStartTimeNs), TimeUnit.NANOSECONDS.toMicros(newEndTimeNs));
+          myStage.getStudioProfilers(), mySession, TimeUnit.NANOSECONDS.toMicros(newStartTimeNs),
+          TimeUnit.NANOSECONDS.toMicros(newEndTimeNs));
 
         joiner.execute(() -> myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING));
         updateAllocationContexts(newEndTimeNs);

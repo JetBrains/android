@@ -28,6 +28,7 @@ import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -211,7 +212,7 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
             .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
             .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
             .setSamplingRate(
-              MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
+              Memory.MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
             .build())
         .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
         .setStartupProfilingEnabled(runConfig != null);
