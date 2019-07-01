@@ -28,7 +28,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.perflib.heap.SnapshotBuilder;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
+import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -132,7 +132,7 @@ public class MemoryProfilerTest {
       .addAllocSamplingRateEvents(
         AllocationSamplingRateEvent.newBuilder()
           .setTimestamp(TimeUnit.MICROSECONDS.toNanos(0))
-          .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(1)))
+          .setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(1)))
       .build();
     myMemoryService.setMemoryData(memoryData);
     myStudioProfiler.stop();
