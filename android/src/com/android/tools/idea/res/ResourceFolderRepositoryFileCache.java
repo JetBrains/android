@@ -15,61 +15,38 @@
  */
 package com.android.tools.idea.res;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.io.File;
-import java.nio.file.Path;
+import java.io.IOException;
+import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ResourceFolderRepositoryFileCache {
-
   /**
-   * Returns the blob directory that should be used to read/write the file cache for the given resourceDir.
-   * If cache is invalidated returns null. The caller should avoid reading/writing to the cache in that case.
+   * Creates a {@link ResourceFolderRepositoryCachingData} object for the given project and resource directory.
    *
-   * @param project the project containing the resource directory
-   * @param resourceDir the resource directory which is the source of truth
-   * @return the cache directory, or null if all caches are invalidated
-   */
-  @Nullable File getResourceDir(@NotNull Project project, @NotNull VirtualFile resourceDir);
-
-  /**
-   * Returns the root directory where caches for all projects are stored.
-   * Doesn't matter if the cache is invalidated.
-   *
-   * @return the root dir, or null on IO exceptions
-   */
-  @Nullable File getRootDir();
-
-  /**
-   * Returns the parent directory where caches for a given project is stored.
-   * Doesn't matter if the cache is invalidated.
-   *
-   * @return the project cache dir, or null on IO exceptions
+   * @param project the project
+   * @param resourceDir the resource directory
+   * @param cacheCreationExecutor the executor used for creating a cache file, or null if the cache file
+   *     should not be created if it doesn't exist or is out of date.
+   * @return the created {@link ResourceFolderRepositoryCachingData} object, or null if {@code resourceDir}
+   *     is invalid, or the version of the Android plugin cannot be determined, or if the parent directory of
+   *     the cache file cannot be determined or is inaccessible.
    */
   @Nullable
-  Path getProjectDir(@NotNull Project currentProject);
+  ResourceFolderRepositoryCachingData getCachingData(@NotNull Project project,
+                                                     @NotNull VirtualFile resourceDir,
+                                                     @Nullable Executor cacheCreationExecutor);
+
 
   /**
-   * Mark the cache invalid.
+   * Creates an empty cache directory for the given project.
+   */
+  void createDirForProject(@NotNull Project project) throws IOException;
+
+  /**
+   * Marks the cache invalid.
    */
   void invalidate();
-
-  /**
-   * @return true if the cache is valid (not invalidated).
-   */
-  boolean isValid();
-
-  /**
-   * Delete the cache from disk, clearing the invalidation stamp.
-   */
-  void delete();
-
-  /**
-   * Stamp the cache with the given version.
-   */
-  @VisibleForTesting
-  void stampVersion(@NotNull File rootDir, int version);
 }

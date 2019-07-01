@@ -17,7 +17,9 @@ package com.android.tools.idea.resources.base;
 
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,4 +81,18 @@ public interface LoadableResourceRepository extends SingleNamespaceResourceRepos
   default PathString getOriginalSourceFile(@NotNull String relativeResourcePath, boolean forFileResource) {
     return getSourceFile(relativeResourcePath, forFileResource);
   }
+
+  /**
+   * Creates a {@link ResourceSourceFile} by reading its contents from the given stream.
+   *
+   * @param stream the stream to read data from
+   * @param configurations the repository configurations to select from when creating the ResourceSourceFile
+   */
+  @NotNull
+  default ResourceSourceFile deserializeResourceSourceFile(
+      @NotNull Base128InputStream stream, @NotNull List<RepositoryConfiguration> configurations) throws IOException {
+    return ResourceSourceFileImpl.deserialize(stream, configurations);
+  }
+
+  boolean containsUserDefinedResources();
 }

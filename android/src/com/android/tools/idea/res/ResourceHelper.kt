@@ -1119,7 +1119,7 @@ fun ResourceRepository.getResourceItems(
       val items = getResources(namespace, type) { item ->
         when {
           minVisibility == ResourceVisibility.values()[0] -> true
-          item is ResourceItemWithVisibility -> item.visibility >= minVisibility
+          item is ResourceItemWithVisibility && item.visibility != ResourceVisibility.UNDEFINED -> item.visibility >= minVisibility
           else ->
             // TODO(b/74324283): distinguish between PRIVATE and PRIVATE_XML_ONLY.
             // TODO(namespaces)
