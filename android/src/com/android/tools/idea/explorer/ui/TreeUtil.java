@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.explorer.ui;
 
+import com.intellij.ui.tree.TreePathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,7 +61,7 @@ public class TreeUtil {
       .map(DefaultMutableTreeNode::getPath)
       .map(TreePath::new)
       .toArray(TreePath[]::new);
-    return com.intellij.util.ui.tree.TreeUtil.findCommonPath(paths);
+    return TreePathUtil.findCommonAncestor(paths);
   }
 
   public static int binarySearch(@NotNull TreeNode parent, @NotNull TreeNode key, @NotNull Comparator<TreeNode> comparator) {
