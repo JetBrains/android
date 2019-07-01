@@ -174,6 +174,16 @@ public final class ProfilersTestData {
       .setIsEnded(true).setMemoryHeapdump(Memory.MemoryHeapDumpData.newBuilder().setInfo(info));
   }
 
+  public static Common.Event.Builder generateMemoryAllocSamplingData(Common.Session session,
+                                                                     long timestampNs,
+                                                                     Memory.MemoryAllocSamplingData data) {
+    return Common.Event.newBuilder()
+      .setPid(session.getPid())
+      .setTimestamp(timestampNs)
+      .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+      .setMemoryAllocSampling(data);
+  }
+
   @NotNull
   public static Common.Event.Builder generateCpuThreadEvent(long timestampSeconds, int tid, String name, Cpu.CpuThreadData.State state) {
     return Common.Event.newBuilder()

@@ -32,7 +32,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
@@ -287,7 +286,9 @@ public class MemoryProfiler extends StudioProfiler {
    */
   static boolean isUsingLiveAllocation(@NotNull StudioProfilers profilers, @NotNull Common.Session session) {
     AllocationSamplingRateDataSeries samplingSeries =
-      new AllocationSamplingRateDataSeries(profilers.getClient().getMemoryClient(), session);
+      new AllocationSamplingRateDataSeries(profilers.getClient(),
+                                           session,
+                                           profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
 
     Range dataRange = profilers.getTimeline().getDataRange();
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)dataRange.getMin());
@@ -299,11 +300,14 @@ public class MemoryProfiler extends StudioProfiler {
   /**
    * @return True if live allocation tracking is in FULL mode throughout the entire input time range, false otherwise.
    */
-  public static boolean hasOnlyFullAllocationTrackingWithinRegion(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  public static boolean hasOnlyFullAllocationTrackingWithinRegion(@NotNull StudioProfilers profilers,
                                                                   @NotNull Common.Session session, long startTimeUs, long endTimeUs) {
-    AllocationSamplingRateDataSeries series = new AllocationSamplingRateDataSeries(client, session);
+    AllocationSamplingRateDataSeries series =
+      new AllocationSamplingRateDataSeries(profilers.getClient(),
+                                           session,
+                                           profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
     List<SeriesData<AllocationSamplingRateDurationData>> samplingModes = series.getDataForRange(new Range(startTimeUs, endTimeUs));
-    return samplingModes.size() == 1 && samplingModes.get(0).value.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval() ==
+    return samplingModes.size() == 1 && samplingModes.get(0).value.getCurrentRate().getSamplingNumInterval() ==
                                         MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
   }
 
