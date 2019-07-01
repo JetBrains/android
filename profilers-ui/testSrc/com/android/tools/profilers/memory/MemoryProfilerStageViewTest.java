@@ -34,7 +34,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
+import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
@@ -436,22 +436,22 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(10000).setEndTime(11000))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(1000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(5000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(8000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(10000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
       .build();
@@ -497,22 +497,22 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000).setJavaAllocationCount(100))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(1000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(5000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(8000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(10000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
       .build();

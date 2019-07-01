@@ -28,6 +28,7 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
@@ -537,22 +538,22 @@ public class LiveAllocationCaptureObjectTest {
       MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder().setEndTimestamp(1)
         .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
                                       .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME))
-                                      .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
+                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                          .setSamplingNumInterval(
                                                            MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build()))
         .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
                                       .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(1)))
-                                      .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
+                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                          .setSamplingNumInterval(
                                                            MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build()))
         .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
                                       .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(2)))
-                                      .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
+                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                          .setSamplingNumInterval(
                                                            MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build()))
         .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
                                       .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(3)))
-                                      .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
+                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                          .setSamplingNumInterval(
                                                            MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build()))
         .build();

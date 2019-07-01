@@ -43,7 +43,7 @@ import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
+import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
@@ -191,7 +191,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
                                      .collect(Collectors.toList())) :
       new LegacyGcStatsDataSeries(myClient, mySessionData);
     myGcStatsModel = new DurationDataModel<>(new RangedSeries<>(viewRange, gcSeries));
-    myAllocationSamplingRateDataSeries = new AllocationSamplingRateDataSeries(myClient, mySessionData);
+    myAllocationSamplingRateDataSeries =
+      new AllocationSamplingRateDataSeries(getStudioProfilers().getClient(),
+                                           mySessionData,
+                                           getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
     myAllocationSamplingRateDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, myAllocationSamplingRateDataSeries));
     myDetailedMemoryUsage = new DetailedMemoryUsage(profilers, this);
 
@@ -203,23 +206,21 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myGcStatsModel.setAttachPredicate(
       // Only attach to the object series if live allocation is disabled or the gc event happens within full-tracking mode.
       data -> !useLiveAllocationTracking() ||
-              MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(myClient, mySessionData, data.x, data.x));
+              MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(getStudioProfilers(), mySessionData, data.x, data.x));
     myAllocationSamplingRateDurations.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
     myAllocationSamplingRateDurations.setAttachPredicate(
       data ->
         // The DurationData should attach to the Objects series at both the start and end of the FULL tracking mode region.
-        (data.value.getPreviousRateEvent() != null &&
-         data.value.getPreviousRateEvent().getSamplingRate().getSamplingNumInterval() ==
-         LiveAllocationSamplingMode.FULL.getValue()) ||
-        data.value.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval() ==
-        LiveAllocationSamplingMode.FULL.getValue()
+        (data.value.getPreviousRate() != null &&
+         data.value.getPreviousRate().getSamplingNumInterval() == LiveAllocationSamplingMode.FULL.getValue()) ||
+        data.value.getCurrentRate().getSamplingNumInterval() == LiveAllocationSamplingMode.FULL.getValue()
     );
     myAllocationSamplingRateDurations.setRenderSeriesPredicate(
       (data, series) ->
         // Only show the object series if live allocation is not enabled or if the current sampling rate is FULL.
         !series.getName().equals(myDetailedMemoryUsage.getObjectsSeries().getName()) ||
         (!useLiveAllocationTracking() ||
-         data.value.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval() == LiveAllocationSamplingMode.FULL.getValue())
+         data.value.getCurrentRate().getSamplingNumInterval() == LiveAllocationSamplingMode.FULL.getValue())
     );
     myAllocationSamplingRateUpdatable = new AllocationSamplingRateUpdatable();
 
@@ -769,11 +770,6 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
-  public AllocationSamplingRateDataSeries getAllocationSamplingRateDataSeries() {
-    return myAllocationSamplingRateDataSeries;
-  }
-
-  @NotNull
   DurationDataModel<AllocationSamplingRateDurationData> getAllocationSamplingRateDurations() {
     return myAllocationSamplingRateDurations;
   }
@@ -797,11 +793,23 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     );
 
     try {
-      myClient.setAllocationSamplingRate(
-        SetAllocationSamplingRateRequest.newBuilder()
-          .setSession(mySessionData)
-          .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(mode.getValue()).build())
-          .build());
+      MemoryAllocSamplingData samplingRate = MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(mode.getValue()).build();
+
+      if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+        getStudioProfilers().getClient().getTransportClient().execute(
+          Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
+                                                             .setStreamId(mySessionData.getStreamId())
+                                                             .setPid(mySessionData.getPid())
+                                                             .setType(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING)
+                                                             .setMemoryAllocSampling(samplingRate))
+            .build());
+      }
+      else {
+        getStudioProfilers().getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
+                                                                                       .setSession(mySessionData)
+                                                                                       .setSamplingRate(samplingRate)
+                                                                                       .build());
+      }
     }
     catch (StatusRuntimeException e) {
       getLogger().debug(e);
@@ -903,16 +911,15 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
           return false;
         }
 
-        AllocationSamplingRateEvent samplingInfo = data.get(data.size() - 1).value.getCurrentRateEvent();
-        return LiveAllocationSamplingMode.getModeFromFrequency(samplingInfo.getSamplingRate().getSamplingNumInterval()) ==
-               LiveAllocationSamplingMode.FULL;
+        MemoryAllocSamplingData samplingInfo = data.get(data.size() - 1).value.getCurrentRate();
+        return LiveAllocationSamplingMode.getModeFromFrequency(samplingInfo.getSamplingNumInterval()) == LiveAllocationSamplingMode.FULL;
       });
       myGcDurationLegend =
         new EventLegend<>("GC Duration", duration -> TimeAxisFormatter.DEFAULT
           .getFormattedString(TimeUnit.MILLISECONDS.toMicros(1), duration.getDurationUs(), true));
       mySamplingRateDurationLegend =
         new EventLegend<>("Tracking", duration -> LiveAllocationSamplingMode
-          .getModeFromFrequency(duration.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval()).getDisplayName());
+          .getModeFromFrequency(duration.getCurrentRate().getSamplingNumInterval()).getDisplayName());
 
       List<Legend> legends = isTooltip ? Arrays.asList(myOtherLegend, myCodeLegend, myStackLegend, myGraphicsLegend,
                                                        myNativeLegend, myJavaLegend, myObjectsLegend, mySamplingRateDurationLegend,
@@ -999,9 +1006,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
         return;
       }
 
-      AllocationSamplingRateEvent samplingInfo = data.get(data.size() - 1).value.getCurrentRateEvent();
-      LiveAllocationSamplingMode mode =
-        LiveAllocationSamplingMode.getModeFromFrequency(samplingInfo.getSamplingRate().getSamplingNumInterval());
+      MemoryAllocSamplingData samplingInfo = data.get(data.size() - 1).value.getCurrentRate();
+      LiveAllocationSamplingMode mode = LiveAllocationSamplingMode.getModeFromFrequency(samplingInfo.getSamplingNumInterval());
       setLiveAllocationSamplingModelInternal(mode);
     }
   }

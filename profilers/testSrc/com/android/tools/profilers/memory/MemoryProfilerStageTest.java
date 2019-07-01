@@ -30,7 +30,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
+import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
@@ -573,7 +573,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       MemoryData.AllocStatsSample.newBuilder().setJavaAllocationCount(200).setJavaFreeCount(100).build();
     AllocationSamplingRateEvent trackingMode = AllocationSamplingRateEvent
       .newBuilder()
-      .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+      .setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(
         MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()
       ))
       .build();
@@ -594,7 +594,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       .clearAllocStatsSamples()
       .clearAllocSamplingRateEvents()
       .addAllocSamplingRateEvents(
-        trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+        trackingMode.toBuilder().setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(
           MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()
         )))
       .addAllocStatsSamples(allocStatsSample.toBuilder().setJavaAllocationCount(300))
@@ -606,7 +606,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     memoryData = memoryData.toBuilder()
       .clearAllocSamplingRateEvents()
       .addAllocSamplingRateEvents(
-        trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+        trackingMode.toBuilder().setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(
           MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()
         )))
       .build();
@@ -617,7 +617,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     memoryData = memoryData.toBuilder()
       .clearAllocSamplingRateEvents()
       .addAllocSamplingRateEvents(
-        trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+        trackingMode.toBuilder().setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(
           MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()
         )))
       .build();
@@ -772,14 +772,14 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(samplingAspectChange[0]).isEqualTo(0);
 
     AllocationSamplingRateEvent sampleMode = AllocationSamplingRateEvent.newBuilder()
-      .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(1)).build();
+      .setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(1)).build();
     myService.setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(sampleMode).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
     assertThat(samplingAspectChange[0]).isEqualTo(1);
 
     AllocationSamplingRateEvent noneMode = AllocationSamplingRateEvent.newBuilder()
-      .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(0)).build();
+      .setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(0)).build();
     myService.setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(noneMode).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE);
@@ -792,7 +792,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
     AllocationSamplingRateEvent fullTrackingMode = AllocationSamplingRateEvent
       .newBuilder()
-      .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(1))
+      .setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(1))
       .build();
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).addAllocSamplingRateEvents(fullTrackingMode).build());
 
