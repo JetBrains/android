@@ -193,6 +193,7 @@ public class Base128InputStream extends BufferedInputStream {
    * @throws UnsupportedOperationException when called
    */
   @Deprecated
+  @SuppressWarnings("NonSynchronizedMethodOverridesSynchronizedMethod")
   @Override
   public final int read() {
     throw new UnsupportedOperationException(

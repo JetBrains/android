@@ -76,7 +76,7 @@ public abstract class AbstractResourceRepositoryWithLocking extends AbstractReso
   @Override
   @NotNull
   protected ListMultimap<String, ResourceItem> getResourcesInternal(
-    @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
+      @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
     ListMultimap<String, ResourceItem> map = getMap(namespace, resourceType, false);
     return map == null ? ImmutableListMultimap.of() : map;
   }
