@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.actions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
@@ -64,6 +65,7 @@ public class BuildBundleActionTest extends JavaProjectTestCase {
   @Mock private IdeVariant myIdeVariant;
   @Mock private IdeAndroidArtifact myMainArtifact;
   @Mock private AndroidPluginVersionUpdater myAndroidPluginVersionUpdater;
+  @Mock private IdeInfo myIdeInfo;
   private BuildBundleAction myAction;
   private TestDialog myDefaultTestDialog;
 
@@ -76,6 +78,8 @@ public class BuildBundleActionTest extends JavaProjectTestCase {
     new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
     new IdeComponents(myProject).replaceProjectService(ProjectStructure.class, myProjectStructure);
     new IdeComponents(myProject).replaceProjectService(AndroidPluginVersionUpdater.class, myAndroidPluginVersionUpdater);
+    new IdeComponents(myProject).replaceApplicationService(IdeInfo.class, myIdeInfo);
+    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
     myAction = new BuildBundleAction();
   }
 
