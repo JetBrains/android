@@ -68,15 +68,15 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
       // Order by timestamp
       val response = transportClient.getEventGroups(request)
       if (response != Transport.GetEventGroupsResponse.getDefaultInstance()) {
-        val maxTimeEvent = response.groupsList
+        val filtered = response.groupsList
           .flatMap { group -> group.eventsList }
           .sortedWith(sortOrder)
           .filter { event -> event.timestamp >= startTimestamp && eventListener.filter(event) }
-          .maxBy { event ->
+        filtered.forEach { event ->
             // Dispatch events to listeners
             eventListener.executor.execute { eventListener.callback(event) }
-            event.timestamp
-          }
+        }
+        val maxTimeEvent = filtered.maxBy {it.timestamp}
         // Update last timestamp per listener
         maxTimeEvent?.let { listenersToLastTimestamp[eventListener] = Math.max(startTimestamp, it.timestamp + 1) }
       }
