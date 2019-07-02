@@ -177,7 +177,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
   private class TemplateRendererWithDescription(
     template: TemplateHandle?, internal val isCppTemplate: Boolean
-  ) : ChooseGalleryItemStep.TemplateRenderer(template) {
+  ) : ChooseGalleryItemStep.OldTemplateRenderer(template) {
     override val label: String get() = getTemplateImageLabel(template, isCppTemplate)
     override val icon: Icon? get() = getTemplateIcon(template, isCppTemplate)
     internal val description: String get() = getTemplateDescription(template, isCppTemplate)

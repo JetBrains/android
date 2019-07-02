@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.template
 
-
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
@@ -36,8 +35,12 @@ class ChooseFragmentTypeStep(
   messageKeys = fragmentGalleryStepMessageKeys,
   emptyItemLabel = "Blank Fragment"
 ) {
-  override val templateRenders = (if (isNewModule) listOf(TemplateRenderer(null)) else listOf()) +
-                                 TemplateManager.getInstance().getFragmentTemplateList(formFactor).map(::TemplateRenderer)
+  override val templateRenders = sequence {
+    if (isNewModule) {
+      yield(OldTemplateRenderer(null))
+    }
+    yieldAll(TemplateManager.getInstance().getFragmentTemplateList(formFactor).map(::OldTemplateRenderer))
+  }.toList()
 }
 
 @VisibleForTesting
