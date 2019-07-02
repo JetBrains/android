@@ -86,6 +86,7 @@ public class DefaultBindingLayoutInfo implements BindingLayoutInfo {
     }
     this.myNonConfigurationClassName = className;
     this.myPackageName = packageName;
+    this.myClassNameSpecifiedByUser = classNameSpecifiedByUser;
     updateClassName();
     myLayoutModificationCount = modificationCount;
   }
