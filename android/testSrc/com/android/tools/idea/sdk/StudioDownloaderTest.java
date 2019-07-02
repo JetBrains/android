@@ -18,25 +18,22 @@ package com.android.tools.idea.sdk;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeSettingsController;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.IdeaTestCase;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.Headers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
-import static org.junit.Assert.assertEquals;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.List;
 
-@RunWith(JUnit4.class)
-public class StudioDownloaderTest {
+public class StudioDownloaderTest extends IdeaTestCase {
   private static final String LOCALHOST = "127.0.0.1";
   private static final String EXPECTED_NO_CACHE_HEADERS = "Pragma: no-cache\nCache-control: no-cache\n";
   private static final String EXPECTED_HEADERS_IF_CACHING_ALLOWED = ""; // none
@@ -44,20 +41,26 @@ public class StudioDownloaderTest {
   private HttpServer myServer;
   private String myUrl;
 
-  @Before
-  public void setUp() throws IOException {
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
     myServer = HttpServer.create();
     myServer.bind(new InetSocketAddress(LOCALHOST, 0), 1);
     myServer.start();
     myUrl = "http://" + LOCALHOST + ":" + myServer.getAddress().getPort();
   }
 
-  @After
-  public void tearDown() {
-    myServer.stop(0);
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      myServer.stop(0);
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
-  private void createServerContextWhichReturnsCachingHeaders() {
+  private void createServerContextThatMirrorsRequestHeaders() {
     myServer.createContext("/", ex -> {
       StringBuilder response = new StringBuilder(64);
       Headers headers = ex.getRequestHeaders();
@@ -73,15 +76,51 @@ public class StudioDownloaderTest {
         response.append(Joiner.on(';').join(cacheControlHeader));
         response.append("\n");
       }
-      ex.sendResponseHeaders(200, 0);
-      ex.getResponseBody().write(response.toString().getBytes());
+      byte[] responseBody = response.toString().getBytes();
+      ex.sendResponseHeaders(200, responseBody.length);
+      ex.getResponseBody().write(responseBody);
       ex.close();
     });
   }
 
-  @Test
+  private void createServerContextThatReturnsCustomContent(String content) {
+    myServer.createContext("/", ex -> {
+      StringBuilder response = new StringBuilder(content.length());
+      Headers headers = ex.getRequestHeaders();
+      List<String> rangeHeader = headers.get("Range");
+      String contentToReturn = content;
+      int httpResponseCode = 200;
+      if (rangeHeader != null) {
+        Pattern rangeHeaderPattern = Pattern.compile("bytes=(\\d+)-(\\d*)");
+        Matcher matcher = rangeHeaderPattern.matcher(rangeHeader.get(0));
+        if (matcher.matches()) {
+          int fromByte = Integer.parseInt(matcher.group(1));
+          int toByte = 0;
+          if (!Strings.isNullOrEmpty(matcher.group(2))) {
+            toByte = Integer.parseInt(matcher.group(2));
+            contentToReturn = content.substring(fromByte, toByte);
+          }
+          else {
+            contentToReturn = content.substring(fromByte);
+          }
+          httpResponseCode = 206;
+          Headers responseHeaders = ex.getResponseHeaders();
+          responseHeaders.add("Content-Range", String.format("bytes $1%s-$2%s/$3%s", fromByte,
+                                                             (toByte == 0) ? "" : toByte,
+                                                             content.length()));
+        }
+      }
+
+      response.append(contentToReturn);
+      byte[] responseBody = response.toString().getBytes();
+      ex.sendResponseHeaders(httpResponseCode, responseBody.length);
+      ex.getResponseBody().write(responseBody);
+      ex.close();
+    });
+  }
+
   public void testHttpNoCacheHeaders() throws Exception {
-    createServerContextWhichReturnsCachingHeaders();
+    createServerContextThatMirrorsRequestHeaders();
 
     File downloadResult = FileUtil.createTempFile("studio_downloader_test", "txt");
     downloadResult.deleteOnExit();
@@ -99,7 +138,59 @@ public class StudioDownloaderTest {
     assertEquals(EXPECTED_HEADERS_IF_CACHING_ALLOWED, headers);
   }
 
-  @Test
+  public void testResumableDownloads() throws Exception {
+    // Create some sizeable custom content to download.
+    int howMany = (1 << 20);
+    String stuff = "A quick brown brown fox jumps over the lazy dog.";
+    StringBuilder contentBuffer = new StringBuilder(howMany * stuff.length());
+    for (int i = 0; i < howMany; ++i) {
+      contentBuffer.append(stuff);
+    }
+    createServerContextThatReturnsCustomContent(contentBuffer.toString());
+
+    File downloadResult = new File(FileUtil.getTempDirectory(), "studio_partial_downloads_test.txt");
+    assertTrue(!downloadResult.exists() || downloadResult.delete());
+    downloadResult.deleteOnExit();
+
+    FakeSettingsController settingsController = new FakeSettingsController(true);
+    StudioDownloader downloader = new StudioDownloader(settingsController);
+    File intermediatesLocation = new File(FileUtil.getTempDirectory(), "intermediates");
+    downloader.setDownloadIntermediatesLocation(intermediatesLocation);
+
+    int CANCELLATIONS_COUNT = 10;
+    AtomicInteger currentCancellationsCount = new AtomicInteger(0);
+    File interimDownload = new File(intermediatesLocation, downloadResult.getName()
+                                                           + StudioDownloader.DOWNLOAD_SUFFIX_FN);
+    for (int i = 0; i < CANCELLATIONS_COUNT; ++i) {
+      try {
+        FakeProgressIndicator interruptingProgressIndicator = new FakeProgressIndicator() {
+          @Override
+          public void setFraction(double fraction) {
+            super.setFraction(fraction);
+            int p = (int)(fraction * 100);
+            if (p % CANCELLATIONS_COUNT == 0 && (p / CANCELLATIONS_COUNT >= currentCancellationsCount.get())) {
+              currentCancellationsCount.incrementAndGet();
+              cancel();
+            }
+          }
+        };
+        downloader.downloadFullyWithCaching(new URL(myUrl), downloadResult, null, interruptingProgressIndicator);
+      }
+      catch (ProcessCanceledException e) {
+        // ignore
+      }
+      assertFalse(downloadResult.exists());
+      assertTrue(interimDownload.exists());
+    }
+    // Now complete it without cancellations.
+    downloader.downloadFullyWithCaching(new URL(myUrl), downloadResult, null, new FakeProgressIndicator());
+    assertTrue(downloadResult.exists());
+    assertFalse(interimDownload.exists());
+
+    String downloadedContent = FileUtil.loadFile(downloadResult);
+    assertEquals(contentBuffer.toString(), downloadedContent);
+  }
+
   public void testForceHttpUrlPreparation() throws Exception {
     FakeSettingsController settingsController = new FakeSettingsController(true);
     StudioDownloader downloader = new StudioDownloader(settingsController);
