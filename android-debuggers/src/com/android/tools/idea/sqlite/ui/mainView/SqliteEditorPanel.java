@@ -17,11 +17,10 @@ package com.android.tools.idea.sqlite.ui.mainView;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 public class SqliteEditorPanel {
   public JPanel mainPanel;
   private JPanel headerPanel;
-  public JButton openSqlEvalDialog;
+  public JButton openSqliteEvaluator;
   public JPanel tabsRoot;
 }

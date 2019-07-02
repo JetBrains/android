@@ -16,13 +16,13 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactory
+import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import javax.swing.JComponent
 
 open class MockSqliteEditorViewFactory : SqliteEditorViewFactory {
-
   private val sqliteEvaluatorView = MockSqliteEvaluatorView()
   private val tableView: TableView = mock(TableView::class.java)
 
@@ -30,7 +30,7 @@ open class MockSqliteEditorViewFactory : SqliteEditorViewFactory {
     `when`(tableView.component).thenReturn(mock(JComponent::class.java))
   }
 
-  override fun createEvaluatorDialog() = sqliteEvaluatorView
-
   override fun createTableView(): TableView = tableView
+
+  override fun createEvaluatorView(): SqliteEvaluatorView = sqliteEvaluatorView
 }
