@@ -52,6 +52,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
+import com.android.tools.idea.wizard.template.Template as Template2
 
 private val log = logger<RenderTemplateModel>()
 
@@ -79,7 +80,9 @@ class RenderTemplateModel private constructor(
   private val commandName: String,
   private val shouldOpenFiles: Boolean,
   /** Populated in [Template.render] */
-  val createdFiles: MutableList<File> = arrayListOf()
+  val createdFiles: MutableList<File> = arrayListOf(),
+  // TODO(qumeric): this should replace templateHandle eventually
+  var newTemplate: Template2 = Template2.NoActivity
 ) : WizardModel(), ModuleModelData by moduleModelData {
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
@@ -95,6 +98,9 @@ class RenderTemplateModel private constructor(
 
   val module: Module?
     get() = androidFacet?.module
+
+  val hasActivity: Boolean
+    get() = templateHandle != null || newTemplate != Template2.NoActivity
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(FreeMarkerTemplateRenderer())
@@ -141,7 +147,7 @@ class RenderTemplateModel private constructor(
 
     @WorkerThread
     override fun doDryRun(): Boolean {
-      if (!project.get().isPresent || templateHandle == null) {
+      if (!project.get().isPresent || !hasActivity) {
         log.error("RenderTemplateModel did not collect expected information and will not complete. Please report this error.")
         return false
       }

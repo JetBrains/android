@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.npw.ui
 
-import org.jetbrains.android.util.AndroidBundle.message
-
 import com.android.tools.idea.npw.template.TemplateHandle
-import com.intellij.openapi.diagnostic.Logger
+import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.util.IconLoader
 import icons.AndroidIcons
+import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
-import java.io.IOException
-import javax.swing.Icon
 
 /**
  * Utility methods to load Template Images and find labels
@@ -60,5 +57,26 @@ object ActivityGallery {
       isCppTemplate -> message("android.wizard.gallery.item.add.cpp.Desc")
       templateHandle == null -> message("android.wizard.gallery.item.add.no.activity.desc")
       else -> templateHandle.metadata.description ?: ""
+  }
+
+  fun getTemplateIcon(template: Template, isCppTemplate: Boolean): TemplateIcon? {
+    if (isCppTemplate) {
+      return TemplateIcon(AndroidIcons.Wizards.CppConfiguration)
+    }
+
+    val thumb = template.thumb().path
+
+    val icon = IconLoader.findIcon(thumb.toURI().toURL()) ?: return null
+    return TemplateIcon(icon)
+  }
+
+  fun getTemplateImageLabel(template: Template, isCppTemplate: Boolean): String = when {
+    isCppTemplate -> message("android.wizard.gallery.item.add.cpp")
+    else -> template.name
+  }
+
+  fun getTemplateDescription(template: Template, isCppTemplate: Boolean): String = when {
+    isCppTemplate -> message("android.wizard.gallery.item.add.cpp.Desc")
+    else -> template.description
   }
 }

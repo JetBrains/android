@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.npw.template
 
-
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.TemplateManager
+import com.android.tools.idea.wizard.template.Template
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -41,8 +42,31 @@ class ChooseActivityTypeStep(
   constructor(moduleModel: NewModuleModel, renderModel: RenderTemplateModel, formFactor: FormFactor, targetDirectory: VirtualFile)
     : this(moduleModel, renderModel, formFactor, renderModel.androidFacet!!.getModuleTemplates(targetDirectory))
 
-  override val templateRenders = (if (isNewModule) listOf(TemplateRenderer(null)) else listOf()) +
-                                 TemplateManager.getInstance().getTemplateList(formFactor).map(::TemplateRenderer)
+  override val templateRenders: List<TemplateRenderer>
+
+  init {
+    val oldTemplateRenderers = sequence {
+      if (isNewModule) {
+        yield(OldTemplateRenderer(null))
+      }
+      yieldAll(TemplateManager.getInstance().getTemplateList(formFactor).map(::OldTemplateRenderer))
+    }
+    val newTemplateRenderers = sequence {
+      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()) {
+        if (isNewModule) {
+          yield(NewTemplateRenderer(Template.NoActivity))
+        }
+        yieldAll(TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }.map(::NewTemplateRenderer)) // TODO filter by formfactor
+      }
+    }
+    templateRenders = if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()) {
+      val newTemplateNames = newTemplateRenderers.map { it.template.name }
+      (oldTemplateRenderers.filter { it.template?.metadata?.title !in newTemplateNames } + newTemplateRenderers).toList()
+    }
+    else {
+      oldTemplateRenderers.toList()
+    }
+  }
 }
 
 @VisibleForTesting
