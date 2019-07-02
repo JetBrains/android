@@ -39,7 +39,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
@@ -317,7 +317,7 @@ public class GraphicsLayoutRenderer {
         LOG.warn("Render error: Render session is null ");
         return false;
       }
-      if (!SystemInfoRt.isMac) {
+      if (!SystemInfo.isMac) {
         // Do not enable anti-aliasing on MAC. It doesn't improve much and causes has performance issues when filling the background using
         // alpha values.
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

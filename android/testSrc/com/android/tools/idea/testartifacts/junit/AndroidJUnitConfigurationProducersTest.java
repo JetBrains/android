@@ -24,7 +24,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import org.gradle.internal.impldep.com.google.common.collect.Lists;
 
 import java.util.List;
@@ -41,7 +41,7 @@ public class AndroidJUnitConfigurationProducersTest extends AndroidGradleTestCas
   @Override
   protected boolean shouldRunTest() {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    return !SystemInfoRt.isWindows && super.shouldRunTest();
+    return !SystemInfo.isWindows && super.shouldRunTest();
   }
 
   @Override

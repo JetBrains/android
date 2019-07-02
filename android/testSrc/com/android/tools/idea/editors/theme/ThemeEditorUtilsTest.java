@@ -28,7 +28,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.google.common.io.Files;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
@@ -95,7 +95,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   }
 
   public void testGenerateToolTipText() throws IOException {
-    if (SystemInfoRt.isWindows) {
+    if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
     }

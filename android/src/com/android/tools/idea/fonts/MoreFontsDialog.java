@@ -36,7 +36,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
@@ -676,7 +676,7 @@ public class MoreFontsDialog extends DialogWrapper {
       @NotNull
       @Override
       public Color produce() {
-        if (SystemInfoRt.isMac && UIManager.getLookAndFeel().getName().contains("IntelliJ")) {
+        if (SystemInfo.isMac && UIManager.getLookAndFeel().getName().contains("IntelliJ")) {
           return Gray.xC9;
         }
         return color;

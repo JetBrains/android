@@ -35,7 +35,7 @@ import com.google.wireless.android.sdk.stats.*;
 import com.google.wireless.android.sdk.stats.LayoutEditorState.Mode;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -165,7 +165,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
     }
 
     double scale = surface.getScale();
-    if (SystemInfoRt.isMac && UIUtil.isRetina()) {
+    if (SystemInfo.isMac && UIUtil.isRetina()) {
       scale *= 2;
     }
     Configuration configuration = surface.getConfiguration();

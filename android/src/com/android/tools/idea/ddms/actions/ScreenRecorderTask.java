@@ -25,7 +25,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -164,6 +164,6 @@ final class ScreenRecorderTask extends Task.Modal {
     Calendar now = Calendar.getInstance();
     String fileName = "device-%tF-%tH%tM%tS";
     // add extension to filename on Mac only see: b/38447816
-    return String.format(SystemInfoRt.isMac ? fileName + extension : fileName, now, now, now, now);
+    return String.format(SystemInfo.isMac ? fileName + extension : fileName, now, now, now, now);
   }
 }
