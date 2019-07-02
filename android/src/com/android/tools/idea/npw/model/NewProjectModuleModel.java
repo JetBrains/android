@@ -128,7 +128,8 @@ public final class NewProjectModuleModel extends WizardModel {
     RenderTemplateModel newRenderTemplateModel = createMainRenderModel(projectLocation);
     myNewModuleModel.setRenderTemplateModel(newRenderTemplateModel);
 
-    if (newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
+    boolean hasActivity = newRenderTemplateModel.getTemplateHandle() != null;
+    if (hasActivity && newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
       addRenderDefaultTemplateValues(newRenderTemplateModel);
     }
 
@@ -136,11 +137,11 @@ public final class NewProjectModuleModel extends WizardModel {
 
     myNewModuleModel.handleFinished();
     if (newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
-      if (newRenderTemplateModel.getTemplateHandle() == null) {
-        newRenderTemplateModel.handleSkipped(); // "No Activity" selected
+      if (hasActivity) {
+        newRenderTemplateModel.handleFinished();
       }
       else {
-        newRenderTemplateModel.handleFinished();
+        newRenderTemplateModel.handleSkipped(); // "No Activity" selected
       }
     }
   }
