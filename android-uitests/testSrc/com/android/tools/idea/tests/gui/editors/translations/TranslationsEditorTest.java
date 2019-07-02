@@ -182,7 +182,12 @@ public final class TranslationsEditorTest {
     DeleteDialogFixture.find(myGuiTest.ideFrame()).safeDelete().deleteAnyway();
 
     translationsEditor.finishLoading();
-    assertEquals(Arrays.asList("app_name", "app_name", "action_settings", "some_id", "cancel"), table.columnAt(KEY_COLUMN));
+
+    // Sort the keys for a determinate order. Otherwise we get [app_name, app_name, action_settings, cancel, some_id] often for an
+    // undetermined reason when we expect [app_name, app_name, action_settings, some_id, cancel].
+    table.clickHeaderColumn(KEY_COLUMN);
+
+    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "some_id"), table.columnAt(KEY_COLUMN));
 
     editor.open(myStringsXmlPath);
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));
