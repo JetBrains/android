@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.api.Downloader;
@@ -22,10 +23,14 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.SettingsController;
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
+import com.intellij.openapi.editor.ex.util.LexerEditorHighlighter;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.RequestBuilder;
+import com.intellij.util.net.NetUtils;
+import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,15 +45,23 @@ import java.nio.file.StandardOpenOption;
  * stream from that file.
  */
 public class StudioDownloader implements Downloader {
+  @VisibleForTesting
+  static final String DOWNLOAD_SUFFIX_FN = ".asdownload";
+
+  @Nullable File mDownloadIntermediatesLocation;
+
   private static class DownloadProgressIndicator extends StudioProgressIndicatorAdapter {
     private final long mContentLength;
     private final String mTotalDisplaySize;
     private int mCurrentPercentage;
+    private long mStartOffset;
     private Storage.Unit mReasonableUnit;
 
-    public DownloadProgressIndicator(@NotNull ProgressIndicator wrapped, long contentLength) {
+    DownloadProgressIndicator(@NotNull ProgressIndicator wrapped, long contentLength, long startOffset) {
       super(wrapped);
       mContentLength = contentLength;
+      mStartOffset = startOffset;
+      mCurrentPercentage = (int)(mStartOffset/(double)mContentLength);
       Storage storage = new Storage(mContentLength);
       mReasonableUnit = storage.getLargestReasonableUnits();
       mTotalDisplaySize = storage.toUiString(1);
@@ -56,16 +69,17 @@ public class StudioDownloader implements Downloader {
 
     @Override
     public void setFraction(double fraction) {
-      super.setFraction(fraction);
+      double adjustedFraction = ((mStartOffset + fraction * (mContentLength - mStartOffset)) / mContentLength);
+      super.setFraction(adjustedFraction);
 
       checkCanceled();
-      int percentage = (int)(fraction * 100);
+      int percentage = (int)(adjustedFraction * 100);
       if (percentage == mCurrentPercentage) {
         return; // Do not update too often
       }
 
       mCurrentPercentage = percentage;
-      long downloadedSize = (long)(fraction * mContentLength);
+      long downloadedSize = (long)(adjustedFraction * mContentLength);
       double downloadedSizeInReasonableUnits = new Storage(downloadedSize).getPreciseSizeAsUnit(mReasonableUnit);
       setText(String
                 .format(Locale.US, "Downloading (%1$d%%): %2$.1f / %3$s ...", mCurrentPercentage, downloadedSizeInReasonableUnits,
@@ -108,6 +122,11 @@ public class StudioDownloader implements Downloader {
     doDownloadFully(url, target, checksum, true, indicator);
   }
 
+  @Override
+  public void setDownloadIntermediatesLocation(@Nullable File downloadIntermediatesLocation) {
+    mDownloadIntermediatesLocation = downloadIntermediatesLocation;
+  }
+
   private void doDownloadFully(@NotNull URL url, @NotNull File target, @Nullable String checksum,
                             boolean allowNetworkCaches, @NotNull ProgressIndicator indicator)
     throws IOException {
@@ -138,10 +157,67 @@ public class StudioDownloader implements Downloader {
     // for a considerable number of who are users behind a proxy, such as in a corporate environment).
     rb.tuner(c -> c.setUseCaches(allowNetworkCaches));
 
+    File interimDownload = getInterimDownloadLocationForTarget(target);
+    if (interimDownload.exists()) {
+      // Partial download isn't exactly about network caching, but it's still an optimization that is put in place
+      // for the same reason as network caches, and there are exactly the same cases when it should not be used too.
+      // So rely on that flag value here to determine whether to attempt partial download re-use.
+      if (allowNetworkCaches) {
+        // https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35
+        String rangeHeader = String.format("bytes=%1$s-", interimDownload.length());
+        rb.tuner(c -> c.setRequestProperty("Range", rangeHeader));
+      }
+      else {
+        FileUtil.delete(interimDownload);
+      }
+    }
+
     rb.connect(request -> {
-      long contentLength = request.getConnection().getContentLength();
-      return request.saveToFile(target, new DownloadProgressIndicator(indicator, contentLength));
+      // If the range is specified, then the returned content length will be the length of the remaining content to download.
+      // To simplify calculations, regard content length invariant: always keep the value as the full content length.
+      long startOffset = interimDownload.length();
+      long contentLength = startOffset  + request.getConnection().getContentLength();
+      DownloadProgressIndicator downloadProgressIndicator = new DownloadProgressIndicator(indicator, contentLength, startOffset);
+      FileUtilRt.createParentDirs(interimDownload);
+
+      try (OutputStream out = new BufferedOutputStream(new FileOutputStream(interimDownload, true))) {
+        NetUtils.copyStreamContent(downloadProgressIndicator, request.getInputStream(), out,
+                                   request.getConnection().getContentLength());
+      }
+
+      try {
+        if (target.exists()) {
+          FileUtil.delete(target);
+        }
+        FileUtilRt.createParentDirs(target);
+        Files.move(interimDownload.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        if (target.exists() && checksum != null) {
+          if (!checksum.equals(Downloader.hash(new BufferedInputStream(new FileInputStream(target)), target.length(),
+                                               indicator))) {
+            throw new IllegalStateException("Checksum of the downloaded result didn't match the expected value.");
+          }
+        }
+      }
+      catch (Throwable e) {
+        if (allowNetworkCaches) {
+          indicator.logWarning("This download could not be finalized from the interim state. Retrying without caching.");
+          doDownloadFully(url, target, checksum, false, indicator);
+          return null;
+        }
+        else {
+          throw e; // Re-throw. There is nothing we can do in this case.
+        }
+      }
+      return target;
     });
+  }
+
+  @NonNull
+  private File getInterimDownloadLocationForTarget(@NonNull File target) {
+    if (mDownloadIntermediatesLocation != null) {
+      return new File(mDownloadIntermediatesLocation, target.getName() + DOWNLOAD_SUFFIX_FN);
+    }
+    return new File(target + DOWNLOAD_SUFFIX_FN);
   }
 
   @Nullable

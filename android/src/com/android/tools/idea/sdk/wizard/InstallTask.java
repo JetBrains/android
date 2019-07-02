@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
+import com.android.repository.impl.installer.AbstractPackageOperation;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.api.*;
 import com.android.repository.api.ProgressIndicator;
@@ -32,6 +33,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +48,7 @@ import java.util.function.Function;
  * {@link Task} that installs SDK packages.
  */
 class InstallTask extends Task.Backgroundable {
+
   private final ProgressIndicator myLogger;
   private Collection<UpdatablePackage> myInstallRequests;
   private Collection<LocalPackage> myUninstallRequests;
@@ -192,7 +195,9 @@ class InstallTask extends Task.Backgroundable {
     // If there's already an installer in progress for this package, reuse it.
     PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
     if (op == null || !(op instanceof Installer)) {
-      op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, new StudioDownloader(), myFileOp);
+      Downloader downloader = new StudioDownloader();
+      downloader.setDownloadIntermediatesLocation(new File(myRepoManager.getLocalPath(), AbstractPackageOperation.DOWNLOAD_INTERMEDIATES_DIR_FN));
+      op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, downloader, myFileOp);
     }
     return op;
   }
