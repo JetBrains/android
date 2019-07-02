@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.SqliteService
+import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.ui.mainView.SqliteView
 import com.android.tools.idea.sqlite.ui.mainView.SqliteViewListener
@@ -25,6 +26,7 @@ import javax.swing.JComponent
 
 open class MockSqliteView : SqliteView {
   val viewListeners = ArrayList<SqliteViewListener>()
+  var lastDisplayedResultSetTabId: TabId? = null
 
   override fun addListener(listener: SqliteViewListener) {
     viewListeners.add(listener)
@@ -42,11 +44,13 @@ open class MockSqliteView : SqliteView {
 
   override fun displaySchema(schema: SqliteSchema) { }
 
-  override fun displayTable(tableName: String, component: JComponent) { }
+  override fun displayResultSet(tableId: TabId, tableName: String, component: JComponent) {
+    lastDisplayedResultSetTabId = tableId
+  }
 
-  override fun focusTable(tableName: String) { }
+  override fun focusTab(tabId: TabId) { }
 
-  override fun closeTable(tableName: String) { }
+  override fun closeTab(tabId: TabId) { }
 
   override fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable) { }
 }
