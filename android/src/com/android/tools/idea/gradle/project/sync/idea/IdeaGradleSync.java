@@ -118,7 +118,12 @@ public class IdeaGradleSync implements GradleSync {
           ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);
 
           ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener);
-          setUpTask.onSuccess(taskId, cache);
+          if (ApplicationManager.getApplication().isUnitTestMode()) {
+            setUpTask.onSuccess(taskId, cache);
+          }
+          else {
+            ApplicationManager.getApplication().executeOnPooledThread(() -> setUpTask.onSuccess(taskId, cache));
+          }
           return;
         }
       }
