@@ -27,7 +27,7 @@ class SqliteExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val toolWindowContent = toolWindow.contentManager.factory.createContent(
-      SqliteExplorerProjectService.getInstance(project).component,
+      SqliteExplorerProjectService.getInstance(project).sqliteInspectorComponent,
       "",
       true
     )
