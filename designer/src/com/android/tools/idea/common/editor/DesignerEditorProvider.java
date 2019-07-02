@@ -15,9 +15,21 @@
  */
 package com.android.tools.idea.common.editor;
 
+import static com.android.tools.idea.common.model.NlModel.DELAY_AFTER_TYPING_MS;
+import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
+
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.hint.ImplementationViewComponent;
+import com.intellij.openapi.editor.CaretModel;
+import com.intellij.openapi.editor.event.CaretEvent;
+import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
@@ -31,6 +43,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import java.util.Arrays;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
@@ -68,6 +82,7 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
       return designEditor;
     }
     TextEditor textEditor = (TextEditor)TextEditorProvider.getInstance().createEditor(project, file);
+    addCaretListener(textEditor, designEditor);
     return new TextEditorWithPreview(textEditor, designEditor, "Design") {
       @Override
       public void selectNotify() {
@@ -89,6 +104,44 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
         }
       }
     };
+  }
+
+  private void addCaretListener(@NotNull TextEditor editor, @NotNull DesignerEditor designEditor) {
+    CaretModel caretModel = editor.getEditor().getCaretModel();
+    MergingUpdateQueue updateQueue = new MergingUpdateQueue("split.editor.preview.edit", DELAY_AFTER_TYPING_MS,
+                                                            true, null, designEditor, null, SWING_THREAD);
+    updateQueue.setRestartTimerOnAdd(true);
+    caretModel.addCaretListener(new CaretListener() {
+      @Override
+      public void caretPositionChanged(@NotNull CaretEvent event) {
+        DesignSurface surface = designEditor.getComponent().getSurface();
+        SceneView sceneView = surface.getCurrentSceneView();
+        int offset = caretModel.getOffset();
+        if (sceneView == null || offset == -1) {
+          return;
+        }
+
+        NlModel model = sceneView.getSceneManager().getModel();
+        ImmutableList<NlComponent> views = model.findByOffset(offset);
+        if (views.isEmpty()) {
+          views = model.getComponents();
+        }
+        // TODO: handle preference screen intent special case if needed.
+        SelectionModel selectionModel = sceneView.getSelectionModel();
+        selectionModel.setSelection(views);
+        updateQueue.queue(new Update("Design editor update") {
+          @Override
+          public void run() {
+            surface.repaint();
+          }
+
+          @Override
+          public boolean canEat(Update update) {
+            return true;
+          }
+        });
+      }
+    });
   }
 
   @NotNull

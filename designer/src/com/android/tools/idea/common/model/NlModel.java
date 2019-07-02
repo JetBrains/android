@@ -44,7 +44,6 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
@@ -93,6 +92,8 @@ import org.jetbrains.annotations.Nullable;
  * Model for an XML file
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
+  public static final int DELAY_AFTER_TYPING_MS = 250;
+
   private static final boolean CHECK_MODEL_INTEGRITY = false;
   private final Set<String> myPendingIds = Sets.newHashSet();
 
@@ -159,7 +160,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       Disposer.register(parent, this);
     }
     myType = DesignerEditorFileTypeKt.typeOf(getFile());
-    myUpdateQueue = new MergingUpdateQueue("android.layout.preview.edit", NlPreviewForm.DELAY_AFTER_TYPING_MS,
+    myUpdateQueue = new MergingUpdateQueue("android.layout.preview.edit", DELAY_AFTER_TYPING_MS,
                                            true, null, null, null, SWING_THREAD);
     myUpdateQueue.setRestartTimerOnAdd(true);
   }
