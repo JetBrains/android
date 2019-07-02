@@ -176,7 +176,7 @@ class SqliteControllerTest : PlatformTestCase() {
       .reportErrorRelatedToService(eq(sqliteService), eq("Error opening Sqlite database"), refEq(throwable))
   }
 
-  fun testDisplayTableIsCalled() {
+  fun testDisplayResultSetIsCalledForTable() {
     // Prepare
     `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
     sqliteController.openSqliteDatabase(sqliteFile)
@@ -187,10 +187,25 @@ class SqliteControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(sqliteView).displayTable(eq(testSqliteTable.name), any(JComponent::class.java))
+    verify(sqliteView).displayResultSet(eq(TabId.TableTab(testSqliteTable.name)), eq(testSqliteTable.name), any(JComponent::class.java))
   }
 
-  fun testCloseTableIsCalled() {
+  fun testDisplayResultSetIsCalledForEvaluatorView() {
+    // Prepare
+    `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
+    sqliteController.openSqliteDatabase(sqliteFile)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Act
+    sqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(sqliteView)
+      .displayResultSet(any(TabId.AdHocQueryTab::class.java), any(String::class.java), any(JComponent::class.java))
+  }
+
+  fun testCloseTabIsCalledForTable() {
     // Prepare
     `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
     sqliteController.openSqliteDatabase(sqliteFile)
@@ -199,14 +214,32 @@ class SqliteControllerTest : PlatformTestCase() {
     // Act
     sqliteView.viewListeners.single().tableNodeActionInvoked(testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    sqliteView.viewListeners.single().closeTableActionInvoked(testSqliteTable.name)
+    sqliteView.viewListeners.single().closeTableActionInvoked(TabId.TableTab(testSqliteTable.name))
 
     // Assert
     verify(viewFactory).createTableView()
-    verify(sqliteView).closeTable(eq(testSqliteTable.name))
+    verify(sqliteView).closeTab(eq(TabId.TableTab(testSqliteTable.name)))
   }
 
-  fun testFocusTableIsCalled() {
+  fun testCloseTabIsCalledForEvaluatorView() {
+    // Prepare
+    `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
+    sqliteController.openSqliteDatabase(sqliteFile)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Act
+    sqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val tabId = sqliteView.lastDisplayedResultSetTabId
+    assert(tabId is TabId.AdHocQueryTab)
+    sqliteView.viewListeners.single().closeTableActionInvoked(tabId!!)
+
+    // Assert
+    verify(viewFactory).createEvaluatorView()
+    verify(sqliteView).closeTab(eq(tabId))
+  }
+
+  fun testFocusTabIsCalled() {
     // Prepare
     `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
     sqliteController.openSqliteDatabase(sqliteFile)
@@ -219,7 +252,8 @@ class SqliteControllerTest : PlatformTestCase() {
 
     // Assert
     verify(viewFactory).createTableView()
-    verify(sqliteView).displayTable(eq(testSqliteTable.name), any(JComponent::class.java))
-    verify(sqliteView).focusTable(eq(testSqliteTable.name))
+    verify(sqliteView)
+      .displayResultSet(eq(TabId.TableTab(testSqliteTable.name)), eq(testSqliteTable.name), any(JComponent::class.java))
+    verify(sqliteView).focusTab(eq(TabId.TableTab(testSqliteTable.name)))
   }
 }

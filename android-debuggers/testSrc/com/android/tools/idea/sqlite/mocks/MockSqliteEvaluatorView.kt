@@ -28,10 +28,6 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
 
   val listeners = ArrayList<SqliteEvaluatorViewListener>()
 
-  override fun show() { }
-
-  override fun requestFocus() { }
-
   override fun addListener(listener: SqliteEvaluatorViewListener) { listeners.add(listener) }
 
   override fun removeListener(listener: SqliteEvaluatorViewListener) { listeners.remove(listener) }

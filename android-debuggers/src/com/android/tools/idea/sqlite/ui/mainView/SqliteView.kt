@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.idea.sqlite.SqliteService
+import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import javax.swing.JComponent
@@ -41,15 +42,15 @@ interface SqliteView {
   fun stopLoading()
 
   fun displaySchema(schema: SqliteSchema)
-  fun displayTable(tableName: String, component: JComponent)
-  fun focusTable(tableName: String)
-  fun closeTable(tableName: String)
+  fun displayResultSet(tableId: TabId, tableName: String, component: JComponent)
+  fun focusTab(tabId: TabId)
+  fun closeTab(tabId: TabId)
 
   fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable)
 }
 
 interface SqliteViewListener {
   fun tableNodeActionInvoked(table: SqliteTable)
-  fun closeTableActionInvoked(tableName: String)
-  fun openSqliteEvaluatorActionInvoked()
+  fun closeTableActionInvoked(tableId: TabId)
+  fun openSqliteEvaluatorTabActionInvoked()
 }

@@ -15,22 +15,15 @@
  */
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
-import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
 import java.awt.BorderLayout
 import java.util.ArrayList
 import javax.swing.JComponent
 
 /**
- * A dialog that can be used to run sql queries and updates.
+ * @see SqliteEvaluatorView
  */
-@UiThread
-class SqliteEvaluatorDialog(
-  project: Project?,
-  canBeParent: Boolean
-) : DialogWrapper(project, canBeParent), SqliteEvaluatorView {
+class SqliteEvaluatorViewImpl : SqliteEvaluatorView {
 
   private val evaluatorPanel = SqliteEvaluatorPanel()
   override val component: JComponent = evaluatorPanel.root
@@ -41,13 +34,11 @@ class SqliteEvaluatorDialog(
 
   init {
     evaluatorPanel.root.add(tableView.component, BorderLayout.CENTER)
-
-    isModal = false
-    title = "SQL evaluator"
-    setOKButtonText("Evaluate")
-    setCancelButtonText("Close")
-
-    init()
+    evaluatorPanel.evaluateButton.addActionListener {
+      listeners.forEach {
+        it.evaluateSqlActionInvoked(evaluatorPanel.sqliteQueryTextField.text)
+      }
+    }
   }
 
   override fun addListener(listener: SqliteEvaluatorViewListener) {
@@ -56,29 +47,5 @@ class SqliteEvaluatorDialog(
 
   override fun removeListener(listener: SqliteEvaluatorViewListener) {
     listeners.remove(listener)
-  }
-
-  override fun requestFocus() {
-    toFront()
-  }
-
-  override fun getPreferredFocusedComponent(): JComponent? {
-    return evaluatorPanel.textField
-  }
-
-  override fun doOKAction() {
-    listeners.forEach { it.evaluateSqlActionInvoked(evaluatorPanel.textField.text) }
-  }
-
-  override fun doCancelAction() {
-    listeners.forEach { it.sessionClosed() }
-    super.doCancelAction()
-  }
-
-  override fun createCenterPanel(): JComponent = evaluatorPanel.root
-
-  override fun dispose() {
-    super.dispose()
-    evaluatorPanel.root.removeAll()
   }
 }
