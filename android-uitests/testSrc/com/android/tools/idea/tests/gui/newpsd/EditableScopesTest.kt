@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
+import com.android.tools.idea.tests.gui.framework.StudioRobot
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
@@ -45,6 +46,12 @@ class EditableScopesTest {
   fun setUp() {
     StudioFlags.NEW_PSD_ENABLED.override(true)
     GradleExperimentalSettings.getInstance().USE_NEW_PSD = true
+    // Under StudioRobot, typing into an editor happens character-by-character below a certain limit.  The EditorComboBox implementation
+    // we currently use will pop up a completion window, which will update and disappear at uncertain times, and testing for the presence
+    // of this window is also unreliable.  We work around this in these tests by using replaceText() with long strings, which the
+    // StudioRobot will paste all in one go; the reliability of these tests is consequently dependent on the robot's implementation
+    // strategy.
+    assertThat(StudioRobot.MAX_CHARS_TO_TYPE).isAtMost(8)
   }
 
   @After
@@ -75,7 +82,7 @@ class EditableScopesTest {
           findDependenciesTable().cell("libs").click()
           findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("implementation")
-            replaceText("api")
+            replaceText("releaseImplementation")
             pressAndReleaseKeys(VK_ENTER) // activates the dialog
           }
         }
@@ -87,9 +94,9 @@ class EditableScopesTest {
       selectDependenciesConfigurable().run {
         findModuleSelector().selectModule("mylibrary")
         findDependenciesPanel().run {
-          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "api"))
+          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "releaseImplementation"))
           findDependenciesTable().cell("libs").click()
-          findConfigurationCombo().run { assertThat(selectedItem()).isEqualTo("api") }
+          findConfigurationCombo().run { assertThat(selectedItem()).isEqualTo("releaseImplementation") }
         }
       }
       clickCancel()
