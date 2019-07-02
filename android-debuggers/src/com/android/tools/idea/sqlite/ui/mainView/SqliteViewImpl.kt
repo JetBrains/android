@@ -24,6 +24,7 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.SqliteService
+import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.renderers.SchemaTreeCellRenderer
@@ -72,7 +73,7 @@ class SqliteViewImpl(
 
   override val component: JComponent = rootPanel
 
-  private val openTabs = mutableMapOf<String, TabInfo>()
+  private val openTabs = mutableMapOf<TabId, TabInfo>()
 
   init {
     Disposer.register(parentDisposable, workBench)
@@ -105,7 +106,7 @@ class SqliteViewImpl(
   }
 
   override fun stopLoading() {
-    sqliteEditorPanel.openSqlEvalDialog.addActionListener { listeners.forEach{ it.openSqliteEvaluatorActionInvoked() } }
+    sqliteEditorPanel.openSqliteEvaluator.addActionListener { listeners.forEach{ it.openSqliteEvaluatorTabActionInvoked() } }
 
     tabs.apply {
       isTabDraggingEnabled = true
@@ -124,19 +125,19 @@ class SqliteViewImpl(
     setupSchemaTree()
   }
 
-  override fun displayTable(tableName: String, component: JComponent) {
-    val tab = createSqliteExplorerTab(tableName, component)
+  override fun displayResultSet(tableId: TabId, tableName: String, component: JComponent) {
+    val tab = createSqliteExplorerTab(tableId, tableName, component)
     tabs.addTab(tab)
     tabs.select(tab, true)
-    openTabs[tableName] = tab
+    openTabs[tableId] = tab
   }
 
-  override fun focusTable(tableName: String) {
-    tabs.select(openTabs[tableName]!!, true)
+  override fun focusTab(tabId: TabId) {
+    tabs.select(openTabs[tabId]!!, true)
   }
 
-  override fun closeTable(tableName: String) {
-    val tab = openTabs.remove(tableName)
+  override fun closeTab(tabId: TabId) {
+    val tab = openTabs.remove(tabId)
     tabs.removeTab(tab)
   }
 
@@ -145,13 +146,13 @@ class SqliteViewImpl(
     workBench.loadingStopped(errorMessage)
   }
 
-  private fun createSqliteExplorerTab(tableName: String, tabContent: JComponent): TabInfo {
+  private fun createSqliteExplorerTab(tableId: TabId, tableName: String, tabContent: JComponent): TabInfo {
     val tab = TabInfo(tabContent)
 
     val tabActionGroup = DefaultActionGroup()
     tabActionGroup.add(object : AnAction("Close tabs", "Click to close tab", AllIcons.Actions.Close) {
       override fun actionPerformed(e: AnActionEvent) {
-        listeners.forEach { it.closeTableActionInvoked(tableName) }
+        listeners.forEach { it.closeTableActionInvoked(tableId) }
       }
 
       override fun update(e: AnActionEvent) {

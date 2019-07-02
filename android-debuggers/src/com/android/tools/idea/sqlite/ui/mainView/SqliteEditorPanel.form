@@ -15,16 +15,10 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="79dd1" class="com.intellij.ui.components.JBLabel">
+          <component id="374dd" class="javax.swing.JButton" binding="openSqliteEvaluator">
             <constraints/>
             <properties>
-              <text value="SQLite Database Viewer"/>
-            </properties>
-          </component>
-          <component id="374dd" class="javax.swing.JButton" binding="openSqlEvalDialog">
-            <constraints/>
-            <properties>
-              <text value="SQL eval dialog"/>
+              <text value="Open Sqlite Evaluator"/>
             </properties>
           </component>
         </children>

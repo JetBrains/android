@@ -32,8 +32,6 @@ interface SqliteEvaluatorView {
    */
   val component: JComponent
   val tableView: TableView
-  fun show()
-  fun requestFocus()
   fun addListener(listener: SqliteEvaluatorViewListener)
   fun removeListener(listener: SqliteEvaluatorViewListener)
 }
@@ -43,5 +41,4 @@ interface SqliteEvaluatorViewListener {
    * Method invoked when an sql instruction needs to be evaluated.
    */
   fun evaluateSqlActionInvoked(sqlInstruction: String)
-  fun sessionClosed()
 }
