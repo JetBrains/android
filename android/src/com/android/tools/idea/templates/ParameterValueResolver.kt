@@ -16,37 +16,27 @@
 package com.android.tools.idea.templates
 
 import com.android.tools.idea.templates.Parameter.Constraint
-import com.google.common.base.Objects
-import com.google.common.collect.ImmutableMap
-import com.google.common.collect.Iterables
-import com.google.common.collect.Maps
-import com.google.common.collect.Sets
-
-import com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces
 
 /**
- * Class which handles setting up the relationships between a bunch of [Parameter]s and then
- * resolves them.
+ * Class which handles setting up the relationships between a bunch of [Parameter]s and then resolves them.
  */
-class ParameterValueResolver private constructor(parameters: Iterable<Parameter>,
-                                                 private val myUserValues: Map<Parameter, Any>,
-                                                 private val myAdditionalValues: Map<String, Any>,
-                                                 private val myDeduplicator: Deduplicator) {
-  private val myComputedParameters = Sets.newHashSet<Parameter>()
-  private val myStaticParameters = Sets.newHashSet<Parameter>()
-  private val myStringEvaluator = StringEvaluator()
+class ParameterValueResolver private constructor(
+  private val parameters: Iterable<Parameter>,
+  private val userValues: Map<Parameter, Any>,
+  private val additionalValues: Map<String, Any>,
+  private val deduplicator: Deduplicator
+) {
+  private val computedParameters: Collection<Parameter>
+  private val staticParameters: Collection<Parameter>
+  private val stringEvaluator = StringEvaluator()
 
   init {
-    for (parameter in parameters) {
-      if (parameter != null && !isEmptyOrSpaces(parameter.id)) {
-        if (!isEmptyOrSpaces(getSuggestOrInitial(parameter)) && !myUserValues.containsKey(parameter)) {
-          myComputedParameters.add(parameter)
-        }
-        else {
-          myStaticParameters.add(parameter)
-        }
+    parameters
+      .filterNot { it.id.isNullOrBlank() }
+      .partition { getSuggestOrInitial(it).isBlank() || userValues.containsKey(it) }.run {
+        staticParameters = first.toSet()
+        computedParameters = second.toSet()
       }
-    }
   }
 
   /**
@@ -54,42 +44,30 @@ class ParameterValueResolver private constructor(parameters: Iterable<Parameter>
    */
   @Throws(CircularParameterDependencyException::class)
   fun resolve(): Map<Parameter, Any> {
-    val staticValues = getStaticParameterValues(myUserValues, myAdditionalValues)
+    val staticValues = getStaticParameterValues(userValues, additionalValues)
     val computedValues = computeParameterValues(staticValues)
 
-    val allValues = Maps.newHashMapWithExpectedSize<Parameter, Any>(computedValues.size + staticValues.size)
-    for (parameter in Iterables.concat(myStaticParameters, myComputedParameters)) {
-      allValues[parameter] = computedValues[parameter.id]
-    }
-    return allValues
+    return parameters.associateWith { computedValues[it.id]!! }
   }
 
   private fun computeParameterValue(computedParameter: Parameter, currentValues: Map<String, Any>): Any? {
     val suggest = getSuggestOrInitial(computedParameter)
 
-    assert(!isEmptyOrSpaces(suggest))
-    var value = myStringEvaluator.evaluate(suggest, currentValues)
-    value = myDeduplicator.deduplicate(computedParameter, value)
+    assert(!suggest.isBlank())
+    var value = stringEvaluator.evaluate(suggest, currentValues)
+    value = deduplicator.deduplicate(computedParameter, value)
     return decodeInitialValue(computedParameter, value)
   }
 
   private fun getStaticParameterValues(userValues: Map<Parameter, Any>,
                                        additionalValues: Map<String, Any>): Map<String, Any> {
-    val knownValues = Maps.newHashMapWithExpectedSize<String, Any>(myStaticParameters.size + additionalValues.size)
-    knownValues.putAll(additionalValues)
-    for (parameter in myStaticParameters) {
-      val value: Any?
-      if (userValues.containsKey(parameter)) {
-        value = userValues[parameter]
-      }
-      else if (additionalValues.containsKey(parameter.id)) {
-        value = additionalValues[parameter.id]
-      }
-      else {
-        val initial = parameter.initial
-        value = decodeInitialValue(parameter, initial)
-      }
-      knownValues[parameter.id] = value
+    val knownValues = HashMap(additionalValues)
+    for (parameter in staticParameters) {
+      knownValues[parameter.id!!] = when {
+        userValues.containsKey(parameter) -> userValues[parameter]
+        additionalValues.containsKey(parameter.id) -> additionalValues[parameter.id]
+        else -> decodeInitialValue(parameter, parameter.initial)
+      }!!
     }
     return knownValues
   }
@@ -98,15 +76,13 @@ class ParameterValueResolver private constructor(parameters: Iterable<Parameter>
    * Computes values of the parameters with non-static default values.
    *
    * These parameters may depend on other computable parameters. We do not have that information
-   * (expressions are evaluated with FreeMarker), so we keep reevaluating the parameter values until
-   * they stabilize.
+   * (expressions are evaluated with FreeMarker), so we keep reevaluating the parameter values until they stabilize.
    */
   @Throws(CircularParameterDependencyException::class)
   private fun computeParameterValues(staticValues: Map<String, Any>): Map<String, Any> {
-    val computedValues = Maps.newHashMapWithExpectedSize<String, Any>(myComputedParameters.size + staticValues.size)
-    computedValues.putAll(staticValues)
-    for (parameter in myComputedParameters) {
-      computedValues[parameter.id] = ""
+    val computedValues = HashMap(staticValues)
+    for (parameter in computedParameters) {
+      computedValues[parameter.id!!] = ""
     }
 
     // Limit the number of iterations before we recognize there's circular dependency.
@@ -116,31 +92,21 @@ class ParameterValueResolver private constructor(parameters: Iterable<Parameter>
     // Update: it turns out we do have circular dependencies which in most cases turn into
     // a stable situation, but worst case is 2 times the number of iterations since a value
     // can also be modified because of a "unique" qualifier.
-    val maxIterations = 2 * myComputedParameters.size
-    var updatedValues: Map<String, Any> = ImmutableMap.of()
-    for (i in 0..maxIterations) {
+    val maxIterations = 1 + 2 * computedParameters.size
+    var updatedValues: Map<String, Any> = mapOf()
+    repeat(maxIterations) {
       updatedValues = computeUpdatedValues(computedValues)
       if (updatedValues.isEmpty()) {
         return computedValues
       }
-      else {
-        computedValues.putAll(updatedValues)
-      }
+      computedValues.putAll(updatedValues)
     }
     throw CircularParameterDependencyException(updatedValues.keys)
   }
 
-  private fun computeUpdatedValues(values: Map<String, Any>): Map<String, Any> {
-    val updatedValues = Maps.newHashMapWithExpectedSize<String, Any>(myComputedParameters.size)
-    for (computedParameter in myComputedParameters) {
-      val value = computeParameterValue(computedParameter, values)
-      val id = computedParameter.id
-      if (!Objects.equal(values[id], value)) {
-        updatedValues[id] = value
-      }
-    }
-    return updatedValues
-  }
+  private fun computeUpdatedValues(values: Map<String, Any>): Map<String, Any> = computedParameters
+    .associate { it.id!! to computeParameterValue(it, values)!! }
+    .filterNot { (id, v) -> values[id] == v }
 
   interface Deduplicator {
     fun deduplicate(parameter: Parameter, value: String?): String?
@@ -161,30 +127,23 @@ class ParameterValueResolver private constructor(parameters: Iterable<Parameter>
      */
     @Throws(CircularParameterDependencyException::class)
     @JvmOverloads
-    fun resolve(parameters: Iterable<Parameter>,
-                userValues: Map<Parameter, Any>,
-                additionalValues: Map<String, Any>,
-                deduplicator: Deduplicator = DO_NOTHING_DEDUPLICATOR): Map<Parameter, Any> {
-      val resolver = ParameterValueResolver(parameters, userValues, additionalValues, deduplicator)
-      return resolver.resolve()
-    }
+    fun resolve(
+      parameters: Iterable<Parameter>,
+      userValues: Map<Parameter, Any>,
+      additionalValues: Map<String, Any>,
+      deduplicator: Deduplicator = DO_NOTHING_DEDUPLICATOR
+    ): Map<Parameter, Any> = ParameterValueResolver(parameters, userValues, additionalValues, deduplicator).resolve()
 
     private fun getSuggestOrInitial(parameter: Parameter): String =
-      if (isEmptyOrSpaces(parameter.suggest) && parameter.constraints.contains(Constraint.UNIQUE))
+      if (parameter.suggest.isNullOrBlank() && parameter.constraints.contains(Constraint.UNIQUE))
         parameter.initial!!
       else
         parameter.suggest!!
 
-    private fun decodeInitialValue(input: Parameter, initial: String?): Any? {
-      return if (initial != null && input.type === Parameter.Type.BOOLEAN) {
-        java.lang.Boolean.valueOf(initial)
-      }
-      else {
+    private fun decodeInitialValue(input: Parameter, initial: String?): Any? =
+      if (initial != null && input.type === Parameter.Type.BOOLEAN)
+        initial.toBoolean()
+      else
         initial
-      }
-    }
   }
 }
-/**
- * @see .resolve
- */
