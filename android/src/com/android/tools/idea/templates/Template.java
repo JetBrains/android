@@ -17,7 +17,6 @@ package com.android.tools.idea.templates;
 
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
-import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_IS_INSTANT_MODULE;

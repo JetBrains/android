@@ -17,13 +17,6 @@ package com.android.tools.idea.templates
 
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.templates.Parameter.Constraint.CLASS
-import com.android.tools.idea.templates.Parameter.Constraint.DRAWABLE
-import com.android.tools.idea.templates.Parameter.Constraint.LAYOUT
-import com.android.tools.idea.templates.Parameter.Constraint.MODULE
-import com.android.tools.idea.templates.Parameter.Constraint.NAVIGATION
-import com.android.tools.idea.templates.Parameter.Constraint.PACKAGE
-import com.android.tools.idea.templates.Parameter.Constraint.UNIQUE
 import com.android.tools.idea.templates.Template.ATTR_CONSTRAINTS
 import com.android.tools.idea.templates.Template.ATTR_DEFAULT
 import com.android.tools.idea.templates.Template.ATTR_HELP
@@ -34,6 +27,8 @@ import com.android.tools.idea.templates.Template.ATTR_TYPE
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB
+import com.android.tools.idea.wizard.template.Constraint
+import com.android.tools.idea.wizard.template.Constraint.*
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -102,7 +97,7 @@ class UniqueParameterTest : AndroidGradleTestCase() {
   }
 
   private fun assertViolates(value: String?,
-                             c: Parameter.Constraint,
+                             c: Constraint,
                              packageName: String? = null,
                              provider: SourceProvider? = null,
                              relatedValues: Set<Any> = setOf()) {
@@ -110,7 +105,7 @@ class UniqueParameterTest : AndroidGradleTestCase() {
   }
 
   private fun assertPasses(value: String?,
-                           c: Parameter.Constraint,
+                           c: Constraint,
                            packageName: String? = null,
                            provider: SourceProvider? = null,
                            relatedValues: Set<Any> = setOf()) {
