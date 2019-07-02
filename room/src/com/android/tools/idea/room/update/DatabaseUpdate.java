@@ -28,12 +28,16 @@ public class DatabaseUpdate {
   private Map<String, EntityBundle> newEntities;
   private Map<String, EntityBundle> deletedEntities;
   private Map<String, EntityUpdate> modifiedEntities;
+  private int currentVersion;
+  private int previousVersion;
 
   /**
    * @param oldDatabase older version of the database
    * @param newDatabase current version of the database
    */
   public DatabaseUpdate(@NotNull DatabaseBundle oldDatabase, @NotNull DatabaseBundle newDatabase) {
+    previousVersion = oldDatabase.getVersion();
+    currentVersion = newDatabase.getVersion();
     deletedEntities = new HashMap<>(oldDatabase.getEntitiesByTableName());
     newEntities = new HashMap<>();
     modifiedEntities = new HashMap<>();
@@ -63,5 +67,13 @@ public class DatabaseUpdate {
   @NotNull
   public Map<String, EntityBundle> getDeletedEntities() {
     return deletedEntities;
+  }
+
+  public int getCurrentVersion() {
+    return currentVersion;
+  }
+
+  public int getPreviousVersion() {
+    return previousVersion;
   }
 }
