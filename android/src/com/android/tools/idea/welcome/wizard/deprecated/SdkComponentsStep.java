@@ -34,7 +34,7 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -170,7 +170,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
       return "";
     }
     String available = WelcomeUIUtils.getSizeLabel(file.getFreeSpace());
-    if (SystemInfoRt.isWindows) {
+    if (SystemInfo.isWindows) {
       while (file.getParentFile() != null) {
         file = file.getParentFile();
       }

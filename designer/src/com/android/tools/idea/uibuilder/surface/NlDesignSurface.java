@@ -45,7 +45,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
@@ -294,7 +294,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   public float getScreenScalingFactor() {
-    return (SystemInfoRt.isMac && UIUtil.isRetina()) ? 2f : 1f;
+    return (SystemInfo.isMac && UIUtil.isRetina()) ? 2f : 1f;
   }
 
   @NotNull

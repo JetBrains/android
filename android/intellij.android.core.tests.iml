@@ -110,7 +110,6 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools:annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:crash" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.build:manifest-merger" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
@@ -138,5 +137,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" scope="TEST" name="org.jetbrains.intellij.deps.android.tools:perf-logger-tests" level="project" />
   </component>
 </module>

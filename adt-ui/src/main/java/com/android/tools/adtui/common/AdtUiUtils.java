@@ -17,7 +17,7 @@ package com.android.tools.adtui.common;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
-import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
@@ -138,14 +138,14 @@ public final class AdtUiUtils {
    * meta key on mac, and control on other platforms.
    */
   public static boolean isActionKeyDown(@NotNull InputEvent event) {
-    return SystemInfoRt.isMac ? event.isMetaDown() : event.isControlDown();
+    return SystemInfo.isMac ? event.isMetaDown() : event.isControlDown();
   }
 
   /**
    * returns the action mask for the current platform. On mac it's {@link META_DOWN_MASK} everything else is {@link CTRL_DOWN_MASK}.
    */
   public static int getActionMask() {
-    return SystemInfoRt.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
+    return SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
   }
 
   /**
