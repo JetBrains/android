@@ -67,6 +67,12 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Override
   protected void tearDown() throws Exception {
+    cleanupMockitoThreadLocals();
+    myFixture = null;
+    super.tearDown();
+  }
+
+  public static void cleanupMockitoThreadLocals() throws Exception {
     ThreadSafeMockingProgress.mockingProgress().resetOngoingStubbing();
     Callable<Void> callable = () -> {
       ThreadSafeMockingProgress.mockingProgress().resetOngoingStubbing();
@@ -78,8 +84,6 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     for (Future<Void> future : futures) {
       future.get();
     }
-    myFixture = null;
-    super.tearDown();
   }
 
   public static String getAbsoluteTestDataPath() {
