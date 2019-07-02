@@ -12,7 +12,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="ecc31" class="javax.swing.JTextField" binding="sqliteQueryTextField">
+          <component id="ecc31" class="javax.swing.JTextField" binding="sqliteStatementTextField">
             <constraints border-constraint="Center"/>
             <properties/>
           </component>

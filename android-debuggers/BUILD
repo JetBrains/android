@@ -17,8 +17,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/platform/usageView:intellij.platform.usageView",
-        "//tools/idea/RegExpSupport:intellij.regexp",
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
         "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",
         "//tools/idea/spellchecker:intellij.spellchecker",
@@ -43,6 +41,8 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/idea/platform/core-impl:intellij.platform.core.impl[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
+        "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
+        "//tools/adt/idea/android-lang:intellij.android.lang[module]",
     ],
 )
 
@@ -57,17 +57,23 @@ iml_module(
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
-        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/idea/.idea/libraries:sqlite"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/idea/.idea/libraries:sqlite",
+        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
+        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/json:intellij.json",
+        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/platform/configuration-store-impl:intellij.platform.configurationStore.impl",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+    ],
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module, test]",
@@ -81,5 +87,8 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/android-lang:intellij.android.lang[module]",
     ],
 )

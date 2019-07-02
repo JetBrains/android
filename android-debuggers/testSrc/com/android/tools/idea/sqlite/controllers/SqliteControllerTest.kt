@@ -176,6 +176,23 @@ class SqliteControllerTest : PlatformTestCase() {
       .reportErrorRelatedToService(eq(sqliteService), eq("Error opening Sqlite database"), refEq(throwable))
   }
 
+  fun testHasOpenDatabaseSuccess() {
+    // Prepare
+    `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
+
+    // Act
+    sqliteController.openSqliteDatabase(sqliteFile)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    assertTrue(sqliteController.hasOpenDatabase())
+  }
+
+  fun testHasOpenDatabaseFailure() {
+    // Assert
+    assertFalse(sqliteController.hasOpenDatabase())
+  }
+
   fun testDisplayResultSetIsCalledForTable() {
     // Prepare
     `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))

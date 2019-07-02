@@ -21,6 +21,6 @@ import javax.swing.JTextField;
 
 public class SqliteEvaluatorPanel {
   public JPanel root;
-  public JTextField sqliteQueryTextField;
+  public JTextField sqliteStatementTextField;
   public JButton evaluateButton;
 }

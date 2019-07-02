@@ -19,7 +19,7 @@ import com.android.tools.idea.sqlite.ui.tableView.TableView
 import javax.swing.JComponent
 
 /**
- * Abstraction over the UI component used to evaluate user-defined SQL instructions.
+ * Abstraction over the UI component used to evaluate user-defined SQL statements.
  *
  * This is used by [com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController] to avoid direct dependency on the
  * UI implementation.
@@ -34,11 +34,12 @@ interface SqliteEvaluatorView {
   val tableView: TableView
   fun addListener(listener: SqliteEvaluatorViewListener)
   fun removeListener(listener: SqliteEvaluatorViewListener)
+  fun showSqliteStatement(sqliteStatement: String)
 }
 
 interface SqliteEvaluatorViewListener {
   /**
-   * Method invoked when an sql instruction needs to be evaluated.
+   * Method invoked when an sql statement needs to be evaluated.
    */
-  fun evaluateSqlActionInvoked(sqlInstruction: String)
+  fun evaluateSqlActionInvoked(sqliteStatement: String)
 }
