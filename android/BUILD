@@ -327,6 +327,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
         "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer[module, test]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
     ],
 )
 

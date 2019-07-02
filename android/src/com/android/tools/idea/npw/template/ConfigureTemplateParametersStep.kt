@@ -57,6 +57,7 @@ import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.KOTL
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.android.tools.idea.wizard.template.Constraint
 import com.google.common.base.Joiner
 import com.google.common.base.Strings
 import com.google.common.cache.CacheBuilder
@@ -542,7 +543,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
   private inner class ParameterDeduplicator : ParameterValueResolver.Deduplicator {
     override fun deduplicate(parameter: Parameter, value: String?): String? {
-      if (Strings.isNullOrEmpty(value) || !parameter.constraints.contains(Parameter.Constraint.UNIQUE)) {
+      if (Strings.isNullOrEmpty(value) || !parameter.constraints.contains(Constraint.UNIQUE)) {
         return value
       }
 

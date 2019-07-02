@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.tools.idea.templates.Parameter.Constraint
+import com.android.tools.idea.wizard.template.Constraint
 
 /**
  * Class which handles setting up the relationships between a bunch of [Parameter]s and then resolves them.

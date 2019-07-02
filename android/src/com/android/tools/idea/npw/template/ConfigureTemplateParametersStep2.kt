@@ -43,6 +43,7 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.observable.ui.VisibleProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.templates.validate
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep
@@ -327,14 +328,11 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
       if (property == null || !parameter.isVisibleAndEnabled) {
         return@firstNotNullResult null
       }
-      null
-      /* TODO: do actual validation
       when (parameter) {
         is StringParameter -> parameter.validate(
           project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
         else -> null
       }
-       */
     }
   }
 
