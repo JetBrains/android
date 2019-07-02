@@ -134,7 +134,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     addDebugKeyStore(myTemplateValues, facet)
     addApplicationTheme(myTemplateValues, facet)
 
-    myTemplateValues[ATTR_IS_NEW_MODULE] = false // Android Modules are called Gradle Projects
+    myTemplateValues[ATTR_IS_NEW_MODULE] = false
     myTemplateValues[ATTR_IS_LIBRARY_MODULE] = facet.configuration.isLibraryProject
 
     val appTheme = MergedManifestManager.getMergedManifestSupplier(facet.module).now?.manifestTheme
@@ -172,7 +172,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   /**
-   * Same as [setFacet], but uses a {link AndroidVersionsInfo.VersionItem}. This version is used when the Module is not created yet.
+   * Same as [setFacet], but uses a [AndroidVersionsInfo.VersionItem]. This version is used when the Module is not created yet.
    *
    * @param buildVersion Build version information for the new Module being created.
    * @param project      Used to find the Gradle Dependencies versions. If null, it will use the most recent values known.
@@ -237,8 +237,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
    * @param paths       Project paths
    * @param packageName Package Name for the module
    */
-  fun setModuleRoots(paths: AndroidModulePaths, projectPath: String,
-                     moduleName: String, packageName: String): TemplateValueInjector {
+  fun setModuleRoots(paths: AndroidModulePaths, projectPath: String, moduleName: String, packageName: String): TemplateValueInjector {
     val moduleRoot = paths.moduleRoot!!
 
     // Register the resource directories associated with the active source provider
