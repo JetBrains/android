@@ -24,7 +24,6 @@ import javax.swing.JComponent
  * @see SqliteEvaluatorView
  */
 class SqliteEvaluatorViewImpl : SqliteEvaluatorView {
-
   private val evaluatorPanel = SqliteEvaluatorPanel()
   override val component: JComponent = evaluatorPanel.root
 
@@ -36,7 +35,7 @@ class SqliteEvaluatorViewImpl : SqliteEvaluatorView {
     evaluatorPanel.root.add(tableView.component, BorderLayout.CENTER)
     evaluatorPanel.evaluateButton.addActionListener {
       listeners.forEach {
-        it.evaluateSqlActionInvoked(evaluatorPanel.sqliteQueryTextField.text)
+        it.evaluateSqlActionInvoked(evaluatorPanel.sqliteStatementTextField.text)
       }
     }
   }
@@ -47,5 +46,9 @@ class SqliteEvaluatorViewImpl : SqliteEvaluatorView {
 
   override fun removeListener(listener: SqliteEvaluatorViewListener) {
     listeners.remove(listener)
+  }
+
+  override fun showSqliteStatement(sqliteStatement: String) {
+    evaluatorPanel.sqliteStatementTextField.text = sqliteStatement
   }
 }

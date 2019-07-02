@@ -19,7 +19,12 @@
     <fileTypeDetector implementation="com.android.tools.idea.editors.sqlite.SqliteFileTypeDetector" />
     <applicationService serviceImplementation="com.android.tools.idea.sqlite.ui.SqliteEditorViewFactoryImpl"/>
 
-    <projectService serviceImplementation="com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService" />
+    <annotator language="JAVA" implementationClass="com.android.tools.idea.SqliteQueryAnnotator"/>
+    <annotator language="kotlin" implementationClass="com.android.tools.idea.SqliteQueryAnnotator"/>
+
+    <projectService
+        serviceInterface="com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService"
+        serviceImplementation="com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectServiceImpl" />
 
     <facet.toolWindow id="Sqlite Explorer"
                       facetIdList="android"

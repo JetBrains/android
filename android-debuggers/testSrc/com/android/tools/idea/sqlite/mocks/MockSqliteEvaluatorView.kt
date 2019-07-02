@@ -31,4 +31,6 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
   override fun addListener(listener: SqliteEvaluatorViewListener) { listeners.add(listener) }
 
   override fun removeListener(listener: SqliteEvaluatorViewListener) { listeners.remove(listener) }
+
+  override fun showSqliteStatement(sqliteStatement: String) {  }
 }
