@@ -174,6 +174,12 @@ public final class ProfilersTestData {
       .setIsEnded(true).setMemoryHeapdump(Memory.MemoryHeapDumpData.newBuilder().setInfo(info));
   }
 
+  @NotNull
+  public static Common.Event.Builder generateMemoryAllocationInfoData(long timestamp, int pid, Memory.AllocationsInfo info) {
+    return Common.Event.newBuilder().setTimestamp(timestamp).setGroupId(timestamp).setKind(Common.Event.Kind.MEMORY_ALLOC_TRACKING)
+      .setPid(pid).setIsEnded(true).setMemoryAllocTracking(Memory.MemoryAllocTrackingData.newBuilder().setInfo(info));
+  }
+
   public static Common.Event.Builder generateMemoryAllocSamplingData(Common.Session session,
                                                                      long timestampNs,
                                                                      Memory.MemoryAllocSamplingData data) {

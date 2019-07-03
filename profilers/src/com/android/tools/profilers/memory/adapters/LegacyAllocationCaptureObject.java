@@ -45,7 +45,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   @NotNull private final ProfilerClient myClient;
   @NotNull private final ClassDb myClassDb;
   @NotNull private final Common.Session mySession;
-  @NotNull private final MemoryProfiler.AllocationsInfo myInfo;
+  @NotNull private final Memory.AllocationsInfo myInfo;
   private long myStartTimeNs;
   private long myEndTimeNs;
   private final FeatureTracker myFeatureTracker;
@@ -56,7 +56,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
 
   public LegacyAllocationCaptureObject(@NotNull ProfilerClient client,
                                        @NotNull Common.Session session,
-                                       @NotNull MemoryProfiler.AllocationsInfo info,
+                                       @NotNull Memory.AllocationsInfo info,
                                        @NotNull FeatureTracker featureTracker) {
     myClient = client;
     myClassDb = new ClassDb();

@@ -20,7 +20,7 @@ import static com.android.tools.profilers.memory.MemoryProfiler.saveLegacyAlloca
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import java.io.OutputStream;
@@ -32,17 +32,17 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A session artifact representation of a memory allocation recording (legacy).
  */
-public class LegacyAllocationsSessionArtifact implements SessionArtifact<MemoryProfiler.AllocationsInfo> {
+public class LegacyAllocationsSessionArtifact implements SessionArtifact<Memory.AllocationsInfo> {
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Common.Session mySession;
   @NotNull private final Common.SessionMetaData mySessionMetaData;
-  @NotNull private final MemoryProfiler.AllocationsInfo myInfo;
+  @NotNull private final Memory.AllocationsInfo myInfo;
 
   public LegacyAllocationsSessionArtifact(@NotNull StudioProfilers profilers,
                                           @NotNull Common.Session session,
                                           @NotNull Common.SessionMetaData sessionMetaData,
-                                          @NotNull MemoryProfiler.AllocationsInfo info) {
+                                          @NotNull Memory.AllocationsInfo info) {
     myProfilers = profilers;
     mySession = session;
     mySessionMetaData = sessionMetaData;
@@ -51,7 +51,7 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<MemoryP
 
   @NotNull
   @Override
-  public MemoryProfiler.AllocationsInfo getArtifactProto() {
+  public Memory.AllocationsInfo getArtifactProto() {
     return myInfo;
   }
 
@@ -143,14 +143,13 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<MemoryP
   public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,
                                                           @NotNull Common.Session session,
                                                           @NotNull Common.SessionMetaData sessionMetaData) {
-    MemoryProfiler.MemoryData response = profilers.getClient().getMemoryClient()
-      .getData(MemoryProfiler.MemoryRequest.newBuilder().setSession(session)
-                 .setStartTime(session.getStartTimestamp())
-                 .setEndTime(session.getEndTimestamp())
-                 .build());
+    Range rangeUs = new Range(TimeUnit.NANOSECONDS.toMicros(session.getStartTimestamp()),
+                              TimeUnit.NANOSECONDS.toMicros(session.getEndTimestamp()));
+    List<Memory.AllocationsInfo> infos =
+      MemoryProfiler.getAllocationInfosForSession(profilers.getClient(), session, rangeUs, profilers.getIdeServices());
 
     List<SessionArtifact> artifacts = new ArrayList<>();
-    for (MemoryProfiler.AllocationsInfo info : response.getAllocationsInfoList()) {
+    for (Memory.AllocationsInfo info : infos) {
       // Skip AllocationsInfo's that represent live allocations.
       if (info.getLegacy()) {
         artifacts.add(new LegacyAllocationsSessionArtifact(profilers, session, sessionMetaData, info));

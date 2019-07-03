@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.profilers.perfd;
 
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.FAILURE_UNKNOWN;
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS;
-
 import com.android.annotations.Nullable;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -30,9 +26,9 @@ import com.android.tools.idea.transport.ServiceProxy;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocatedClass;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
+import com.android.tools.profiler.proto.Memory.TrackStatus;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
@@ -265,7 +261,8 @@ public class MemoryServiceProxy extends ServiceProxy {
     synchronized (myUpdatingDataLock) {
       if (myInProgressTrackingInfo.get(sessionId) != null) {
         // A previous tracking is still in-progress, cannot enable a new one.
-        return TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.IN_PROGRESS).build();
+        return TrackAllocationsResponse.newBuilder().setStatus(
+          TrackStatus.newBuilder().setStatus(TrackStatus.Status.IN_PROGRESS)).build();
       }
 
       TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(sessionId);
@@ -276,18 +273,17 @@ public class MemoryServiceProxy extends ServiceProxy {
         AllocationsInfo newInfo = AllocationsInfo.newBuilder()
           .setStartTime(startTimeNs)
           .setEndTime(Long.MAX_VALUE)
-          .setStatus(IN_PROGRESS)
           .setLegacy(true)
           .build();
         responseBuilder.setInfo(newInfo);
-        responseBuilder.setStatus(TrackAllocationsResponse.Status.SUCCESS);
+        responseBuilder.setStatus(TrackStatus.newBuilder().setStatus(TrackStatus.Status.SUCCESS));
         AllocationTrackingData newData = new AllocationTrackingData();
         newData.myInfo = newInfo;
         datas.put(startTimeNs, newData);
         myInProgressTrackingInfo.put(sessionId, newInfo);
       }
       else {
-        responseBuilder.setStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
+        responseBuilder.setStatus(TrackStatus.newBuilder().setStatus(TrackStatus.Status.FAILURE_UNKNOWN));
       }
 
       return responseBuilder.build();
@@ -299,7 +295,8 @@ public class MemoryServiceProxy extends ServiceProxy {
       AllocationsInfo lastInfo = myInProgressTrackingInfo.get(sessionId);
       if (lastInfo == null) {
         // No in-progress tracking, cannot disable one.
-        return TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.NOT_ENABLED).build();
+        return TrackAllocationsResponse.newBuilder().setStatus(
+          TrackStatus.newBuilder().setStatus(TrackStatus.Status.NOT_ENABLED)).build();
       }
 
       LegacyAllocationTracker tracker = myLegacyTrackers.get(sessionId);
@@ -313,14 +310,13 @@ public class MemoryServiceProxy extends ServiceProxy {
                                                                                                              allocations));
       AllocationsInfo.Builder lastInfoBuilder = lastInfo.toBuilder();
       lastInfoBuilder.setEndTime(endtimeNs);
+      lastInfoBuilder.setSuccess(success);
       if (success) {
-        lastInfoBuilder.setStatus(COMPLETED);
-        responseBuilder.setStatus(TrackAllocationsResponse.Status.SUCCESS);
+        responseBuilder.setStatus(TrackStatus.newBuilder().setStatus(TrackStatus.Status.SUCCESS));
         datas.get(lastInfo.getStartTime()).myDataParsingLatch = new CountDownLatch(1);
       }
       else {
-        lastInfoBuilder.setStatus(FAILURE_UNKNOWN);
-        responseBuilder.setStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
+        responseBuilder.setStatus(TrackStatus.newBuilder().setStatus(TrackStatus.Status.FAILURE_UNKNOWN));
       }
 
       AllocationsInfo updatedInfo = lastInfoBuilder.build();

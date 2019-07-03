@@ -16,6 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import static com.android.tools.profiler.proto.Memory.HeapDumpStatus.Status.SUCCESS;
+
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -31,8 +32,10 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocatedClass;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
+import com.android.tools.profiler.proto.Memory.TrackStatus;
+import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
@@ -212,10 +215,9 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testTrackAllocations() {
-    TrackAllocationsRequest request = TrackAllocationsRequest
-      .newBuilder().setSession(TEST_SESSION).setEnabled(true).build();
-    TrackAllocationsResponse expected = TrackAllocationsResponse
-      .newBuilder().setStatus(TrackAllocationsResponse.Status.SUCCESS).build();
+    TrackAllocationsRequest request = TrackAllocationsRequest.newBuilder().setSession(TEST_SESSION).setEnabled(true).build();
+    TrackAllocationsResponse expected = TrackAllocationsResponse.newBuilder()
+      .setStatus(TrackStatus.newBuilder().setStatus(Status.SUCCESS)).build();
     StreamObserver<TrackAllocationsResponse> observer = mock(StreamObserver.class);
     myMemoryService.trackAllocations(request, observer);
     validateResponse(observer, expected);
@@ -235,7 +237,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myFakeMemoryService.setTrackAllocationsInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO);
     TrackAllocationsRequest request = TrackAllocationsRequest.newBuilder().setSession(TEST_SESSION).setEnabled(true).build();
     TrackAllocationsResponse trackAllocationsExpected = TrackAllocationsResponse
-      .newBuilder().setStatus(TrackAllocationsResponse.Status.SUCCESS).setInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO).build();
+      .newBuilder().setStatus(TrackStatus.newBuilder().setStatus(Status.SUCCESS)).setInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO).build();
     StreamObserver<TrackAllocationsResponse> trackAllocationsObserver = mock(StreamObserver.class);
     myMemoryService.trackAllocations(request, trackAllocationsObserver);
     validateResponse(trackAllocationsObserver, trackAllocationsExpected);
@@ -346,7 +348,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .newBuilder()
       .setStartTime(delayTimeFromBase(1))
       .setEndTime(delayTimeFromBase(1) + 1)
-      .setStatus(AllocationsInfo.Status.FAILURE_UNKNOWN)
+      .setSuccess(false)
       .setLegacy(true)
       .build();
     MemoryData expected = MemoryData.newBuilder().addAllocationsInfo(expectedFailedInfo).build();
@@ -404,7 +406,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .addAllStacks(Arrays.asList(AllocationStack.newBuilder().setStackId(3).build(), AllocationStack.newBuilder().setStackId(4).build()))
       .build();
 
-    AllocationsInfo info = AllocationsInfo.newBuilder().setLegacy(true).setStartTime(1).build();
+    AllocationsInfo info = AllocationsInfo.newBuilder().setLegacy(true).setStartTime(1).setEndTime(2).setSuccess(true).build();
     ImportLegacyAllocationsRequest request = ImportLegacyAllocationsRequest.newBuilder()
       .setSession(TEST_SESSION)
       .setInfo(info)
@@ -490,7 +492,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     public void trackAllocations(TrackAllocationsRequest request,
                                  StreamObserver<TrackAllocationsResponse> responseObserver) {
       TrackAllocationsResponse.Builder response = TrackAllocationsResponse.newBuilder();
-      response.setStatus(TrackAllocationsResponse.Status.SUCCESS);
+      response.setStatus(TrackStatus.newBuilder().setStatus(Status.SUCCESS));
       if (myAllocationsInfo != null) {
         response.setInfo(myAllocationsInfo);
       }
