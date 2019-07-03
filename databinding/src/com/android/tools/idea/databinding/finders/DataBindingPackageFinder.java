@@ -18,7 +18,7 @@ package com.android.tools.idea.databinding.finders;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
-import com.android.tools.idea.res.BindingLayoutInfo;
+import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Maps;
