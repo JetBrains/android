@@ -227,7 +227,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     SceneManager primaryManager = managerIterator.next();
     sceneViews.add(primaryManager.getSceneView());
     if (mySceneMode == SceneMode.BOTH) {
-      sceneViews.add(((LayoutlibSceneManager) primaryManager).getSecondarySceneView());
+      SceneView secondarySceneView = ((LayoutlibSceneManager) primaryManager).getSecondarySceneView();
+      if (secondarySceneView != null) {
+        // menu and preference always has only one SceneView even scene mode is both.
+        sceneViews.add(secondarySceneView);
+      }
     }
     managerIterator.forEachRemaining(it -> sceneViews.add(it.getSceneView()));
 
