@@ -26,7 +26,6 @@ import com.android.tools.idea.templates.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -101,7 +100,6 @@ public final class NewProjectModuleModel extends WizardModel {
   protected void handleFinished() {
     myProjectModel.getNewModuleModels().clear();
 
-    Project project = myNewModuleModel.getProject().getValueOrNull();
     String projectLocation = myProjectModel.projectLocation().get();
     boolean hasCompanionApp = myHasCompanionApp.get();
 
@@ -110,9 +108,7 @@ public final class NewProjectModuleModel extends WizardModel {
     Map<String, Object> projectTemplateValues = myProjectModel.getTemplateValues();
     addModuleToProject(myNewModuleModel, myFormFactor.get(), myProjectModel, projectTemplateValues);
 
-    int formFactorsCount = 1;
     if (hasCompanionApp) {
-      formFactorsCount++;
       NewModuleModel companionModuleModel = createCompanionModuleModel(myProjectModel);
       RenderTemplateModel companionRenderModel = createCompanionRenderModel(projectLocation, companionModuleModel);
       addModuleToProject(companionModuleModel, FormFactor.MOBILE, myProjectModel, projectTemplateValues);
@@ -123,7 +119,6 @@ public final class NewProjectModuleModel extends WizardModel {
       companionModuleModel.handleFinished();
       companionRenderModel.handleFinished();
     }
-    projectTemplateValues.put(ATTR_NUM_ENABLED_FORM_FACTORS, formFactorsCount);
 
     RenderTemplateModel newRenderTemplateModel = createMainRenderModel(projectLocation);
     myNewModuleModel.setRenderTemplateModel(newRenderTemplateModel);
