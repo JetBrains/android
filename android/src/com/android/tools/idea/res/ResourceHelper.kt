@@ -214,11 +214,19 @@ fun getResourceName(file: PsiFile): String {
 }
 
 fun getFolderType(file: PsiFile?): ResourceFolderType? {
+
   return when {
     file == null -> null
     !ApplicationManager.getApplication().isReadAccessAllowed -> runReadAction { getFolderType(file) }
     !file.isValid -> getFolderType(file.virtualFile)
-    else -> file.parent?.let { ResourceFolderType.getFolderType(it.name) }
+    else -> {
+      var folderType = file.parent?.let { ResourceFolderType.getFolderType(it.name) }
+      if (folderType == null) {
+        folderType = file.virtualFile?.let { getFolderType(it) }
+      }
+
+      return folderType
+    }
   }
 }
 
