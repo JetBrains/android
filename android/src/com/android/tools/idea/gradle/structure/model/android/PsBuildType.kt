@@ -121,7 +121,7 @@ open class PsBuildType(
 
     val applicationIdSuffix: SimpleProperty<PsBuildType, String> = property(
       "Application ID Suffix",
-      preferredVariableName = { variableName(this.name() + "-application-id-suffix") },
+      preferredVariableName = { variableName("$name-application-id-suffix") },
       resolvedValueGetter = { applicationIdSuffix },
       parsedPropertyGetter = { applicationIdSuffix() },
       getter = { asString() },
@@ -131,7 +131,7 @@ open class PsBuildType(
 
     val debuggable: SimpleProperty<PsBuildType, Boolean> = property(
       "Debuggable",
-      preferredVariableName = { variableName(this.name() + "-debuggable") },
+      preferredVariableName = { variableName( "$name-debuggable") },
       // See: com.android.build.gradle.internal.dsl.BuildType#init
       defaultValueGetter = { it.name == DEBUG_BUILD_TYPE_NAME },
       resolvedValueGetter = { isDebuggable },
@@ -144,7 +144,7 @@ open class PsBuildType(
 
     val embedMicroApp: SimpleProperty<PsBuildType, Boolean> = property(
       "Embed Micro App",
-      preferredVariableName = { variableName(this.name() + "-embed-micro-app") },
+      preferredVariableName = { variableName("$name-embed-micro-app") },
       // See: com.android.build.gradle.internal.dsl.BuildType#init
       defaultValueGetter = { it.name != DEBUG_BUILD_TYPE_NAME },
       resolvedValueGetter = { isEmbedMicroApp },
@@ -157,7 +157,7 @@ open class PsBuildType(
 
     val jniDebuggable: SimpleProperty<PsBuildType, Boolean> = property(
       "Jni Debuggable",
-      preferredVariableName = { variableName(this.name() + "-jni-debuggable") },
+      preferredVariableName = { variableName("$name-jni-debuggable") },
       defaultValueGetter = { false },
       resolvedValueGetter = { isJniDebuggable },
       parsedPropertyGetter = { jniDebuggable() },
@@ -169,7 +169,7 @@ open class PsBuildType(
 
     val minifyEnabled: SimpleProperty<PsBuildType, Boolean> = property(
       "Minify Enabled",
-      preferredVariableName = { variableName(this.name() + "-minify-enabled") },
+      preferredVariableName = { variableName("$name-minify-enabled") },
       defaultValueGetter = { false },
       resolvedValueGetter = { isMinifyEnabled },
       parsedPropertyGetter = { minifyEnabled() },
@@ -181,7 +181,7 @@ open class PsBuildType(
 
     val multiDexEnabled: SimpleProperty<PsBuildType, Boolean> = property(
       "Multi Dex Enabled",
-      preferredVariableName = { variableName(this.name() + "-multi-dex-enabled") },
+      preferredVariableName = { variableName("$name-multi-dex-enabled") },
       resolvedValueGetter = { multiDexEnabled },
       parsedPropertyGetter = { multiDexEnabled() },
       getter = { asBoolean() },
@@ -192,7 +192,7 @@ open class PsBuildType(
 
     val pseudoLocalesEnabled: SimpleProperty<PsBuildType, Boolean> = property(
       "Pseudo Locales Enabled",
-      preferredVariableName = { variableName(this.name() + "-pseudo-locales-enabled") },
+      preferredVariableName = { variableName("$name-pseudo-locales-enabled") },
       defaultValueGetter = { false },
       resolvedValueGetter = { isPseudoLocalesEnabled },
       parsedPropertyGetter = { pseudoLocalesEnabled() },
@@ -204,7 +204,7 @@ open class PsBuildType(
 
     val renderscriptDebuggable: SimpleProperty<PsBuildType, Boolean> = property(
       "Renderscript Debuggable",
-      preferredVariableName = { variableName(this.name() + "-renderscript-debuggable") },
+      preferredVariableName = { variableName("$name-renderscript-debuggable") },
       defaultValueGetter = { false },
       resolvedValueGetter = { isRenderscriptDebuggable },
       parsedPropertyGetter = { renderscriptDebuggable() },
@@ -216,7 +216,7 @@ open class PsBuildType(
 
     val renderscriptOptimLevel: SimpleProperty<PsBuildType, Int> = property(
       "Renderscript optimization Level",
-      preferredVariableName = { variableName(this.name() + "-renderscript-optim-level") },
+      preferredVariableName = { variableName("$name-renderscript-optim-level") },
       defaultValueGetter = { 3 },
       resolvedValueGetter = { renderscriptOptimLevel },
       parsedPropertyGetter = { renderscriptOptimLevel() },
@@ -238,7 +238,7 @@ open class PsBuildType(
 
     val testCoverageEnabled: SimpleProperty<PsBuildType, Boolean> = property(
       "Test Coverage Enabled",
-      preferredVariableName = { variableName(this.name() + "-test-coverage-enabled") },
+      preferredVariableName = { variableName("$name-test-coverage-enabled") },
       defaultValueGetter = { false },
       resolvedValueGetter = { isTestCoverageEnabled },
       parsedPropertyGetter = { testCoverageEnabled() },
@@ -250,7 +250,7 @@ open class PsBuildType(
 
     val versionNameSuffix: SimpleProperty<PsBuildType, String> = property(
       "Version Name Suffix",
-      preferredVariableName = { variableName(this.name() + "-version-name-suffix") },
+      preferredVariableName = { variableName("$name-version-name-suffix") },
       resolvedValueGetter = { versionNameSuffix },
       parsedPropertyGetter = { versionNameSuffix() },
       getter = { asString() },

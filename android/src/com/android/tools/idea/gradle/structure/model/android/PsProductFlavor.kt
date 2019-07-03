@@ -131,7 +131,7 @@ open class PsProductFlavor(
 
     val applicationId: SimpleProperty<PsProductFlavor, String> = property(
       "Application ID",
-      preferredVariableName = { variableName(this.name() + "-application-id") },
+      preferredVariableName = { variableName("$name-application-id") },
       resolvedValueGetter = { applicationId },
       parsedPropertyGetter = { applicationId() },
       getter = { asString() },
@@ -141,7 +141,7 @@ open class PsProductFlavor(
 
     val applicationIdSuffix: SimpleProperty<PsProductFlavor, String> = property(
       "Application ID Suffix",
-      preferredVariableName = { variableName(this.name() + "-application-id-suffix") },
+      preferredVariableName = { variableName("$name-application-id-suffix") },
       resolvedValueGetter = { applicationIdSuffix },
       parsedPropertyGetter = { applicationIdSuffix() },
       getter = { asString() },
@@ -162,7 +162,7 @@ open class PsProductFlavor(
 
     val maxSdkVersion: SimpleProperty<PsProductFlavor, Int> = property(
       "Max SDK Version",
-      preferredVariableName = { variableName(this.name() + "-max-sdk-version") },
+      preferredVariableName = { variableName("$name-max-sdk-version") },
       resolvedValueGetter = { maxSdkVersion },
       parsedPropertyGetter = { maxSdkVersion() },
       getter = { asInt() },
@@ -173,7 +173,7 @@ open class PsProductFlavor(
 
     val minSdkVersion: SimpleProperty<PsProductFlavor, String> = property(
       "Min SDK Version",
-      preferredVariableName = { variableName(this.name() + "-min-sdk-version") },
+      preferredVariableName = { variableName("$name-min-sdk-version") },
       resolvedValueGetter = { minSdkVersion?.apiLevel?.toString() },
       parsedPropertyGetter = { minSdkVersion() },
       getter = { asString() },
@@ -184,7 +184,7 @@ open class PsProductFlavor(
 
     val multiDexEnabled: SimpleProperty<PsProductFlavor, Boolean> = property(
       "Multi Dex Enabled",
-      preferredVariableName = { variableName(this.name() + "-multi-dex-enabled") },
+      preferredVariableName = { variableName("$name-multi-dex-enabled") },
       resolvedValueGetter = { multiDexEnabled },
       parsedPropertyGetter = { multiDexEnabled() },
       getter = { asBoolean() },
@@ -206,7 +206,7 @@ open class PsProductFlavor(
 
     val targetSdkVersion: SimpleProperty<PsProductFlavor, String> = property(
       "Target SDK Version",
-      preferredVariableName = { variableName(this.name() + "-target-sdk-version") },
+      preferredVariableName = { variableName("$name-target-sdk-version") },
       resolvedValueGetter = { targetSdkVersion?.apiLevel?.toString() },
       parsedPropertyGetter = { targetSdkVersion() },
       getter = { asString() },
@@ -218,7 +218,7 @@ open class PsProductFlavor(
 
     val testApplicationId: SimpleProperty<PsProductFlavor, String> = property(
       "Test Application ID",
-      preferredVariableName = { variableName(this.name() + "-test-application-id") },
+      preferredVariableName = { variableName("$name-test-application-id") },
       resolvedValueGetter = { testApplicationId },
       parsedPropertyGetter = { testApplicationId() },
       getter = { asString() },
@@ -228,7 +228,7 @@ open class PsProductFlavor(
 
     val testFunctionalTest: SimpleProperty<PsProductFlavor, Boolean> = property(
       "Test Functional Test",
-      preferredVariableName = { variableName(this.name() + "-test-functional-test") },
+      preferredVariableName = { variableName("$name-test-functional-test") },
       resolvedValueGetter = { testFunctionalTest },
       parsedPropertyGetter = { testFunctionalTest() },
       getter = { asBoolean() },
@@ -239,7 +239,7 @@ open class PsProductFlavor(
 
     val testHandleProfiling: SimpleProperty<PsProductFlavor, Boolean> = property(
       "Test Handle Profiling",
-      preferredVariableName = { variableName(this.name() + "-test-handle-profiling") },
+      preferredVariableName = { variableName("$name-test-handle-profiling") },
       resolvedValueGetter = { testHandleProfiling },
       parsedPropertyGetter = { testHandleProfiling() },
       getter = { asBoolean() },
@@ -250,7 +250,7 @@ open class PsProductFlavor(
 
     val testInstrumentationRunner: SimpleProperty<PsProductFlavor, String> = property(
       "Test instrumentation runner class name",
-      preferredVariableName = { variableName(this.name() + "-test-instrumentation-runner") },
+      preferredVariableName = { variableName("$name-test-instrumentation-runner") },
       resolvedValueGetter = { testInstrumentationRunner },
       parsedPropertyGetter = { testInstrumentationRunner() },
       getter = { asString() },
@@ -260,7 +260,7 @@ open class PsProductFlavor(
 
     val versionCode: SimpleProperty<PsProductFlavor, Int> = property(
       "Version Code",
-      preferredVariableName = { variableName(this.name() + "-version-code") },
+      preferredVariableName = { variableName("$name-version-code") },
       resolvedValueGetter = { versionCode },
       parsedPropertyGetter = { versionCode() },
       getter = { asInt() },
@@ -270,7 +270,7 @@ open class PsProductFlavor(
 
     val versionName: SimpleProperty<PsProductFlavor, String> = property(
       "Version Name",
-      preferredVariableName = { variableName(this.name() + "-version-name") },
+      preferredVariableName = { variableName("$name-version-name") },
       resolvedValueGetter = { versionName },
       parsedPropertyGetter = { versionName() },
       getter = { asString() },
@@ -280,7 +280,7 @@ open class PsProductFlavor(
 
     val versionNameSuffix: SimpleProperty<PsProductFlavor, String> = property(
       "Version Name Suffix",
-      preferredVariableName = { variableName(this.name() + "-version-name-suffix") },
+      preferredVariableName = { variableName("$name-version-name-suffix") },
       resolvedValueGetter = { versionNameSuffix },
       parsedPropertyGetter = { versionNameSuffix() },
       getter = { asString() },
