@@ -181,4 +181,29 @@ class BuildVariantsTest {
       clickCancel()
     }
   }
+
+  @Test
+  fun extractVariableReleaseBuildType() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
+
+    ide.openPsd().run {
+      selectBuildVariantsConfigurable().run {
+        selectBuildTypesTab().run {
+          selectItemByPath("release")
+          versionNameSuffix().run {
+            invokeExtractVariable().run {
+              findName().run {
+                Truth.assertThat(text()).isEqualTo("releaseVersionNameSuffix")
+              }
+              findScope().run {
+                selectItem("Module: app")
+              }
+              clickCancel()
+            }
+          }
+        }
+      }
+      clickCancel()
+    }
+  }
 }
