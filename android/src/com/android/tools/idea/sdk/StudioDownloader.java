@@ -23,7 +23,6 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.SettingsController;
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
-import com.intellij.openapi.editor.ex.util.LexerEditorHighlighter;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
@@ -50,7 +49,8 @@ public class StudioDownloader implements Downloader {
 
   @Nullable File mDownloadIntermediatesLocation;
 
-  private static class DownloadProgressIndicator extends StudioProgressIndicatorAdapter {
+  @VisibleForTesting
+  static class DownloadProgressIndicator extends StudioProgressIndicatorAdapter {
     private final long mContentLength;
     private final String mTotalDisplaySize;
     private int mCurrentPercentage;
@@ -59,16 +59,31 @@ public class StudioDownloader implements Downloader {
 
     DownloadProgressIndicator(@NotNull ProgressIndicator wrapped, long contentLength, long startOffset) {
       super(wrapped);
-      mContentLength = contentLength;
-      mStartOffset = startOffset;
-      mCurrentPercentage = (int)(mStartOffset/(double)mContentLength);
-      Storage storage = new Storage(mContentLength);
-      mReasonableUnit = storage.getLargestReasonableUnits();
-      mTotalDisplaySize = storage.toUiString(1);
+      if (contentLength > 0) {
+        mCurrentPercentage = (int)(mStartOffset / (double)contentLength);
+        mContentLength = contentLength;
+        mStartOffset = startOffset;
+        Storage storage = new Storage(mContentLength);
+        mReasonableUnit = storage.getLargestReasonableUnits();
+        mTotalDisplaySize = storage.toUiString(1);
+        setIndeterminate(false);
+      }
+      else {
+        mCurrentPercentage = 0;
+        mContentLength = 0;
+        mStartOffset = 0;
+        mTotalDisplaySize = null;
+        setText("Downloading...");
+        setIndeterminate(true);
+      }
     }
 
     @Override
     public void setFraction(double fraction) {
+      if (isIndeterminate()) {
+        return;
+      }
+
       double adjustedFraction = ((mStartOffset + fraction * (mContentLength - mStartOffset)) / mContentLength);
       super.setFraction(adjustedFraction);
 
@@ -224,7 +239,6 @@ public class StudioDownloader implements Downloader {
   @Override
   public Path downloadFully(@NotNull URL url,
                             @NotNull ProgressIndicator indicator) throws IOException {
-    // TODO: caching
     String suffix = url.getPath();
     suffix = suffix.substring(suffix.lastIndexOf('/') + 1);
     File tempFile = FileUtil.createTempFile("StudioDownloader", suffix, true);
