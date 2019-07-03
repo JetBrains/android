@@ -142,6 +142,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:perfetto-proto",
         "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
+        "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
     ],
 )
 
