@@ -24,6 +24,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.idea.protobuf.ByteString
@@ -697,7 +698,7 @@ class SessionsViewTest {
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
 
     val allocationInfo = MemoryProfiler.MemoryData.newBuilder()
-      .addAllocationsInfo(MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(10).setEndTime(11).setLegacy(true).build())
+      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(10).setEndTime(11).setLegacy(true).build())
       .build()
     myMemoryService.setMemoryData(allocationInfo)
 
@@ -745,7 +746,7 @@ class SessionsViewTest {
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
 
     var allocationInfo = MemoryProfiler.MemoryData.newBuilder()
-      .addAllocationsInfo(MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(10).setEndTime(Long.MAX_VALUE).setLegacy(true).build())
+      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(10).setEndTime(Long.MAX_VALUE).setLegacy(true).build())
       .build()
     myMemoryService.setMemoryData(allocationInfo)
 
