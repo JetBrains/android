@@ -25,6 +25,7 @@ import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JTextComponentFixture
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.Container
+import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JList
 import javax.swing.JTextField
@@ -71,6 +72,13 @@ class PropertyEditorFixture(
       robot().finder().findByType<JTextField>(
         robot().finder().findByType<ComboBox<*>>(container)))
     return textFixture.text().orEmpty()
+  }
+
+  fun invokeExtractVariable(): ExtractVariableFixture {
+    val comboBoxFixture = createComboBoxFixture()
+    comboBoxFixture.focus()
+    robot().pressAndReleaseKey(KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK)
+    return ExtractVariableFixture.find(robot())
   }
 
   private fun createComboBoxFixture(): JComboBoxFixture {
