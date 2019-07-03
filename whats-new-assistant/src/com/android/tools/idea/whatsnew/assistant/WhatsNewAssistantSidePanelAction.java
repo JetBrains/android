@@ -48,7 +48,7 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
   }
 
   @Override
-  public void actionPerformed(AnActionEvent event) {
+  public void actionPerformed(@NotNull AnActionEvent event) {
     WhatsNewAssistantBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewAssistantBundleCreator.class);
     if (bundleCreator == null || !bundleCreator.shouldShowWhatsNew()) {
       action.actionPerformed(event);
@@ -59,6 +59,7 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
                        .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
                        .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder().setType(
                          WhatsNewAssistantEvent.WhatsNewAssistantEventType.OPEN)));
+    assert event.getProject() != null;
     super.openWindow(WhatsNewAssistantBundleCreator.BUNDLE_ID, event.getProject());
 
     if (event.getProject() != null) {
