@@ -293,14 +293,14 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertTrue(psiFile instanceof XmlFile);
     XmlFile xmlFile = (XmlFile)psiFile;
 
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), true);
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), true, null, 0);
     assertEquals("LinearLayout", parser.myRoot.tagName);
     assertEquals(VALUE_MATCH_PARENT, parser.myRoot.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI));
     assertEquals(VALUE_MATCH_PARENT, parser.myRoot.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI));
     assertEquals("Button1", parser.myRoot.children.get(0).getAttribute("text"));
 
     // Now, do not honor the parentTag. We should get the <merge> tag as root.
-    parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), false);
+    parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), false, null, 0);
     assertEquals("merge", parser.myRoot.tagName);
     assertEquals("Button1", parser.myRoot.children.get(0).getAttribute("text"));
   }
@@ -389,7 +389,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
     assertTrue(psiFile instanceof XmlFile);
     XmlFile xmlFile = (XmlFile)psiFile;
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), false, 3);
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), false, null, 3);
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag()); // 1st TextView
