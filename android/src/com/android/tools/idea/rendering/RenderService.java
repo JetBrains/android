@@ -20,6 +20,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
+import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
@@ -439,6 +440,8 @@ public class RenderService implements Disposable {
     private int myMaxRenderHeight = -1;
     private boolean isShadowEnabled = StudioFlags.NELE_ENABLE_SHADOW.get();
     private boolean useHighQualityShadows = StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
+    private SessionParams.RenderingMode myRenderingMode = null;
+    private boolean useTransparentBackground = false;
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -538,6 +541,24 @@ public class RenderService implements Disposable {
     }
 
     /**
+     * @see RenderTask#setRenderingMode(SessionParams.RenderingMode)
+     */
+    @NotNull
+    public RenderTaskBuilder withRenderingMode(@NotNull SessionParams.RenderingMode renderingMode) {
+      myRenderingMode = renderingMode;
+      return this;
+    }
+
+    /**
+     * @see RenderTask#setOverrideBgColor(Integer)
+     */
+    @NotNull
+    public RenderTaskBuilder useTransparentBackground() {
+      useTransparentBackground = true;
+      return this;
+    }
+
+    /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
      */
@@ -622,6 +643,15 @@ public class RenderService implements Disposable {
           if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
             task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);
           }
+
+          if (useTransparentBackground) {
+            task.setOverrideBgColor(0);
+          }
+
+          if (myRenderingMode != null) {
+            task.setRenderingMode(myRenderingMode);
+          }
+
           return task;
         } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
           // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
