@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
-import com.android.tools.adtui.ASGallery;
-import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -24,8 +22,6 @@ import com.intellij.openapi.project.ProjectManager;
 import javax.swing.JDialog;
 import javax.swing.JRootPane;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.fixture.JTabbedPaneFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,19 +52,6 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   public ConfigureCppStepFixture<NewProjectWizardFixture> getConfigureCppStepFixture() {
     JRootPane rootPane = findStepWithTitle("Customize C++ Support", 30);
     return new ConfigureCppStepFixture<>(this, rootPane);
-  }
-
-  public NewProjectWizardFixture chooseActivity(@NotNull String activity) {
-    JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
-    listFixture.replaceCellReader((jList, index) -> String.valueOf(jList.getModel().getElementAt(index)));
-    listFixture.clickItem(activity);
-    return this;
-  }
-
-  public NewProjectWizardFixture chooseAndroidThingsTab() {
-    JTabbedPaneFixture listFixture = new JTabbedPaneFixture(robot(), robot().finder().findByType(target(), CommonTabbedPane.class));
-    listFixture.selectTab("Android Things");
-    return this;
   }
 
   @NotNull
