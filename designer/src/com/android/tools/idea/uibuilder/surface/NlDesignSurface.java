@@ -91,8 +91,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility {
   @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
-  @SwingCoordinate private int myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
-  @SwingCoordinate private int myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
+  @SwingCoordinate private int myScreenX = DEFAULT_SCREEN_OFFSET_X;
+  @SwingCoordinate private int myScreenY = DEFAULT_SCREEN_OFFSET_Y;
   private boolean myIsCanvasResizing = false;
   private boolean myStackVertically;
   private boolean myMockupVisible;
@@ -433,12 +433,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       if (myCentered && availableWidth > 10 && availableHeight > 10) {
         int requiredWidth = getRequiredWidth();
         int requiredHeight = getRequiredHeight();
-        myScreenX = Math.max((availableWidth - requiredWidth) / 2, RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X);
-        myScreenY = Math.max((availableHeight - requiredHeight) / 2, RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y);
+        myScreenX = Math.max((availableWidth - requiredWidth) / 2, DEFAULT_SCREEN_OFFSET_X);
+        myScreenY = Math.max((availableHeight - requiredHeight) / 2, DEFAULT_SCREEN_OFFSET_Y);
       }
       else {
-        myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
-        myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
+        myScreenX = DEFAULT_SCREEN_OFFSET_X;
+        myScreenY = DEFAULT_SCREEN_OFFSET_Y;
       }
     }
 
@@ -618,7 +618,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @SwingCoordinate
   @Override
   protected Dimension getDefaultOffset() {
-    return new Dimension(2 * DEFAULT_SCREEN_OFFSET_X + RULER_SIZE_PX, 2 * DEFAULT_SCREEN_OFFSET_Y + RULER_SIZE_PX);
+    return new Dimension(2 * DEFAULT_SCREEN_OFFSET_X, 2 * DEFAULT_SCREEN_OFFSET_Y);
   }
 
   @SwingCoordinate
