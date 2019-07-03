@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.concurrent.transform
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.structure.model.helpers.androidGradlePluginVersionValues
@@ -31,17 +32,18 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ResolvedValue
 import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
 import com.android.tools.idea.gradle.structure.model.meta.ValueAnnotation
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
 import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.asString
-import com.android.tools.idea.gradle.structure.model.meta.emptyKnownValues
 import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.android.tools.idea.gradle.structure.model.meta.property
-import com.google.common.util.concurrent.Futures
+import com.android.tools.idea.gradle.util.GradleVersionsRepository
 import com.google.common.util.concurrent.ListenableFuture
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import kotlin.reflect.KProperty
+import kotlin.streams.toList
 
 object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildModel> {
   private const val AGP_GROUP_ID_NAME = "com.android.tools.build:gradle"
@@ -103,7 +105,12 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
 
           override fun getKnownValues(): ListenableFuture<KnownValues<String>> =
             @Suppress("UnstableApiUsage")
-            Futures.immediateFuture(emptyKnownValues())
+            GradleVersionsRepository.getKnownVersionsFuture().transform {
+              object : KnownValues<String> {
+                override val literals: List<ValueDescriptor<String>> = it.stream().map { ValueDescriptor<String>(it) }.toList()
+                override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<String>>): Boolean = true
+              }
+            }
         }
 
       override val description: String = "Gradle Version"
