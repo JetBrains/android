@@ -36,6 +36,7 @@ class NlAnalyticsManager(surface: DesignSurface) : DesignerAnalyticsManager(surf
       SceneMode.SCREEN_ONLY -> LayoutEditorState.Surfaces.SCREEN_SURFACE
       SceneMode.BLUEPRINT_ONLY -> LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
       SceneMode.BOTH -> LayoutEditorState.Surfaces.BOTH
+      SceneMode.SCREEN_COMPOSE_ONLY -> LayoutEditorState.Surfaces.SCREEN_SURFACE
     }
 
   override val surfaceMode
