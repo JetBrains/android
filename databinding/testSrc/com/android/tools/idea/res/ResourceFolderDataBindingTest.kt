@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.TestDataPaths
+import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.application.ApplicationManager

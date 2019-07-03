@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res.binding;
 
 import static com.android.SdkConstants.TAG_LAYOUT;
 
@@ -21,6 +21,9 @@ import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.res.binding.MergedBindingLayoutInfo;
+import com.android.tools.idea.res.PsiResourceFile;
+import com.android.tools.idea.res.PsiResourceItem;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -79,7 +82,7 @@ public class DefaultBindingLayoutInfo implements BindingLayoutInfo {
     return myFacet;
   }
 
-  void update(String className, String packageName, boolean classNameSpecifiedByUser, long modificationCount) {
+  public void update(String className, String packageName, boolean classNameSpecifiedByUser, long modificationCount) {
     if (StringUtil.equals(myNonConfigurationClassName, className) && StringUtil.equals(myPackageName, packageName) &&
         classNameSpecifiedByUser == myClassNameSpecifiedByUser) {
       return;
@@ -159,7 +162,7 @@ public class DefaultBindingLayoutInfo implements BindingLayoutInfo {
     return myNonConfigurationClassName;
   }
 
-  String getFileName() {
+  public String getFileName() {
     return myPsiResourceFile.getName();
   }
 

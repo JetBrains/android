@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.res.BindingLayoutInfoFile
+import com.android.tools.idea.res.binding.BindingLayoutInfoFile
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
