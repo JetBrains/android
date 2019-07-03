@@ -27,6 +27,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler;
@@ -43,6 +44,7 @@ import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -50,8 +52,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -87,9 +87,10 @@ public class LiveAllocationCaptureObjectTest {
   };
 
   @NotNull private final FakeTimer myTimer = new FakeTimer();
+  @NotNull protected final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   @NotNull protected final FakeMemoryService myService = new FakeMemoryService();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LiveAllocationCaptureObjectTest",
-                                                                   new FakeTransportService(myTimer),
+                                                                   myTransportService,
                                                                    new FakeProfilerService(myTimer),
                                                                    myService);
   protected final int CAPTURE_START_TIME = 0;
@@ -106,6 +107,33 @@ public class LiveAllocationCaptureObjectTest {
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myIdeProfilerServices.setNativeFrameSymbolizer(FAKE_SYMBOLIZER);
     myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer));
+
+    long dataStartTime = CAPTURE_START_TIME;
+    long dataEndTime = TimeUnit.SECONDS.toNanos(8);
+    List<Memory.BatchAllocationContexts> contexts = ProfilersTestData.generateMemoryAllocContext(dataStartTime, dataEndTime);
+    List<Memory.BatchAllocationEvents> allocEvents = ProfilersTestData.generateMemoryAllocEvents(dataStartTime, dataEndTime);
+    List<Memory.BatchJNIGlobalRefEvent> jniEvents = ProfilersTestData.generateMemoryJniRefEvents(dataStartTime, dataEndTime);
+    contexts.forEach(context -> myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+      .setPid(ProfilersTestData.SESSION_DATA.getPid())
+      .setKind(Common.Event.Kind.MEMORY_ALLOC_CONTEXTS)
+      .setTimestamp(context.getTimestamp())
+      .setMemoryAllocContexts(Memory.MemoryAllocContextsData.newBuilder().setContexts(context))
+      .build()));
+
+    allocEvents
+      .forEach(events -> myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+        .setPid(ProfilersTestData.SESSION_DATA.getPid())
+        .setKind(Common.Event.Kind.MEMORY_ALLOC_EVENTS)
+        .setTimestamp(events.getTimestamp())
+        .setMemoryAllocEvents(Memory.MemoryAllocEventsData.newBuilder().setEvents(events))
+        .build()));
+
+    jniEvents.forEach(jniRefs -> myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+      .setPid(ProfilersTestData.SESSION_DATA.getPid())
+      .setKind(Common.Event.Kind.MEMORY_JNI_REF_EVENTS)
+      .setTimestamp(jniRefs.getTimestamp())
+      .setMemoryJniRefEvents(Memory.MemoryJniRefData.newBuilder().setEvents(jniRefs))
+      .build()));
   }
 
   @RunWith(value = Parameterized.class)
@@ -120,6 +148,9 @@ public class LiveAllocationCaptureObjectTest {
     @Parameter(2)
     public Boolean myJniRefTracking;
 
+    @Parameter(3)
+    public Boolean myNewPipeline;
+
     private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
 
     @Before
@@ -127,14 +158,18 @@ public class LiveAllocationCaptureObjectTest {
     public void before() {
       super.before();
       myIdeProfilerServices.enableJniReferenceTracking(myJniRefTracking);
+      myIdeProfilerServices.enableEventsPipeline(myNewPipeline);
     }
 
-    @Parameters(name = "{index}: HeapId:{0}, HeapName:{1}, JNI tracking: {2}")
+    @Parameters(name = "{index}: HeapId:{0}, HeapName:{1}, JNI tracking: {2}, New Pipeline: {3}")
     public static Object[] getHeapParameters() {
       return new Object[]{
-        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, false},
-        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, true},
-        new Object[]{JNI_HEAP_ID, JNI_HEAP_NAME, true},
+        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, false, false},
+        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, true, false},
+        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, false, true},
+        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, true, true},
+        new Object[]{JNI_HEAP_ID, JNI_HEAP_NAME, true, false},
+        new Object[]{JNI_HEAP_ID, JNI_HEAP_NAME, true, true},
       };
     }
 
@@ -535,29 +570,59 @@ public class LiveAllocationCaptureObjectTest {
 
     @Test
     public void testInfoMessageBasedOnSelection() {
-      MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder().setEndTimestamp(1)
-        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-                                      .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME))
-                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
-                                                         .setSamplingNumInterval(
-                                                           MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build()))
-        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-                                      .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(1)))
-                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
-                                                         .setSamplingNumInterval(
-                                                           MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build()))
-        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-                                      .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(2)))
-                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
-                                                         .setSamplingNumInterval(
-                                                           MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build()))
-        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-                                      .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(3)))
-                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
-                                                         .setSamplingNumInterval(
-                                                           MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build()))
-        .build();
-      myService.setMemoryData(memoryData);
+      MemoryAllocSamplingData fullData = MemoryAllocSamplingData.newBuilder()
+        .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build();
+      MemoryAllocSamplingData sampledData = MemoryAllocSamplingData.newBuilder()
+        .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build();
+      MemoryAllocSamplingData noneData = MemoryAllocSamplingData.newBuilder()
+        .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build();
+      if (myNewPipeline) {
+        myTransportService.addEventToStream(
+          ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+            .setPid(ProfilersTestData.SESSION_DATA.getPid())
+            .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+            .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME))
+            .setMemoryAllocSampling(fullData)
+            .build());
+        myTransportService.addEventToStream(
+          ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+            .setPid(ProfilersTestData.SESSION_DATA.getPid())
+            .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+            .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 1))
+            .setMemoryAllocSampling(sampledData)
+            .build());
+        myTransportService.addEventToStream(
+          ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+            .setPid(ProfilersTestData.SESSION_DATA.getPid())
+            .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+            .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 2))
+            .setMemoryAllocSampling(noneData)
+            .build());
+        myTransportService.addEventToStream(
+          ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+            .setPid(ProfilersTestData.SESSION_DATA.getPid())
+            .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+            .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 3))
+            .setMemoryAllocSampling(fullData)
+            .build());
+      }
+      else {
+        MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder().setEndTimestamp(1)
+          .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+                                        .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME))
+                                        .setSamplingRate(fullData))
+          .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+                                        .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 1))
+                                        .setSamplingRate(sampledData))
+          .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+                                        .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 2))
+                                        .setSamplingRate(noneData))
+          .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+                                        .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 3))
+                                        .setSamplingRate(fullData))
+          .build();
+        myService.setMemoryData(memoryData);
+      }
 
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
@@ -827,27 +892,6 @@ public class LiveAllocationCaptureObjectTest {
       return capture;
     }));
     latch.await();
-  }
-
-  private static Pattern getFilterPattern(String filter, boolean isMatchCase, boolean isRegex) {
-    Pattern pattern = null;
-
-    if (!filter.isEmpty()) {
-      int flags = isMatchCase ? 0 : Pattern.CASE_INSENSITIVE;
-      if (isRegex) {
-        try {
-          pattern = Pattern.compile("^.*" + filter + ".*$", flags);
-        }
-        catch (PatternSyntaxException e) {
-          String error = e.getMessage();
-          assert (error != null);
-        }
-      }
-      if (pattern == null) {
-        pattern = Pattern.compile("^.*" + Pattern.quote(filter) + ".*$", flags);
-      }
-    }
-    return pattern;
   }
 
   // Auxiliary class to verify ClassifierSet's internal data.

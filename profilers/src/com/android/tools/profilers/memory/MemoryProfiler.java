@@ -137,9 +137,7 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
-    Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
-      .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder().setSessionId(session.getSessionId()).build());
-    if (!response.getData().getLiveAllocationEnabled()) {
+    if (!myProfilers.getSessionsManager().getSelectedSessionMetaData().getLiveAllocationEnabled()) {
       // Early return if live allocation is not enabled for the session.
       return;
     }

@@ -65,16 +65,26 @@ public final class AllocationSamplingRateDataSeries implements DataSeries<Alloca
     Transport.EventGroup group = response.getGroups(0);
     List<SeriesData<AllocationSamplingRateDurationData>> seriesData = new ArrayList<>();
     for (int i = 0; i < group.getEventsCount(); i++) {
-      Common.Event prevEvent = i == 0 ? null : group.getEvents(i - 1);
       Common.Event currEvent = group.getEvents(i);
+      // Event is after our request window so skip the rest.
+      if (currEvent.getTimestamp() > rangeMax) {
+        break;
+      }
+
+      Common.Event prevEvent = i == 0 ? null : group.getEvents(i - 1);
       Common.Event nextEvent = i == group.getEventsCount() - 1 ? null : group.getEvents(i + 1);
 
-      long durationUs = nextEvent == null ? Long.MAX_VALUE :
-                        TimeUnit.NANOSECONDS.toMicros(nextEvent.getTimestamp() - currEvent.getTimestamp());
-      seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(currEvent.getTimestamp()),
-                                      new AllocationSamplingRateDurationData(durationUs,
-                                                                             prevEvent != null ? prevEvent.getMemoryAllocSampling() : null,
-                                                                             currEvent.getMemoryAllocSampling())));
+      // Only add events that fall within the query range.
+      if (nextEvent == null || nextEvent.getTimestamp() > rangeMin) {
+        long durationUs = nextEvent == null ? Long.MAX_VALUE :
+                          TimeUnit.NANOSECONDS.toMicros(nextEvent.getTimestamp() - currEvent.getTimestamp());
+        seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(currEvent.getTimestamp()),
+                                        new AllocationSamplingRateDurationData(durationUs,
+                                                                               prevEvent != null
+                                                                               ? prevEvent.getMemoryAllocSampling()
+                                                                               : null,
+                                                                               currEvent.getMemoryAllocSampling())));
+      }
     }
 
     return seriesData;
