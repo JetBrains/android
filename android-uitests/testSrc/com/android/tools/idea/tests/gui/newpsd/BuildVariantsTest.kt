@@ -206,4 +206,26 @@ class BuildVariantsTest {
       clickCancel()
     }
   }
+
+  @Test
+  fun extractVariableDebugBuildType() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
+
+    ide.openPsd().run {
+      selectBuildVariantsConfigurable().run {
+        selectBuildTypesTab().run {
+          selectItemByPath("debug")
+          versionNameSuffix().run {
+            invokeExtractVariable().run {
+              findName().run {
+                Truth.assertThat(text()).isEqualTo("debugVersionNameSuffix")
+              }
+              clickCancel()
+            }
+          }
+        }
+      }
+      clickCancel()
+    }
+  }
 }
