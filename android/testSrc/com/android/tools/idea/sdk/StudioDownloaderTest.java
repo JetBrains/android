@@ -20,6 +20,7 @@ import com.android.repository.testframework.FakeSettingsController;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import com.sun.net.httpserver.HttpServer;
@@ -202,5 +203,40 @@ public class StudioDownloaderTest extends IdeaTestCase {
     settingsController.setForceHttp(false);
     assertEquals("https://" + TEST_URL_BASE, downloader.prepareUrl(new URL("https://" + TEST_URL_BASE)));
     assertEquals("http://" + TEST_URL_BASE, downloader.prepareUrl(new URL("http://" + TEST_URL_BASE)));
+  }
+
+  public void testDownloadProgressIndicator() throws Exception {
+    FakeProgressIndicator parentProgress = new FakeProgressIndicator();
+
+    {
+      ProgressIndicator progressIndicator = new StudioDownloader.DownloadProgressIndicator(parentProgress, 0, 1234);
+      assertTrue(progressIndicator.isIndeterminate());
+      progressIndicator.setFraction(0.5);
+      assertTrue(progressIndicator.isIndeterminate());
+    }
+
+    {
+      ProgressIndicator progressIndicator = new StudioDownloader.DownloadProgressIndicator(parentProgress, -1, 0);
+      assertTrue(progressIndicator.isIndeterminate());
+      progressIndicator.setFraction(0.5);
+      assertTrue(progressIndicator.isIndeterminate());
+    }
+
+    {
+      ProgressIndicator progressIndicator = new StudioDownloader.DownloadProgressIndicator(parentProgress, 1234, 0);
+      assertFalse(progressIndicator.isIndeterminate());
+      progressIndicator.setFraction(0.5);
+      assertFalse(progressIndicator.isIndeterminate());
+      assertEquals(0.5, progressIndicator.getFraction());
+    }
+
+    {
+      ProgressIndicator progressIndicator = new StudioDownloader.DownloadProgressIndicator(parentProgress, 1000, 200);
+      assertFalse(progressIndicator.isIndeterminate());
+      progressIndicator.setFraction(0.5);
+      assertFalse(progressIndicator.isIndeterminate());
+      // Progress has to be adjusted taking into account the non-zero startOffset
+      assertEquals(0.6, progressIndicator.getFraction()); // 200 + 0.5*(1000-200)
+    }
   }
 }
