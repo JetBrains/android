@@ -22,6 +22,7 @@ import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.analytics.CommonUsageTracker;
@@ -160,6 +161,16 @@ public class LayoutlibSceneManager extends SceneManager {
    * If we try to schedule a new render while this is true, we simply re-use the last render in progress.
    */
   private final AtomicBoolean myIsCurrentlyRendering = new AtomicBoolean(false);
+
+  /**
+   * If true, the renders using this LayoutlibSceneManager will use transparent backgrounds
+   */
+  private boolean useTransparentRendering = false;
+
+  /**
+   * If true, the renders will use {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode.SHRINK}
+   */
+  private boolean useShrinkRendering = false;
 
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
@@ -635,6 +646,14 @@ public class LayoutlibSceneManager extends SceneManager {
     return ourRenderViewPort;
   }
 
+  public void enableTransparentRendering() {
+    useTransparentRendering = true;
+  }
+
+  public void enableShrinkRendering() {
+    useShrinkRendering = true;
+  }
+
   @Override
   @NotNull
   public CompletableFuture<Void> requestLayout(boolean animate) {
@@ -871,6 +890,14 @@ public class LayoutlibSceneManager extends SceneManager {
 
     if (!settings.getShowDecorations()) {
       taskBuilder.disableDecorations();
+    }
+
+    if (useShrinkRendering) {
+      taskBuilder.withRenderingMode(SessionParams.RenderingMode.SHRINK);
+    }
+
+    if (useTransparentRendering) {
+      taskBuilder.useTransparentBackground();
     }
 
     return taskBuilder;
