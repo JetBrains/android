@@ -428,6 +428,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
     "Makes Gradle use development offline repositories such as /out/repo", isDevBuild());
+  public static final Flag<Boolean> BUILD_ATTRIBUTION_ENABLED = Flag.create(
+    GRADLE_IDE, "build.attribution", "Enable build attribution",
+    "Enable build attribution.", false);
 
   // REMOVE or change default to true after http://b/80245603 is fixed.
   public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(
