@@ -50,10 +50,10 @@ class BindingLayoutInfoFile(private val info: BindingLayoutInfo) : PsiFile by in
     return this
   }
 
-  override fun getClasses(): Array<PsiClass> = arrayOf(info.psiClass)
+  override fun getClasses(): Array<PsiClass> = arrayOf(info.psiClass!!)
 
   override fun getPackageName(): String {
-    return info.psiClass.qualifiedName?.substringBeforeLast('.') ?: ""
+    return info.psiClass!!.qualifiedName?.substringBeforeLast('.') ?: ""
   }
 
   override fun setPackageName(packageName: String?) {
