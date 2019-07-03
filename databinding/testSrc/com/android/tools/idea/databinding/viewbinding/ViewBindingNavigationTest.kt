@@ -20,7 +20,7 @@ import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.isViewBindingEnabled
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.res.BindingLayoutInfoFile
+import com.android.tools.idea.res.binding.BindingLayoutInfoFile
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat

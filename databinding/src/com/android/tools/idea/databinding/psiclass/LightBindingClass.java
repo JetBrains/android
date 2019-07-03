@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding.psiclass;
 
 import static com.android.tools.idea.databinding.ViewBindingUtil.getViewBindingClassName;
-import static com.android.tools.idea.res.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT;
+import static com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.DataBindingResourceType;
@@ -24,8 +24,8 @@ import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
-import com.android.tools.idea.res.BindingLayoutInfo;
-import com.android.tools.idea.res.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.binding.BindingLayoutInfo;
+import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;

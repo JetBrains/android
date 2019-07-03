@@ -19,7 +19,7 @@ import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvid
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.res.BindingLayoutInfo
+import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
