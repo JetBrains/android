@@ -39,14 +39,18 @@ public class NewProjectThingsTest {
     guiTest
       .welcomeFrame()
       .createNewProject()
-      .chooseAndroidThingsTab()
+      .getChooseAndroidProjectStep()
+      .selectThingsTab()
       .chooseActivity("Android Things Empty Activity")
+      .wizard()
       .clickNext()
       .clickNext()
       .clickFinish();
 
 
-    guiTest.ideFrame().invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD);
+    guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      .invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD);
 
     String buildGradle = guiTest.ideFrame().getEditor().open("app/build.gradle").getCurrentFileContents();
     assertThat(buildGradle).contains("lintOptions");
