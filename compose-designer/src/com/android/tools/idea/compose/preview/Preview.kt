@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomLabelAction
 import com.android.tools.adtui.actions.ZoomOutAction
@@ -28,6 +29,8 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.preview.ComposePreviewToolbar.ForceCompileAndRefreshAction
+import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
@@ -48,6 +51,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
@@ -86,7 +90,7 @@ import javax.swing.JPanel
 const val PREVIEW_ANNOTATION = "com.android.tools.preview.Preview"
 
 /** View included in the runtime library that will wrap the @Composable element so it gets rendered by layoutlib */
-const val COMPOSE_VIEW_ADAPTER = "com.android.tools.preview.ComposeViewAdapter"
+public const val COMPOSE_VIEW_ADAPTER = "com.android.tools.preview.ComposeViewAdapter"
 
 /** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
 const val COMPOSABLE_NAME_ATTR = "tools:composableName"
@@ -96,33 +100,24 @@ const val COMPOSABLE_NAME_ATTR = "tools:composableName"
  */
 private fun PreviewElement.toPreviewXmlString() =
   """
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:tools="http://schemas.android.com/tools"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginBottom="10dp"
-      android:orientation="vertical">
-      <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textSize="10sp"
-        android:text="$name" />
-      <$COMPOSE_VIEW_ADAPTER
+      <$COMPOSE_VIEW_ADAPTER xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="5dp"
         $COMPOSABLE_NAME_ATTR="$method"/>
-    </LinearLayout>
   """.trimIndent()
+
+val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
 
 /**
  * A [LightVirtualFile] defined to allow quickly identifying the given file as an XML that is used as adapter
  * to be able to preview composable methods.
  * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
  */
-private class ComposeAdapterLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content)
+private class ComposeAdapterLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content) {
+  override fun getParent() = FAKE_LAYOUT_RES_DIR
+}
 
 /**
  * A [FileEditor] that displays a preview of composable elements defined in the given [psiFile].
@@ -142,13 +137,13 @@ private class PreviewEditor(private val psiFile: PsiFile,
     .setIsPreview(true)
     .setSceneManagerProvider {
       surface, model -> NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
-      enableTransparentRendering()
-      enableShrinkRendering()
-    }
+        enableTransparentRendering()
+        enableShrinkRendering()
+      }
     }
     .build()
     .apply {
-      setScreenMode(SceneMode.SCREEN_ONLY, true)
+      setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true)
     }
 
   private val actionsToolbar = ActionsToolbar(this@PreviewEditor, surface)
@@ -207,7 +202,15 @@ private class PreviewEditor(private val psiFile: PsiFile,
       .map { Pair(it, ComposeAdapterLightVirtualFile("testFile.xml", it.toPreviewXmlString())) }
       .map {
         val (previewElement, file) = it
-        val model = NlModel.create(this@PreviewEditor, previewElement.name, AndroidFacet.getInstance(psiFile)!!, file, surface.componentRegistrar)
+        val facet = AndroidFacet.getInstance(psiFile)!!
+        val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+        val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
+        val model = NlModel.create(this@PreviewEditor,
+                                   previewElement.name,
+                                   facet,
+                                   file,
+                                   configuration,
+                                   surface.componentRegistrar)
 
         Pair(previewElement, model)
       }
@@ -222,9 +225,13 @@ private class PreviewEditor(private val psiFile: PsiFile,
       .toList()
 
     CompletableFuture.allOf(*(renders.toTypedArray()))
-      .thenRun {
+      .whenComplete { _, ex ->
         workbench.hideLoading()
+        if (ex != null) {
+          Logger.getInstance(PreviewEditor::class.java).warn(ex);
+        }
       }
+
   }
 
   override fun getComponent(): JComponent = workbench

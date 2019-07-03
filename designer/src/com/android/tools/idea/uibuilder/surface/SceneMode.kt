@@ -15,20 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 
 enum class SceneMode(val displayName: String,
                      val primary: (NlDesignSurface, LayoutlibSceneManager) -> ScreenView,
-                     val secondary: ((NlDesignSurface, LayoutlibSceneManager) -> ScreenView)? = null) {
+                     val secondary: ((NlDesignSurface, LayoutlibSceneManager) -> ScreenView)? = null,
+                     val visibleToUser: Boolean = true) {
   SCREEN_ONLY("Design", ::ScreenView),
   BLUEPRINT_ONLY("Blueprint", ::BlueprintView),
-  BOTH("Design + Blueprint", ::ScreenView, ::BlueprintView);
+  BOTH("Design + Blueprint", ::ScreenView, ::BlueprintView),
+  SCREEN_COMPOSE_ONLY("Compose", { surface, manager -> ScreenView(surface, manager, true) }, visibleToUser = false);
 
   operator fun next(): SceneMode {
-    val values = values()
+    val values = values().filter { it.visibleToUser }
     return values[(ordinal + 1) % values.size]
   }
 
