@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res
+package com.android.tools.idea.res.binding
 
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner

@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
+import com.android.tools.idea.res.binding.DefaultBindingLayoutInfo
 import com.android.tools.idea.resources.base.Base128InputStream
 import com.android.tools.idea.resources.base.Base128OutputStream
 import com.android.tools.idea.resources.base.BasicResourceItem

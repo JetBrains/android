@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
-import com.android.tools.idea.res.BindingLayoutInfo
+import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module

@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.databinding.reference
 
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
-import com.android.tools.idea.res.PsiDataBindingResourceItem
+import com.android.tools.idea.res.binding.PsiDataBindingResourceItem
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
