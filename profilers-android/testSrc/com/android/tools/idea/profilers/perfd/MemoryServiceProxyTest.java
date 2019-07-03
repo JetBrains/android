@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.profilers.perfd;
 
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -34,11 +32,12 @@ import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory.TrackStatus;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
@@ -161,17 +160,16 @@ public class MemoryServiceProxyTest {
     int startTime2 = 10;
     // Enable a tracking session on Process 1
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setEnabled(true).setSession(SESSION1).setRequestTime(startTime1).build(),
+      TrackAllocationsRequest.newBuilder().setSession(SESSION1).setEnabled(true).setRequestTime(startTime1).build(),
       mock(StreamObserver.class));
 
     // Enable a tracking sesion on Process 2
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setEnabled(true).setSession(SESSION2).setRequestTime(startTime2).build(),
+      TrackAllocationsRequest.newBuilder().setSession(SESSION2).setEnabled(true).setRequestTime(startTime2).build(),
       mock(StreamObserver.class));
 
     MemoryData expected1 = MemoryData.newBuilder()
-      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(startTime1).setEndTime(Long.MAX_VALUE)
-                            .setStatus(IN_PROGRESS).setLegacy(true).build())
+      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(startTime1).setEndTime(Long.MAX_VALUE).setLegacy(true).build())
       .setEndTimestamp(startTime1)
       .build();
     StreamObserver<MemoryData> observer1 = mock(StreamObserver.class);
@@ -180,8 +178,7 @@ public class MemoryServiceProxyTest {
     verify(observer1, times(1)).onCompleted();
 
     MemoryData expected2 = MemoryData.newBuilder()
-      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(startTime2).setEndTime(Long.MAX_VALUE)
-                            .setStatus(IN_PROGRESS).setLegacy(true).build())
+      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(startTime2).setEndTime(Long.MAX_VALUE).setLegacy(true).build())
       .setEndTimestamp(startTime2)
       .build();
     StreamObserver<MemoryData> observer2 = mock(StreamObserver.class);
@@ -198,10 +195,10 @@ public class MemoryServiceProxyTest {
       LegacyAllocationEventsRequest.newBuilder().setSession(SESSION1).setStartTime(time1).setEndTime(time2).build();
 
     // Enable a tracking session on Process 1
-    TrackAllocationsResponse expected1 = TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.SUCCESS)
+    TrackAllocationsResponse expected1 = TrackAllocationsResponse.newBuilder()
+      .setStatus(TrackStatus.newBuilder().setStatus(TrackStatus.Status.SUCCESS))
       .setInfo(
-        AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(Long.MAX_VALUE).setStatus(IN_PROGRESS)
-          .setLegacy(true).build()).build();
+        AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(Long.MAX_VALUE).setLegacy(true).build()).build();
     StreamObserver<TrackAllocationsResponse> observer1 = mock(StreamObserver.class);
     myProxy.trackAllocations(
       TrackAllocationsRequest.newBuilder().setSession(SESSION1).setEnabled(true).setRequestTime(time1).build(),
@@ -217,8 +214,9 @@ public class MemoryServiceProxyTest {
     verify(notFoundObserver, times(1)).onCompleted();
 
     // Disable a tracking session on Process 1
-    TrackAllocationsResponse expected2 = TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.SUCCESS)
-      .setInfo(AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(time2).setStatus(COMPLETED).setLegacy(true).build())
+    TrackAllocationsResponse expected2 = TrackAllocationsResponse.newBuilder()
+      .setStatus(TrackStatus.newBuilder().setStatus(TrackStatus.Status.SUCCESS))
+      .setInfo(AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(time2).setSuccess(true).setLegacy(true).build())
       .build();
     StreamObserver<TrackAllocationsResponse> observer2 = mock(StreamObserver.class);
     myProxy.trackAllocations(

@@ -29,12 +29,12 @@ import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
@@ -187,7 +187,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       response = client.trackAllocations(request);
       // Saves off the AllocationsInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
       // and results in a NOT_FOUND status when the profiler tries to pull the info's data in quick successions.
-      if (request.getEnabled() && response.getStatus() == TrackAllocationsResponse.Status.SUCCESS) {
+      if (request.getEnabled() && response.getStatus().getStatus() == Memory.TrackStatus.Status.SUCCESS) {
         assert response.getInfo() != null;
         myStatsTable.insertOrReplaceAllocationsInfo(request.getSession(), response.getInfo());
       }
@@ -228,7 +228,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     if (response == null) {
       builder.setStatus(LegacyAllocationEventsResponse.Status.NOT_FOUND);
     }
-    else if (response.getStatus() == AllocationsInfo.Status.FAILURE_UNKNOWN) {
+    else if (response.getEndTime() != Long.MAX_VALUE && !response.getSuccess()) {
       builder.setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN);
     }
     else {

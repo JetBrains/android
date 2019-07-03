@@ -29,11 +29,12 @@ import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent;
 import com.android.tools.profiler.proto.Memory.NativeBacktrace;
+import com.android.tools.profiler.proto.Memory.TrackStatus;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
@@ -56,7 +57,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -95,7 +95,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   // Difference between object tag and JNI reference value.
   private static final long JNI_REF_BASE = 0x50000000;
 
-  private Status myExplicitAllocationsStatus = null;
+  private TrackStatus myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
   private Memory.HeapDumpStatus.Status myExplicitHeapDumpStatus = null;
   private HeapDumpInfo myExplicitHeapDumpInfo = null;
@@ -402,16 +402,13 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @NotNull
-  public FakeMemoryService setExplicitAllocationsStatus(@Nullable Status status) {
+  public FakeMemoryService setExplicitAllocationsStatus(@Nullable TrackStatus status) {
     myExplicitAllocationsStatus = status;
     return this;
   }
 
-  public FakeMemoryService setExplicitAllocationsInfo(AllocationsInfo.Status infoStatus,
-                                                      long startTime, long endTime, boolean legacy) {
-    myExplicitAllocationsInfo =
-      AllocationsInfo.newBuilder().setStatus(infoStatus).setStartTime(startTime).setEndTime(endTime)
-        .setLegacy(legacy).build();
+  public FakeMemoryService setExplicitAllocationsInfo(long startTime, long endTime, boolean legacy) {
+    myExplicitAllocationsInfo = AllocationsInfo.newBuilder().setStartTime(startTime).setEndTime(endTime).setLegacy(legacy).build();
     return this;
   }
 
