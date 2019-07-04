@@ -87,18 +87,15 @@ public class NewActivityTest {
   }
 
   @Test
-  public void createDefaultActivity() {
+  public void createActivityWithFragment() {
+    myConfigActivity.selectUseFragment();
     myDialog.clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(15));
 
     guiTest.ideFrame().getProjectView().assertFilesExist(
       "app/src/main/java/google/simpleapplication/MainActivity.java",
-      "app/src/main/java/google/simpleapplication/FirstFragment.java",
-      "app/src/main/java/google/simpleapplication/SecondFragment.java",
-      "app/src/main/res/layout/activity_main.xml",
-      "app/src/main/res/layout/fragment_first.xml",
-      "app/src/main/res/layout/fragment_second.xml"
+      "app/src/main/res/layout/fragment_main.xml"
     );
   }
 
