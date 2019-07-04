@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_ADD_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_INSERTION_ORDER;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_INSERTION_ORDER_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_FILE_DEPENDENCIES_WITH_CLOSURE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_MULTIPLE_FILE_DEPENDENCIES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_SINGLE_FILE_DEPENDENCY;
@@ -396,5 +398,20 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
     assertEquals("lib4.jar", fileDependencies.get(1).file().toString());
     assertEquals("lib5.jar", fileDependencies.get(2).file().toString());
+  }
+
+  @Test
+  public void testInsertionOrder() throws IOException {
+    writeToBuildFile(FILE_DEPENDENCY_INSERTION_ORDER);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    buildModel.dependencies().addFile("api", "a.jar");
+    buildModel.dependencies().addFile("feature", "b.jar");
+    buildModel.dependencies().addFile("testCompile", "c.jar");
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    verifyFileContents(myBuildFile, FILE_DEPENDENCY_INSERTION_ORDER_EXPECTED);
   }
 }

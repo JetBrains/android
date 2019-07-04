@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_ADD_CLOSURE_TO_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_INSERTION_ORDER;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_INSERTION_ORDER_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION;
@@ -516,6 +518,21 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertEquals(modules.size(), 1);
     assertThat(modules.get(0).configurationName()).isEqualTo("testImplementation");
     assertNotNull(((ModuleDependencyModelImpl)modules.get(0)).getDslElement().getClosureElement());
+  }
+
+  @Test
+  public void testInsertionOrder() throws IOException {
+    writeToBuildFile(MODULE_DEPENDENCY_INSERTION_ORDER);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    buildModel.dependencies().addModule("api", ":module1");
+    buildModel.dependencies().addModule("testImplementation", ":module2");
+    buildModel.dependencies().addModule("androidTestApi", ":module3");
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    verifyFileContents(myBuildFile, MODULE_DEPENDENCY_INSERTION_ORDER_EXPECTED);
   }
 
   private static void assertMatches(@NotNull ExpectedModuleDependency expected, @NotNull ModuleDependencyModel actual) {
