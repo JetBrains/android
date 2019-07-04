@@ -96,6 +96,13 @@ class DependenciesTest {
       }
       clickCancel()
     }
+
+    ide.editor.open("app/build.gradle").run {
+      assertThat(currentFileContents)
+        .contains("    implementation 'com.android.support.constraint:constraint-layout:1.0.2'\n" +
+                  "    implementation 'com.example.jlib:lib3:0.5'\n" +
+                  "    testImplementation 'junit:junit:4.11'\n")
+    }
   }
 
   @Test
@@ -255,6 +262,14 @@ class DependenciesTest {
       }
       clickCancel()
     }
+
+    ide.editor.open("app/build.gradle").run {
+      assertThat(currentFileContents)
+        .contains("    implementation 'com.android.support.constraint:constraint-layout:1.0.2'\n" +
+                  "    implementation \"com.example.jlib:lib3:\${deps.lib3Version}\"\n" +
+                  "    implementation \"com.example.jlib:lib4:\${deps.lib4Version}\"\n" +
+                  "    testImplementation 'junit:junit:4.11'\n")
+    }
   }
 
   @Test
@@ -285,6 +300,13 @@ class DependenciesTest {
         }
       }
       clickCancel()
+    }
+    ide.editor.open("app/build.gradle").run {
+      println(currentFileContents)
+      assertThat(currentFileContents)
+        .contains("    implementation 'com.android.support.constraint:constraint-layout:1.0.2'\n" +
+                  "    implementation project(path: ':mylibrary')\n" +
+                  "    testImplementation 'junit:junit:4.11'\n")
     }
   }
 
