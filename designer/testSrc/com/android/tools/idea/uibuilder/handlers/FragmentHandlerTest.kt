@@ -48,7 +48,7 @@ class FragmentHandlerTest : LayoutTestCase() {
         )
     ).build()
 
-    val surface = NlDesignSurface(project, false, project)
+    val surface = NlDesignSurface.build(project, project)
     surface.model = model
     val editorManager = FileEditorManager.getInstance(project)
 
