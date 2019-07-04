@@ -20,7 +20,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.SmartPointerManager
@@ -32,7 +32,7 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
 
   @Test
   fun testTransition() {
-    val properties = getProperties(MotionSceneString.MotionSceneTransition)
+    val properties = getProperties(MotionSceneAttrs.Tags.TRANSITION).getValue(MotionSceneAttrs.Tags.TRANSITION)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "duration",
       "interpolator",
@@ -46,14 +46,14 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
 
   @Test
   fun testConstraint() {
-    val properties = getProperties(MotionSceneString.MotionSceneConstraintSet)
-    assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
+    val properties = getProperties(MotionSceneAttrs.Tags.CONSTRAINT)
+    assertThat(properties.getValue(MotionSceneAttrs.Tags.CONSTRAINT).getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
       "constraint_referenced_ids",
       "barrierDirection",
       "barrierAllowsGoneWidgets",
       "layout_constraintLeft_toLeftOf",
       "layout_constraintLeft_toRightOf")
-    assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
+    assertThat(properties.getValue(MotionSceneAttrs.Tags.CONSTRAINT).getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
       "id",
       "alpha",
       "elevation",
@@ -83,12 +83,13 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
       "translationY",
       "translationZ",
       "visibility")
-    assertThat(properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value).isEqualTo("64dp")
+    assertThat(properties.getValue(MotionSceneAttrs.Tags.CONSTRAINT)[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value)
+      .isEqualTo("64dp")
   }
 
   @Test
   fun testKeyPosition() {
-    val properties = getProperties(MotionSceneString.KeyTypePosition)
+    val properties = getProperties(MotionSceneAttrs.Tags.KEY_POSITION).getValue(MotionSceneAttrs.Tags.KEY_POSITION)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
       "target",
@@ -107,7 +108,7 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
 
   @Test
   fun testKeyAttribute() {
-    val properties = getProperties(MotionSceneString.KeyTypeAttribute)
+    val properties = getProperties(MotionSceneAttrs.Tags.KEY_ATTRIBUTE).getValue(MotionSceneAttrs.Tags.KEY_ATTRIBUTE)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
       "target",
@@ -133,7 +134,7 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
 
   @Test
   fun testKeyCycle() {
-    val properties = getProperties(MotionSceneString.KeyTypeCycle)
+    val properties = getProperties(MotionSceneAttrs.Tags.KEY_CYCLE).getValue(MotionSceneAttrs.Tags.KEY_CYCLE)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
       "target",
@@ -162,7 +163,7 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
 
   @Test
   fun testKeyTimeCycle() {
-    val properties = getProperties(MotionSceneString.KeyTypeTimeCycle)
+    val properties = getProperties(MotionSceneAttrs.Tags.KEY_TIME_CYCLE).getValue(MotionSceneAttrs.Tags.KEY_TIME_CYCLE)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
       "target",
@@ -195,7 +196,7 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
     return tag.subTags.mapNotNull { extractTag(it, tagName) }.firstOrNull()
   }
 
-  private fun getProperties(tagName: String): PropertiesTable<NelePropertyItem> {
+  private fun getProperties(tagName: String): Map<String, PropertiesTable<NelePropertyItem>> {
     // TODO: Pickup attrs.xml from the ConstraintLayout library
     myFixture.copyFileToProject("motion/attrs.xml", "res/values/attrs.xml")
     val file = myFixture.copyFileToProject("motion/scene.xml", "res/xml/scene.xml")
@@ -206,7 +207,7 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
     val textView = nlModel.components[0].getChild(0)!!
     val provider = MotionLayoutPropertyProvider(myFacet)
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
-    return provider.getProperties(model, tagPointer, listOf(textView))
+    return provider.getAllProperties(model, tagPointer, listOf(textView))
   }
 
   private fun createNlModel(): SyncNlModel {
