@@ -42,13 +42,3 @@ data class RenderingContext2(
 
   val showWarnings: Boolean get() = showErrors && dryRun
 }
-
-// TODO use it
-data class ExecutionResult(
-  val plugins: List<String> = listOf(),
-  val classpathEntries: List<String> = listOf(),
-  val dependencies: SetMultimap<String, String> = LinkedHashMultimap.create(),
-  val filesToOpen: List<File> = listOf(),
-  val targetFiles: List<File> = listOf(),
-  val warnings: List<String> = listOf()
-)

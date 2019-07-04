@@ -49,6 +49,7 @@ import com.android.tools.idea.wizard.template.WizardParameterData
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.module.Module
@@ -102,7 +103,8 @@ class RenderTemplateModel private constructor(
   val wizardParameterData = WizardParameterData(
     packageName.get(),
     module == null,
-    template.get().name
+    template.get().name,
+    newTemplate.parameters
   )
   var iconGenerator: IconGenerator? = null
   val renderLanguage = ObjectValueProperty(getInitialSourceLanguage(project.valueOrNull)).apply {
