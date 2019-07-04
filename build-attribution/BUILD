@@ -29,7 +29,59 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:Gradle",
+        "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
+    ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.build-attribution.tests",
+    iml_files = ["intellij.android.build-attribution.tests.iml"],
+    tags = ["no_test_windows"],  # b/135665870
+    test_class = "com.android.build.attribution.AndroidBuildAttributionTestSuite",
+    test_coverage = True,
+    test_data = [
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/templates",
+        "//tools/idea:platform-build-info",
+        "//tools/idea/java/jdkAnnotations",
+    ],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+    ],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/idea/.idea/libraries:Gradle",
+        "//tools/idea/.idea/libraries:JUnit4[test]",
+        "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
+        "//tools/idea/platform/lang-api:intellij.platform.lang[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

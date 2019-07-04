@@ -16,7 +16,9 @@
 package com.android.build.attribution
 
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
 
@@ -24,7 +26,8 @@ class BuildAttributionManagerImpl(
   private val myProject: Project,
   private val myBuildContentManager: BuildContentManager
 ) : BuildAttributionManager {
-  private val analyzersProxy = BuildEventsAnalyzersProxy()
+  @get:VisibleForTesting
+  val analyzersProxy = BuildEventsAnalyzersProxy()
 
   override fun onBuildStart() {
     analyzersProxy.onBuildStart()
@@ -32,6 +35,9 @@ class BuildAttributionManagerImpl(
 
   override fun onBuildSuccess() {
     analyzersProxy.onBuildSuccess()
+
+    // TODO: add proper UI
+    logBuildAttributionResults()
   }
 
   override fun onBuildFailure() {
@@ -43,4 +49,20 @@ class BuildAttributionManagerImpl(
 
     analyzersProxy.receiveEvent(event)
   }
+
+  private fun logBuildAttributionResults() {
+    val stringBuilder = StringBuilder()
+
+    analyzersProxy.getNonIncrementalAnnotationProcessorsData().let {
+      if (it.isNotEmpty()) {
+        stringBuilder.appendln("Non incremental annotation processors:")
+        it.forEach { processor -> stringBuilder.appendln(processor.className + " " + processor.compilationDuration) }
+      }
+    }
+
+    if (stringBuilder.isNotEmpty()) {
+      Logger.getInstance(this::class.java).warn("Build attribution analysis results:\n$stringBuilder")
+    }
+  }
+
 }
