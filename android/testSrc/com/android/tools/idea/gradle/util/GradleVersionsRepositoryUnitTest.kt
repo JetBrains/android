@@ -251,7 +251,7 @@ class GradleVersionsRepositoryUnitTest {
   "wrapperChecksumUrl" : "https://services.gradle.org/distributions/gradle-5.2.1-wrapper.jar.sha256"
 }]"""
 
-    val versions = GradleVersionsRepository.parseResponse(response.byteInputStream())
+    val versions = parseGradleVersionsResponse(response.byteInputStream())
     Truth.assertThat(versions).containsExactly(
       "5.5",
       "5.5-rc-4",
