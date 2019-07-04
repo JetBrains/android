@@ -289,14 +289,15 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   @Nullable
   public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    LayoutlibSceneManager manager = getSceneManager();
-    SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
-    SceneView secondarySceneView = manager != null ? manager.getSecondarySceneView() : null;
-
-    if (secondarySceneView != null && x >= secondarySceneView.getX() && y >= secondarySceneView.getY()) {
-      return secondarySceneView;
+    SceneView view = getHoverSceneView(x, y);
+    if (view == null) {
+      // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView when there is no hovered SceneView.
+      SceneManager manager = getSceneManager();
+      if (manager != null) {
+        view = manager.getSceneView();
+      }
     }
-    return primarySceneView;
+    return view;
   }
 
   @NotNull
@@ -401,20 +402,27 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Nullable
   @Override
   public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    LayoutlibSceneManager manager = getSceneManager();
-    SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
-    SceneView secondarySceneView = manager != null ? manager.getSecondarySceneView() : null;
-    if (secondarySceneView != null
-        && x >= secondarySceneView.getX() && x <= secondarySceneView.getX() + secondarySceneView.getSize().width
-        && y >= secondarySceneView.getY() && y <= secondarySceneView.getY() + secondarySceneView.getSize().height) {
-      return secondarySceneView;
-    }
-    if (primarySceneView != null
-        && x >= primarySceneView.getX() && x <= primarySceneView.getX() + primarySceneView.getSize().width
-        && y >= primarySceneView.getY() && y <= primarySceneView.getY() + primarySceneView.getSize().height) {
-      return primarySceneView;
+    List<SceneView> sceneViews = getSceneViews();
+    for (SceneView view : sceneViews) {
+      if (view.getX() <= x && x <= (view.getX() + view.getSize().width) && view.getY() <= y && y <= (view.getY() + view.getSize().height)) {
+        return view;
+      }
     }
     return null;
+  }
+
+  @NotNull
+  private ImmutableList<SceneView> getSceneViews() {
+    ImmutableList.Builder<SceneView> builder = new ImmutableList.Builder<>();
+    for (SceneManager manager : myModelToSceneManagers.values()) {
+      SceneView view = manager.getSceneView();
+      builder.add(view);
+      SceneView secondarySceneView = ((LayoutlibSceneManager) manager).getSecondarySceneView();
+      if (secondarySceneView != null) {
+        builder.add(secondarySceneView);
+      }
+    }
+    return builder.build();
   }
 
   @Override
