@@ -22,17 +22,14 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOV
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.RULER_SIZE_PX;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 
-import com.android.tools.idea.common.model.DnDTransferComponent;
-import com.android.tools.idea.common.model.DnDTransferItem;
-import com.android.tools.idea.common.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
-import com.android.utils.ImmutableCollectors;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DnDTransferComponent;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -55,6 +52,7 @@ import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
@@ -64,6 +62,8 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.android.utils.ImmutableCollectors;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
@@ -80,6 +80,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -90,6 +91,44 @@ import org.jetbrains.annotations.Nullable;
  * or more device renderings, etc
  */
 public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility {
+  public static class Builder {
+    private final Project myProject;
+    private final Disposable myParentDisposable;
+    private boolean isPreview = false;
+    private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider =
+      NlDesignSurface::defaultSceneManagerProvider;
+
+    private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
+      myProject = project;
+      myParentDisposable = parentDisposable;
+    }
+
+    /**
+     * Marks the {@link NlDesignSurface} as being in preview mode.
+     */
+    @NotNull
+    public Builder setIsPreview(boolean isPreview) {
+      this.isPreview = isPreview;
+      return this;
+    }
+
+    /**
+     * Allows customizing the {@link LayoutlibSceneManager}. Use this method if you need to apply additional settings to it or if you
+     * need to completely replace it, for example for tests.
+     * @see NlDesignSurface#defaultSceneManagerProvider(NlDesignSurface, NlModel)
+     */
+    @NotNull
+    public Builder setSceneManagerProvider(@NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider) {
+      this.sceneManagerProvider = sceneManagerProvider;
+      return this;
+    }
+
+    @NotNull
+    public NlDesignSurface build() {
+      return new NlDesignSurface(myProject, myParentDisposable, isPreview, sceneManagerProvider);
+    }
+  }
+
   @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
   @SwingCoordinate private int myScreenX = DEFAULT_SCREEN_OFFSET_X;
   @SwingCoordinate private int myScreenY = DEFAULT_SCREEN_OFFSET_Y;
@@ -98,18 +137,48 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
   private boolean myCentered;
-  private final boolean myInPreview;
+  private final boolean isInPreview;
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
   private final RenderListener myRenderListener = this::modelRendered;
   private RenderIssueProvider myRenderIssueProvider;
   private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
   @NotNull private final NlAnalyticsManager myAnalyticsManager;
+  /**
+   * Allows customizing the generation of {@link SceneManager}s
+   */
+  private final BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider;
 
-  public NlDesignSurface(@NotNull Project project, boolean inPreview, @NotNull Disposable parentDisposable) {
+  private NlDesignSurface(@NotNull Project project,
+                          @NotNull Disposable parentDisposable,
+                          boolean isInPreview,
+                          @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider) {
     super(project, new SelectionModel(), parentDisposable);
-    myInPreview = inPreview;
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
+    this.isInPreview = isInPreview;
+    mySceneManagerProvider = sceneManagerProvider;
+  }
+
+  /**
+   * Default {@link LayoutlibSceneManager} provider.
+   */
+  @NotNull
+  public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
+    return new LayoutlibSceneManager(model, surface);
+  }
+
+  @NotNull
+  public static Builder builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
+    return new Builder(project, parentDisposable);
+  }
+
+  @NotNull
+  @Override
+  protected SceneManager createSceneManager(@NotNull NlModel model) {
+    LayoutlibSceneManager manager = mySceneManagerProvider.apply(this, model);
+    manager.addRenderListener(myRenderListener);
+
+    return manager;
   }
 
   @NotNull
@@ -119,7 +188,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   public boolean isPreviewSurface() {
-    return myInPreview;
+    return isInPreview;
   }
 
   /**
@@ -171,12 +240,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
   }
 
+  /**
+   * Builds a new {@link NlDesignSurface} with the default settings
+   */
   @NotNull
-  @Override
-  protected SceneManager createSceneManager(@NotNull NlModel model) {
-    LayoutlibSceneManager manager = new LayoutlibSceneManager(model, this);
-    manager.addRenderListener(myRenderListener);
-    return manager;
+  public static NlDesignSurface build(@NotNull Project project, @NotNull Disposable parentDisposable) {
+    return new Builder(project, parentDisposable).build();
   }
 
   @Nullable
