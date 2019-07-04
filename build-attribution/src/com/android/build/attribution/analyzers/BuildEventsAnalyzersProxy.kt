@@ -21,7 +21,13 @@ import org.gradle.tooling.events.ProgressEvent
  * A proxy to interact between the build events analyzers and the build attribution manager.
  */
 class BuildEventsAnalyzersProxy {
-  private val analyzers: List<BuildEventsAnalyzer> = listOf()
+  private val analyzers: List<BuildEventsAnalyzer>
+
+  private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer()
+
+  init {
+    analyzers = listOf(annotationProcessorsAnalyzer)
+  }
 
   fun onBuildStart() {
     analyzers.forEach(BuildEventsAnalyzer::onBuildStart)
@@ -37,5 +43,13 @@ class BuildEventsAnalyzersProxy {
 
   fun receiveEvent(event: ProgressEvent) {
     analyzers.forEach { it.receiveEvent(event) }
+  }
+
+  fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
+    return annotationProcessorsAnalyzer.getAnnotationProcessorsData()
+  }
+
+  fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
+    return annotationProcessorsAnalyzer.getNonIncrementalAnnotationProcessorsData()
   }
 }
