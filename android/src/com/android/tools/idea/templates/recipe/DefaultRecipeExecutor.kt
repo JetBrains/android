@@ -85,20 +85,18 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     get() = context.freemarkerConfiguration
 
   override fun applyPlugin(plugin: String) {
-    val name = plugin.trim { it <= ' ' }
+    val name = plugin.trim()
     referencesExecutor.applyPlugin(name)
 
     val project = context.project
     val buildFile = getBuildFilePath(context)
-    if (project.isInitialized) {
-      val buildModel = getBuildModel(buildFile, project)
-      if (buildModel != null) {
-        if (buildModel.plugins().stream().noneMatch { x -> x.name().forceString() == name }) {
-          buildModel.applyPlugin(name)
-          io.applyChanges(buildModel)
-        }
-        return
+    val buildModel = getBuildModel(buildFile, project)
+    if (buildModel != null) {
+      if (buildModel.plugins().stream().noneMatch { x -> x.name().forceString() == name }) {
+        buildModel.applyPlugin(name)
+        io.applyChanges(buildModel)
       }
+      return
     }
 
     // The attempt above to add the plugin using the GradleBuildModel failed, now attempt to add the plugin by appending the string.
@@ -111,42 +109,39 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     catch (e: IOException) {
       throw RuntimeException(e)
     }
-
   }
 
   override fun addClasspath(mavenUrl: String) {
-    val mavenUrl = mavenUrl.trim { it <= ' ' }
+    val mavenUrl = mavenUrl.trim()
 
     referencesExecutor.addClasspath(mavenUrl)
 
-    val toBeAddedDependency = ArtifactDependencySpec.create(mavenUrl) ?: throw RuntimeException(
-      "$mavenUrl is not a valid classpath dependency")
+    val toBeAddedDependency = ArtifactDependencySpec.create(mavenUrl) ?:
+                              throw RuntimeException("$mavenUrl is not a valid classpath dependency")
 
     val project = context.project
     val rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project))
-    if (project.isInitialized) {
-      val buildModel = getBuildModel(rootBuildFile, project)
-      if (buildModel != null) {
-        val buildscriptDependencies = buildModel.buildscript().dependencies()
-        var targetDependencyModel: ArtifactDependencyModel? = null
-        for (dependencyModel in buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME)) {
-          if (toBeAddedDependency.equalsIgnoreVersion(ArtifactDependencySpec.create(dependencyModel))) {
-            targetDependencyModel = dependencyModel
-          }
+    val buildModel = getBuildModel(rootBuildFile, project)
+    if (buildModel != null) {
+      val buildscriptDependencies = buildModel.buildscript().dependencies()
+      var targetDependencyModel: ArtifactDependencyModel? = null
+      for (dependencyModel in buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME)) {
+        if (toBeAddedDependency.equalsIgnoreVersion(ArtifactDependencySpec.create(dependencyModel))) {
+          targetDependencyModel = dependencyModel
         }
-        if (targetDependencyModel == null) {
-          buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency)
-        }
-        else {
-          val toBeAddedDependencyVersion = GradleVersion.parse(nullToEmpty(toBeAddedDependency.version))
-          val existingDependencyVersion = GradleVersion.parse(nullToEmpty(targetDependencyModel.version().toString()))
-          if (toBeAddedDependencyVersion.compareTo(existingDependencyVersion) > 0) {
-            targetDependencyModel.version().setValue(nullToEmpty(toBeAddedDependency.version))
-          }
-        }
-        io.applyChanges(buildModel)
-        return
       }
+      if (targetDependencyModel == null) {
+        buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency)
+      }
+      else {
+        val toBeAddedDependencyVersion = GradleVersion.parse(nullToEmpty(toBeAddedDependency.version))
+        val existingDependencyVersion = GradleVersion.parse(nullToEmpty(targetDependencyModel.version().toString()))
+        if (toBeAddedDependencyVersion > existingDependencyVersion) {
+          targetDependencyModel.version().setValue(nullToEmpty(toBeAddedDependency.version))
+        }
+      }
+      io.applyChanges(buildModel)
+      return
     }
 
     // The attempt above to merge the classpath using the GradleBuildModel failed, now attempt to merge the classpaths by merging the files.
@@ -163,9 +158,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
   /**
    * Add a library dependency into the project.
    */
-  override fun addDependency(config: String, mavenUrl: String) {
+  override fun addDependency(configuration: String, mavenUrl: String) {
     // Translate from "configuration" to "implementation" based on the parameter map context
-    val configuration = FmGetConfigurationNameMethod.convertConfiguration(paramMap, config)
+    val configuration = FmGetConfigurationNameMethod.convertConfiguration(paramMap, configuration)
 
     referencesExecutor.addDependency(configuration, mavenUrl)
 
@@ -182,9 +177,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
   }
 
   /**
-   * Copies the given source file into the given destination file (where the
-   * source is allowed to be a directory, in which case the whole directory is
-   * copied recursively)
+   * Copies the given source file into the given destination file (where the source
+   * is allowed to be a directory, in which case the whole directory is copied recursively)
    */
   override fun copy(from: File, to: File) {
     try {
@@ -203,27 +197,25 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     try {
       // For now, treat extension-less files as directories... this isn't quite right
       // so I should refine this! Maybe with a unique attribute in the template file?
-      val isDirectory = from.name.indexOf('.') == -1
-      if (isDirectory) {
-        // It's a directory
+      val isFile = from.name.contains('.')
+      if (!isFile) {
         copyTemplateResource(from, to)
+        return
+      }
+      val sourceFile = context.loader.getSourceFile(from)
+      val targetFile = getTargetFile(to)
+      var content = processFreemarkerTemplate(context, sourceFile, null)
+      content = extractFullyQualifiedNames(to, content)
+
+      if (targetFile.exists()) {
+        if (!compareTextFile(targetFile, content)) {
+          addFileAlreadyExistWarning(targetFile)
+        }
       }
       else {
-        val sourceFile = context.loader.getSourceFile(from)
-        val targetFile = getTargetFile(to)
-        var content = processFreemarkerTemplate(context, sourceFile, null)
-        content = extractFullyQualifiedNames(to, content)
-
-        if (targetFile.exists()) {
-          if (!compareTextFile(targetFile, content)) {
-            addFileAlreadyExistWarning(targetFile)
-          }
-        }
-        else {
-          io.writeFile(this, content, targetFile)
-          referencesExecutor.addSourceFile(sourceFile)
-          referencesExecutor.addTargetFile(targetFile)
-        }
+        io.writeFile(this, content, targetFile)
+        referencesExecutor.addSourceFile(sourceFile)
+        referencesExecutor.addTargetFile(targetFile)
       }
     }
     catch (e: IOException) {
@@ -252,10 +244,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
       if (targetFile.exists()) {
         if (context.project.isInitialized) {
           val toFile = findFileByIoFile(targetFile, true)
-          val status = readonlyStatusHandler.ensureFilesWritable(toFile!!)
+          val status = readonlyStatusHandler.ensureFilesWritable(listOf(toFile!!))
           if (status.hasReadonlyFiles()) {
-            throw TemplateUserVisibleException(
-              String.format("Attempt to update file that is readonly: %1\$s", targetFile.absolutePath))
+            throw TemplateUserVisibleException("Attempt to update file that is readonly: ${targetFile.absolutePath}")
           }
         }
         targetText = readTextFile(targetFile)
@@ -273,17 +264,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
         return
       }
 
-      val sourceText: String?
-      if (hasExtension(from, DOT_FTL)) {
-        // Perform template substitution of the template prior to merging
-        sourceText = processFreemarkerTemplate(context, from, null)
-      }
-      else {
-        sourceText = readTextFromDisk(sourceFile)
-        if (sourceText == null) {
-          return
-        }
-      }
+      val sourceText: String = if (hasExtension(from, DOT_FTL))
+          processFreemarkerTemplate(context, from, null) // Perform template substitution of the template prior to merging
+        else
+          readTextFromDisk(sourceFile) ?: return
 
       val contents: String = when {
         targetFile.name == GRADLE_PROJECT_SETTINGS_FILE -> RecipeMergeUtils.mergeGradleSettingsFile(sourceText, targetText)
@@ -350,14 +334,14 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
    * once and after all dependencies are already added.
    */
   override fun updateAndSync() {
-    // Handle dependencies
-    if (!context.dependencies.isEmpty) {
-      try {
-        mergeDependenciesIntoGradle()
-      }
-      catch (e: Exception) {
-        throw RuntimeException(e)
-      }
+    if (context.dependencies.isEmpty) {
+      return
+    }
+    try {
+      mergeDependenciesIntoGradle()
+    }
+    catch (e: Exception) {
+      throw RuntimeException(e)
     }
   }
 
@@ -393,7 +377,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     val baseFeatureRoot = paramMap.getOrDefault(ATTR_BASE_FEATURE_DIR, "") as String
     val featureBuildFile = getBuildFilePath(context)
     if (isNullOrEmpty(baseFeatureRoot)) {
-      writeDependencies(featureBuildFile) { x -> true }
+      writeDependencies(featureBuildFile) { true }
     }
     else {
       // The new gradle API deprecates the "compile" keyword by two new keywords: "implementation" and "api"
@@ -424,39 +408,25 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     io.writeFile(this, result, buildFile)
   }
 
-  private fun formatDependencies(configurationFilter: (String) -> Boolean): String {
-    val dependencies = StringBuilder()
-    dependencies.append("dependencies {\n")
-    for ((key, value) in context.dependencies.entries()) {
-      if (configurationFilter(key)) {
-        dependencies.append("  ")
-          .append(key)
-          .append(" ")
-        val dependencyValue = convertToAndroidX(value)
+  private fun formatDependencies(configurationFilter: (String) -> Boolean): String =
+    context.dependencies.entries().asSequence()
+      .filter { (configuration, _) -> configurationFilter(configuration) }
+      .joinToString("\n", "dependencies {\n", "\n}\n") { (configuration, mavenUrl) ->
+        val dependencyValue = convertToAndroidX(mavenUrl)
         // Interpolated values need to be in double quotes
-        val isInterpolated = dependencyValue.contains("$")
-        dependencies.append(if (isInterpolated) '"' else '\'')
-          .append(dependencyValue)
-          .append(if (isInterpolated) '"' else '\'')
-          .append("\n")
+        val delimiter = if (dependencyValue.contains("$")) '"' else '\''
+        "  $configuration $delimiter$dependencyValue$delimiter"
       }
-    }
-    dependencies.append("}\n")
-    return dependencies.toString()
-  }
 
-  private fun convertToAndroidX(dep: String): String {
-    val useAndroidX = paramMap[ATTR_ANDROIDX_SUPPORT] as Boolean?
-    return if (useAndroidX == true)
+  private fun convertToAndroidX(dep: String): String =
+    if (paramMap[ATTR_ANDROIDX_SUPPORT] as Boolean? == true)
       AndroidxNameUtils.getVersionedCoordinateMapping(dep)
     else
       dep
-  }
 
   /**
    * VfsUtil#copyDirectory messes up the undo stack, most likely by trying to
-   * create a directory even if it already exists. This is an undo-friendly
-   * replacement.
+   * create a directory even if it already exists. This is an undo-friendly replacement.
    */
   @Throws(IOException::class)
   private fun copyDirectory(src: VirtualFile, dest: File) {
@@ -503,23 +473,22 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
 
   @Throws(IOException::class)
   private fun copyFile(file: VirtualFile, src: VirtualFile, destinationFile: File): Boolean {
-    val relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar) ?: throw RuntimeException(
-      String.format("%1\$s is not a child of %2\$s", file.path, src))
+    val relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar) ?:
+                       throw RuntimeException("${file.path} is not a child of $src")
     if (file.isDirectory) {
       io.mkDir(File(destinationFile, relativePath))
+      return true
+    }
+    val target = File(destinationFile, relativePath)
+    if (target.exists()) {
+      if (!compareFile(file, target)) {
+        addFileAlreadyExistWarning(target)
+      }
     }
     else {
-      val target = File(destinationFile, relativePath)
-      if (target.exists()) {
-        if (!compareFile(file, target)) {
-          addFileAlreadyExistWarning(target)
-        }
-      }
-      else {
-        io.copyFile(this, file, target)
-        referencesExecutor.addSourceFile(virtualToIoFile(file))
-        referencesExecutor.addTargetFile(target)
-      }
+      io.copyFile(this, file, target)
+      referencesExecutor.addSourceFile(virtualToIoFile(file))
+      referencesExecutor.addTargetFile(target)
     }
     return true
   }
@@ -547,10 +516,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
       return content
     }
 
-    var packageName: String? = paramMap[ATTR_APPLICATION_PACKAGE] as String?
-    if (packageName == null) {
-      packageName = paramMap[ATTR_PACKAGE_NAME] as String?
-    }
+    val packageName: String? = paramMap[ATTR_APPLICATION_PACKAGE] as String? ?: paramMap[ATTR_PACKAGE_NAME] as String?
 
     val factory = XmlElementFactory.getInstance(context.project)
     val root = factory.createTagFromText(content)
@@ -605,25 +571,21 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
   }
 
   private open class RecipeIO {
-    @Throws(IOException::class)
     open fun writeFile(requestor: Any, contents: String?, to: File) {
       checkedCreateDirectoryIfMissing(to.parentFile)
       writeTextFile(this, contents, to)
     }
 
-    @Throws(IOException::class)
     open fun copyFile(requestor: Any, file: VirtualFile, toFile: File) {
       val toDir = checkedCreateDirectoryIfMissing(toFile.parentFile)
       VfsUtilCore.copyFile(this, file, toDir)
     }
 
-    @Throws(IOException::class)
     open fun copyFile(requestor: Any, file: VirtualFile, toFileDir: File, newName: String) {
       val toDir = checkedCreateDirectoryIfMissing(toFileDir)
       VfsUtilCore.copyFile(requestor, file, toDir, newName)
     }
 
-    @Throws(IOException::class)
     open fun mkDir(directory: File) {
       checkedCreateDirectoryIfMissing(directory)
     }
@@ -632,31 +594,24 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
       buildModel.applyChanges()
     }
 
-    open fun mergeBuildFiles(dependencies: String,
-                             destinationContents: String,
-                             project: Project,
-                             supportLibVersionFilter: String?): String {
-      return project.getProjectSystem().mergeBuildFiles(dependencies, destinationContents, supportLibVersionFilter)
-    }
+    open fun mergeBuildFiles(
+      dependencies: String, destinationContents: String, project: Project, supportLibVersionFilter: String?
+    ): String = project.getProjectSystem().mergeBuildFiles(dependencies, destinationContents, supportLibVersionFilter)
   }
 
   private class DryRunRecipeIO : RecipeIO() {
-    @Throws(IOException::class)
     override fun writeFile(requestor: Any, contents: String?, to: File) {
       checkDirectoryIsWriteable(to.parentFile)
     }
 
-    @Throws(IOException::class)
     override fun copyFile(requestor: Any, file: VirtualFile, toFile: File) {
       checkDirectoryIsWriteable(toFile.parentFile)
     }
 
-    @Throws(IOException::class)
     override fun copyFile(requestor: Any, file: VirtualFile, toFileDir: File, newName: String) {
       checkDirectoryIsWriteable(toFileDir)
     }
 
-    @Throws(IOException::class)
     override fun mkDir(directory: File) {
       checkDirectoryIsWriteable(directory)
     }
@@ -664,7 +619,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     override fun applyChanges(buildModel: GradleBuildModel) {}
 
     override fun mergeBuildFiles(
-      dependencies: String, destinationContents: String, project: Project, compileSdkVersion: String?
+      dependencies: String, destinationContents: String, project: Project, supportLibVersionFilter: String?
     ): String = destinationContents
   }
 
@@ -682,10 +637,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     private val LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().separatorString
 
     private fun getBuildModel(buildFile: File, project: Project): GradleBuildModel? {
+      if (!project.isInitialized) {
+        return null
+      }
       val virtualFile = findFileByIoFile(buildFile, true) ?: throw RuntimeException("Failed to find " + buildFile.path)
-      val projectBuildModel = ProjectBuildModel.getOrLog(project) ?: return null
-
-      return projectBuildModel.getModuleBuildModel(virtualFile)
+      return ProjectBuildModel.getOrLog(project)?.getModuleBuildModel(virtualFile)
     }
 
     private fun formatClasspath(dependency: String): String =
