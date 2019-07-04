@@ -30,7 +30,7 @@ import com.android.tools.idea.apk.viewer.ApkParser;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.log.LogWrapper;

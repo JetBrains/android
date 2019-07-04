@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
