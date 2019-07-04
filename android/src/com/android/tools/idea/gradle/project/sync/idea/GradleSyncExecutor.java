@@ -190,7 +190,7 @@ public class GradleSyncExecutor {
     VirtualFile projectRootFolder = project.getBaseDir();
     projectRootFolder.refresh(false /* synchronous */, true /* recursive */);
 
-    if (!GradleProjectImportUtil.canImportProjectFrom(projectRootFolder)) {
+    if (!GradleProjectImportUtil.canOpenGradleProject(projectRootFolder)) {
       return null;
     }
 
