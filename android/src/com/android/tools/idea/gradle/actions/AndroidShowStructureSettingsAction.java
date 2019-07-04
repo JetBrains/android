@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectStructureConfigurable;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
