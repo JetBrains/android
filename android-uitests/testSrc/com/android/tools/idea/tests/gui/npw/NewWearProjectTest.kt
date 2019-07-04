@@ -65,6 +65,7 @@ class NewWearProjectTest {
 
       assertThat(this).contains("wearApp project")
       assertThat(this).contains("implementation 'com.google.android.gms:play-services-wearable")
+      assertThat(this).doesNotContain("+") // All dependencies should be resolved
     }
 
     guiTest.ideFrame().editor
