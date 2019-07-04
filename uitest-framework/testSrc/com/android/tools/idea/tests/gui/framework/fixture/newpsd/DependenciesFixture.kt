@@ -105,7 +105,7 @@ class DependenciesFixture(
     JTableFixture(robot(), robot().finder().findByType<TableView<*>>(container))
 
   fun findConfigurationCombo(): JComboBoxFixture =
-    EditorComboBoxFixture(robot(), robot().finder().findByName("configuration", JComboBox::class.java, true))
+    EditorComboBoxFixture(robot(), robot().finder().findByName(container, "configuration", JComboBox::class.java, true))
 
   fun clickAddLibraryDependency(): AddLibraryDependencyDialogFixture {
     clickToolButton("Add Dependency")

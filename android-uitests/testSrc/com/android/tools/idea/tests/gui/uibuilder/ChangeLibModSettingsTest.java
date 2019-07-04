@@ -19,8 +19,11 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModuleDefaultConfigFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModulePropertiesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModulesPerspectiveConfigurableFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.junit.After;
@@ -31,6 +34,7 @@ import org.junit.runner.RunWith;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModulesPerspectiveConfigurableFixtureKt.selectModulesConfigurable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 
@@ -42,7 +46,7 @@ public class ChangeLibModSettingsTest {
 
   @Before
   public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(false);
+    StudioFlags.NEW_PSD_ENABLED.override(true);
   }
 
   @After
@@ -81,26 +85,29 @@ public class ChangeLibModSettingsTest {
 
     guiTest.waitForBackgroundTasks();
 
-    String gradleFileContents = guiTest.ideFrame()
+    ProjectStructureDialogFixture dialogFixture = guiTest.ideFrame()
       .getProjectView()
       .selectProjectPane()
       .clickPath(RIGHT_BUTTON, "MyTestApp", "library_module")
-      .openFromMenu(ProjectStructureDialogFixture::find, "Open Module Settings")
-      .selectPropertiesTab()
-      .setCompileSdkVersion("API 28: Android 9.0 (Pie)")
-      .setIgnoreAssetsPattern("TestIgnoreAssetsPattern")
-      .setIncrementalDex(false)
-      .setSourceCompatibility("1.7")
-      .setTargetCompatibility("1.7")
-      .clickOk()
+      .openFromMenu(ProjectStructureDialogFixture.Companion::find, "Open Module Settings");
+
+    ModulesPerspectiveConfigurableFixture modulesConfigurable = selectModulesConfigurable(dialogFixture);
+    ModulePropertiesFixture propertiesTab = modulesConfigurable.selectPropertiesTab();
+    propertiesTab.compileSdkVersion().enterText("28");
+    propertiesTab.sourceCompatibility().selectItem("1.7 (Java 7)");
+    propertiesTab.targetCompatibility().selectItem("1.7 (Java 7)");
+    dialogFixture.clickOk();
+
+    String gradleFileContents = guiTest.ideFrame()
       .getEditor()
       .open("/library_module/build.gradle")
       .getCurrentFileContents();
 
     assertThat(gradleFileContents).contains("compileSdkVersion 28");
-    assertThat(gradleFileContents).contains("aaptOptions {\n        ignoreAssetsPattern 'TestIgnoreAssetsPattern'\n    }");
-    assertThat(gradleFileContents).contains("dexOptions {\n        incremental false\n    }");
+    // TODO(b/136748446): Review and re-enable if necessary.
+    //assertThat(gradleFileContents).contains("aaptOptions {\n        ignoreAssetsPattern 'TestIgnoreAssetsPattern'\n    }");
+    //assertThat(gradleFileContents).contains("dexOptions {\n        incremental false\n    }");
     assertThat(gradleFileContents).contains(
-      "compileOptions {\n        sourceCompatibility JavaVersion.VERSION_1_7\n        targetCompatibility JavaVersion.VERSION_1_7\n    }");
+      "compileOptions {\n        sourceCompatibility = 1.7\n        targetCompatibility = 1.7\n    }");
   }
 }
