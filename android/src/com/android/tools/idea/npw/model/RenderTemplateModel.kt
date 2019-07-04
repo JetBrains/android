@@ -40,12 +40,16 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_SOURCE_PROVIDER_NAME
 import com.android.tools.idea.templates.TemplateManager.CATEGORY_COMPOSE
 import com.android.tools.idea.templates.TemplateUtils
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.module.Module
@@ -147,9 +151,11 @@ class RenderTemplateModel private constructor(
 
       templateValues.putAll(moduleTemplateValues)
 
-      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()) {
+      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && isNew) {
         moduleTemplateDataBuilder.apply {
           // sourceProviderName = template.get().name TODO there is no sourcesProvider (yet?)
+          projectTemplateDataBuilder.setProjectDefaults(project.value)
+          formFactor = newTemplate.formFactor
           moduleTemplateDataBuilder.setModuleRoots(
             paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get())
 
@@ -222,15 +228,28 @@ class RenderTemplateModel private constructor(
       }
     }
 
-    private fun renderTemplate(dryRun: Boolean,
-                               project: Project,
-                               paths: AndroidModulePaths,
-                               filesToOpen: MutableList<File>?,
-                               filesToReformat: MutableList<File>?): Boolean {
-      if (templateHandle == null) {
-        return true // TODO: implement new template rendering
-      }
+    private fun renderTemplate(
+      dryRun: Boolean, project: Project, paths: AndroidModulePaths, filesToOpen: MutableList<File>?, filesToReformat: MutableList<File>?
+    ): Boolean {
       paths.moduleRoot ?: return false
+
+      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && isNew) {
+        val context = RenderingContext2(
+          project = project,
+          module = module,
+          commandName = commandName,
+          templateData = moduleTemplateDataBuilder.build(), // FIXME
+          moduleRoot = paths.moduleRoot!!,
+          dryRun = dryRun,
+          showErrors = true
+        )
+
+        val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
+
+        return writeCommandAction(project).withName(commandName).compute<Boolean, Throwable> {
+          newTemplate.recipe(executor, moduleTemplateDataBuilder.build())
+        }
+      }
 
       val template = templateHandle!!.template
 
