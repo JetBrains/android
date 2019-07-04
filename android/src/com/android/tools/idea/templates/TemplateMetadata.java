@@ -116,7 +116,6 @@ public class TemplateMetadata {
   public static final String ATTR_BASE_FEATURE_RES_DIR = "baseFeatureResDir";
   public static final String ATTR_CLASS_NAME = "className";
 
-  public static final String ATTR_USE_NAV_CONTROLLER = "useNavController";
   public static final String ATTR_KOTLIN_SUPPORT = "includeKotlinSupport";
   public static final String ATTR_ANDROIDX_SUPPORT = "addAndroidXSupport";
   public static final String ATTR_LANGUAGE = "language"; // Java vs Kotlin
