@@ -31,8 +31,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.*;
+import com.intellij.openapi.progress.impl.ProgressSuspender;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -239,7 +241,21 @@ class InstallTask extends Task.Backgroundable {
         double currentProgress = myLogger.getFraction();
         try {
           progressMax += progressIncrement;
-          success = op.prepare(myLogger.createSubProgress(progressMax));
+          // Allow pausing package preparation when installing.
+          // We probably don't want to allow pausing in other cases to minimize the risk of leaving SDK in an inconsistent
+          // state - e.g. it's way easier to pause, forget about it and turn off the machine so the cancellation handlers
+          // won't have a chance to clean up. Pausing the preparation is safe though, as it typically involves downloading
+          // and unzipping in a temp location (and it makes most sense to render downloading pausable
+          // rather than any other install phase anyway).
+          if (op instanceof Installer && taskProgressIndicator instanceof ProgressIndicatorEx) {
+            try (ProgressSuspender suspender = ProgressSuspender.markSuspendable(taskProgressIndicator,
+                                                                               "Installation paused")) {
+              success = op.prepare(myLogger.createSubProgress(progressMax));
+            }
+          }
+          else {
+            success = op.prepare(myLogger.createSubProgress(progressMax));
+          }
           taskProgressIndicator.checkCanceled();
           myLogger.setFraction(progressMax);
         }
