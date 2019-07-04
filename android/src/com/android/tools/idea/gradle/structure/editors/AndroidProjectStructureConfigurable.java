@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure;
+package com.android.tools.idea.gradle.structure.editors;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PSD_MODULE_REMOVED;
@@ -26,8 +26,8 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.structure.editors.AndroidModuleConfigurable;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurable;
+import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
+import com.android.tools.idea.gradle.structure.ProjectConfigurationError;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
