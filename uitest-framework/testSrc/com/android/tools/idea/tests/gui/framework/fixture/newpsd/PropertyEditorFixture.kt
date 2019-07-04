@@ -62,6 +62,7 @@ class PropertyEditorFixture(
     val comboBox = JComboBoxFixture(
       robot(),
       robot().finder().findByType<ComboBox<*>>(container))
+    comboBox.selectAllText()
     comboBox.enterText(text)
     robot().type(9.toChar())
   }
