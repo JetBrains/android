@@ -161,6 +161,8 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   private val isNewModule: Boolean
     get() = model.module == null
 
+  private val parameters: Collection<Parameter<*>> get() = model.newTemplate.parameters
+
   /**
    * Get the current thumbnail path.
    */
@@ -207,7 +209,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
       override fun get(): Boolean = parameterDescription.get().isNotEmpty()
     })
 
-    for (parameter in newTemplate.parameters(model.wizardParameterData)) {
+    for (parameter in parameters) {
       val row = createRowForParameter(model.module, parameter)
       val property = row.property
       property?.addListener {
@@ -236,10 +238,10 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
 
     validatorPanel.registerMessageSource(invalidParameterMessage)
 
-    val parameters = model.newTemplate.parameters(model.wizardParameterData)
     // TODO do not deduplicate package name etc.
     // Also pass user value?
-    val parameterValues = resolve(parameters)
+    val parameterValues = parameters.filterIsInstance(StringParameter::class.java)
+      .associateWith { userValues[it] ?: deduplicate(it) }
 
     parameters.forEach {
       val resolvedValue = parameterValues[it]
@@ -316,8 +318,6 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   private fun evaluateParameters() {
     evaluationState = EvaluationState.EVALUATING
 
-    val parameters = model.newTemplate.parameters(model.wizardParameterData)
-
     parameters.forEach {
       val enabled = it.enabled
       parameterRows[it]!!.setEnabled(enabled)
@@ -337,7 +337,6 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   }
 
   private fun validateAllParameters(): String? {
-    val parameters = model.newTemplate.parameters(model.wizardParameterData)
     val project = model.project.valueOrNull
     val sourceProvider = model.template.get().getSourceProvider()
 
@@ -391,9 +390,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
    * Fetches the values of all parameters that are related to the target parameter. This is useful when validating a parameter's value.
    */
   private fun getRelatedValues(parameter: Parameter<*>): Set<Any> =
-    model.newTemplate.parameters(model.wizardParameterData)
-      .filter { parameter.isRelated(it) }
-      .mapNotNull { parameterRows[it]?.property?.get() }.toSet()
+    parameters.filter { parameter.isRelated(it) }.mapNotNull { parameterRows[it]?.property?.get() }.toSet()
 
   /**
    * Because the FreeMarker templating engine is mostly opaque to us, any time any parameter changes, we need to re-evaluate all parameters.
@@ -404,12 +401,6 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     REQUEST_ENQUEUED,
     EVALUATING
   }
-
-  // TODO(qumeric): add userValues?
-  private fun resolve(parameters: Iterable<Parameter<*>>): Map<StringParameter, Any> =
-    parameters.filterIsInstance(StringParameter::class.java).associateWith {
-      userValues[it] ?: deduplicate(it)
-    }
 
   private fun deduplicate(parameter: StringParameter): String {
     val value = parameter.suggest() ?: parameter.defaultValue
