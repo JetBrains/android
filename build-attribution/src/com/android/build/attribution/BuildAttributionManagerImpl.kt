@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution
 
+import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.intellij.build.BuildContentManager
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
@@ -23,20 +24,23 @@ class BuildAttributionManagerImpl(
   private val myProject: Project,
   private val myBuildContentManager: BuildContentManager
 ) : BuildAttributionManager {
+  private val analyzersProxy = BuildEventsAnalyzersProxy()
 
   override fun onBuildStart() {
-    // TODO implement
+    analyzersProxy.onBuildStart()
   }
 
   override fun onBuildSuccess() {
-    // TODO implement
+    analyzersProxy.onBuildSuccess()
   }
 
   override fun onBuildFailure() {
-    // TODO implement
+    analyzersProxy.onBuildFailure()
   }
 
   override fun statusChanged(event: ProgressEvent?) {
-    // TODO implement
+    if (event == null) return
+
+    analyzersProxy.receiveEvent(event)
   }
 }
