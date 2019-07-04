@@ -205,13 +205,6 @@ public class SceneContext {
     return null;
   }
 
-  /**
-   * Set the tool tip text to be displayed if no one moves.
-   * @param toolTip
-   */
-  public void setToolTip(@Nullable String toolTip) {
-  }
-
   public float pxToDp(int px) {
     return px * Coordinates.DEFAULT_DENSITY;
   }
@@ -228,11 +221,6 @@ public class SceneContext {
 
     public SceneViewTransform(SceneView sceneView) {
       mySceneView = sceneView;
-    }
-
-    @Override
-    public void setToolTip(@Nullable String toolTip) {
-      mySceneView.setToolTip(toolTip);
     }
 
     @NotNull
