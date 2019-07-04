@@ -41,8 +41,11 @@ class NewWearProjectTest {
       .open("app/build.gradle")
       .currentFileContents.apply {
 
-      assertThat(this).doesNotContain("wearApp project")
       assertThat(this).contains("compileOnly 'com.google.android.wearable")
+      assertThat(this).contains("implementation 'androidx.wear:wear:")
+
+      assertThat(this).doesNotContain("wearApp project")
+      assertThat(this).doesNotContain("com.android.support:wear:")
     }
 
     guiTest.ideFrame().editor
