@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure;
+package com.android.tools.idea.gradle.structure.editors;
 
+import com.android.tools.idea.gradle.structure.ProjectConfigurationError;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
