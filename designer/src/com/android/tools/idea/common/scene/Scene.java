@@ -581,7 +581,7 @@ public class Scene implements SelectionListener, Disposable {
     }
 
     if (getTooltipVisibility()) {
-      transform.setToolTip(tooltip);
+      getDesignSurface().setDesignToolTip(tooltip);
     }
 
     setCursor(transform, x, y, modifiersEx);

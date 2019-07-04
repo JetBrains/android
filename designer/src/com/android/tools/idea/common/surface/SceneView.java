@@ -206,13 +206,6 @@ public abstract class SceneView {
     return myManager;
   }
 
-  /**
-   * Sets the tool tip to be shown
-   */
-  public void setToolTip(@Nullable String toolTip) {
-    getSurface().setDesignToolTip(toolTip);
-  }
-
   @NotNull
   public abstract ColorSet getColorSet();
 }
