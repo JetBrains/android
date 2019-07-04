@@ -13,88 +13,90 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates.recipe;
+package com.android.tools.idea.templates.recipe
 
-import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException
 
-import java.io.File;
+import java.io.File
 
 /**
  * Execution engine for the instructions in a Recipe.
  */
-public interface RecipeExecutor {
+interface RecipeExecutor {
 
   /**
    * Copies the given source file into the given destination file (where the
    * source is allowed to be a directory, in which case the whole directory is
    * copied recursively)
    */
-  void copy(@NotNull File from, @NotNull File to);
+  fun copy(from: File, to: File)
 
   /**
    * Instantiates the given template file into the given output file (running the freemarker
    * engine over it)
    */
-  void instantiate(@NotNull File from, @NotNull File to) throws TemplateProcessingException;
+  @Throws(TemplateProcessingException::class)
+  fun instantiate(from: File, to: File)
 
   /**
    * Merges the given source file into the given destination file (or it just copies it over if
    * the destination file does not exist).
-   * <p/>
+   *
+   *
    * Only XML and Gradle files are currently supported.
    */
-  void merge(@NotNull File from, @NotNull File to) throws TemplateProcessingException;
+  @Throws(TemplateProcessingException::class)
+  fun merge(from: File, to: File)
 
   /**
    * Create a directory at the specified location (if not already present). This will also create
    * any parent directories that don't exist, as well.
    */
-  void mkDir(@NotNull File at);
+  fun mkDir(at: File)
 
   /**
    * Record that this file should be opened.
    */
-  void addFilesToOpen(@NotNull File file);
+  fun addFilesToOpen(file: File)
 
   /**
-   * Adds "apply plugin: '{@code plugin}'" statement to the module build.gradle file.
+   * Adds "apply plugin: '`plugin`'" statement to the module build.gradle file.
    */
-  void applyPlugin(@NotNull String plugin);
+  fun applyPlugin(plugin: String)
 
   /**
    * Record a classpath dependency.
    */
-  void addClasspath(@NotNull String mavenUrl);
+  fun addClasspath(mavenUrl: String)
 
   /**
    * Record a library dependency.
    */
-  void addDependency(@NotNull String configuration, @NotNull String mavenUrl);
+  fun addDependency(configuration: String, mavenUrl: String)
 
   /**
    * Update the project's gradle build file and sync, if necessary. This should only be called
    * once and after all dependencies are already added.
    */
-  void updateAndSync();
+  fun updateAndSync()
 
   /**
    * Set the current folder that relative paths will be resolved against.
    */
-  void pushFolder(@NotNull String folder);
+  fun pushFolder(folder: String)
 
   /**
    * Restore the previous folder that relative paths will be resolved against.
    */
-  void popFolder();
+  fun popFolder()
 
   /**
    * Append contents of the first file to the second one.
    */
-  void append(@NotNull File from, @NotNull File to);
+  fun append(from: File, to: File)
 
   /**
    * Add a variable that can be referenced while the template is being rendered.
    */
-  void addGlobalVariable(@NotNull String id, @NotNull Object value);
+  fun addGlobalVariable(id: String, value: Any)
 }
