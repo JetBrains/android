@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.NetworkCache
 import com.android.tools.idea.ui.GuiTestingService
 import com.google.common.annotations.VisibleForTesting
@@ -35,7 +36,6 @@ import java.net.URL
 
 const val GRADLE_VERSIONS_URL = "https://services.gradle.org/versions/all"
 const val GRADLE_VERSIONS_CACHE_DIR_KEY = "gradle.versions"
-
 
 object GradleVersionsRepository : NetworkCache(
   GRADLE_VERSIONS_URL, GRADLE_VERSIONS_CACHE_DIR_KEY, getCacheDir(), cacheExpiryHours = 24) {
@@ -64,35 +64,31 @@ object GradleVersionsRepository : NetworkCache(
   fun getKnownVersionsFuture() : ListenableFuture<List<String>> =
     MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<List<String>> { getKnownVersions() }
 
-  fun getKnownVersions() : List<String>? = findData("")?.use { parseResponse(it) }
-
-  /**
-   * Parse json response body into versions list.
-   * Same order as in response maintained.
-   * Snapshot versions are filtered out.
-   */
-  @VisibleForTesting
-  fun parseResponse(response: InputStream): List<String> {
-    //Response example can be found in test
-    val result = ArrayList<String>()
-    val jsonParser = JsonParser()
-
-    val array = jsonParser.parse(response.bufferedReader()).getAsJsonArray()
-    for (e in array) {
-      val versionObject = e.getAsJsonObject()
-      if (!versionObject.get("snapshot").getAsBoolean()) {
-        result.add(versionObject.get("version").getAsString())
-      }
-    }
-    return result
-  }
+  @Slow
+  fun getKnownVersions() : List<String>? = findData("")?.use { parseGradleVersionsResponse(it) }
 }
+
+/**
+ * Parse json response body into versions list.
+ * Same order as in response maintained.
+ * Snapshot versions are filtered out.
+ * <br/>
+ * Response example can be found in test
+ */
+@VisibleForTesting
+fun parseGradleVersionsResponse(response: InputStream): List<String> =
+  JsonParser().parse(response.bufferedReader()).getAsJsonArray()
+    .mapNotNull { version ->
+      version.asJsonObject
+      .takeUnless { it.get("snapshot").asBoolean }
+      ?.get("version")?.asString
+    }
 
 private fun getCacheDir(): File? =
   if (ApplicationManager.getApplication() == null ||
       ApplicationManager.getApplication().isUnitTestMode ||
       GuiTestingService.getInstance().isGuiTestingMode)
-    //Test mode
+    // Test mode
     null
   else
     File(PathUtil.getCanonicalPath(PathManager.getSystemPath()), GRADLE_VERSIONS_CACHE_DIR_KEY)
