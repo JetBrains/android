@@ -46,7 +46,7 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
 
   override fun createEditorPanel() =
     DesignerEditorPanel(this, myProject, myFile, WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this),
-                        { NlDesignSurface(myProject, false, this).apply { setCentered(true) } })
+                        { NlDesignSurface.build(myProject, this).apply { setCentered(true) } })
     { toolWindowDefinitions(it) }
 
   private fun toolWindowDefinitions(facet: AndroidFacet): List<ToolWindowDefinition<DesignSurface>> {

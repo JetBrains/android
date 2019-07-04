@@ -97,7 +97,7 @@ public class SceneCreationTest extends SceneTest {
   }
 
   public void testSceneDisposal() {
-    DesignSurface surfaceNoSpy = new NlDesignSurface(getProject(), false, getTestRootDisposable());
+    DesignSurface surfaceNoSpy = NlDesignSurface.build(getProject(), getTestRootDisposable());
     DesignSurface surface = spy(surfaceNoSpy);
     Disposer.register(surfaceNoSpy, surface); // When real object is disposed, dispose the spy and its registered children
 
