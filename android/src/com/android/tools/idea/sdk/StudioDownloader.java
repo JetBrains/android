@@ -51,14 +51,17 @@ public class StudioDownloader implements Downloader {
 
   @VisibleForTesting
   static class DownloadProgressIndicator extends StudioProgressIndicatorAdapter {
+    private final String mTargetName;
     private final long mContentLength;
     private final String mTotalDisplaySize;
     private int mCurrentPercentage;
     private long mStartOffset;
     private Storage.Unit mReasonableUnit;
 
-    DownloadProgressIndicator(@NotNull ProgressIndicator wrapped, long contentLength, long startOffset) {
+    DownloadProgressIndicator(@NotNull ProgressIndicator wrapped, @NotNull String targetName, long contentLength,
+                              long startOffset) {
       super(wrapped);
+      mTargetName = targetName;
       if (contentLength > 0) {
         mCurrentPercentage = (int)(mStartOffset / (double)contentLength);
         mContentLength = contentLength;
@@ -73,7 +76,7 @@ public class StudioDownloader implements Downloader {
         mContentLength = 0;
         mStartOffset = 0;
         mTotalDisplaySize = null;
-        setText("Downloading...");
+        setText(String.format("Downloading $1%s...", mTargetName));
         setIndeterminate(true);
       }
     }
@@ -97,8 +100,8 @@ public class StudioDownloader implements Downloader {
       long downloadedSize = (long)(adjustedFraction * mContentLength);
       double downloadedSizeInReasonableUnits = new Storage(downloadedSize).getPreciseSizeAsUnit(mReasonableUnit);
       setText(String
-                .format(Locale.US, "Downloading (%1$d%%): %2$.1f / %3$s ...", mCurrentPercentage, downloadedSizeInReasonableUnits,
-                        mTotalDisplaySize));
+                .format(Locale.US, "Downloading %1$s (%2$d%%): %3$.1f / %4$s ...", mTargetName, mCurrentPercentage,
+                        downloadedSizeInReasonableUnits, mTotalDisplaySize));
     }
   }
 
@@ -153,7 +156,7 @@ public class StudioDownloader implements Downloader {
 
     String preparedUrl = prepareUrl(url);
     indicator.logInfo("Downloading " + preparedUrl);
-    indicator.setText("Downloading...");
+    indicator.setText("Starting download...");
     indicator.setSecondaryText(preparedUrl);
     // We can't pick up the existing studio progress indicator since the one passed in here might be a sub-indicator working over a
     // different range.
@@ -192,7 +195,8 @@ public class StudioDownloader implements Downloader {
       // To simplify calculations, regard content length invariant: always keep the value as the full content length.
       long startOffset = interimDownload.length();
       long contentLength = startOffset  + request.getConnection().getContentLength();
-      DownloadProgressIndicator downloadProgressIndicator = new DownloadProgressIndicator(indicator, contentLength, startOffset);
+      DownloadProgressIndicator downloadProgressIndicator = new DownloadProgressIndicator(indicator, target.getName(),
+                                                                                          contentLength, startOffset);
       FileUtilRt.createParentDirs(interimDownload);
 
       try (OutputStream out = new BufferedOutputStream(new FileOutputStream(interimDownload, true))) {
