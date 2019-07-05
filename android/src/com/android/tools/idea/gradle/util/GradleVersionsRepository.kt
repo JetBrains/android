@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.NetworkCache
 import com.android.tools.idea.ui.GuiTestingService
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.io.ByteStreams
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.gson.JsonParser
@@ -27,12 +26,10 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.PathUtil
-import com.intellij.util.net.HttpConfigurable
+import com.intellij.util.io.HttpRequests
 import org.jetbrains.ide.PooledThreadExecutor
 import java.io.File
 import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 const val GRADLE_VERSIONS_URL = "https://services.gradle.org/versions/all"
 const val GRADLE_VERSIONS_CACHE_DIR_KEY = "gradle.versions"
@@ -40,21 +37,12 @@ const val GRADLE_VERSIONS_CACHE_DIR_KEY = "gradle.versions"
 object GradleVersionsRepository : NetworkCache(
   GRADLE_VERSIONS_URL, GRADLE_VERSIONS_CACHE_DIR_KEY, getCacheDir(), cacheExpiryHours = 24) {
 
-  override fun readUrlData(url: String, timeout: Int): ByteArray? {
-    val query = URL(url)
-    val connection = HttpConfigurable.getInstance().openConnection(query.toExternalForm())
-    if (timeout > 0) {
-      connection.connectTimeout = timeout
-      connection.readTimeout = timeout
-    }
-    return try {
-      val stream = connection.getInputStream() ?: return null
-      ByteStreams.toByteArray(stream)
-    }
-    finally {
-      (connection as? HttpURLConnection)?.disconnect()
-    }
-  }
+  override fun readUrlData(url: String, timeout: Int) = HttpRequests
+    .request(url)
+    .accept("application/json")
+    .connectTimeout(timeout)
+    .readTimeout(timeout)
+    .readBytes(null)
 
   override fun readDefaultData(relative: String): InputStream? = null
 
