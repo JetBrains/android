@@ -58,6 +58,7 @@ public final class StudioFlags {
     return applicationInfo == null || applicationInfo.getStrictVersion().equals("0.0.0.0");
   }
 
+  //region New Project Wizard
   private static final FlagGroup NPW = new FlagGroup(FLAGS, "npw", "New Project Wizard");
 
   public static final Flag<Boolean> NPW_DUMP_TEMPLATE_VARS = Flag.create(
@@ -109,7 +110,9 @@ public final class StudioFlags {
     NPW, "show.fragment.gallery", "Show fragment gallery",
     "Show fragment gallery which contains fragment based templates",
     false);
+  //endregion
 
+  //region Profiler
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
   public static final Flag<Boolean> PROFILER_CPU_CAPTURE_STAGE = Flag.create(
@@ -214,7 +217,9 @@ public final class StudioFlags {
     "Shows recording options and status of the ongoing recording in the method trace pane.",
     true
   );
+  //endregion
 
+  //region Layout Editor
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
   public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(
     NELE, "animated.preview", "Show preview animations toolbar",
@@ -351,13 +356,17 @@ public final class StudioFlags {
     NELE, "display.model.name", "Display Model Name",
     "Enable the feature which can display the model name in Layout Editor.",
     true);
+  //endregion
 
+  //region Navigation Editor
   private static final FlagGroup NAV_EDITOR = new FlagGroup(FLAGS, "nav", "Navigation Editor");
   public static final Flag<Boolean> NAV_NEW_PROPERTY_PANEL = Flag.create(
     NAV_EDITOR, "new.property", "Enable the new Property Panel",
     "Enable the new Property Panel",
     false);
+  //endregion
 
+  //region Run/Debug
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
@@ -390,7 +399,9 @@ public final class StudioFlags {
     "Enable Select Device/Snapshot combo box snapshots",
     "So the new Instant Run can use the combo box",
     false);
+  //endregion
 
+  //region Gradle Project System
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
   public static final Flag<Boolean> FIX_ANDROID_RUN_CONFIGURATIONS_ENABLED = Flag.create(
     GRADLE_IDE, "gradle.run.configuration.fix.enabled",
@@ -422,13 +433,17 @@ public final class StudioFlags {
   public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(
     GRADLE_IDE, "level4.dependency.model", "Use L4 DependencyGraph Model",
     "Use level4 DependencyGraph model.", false);
+  //endregion
 
+  //region SQLite Inspector
   private static final FlagGroup SQLITE_VIEWER = new FlagGroup(FLAGS, "sqlite.viewer", "SQLite Viewer");
   public static final Flag<Boolean> SQLITE_VIEWER_ENABLED = Flag.create(
     SQLITE_VIEWER, "enabled", "Enable the SQLite database viewer",
     "If enabled, SQLite files downloaded from Android devices or emulators are open in a custom SQLite editor window",
     false);
+  //endregion
 
+  //region Resource Manager
   private static final FlagGroup RESOURCES_MANAGEMENT = new FlagGroup(FLAGS, "res.manag", "Resource Management");
   public static final Flag<Boolean> RESOURCE_MANAGER_ENABLED = Flag.create(
     RESOURCES_MANAGEMENT, "enabled", "Enable the new resources management tools",
@@ -438,7 +453,9 @@ public final class StudioFlags {
     RESOURCES_MANAGEMENT, "picker", "Enable the resource explorer as picker",
     "If enabled, the new resource management tools are used for the resource picker in the property panel.",
     false);
+  //endregion
 
+  //region Layout Inspector
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "load.overlay", "Enable the Load Overlay feature",
@@ -455,7 +472,9 @@ public final class StudioFlags {
   public static final Flag<Boolean>  DYNAMIC_LAYOUT_INSPECTOR_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector", "Enable dynamic layout inspector",
     "Turns on the dynamic layout inspector.", false);
+  //endregion
 
+  //region Refactorings
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
   public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(
     REFACTORINGS, "migrateto.appcompat.enabled", "Enable the Migrate to AppCompat refactoring",
@@ -466,12 +485,16 @@ public final class StudioFlags {
   public static final Flag<Boolean> MIGRATE_TO_RESOURCE_NAMESPACES_REFACTORING_ENABLED = Flag.create(
     REFACTORINGS, "migrateto.resourcenamespaces.enabled", "Enable the Migrate to Resource Namespaces refactoring",
     "If enabled, show the action in the refactoring menu", false);
+  //endregion
 
+  //region IoT
   private static final FlagGroup IOT = new FlagGroup(FLAGS, "iot", "IoT features");
   public static final Flag<Boolean> UNINSTALL_LAUNCHER_APPS_ENABLED = Flag.create(
     IOT, "iot.uninstalllauncherapps.enabled", "Enable the Uninstall of IoT launcher apps feature",
     "If enabled, uninstall IoT launcher apps when installing a new one", false);
+  //endregion
 
+  //region NDK
   private static final FlagGroup NDK = new FlagGroup(FLAGS, "ndk", "Native code features");
   public static final Flag<Boolean> CMAKE_ENABLE_FEATURES_FROM_CLION = Flag.create(
     NDK, "cmakeclionfeatures", "Enable CMake language support from CLion",
@@ -496,6 +519,14 @@ public final class StudioFlags {
     NDK, "apkdebugreload", "Enable APK reloading feature",
     "If enabled, the user will be provided with an option to reload the APK inside an APK debugging project", false);
 
+  private static final FlagGroup NDK_SIDE_BY_SIDE = new FlagGroup(FLAGS, "ndk.sxs", "NDK Side by Side");
+  public static final Flag<Boolean> NDK_SIDE_BY_SIDE_ENABLED = Flag.create(
+    NDK_SIDE_BY_SIDE, "ndk.sxs.enabled", "Enable side by side NDK support",
+    "If enabled, C/C++ projects will have NDK side by side support",
+    true);
+  //endregion
+
+  //region Editor
   private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
 
   public static final Flag<Boolean> COLLAPSE_ANDROID_NAMESPACE = Flag.create(
@@ -541,12 +572,16 @@ public final class StudioFlags {
     "inspections related to JNI may stop working.",
     true
   );
+  //endregion
 
+  //region Analyzer
   private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
   public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(
     ANALYZER, "enable.app.size.optimizer", "Enable size optimization suggestions in apk analyzer",
     "If enabled, it will enable the apk analyzer tool to display suggestions for reducing application size", false);
+  //endregion
 
+  //region Unified App Bundle
   private static final FlagGroup UAB = new FlagGroup(FLAGS, "uab", "Unified App Bundle");
 
   public static final Flag<Boolean> UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS = Flag.create(
@@ -554,14 +589,18 @@ public final class StudioFlags {
     "If enabled, shows the new instant app deploy checkbox in the run configuration dialog and allows new instant app deploy workflow.",
     true
   );
+  //endregion
 
+  //region Project Upgrade
   private static final FlagGroup PROJECT_UPGRADE = new FlagGroup(FLAGS, "project.upgrade", "Project Upgrade");
   public static final Flag<Boolean> BALLOON_UPGRADE_NOTIFICATION = Flag.create(
     PROJECT_UPGRADE, "balloon.upgrade.notification", "Enable Balloon Notification for Project Upgrade",
     "If enabled, the notification of project upgrade will show as balloon in the right-bottom side.",
     true
   );
+  //endregion
 
+  //region Testing
   private static final FlagGroup TESTING = new FlagGroup(FLAGS, "testing", "Testing support");
 
   public static final Flag<Boolean> PRINT_INSTRUMENTATION_STATUS = Flag.create(
@@ -582,13 +621,17 @@ public final class StudioFlags {
     "If enabled, Nitrogen test runner configuration becomes available in addition to traditional test runner configurations.",
     false
   );
+  //endregion
 
+  //region Theme Editor
   private static final FlagGroup THEME_EDITOR = new FlagGroup(FLAGS, "theme.editor", "Theme Editor");
   public static final Flag<Boolean> THEME_EDITOR_ENABLED = Flag.create(
     THEME_EDITOR, "theme.editor.enabled", "Enable the theme editor",
     "If enabled, a visual editor will be available for Android themes.",
     false);
+  //endregion
 
+  //region Translations Editor
   private static final FlagGroup TRANSLATIONS_EDITOR = new FlagGroup(FLAGS, "translations.editor", "Translations Editor");
 
   public static final Flag<Boolean> TRANSLATIONS_EDITOR_USE_LOGICAL_FONT = Flag.create(
@@ -597,13 +640,9 @@ public final class StudioFlags {
     "Use a logical font",
     "Use a logical font to display translations. See https://docs.oracle.com/javase/tutorial/2d/text/fonts.html#logical-fonts",
     true);
+  //endregion
 
-  private static final FlagGroup NDK_SIDE_BY_SIDE = new FlagGroup(FLAGS, "ndk.sxs", "NDK Side by Side");
-  public static final Flag<Boolean> NDK_SIDE_BY_SIDE_ENABLED = Flag.create(
-    NDK_SIDE_BY_SIDE, "ndk.sxs.enabled", "Enable side by side NDK support",
-    "If enabled, C/C++ projects will have NDK side by side support",
-    true);
-
+  //region Memory
   private static final FlagGroup MEMORY_SETTINGS = new FlagGroup(FLAGS, "memory.settings", "Memory Settings");
   public static final Flag<Boolean> RECOMMENDATION_ENABLED = Flag.create(
     MEMORY_SETTINGS, "recommendation.enabled", "Enable memory recommendation",
@@ -614,7 +653,9 @@ public final class StudioFlags {
     MEMORY_SETTINGS, "low.ide.xmx.cap", "Set low IDE Xmx cap in memory settings",
     "If set, IDE Xmx is capped at 4GB in the configuration dialog. Otherwise, the cap is 8GB",
     true);
+  //endregion
 
+  //region System Health
   private static final FlagGroup SYSTEM_HEALTH = new FlagGroup(FLAGS, "system.health", "System Health");
   public static final Flag<Boolean> WINDOWS_UCRT_CHECK_ENABLED = Flag.create(
     SYSTEM_HEALTH, "windows.ucrt.check.enabled", "Enable Universal C Runtime system health check",
@@ -634,6 +675,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> WIN32_DEPRECATION_NOTIFICATION_ENABLED = Flag.create(
     SYSTEM_HEALTH, "win32.deprecation.notification.enabled", "Enable win32 deprecation notification",
     "If enabled, a notification will be shown",true);
+  //endregion
 
-  private StudioFlags() { }
+  private StudioFlags() {}
 }
