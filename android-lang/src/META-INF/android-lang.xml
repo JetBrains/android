@@ -39,28 +39,24 @@
     <lang.syntaxHighlighterFactory language="Renderscript"
                                    implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
 
-    <!-- Room SQL support -->
-    <fileTypeFactory implementation="com.android.tools.idea.lang.roomSql.RoomSqlFileTypeFactory"/>
+    <!-- SQL support -->
+    <fileTypeFactory implementation="com.android.tools.idea.lang.androidSql.AndroidSqlFileTypeFactory"/>
     <lang.parserDefinition language="RoomSql"
-                           implementationClass="com.android.tools.idea.lang.roomSql.parser.RoomSqlParserDefinition"/>
+                           implementationClass="com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition"/>
     <lang.syntaxHighlighterFactory language="RoomSql"
-                                   implementationClass="com.android.tools.idea.lang.roomSql.RoomSqlSyntaxHighlighterFactory"/>
-    <moduleService serviceImplementation="com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager"/>
-    <projectService serviceImplementation="com.android.tools.idea.lang.roomSql.resolution.RoomDependencyChecker"/>
-    <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomDefinedTableNameImpl"
-                             implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator"/>
-    <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomSelectedTableNameImpl"
-                             implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator"/>
-    <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomColumnNameImpl"
-                             implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator"/>
-    <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomBindParameterImpl"
-                             implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomBindParameterManipulator"/>
+                                   implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlSyntaxHighlighterFactory"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.androidSql.psi.impl.AndroidSqlDefinedTableNameImpl"
+                             implementationClass="com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlNameElementManipulator"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.androidSql.psi.impl.AndroidSqlSelectedTableNameImpl"
+                             implementationClass="com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlNameElementManipulator"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.androidSql.psi.impl.AndroidSqlColumnNameImpl"
+                             implementationClass="com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlNameElementManipulator"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.androidSql.psi.impl.AndroidSqlBindParameterImpl"
+                             implementationClass="com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlBindParameterManipulator"/>
     <lang.findUsagesProvider language="RoomSql"
-                             implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomFindUsagesProvider"/>
-    <idIndexer filetype="Android Room SQL" implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomIdIndexer"/>
-    <referencesSearch implementation="com.android.tools.idea.lang.roomSql.refactoring.RoomReferenceSearchExecutor"/>
-    <usageTypeProvider implementation="com.android.tools.idea.lang.roomSql.refactoring.RoomUsageTypeProvider"/>
-    <vetoRenameCondition implementation="com.android.tools.idea.lang.roomSql.RoomRenameVetoCondition"/>
+                             implementationClass="com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlFindUsagesProvider"/>
+    <idIndexer filetype="Android Room SQL" implementationClass="com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlIdIndexer"/>
+    <usageTypeProvider implementation="com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlUsageTypeProvider"/>
 
     <localInspection groupPath="Android"
                      groupName="Room"
@@ -68,7 +64,7 @@
                      shortName="AndroidUnresolvedRoomSqlReference"
                      enabledByDefault="true"
                      level="ERROR"
-                     implementationClass="com.android.tools.idea.lang.roomSql.RoomUnresolvedReferenceInspection"
+                     implementationClass="com.android.tools.idea.lang.androidSql.RoomUnresolvedReferenceInspection"
                      displayName="Unresolved reference in Room SQL"/>
 
     <localInspection groupPath="Android"
@@ -77,11 +73,17 @@
                      shortName="AndroidRoomQuestionMarkBindParameter"
                      enabledByDefault="true"
                      level="ERROR"
-                     implementationClass="com.android.tools.idea.lang.roomSql.RoomBindParameterSyntaxInspection"
+                     implementationClass="com.android.tools.idea.lang.androidSql.RoomBindParameterSyntaxInspection"
                      displayName="'?' used as parameter in a Room query."/>
 
-    <lang.braceMatcher language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomPairedBraceMatcher"/>
-    <lang.quoteHandler language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomQuoteHandler"/>
+    <lang.braceMatcher language="RoomSql" implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlPairedBraceMatcher"/>
+    <lang.quoteHandler language="RoomSql" implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlQuoteHandler"/>
+
+    <!--  Room support  -->
+    <moduleService serviceImplementation="com.android.tools.idea.lang.androidSql.room.RoomSchemaManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.lang.androidSql.room.RoomDependencyChecker"/>
+    <referencesSearch implementation="com.android.tools.idea.lang.androidSql.room.RoomReferenceSearchExecutor"/>
+    <vetoRenameCondition implementation="com.android.tools.idea.lang.androidSql.room.RoomRenameVetoCondition"/>
 
     <!-- Multidex keep files support -->
     <fileTypeFactory implementation="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepFileTypeFactory"/>
