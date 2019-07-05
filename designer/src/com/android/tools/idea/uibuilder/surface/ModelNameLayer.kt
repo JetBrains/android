@@ -44,7 +44,7 @@ internal class ModelNameLayer(private val myScreenView: ScreenViewBase) : Layer(
     val fontHeight = metrics.height
 
     val x = myScreenView.x
-    val y = myScreenView.y - (myScreenView.getNameLabelHeight(g2d) - fontHeight)
+    val y = myScreenView.y - (myScreenView.nameLabelHeight - fontHeight)
     g2d.drawString(modelName, x, y)
 
     g2d.color = originalColor
