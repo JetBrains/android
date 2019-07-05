@@ -15,13 +15,25 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.resources.ResourceFolderType;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+import static org.fest.reflect.core.Reflection.method;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.common.editor.DesignerEditor;
-import com.android.tools.idea.io.TestFileUtils;
-import com.android.tools.idea.uibuilder.editor.NlEditor;
+import com.android.tools.idea.common.editor.SplitEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
@@ -32,22 +44,34 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.editor.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import com.intellij.openapi.editor.Caret;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileEditor.TextEditorWithPreview;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.EdtTestUtil;
+import com.intellij.testFramework.TestActionEvent;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
@@ -55,9 +79,20 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.ui.tabs.impl.JBEditorTabs;
 import com.intellij.ui.tabs.impl.TabLabel;
+import java.awt.Component;
+import java.awt.Point;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.KeyStroke;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
@@ -68,19 +103,6 @@ import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
-import static org.fest.reflect.core.Reflection.method;
-import static org.junit.Assert.*;
 
 /**
  * Fixture wrapping the IDE source editor, providing convenience methods
@@ -143,8 +165,7 @@ public class EditorFixture {
   public int getCurrentLineNumber() {
     return GuiQuery.getNonNull(
       () -> {
-        Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
-        checkState(editor != null, "no currently selected text editor");
+        Editor editor = getSelectedTextEditor();
         int offset = editor.getCaretModel().getPrimaryCaret().getOffset();
         return editor.getDocument().getLineNumber(offset) + 1;  // Editor uses 0-based line numbers.
       });
@@ -159,8 +180,7 @@ public class EditorFixture {
   public String getCurrentLine() {
     return GuiQuery.getNonNull(
       () -> {
-        Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
-        checkState(editor != null, "no currently selected text editor");
+        Editor editor = getSelectedTextEditor();
         Caret primaryCaret = editor.getCaretModel().getPrimaryCaret();
         return editor.getDocument().getText(new TextRange(primaryCaret.getVisualLineStart(), primaryCaret.getVisualLineEnd()));
       });
@@ -175,10 +195,24 @@ public class EditorFixture {
   public String getCurrentFileContents() {
     return GuiQuery.getNonNull(
       () -> {
-        Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
-        checkState(editor != null, "no currently selected text editor");
+        Editor editor = getSelectedTextEditor();
         return editor.getDocument().getImmutableCharSequence().toString();
       });
+  }
+
+  @NotNull
+  private Editor getSelectedTextEditor() {
+    FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+    Editor editor = manager.getSelectedTextEditor();
+    if (StudioFlags.NELE_SPLIT_EDITOR.get() && editor == null) {
+      // When using the split editor, we need to retrieve its text editor.
+      FileEditor selectedEditor = manager.getSelectedEditor();
+      if (selectedEditor instanceof SplitEditor) {
+        editor = ((SplitEditor)selectedEditor).getTextEditor().getEditor();
+      }
+    }
+    checkState(editor != null, "no currently selected text editor");
+    return editor;
   }
 
   /**
@@ -232,11 +266,7 @@ public class EditorFixture {
    */
   @NotNull
   private JComponent getFocusedEditor() {
-    Editor editor = GuiQuery.getNonNull(() -> {
-      Editor selectedTextEditor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
-      checkState(selectedTextEditor != null, "no currently selected text editor");
-      return selectedTextEditor;
-    });
+    Editor editor = GuiQuery.getNonNull(() -> getSelectedTextEditor());
 
     JComponent contentComponent = editor.getContentComponent();
     new ComponentDriver(robot).focusAndWaitForFocusGain(contentComponent);
@@ -269,8 +299,7 @@ public class EditorFixture {
     int end = matcher.end(1);
     SelectTarget selectTarget = GuiQuery.getNonNull(
       () -> {
-        Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
-        checkState(editor != null, "no currently selected text editor");
+        Editor editor = getSelectedTextEditor();
         LogicalPosition startPosition = editor.offsetToLogicalPosition(start);
         LogicalPosition endPosition = editor.offsetToLogicalPosition(end);
         // CENTER_DOWN tries to make endPosition visible; if that fails, write selectWithKeyboard and rename this method selectWithMouse?
@@ -350,6 +379,13 @@ public class EditorFixture {
         assertNotNull("Can't switch to tab " + tabName + " when no file is open in the editor", currentFile);
         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
         for (FileEditor editor : manager.getAllEditors(currentFile)) {
+          if (StudioFlags.NELE_SPLIT_EDITOR.get() && editor instanceof SplitEditor) {
+            boolean consumedBySplitEditor = selectSplitEditorTab(tab, (SplitEditor)editor);
+            if (consumedBySplitEditor) {
+              return true;
+            }
+          }
+
           if (tabName == null || tabName.equals(editor.getName())) {
             // Have to use reflection
             //FileEditorManagerImpl#setSelectedEditor(final FileEditor editor)
@@ -360,6 +396,56 @@ public class EditorFixture {
         return false;
       }));
     return this;
+  }
+
+  /**
+   * Given a {@link Tab}, selects the corresponding mode in the {@link SplitEditor}, i.e. "Text only" when tab is {@link Tab#EDITOR} and
+   * "Design only" when tab is {@link Tab#DESIGN}.
+   * @return Whether this method effectively changed tabs. This only returns false if tab is not {@link Tab#EDITOR} or {@link Tab#DESIGN}.
+   */
+  private boolean selectSplitEditorTab(@NotNull Tab tab, @NotNull SplitEditor editor) {
+    if (!(tab == Tab.EDITOR || tab == Tab.DESIGN)) {
+      // Only text and design are supported by split editor at the moment.
+      return false;
+    }
+    // The concept of tabs can be mapped to the split editor toolbar, where there are three actions to change the editor to (in this order):
+    // 1) text-only, 2) split view, 3) preview(design)-only. We try to find this toolbar and select the corresponding action.
+    TextEditorWithPreview.SplitEditorToolbar toolbar = robot.finder().find(
+      editor.getComponent(),
+      new GenericTypeMatcher<TextEditorWithPreview.SplitEditorToolbar>(TextEditorWithPreview.SplitEditorToolbar.class) {
+        @Override
+        protected boolean isMatching(@NotNull TextEditorWithPreview.SplitEditorToolbar component) {
+          return true;
+        }
+      }
+    );
+
+    ActionToolbar actionToolbar = robot.finder().find(
+      toolbar,
+      new GenericTypeMatcher<ActionToolbarImpl>(ActionToolbarImpl.class) {
+        @Override
+        protected boolean isMatching(@NotNull ActionToolbarImpl component) {
+          return component.getPlace().equals("TextEditorWithPreview");
+        }
+      }
+    );
+
+    List<AnAction> actions = actionToolbar.getActions();
+    TestActionEvent e = new TestActionEvent();
+    if (tab == Tab.EDITOR) {
+      ToggleAction textOnly = (ToggleAction)actions.get(0); // Text-only is the first action in the toolbar
+      if (!textOnly.isSelected(e)) {
+        textOnly.setSelected(e, true);
+      }
+    }
+    else {
+      assertSame(Tab.DESIGN, tab);
+      ToggleAction designOnly = (ToggleAction)actions.get(2); // Design-only is the third action in the toolbar
+      if (!designOnly.isSelected(e)) {
+        designOnly.setSelected(e, true);
+      }
+    }
+    return true;
   }
 
   @NotNull
@@ -618,7 +704,9 @@ public class EditorFixture {
    */
   @NotNull
   public NlEditorFixture getLayoutEditor(boolean switchToTabIfNecessary, boolean waitForSurfaceToLoad) {
-    if (switchToTabIfNecessary) {
+    if (switchToTabIfNecessary || StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      // When using the split editor, we don't display the preview if we're in text-only mode. Therefore, in order to get the component
+      // tree, we need to switch mode to make sure it's available..
       selectEditorTab(Tab.DESIGN);
     }
 
@@ -630,6 +718,11 @@ public class EditorFixture {
         FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
         checkState(editors.length > 0, "no selected editors");
         FileEditor selected = editors[0];
+        if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+          // When using split editor, we need to get the DesignerEditor since it's a TextEditorWithPreview containing a TextEditor as well.
+          checkState(selected instanceof SplitEditor, "invalid editor selected");
+          selected = ((SplitEditor)selected).getDesignerEditor();
+        }
         checkState(selected instanceof DesignerEditor, "not a %s: %s", DesignerEditor.class.getSimpleName(), selected);
         return new NlEditorFixture(myFrame.robot(), (DesignerEditor)selected);
       });
@@ -729,6 +822,21 @@ public class EditorFixture {
 
   @NotNull
   public String getSelectedTab() {
+    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      FileEditor[] selectedEditors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
+      if (selectedEditors.length > 0 && selectedEditors[0] instanceof SplitEditor) {
+        SplitEditor editor = (SplitEditor)selectedEditors[0];
+        if (editor.getPreferredFocusedComponent() == editor.getTextEditor().getPreferredFocusedComponent()) {
+          // The equivalent to the "Text" tab in the split editor is when we're in text-only mode.
+          return "Text";
+        }
+        else if (editor.getPreferredFocusedComponent() == editor.getDesignerEditor().getPreferredFocusedComponent()) {
+          // The equivalent to the "Design" tab in the split editor is when we're in preview-only mode.
+          return "Design";
+        }
+      }
+    }
+
     return robot.finder().find(
       new GenericTypeMatcher<JBEditorTabs>(JBEditorTabs.class) {
         @Override
@@ -750,13 +858,25 @@ public class EditorFixture {
    * Switch to an open tab
    */
   public EditorFixture switchToTab(@NotNull String tabName) {
-    TabLabel tab = waitUntilShowing(robot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull TabLabel tabLabel) {
-        return tabName.equals(tabLabel.getAccessibleContext().getAccessibleName());
-      }
-    });
-    robot.click(tab);
+    if (StudioFlags.NELE_SPLIT_EDITOR.get() && (tabName.equals("Design") || tabName.equals("Text"))) {
+      // In split editor we don't have clickable tab labels. Instead, we have IntelliJ actions that need to be clicked to switch editor type
+      FileEditor[] selectedEditors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
+      checkState(selectedEditors.length > 0, "no selected editors");
+      FileEditor selected = selectedEditors[0];
+      checkState(selected instanceof SplitEditor, "invalid editor selected");
+      Tab tab = Tab.fromName(tabName);
+      assertNotNull(String.format("Can't find tab named \"%s\".", tabName), tab);
+      GuiTask.execute(() -> selectSplitEditorTab(tab, (SplitEditor)selected));
+    }
+    else {
+      TabLabel tab = waitUntilShowing(robot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
+        @Override
+        protected boolean isMatching(@NotNull TabLabel tabLabel) {
+          return tabName.equals(tabLabel.getAccessibleContext().getAccessibleName());
+        }
+      });
+      robot.click(tab);
+    }
     return this;
   }
 
@@ -810,6 +930,11 @@ public class EditorFixture {
 
     Tab(String tabName) {
       myTabName = tabName;
+    }
+
+    @Nullable
+    static Tab fromName(@NotNull String name) {
+      return Arrays.stream(Tab.values()).filter(tab -> name.equals(tab.myTabName)).findFirst().orElse(null);
     }
   }
 
