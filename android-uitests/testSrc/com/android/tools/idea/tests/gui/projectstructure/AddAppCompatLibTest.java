@@ -15,25 +15,22 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AddAppCompatLibTest {
@@ -42,7 +39,7 @@ public class AddAppCompatLibTest {
 
   @Before
   public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(false);
+    StudioFlags.NEW_PSD_ENABLED.override(true);
   }
 
   @After
@@ -74,16 +71,7 @@ public class AddAppCompatLibTest {
     IdeFrameFixture ideFrame = guiTest.importProject("NoAppCompatLibApp");
     ideFrame.waitForGradleProjectSyncToFinish();
 
-   ideFrame.getProjectView()
-      .selectProjectPane()
-      .clickPath(RIGHT_BUTTON, "NoAppCompatLibApp", "app");
-
-    ideFrame.invokeMenuPath("Open Module Settings");
-
-    ProjectStructureDialogFixture.find(ideFrame)
-      .selectDependenciesTab()
-      .addLibraryDependency("com.android.support:appcompat-v7")
-      .clickOk();
+    DependenciesTestUtil.addLibraryDependency(ideFrame, "com.android.support:appcompat-v7", "app", "implementation");
 
     ideFrame.waitForGradleProjectSyncToFinish();
 

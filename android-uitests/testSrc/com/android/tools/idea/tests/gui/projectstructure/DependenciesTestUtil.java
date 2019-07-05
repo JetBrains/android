@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.AddLibraryDependencyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.AddModuleDependencyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPerspectiveConfigurableFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPerspectiveConfigurableFixtureKt;
@@ -138,6 +139,29 @@ public class DependenciesTestUtil {
     addModuleDependencyFixture.findConfigurationCombo().selectItem(scopeValue);
     addModuleDependencyFixture.clickOk();
 
+    dialogFixture.clickOk();
+  }
+
+  public static void addLibraryDependency(@NotNull IdeFrameFixture ideFrame,
+                                             @NotNull String library,
+                                             @NotNull String anotherModule,
+                                             @NotNull String scope) {
+    ideFrame.invokeMenuPath("File", "Project Structure...");
+
+    ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
+    DependenciesPerspectiveConfigurableFixture dependenciesFixture =
+      DependenciesPerspectiveConfigurableFixtureKt.selectDependenciesConfigurable(dialogFixture);
+    dependenciesFixture.findModuleSelector().selectModule(anotherModule);
+
+    AddLibraryDependencyDialogFixture addLibraryDependencyFixture = dependenciesFixture.findDependenciesPanel().clickAddLibraryDependency();
+    addLibraryDependencyFixture.findSearchQueryTextBox().enterText(library);
+    addLibraryDependencyFixture.findSearchButton().click();
+    addLibraryDependencyFixture.findVersionsView(true); // Wait for search to complete.
+    String scopeValue =
+      Arrays.stream(Dependency.Scope.values()).filter(it -> scope.equalsIgnoreCase(it.getDisplayName())).findFirst().get()
+        .getGroovyMethodCall();
+    addLibraryDependencyFixture.findConfigurationCombo().selectItem(scopeValue);
+    addLibraryDependencyFixture.clickOk();
     dialogFixture.clickOk();
   }
 

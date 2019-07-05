@@ -30,7 +30,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindo
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.fest.swing.timing.Wait;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,13 +44,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class FlavorsExecutionTest {
@@ -62,7 +60,7 @@ public class FlavorsExecutionTest {
 
   @Before
   public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(false);
+    StudioFlags.NEW_PSD_ENABLED.override(true);
   }
 
   @After
