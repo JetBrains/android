@@ -90,9 +90,9 @@ interface IdeaSourceProvider {
      * Returns an [IdeaSourceProvider] wrapping the given [SourceProvider].
      */
     @JvmStatic
-    fun SourceProvider.toIdeaProvider(): IdeaSourceProvider = Delegate(this)
+    fun toIdeaProvider(sourceProvider: SourceProvider): IdeaSourceProvider = Delegate(sourceProvider)
 
-    private fun List<SourceProvider>.toIdeaProviders(): List<IdeaSourceProvider> = map { it.toIdeaProvider() }
+    private fun List<SourceProvider>.toIdeaProviders(): List<IdeaSourceProvider> = map(::toIdeaProvider)
 
     /**
      * Returns an [IdeaSourceProvider] for legacy android projects that do not require [AndroidProject]
@@ -454,7 +454,7 @@ private class Delegate constructor(private val provider: SourceProvider) : IdeaS
 
   /**
    * Compares another source provider delegate with this for equality. Returns true if the specified object is also a
-   * [IdeaSourceProvider.Delegate], has the same name, and the same manifest file path.
+   * [Delegate], has the same name, and the same manifest file path.
    */
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
