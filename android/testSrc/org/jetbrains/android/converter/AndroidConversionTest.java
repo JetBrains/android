@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.converter;
 
 import com.intellij.conversion.ProjectConversionTestUtil;
@@ -22,7 +23,7 @@ public class AndroidConversionTest extends PlatformTestCase {
     final File testData = new File(testDataPath, "before");
     final File tempDir = FileUtil.createTempDirectory("project", null);
     FileUtil.copyDir(testData, tempDir);
-    ProjectConversionTestUtil.convert(tempDir.getAbsolutePath());
+    ProjectConversionTestUtil.convert(tempDir.toPath().toAbsolutePath());
     final File expectedDataDir = new File(testDataPath, "after");
     PlatformTestUtil.assertDirectoriesEqual(
       LocalFileSystem.getInstance().refreshAndFindFileByIoFile(expectedDataDir),
