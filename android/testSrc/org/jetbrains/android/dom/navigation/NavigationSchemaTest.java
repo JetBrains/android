@@ -246,8 +246,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
                       true);
   }
 
-  // b/117295488
-  public void ignore_testQuickValidateWithDelete() throws Exception {
+  public void testQuickValidateWithDelete() throws Exception {
     @Language("JAVA")
     String content = "import androidx.navigation.*;\n" +
                      "@Navigator.Name(\"fragment_sub\")\n" +
@@ -265,6 +264,14 @@ public class NavigationSchemaTest extends AndroidTestCase {
     dumbService.completeJustSubmittedTasks();
 
     assertFalse(schema.quickValidate());
+  }
+
+  public void testQuickValidateDeleteFileContents() throws Exception {
+    testQuickValidate("import androidx.navigation.*;\n" +
+                      "@Navigator.Name(\"activity_sub\")\n" +
+                      "public class QuickValidateIrrelevantChange extends ActivityNavigator {}\n",
+                      "",
+                      false);
   }
 
   public void testQuickValidateChangeTag() throws Exception {
