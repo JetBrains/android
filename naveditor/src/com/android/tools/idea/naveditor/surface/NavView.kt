@@ -24,7 +24,6 @@ import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView
 import com.google.common.collect.ImmutableList
 import java.awt.Dimension
-import java.awt.Graphics
 
 /**
  * View of a navigation editor [Scene], as part of a [NavDesignSurface].
@@ -49,5 +48,5 @@ class NavView(surface: NavDesignSurface, sceneManager: SceneManager) : SceneView
    */
   override fun getColorSet(): ColorSet = colorSet
 
-  override fun getNameLabelHeight(graphics: Graphics) = 0
+  override fun getNameLabelHeight() = 0
 }
