@@ -19,10 +19,7 @@ import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
 import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
 import com.android.builder.model.AndroidProject;
-import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.gradle.util.GradleProjects;
-import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
@@ -46,10 +43,6 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<>("android");
   public static final String NAME = "Android";
-
-  private SourceProvider myMainSourceSet;
-  private IdeaSourceProvider myMainIdeaSourceSet;
-  private SourceProvider myMainIdeaSourceSetCreatedFor;
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -107,42 +100,14 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return !getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(getModule()) == null;
   }
 
-  /**
-   * Returns the main source provider for the project. For projects that are not backed by an {@link AndroidProject}, this method returns a
-   * {@link SourceProvider} wrapper which provides information about the old project.
-   */
   @NotNull
-  public SourceProvider getMainSourceProvider() {
-    AndroidModel model = getConfiguration().getModel();
-    if (model != null) {
-      //noinspection deprecation
-      return model.getDefaultSourceProvider();
-    }
-    else {
-      if (myMainSourceSet == null) {
-        myMainSourceSet = new LegacySourceProvider(this);
-      }
-      return myMainSourceSet;
-    }
+  public final SourceProvider getMainSourceProvider() {
+    return SourceProviderManager.getInstance(this).getMainSourceProvider();
   }
 
   @NotNull
-  public IdeaSourceProvider getMainIdeaSourceProvider() {
-    if (!requiresAndroidModel()) {
-      if (myMainIdeaSourceSet == null) {
-        myMainIdeaSourceSet = IdeaSourceProvider.createForLegacyProject(this);
-        myMainIdeaSourceSetCreatedFor = null;
-      }
-    }
-    else {
-      SourceProvider mainSourceSet = getMainSourceProvider();
-      if (myMainIdeaSourceSet == null || myMainIdeaSourceSetCreatedFor != mainSourceSet) {
-        myMainIdeaSourceSet = IdeaSourceProvider.toIdeaProvider(mainSourceSet);
-        myMainIdeaSourceSetCreatedFor = mainSourceSet;
-      }
-    }
-
-    return myMainIdeaSourceSet;
+  public final IdeaSourceProvider getMainIdeaSourceProvider() {
+    return SourceProviderManager.getInstance(this).getMainIdeaSourceProvider();
   }
 
   @Override
@@ -154,7 +119,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @see #getManifest()
    */
   @Nullable
-  public VirtualFile getManifestFile() {
+  public final VirtualFile getManifestFile() {
     // When opening a project, many parts of the IDE will try to read information from the manifest. If we close the project before
     // all of this finishes, we may end up creating disposable children of an already disposed facet. This is a rather hard problem in
     // general, but pretending there was no manifest terminates many code paths early.
@@ -172,7 +137,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * and searching the corresponding PSI file manually.
    */
   @Nullable
-  public Manifest getManifest() {
+  public final Manifest getManifest() {
     VirtualFile manifestFile = getManifestFile();
     return manifestFile != null ? loadDomElement(getModule(), manifestFile, Manifest.class) : null;
   }
