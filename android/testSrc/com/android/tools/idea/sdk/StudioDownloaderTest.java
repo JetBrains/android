@@ -209,21 +209,24 @@ public class StudioDownloaderTest extends IdeaTestCase {
     FakeProgressIndicator parentProgress = new FakeProgressIndicator();
 
     {
-      ProgressIndicator progressIndicator = new StudioDownloader.DownloadProgressIndicator(parentProgress, 0, 1234);
+      ProgressIndicator progressIndicator = new StudioDownloader.DownloadProgressIndicator(parentProgress, "foo", 0,
+                                                                                           1234);
       assertTrue(progressIndicator.isIndeterminate());
       progressIndicator.setFraction(0.5);
       assertTrue(progressIndicator.isIndeterminate());
     }
 
     {
-      ProgressIndicator progressIndicator = new StudioDownloader.DownloadProgressIndicator(parentProgress, -1, 0);
+      ProgressIndicator progressIndicator = new StudioDownloader.DownloadProgressIndicator(parentProgress, "foo",
+                                                                                           -1, 0);
       assertTrue(progressIndicator.isIndeterminate());
       progressIndicator.setFraction(0.5);
       assertTrue(progressIndicator.isIndeterminate());
     }
 
     {
-      ProgressIndicator progressIndicator = new StudioDownloader.DownloadProgressIndicator(parentProgress, 1234, 0);
+      ProgressIndicator progressIndicator = new StudioDownloader.DownloadProgressIndicator(parentProgress, "foo",
+                                                                                           1234, 0);
       assertFalse(progressIndicator.isIndeterminate());
       progressIndicator.setFraction(0.5);
       assertFalse(progressIndicator.isIndeterminate());
@@ -231,7 +234,8 @@ public class StudioDownloaderTest extends IdeaTestCase {
     }
 
     {
-      ProgressIndicator progressIndicator = new StudioDownloader.DownloadProgressIndicator(parentProgress, 1000, 200);
+      ProgressIndicator progressIndicator = new StudioDownloader.DownloadProgressIndicator(parentProgress, "foo",
+                                                                                           1000, 200);
       assertFalse(progressIndicator.isIndeterminate());
       progressIndicator.setFraction(0.5);
       assertFalse(progressIndicator.isIndeterminate());
