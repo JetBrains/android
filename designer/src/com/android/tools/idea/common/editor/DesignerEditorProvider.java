@@ -31,18 +31,15 @@ import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.TextEditor;
-import com.intellij.openapi.fileEditor.TextEditorWithPreview;
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.util.Arrays;
@@ -83,30 +80,10 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
     }
     TextEditor textEditor = (TextEditor)TextEditorProvider.getInstance().createEditor(project, file);
     addCaretListener(textEditor, designEditor);
-    return new TextEditorWithPreview(textEditor, designEditor, "Design") {
-      @Override
-      public void selectNotify() {
-        super.selectNotify();
-        // select/deselectNotify will be called when the user selects (clicks) or opens a new editor. However, in some cases, the editor
-        // might be deselected but still visible. We first check whether we should pay attention to the select/deselect so we only do
-        // something if we are visible
-        if (ArrayUtil.contains(this, FileEditorManager.getInstance(project).getSelectedEditors())) {
-          designEditor.getComponent().activate();
-        }
-      }
-
-      @Override
-      public void deselectNotify() {
-        super.deselectNotify();
-        // If we are still visible but the user deselected us, do not deactivate the model since we still need to receive updates
-        if (!ArrayUtil.contains(this, FileEditorManager.getInstance(project).getSelectedEditors())) {
-          designEditor.getComponent().deactivate();
-        }
-      }
-    };
+    return new SplitEditor(textEditor, designEditor, "Design", project);
   }
 
-  private void addCaretListener(@NotNull TextEditor editor, @NotNull DesignerEditor designEditor) {
+  private static void addCaretListener(@NotNull TextEditor editor, @NotNull DesignerEditor designEditor) {
     CaretModel caretModel = editor.getEditor().getCaretModel();
     MergingUpdateQueue updateQueue = new MergingUpdateQueue("split.editor.preview.edit", DELAY_AFTER_TYPING_MS,
                                                             true, null, designEditor, null, SWING_THREAD);
