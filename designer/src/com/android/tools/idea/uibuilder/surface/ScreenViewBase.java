@@ -53,11 +53,14 @@ abstract class ScreenViewBase extends SceneView {
   }
 
   @Override
-  public int getNameLabelHeight(@NotNull Graphics graphics) {
+  public int getNameLabelHeight() {
     if (StudioFlags.NELE_DISPLAY_MODEL_NAME.get() && getSurface().isShowModelNames()) {
-      Font font = graphics.getFont();
-      FontMetrics metrics = graphics.getFontMetrics(font);
-      return metrics.getHeight() + NAME_LABEL_BOTTOM_MARGIN_PX;
+      Graphics graphics = getSurface().getGraphics();
+      if (graphics != null) {
+        Font font = graphics.getFont();
+        FontMetrics metrics = graphics.getFontMetrics(font);
+        return metrics.getHeight() + NAME_LABEL_BOTTOM_MARGIN_PX;
+      }
     }
     return 0;
   }
