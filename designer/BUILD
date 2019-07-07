@@ -47,7 +47,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
-        "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module]",
+        "//tools/adt/idea/resources-base:intellij.android.resources-base[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
     ],
 )
