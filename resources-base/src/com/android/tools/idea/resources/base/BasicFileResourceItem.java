@@ -132,7 +132,7 @@ public class BasicFileResourceItem extends BasicResourceItemBase {
   }
 
   /**
-   * Creates an BasicFileResourceItem by reading its contents from the given stream.
+   * Creates a BasicFileResourceItem by reading its contents from the given stream.
    */
   @NotNull
   static BasicFileResourceItem deserialize(@NotNull Base128InputStream stream,
