@@ -102,7 +102,7 @@
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.resources-aar" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.resources-base" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-plugin" level="project" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />

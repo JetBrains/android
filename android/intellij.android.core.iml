@@ -163,7 +163,7 @@
     <orderEntry type="library" name="kotlin-gradle-plugin-model" level="project" />
     <orderEntry type="module" module-name="android.sdktools.tracer" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" />
-    <orderEntry type="module" module-name="intellij.android.resources-aar" />
+    <orderEntry type="module" module-name="intellij.android.resources-base" />
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
