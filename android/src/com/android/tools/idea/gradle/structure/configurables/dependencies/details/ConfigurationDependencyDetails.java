@@ -46,13 +46,13 @@ interface ConfigurationDependencyDetails extends DependencyDetails {
       );
       ui.setName("configuration");
       ui.setSelectedItem(dependency.getConfigurationName());
+      panel.add(ui);
       ui.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
           modifyConfiguration();
         }
       });
-      panel.add(ui);
     }
   }
 
