@@ -47,6 +47,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -158,7 +159,7 @@ class RenderTemplateModel private constructor(
     @UiThread
     override fun finish() {
       if (renderSuccess && shouldOpenFiles) {
-        TemplateUtils.openEditors(project.value, createdFiles, true)
+        DumbService.getInstance(project.value).smartInvokeLater { TemplateUtils.openEditors(project.value, createdFiles, true) }
       }
     }
 
