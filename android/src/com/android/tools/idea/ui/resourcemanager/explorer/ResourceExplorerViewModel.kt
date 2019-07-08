@@ -41,6 +41,11 @@ interface ResourceExplorerViewModel {
   var resourceChangedCallback: (() -> Unit)?
 
   /**
+   * Callback called when the [AndroidFacet] is changed.
+   */
+  var facetUpdaterCallback: ((facet: AndroidFacet) -> Unit)?
+
+  /**
    * The index in [resourceTypes] of the resource type being used. Changing the value
    * of this field should change the resources being shown.
    */
@@ -67,7 +72,12 @@ interface ResourceExplorerViewModel {
    * Returns a list of [ResourceSection] with one section per namespace, the first section being the
    * one containing the resource of the current module.
    */
-  fun getResourcesLists(): CompletableFuture<List<ResourceSection>>
+  fun getCurrentModuleResourceLists(): CompletableFuture<List<ResourceSection>>
+
+  /**
+   * Similar to [getCurrentModuleResourceLists], but fetches resources for all other modules excluding the ones being displayed.
+   */
+  fun getOtherModulesResourceLists(): CompletableFuture<List<ResourceSection>>
 
   /**
    * Delegate method to handle calls to [com.intellij.openapi.actionSystem.DataProvider.getData].

@@ -53,6 +53,7 @@ class ResourceExplorer private constructor(
 
   init {
     toolbarViewModel.facetUpdaterCallback = {newValue -> this.facet = newValue}
+    resourceExplorerViewModel.facetUpdaterCallback = {newValue -> this.facet = newValue}
   }
 
   companion object {
