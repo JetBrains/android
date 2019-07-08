@@ -54,7 +54,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderTask;
@@ -1108,7 +1108,7 @@ public class AndroidJavaDocRenderer {
       }
       else {
         if (myConfiguration != null) {
-          RenderTask renderTask = DrawableRendererEditor.configureRenderTask(myModule, myConfiguration);
+          RenderTask renderTask = ThemeEditorUtils.configureRenderTask(myModule, myConfiguration);
 
           // Find intrinsic size.
           int width = 100;

@@ -56,8 +56,13 @@ public class ThemeEditorContext implements Disposable {
   @SuppressWarnings("NullableProblems")
   private @NotNull ThemeResolver myThemeResolver;
 
-  private final List<ChangeListener> myChangeListeners = new ArrayList<ChangeListener>();
-  private final List<ConfigurationListener> myConfigurationListeners = new ArrayList<ConfigurationListener>();
+  private final List<ChangeListener> myChangeListeners = new ArrayList<>();
+  private final List<ConfigurationListener> myConfigurationListeners;
+
+  {
+    myConfigurationListeners = new ArrayList<ConfigurationListener>();
+  }
+
   private boolean myEnabledListeners = true;
   private final ConfigurationListener myConfigurationListener = new ConfigurationListener() {
     @Override
@@ -117,25 +122,6 @@ public class ThemeEditorContext implements Disposable {
   @Nullable
   public ConfiguredThemeEditorStyle getCurrentTheme() {
     return myCurrentTheme;
-  }
-
-  /**
-   * Function for acquiring Module that should be used every time resource resolving
-   * for possible values is needed.
-   */
-  @NotNull
-  public Module getModuleForResources() {
-    if (myCurrentTheme != null && myCurrentTheme.getSourceModule() != null) {
-      // If we have a source module, we want to use it for resolving possible values
-      return myCurrentTheme.getSourceModule();
-    }
-    // Otherwise, it should be a library theme or framework theme, in which case we will create
-    // a new theme in the current rendering context, which we are returning here;
-    return myConfiguration.getModule();
-  }
-
-  public void setCurrentContextModule(final @NotNull Module module) {
-    setConfiguration(ThemeEditorUtils.getConfigurationForModule(module));
   }
 
   @Nullable/*if there is no theme selected or the current selected module is not valid*/
