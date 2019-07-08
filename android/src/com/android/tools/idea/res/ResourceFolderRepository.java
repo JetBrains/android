@@ -2087,7 +2087,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         for (VirtualFile subDir : myResourceDir.getChildren()) {
           if (subDir.isValid() && subDir.isDirectory()) {
             String folderName = subDir.getName();
-            FolderInfo folderInfo = FolderInfo.create(folderName, false, myFolderConfigCache);
+            FolderInfo folderInfo = FolderInfo.create(folderName, myFolderConfigCache);
             if (folderInfo != null) {
               RepositoryConfiguration configuration = getConfiguration(myRepository, folderInfo.configuration);
               for (VirtualFile file : subDir.getChildren()) {
