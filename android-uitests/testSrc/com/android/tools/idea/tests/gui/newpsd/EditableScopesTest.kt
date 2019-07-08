@@ -71,6 +71,8 @@ class EditableScopesTest {
 
           findDependenciesTable().cell("libs").click()
 
+          assertThat(findDependenciesTable().contents().map { it.toList() })
+            .contains(listOf("com.android.support:appcompat-v7:26.0.1", "compile"))
           findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("compile")
             replaceText("implementation")
@@ -96,6 +98,8 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "releaseImplementation"))
           findDependenciesTable().cell("libs").click()
+          assertThat(findDependenciesTable().contents().map { it.toList() })
+            .contains(listOf("com.android.support:appcompat-v7:26.0.1", "compile"))
           findConfigurationCombo().run { assertThat(selectedItem()).isEqualTo("releaseImplementation") }
         }
       }
@@ -234,6 +238,8 @@ class EditableScopesTest {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "testCompile"))
 
           findDependenciesTable().cell("junit:junit:4.11").click()
+          assertThat(findDependenciesTable().contents().map { it.toList() })
+            .contains(listOf("com.android.support:appcompat-v7:26.0.1", "compile"))
 
           findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("testCompile")
@@ -260,6 +266,8 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "implementation"))
           findDependenciesTable().cell("junit:junit:4.11").click()
+          assertThat(findDependenciesTable().contents().map { it.toList() })
+            .contains(listOf("com.android.support:appcompat-v7:26.0.1", "compile"))
           findConfigurationCombo().run { assertThat(selectedItem()).isEqualTo("implementation") }
         }
       }
