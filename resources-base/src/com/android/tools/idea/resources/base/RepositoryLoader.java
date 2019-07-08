@@ -233,7 +233,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   protected final void loadResourceFile(@NotNull PathString file, @NotNull T repository, boolean shouldParseResourceIds) {
     String folderName = file.getParentFileName();
     if (folderName != null) {
-      FolderInfo folderInfo = FolderInfo.create(folderName, true, myFolderConfigCache);
+      FolderInfo folderInfo = FolderInfo.create(folderName, myFolderConfigCache);
       if (folderInfo != null) {
         RepositoryConfiguration configuration = getConfiguration(repository, folderInfo.configuration);
         loadResourceFile(file, folderInfo, configuration, shouldParseResourceIds);
@@ -1131,13 +1131,11 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
      * Returns a FolderInfo for the given folder name.
      *
      * @param folderName the name of a resource folder
-     * @param normalizeFolderConfiguration whether to normalize folder configuration or not
      * @param folderConfigCache the cache of FolderConfiguration objects keyed by qualifier strings
      * @return the FolderInfo object, or null if folderName is not a valid name of a resource folder
      */
     @Nullable
-    public static FolderInfo create(@NotNull String folderName, boolean normalizeFolderConfiguration,
-                                    @NotNull Map<String, FolderConfiguration> folderConfigCache) {
+    public static FolderInfo create(@NotNull String folderName, @NotNull Map<String, FolderConfiguration> folderConfigCache) {
       ResourceFolderType folderType = ResourceFolderType.getFolderType(folderName);
       if (folderType == null) {
         return null;
@@ -1148,11 +1146,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
       if (config == null) {
         return null;
       }
-
-      if (normalizeFolderConfiguration && !config.isDefault()) {
-        //TODO: Consider alternative normalization that removes version qualifier instead of adding it.
-        config.normalize();
-      }
+      config.normalizeByRemovingRedundantVersionQualifier();
 
       ResourceType resourceType;
       boolean isIdGenerating;
