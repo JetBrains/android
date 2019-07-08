@@ -24,8 +24,14 @@ import com.android.ide.common.util.toPathString
 import com.android.projectmodel.SelectiveResourceFolder
 import com.android.tools.idea.projectsystem.FilenameConstants.EXPLODED_AAR
 import com.android.tools.idea.resources.aar.AarSourceResourceRepository
+import com.android.tools.idea.testing.Facets
 import com.android.tools.idea.util.toVirtualFile
+import com.intellij.ide.highlighter.ModuleFileType
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleTypeId
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.io.FileUtil
@@ -122,6 +128,34 @@ fun createTestModuleRepository(
   dynamicRepo: DynamicValueResourceRepository? = null
 ): LocalResourceRepository {
   return ModuleResourceRepository.createForTest(facet, resourceDirectories, namespace, dynamicRepo)
+}
+
+/**
+ * Creates and adds an Android Module to the given project.
+ * The module file would be located under [Project.getBasePath] + "/[moduleName]/[moduleName].iml"
+ *
+ * Runs the given [function][createResources] to add resources to the module.
+ *
+ * @param moduleName name given to the new module.
+ * @param project current working project.
+ * @param createResources code that will be invoked on the module resources folder, to add desired resources. VFS will be refreshed after
+ *                        the function is done.
+ * @return The instance of the created module added to the project.
+ */
+fun addAndroidModule(moduleName: String, project: Project, createResources: (moduleResDir: File) -> Unit): Module {
+  val root = project.basePath
+  val moduleDir = File(FileUtil.toSystemDependentName(root!!), moduleName)
+  val moduleFilePath = File(moduleDir, moduleName + ModuleFileType.DOT_DEFAULT_EXTENSION)
+
+  val module = runWriteAction { ModuleManager.getInstance(project).newModule(moduleFilePath.path, ModuleTypeId.JAVA_MODULE) }
+  Facets.createAndAddAndroidFacet(module)
+
+  val moduleResDir = moduleDir.resolve(SdkConstants.FD_RES)
+  moduleResDir.mkdir()
+
+  createResources(moduleResDir)
+  VfsUtil.markDirtyAndRefresh(false, true, true, moduleDir.toVirtualFile(refresh = true))
+  return module
 }
 
 /**
