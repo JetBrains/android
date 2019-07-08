@@ -38,9 +38,11 @@ import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
+import com.android.tools.idea.util.androidFacet
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -74,6 +76,8 @@ class ResourceExplorerViewModelImpl(
    * callback called when the resource model have change. This happen when the facet is changed.
    */
   override var resourceChangedCallback: (() -> Unit)? = null
+
+  override var facetUpdaterCallback: ((facet: AndroidFacet) -> Unit)? = null
 
   override var facet by Delegates.observable(facet) { _, oldFacet, newFacet -> facetUpdated(newFacet, oldFacet) }
 
@@ -159,6 +163,7 @@ class ResourceExplorerViewModelImpl(
     subscribeListener(newFacet)
     dataManager.facet = newFacet
     resourceChangedCallback?.invoke()
+    facetUpdaterCallback?.invoke(newFacet)
   }
 
   private fun subscribeListener(facet: AndroidFacet) {
@@ -171,19 +176,19 @@ class ResourceExplorerViewModelImpl(
       .removeListener(resourceNotificationListener, oldFacet, null, null)
   }
 
-  private fun getModuleResources(type: ResourceType): ResourceSection {
-    val moduleRepository = ResourceRepositoryManager.getModuleResources(facet)
+  private fun getModuleResources(forFacet: AndroidFacet, type: ResourceType): ResourceSection {
+    val moduleRepository = ResourceRepositoryManager.getModuleResources(forFacet)
     val sortedResources = moduleRepository.namespaces
       .flatMap { namespace -> moduleRepository.getResources(namespace, type).values() }
       .sortedBy { it.name }
-    return createResourceSection(facet.module.name, sortedResources)
+    return createResourceSection(forFacet.module.name, sortedResources)
   }
 
   /**
    * Returns a list of local module and their resources that the current module depends on.
    */
-  private fun getDependentModuleResources(type: ResourceType): List<ResourceSection> {
-    return AndroidUtils.getAndroidResourceDependencies(facet.module).asSequence()
+  private fun getDependentModuleResources(forFacet: AndroidFacet, type: ResourceType): List<ResourceSection> {
+    return AndroidUtils.getAndroidResourceDependencies(forFacet.module).asSequence()
       .flatMap { dependentFacet ->
         val moduleRepository = ResourceRepositoryManager.getModuleResources(dependentFacet)
         moduleRepository.namespaces.asSequence()
@@ -198,8 +203,8 @@ class ResourceExplorerViewModelImpl(
   /**
    * Returns a map from the library name to its resource items
    */
-  private fun getLibraryResources(type: ResourceType): List<ResourceSection> {
-    val repoManager = ResourceRepositoryManager.getInstance(facet)
+  private fun getLibraryResources(forFacet: AndroidFacet, type: ResourceType): List<ResourceSection> {
+    val repoManager = ResourceRepositoryManager.getInstance(forFacet)
     return repoManager.libraryResources.asSequence()
       .flatMap { lib ->
         // Create a section for each library
@@ -214,19 +219,40 @@ class ResourceExplorerViewModelImpl(
       .toList()
   }
 
-  override fun getResourcesLists(): CompletableFuture<List<ResourceSection>> = CompletableFuture.supplyAsync(
+  override fun getCurrentModuleResourceLists(): CompletableFuture<List<ResourceSection>> = CompletableFuture.supplyAsync(
     Supplier {
-      val resourceType = resourceTypes[resourceTypeIndex]
-      var resources = listOf(getModuleResources(resourceType))
-      if (filterOptions.isShowModuleDependencies) {
-        resources += getDependentModuleResources(resourceType)
-      }
-      if (filterOptions.isShowLibraries) {
-        resources += getLibraryResources(resourceType)
-      }
-      resources
+      getResourceSections(facet, filterOptions.isShowModuleDependencies, filterOptions.isShowLibraries)
     },
     AppExecutorUtil.getAppExecutorService())
+
+  override fun getOtherModulesResourceLists(): CompletableFuture<List<ResourceSection>> = CompletableFuture.supplyAsync(
+    Supplier {
+      val displayedModuleNames = mutableSetOf(facet.module.name)
+      if (filterOptions.isShowModuleDependencies) {
+        displayedModuleNames.addAll(AndroidUtils.getAndroidResourceDependencies(facet.module).map { it.module.name })
+      }
+
+      ModuleManager.getInstance(facet.module.project).modules.filter { module ->
+        // Don't include modules that are already being displayed.
+        !displayedModuleNames.contains(module.name)
+      }.flatMap { module ->
+        module.androidFacet?.let { getResourceSections(it, showModuleDependencies = false, showLibraries = false) } ?: emptyList()
+      }
+    },
+    AppExecutorUtil.getAppExecutorService())
+
+
+  private fun getResourceSections(forFacet: AndroidFacet, showModuleDependencies: Boolean, showLibraries: Boolean): List<ResourceSection> {
+    val resourceType = resourceTypes[resourceTypeIndex]
+    var resources = listOf(getModuleResources(forFacet, resourceType))
+    if (showModuleDependencies) {
+      resources += getDependentModuleResources(forFacet, resourceType)
+    }
+    if (showLibraries) {
+      resources += getLibraryResources(forFacet, resourceType)
+    }
+    return resources
+  }
 
   override fun getTabIndexForFile(virtualFile: VirtualFile): Int {
     val folderType = if (virtualFile.isDirectory) ResourceFolderType.getFolderType(virtualFile.name) else getFolderType(virtualFile)

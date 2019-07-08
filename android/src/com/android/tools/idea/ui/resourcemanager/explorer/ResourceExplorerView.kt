@@ -28,6 +28,7 @@ import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWra
 import com.android.tools.idea.ui.resourcemanager.widget.Section
 import com.android.tools.idea.ui.resourcemanager.widget.SectionList
 import com.android.tools.idea.ui.resourcemanager.widget.SectionListModel
+import com.android.tools.idea.util.androidFacet
 import com.intellij.concurrency.JobScheduler
 import com.intellij.icons.AllIcons
 import com.intellij.ide.dnd.DnDManager
@@ -41,21 +42,29 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.CollectionListModel
 import com.intellij.ui.GuiUtils
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.labels.LinkLabel
+import com.intellij.ui.speedSearch.NameFilteringListModel
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
+import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Point
 import java.awt.event.InputEvent
@@ -65,13 +74,17 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
 import java.util.Locale
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.BiConsumer
 import javax.swing.BorderFactory
+import javax.swing.BoxLayout
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JScrollPane
+import javax.swing.JSeparator
 import javax.swing.JTabbedPane
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.event.ListSelectionEvent
@@ -125,6 +138,9 @@ class ResourceExplorerView(
 
   private var updatePending = false
 
+  /** Reference to the last [CompletableFuture] used to search for filtered resources in other modules */
+  private var searchFuture: CompletableFuture<List<ResourceSection>>? = null
+
   private var fileToSelect: VirtualFile? = null
 
   private var previewSize = DEFAULT_CELL_WIDTH
@@ -139,7 +155,10 @@ class ResourceExplorerView(
 
   private var gridMode: Boolean by Delegates.observable(
     DEFAULT_GRID_MODE) { _, _, newValue ->
-    sectionList.background = if (newValue) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
+    val backgroundColor = if (newValue) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
+    centerPanel.background = backgroundColor
+    sectionList.background = backgroundColor
+    searchMorePanel.background = backgroundColor
     sectionList.getLists().forEach {
       (it as AssetListView).isGridMode = newValue
     }
@@ -172,6 +191,38 @@ class ResourceExplorerView(
           MAX_CELL_WIDTH, (previewSize * (1 - event.preciseWheelRotation * 0.1)).roundToInt()))
       }
     }
+  }
+
+  private val contentSeparator = JSeparator().apply {
+    isVisible = false
+    minimumSize = Dimension(JBUI.scale(10), JBUI.scale(4))
+    maximumSize = Dimension(Integer.MAX_VALUE, JBUI.scale(10))
+  }
+
+  private val searchMorePanel = JPanel().apply {
+    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    isOpaque = true
+    background = if (gridMode) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
+    alignmentX = CENTER_ALIGNMENT
+  }
+
+  private val searchMoreScrollPane = JBScrollPane(searchMorePanel).apply {
+    border = JBUI.Borders.empty()
+    isVisible = false
+    alignmentX = CENTER_ALIGNMENT
+    minimumSize = Dimension(JBUI.scale(10), JBUI.scale(110))
+    preferredSize = Dimension(JBUI.scale(400), JBUI.scale(210))
+    maximumSize = Dimension(Integer.MAX_VALUE, JBUI.scale(210))
+    horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+    verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+  }
+
+  private val centerPanel = JPanel().apply {
+    layout = BoxLayout(this@apply, BoxLayout.Y_AXIS)
+    background = if (gridMode) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
+    add(sectionList)
+    add(contentSeparator)
+    add(searchMoreScrollPane)
   }
 
   private val footerPanel = JPanel(BorderLayout()).apply {
@@ -318,12 +369,21 @@ class ResourceExplorerView(
   init {
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
 
-    resourcesBrowserViewModel.resourceChangedCallback = ::populateResourcesLists
+    resourcesBrowserViewModel.resourceChangedCallback = {
+      populateResourcesLists()
+      populateSearchLinkLabels()
+    }
     populateResourcesLists()
     resourcesBrowserViewModel.speedSearch.addChangeListener {
-      sectionList.getLists().filterIsInstance<AssetListView>().forEach(
-        AssetListView::refilter)
+      sectionList.getLists().filterIsInstance<AssetListView>().forEach()
+      { assetListView ->
+        assetListView.refilter()
+        centerPanel.validate()
+        centerPanel.repaint()
+      }
+      populateSearchLinkLabels()
     }
+
     add(getContentPanel())
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
@@ -336,7 +396,7 @@ class ResourceExplorerView(
   private fun getContentPanel(): JPanel {
     val explorerListPanel = JPanel(BorderLayout()).apply {
       add(headerPanel, BorderLayout.NORTH)
-      add(sectionList)
+      add(centerPanel)
       add(footerPanel, BorderLayout.SOUTH)
     }
     if (summaryView == null) {
@@ -360,12 +420,78 @@ class ResourceExplorerView(
       .flatMap(ResourceAssetSet::assets)
   }
 
+  private fun populateSearchLinkLabels() {
+    searchFuture?.let { future ->
+      if (!future.isDone()) {
+        // Only one 'future' for getOtherModulesResourceLists may run at a time.
+        future.cancel(true)
+      }
+    }
+
+    searchMorePanel.removeAll()
+    searchMoreScrollPane.isVisible = false
+    contentSeparator.isVisible = false
+
+    val filter = resourcesBrowserViewModel.speedSearch.filter
+    if (filter.isNotBlank()) {
+      searchFuture = resourcesBrowserViewModel.getOtherModulesResourceLists()
+        .whenCompleteAsync(BiConsumer { resourceLists, _ ->
+          displaySearchLinkLabels(resourceLists, filter)
+        }, EdtExecutorService.getInstance())
+    }
+    centerPanel.revalidate()
+  }
+
+  /**
+   * Applies the filter in the SpeedSearch to the given resource sections, then, creates and displays LinkLabels to the modules with
+   * resources matching the filter.
+   *
+   * @param filter Received filter string, since the filter in SpeedSearch might change at runtime while this is running.
+   */
+  private fun displaySearchLinkLabels(resourceSections: List<ResourceSection>, filter: String) {
+    val search = resourcesBrowserViewModel.speedSearch
+    // TODO: Get the facet when the module is being set in ResourceExplorerViewModel by passing the module name instead of the actual facet.
+    // I.e: This class should not be fetching module objects.
+    val modulesInProject = ModuleManager.getInstance(resourcesBrowserViewModel.facet.module.project).modules
+    search.setEnabled(true)
+    resourceSections.forEach { section ->
+      val filteringModel = NameFilteringListModel(CollectionListModel(section.assetSets), { it.name }, search::shouldBeShowing,
+                                                  { StringUtil.notNullize(filter) })
+      filteringModel.refilter()
+      val resourcesCount = filteringModel.size
+      if (resourcesCount > 0) {
+        modulesInProject.first { it.name == section.libraryName }.androidFacet?.let { facetToChange ->
+          searchMorePanel.add(createSearchLinkLabel(resourcesCount, facetToChange))
+        }
+      }
+    }
+    (searchMorePanel.componentCount > 0).also { hasComponents ->
+      searchMoreScrollPane.isVisible = hasComponents
+      contentSeparator.isVisible = hasComponents
+    }
+    centerPanel.validate()
+    centerPanel.repaint()
+  }
+
+  /** Create [LinkLabel]s that when clicking them, changes the working module to the module in the given [AndroidFacet]. */
+  private fun createSearchLinkLabel(resourcesCount: Int, changeToFacet: AndroidFacet): JLabel {
+    return LinkLabel.create(
+      "${resourcesCount} resource${if (resourcesCount > 1) "s" else ""} found in '${changeToFacet.module.name}'") {
+      resourcesBrowserViewModel.facet = changeToFacet
+    }.apply {
+      alignmentX = CENTER_ALIGNMENT
+      alignmentY = TOP_ALIGNMENT
+      border = JBUI.Borders.empty(8, 5)
+      isOpaque = false
+    }
+  }
+
   private fun populateResourcesLists() {
     val selectedValue = sectionList.selectedValue
     val selectedIndices = sectionList.selectedIndices
     updatePending = true
 
-    val future = resourcesBrowserViewModel.getResourcesLists()
+    val future = resourcesBrowserViewModel.getCurrentModuleResourceLists()
       .whenCompleteAsync(BiConsumer { resourceLists, _ ->
         updatePending = false
         displayResources(resourceLists)
@@ -400,6 +526,8 @@ class ResourceExplorerView(
     else {
       sectionListModel.addSection(createEmptySection())
     }
+    sectionList.validate()
+    sectionList.repaint()
   }
 
   private fun createLoadingSection() = AssetSection<ResourceAssetSet>(
@@ -519,6 +647,7 @@ class ResourceExplorerView(
 
   override fun dispose() {
     DnDManager.getInstance().unregisterTarget(resourceImportDragTarget, this)
+    searchFuture?.cancel(true)
   }
 
   private fun createBottomActions(): DefaultActionGroup {

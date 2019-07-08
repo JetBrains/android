@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.resources.ResourceType
+import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
@@ -31,6 +33,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -41,9 +44,11 @@ import org.junit.Test
 import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import java.io.File
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.JTabbedPane
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -79,6 +84,41 @@ class ResourceExplorerViewTest {
     assertThat(waitForElementToBeFiltered.isConditionRealized).isTrue()
     val firstAsset = list.model.getElementAt(0).assets[0] as DesignAsset
     assertThat(firstAsset.file.name).isEqualTo("png.png")
+  }
+
+  @Test
+  fun showSearchLinkLabels() {
+    val module2Name = "app2"
+
+    // Setup
+    runInEdtAndWait {
+      addAndroidModule(module2Name, projectRule.project) { resourceDir ->
+        FileUtil.copy(File(getTestDataDirectory() + "/res/values/colors.xml"),
+                      resourceDir.resolve("values/colors.xml"))
+      }
+    }
+    val viewModel = createViewModel(projectRule.module)
+    val view = createResourceExplorerView(viewModel)
+    val tabbedPane = UIUtil.findComponentOfType(view, JTabbedPane::class.java)
+    assertNotNull(tabbedPane, "TabbedPane should not be null")
+    runInEdtAndWait {
+      tabbedPane.model.selectedIndex = tabbedPane.indexOfTab(ResourceType.COLOR.displayName)
+    }
+
+    // No color resources in current module.
+    assertThat(UIUtil.findComponentOfType(view, AssetListView::class.java)!!.model.size).isEqualTo(0)
+    // This test assumes at least one resource in "res/values/colors.xml" includes the word "color".
+    viewModel.filterOptions.searchString = "color"
+
+    // Wait while other modules are searched and link labels displayed.
+    val waitForLinkLabelToBeCreated = object : WaitFor(1000) {
+      public override fun condition() = UIUtil.findComponentOfType(view, LinkLabel::class.java) != null
+    }
+    assertThat(waitForLinkLabelToBeCreated.isConditionRealized).isEqualTo(true)
+    val module2LinkLabel = UIUtil.findComponentOfType(view, LinkLabel::class.java)
+
+    assertNotNull(module2LinkLabel)
+    assertThat(module2LinkLabel.text).contains(module2Name)
   }
 
   private fun createViewModel(module: Module): ResourceExplorerViewModel {
