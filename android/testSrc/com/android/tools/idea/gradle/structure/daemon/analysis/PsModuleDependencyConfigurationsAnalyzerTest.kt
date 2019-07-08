@@ -23,14 +23,14 @@ import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
-import com.android.tools.idea.gradle.structure.quickfix.PsDependencyScopeQuickFixPath
+import com.android.tools.idea.gradle.structure.quickfix.PsDependencyConfigurationQuickFixPath
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.util.Disposer
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 
-class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
-  fun testObsoleteTestCompileScopeInLibrary() {
+class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
+  fun testObsoleteTestCompileConfigurationInLibrary() {
     loadProject(TestProjectPaths.PSD_UPGRADE)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -52,7 +52,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
     }
   }
 
-  fun testObsoleteCompileScopeInLibrary() {
+  fun testObsoleteCompileConfigurationInLibrary() {
     loadProject(TestProjectPaths.PSD_UPGRADE)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -74,7 +74,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
     }
   }
 
-  fun testObsoleteTestCompileScopeInApp() {
+  fun testObsoleteTestCompileConfigurationInApp() {
     loadProject(TestProjectPaths.PSD_UPGRADE)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -96,7 +96,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
     }
   }
 
-  fun testObsoleteCompileScopeInApp() {
+  fun testObsoleteCompileConfigurationInApp() {
     loadProject(TestProjectPaths.PSD_UPGRADE)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -126,8 +126,8 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
     }
   }
 
-  // no testObsoleteCompileTestScopeInTest() because com.android.test does not support compileTest dependencies
-  fun testObsoleteCompileScopeInTest() {
+  // no testObsoleteCompileTestConfigurationInTest() because com.android.test does not support compileTest dependencies
+  fun testObsoleteCompileConfigurationInTest() {
     loadProject(TestProjectPaths.PSD_UPGRADE)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -150,7 +150,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
   }
 
   // testCompile not supported by com.android.instantapp plugin
-  fun testObsoleteCompileScopeInInstantApp() {
+  fun testObsoleteCompileConfigurationInInstantApp() {
     loadProject(TestProjectPaths.PSD_UPGRADE)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -173,7 +173,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
   }
 
   // TODO(b/129135682): enable when bug is fixed
-  fun laterTestObsoleteTestCompileScopeInFeature() {
+  fun laterTestObsoleteTestCompileConfigurationInFeature() {
     loadProject(TestProjectPaths.PSD_UPGRADE)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -196,7 +196,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
   }
 
   // TODO(b/129135682): enable when bug is fixed
-  fun laterTestObsoleteCompileScopeInFeature() {
+  fun laterTestObsoleteCompileConfigurationInFeature() {
     loadProject(TestProjectPaths.PSD_UPGRADE)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -240,7 +240,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
     }
   }
 
-  fun testObsoleteCompileScopeInJava() {
+  fun testObsoleteCompileConfigurationInJava() {
     loadProject(TestProjectPaths.PSD_UPGRADE)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -284,7 +284,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
   private fun quickFixChangesFor(issueSet: Set<PsIssue>): Set<Pair<String,String>> {
     return issueSet
       .flatMap { it.quickFixes }
-      .filterIsInstance<PsDependencyScopeQuickFixPath>()
+      .filterIsInstance<PsDependencyConfigurationQuickFixPath>()
       .map { quickFix -> quickFix.oldConfigurationName to quickFix.newConfigurationName }
       .toSet()
   }

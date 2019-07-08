@@ -39,7 +39,7 @@ import kotlin.test.assertNull
 
 @RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
-class ObsoleteScopesTest {
+class ObsoleteConfigurationsTest {
   data class IssueAndFixes (
     val moduleName : String,
     val dependencyName : String,
@@ -87,7 +87,7 @@ class ObsoleteScopesTest {
 
     suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(5))
 
-    // our obsolete scopes messages are warnings.  There may be other warnings, but none
+    // our obsolete configuration messages are warnings.  There may be other warnings, but none
     // of them should have the same messages as ours.  There may also be suggestions in
     // other groups.
     suggestionsConfigurable.waitForGroup("Warnings")
