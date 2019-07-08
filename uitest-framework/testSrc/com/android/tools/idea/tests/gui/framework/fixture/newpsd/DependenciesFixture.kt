@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
+import com.android.tools.idea.gradle.structure.configurables.ui.IssuesViewerPanel
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.intellij.ui.table.TableView
 import org.fest.swing.core.FocusOwnerFinder.inEdtFocusOwner
@@ -27,11 +28,16 @@ import org.fest.swing.fixture.JListFixture
 import org.fest.swing.fixture.JTableFixture
 import java.awt.Component
 import java.awt.Container
+import java.awt.Point
 import java.awt.Window
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JComboBox
 import javax.swing.JComponent
+import javax.swing.JEditorPane
+import javax.swing.text.AttributeSet
+import javax.swing.text.ElementIterator
+import javax.swing.text.html.HTML
 
 // The EditorComboBoxFixture and EditorComboBoxDriver are to manage the mismatch between EditorComboBox, which we use in
 // declared dependency configuration management, and the test infrastructure in fest-swing.  It's not clear to me whether
@@ -119,5 +125,51 @@ class DependenciesFixture(
     val listFixture = JListFixture(robot(), getList())
     listFixture.clickItem(2 /* 3 Module Dependency */)  // Search by title does not work here.
     return AddModuleDependencyDialogFixture.find(robot(), "Add Module Dependency")
+  }
+
+  fun clickQuickFixHyperlink(text: String) {
+    var done = false
+    robot().finder().findAll { it is IssuesViewerPanel }
+      .forEach { panel ->
+        if (!done) {
+          val editorPane = GuiActionRunner.execute(object : GuiQuery<JEditorPane>() {
+            override fun executeInEDT(): JEditorPane? {
+              return (panel as IssuesViewerPanel).issuesView
+            }
+          }) ?: return@forEach
+          val point = GuiActionRunner.execute(object : GuiQuery<Point>() {
+            override fun executeInEDT(): Point? {
+              val iterator = ElementIterator(editorPane.document.defaultRootElement)
+              var e = iterator.current()
+              while (e != null) {
+                val a = e.attributes.getAttribute(HTML.Tag.A)
+                if (a is AttributeSet) {
+                  val startOffset = e.startOffset
+                  val endOffset = e.endOffset
+                  val eText = e.document.getText(startOffset, endOffset - startOffset)
+                  if (eText == text) {
+                    val startRectangle = editorPane.modelToView(startOffset)
+                    val endRectangle = editorPane.modelToView(endOffset - 1)
+                    val x = when {
+                      startRectangle.y == endRectangle.y -> (startRectangle.x + endRectangle.x + endRectangle.width) / 2
+                      else -> (startRectangle.x + editorPane.width - editorPane.margin.right) / 2
+                    }
+                    val y = (startRectangle.y + startRectangle.height / 2)
+                    editorPane.scrollRectToVisible(startRectangle)
+                    return Point(x, y)
+                  }
+                }
+                e = iterator.next()
+              }
+              return null
+            }
+          })
+          if (point != null) {
+            robot.click(editorPane, point)
+            done = true
+          }
+        }
+      }
+    assert(done) { "failed to find hyperlink with text '$text'" }
   }
 }

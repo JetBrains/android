@@ -22,10 +22,12 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.getHtmlMessages
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestionsConfigurable
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.hasItems
 import org.junit.After
 import org.junit.Assert.assertThat
@@ -171,4 +173,24 @@ class ObsoleteConfigurationsTest {
       }
   }
 
+  @Test
+  fun testFocusAfterApplyingModuleQuickFix() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
+    ide.openPsd().run {
+      selectSuggestionsConfigurable().run {
+        waitAnalysesCompleted(Wait.seconds(5))
+      }
+      selectDependenciesConfigurable().run {
+        findModuleSelector().selectModule("app")
+        findDependenciesPanel().run {
+          assertThat(findDependenciesTable().contents().map { it.toList() }, hasItem(listOf("mylibrary", "compile")))
+          findDependenciesTable().cell("mylibrary").click()
+          clickQuickFixHyperlink("[Update compile to implementation]")
+          assertThat(findDependenciesTable().contents().map { it.toList() }, hasItem(listOf("mylibrary", "implementation")))
+          assertThat(findDependenciesTable().selectionValue(), equalTo("mylibrary"))
+        }
+      }
+      clickOk()
+    }
+  }
 }
