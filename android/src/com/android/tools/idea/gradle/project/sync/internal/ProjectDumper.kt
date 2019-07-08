@@ -401,7 +401,8 @@ private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
     compilerArguments.phasesToDump?.forEach { prop("- phasesToDump") { it } }
     compilerArguments.phasesToDumpAfter?.forEach { prop("- phasesToDumpAfter") { it } }
     compilerArguments.phasesToDumpBefore?.forEach { prop("- phasesToDumpBefore") { it } }
-    compilerArguments.pluginClasspaths?.forEach { prop("- pluginClasspaths") { it.toPrintablePath() } }
+    // TODO(b/136991404): Review whether the following sorted() is safe.
+    compilerArguments.pluginClasspaths?.map { it.toPrintablePath() }?.sorted()?.forEach { prop("- pluginClasspaths") { it } }
     compilerArguments.pluginOptions?.forEach { prop("- pluginOptions") { it } }
     prop("profilePhases") { compilerArguments.profilePhases.takeIf { it }?.toString() }
     prop("progressiveMode") { compilerArguments.progressiveMode.takeIf { it }?.toString() }
