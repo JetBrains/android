@@ -28,6 +28,7 @@ iml_module(
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
     ],
+    test_shard_count = 2,
     test_srcs = ["testSrc"],
     test_tags = [
         "slow",
