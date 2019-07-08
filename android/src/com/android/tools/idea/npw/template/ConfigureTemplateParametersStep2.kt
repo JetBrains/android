@@ -43,6 +43,7 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.observable.ui.VisibleProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.templates.uniquenessSatisfied
 import com.android.tools.idea.templates.validate
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
 import com.android.tools.idea.ui.wizard.WizardUtils
@@ -67,6 +68,9 @@ import com.android.tools.idea.wizard.template.Separator
 import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.google.common.cache.CacheBuilder
+import com.google.common.base.Joiner
+import com.google.common.base.Strings
+import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
@@ -230,6 +234,17 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
 
     validatorPanel.registerMessageSource(invalidParameterMessage)
 
+    val parameters = model.newTemplate.parameters(model.wizardParameterData)
+    // TODO do not deduplicate package name etc.
+    // Also pass user value?
+    val parameterValues = resolve(parameters)
+
+    parameters.forEach {
+      val resolvedValue = parameterValues[it]
+      if (resolvedValue != null)
+        parameterRows[it]!!.setValue(resolvedValue)
+    }
+
     evaluateParameters()
   }
 
@@ -270,7 +285,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
       is BooleanParameter -> RowEntry(CheckboxProvider2(parameter), false)
       is Separator -> RowEntry(SeparatorProvider(), true)
       is EnumParameter -> RowEntry(name, EnumComboProvider2(parameter))
-      else -> TODO("Support DataParameter and maybe IntParameter")
+      else -> TODO("Only string and bool parameters are supported for now")
     }
   }
 
@@ -301,8 +316,6 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
 
     val parameters = model.newTemplate.parameters(model.wizardParameterData)
 
-    // TODO: val parameterValues = ParameterValueResolver.resolve(parameters, userValues, additionalValues, ParameterDeduplicator())
-
     parameters.forEach {
       val enabled = it.enabled
       parameterRows[it]!!.setEnabled(enabled)
@@ -310,6 +323,9 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
       val visible = it.isVisibleAndEnabled
       parameterRows[it]!!.setVisible(visible)
     }
+
+    // TODO: use userValues to set parameters back
+
     // Aggressively update the icon path just in case it changed
     thumbPath.set(thumbnailPath)
 
@@ -385,5 +401,40 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     NOT_EVALUATING,
     REQUEST_ENQUEUED,
     EVALUATING
+  }
+
+  // TODO(qumeric): add userValues?
+  private fun resolve(parameters: Iterable<Parameter<*>>): Map<StringParameter, Any> =
+    parameters.filterIsInstance(StringParameter::class.java).associateWith {
+      userValues[it] ?: deduplicate(it)
+    }
+
+  private fun deduplicate(parameter: StringParameter): String {
+    val value = parameter.suggest() ?: parameter.defaultValue
+    if (value.isEmpty() || !parameter.constraints.contains(Constraint.UNIQUE)) {
+      return value
+    }
+
+    var suggested: String = value
+    val extPart = Files.getFileExtension(value)
+
+    // First remove file extension. Then remove all trailing digits, because we probably were the ones that put them there.
+    // For example, if two parameters affect each other, say "Name" and "Layout", you get this:
+    // Step 1) Resolve "Name" -> "Name2", causes related "Layout" to become "Layout2"
+    // Step 2) Resolve "Layout2" -> "Layout22"
+    // Although we may possibly strip real digits from a name, it's much more likely we're not,
+    // and a user can always modify the related value manually in that rare case.
+    val namePart = value.replace(".$extPart", "").replace("\\d*$".toRegex(), "")
+    val filenameJoiner = Joiner.on('.').skipNulls()
+
+    var suffix = 2
+    val project = model.project.valueOrNull
+    val relatedValues = getRelatedValues(parameter)
+    val sourceProvider = model.template.get().getSourceProvider()
+    while (!parameter.uniquenessSatisfied(project, model.module, sourceProvider, model.packageName.get(), suggested, relatedValues)) {
+      suggested = filenameJoiner.join(namePart + suffix, Strings.emptyToNull(extPart))
+      suffix++
+    }
+    return suggested
   }
 }
