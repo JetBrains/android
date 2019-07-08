@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.atrace;
 import com.android.tools.idea.protobuf.CodedInputStream;
 import com.android.tools.idea.protobuf.DescriptorProtos;
 import com.android.tools.idea.protobuf.ExtensionRegistryLite;
+import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.Predicate;
 import java.io.File;
@@ -52,11 +53,12 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
   private final ArrayDeque<String> myGeneratedTrebuchetLines = new ArrayDeque<>();
   private final PerfettoPacketDBSorter mySorter = new PerfettoPacketDBSorter();
 
-  private static double NanosToSeconds(double nanos) {
+  private static double nanosToSeconds(double nanos) {
     return nanos / TimeUnit.SECONDS.toNanos(1);
+
   }
 
-  private static double NanosToMillis(double nanos) {
+  private static double nanosToMillis(double nanos) {
     return nanos / TimeUnit.MILLISECONDS.toNanos(1);
   }
 
@@ -103,7 +105,7 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
       // Since we know the layout of the Trace proto, we know it has one field that is a repeated field. So we expect to tag to match this
       // value. If it does not we throw an error since we can't processes unknown tags.
       if (tag != DescriptorProtos.FieldDescriptorProto.Type.TYPE_GROUP_VALUE) {
-        getLogger().error(String.format("Encounted unknown tag (%d) when attempting to parse perfetto capture.", tag));
+        getLogger().error(String.format("Encountered unknown tag (%d) when attempting to parse perfetto capture.", tag));
         return null;
       }
       return stream.readMessage(PerfettoTrace.TracePacket.parser(), packetRegistry);
@@ -224,35 +226,35 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
         boottimeClock = clock;
       }
     }
-    assert monotonicClock != null && realtimeClock != null;
+    assert monotonicClock != null && realtimeClock != null && boottimeClock != null;
     //<...>-29454 (-----) [002] ...1 1214209.724359: tracing_mark_write: trace_event_clock_sync: parent_ts=539454.250000
     myGeneratedTrebuchetLines.add(formatter.formatEventPrefix(boottimeClock.getTimestamp(), 0, Short.MAX_VALUE) +
                                   String.format("tracing_mark_write: trace_event_clock_sync: parent_ts=%.6f",
-                                               NanosToSeconds(monotonicClock.getTimestamp())));
+                                               nanosToSeconds(monotonicClock.getTimestamp())));
     //<...>-29454 (-----) [002] ...1 1214209.724366: tracing_mark_write: trace_event_clock_sync: realtime_ts=1520548500187
     myGeneratedTrebuchetLines.add(formatter.formatEventPrefix(boottimeClock.getTimestamp(), 0, Short.MAX_VALUE) +
                                   "tracing_mark_write: trace_event_clock_sync: realtime_ts=" +
-                                  NanosToMillis(realtimeClock.getTimestamp()));
+                                  nanosToMillis(realtimeClock.getTimestamp()));
   }
 
   @Nullable
   @Override
   public DataSlice next() {
-    if (!mySorter.hasNext()) {
-      // Null signals end of file.
-      return null;
-    }
-
     // A line comes from either our required lines, or our line sorter.
     String line;
     if (!myGeneratedTrebuchetLines.isEmpty()) {
       line = myGeneratedTrebuchetLines.poll();
     }
     else {
+      if (!mySorter.hasNext()) {
+        // Null signals end of file.
+        return null;
+      }
       line = mySorter.next();
     }
+    assert line != null;
     // Trebuchet has a bug where all lines need to be truncated to 1023 characters including the newline.
-    byte[] data = String.format("%s\n", line.substring(0, Math.min(1022, line.length()))).getBytes();
+    byte[] data = String.format("%s\n", line.substring(0, Math.min(1022, line.length()))).getBytes(Charsets.UTF_8);
     return new DataSlice(data);
   }
 
@@ -327,7 +329,7 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
     private String formatEventPrefix(long timestampNs, int cpu, int pid) {
       String name = myTidToName.getOrDefault(pid, "<...>");
       // Convert Ns to seconds as seconds is the expected atrace format.
-      String timeSeconds = String.format("%.6f", NanosToSeconds(timestampNs));
+      String timeSeconds = String.format("%.6f", nanosToSeconds(timestampNs));
       String tgid = "-----";
       if (myTidToTgid.containsKey(pid)) {
         tgid = String.format("%5d", myTidToTgid.get(pid));
