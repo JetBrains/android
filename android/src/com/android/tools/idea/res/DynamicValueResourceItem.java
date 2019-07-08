@@ -33,10 +33,10 @@ import org.jetbrains.annotations.Nullable;
  * the normal resource value parser to create resource values from XML, and (2) we need to implement getQualifiers since there is no source
  * file.
  */
-public class DynamicResourceValueItem implements ResourceItem, ResolvableResourceItem {
+public class DynamicValueResourceItem implements ResourceItem, ResolvableResourceItem {
   @NotNull private final ResourceValue myResourceValue;
 
-  public DynamicResourceValueItem(@NotNull ResourceNamespace namespace,
+  public DynamicValueResourceItem(@NotNull ResourceNamespace namespace,
                                   @NotNull ResourceType type,
                                   @NotNull String name,
                                   @NotNull String value) {
@@ -48,8 +48,8 @@ public class DynamicResourceValueItem implements ResourceItem, ResolvableResourc
   @NotNull
   public ResolveResult createResolveResult() {
     return new ResolveResult() {
-      @Nullable
       @Override
+      @Nullable
       public PsiElement getElement() {
         // TODO: Try to find the item in the Gradle files
         return null;

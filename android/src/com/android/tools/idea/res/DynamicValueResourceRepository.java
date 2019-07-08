@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
@@ -41,6 +40,7 @@ import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Resource repository which contains dynamically registered resource items from the model.
@@ -49,17 +49,17 @@ import org.jetbrains.annotations.Nullable;
  * value set to a Groovy variable computed at build time). These dynamically created resources are computed at Gradle sync time and provided
  * via the Gradle model.
  *
- * <p>Users expect the resources to "exist" too, when using code completion. The {@link DynamicResourceValueRepository} makes this happen:
+ * <p>Users expect the resources to "exist" too, when using code completion. The {@link DynamicValueResourceRepository} makes this happen:
  * the repository contents are fetched from the Gradle model rather than by analyzing XML files as is done by the other resource
  * repositories.
  */
-public class DynamicResourceValueRepository extends LocalResourceRepository
+public class DynamicValueResourceRepository extends LocalResourceRepository
     implements Disposable, BuildVariantView.BuildVariantSelectionChangeListener, SingleNamespaceResourceRepository {
   private final AndroidFacet myFacet;
   private final ResourceTable myFullTable = new ResourceTable();
   @NotNull private final ResourceNamespace myNamespace;
 
-  private DynamicResourceValueRepository(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
+  private DynamicValueResourceRepository(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
     super("Gradle Dynamic");
     myFacet = facet;
     myNamespace = namespace;
@@ -91,12 +91,12 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   }
 
   /**
-   * Creates a new {@link DynamicResourceValueRepository} for the given {@link AndroidFacet} and registers listeners to keep the repository
+   * Creates a new {@link DynamicValueResourceRepository} for the given {@link AndroidFacet} and registers listeners to keep the repository
    * up to date. The returned repository needs to be registered with a {@link Disposable} parent.
    */
   @NotNull
-  public static DynamicResourceValueRepository create(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
-    DynamicResourceValueRepository repository = new DynamicResourceValueRepository(facet, namespace);
+  public static DynamicValueResourceRepository create(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
+    DynamicValueResourceRepository repository = new DynamicValueResourceRepository(facet, namespace);
     try {
       repository.registerListeners();
     }
@@ -108,14 +108,14 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   }
 
   /**
-   * Creates a {@link DynamicResourceValueRepository} with the given values.
+   * Creates a {@link DynamicValueResourceRepository} with the given values.
    */
-  @VisibleForTesting
+  @TestOnly
   @NotNull
-  public static DynamicResourceValueRepository createForTest(@NotNull AndroidFacet facet,
+  public static DynamicValueResourceRepository createForTest(@NotNull AndroidFacet facet,
                                                              @NotNull ResourceNamespace namespace,
                                                              @NotNull Map<String, DynamicResourceValue> values) {
-    DynamicResourceValueRepository repository = new DynamicResourceValueRepository(facet, namespace);
+    DynamicValueResourceRepository repository = new DynamicValueResourceRepository(facet, namespace);
     repository.addValues(values);
     Disposer.register(facet, repository);
     return repository;
@@ -156,7 +156,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
         // Masked by higher priority source provider
         continue;
       }
-      ResourceItem item = new DynamicResourceValueItem(myNamespace, type, name, field.getValue());
+      ResourceItem item = new DynamicValueResourceItem(myNamespace, type, name, field.getValue());
       map.put(name, item);
     }
   }
