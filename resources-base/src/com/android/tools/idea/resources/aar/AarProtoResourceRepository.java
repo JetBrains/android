@@ -606,9 +606,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       }
 
       FolderConfiguration configuration = ProtoConfigurationDecoder.getConfiguration(configMsg);
-      if (!configuration.isDefault()) {
-        configuration.normalize();
-      }
+      configuration.normalizeByRemovingRedundantVersionQualifier();
 
       sourceFile = new ResourceSourceFileImpl(sourcePath, new RepositoryConfiguration(repository, configuration));
       mySourceFileCache.put(sourcePathKey, configMsg, sourceFile);
