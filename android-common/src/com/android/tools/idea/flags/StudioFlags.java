@@ -630,14 +630,6 @@ public final class StudioFlags {
   );
   //endregion
 
-  //region Theme Editor
-  private static final FlagGroup THEME_EDITOR = new FlagGroup(FLAGS, "theme.editor", "Theme Editor");
-  public static final Flag<Boolean> THEME_EDITOR_ENABLED = Flag.create(
-    THEME_EDITOR, "theme.editor.enabled", "Enable the theme editor",
-    "If enabled, a visual editor will be available for Android themes.",
-    false);
-  //endregion
-
   //region Translations Editor
   private static final FlagGroup TRANSLATIONS_EDITOR = new FlagGroup(FLAGS, "translations.editor", "Translations Editor");
 

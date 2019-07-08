@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
@@ -30,18 +34,11 @@ import com.google.common.collect.Iterables;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
 
@@ -99,88 +96,6 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     assertFalse(theme.hasItem(new EditedStyleItem(hasInParent, parent)));
   }
 
-  private void doTestForParentApi(@NotNull String newParent, @NotNull String afterDirectoryName) {
-    VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v14.xml", "res/values-v14/styles.xml");
-    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
-    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v21.xml", "res/values-v21/styles.xml");
-
-    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
-    Configuration configuration = configurationManager.getConfiguration(virtualFile);
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ConfiguredThemeEditorStyle theme = themeResolver.getTheme("Theme.MyTheme");
-
-    assertNotNull(theme);
-    theme.setParent(newParent);
-
-    myFixture.checkResultByFile("res/values/styles.xml", "themeEditor/" + afterDirectoryName + "/stylesApi.xml", true);
-    myFixture.checkResultByFile("res/values-v14/styles.xml", "themeEditor/" + afterDirectoryName + "/stylesApi-v14.xml", true);
-    myFixture.checkResultByFile("res/values-v19/styles.xml", "themeEditor/" + afterDirectoryName + "/stylesApi-v19.xml", true);
-    myFixture.checkResultByFile("res/values-v21/styles.xml", "themeEditor/" + afterDirectoryName + "/stylesApi-v21.xml", true);
-  }
-
-  /**
-   * Test setting a low-api attributes and parent in a theme defined only in higher api files
-   */
-  public void testSettingInHighApiTheme() {
-    VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v14.xml", "res/values-v14/styles.xml");
-    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
-    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v21.xml", "res/values-v21/styles.xml");
-
-    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
-    Configuration configuration = configurationManager.getConfiguration(virtualFile);
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ConfiguredThemeEditorStyle theme = themeResolver.getTheme("Theme.MyOtherTheme");
-
-    assertNotNull(theme);
-    theme.setValue("android:windowIsFloating", "holo_purple");
-    theme.setValue("android:actionBarDivider", "myValue");
-    theme.setParent("android:Theme.Holo.Light.DarkActionBar");
-
-
-    myFixture.checkResultByFile("res/values/styles.xml", "themeEditor/apiTestAfter8/stylesApi.xml", true);
-    myFixture.checkResultByFile("res/values-v14/styles.xml", "themeEditor/apiTestAfter8/stylesApi-v14.xml", true);
-    myFixture.checkResultByFile("res/values-v19/styles.xml", "themeEditor/apiTestAfter8/stylesApi-v19.xml", true);
-    myFixture.checkResultByFile("res/values-v21/styles.xml", "themeEditor/apiTestAfter8/stylesApi-v21.xml", true);
-  }
-
-  /**
-   * Tests setting a non-framework parent
-   */
-  public void testNonFrameworkParent() {
-    doTestForParentApi("MyStyle", "apiParentTestAfter1");
-  }
-
-  /**
-   * Tests setting a parent defined for api < projectMinApi
-   */
-  public void testSmallApiParent() {
-    doTestForParentApi("android:Theme.Light", "apiParentTestAfter2");
-  }
-
-  /**
-   * Tests setting a parent with api = projectMinApi
-   */
-  public void testMinApiParent() {
-    doTestForParentApi("android:Theme.Holo", "apiParentTestAfter3");
-  }
-
-  /**
-   * Tests setting a parent with api that has no associated values folder
-   */
-  public void testHighNewApiParent() {
-    doTestForParentApi("android:Theme.Holo.NoActionBar.Overscan", "apiParentTestAfter4");
-    myFixture.checkResultByFile("res/values-v18/styles.xml", "themeEditor/apiParentTestAfter4/stylesApi-v18.xml", true);
-  }
-
-  /**
-   * Tests setting a parent with api that has an associated values folder
-   */
-  public void testHighExistingApiParent() {
-    doTestForParentApi("android:Theme.Holo.NoActionBar.TranslucentDecor", "apiParentTestAfter5");
-  }
-
   /**
    * Tests the isPublic() method
    */
@@ -203,178 +118,6 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     ConfiguredThemeEditorStyle frameworkPrivateTheme = themeResolver.getTheme("android:Theme.Material.Dialog.NoFrame");
     assertNotNull(frameworkPrivateTheme);
     assertFalse(frameworkPrivateTheme.isPublic());
-  }
-
-  private void checkSetValue(VirtualFile file, StyleItemResourceValue item, String... answerFolders) {
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file);
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ConfiguredThemeEditorStyle style = themeResolver.getTheme("AppTheme");
-    assertNotNull(style);
-    style.setValue(ResolutionUtils.getQualifiedItemAttrName(item), item.getValue());
-
-    // ResourceFolderRepository needs to rescan the files to pick up the changes.
-    UIUtil.dispatchAllInvocationEvents();
-
-    HashSet<String> modifiedFolders = new HashSet<>(Arrays.asList(answerFolders));
-    int valuesFound = 0;
-    for (ConfiguredElement<StyleItemResourceValue> value : style.getConfiguredValues()) {
-      if (item.equals(value.getElement())) {
-        valuesFound++;
-        assertTrue(modifiedFolders.contains(value.getConfiguration().getQualifierString()));
-      }
-    }
-    assertEquals(modifiedFolders.size(), valuesFound);
-  }
-
-  /**
-   * Tests setValue method for following cases:
-   * values, values-v21, values-night, value-port, values-port-v21
-   * setValue("colorAccent", "#000000")
-   */
-  public void testSetValue() {
-    VirtualFile file = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-v21/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-night/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port-v21/styles.xml");
-
-    StyleItemResourceValue item = new StyleItemResourceValueImpl(RES_AUTO, "colorAccent", "#000000", null);
-    checkSetValue(file, item, "", "v21", "night", "port", "port-v21");
-  }
-
-  /**
-   * Tests setValue method for following cases:
-   * values, values-v21, values-night, value-port, values-port-v21
-   * setValue("android:colorAccent", "#000000"), android:colorAccent is defined in API 21
-   */
-  public void testSetValueAndroidAttribute() {
-    VirtualFile file = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v21/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-night/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port-v21/styles.xml");
-
-    StyleItemResourceValue item = new StyleItemResourceValueImpl(RES_AUTO, "android:colorAccent", "#000000", null);
-    checkSetValue(file, item, "night-v21", "v21", "port-v21");
-  }
-
-  /**
-   * Tests setValue method for following cases:
-   * values, values-v21, values-night, value-port, values-port-v21
-   * setValue("android:colorFocusedHighlight", "?android:attr/colorAccent"), colorAccent - v21, colorFocusedHighlight - v14
-   */
-  public void testSetValueAndroidAttributeValue() {
-    VirtualFile file = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v21/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-night/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port-v21/styles.xml");
-
-    StyleItemResourceValue item = new StyleItemResourceValueImpl(RES_AUTO, "android:colorAccent", "?android:attr/colorAccent", null);
-    checkSetValue(file, item, "night-v21", "v21", "port-v21");
-  }
-
-  /**
-   * Tests setValue method for copying from right FolderConfiguration
-   * Tests following cases:
-   * values, values-v17, values-v19, values-v22
-   * setValue("android:colorAccent", "#000000");
-   * Should create values-v21 based on values-v19, and modify values-v22
-   */
-  public void testSetValueCopy() {
-    VirtualFile file = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v17/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_4.xml", "res/values-v19/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v22/styles.xml");
-    StyleItemResourceValue item = new StyleItemResourceValueImpl(RES_AUTO, "android:colorAccent", "#000000", null);
-    checkSetValue(file, item, "v21", "v22");
-
-    myFixture.checkResultByFile("res/values-v21/styles.xml", "themeEditor/themeEditorStyle/styles_4_modified.xml", true);
-    myFixture.checkResultByFile("res/values-v22/styles.xml", "themeEditor/themeEditorStyle/styles_3_modified.xml", true);
-  }
-
-  /**
-   * Tests setValue method for an attribute having api level below than Minimum Sdk
-   * Tests following cases:
-   * values, values-v17, values-v19, values-v22
-   * setValue("android:colorBackgroundCacheHint", "#000000");
-   */
-  public void testSetValueMinSdk() {
-    VirtualFile file = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v17/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_4.xml", "res/values-v19/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v22/styles.xml");
-    StyleItemResourceValue item = new StyleItemResourceValueImpl(RES_AUTO, "android:colorBackgroundCacheHint", "#000000", null);
-    checkSetValue(file, item, "", "v17", "v19", "v22");
-  }
-
-  private void checkSetParent(VirtualFile file, String newParent, String... answerFolders) {
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file);
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
-
-    ConfiguredThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
-    assertNotNull(theme);
-    theme.setParent(newParent);
-
-    // ResourceFolderRepository needs to rescan the files to pick up the changes.
-    UIUtil.dispatchAllInvocationEvents();
-
-    HashSet<String> modifiedFolders = new HashSet<>(Arrays.asList(answerFolders));
-    int valuesFound = 0;
-    for (ConfiguredElement<String> value : theme.getParentNames()) {
-      if (newParent.equals(value.getElement())) {
-        valuesFound++;
-        assertTrue(modifiedFolders.contains(value.getConfiguration().getQualifierString()));
-      }
-    }
-    assertEquals(modifiedFolders.size(), valuesFound);
-  }
-
-  /**
-   * Tests {@link ConfiguredThemeEditorStyle#setParent(String)}
-   * Tests following cases:
-   * values, values-v21, values-night, value-port, values-port-v21
-   * setParent("newParent")
-   */
-  public void testSetParent() {
-    VirtualFile file = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-v21/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-night/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port-v21/styles.xml");
-    checkSetParent(file, "newParent", "", "v21", "night", "port", "port-v21");
-  }
-
-  /**
-   * Tests {@link ConfiguredThemeEditorStyle#setParent(String)}
-   * Tests following cases:
-   * values, values-v21, values-night, value-port, values-port-v21
-   * setParent("android:Theme.Material"), where android:Theme.Material is defined in Api Level 21
-   */
-  public void testSetParentAndroidParent() {
-    VirtualFile file = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v21/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-night/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port-v21/styles.xml");
-    checkSetParent(file, "android:Theme.Material", "night-v21", "v21", "port-v21");
-  }
-
-  /**
-   * Tests {@link ConfiguredThemeEditorStyle#setParent(String)} for copying from right folder.
-   * Tests following cases:
-   * values, values-v17, values-v19, values-v22
-   * setParent("android:Theme.Material"), where android:Theme.Material is defined in Api Level 21
-   */
-  public void testSetParentCopy() {
-    VirtualFile file = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v17/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_4.xml", "res/values-v19/styles.xml");
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v22/styles.xml");
-    checkSetParent(file, "android:Theme.Material", "v21", "v22");
-
-    myFixture.checkResultByFile("res/values-v21/styles.xml", "themeEditor/themeEditorStyle/styles_4_parent_modified.xml", true);
-    myFixture.checkResultByFile("res/values-v22/styles.xml", "themeEditor/themeEditorStyle/styles_3_parent_modified.xml", true);
   }
 
   public void testGetParentNames() {
