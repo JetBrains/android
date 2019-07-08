@@ -21,14 +21,10 @@ import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
-import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.google.common.collect.Lists;
@@ -719,15 +715,6 @@ public class EditorFixture {
       });
   }
 
-  /**
-   * Returns a fixture around the {@link com.android.tools.idea.editors.theme.ThemeEditor} <b>if</b> the currently
-   * displayed editor is a theme editor.
-   */
-  @NotNull
-  public ThemeEditorFixture getThemeEditor() {
-    return new ThemeEditorFixture(robot, waitUntilFound(robot, Matchers.byType(ThemeEditorComponent.class)));
-  }
-
   @NotNull
   public MergedManifestFixture getMergedManifestEditor() {
     return GuiQuery.getNonNull(
@@ -738,40 +725,6 @@ public class EditorFixture {
         checkState(manifestPanel instanceof ManifestPanel, "not a %s: %s", ManifestPanel.class.getSimpleName(), manifestPanel);
         return new MergedManifestFixture(robot, (ManifestPanel)manifestPanel);
       });
-  }
-
-  /**
-   * Returns a fixture around the theme preview window, <b>if</b> the currently edited file
-   * is a styles file and if the XML editor tab of the layout is currently showing.
-   *
-   * @param switchToTabIfNecessary if true, switch to the editor tab if it is not already showing
-   * @return the theme preview fixture
-   */
-  @Nullable
-  public ThemePreviewFixture getThemePreview(boolean switchToTabIfNecessary) {
-    VirtualFile currentFile = getCurrentFile();
-    if (ResourceHelper.getFolderType(currentFile) != ResourceFolderType.VALUES) {
-      return null;
-    }
-
-    if (switchToTabIfNecessary) {
-      selectEditorTab(Tab.EDITOR);
-    }
-
-    boolean visible = GuiQuery.getNonNull(
-      () -> ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview").isActive());
-    if (!visible) {
-      myFrame.invokeMenuPath("View", "Tool Windows", "Theme Preview");
-    }
-
-    Wait.seconds(1).expecting("Theme Preview window to be visible").until(() -> GuiQuery.getNonNull(() -> {
-      ToolWindow window = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview");
-      return window != null && window.isVisible();
-    }));
-
-    // Wait for it to be fully opened
-    robot.waitForIdle();
-    return new ThemePreviewFixture(robot, myFrame.getProject());
   }
 
   @NotNull

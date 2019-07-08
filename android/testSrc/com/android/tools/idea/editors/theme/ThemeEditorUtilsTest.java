@@ -18,14 +18,12 @@ package com.android.tools.idea.editors.theme;
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.android.sdklib.IAndroidTarget.RESOURCES;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
@@ -34,7 +32,6 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
@@ -107,114 +104,9 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertEquals(String.format("Comparing to golden file %s failed", file.normalize()), processedGoldenText.toString(), text);
   }
 
-  public void testGenerateToolTipText() throws IOException {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
-    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
-
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
-
-    IAndroidTarget androidTarget = configuration.getTarget();
-    assertNotNull(androidTarget);
-    mySdkPlatformPath = Paths.get(androidTarget.getLocation()).normalize().toString();
-    mySdkPlatformRes = Paths.get(androidTarget.getPath(RESOURCES)).normalize().toString();
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ConfiguredThemeEditorStyle theme = themeResolver.getTheme(ResourceReference.style(RES_AUTO, "AppTheme"));
-    assertNotNull(theme);
-
-    Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(theme);
-    assertEquals(7, values.size());
-
-    configuration.setTheme("AppTheme");
-
-    for (EditedStyleItem item : values) {
-      String doc = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myModule, configuration);
-      String filename = item.getAttrName();
-      compareWithGoldenFile(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + filename + ".ans");
-    }
-  }
-
-  public void testGetDisplayHtml() {
-    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
-
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
-
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ConfiguredThemeEditorStyle theme = themeResolver.getTheme(ResourceReference.style(RES_AUTO, "AppTheme"));
-    assertNotNull(theme);
-
-    Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(theme);
-
-    assertEquals(7, values.size());
-    for (EditedStyleItem item : values) {
-      String displayHtml = ThemeEditorUtils.getDisplayHtml(item);
-      if ("myDeprecated".equals(item.getAttrName())) {
-        assertEquals("<html><body><strike>myDeprecated</strike></body></html>", displayHtml);
-      } else {
-        assertEquals(item.getAttrName(), displayHtml);
-      }
-    }
-  }
-
   public void testMinApiLevel() {
     myFixture.copyFileToProject("themeEditor/manifestWithApi.xml", FN_ANDROID_MANIFEST_XML);
     assertEquals(11, ThemeEditorUtils.getMinApiLevel(myModule));
-  }
-
-  public void testCopyTheme() {
-    myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
-
-    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myModule);
-    assertNotNull(repository);
-    List<ResourceItem> resources = repository.getResources(RES_AUTO, ResourceType.STYLE, "AppTheme");
-    assertNotNull(resources);
-    assertFalse(resources.isEmpty());
-    XmlTag sourceXml = LocalResourceRepository.getItemTag(getProject(), resources.get(0));
-    assertNotNull(sourceXml);
-    new WriteCommandAction.Simple(myModule.getProject(), "Copy a theme") {
-      @Override
-      protected void run() throws Throwable {
-        ThemeEditorUtils.copyTheme(16, sourceXml);
-        ThemeEditorUtils.copyTheme(19, sourceXml);
-      }
-    }.execute();
-    myFixture.checkResultByFile("res/values-v16/styles.xml", "themeEditor/testCopyTheme/styles-v16.xml", true);
-    myFixture.checkResultByFile("res/values-v19/styles.xml", "themeEditor/testCopyTheme/styles-v19.xml", true);
-  }
-
-  /**
-   * Tests copyTheme method for following cases:
-   * 1. copyTheme(21, "values-en-night")
-   * 2. copyTheme(21, "values-v19")
-   */
-  public void testCopyThemeVersionOverride() {
-    myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-en-night/styles.xml");
-    myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-v19/styles.xml");
-
-    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myModule);
-    assertNotNull(repository);
-    List<ResourceItem> styleItems = repository.getResources(RES_AUTO, ResourceType.STYLE, "AppTheme");
-    assertNotNull(styleItems);
-    assertEquals(2, styleItems.size());
-
-    new WriteCommandAction.Simple(myModule.getProject(), "Copy a theme") {
-      @Override
-      protected void run() throws Throwable {
-        for (ResourceItem styleItem : styleItems) {
-          XmlTag styleTag = LocalResourceRepository.getItemTag(getProject(), styleItem);
-          assertNotNull(styleTag);
-          ThemeEditorUtils.copyTheme(21, styleTag);
-        }
-      }
-    }.execute();
-    myFixture.checkResultByFile("res/values-en-night-v21/styles.xml", "themeEditor/styles_1.xml", true);
-    myFixture.checkResultByFile("res/values-v21/styles.xml", "themeEditor/styles_1.xml", true);
   }
 
   public void testResourceResolverVisitor() {
@@ -241,18 +133,6 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertNotNull(item);
 
     return item;
-  }
-
-  public void testSimplifyName() {
-    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_2.xml", "res/values/styles.xml");
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
-    ThemeResolver res = new ThemeResolver(configuration);
-    assertEquals("X Light", ThemeEditorUtils.simplifyThemeName(res.getTheme(ResourceReference.style(RES_AUTO, "Theme.X.Light.Y"))));
-    assertEquals("X Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme(ResourceReference.style(RES_AUTO, "Theme.X.Dark.Y"))));
-    assertEquals("Material Light",
-                 ThemeEditorUtils.simplifyThemeName(res.getTheme(ResourceReference.style(RES_AUTO, "Theme.Material.Light"))));
-    assertEquals("Theme Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme(ResourceReference.style(ANDROID, "Theme"))));
-    assertEquals("Theme Light", ThemeEditorUtils.simplifyThemeName(res.getTheme(ResourceReference.style(RES_AUTO, "Theme.Light"))));
   }
 
   public void testGenerateWordEnumeration() {

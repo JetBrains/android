@@ -24,7 +24,6 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
