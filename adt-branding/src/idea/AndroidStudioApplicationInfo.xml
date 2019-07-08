@@ -25,6 +25,7 @@
   <package code="AI"/> <!-- used only in adrt -->
   <names product="Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
   <essential-plugin>com.intellij.java</essential-plugin>
+  <essential-plugin>com.intellij.java.ide</essential-plugin>
   <essential-plugin>org.jetbrains.android</essential-plugin>
 
   <welcome-screen logo-url="/artwork/welcome.png"/>
