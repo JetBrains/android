@@ -40,13 +40,15 @@ class ProjectPerspectiveConfigurable(private val context: PsContext)
 
   override fun createComponent(): JComponent? =
     ProjectPropertiesConfigPanel(context.project, context)
+      .also { Disposer.register(this, it) }
       .getComponent()
-      .also { it.name = PROJECT_VIEW }
+      .also {
+        it.name = PROJECT_VIEW
+      }
 
   override fun apply() = context.applyChanges()
 
   override fun isModified(): Boolean = context.project.isModified
-
 
   override fun reset() {
     super.reset()
