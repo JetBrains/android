@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.quickfix
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
@@ -40,7 +39,7 @@ fun dependencyKind(dependency: PsDeclaredDependency) : PsDependencyKind {
   }
 }
 
-data class PsDependencyScopeQuickFixPath(
+data class PsDependencyConfigurationQuickFixPath(
   val moduleName: String,
   val dependencyKind: PsDependencyKind,
   val dependencyKey: String,
