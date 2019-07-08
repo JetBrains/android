@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors;
 
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
-import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.module.Module;
@@ -63,16 +62,7 @@ public class AndroidFakeFileSystem extends DummyFileSystem {
       return null;
     }
 
-    if (ThemeEditorVirtualFile.FILENAME.equals(fileName)) {
-      if (moduleName.isEmpty()) {
-        // ThemeEditor is module-independent and is supposed to be launched for the whole project
-        // To avoid complicating name format, instead of Module name empty string is stored
-        // (full file name would have two separators in a row).
-
-        return ThemeEditorVirtualFile.getThemeEditorFile(project);
-      }
-    }
-    else if (StringsVirtualFile.NAME.equals(fileName)) {
+    if (StringsVirtualFile.NAME.equals(fileName)) {
       Module m = findModule(project, moduleName);
       if (m != null) {
         return StringsVirtualFile.getStringsVirtualFile(m);

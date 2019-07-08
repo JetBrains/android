@@ -279,20 +279,6 @@ public class ThemeResolver {
     return myFrameworkThemes.size() + myExternalLibraryThemes.size() + myLocalThemes.size();
   }
 
-  @NotNull
-  Configuration getConfiguration() {
-    return myConfiguration;
-  }
-
-  /**
-   * Checks if the given theme is recommended or not.
-   *
-   * @see #getRecommendedThemes()
-   */
-  public boolean isRecommendedTheme(@NotNull ResourceReference styleReference) {
-    return getRecommendedThemes().contains(styleReference);
-  }
-
   /**
    * Returns the recommended themes. These are the themes we encourage developers to use. They will be
    * displayed as an option in dropdown menu. The returned themes depend on whether the module of this

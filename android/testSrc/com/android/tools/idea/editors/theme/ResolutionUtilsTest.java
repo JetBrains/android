@@ -82,22 +82,6 @@ public class ResolutionUtilsTest extends AndroidTestCase {
     ConfiguredThemeEditorStyle style = ResolutionUtils.getThemeEditorStyle(configuration, "android:Theme.Holo.Light", null);
     assertEquals("Theme.Holo.Light", style.getName());
 
-    try {
-      style.setValue("newAttribute", "test");
-      fail("Project styles shouldn't be modifiable");
-    }
-    catch (UnsupportedOperationException ignored) {
-    }
-
-    try {
-      // We try to set a parent, this should fail because the style is read-only.
-      // We use Theme as it's the only parent available on the test SDK.
-      style.setParent("Theme");
-      fail("Project styles shouldn't be modifiable");
-    }
-    catch (UnsupportedOperationException ignored) {
-    }
-
     style = style.getParent();
     assertEquals("Theme.Light", style.getName());
     assertNotEmpty(style.getConfiguredValues());
