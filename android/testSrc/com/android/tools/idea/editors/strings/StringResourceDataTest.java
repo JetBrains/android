@@ -21,7 +21,7 @@ import com.android.SdkConstants;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.DynamicResourceValueRepository;
+import com.android.tools.idea.res.DynamicValueResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.google.common.collect.ImmutableSet;
@@ -54,13 +54,13 @@ public class StringResourceDataTest extends AndroidTestCase {
   private void setUpData() {
     DynamicResourceValue field = new DynamicResourceValue(ResourceType.STRING, "L\'Étranger");
 
-    DynamicResourceValueRepository dynamicResourceValueRepository =
-      DynamicResourceValueRepository.createForTest(myFacet, RES_AUTO, Collections.singletonMap("dynamic_key1", field));
+    DynamicValueResourceRepository dynamicRepository =
+        DynamicValueResourceRepository.createForTest(myFacet, RES_AUTO, Collections.singletonMap("dynamic_key1", field));
 
-    LocalResourceRepository parent =
-      ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory), RES_AUTO, dynamicResourceValueRepository);
+    LocalResourceRepository moduleRepository =
+        ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory), RES_AUTO, dynamicRepository);
 
-    data = StringResourceRepository.create(parent).getData(myFacet);
+    data = StringResourceRepository.create(moduleRepository).getData(myFacet);
   }
 
   public void testSummarizeLocales() {
