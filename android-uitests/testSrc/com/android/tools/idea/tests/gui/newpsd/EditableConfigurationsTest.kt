@@ -36,7 +36,7 @@ import java.awt.event.KeyEvent.VK_TAB
 
 @RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
-class EditableScopesTest {
+class EditableConfigurationsTest {
 
   @Rule
   @JvmField
@@ -61,7 +61,7 @@ class EditableScopesTest {
   }
 
   @Test
-  fun testEditableJarDependencyScope() {
+  fun testEditableJarDependencyConfiguration() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -108,7 +108,7 @@ class EditableScopesTest {
   }
 
   @Test
-  fun testEditableJarDependencyScopeDropdown() {
+  fun testEditableJarDependencyConfigurationDropdown() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -148,7 +148,7 @@ class EditableScopesTest {
   }
 
   @Test
-  fun testEditableModuleDependencyScope() {
+  fun testEditableModuleDependencyConfiguration() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -189,7 +189,7 @@ class EditableScopesTest {
   }
 
   @Test
-  fun testEditableModuleDependencyScopeDropdown() {
+  fun testEditableModuleDependencyConfigurationDropdown() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -229,7 +229,7 @@ class EditableScopesTest {
   }
 
   @Test
-  fun testEditableLibraryDependencyScope() {
+  fun testEditableLibraryDependencyConfiguration() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -276,7 +276,7 @@ class EditableScopesTest {
   }
 
   @Test
-  fun testEditableLibraryDependencyScopeDropdown() {
+  fun testEditableLibraryDependencyConfigurationDropdown() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
