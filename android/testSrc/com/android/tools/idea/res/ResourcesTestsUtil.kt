@@ -119,7 +119,7 @@ fun createTestModuleRepository(
   facet: AndroidFacet,
   resourceDirectories: Collection<VirtualFile>,
   namespace: ResourceNamespace = ResourceNamespace.RES_AUTO,
-  dynamicRepo: DynamicResourceValueRepository? = null
+  dynamicRepo: DynamicValueResourceRepository? = null
 ): LocalResourceRepository {
   return ModuleResourceRepository.createForTest(facet, resourceDirectories, namespace, dynamicRepo)
 }
