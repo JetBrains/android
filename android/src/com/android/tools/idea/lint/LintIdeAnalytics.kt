@@ -22,7 +22,6 @@ import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.stats.withProjectId
-import com.android.tools.idea.util.toIoFile
 import com.android.tools.lint.checks.BuiltinIssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
@@ -35,6 +34,8 @@ import com.intellij.openapi.module.ModuleManager
 import org.jetbrains.android.inspections.lint.ProblemData
 import java.io.File
 import java.io.IOException
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /** Helper for submitting analytics for IDE usage of lint (for users who have opted in) */
 class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project) {
@@ -221,13 +222,13 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     return null
   }
 
-  private fun computeProjectId(project: com.intellij.openapi.project.Project): String? = computeProjectId(project.baseDir.toIoFile())
+  private fun computeProjectId(project: com.intellij.openapi.project.Project): String? = computeProjectId(Paths.get(project.basePath))
 
-  private fun computeProjectId(projectPath: File?): String? {
+  private fun computeProjectId(projectPath: Path?): String? {
     projectPath ?: return null
 
     return try {
-      Anonymizer.anonymizeUtf8(NullLogger(), projectPath.absolutePath)
+      Anonymizer.anonymizeUtf8(NullLogger(), projectPath.toAbsolutePath().toString())
     }
     catch (e: IOException) {
       "*ANONYMIZATION_ERROR*"
