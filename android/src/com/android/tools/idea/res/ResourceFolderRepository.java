@@ -179,7 +179,16 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    */
   static final String CACHE_FILE_FORMAT_VERSION = "1";
   private static final byte[] CACHE_FILE_HEADER = "Resource cache".getBytes(UTF_8);
-  private static final double CACHE_FRESHNESS_RATIO = 0.05;
+  /**
+   * Maximum fraction of resources out of date in the cache for the cache to be considered fresh.
+   * <p>
+   * Loading without cache takes approximately twice as long as with the cache. This means that
+   * if x% of all resources are loaded from sources because the cache is not completely up to date,
+   * it introduces approximately x% loading time overhead. 5% overhead seems acceptable since it
+   * is well within natural variation. Since cache file creation is asynchronous, the cost of
+   * keeping cache fresh is pretty low.
+   */
+  private static final double CACHE_STALENESS_THRESHOLD = 0.05;
   private static final Comparator<ResourceItemSource<? extends ResourceItem>> SOURCE_COMPARATOR =
       Comparator.comparing(ResourceItemSource::getFolderConfiguration);
   private static final Logger LOG = Logger.getInstance(ResourceFolderRepository.class);
@@ -226,9 +235,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * The remaining resources are then loaded by parsing XML files that were not present in the cache or were newer
    * than their cached versions.
    * <p>
-   * If a significant (determined by #CACHE_FRESHNESS_RATIO} percentage of resources was loaded by parsing XML files
-   * and {@code cachingData.cacheCreationExecutor} is not null, the new cache file is created using that executor,
-   * possibly after this method has already returned.
+   * If a significant (determined by {@link #CACHE_STALENESS_THRESHOLD}} percentage of resources was loaded by parsing
+   * XML files and {@code cachingData.cacheCreationExecutor} is not null, the new cache file is created using that
+   * executor, possibly after this method has already returned.
    * <p>
    * After creation the contents of the repository are maintained to be up to date by listening to VFS and PSI events.
    * <p>
@@ -331,7 +340,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    */
   @VisibleForTesting
   boolean hasFreshFileCache() {
-    return myNumXmlFilesLoadedInitiallyFromSources <= myNumXmlFilesLoadedInitially * CACHE_FRESHNESS_RATIO;
+    return myNumXmlFilesLoadedInitiallyFromSources <= myNumXmlFilesLoadedInitially * CACHE_STALENESS_THRESHOLD;
   }
 
   @TestOnly
