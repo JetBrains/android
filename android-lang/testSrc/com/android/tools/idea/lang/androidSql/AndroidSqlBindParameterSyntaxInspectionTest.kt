@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.lang.androidSql
 
+import com.android.tools.idea.lang.androidSql.room.RoomBindParameterSyntaxInspection
 import com.intellij.testFramework.LightProjectDescriptor
 import org.jetbrains.android.AndroidFacetProjectDescriptor
 

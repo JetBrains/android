@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.lang.androidSql
 
+import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES_FOR_FTS
 import com.android.tools.idea.lang.androidSql.room.Dao
-import com.android.tools.idea.lang.androidSql.room.PRIMARY_KEY_NAMES_FOR_FTS
 import com.android.tools.idea.lang.androidSql.room.PsiElementForFakeColumn
 import com.android.tools.idea.lang.androidSql.room.RoomDatabase
 import com.android.tools.idea.lang.androidSql.room.RoomFieldColumn
