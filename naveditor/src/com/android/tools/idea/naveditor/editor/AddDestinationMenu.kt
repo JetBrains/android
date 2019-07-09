@@ -52,15 +52,17 @@ import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.DocumentAdapter
-import com.intellij.ui.DottedBorder
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.speedSearch.FilteringListModel
+import com.intellij.util.BooleanFunction
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.isInProject
@@ -97,7 +99,6 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   private lateinit var button: JComponent
   private var creatingInProgress = false
   private val createdFiles: MutableList<File> = mutableListOf()
-  private var buttonPresentation: Presentation? = null
 
   @VisibleForTesting
   val destinations: List<Destination>
@@ -166,7 +167,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
   private fun createSelectionPanel(): JPanel {
     destinationsList = JBList()
-    val result = object : AdtSecondaryPanel(VerticalLayout(5)), DataProvider {
+    val result = object : AdtSecondaryPanel(VerticalLayout(8)), DataProvider {
       override fun getData(dataId: String): Any? {
         return if (NewAndroidComponentAction.CREATED_FILES.`is`(dataId)) {
           createdFiles
@@ -177,26 +178,33 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       }
     }
     result.name = DESTINATION_MENU_MAIN_PANEL_NAME
+    result.background = BACKGROUND_COLOR
+    result.border = BorderFactory.createEmptyBorder(8, 4, 8, 4)
 
     searchField = SearchTextField()
-    // leading space is required so text doesn't overlap magnifying glass
-    searchField.textEditor.emptyText.text = "   Search existing destinations"
+    searchField.textEditor.putClientProperty("JTextField.Search.Gap", JBUI.scale(3))
+    searchField.textEditor.putClientProperty("JTextField.Search.GapEmptyText", JBUI.scale(-1))
+    searchField.textEditor.putClientProperty("StatusVisibleFunction", SearchFieldStatusTextVisibility.isVisibleFunction)
+    searchField.textEditor.emptyText.text = "Search existing destinations"
     result.add(searchField)
 
-    val action: AnAction = object : AnAction("Create new destination") {
+    val action: AnAction = object : AnAction("Create new destination   ") {
       override fun actionPerformed(e: AnActionEvent) {
         createNewDestination(e)
       }
     }
     blankDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
-    val buttonPanel = AdtSecondaryPanel(BorderLayout())
-    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), HIGHLIGHTED_FRAME))
+    val buttonPanel = AdtSecondaryPanel(BorderLayout(0, 8))
+    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 1), DottedRoundedBorder(JBUI.emptyInsets(), HIGHLIGHTED_FRAME, 8.0f))
     buttonPanel.add(blankDestinationButton, BorderLayout.CENTER)
-    val scrollable = AdtSecondaryPanel(BorderLayout())
+    buttonPanel.background = BACKGROUND_COLOR
+    val scrollable = AdtSecondaryPanel(BorderLayout(0, 8))
     scrollable.add(buttonPanel, BorderLayout.NORTH)
+    scrollable.background = BACKGROUND_COLOR
     val scrollPane = JBScrollPane(scrollable)
     scrollPane.preferredSize = JBDimension(252, 300)
     scrollPane.border = BorderFactory.createEmptyBorder()
+    scrollPane.background = BACKGROUND_COLOR
 
     result.add(scrollPane)
 
@@ -220,7 +228,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       RENDERER.isOpaque = selected
       RENDERER
     }
-    destinationsList.background = result.background
+    destinationsList.background = BACKGROUND_COLOR
 
     destinationsList.addMouseListener(object : MouseAdapter() {
       override fun mouseExited(e: MouseEvent?) {
@@ -232,7 +240,6 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       }
     })
 
-    destinationsList.background = null
     destinationsList.addMouseMotionListener(
       object : MouseAdapter() {
         override fun mouseMoved(event: MouseEvent) {
@@ -390,6 +397,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       leftPanel.isOpaque = false
       THUMBNAIL_RENDERER.border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
       THUMBNAIL_RENDERER.text = " "
+      SECONDARY_TEXT_RENDERER.fontColor = UIUtil.FontColor.BRIGHTER
       leftPanel.add(THUMBNAIL_RENDERER, VerticalLayout.CENTER)
       RENDERER.add(leftPanel, BorderLayout.WEST)
       val rightPanel = JPanel(VerticalLayout(8))
