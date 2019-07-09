@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
@@ -72,7 +73,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    ResourceFolderRepositoryFileCacheImpl cache = new ResourceFolderRepositoryFileCacheImpl(new File(myFixture.getTempDirPath()));
+    ResourceFolderRepositoryFileCacheImpl cache = new ResourceFolderRepositoryFileCacheImpl(Paths.get(myFixture.getTempDirPath()));
     myOldFileCacheService = overrideCacheService(cache);
   }
 
@@ -107,38 +108,38 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     assertTrue(cache.isValid());
   }
 
-  public void testLRUListManagement() throws Exception {
+  public void testLruListManagement() throws Exception {
     ResourceFolderRepositoryFileCacheImpl cache = getCache();
-    File rootDir = cache.getRootDir();
+    Path rootDir = cache.getRootDir();
     assertNotNull(rootDir);
 
-    List<File> projectCacheList = ManageLruProjectFilesTask.loadListOfProjectCaches(rootDir);
+    List<String> projectCacheList = ManageLruProjectFilesTask.loadListOfProjectCaches(rootDir);
     assertEmpty(projectCacheList);
 
     // Try adding one.
     int lruLimit = 4;
-    List<Pair<Project, File>> curProjectFiles = new ArrayList<>();
-    List<File> projectsToRemove = ManageLruProjectFilesTask.updateLruList(getProject(), projectCacheList, lruLimit);
+    List<Pair<Project, Path>> curProjectFiles = new ArrayList<>();
+    List<String> projectsToRemove = ManageLruProjectFilesTask.updateLruList(getProject(), projectCacheList, lruLimit);
     assertEmpty(projectsToRemove);
     assertSize(1, projectCacheList);
-    curProjectFiles.add(Pair.create(getProject(), cache.getProjectDir(getProject()).toFile()));
+    curProjectFiles.add(Pair.create(getProject(), cache.getProjectDir(getProject())));
 
     // Try serializing just the one.
     ManageLruProjectFilesTask.writeListOfProjectCaches(rootDir, projectCacheList);
-    List<File> projectCacheList2 = ManageLruProjectFilesTask.loadListOfProjectCaches(rootDir);
+    List<String> projectCacheList2 = ManageLruProjectFilesTask.loadListOfProjectCaches(rootDir);
     assertSameElements(projectCacheList2, projectCacheList);
 
     // Try adding some over the limit.
     int numOverLimit = 0;
-    for (int i = 0; i < lruLimit + 1; ++i) {
+    for (int i = 0; i <= lruLimit; ++i) {
       Project mockProject = new MockProjectWithName(getProject(), "p" + i);
       Path mockProjectCacheDir = cache.getProjectDir(mockProject);
       assertNotNull(mockProjectCacheDir);
-      curProjectFiles.add(Pair.create(mockProject, mockProjectCacheDir.toFile()));
+      curProjectFiles.add(Pair.create(mockProject, mockProjectCacheDir));
       projectsToRemove = ManageLruProjectFilesTask.updateLruList(mockProject, projectCacheList, lruLimit);
       if (curProjectFiles.size() > lruLimit) {
         assertSize(1, projectsToRemove);
-        assertContainsElements(projectsToRemove, curProjectFiles.get(numOverLimit).second);
+        assertContainsElements(projectsToRemove, curProjectFiles.get(numOverLimit).second.getFileName().toString());
         assertSize(lruLimit, projectCacheList);
         ++numOverLimit;
       }
@@ -151,25 +152,25 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     // Try pushing one of the elements still on the list to the front.
     projectsToRemove = ManageLruProjectFilesTask.updateLruList(curProjectFiles.get(numOverLimit + 1).first, projectCacheList, lruLimit);
     assertEmpty(projectsToRemove);
-    assertEquals(projectCacheList.get(0), curProjectFiles.get(numOverLimit + 1).second);
+    assertEquals(projectCacheList.get(0), curProjectFiles.get(numOverLimit + 1).second.getFileName().toString());
 
     // Serialize and deserialize again.
     ManageLruProjectFilesTask.writeListOfProjectCaches(rootDir, projectCacheList);
-    List<File> projectCacheList3 = ManageLruProjectFilesTask.loadListOfProjectCaches(rootDir);
+    List<String> projectCacheList3 = ManageLruProjectFilesTask.loadListOfProjectCaches(rootDir);
     assertSameElements(projectCacheList3, projectCacheList);
   }
 
-  public void testManageLRUProjectFilesTrims() throws IOException {
+  public void testManageLruProjectFilesTrims() throws IOException {
     int lruLimit = 3;
     int overLimit = 1;
-    List<File> projectDirList = addProjectDirectories(lruLimit, overLimit);
+    List<String> projectDirList = addProjectDirectories(lruLimit, overLimit);
 
     // Now add current project to front, sweep, and check.
     ResourceFolderRepositoryFileCacheImpl cache = getCache();
     Path curProjectCacheDir = cache.getProjectDir(getProject());
     assertNotNull(curProjectCacheDir);
     FileUtil.ensureExists(curProjectCacheDir.toFile());
-    List<File> removed = ManageLruProjectFilesTask.updateLruList(getProject(), projectDirList, lruLimit * 2);
+    List<String> removed = ManageLruProjectFilesTask.updateLruList(getProject(), projectDirList, lruLimit * 2);
     assertEmpty(removed);
     ++overLimit;
     ManageLruProjectFilesTask task = new ManageLruProjectFilesTask(getProject());
@@ -177,18 +178,18 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
 
     for (int i = 0; i < lruLimit + overLimit; ++i) {
       if (i < lruLimit) {
-        assertTrue(projectDirList.get(i).exists());
+        assertTrue(Files.exists(cache.getRootDir().resolve(projectDirList.get(i))));
       }
       else {
-        assertFalse(projectDirList.get(i).exists());
+        assertTrue(Files.notExists(cache.getRootDir().resolve(projectDirList.get(i))));
       }
     }
   }
 
-  public void testManagerLRUProjectFilesInvalidationClears() throws IOException {
+  public void testManagerLruProjectFilesInvalidationClears() throws IOException {
     int lruLimit = 3;
     int overLimit = 1;
-    List<File> projectDirList = addProjectDirectories(lruLimit, overLimit);
+    List<String> projectDirList = addProjectDirectories(lruLimit, overLimit);
 
     // Check that the expected directories exist before invalidation.
     ResourceFolderRepositoryFileCacheImpl cache = getCache();
@@ -198,15 +199,15 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     Path curProjectCacheDir = cache.getProjectDir(getProject());
     assertNotNull(curProjectCacheDir);
     FileUtil.ensureExists(curProjectCacheDir.toFile());
-    List<File> removed = ManageLruProjectFilesTask.updateLruList(getProject(), projectDirList, lruLimit * 2);
+    List<String> removed = ManageLruProjectFilesTask.updateLruList(getProject(), projectDirList, lruLimit * 2);
     assertEmpty(removed);
     ++overLimit;
     for (int i = 0; i < lruLimit + overLimit; ++i) {
       if (i < lruLimit) {
-        assertTrue(projectDirList.get(i).exists());
+        assertTrue(Files.exists(cache.getRootDir().resolve(projectDirList.get(i))));
       }
       else {
-        assertFalse(projectDirList.get(i).exists());
+        assertTrue(Files.notExists(cache.getRootDir().resolve(projectDirList.get(i))));
       }
     }
 
@@ -216,14 +217,14 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     assertFalse(cache.isValid());
     task.maintainLruCache(lruLimit);
     for (int i = 0; i < lruLimit + overLimit; ++i) {
-      assertFalse(projectDirList.get(i).exists());
+      assertTrue(Files.notExists(cache.getRootDir().resolve(projectDirList.get(i))));
     }
     assertTrue(cache.isValid());
   }
 
-  private List<File> addProjectDirectories(int lruLimit, int overLimit) throws IOException {
+  private List<String> addProjectDirectories(int lruLimit, int overLimit) throws IOException {
     ResourceFolderRepositoryFileCacheImpl cache = getCache();
-    List<File> projectDirList = new ArrayList<>();
+    List<String> projectDirList = new ArrayList<>();
     // Fill the cache directory with a bunch of mock project directories.
     for (int i = 0; i < lruLimit + overLimit; ++i) {
       Project mockProject = new MockProjectWithName(getProject(), "p" + i);
@@ -231,11 +232,11 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
       assertNotNull(mockProjectCacheDir);
       FileUtil.ensureExists(mockProjectCacheDir.toFile());
       assertTrue(Files.exists(mockProjectCacheDir));
-      List<File> removed = ManageLruProjectFilesTask.updateLruList(mockProject, projectDirList, lruLimit * 2);
+      List<String> removed = ManageLruProjectFilesTask.updateLruList(mockProject, projectDirList, lruLimit * 2);
       assertEmpty(removed);
     }
     // Serialize it.
-    File rootDir = cache.getRootDir();
+    Path rootDir = cache.getRootDir();
     assertNotNull(rootDir);
     ManageLruProjectFilesTask.writeListOfProjectCaches(rootDir, projectDirList);
     return projectDirList;

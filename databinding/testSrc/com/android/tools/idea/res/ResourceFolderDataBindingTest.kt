@@ -43,7 +43,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.picocontainer.MutablePicoContainer
-import java.io.File
+import java.nio.file.Paths
 
 @RunsInEdt
 class ResourceFolderDataBindingTest {
@@ -70,7 +70,7 @@ class ResourceFolderDataBindingTest {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
 
     // Use a file cache that has per-test root directories instead of sharing the system directory.
-    val cache = ResourceFolderRepositoryFileCacheImpl(File(fixture.tempDirPath))
+    val cache = ResourceFolderRepositoryFileCacheImpl(Paths.get(fixture.tempDirPath))
     oldFileCacheService = overrideCacheService(cache)
   }
 
@@ -78,7 +78,6 @@ class ResourceFolderDataBindingTest {
   fun tearDown() {
     overrideCacheService(oldFileCacheService)
   }
-
 
   private fun setupTestWithDataBinding() {
     registry = ResourceFolderRegistry.getInstance(project)
