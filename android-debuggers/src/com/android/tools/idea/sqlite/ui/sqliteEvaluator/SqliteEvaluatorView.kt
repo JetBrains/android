@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.intellij.openapi.project.Project
 import javax.swing.JComponent
 
 /**
@@ -27,6 +28,7 @@ import javax.swing.JComponent
  * @see [SqliteEvaluatorViewListener] for the listener interface.
  */
 interface SqliteEvaluatorView {
+  val project: Project
   /**
    * The JComponent containing the view's UI.
    */
