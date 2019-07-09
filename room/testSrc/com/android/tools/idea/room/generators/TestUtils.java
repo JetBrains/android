@@ -19,24 +19,30 @@ import com.android.tools.idea.room.bundle.DatabaseBundle;
 import com.android.tools.idea.room.bundle.EntityBundle;
 import com.android.tools.idea.room.bundle.FieldBundle;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility functions for testing schema updates.
  */
 public class TestUtils {
-  public static DatabaseBundle createDatabaseBundle(int version, List<EntityBundle> entities) {
+  @NotNull
+  public static DatabaseBundle createDatabaseBundle(int version, @NotNull List<EntityBundle> entities) {
     return new DatabaseBundle(version, "", entities, null, null);
   }
 
-  public static FieldBundle createFieldBundle(String columnName, String affinity, String defaultValue) {
+  @NotNull
+  public static FieldBundle createFieldBundle(@NotNull String columnName, @NotNull String affinity, @Nullable String defaultValue) {
     return new FieldBundle("", columnName, affinity, false, defaultValue);
   }
 
-  public static FieldBundle createFieldBundle(String columnName) {
+  @NotNull
+  public static FieldBundle createFieldBundle(@NotNull String columnName) {
     return createFieldBundle(columnName, "", null);
   }
 
-  public static EntityBundle createEntityBundle(String tableName, List<FieldBundle> fields) {
+  @NotNull
+  public static EntityBundle createEntityBundle(@NotNull String tableName, @NotNull List<FieldBundle> fields) {
     return new EntityBundle(tableName, "", fields, null, null, null);
   }
 }

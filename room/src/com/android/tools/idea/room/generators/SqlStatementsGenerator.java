@@ -28,8 +28,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Responsible for generating SQLite statements which perform updates between two versions of a database schema.
  */
-public class SQLStatementsGenerator {
-  private static final String TMP_TABLE_NAME_TEMPLATE = "%s_data$android.studio.tmp";
+public class SqlStatementsGenerator {
+  private static final String TMP_TABLE_NAME_TEMPLATE = "%s_data$android_studio_tmp";
 
   /**
    * Returns SQLite statements which produce the update from the older version of the database to the current one.
@@ -207,7 +207,7 @@ public class SQLStatementsGenerator {
     }
 
     if (field.isNonNull()) {
-      fieldDescription.append("NOT NULL");
+      fieldDescription.append(" NOT NULL");
     }
 
     return fieldDescription.toString();

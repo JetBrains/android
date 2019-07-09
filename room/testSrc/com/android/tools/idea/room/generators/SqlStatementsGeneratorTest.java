@@ -26,10 +26,11 @@ import com.android.tools.idea.room.bundle.FieldBundle;
 import com.android.tools.idea.room.update.DatabaseUpdate;
 import com.android.tools.idea.room.update.EntityUpdate;
 import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 
-public class SQLStatementsGeneratorTest {
+public class SqlStatementsGeneratorTest {
   private EntityBundle entity1;
   private EntityBundle entity2;
   private EntityBundle entity3;
@@ -62,60 +63,60 @@ public class SQLStatementsGeneratorTest {
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
     String alterStatement = "ALTER TABLE table1 ADD COLUMN column3 VARCHAR;";
 
-    assertThat(SQLStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(alterStatement);
+    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(alterStatement);
   }
 
   @Test
   public void testDeleteColumnUpdateStatements() {
     EntityUpdate entityUpdate = new EntityUpdate(entity2, entity1);
-    String createStatement = "CREATE TABLE table2_data$android.studio.tmp\n" +
+    String createStatement = "CREATE TABLE table2_data$android_studio_tmp\n" +
                              "(\n" +
                              "\tcolumn1 VARCHAR,\n" +
                              "\tcolumn2 VARCHAR\n" +
                              ");";
-    String insertStatement = "INSERT INTO table2_data$android.studio.tmp (column1, column2)\n" +
+    String insertStatement = "INSERT INTO table2_data$android_studio_tmp (column1, column2)\n" +
                              "\tSELECT column1, column2\n" +
                              "\tFROM table2;";
     String dropStatement = "DROP TABLE table2;";
-    String renameStatement = "ALTER TABLE table2_data$android.studio.tmp RENAME TO table2;";
+    String renameStatement = "ALTER TABLE table2_data$android_studio_tmp RENAME TO table2;";
 
-    assertThat(SQLStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(
+    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(
       createStatement, insertStatement, dropStatement, renameStatement).inOrder();
   }
 
   @Test
   public void testAddAndDeleteColumnUpdateStatements() {
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity3);
-    String createStatement = "CREATE TABLE table1_data$android.studio.tmp\n" +
+    String createStatement = "CREATE TABLE table1_data$android_studio_tmp\n" +
                              "(\n" +
                              "\tcolumn1 VARCHAR,\n" +
                              "\tcolumn3 VARCHAR\n" +
                              ");";
-    String insertStatement = "INSERT INTO table1_data$android.studio.tmp (column1)\n" +
+    String insertStatement = "INSERT INTO table1_data$android_studio_tmp (column1)\n" +
                              "\tSELECT column1\n" +
                              "\tFROM table1;";
     String dropStatement = "DROP TABLE table1;";
-    String renameStatement = "ALTER TABLE table1_data$android.studio.tmp RENAME TO table1;";
+    String renameStatement = "ALTER TABLE table1_data$android_studio_tmp RENAME TO table1;";
 
-    assertThat(SQLStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(
+    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(
       createStatement, insertStatement, dropStatement, renameStatement).inOrder();
   }
 
   @Test
   public void testModifyColumnUpdateStatements() {
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity4);
-    String createStatement = "CREATE TABLE table1_data$android.studio.tmp\n" +
+    String createStatement = "CREATE TABLE table1_data$android_studio_tmp\n" +
                              "(\n" +
                              "\tcolumn2 VARCHAR,\n" +
                              "\tcolumn1 CHAR\n" +
                              ");";
-    String insertStatement = "INSERT INTO table1_data$android.studio.tmp (column2, column1)\n" +
+    String insertStatement = "INSERT INTO table1_data$android_studio_tmp (column2, column1)\n" +
                              "\tSELECT column2, column1\n" +
                              "\tFROM table1;";
     String dropStatement = "DROP TABLE table1;";
-    String renameStatement = "ALTER TABLE table1_data$android.studio.tmp RENAME TO table1;";
+    String renameStatement = "ALTER TABLE table1_data$android_studio_tmp RENAME TO table1;";
 
-    assertThat(SQLStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(
+    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(
       createStatement, insertStatement, dropStatement, renameStatement).inOrder();
   }
 
@@ -128,7 +129,7 @@ public class SQLStatementsGeneratorTest {
                              "\tcolumn3 VARCHAR\n" +
                              ");";
 
-    assertThat(SQLStatementsGenerator.getUpdateStatements(databaseUpdate)).containsExactly(createStatement);
+    assertThat(SqlStatementsGenerator.getUpdateStatements(databaseUpdate)).containsExactly(createStatement);
   }
 
   @Test
@@ -136,24 +137,57 @@ public class SQLStatementsGeneratorTest {
     DatabaseUpdate databaseUpdate = new DatabaseUpdate(db2, db3);
     String dropStatement = "DROP TABLE table2;";
 
-    assertThat(SQLStatementsGenerator.getUpdateStatements(databaseUpdate)).containsExactly(dropStatement);
+    assertThat(SqlStatementsGenerator.getUpdateStatements(databaseUpdate)).containsExactly(dropStatement);
   }
 
   @Test
   public void testModifyEntityUpdateStatement() {
     DatabaseUpdate databaseUpdate = new DatabaseUpdate(db1, db4);
-    String createStatement = "CREATE TABLE table1_data$android.studio.tmp\n" +
+    String createStatement = "CREATE TABLE table1_data$android_studio_tmp\n" +
                              "(\n" +
                              "\tcolumn2 VARCHAR,\n" +
                              "\tcolumn1 CHAR\n" +
                              ");";
-    String insertStatement = "INSERT INTO table1_data$android.studio.tmp (column2, column1)\n" +
+    String insertStatement = "INSERT INTO table1_data$android_studio_tmp (column2, column1)\n" +
                              "\tSELECT column2, column1\n" +
                              "\tFROM table1;";
     String dropStatement = "DROP TABLE table1;";
-    String renameStatement = "ALTER TABLE table1_data$android.studio.tmp RENAME TO table1;";
+    String renameStatement = "ALTER TABLE table1_data$android_studio_tmp RENAME TO table1;";
 
-    assertThat(SQLStatementsGenerator.getUpdateStatements(databaseUpdate)).containsExactly(
+    assertThat(SqlStatementsGenerator.getUpdateStatements(databaseUpdate)).containsExactly(
       createStatement, insertStatement, dropStatement, renameStatement).inOrder();
+  }
+
+  @Test
+  public void testNotNull() {
+    EntityBundle idOnly = createEntityBundle(
+      "my_table",
+      Collections.singletonList(
+        new FieldBundle("id",
+                        "id",
+                        "INTEGER",
+                        true,
+                        null)));
+
+    EntityBundle idAndName = createEntityBundle(
+      "my_table",
+      Arrays.asList(
+        new FieldBundle("id",
+                        "id",
+                        "INTEGER",
+                        true,
+                        null),
+        new FieldBundle("name",
+                        "name",
+                        "VARCHAR",
+                        true,
+                        null)));
+
+    DatabaseUpdate databaseUpdate = new DatabaseUpdate(
+      new DatabaseBundle(1, "hash", Collections.singletonList(idOnly), null, null),
+      new DatabaseBundle(2, "hash", Collections.singletonList(idAndName), null, null));
+
+    assertThat(SqlStatementsGenerator.getUpdateStatements(databaseUpdate))
+      .containsExactly("ALTER TABLE my_table ADD COLUMN name VARCHAR NOT NULL;");
   }
 }
