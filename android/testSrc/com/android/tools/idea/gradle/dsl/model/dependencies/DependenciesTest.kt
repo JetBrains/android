@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies
 
 import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_ALL_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_KOTLIN_DEPENDENCIES
 import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_REMOVE_JAR_DEPENDENCIES
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
@@ -132,5 +133,27 @@ class DependenciesTest : GradleFileModelTestCase() {
     buildModel.dependencies().remove(fileTree)
     buildModel.dependencies().remove(files)
     assertSize(1, buildModel.dependencies().all())
+  }
+
+  @Test
+  fun testKotlinDependencies() {
+    writeToBuildFile(DEPENDENCIES_KOTLIN_DEPENDENCIES)
+
+    val buildModel = gradleBuildModel
+
+    val deps = buildModel.dependencies().all()
+    assertSize(2, deps)
+
+    run {
+      val dep = deps[0] as ArtifactDependencyModel
+      assertThat(dep.configurationName(), equalTo("implementation"))
+      assertThat(dep.compactNotation(), equalTo("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.3.1"))
+    }
+
+    run {
+      val dep = deps[1] as ArtifactDependencyModel
+      assertThat(dep.configurationName(), equalTo("implementation"))
+      assertThat(dep.compactNotation(), equalTo("org.jetbrains.kotlin:kotlin-android"))
+    }
   }
 }
