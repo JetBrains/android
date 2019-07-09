@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.room.bundle;
+package com.android.tools.idea.room.migrations.json;
 
 /**
  * This was copied from the Room Migration project. It is only a temporary solution and in the future we will try to use the real classes.

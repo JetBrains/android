@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.room.generators;
 
-import com.android.tools.idea.room.bundle.DatabaseBundle;
-import com.android.tools.idea.room.bundle.EntityBundle;
-import com.android.tools.idea.room.bundle.FieldBundle;
+import com.android.tools.idea.room.migrations.json.DatabaseBundle;
+import com.android.tools.idea.room.migrations.json.EntityBundle;
+import com.android.tools.idea.room.migrations.json.FieldBundle;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

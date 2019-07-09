@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.room.generators;
+package com.android.tools.idea.room.migrations.generators;
 
-import com.android.tools.idea.room.update.DatabaseUpdate;
+import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.JavaPsiFacade;

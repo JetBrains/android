@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.room
+package com.android.tools.idea.room.migrations
 
-import com.android.tools.idea.room.bundle.SchemaBundle
-import com.android.tools.idea.room.generators.JavaMigrationClassGenerator
-import com.android.tools.idea.room.update.DatabaseUpdate
+import com.android.tools.idea.room.migrations.generators.JavaMigrationClassGenerator
+import com.android.tools.idea.room.migrations.json.SchemaBundle
+import com.android.tools.idea.room.migrations.update.DatabaseUpdate
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.ui.Messages
