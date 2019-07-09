@@ -37,7 +37,7 @@ class SubqueryTable(private val selectStmt: AndroidSqlSelectStatement) : Android
     val resultColumns = selectCore?.selectCoreSelect?.resultColumns?.resultColumnList ?: return true
     columns@ for (resultColumn in resultColumns) {
       when {
-        resultColumn.expression != null -> { // Try to process by [RoomExpression] e.g. "SELECT id FROM ..."; "SELECT id * 2 FROM ...".
+        resultColumn.expression != null -> { // Try to process by [AndroidSqlExpression] e.g. "SELECT id FROM ..."; "SELECT id * 2 FROM ...".
           val column = computeSqlColumn(resultColumn, sqlTablesInProcess)
           // Column can be null. Sometimes we cannot resolve column because we have invalid query (e.g recursive query)
           if (column != null && !processor.process(column)) return false

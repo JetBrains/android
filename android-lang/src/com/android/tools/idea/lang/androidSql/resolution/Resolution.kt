@@ -29,6 +29,7 @@ import com.android.tools.idea.lang.androidSql.psi.AndroidSqlSelectStatement
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlTableElement
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlUpdateStatement
 import com.android.tools.idea.lang.androidSql.psi.HasWithClause
+import com.android.tools.idea.lang.androidSql.sqlContext
 import com.intellij.psi.PsiElement
 import com.intellij.util.Processor
 import com.intellij.util.containers.Stack
@@ -36,7 +37,7 @@ import com.intellij.util.containers.Stack
 /**
  * Processes all [AndroidSqlTable]s that are defined for a given [start] [PsiElement].
  *
- * This includes tables in the schema (handled by [AndroidSqlFile.processTables]) as well as views using a `WITH` clause.
+ * This includes tables in the schema (handled by [AndroidSqlContext.processTables]) as well as views using a `WITH` clause.
  */
 fun processDefinedSqlTables(start: PsiElement, processor: Processor<AndroidSqlTable>): Boolean {
   var current = start.parent
@@ -51,7 +52,7 @@ fun processDefinedSqlTables(start: PsiElement, processor: Processor<AndroidSqlTa
           }
         }
       }
-      is AndroidSqlFile -> return current.processTables(processor)
+      is AndroidSqlFile -> return current.sqlContext?.processTables(processor) ?: true
     }
 
     current = current.parent

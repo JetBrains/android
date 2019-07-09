@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.lang.androidSql.resolution
 
-import com.android.tools.idea.lang.androidSql.room.NotRenamableElement
-import com.android.tools.idea.lang.androidSql.room.RoomAnnotations
+import com.android.tools.idea.lang.androidSql.NotRenamableElement
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlBindParameter
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlColumnName
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlDefinedTableName
@@ -26,7 +25,7 @@ import com.android.tools.idea.lang.androidSql.psi.AndroidSqlResultColumns
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlSelectCoreSelect
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlSelectedTableName
 import com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlNameElementManipulator
-import com.android.tools.idea.lang.androidSql.room.RoomRowidColumn
+import com.android.tools.idea.lang.androidSql.sqlContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiClass
@@ -35,10 +34,8 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY
-import org.jetbrains.uast.UAnnotated
-import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.getParentOfType
+import com.intellij.util.ArrayUtil
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 interface AndroidSqlColumnPsiReference : PsiReference {
   /**
@@ -77,7 +74,9 @@ interface AndroidSqlColumnPsiReference : PsiReference {
  *
  * @see AndroidSqlColumn.resolveTo
  */
-class UnqualifiedColumnPsiReference(columnName: AndroidSqlColumnName) : PsiReferenceBase<AndroidSqlColumnName>(columnName), AndroidSqlColumnPsiReference {
+class UnqualifiedColumnPsiReference(
+  columnName: AndroidSqlColumnName
+) : PsiReferenceBase<AndroidSqlColumnName>(columnName), AndroidSqlColumnPsiReference {
 
   override fun resolveColumn(sqlTablesInProcess: MutableSet<PsiElement>): AndroidSqlColumn? {
     val processor = FindColumnByNameProcessor(element.nameAsString)
@@ -93,9 +92,12 @@ class UnqualifiedColumnPsiReference(columnName: AndroidSqlColumnName) : PsiRefer
     if (tablesProcessor.tablesProcessed == 0) {
       // Let's try to be helpful in the common case of a SELECT query with no FROM clause, even though referencing any columns will result
       // in an invalid query for now, until the FROM clause is written.
-      val parentSelect = PsiTreeUtil.getParentOfType(element, AndroidSqlResultColumns::class.java)?.parent?.let { it as AndroidSqlSelectCoreSelect }
+      val parentSelect = PsiTreeUtil.getParentOfType(element, AndroidSqlResultColumns::class.java)
+        ?.parent
+        ?.let { it as AndroidSqlSelectCoreSelect }
+
       if (parentSelect != null && parentSelect.fromClause == null) {
-        (element.containingFile as AndroidSqlFile).processTables(tablesProcessor)
+        element.containingFile?.safeAs<AndroidSqlFile>()?.sqlContext?.processTables(tablesProcessor)
       }
     }
 
@@ -127,7 +129,7 @@ class QualifiedColumnPsiReference(
 
 private fun buildVariants(result: Collection<AndroidSqlColumn>): Array<Any> {
   return result
-    .filter { column -> column !is RoomRowidColumn }
+    .filter { column -> !column.isImplicit }
     .map { column ->
       LookupElementBuilder.create(column.definingElement, AndroidSqlNameElementManipulator.getValidName(column.name!!))
         .withTypeText(column.type?.typeName)
@@ -213,23 +215,25 @@ private fun lookupElementForTable(table: AndroidSqlTable): LookupElement {
  */
 class AndroidSqlParameterReference(parameter: AndroidSqlBindParameter) : PsiReferenceBase<AndroidSqlBindParameter>(parameter) {
   override fun resolve(): PsiElement? {
-    val parameterName = element.parameterNameAsString ?: return null
-    return findQueryMethod()?.uastParameters?.find { it.name == parameterName }?.sourcePsi
+    return bindParameters?.get(element.parameterNameAsString ?: return null)?.definingElement
   }
 
   override fun getVariants(): Array<Any> {
-    return findQueryMethod()
-             ?.uastParameters
-             ?.mapNotNull { (it.sourcePsi as? PsiNamedElement)?.let(LookupElementBuilder::create) }
+    return bindParameters
+             ?.values
+             ?.map { parameter ->
+               val namedElement = parameter.definingElement as? PsiNamedElement
+               if (namedElement != null) LookupElementBuilder.create(namedElement) else LookupElementBuilder.create(parameter.name)
+             }
              ?.toTypedArray<Any>()
-           ?: EMPTY_OBJECT_ARRAY
+           ?: ArrayUtil.EMPTY_OBJECT_ARRAY
   }
 
-  private fun findQueryMethod(): UMethod? {
-    return (element.containingFile as? AndroidSqlFile)
-      ?.findHostRoomAnnotation()
-      ?.takeIf { RoomAnnotations.QUERY.isEquals(it.qualifiedName) }
-      ?.getParentOfType<UAnnotated>()
-      as? UMethod
-  }
+  private val bindParameters: Map<String, BindParameter>?
+    get() {
+      return element.containingFile
+        ?.safeAs<AndroidSqlFile>()
+        ?.sqlContext
+        ?.bindParameters
+    }
 }

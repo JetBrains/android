@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.lang.androidSql.resolution
 
-import com.android.tools.idea.lang.androidSql.room.RoomTable
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiManager
 import com.intellij.util.CommonProcessors
 import com.intellij.util.Processor
 
@@ -52,7 +49,7 @@ class CollectUniqueNamesProcessor<T : AndroidSqlDefinition> : Processor<T> {
 /**
  * Runs a [delegate] [Processor] on every [AndroidSqlColumn] of every processed [AndroidSqlTable].
  *
- *  @see RoomColumnPsiReference for [sqlTablesInProcess] explanation
+ *  @see AndroidSqlColumnPsiReference for [sqlTablesInProcess] explanation
  */
 class AllColumnsProcessor(
   private val delegate: Processor<AndroidSqlColumn>,
@@ -77,13 +74,3 @@ class IgnoreViewsProcessor(private val delegate: Processor<AndroidSqlTable>) : P
   override fun process(t: AndroidSqlTable): Boolean = t.isView || delegate.process(t)
 }
 
-class IgnoreClassProcessor(private val toSkip: PsiClass, private val delegate: Processor<AndroidSqlTable>) : Processor<AndroidSqlTable> {
-  private val psiManager: PsiManager = PsiManager.getInstance(toSkip.project)
-
-  override fun process(t: AndroidSqlTable?): Boolean {
-    val definingClass = (t as? RoomTable)?.psiClass?.element ?: return true
-    // During code completion the two classes may not be equal, because the file being edited is copied for completion purposes. But they
-    // are equivalent according to the PsiManager.
-    return psiManager.areElementsEquivalent(definingClass, toSkip) || delegate.process(t)
-  }
-}
