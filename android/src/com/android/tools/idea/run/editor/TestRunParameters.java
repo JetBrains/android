@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpressions;
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.testartifacts.instrumented.AndroidInheritingClassBrowser;
@@ -40,21 +41,32 @@ import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.ide.util.PackageChooserDialog;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.EditorTextFieldWithBrowseButton;
+import com.intellij.ui.TextAccessor;
+import com.intellij.ui.UserActivityProviderComponent;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.containers.ContainerUtil;
+import java.awt.BorderLayout;
 import java.awt.Component;
+import java.util.List;
+import java.util.Optional;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunConfiguration> {
   private JRadioButton myAllInPackageTestButton;
@@ -63,21 +75,32 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   private JRadioButton myAllInModuleTestButton;
   private LabeledComponent<EditorTextFieldWithBrowseButton> myTestPackageComponent;
   private LabeledComponent<EditorTextFieldWithBrowseButton> myTestClassComponent;
-  private LabeledComponent<TextFieldWithBrowseButton> myTestMethodComponent;
-  private JPanel myPanel;
+  private LabeledComponent<SimpleEditorTextFieldWithBrowseButton> myTestMethodComponent;
+  private JPanel myContentPanel;
   private LabeledComponent<EditorTextFieldWithBrowseButton> myInstrumentationClassComponent;
   private JBLabel myLabelTest;
-  private LabeledComponent<EditorTextField> myInstrumentationArgsComponent;
+  private LabeledComponent<SimpleEditorTextFieldWithBrowseButton> myInstrumentationArgsComponent;
 
   private final Project myProject;
   private final ConfigurationModuleSelector myModuleSelector;
+  private final boolean isBuildWithGradle;
 
+  private final ContentWrapper myContentWrapper;
   private final BindingsManager myBindingsManager;
   private final SelectedRadioButtonProperty<Integer> mySelectedTestType;
+  private final TextProperty myTestPackage;
+  private final TextProperty myTestClass;
+  private final TextProperty myTestMethod;
+  private final TextProperty myInstrumentationClass;
+  private final TextProperty myInstrumentationArgs;
+
+  private boolean myIncludeGradleExtraParams = true;
+  private String myUserModifiedInstrumentationExtraParams = "";
 
   public TestRunParameters(Project project, ConfigurationModuleSelector moduleSelector) {
     myProject = project;
     myModuleSelector = moduleSelector;
+    isBuildWithGradle = GradleProjectInfo.getInstance(myProject).isBuildWithGradle();
 
     myBindingsManager = new BindingsManager();
     mySelectedTestType = new SelectedRadioButtonProperty<>(
@@ -96,7 +119,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
       protected String showDialog() {
         Module module = myModuleSelector.getModule();
         if (module == null) {
-          Messages.showErrorDialog(myPanel, ExecutionBundle.message("module.not.specified.error.text"));
+          Messages.showErrorDialog(myContentPanel, ExecutionBundle.message("module.not.specified.error.text"));
           return null;
         }
         final PackageChooserDialog dialog = new PackageChooserDialog(ExecutionBundle.message("choose.package.dialog.title"), module);
@@ -106,15 +129,18 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
         return aPackage != null ? aPackage.getQualifiedName() : null;
       }
     }.setField(testPackageEditorText);
+    myTestPackage = new TextProperty(testPackageEditorText.getChildComponent());
     myTestPackageComponent.setComponent(testPackageEditorText);
 
     EditorTextFieldWithBrowseButton testClassEditorText =
       new EditorTextFieldWithBrowseButton(project, true, new AndroidTestClassVisibilityChecker(moduleSelector));
-    new AndroidTestClassBrowser<EditorTextField>(project, moduleSelector, AndroidBundle.message("android.browse.test.class.dialog.title"), false).setField(testClassEditorText);
+    new AndroidTestClassBrowser<EditorTextField>(project, moduleSelector, AndroidBundle.message("android.browse.test.class.dialog.title"),
+                                                 false).setField(testClassEditorText);
+    myTestClass = new TextProperty(testClassEditorText.getChildComponent());
     myTestClassComponent.setComponent(testClassEditorText);
 
-    TextFieldWithBrowseButton testMethodEditorText = new TextFieldWithBrowseButton();
-    new BrowseModuleValueActionListener<JTextField>(myProject) {
+    SimpleEditorTextFieldWithBrowseButton testMethodEditorText = new SimpleEditorTextFieldWithBrowseButton();
+    new BrowseModuleValueActionListener<EditorTextField>(myProject) {
       @Override
       protected String showDialog() {
         final String className = myTestClassComponent.getComponent().getText();
@@ -139,54 +165,148 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
         return null;
       }
     }.setField(testMethodEditorText);
+    myTestMethod = new TextProperty(testMethodEditorText.getChildComponent());
     myTestMethodComponent.setComponent(testMethodEditorText);
 
-    EditorTextFieldWithBrowseButton instrClassEditorText =
-      new EditorTextFieldWithBrowseButton(
-        project,
-        true,
-        new AndroidInheritingClassVisibilityChecker(
-          myProject, moduleSelector, AndroidUtils.INSTRUMENTATION_RUNNER_BASE_CLASS));
+    EditorTextFieldWithBrowseButton instrClassEditorText = new EditorTextFieldWithBrowseButton(
+      project,
+      true,
+      new AndroidInheritingClassVisibilityChecker(myProject, moduleSelector, AndroidUtils.INSTRUMENTATION_RUNNER_BASE_CLASS));
     new AndroidInheritingClassBrowser<EditorTextField>(
       project, moduleSelector, AndroidUtils.INSTRUMENTATION_RUNNER_BASE_CLASS,
       AndroidBundle.message("android.browse.instrumentation.class.dialog.title"),
       true).setField(instrClassEditorText);
+    // Disable the instrumentation class selector component for Gradle based project because AGP doesn't allow
+    // users to define multiple <instrumentation> tag in their manifest. We just show the instrumentation
+    // runner specified in their gradle file as FYI.
+    instrClassEditorText.setEnabled(!isBuildWithGradle);
+    myInstrumentationClass = new TextProperty(instrClassEditorText.getChildComponent());
     myInstrumentationClassComponent.setComponent(instrClassEditorText);
 
-    myInstrumentationArgsComponent.setComponent(new EditorTextField());
+    SimpleEditorTextFieldWithBrowseButton instrArgsTextField = new SimpleEditorTextFieldWithBrowseButton();
+    new BrowseModuleValueActionListener<EditorTextField>(myProject) {
+      @Nullable
+      @Override
+      protected String showDialog() {
+        Module module = myModuleSelector.getModule();
+        if (module == null) {
+          Messages.showErrorDialog(myContentPanel, ExecutionBundle.message("module.not.specified.error.text"));
+          return null;
+        }
+        AndroidTestExtraParamsDialog dialog = new AndroidTestExtraParamsDialog(getProject(),
+                                                                               AndroidFacet.getInstance(module),
+                                                                               myInstrumentationArgs.get(),
+                                                                               myIncludeGradleExtraParams);
+        if (dialog.showAndGet()) {
+          myIncludeGradleExtraParams = dialog.getIncludeGradleExtraParams();
+          myUserModifiedInstrumentationExtraParams = dialog.getUserModifiedInstrumentationExtraParams();
+          myInstrumentationArgs.set(dialog.getInstrumentationExtraParams());
+          myContentWrapper.fireStateChanged();
+        }
+        return null;
+      }
+    }.setField(instrArgsTextField);
+    instrArgsTextField.getChildComponent().setEnabled(false);
+    myInstrumentationArgs = new TextProperty(instrArgsTextField.getChildComponent());
+    myInstrumentationArgsComponent.setComponent(instrArgsTextField);
 
-    // TODO(b/37132226): Revive instrumentation class runner and args in gradle project with revised UI.
-    myInstrumentationClassComponent.setVisible(!GradleProjectInfo.getInstance(myProject).isBuildWithGradle());
-    myInstrumentationArgsComponent.setVisible(!GradleProjectInfo.getInstance(myProject).isBuildWithGradle());
+    myContentWrapper = new ContentWrapper();
+    myContentWrapper.add(myContentPanel);
   }
 
   @Override
   public void applyTo(AndroidTestRunConfiguration configuration) {
     configuration.TESTING_TYPE = mySelectedTestType.get();
-    configuration.CLASS_NAME = myTestClassComponent.getComponent().getText();
-    configuration.METHOD_NAME = myTestMethodComponent.getComponent().getText();
-    configuration.PACKAGE_NAME = myTestPackageComponent.getComponent().getText();
-    configuration.INSTRUMENTATION_RUNNER_CLASS = myInstrumentationClassComponent.getComponent().getText();
-    configuration.EXTRA_OPTIONS = myInstrumentationArgsComponent.getComponent().getText().trim();
+    configuration.PACKAGE_NAME = myTestPackage.get();
+    configuration.CLASS_NAME = myTestClass.get();
+    configuration.METHOD_NAME = myTestMethod.get();
+    configuration.INSTRUMENTATION_RUNNER_CLASS = isBuildWithGradle ? "" : myInstrumentationClass.get();
+    configuration.EXTRA_OPTIONS = myUserModifiedInstrumentationExtraParams;
+    configuration.INCLUDE_GRADLE_EXTRA_OPTIONS = myIncludeGradleExtraParams;
   }
 
   @Override
   public void resetFrom(AndroidTestRunConfiguration configuration) {
+    AndroidFacet androidFacet = Optional.ofNullable(myModuleSelector.getModule())
+      .map(AndroidFacet::getInstance)
+      .orElse(null);
+
     mySelectedTestType.set(configuration.TESTING_TYPE);
-    myTestPackageComponent.getComponent().setText(configuration.PACKAGE_NAME);
-    myTestClassComponent.getComponent().setText(configuration.CLASS_NAME);
-    myTestMethodComponent.getComponent().setText(configuration.METHOD_NAME);
-    myInstrumentationClassComponent.getComponent().setText(configuration.INSTRUMENTATION_RUNNER_CLASS);
-    myInstrumentationArgsComponent.getComponent().setText(configuration.EXTRA_OPTIONS);
+    myTestPackage.set(configuration.PACKAGE_NAME);
+    myTestClass.set(configuration.CLASS_NAME);
+    myTestMethod.set(configuration.METHOD_NAME);
+    myInstrumentationClass.set(
+      isBuildWithGradle
+      ? AndroidTestRunConfiguration.getDefaultInstrumentationRunner(androidFacet)
+      : configuration.INSTRUMENTATION_RUNNER_CLASS);
+    myInstrumentationArgs.set(configuration.getExtraInstrumentationOptions(androidFacet));
+    myIncludeGradleExtraParams = configuration.INCLUDE_GRADLE_EXTRA_OPTIONS;
   }
 
   @Override
   public Component getComponent() {
-    return myPanel;
+    return myContentWrapper;
   }
 
   @Override
   public void dispose() {
     myBindingsManager.releaseAll();
+  }
+
+  /**
+   * Wraps content UI components and provides {@link UserActivityProviderComponent} interface.
+   * <p>
+   * {@link TestRunParameters} form is designed to be used in {@link com.intellij.openapi.options.SettingsEditor} and the editor
+   * traverses its view hierarchy and searches for {@link UserActivityProviderComponent}. In order to notify the editor any changes
+   * made in the form manually by {@link #fireStateChanged()}, we need to wrap our content by this class.
+   */
+  private static class ContentWrapper extends JPanel implements UserActivityProviderComponent {
+
+    private final List<ChangeListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
+
+    private ContentWrapper() {
+      super(new BorderLayout());
+    }
+
+    @Override
+    public void addChangeListener(@NotNull ChangeListener changeListener) {
+      myListeners.add(changeListener);
+    }
+
+    @Override
+    public void removeChangeListener(@NotNull ChangeListener changeListener) {
+      myListeners.remove(changeListener);
+    }
+
+    /**
+     * Notifies the listeners the state has been updated.
+     */
+    public void fireStateChanged() {
+      for (ChangeListener listener : myListeners) {
+        listener.stateChanged(new ChangeEvent(this));
+      }
+    }
+  }
+
+  /**
+   * Simplified version of {@link EditorTextFieldWithBrowseButton}.
+   * <p>
+   * A plain {@link EditorTextField} is used as an internal text component.
+   */
+  private static class SimpleEditorTextFieldWithBrowseButton extends ComponentWithBrowseButton<EditorTextField> implements TextAccessor {
+    SimpleEditorTextFieldWithBrowseButton() {
+      super(new EditorTextField(), null);
+    }
+
+    @Override
+    public void setText(String text) {
+      getChildComponent().setText(StringUtil.notNullize(text));
+    }
+
+    @NotNull
+    @Override
+    public String getText() {
+      return getChildComponent().getText();
+    }
   }
 }
