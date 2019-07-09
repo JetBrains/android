@@ -17,11 +17,9 @@ package com.android.tools.idea.editors.strings;
 
 import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
 
 final class VirtualFiles {
   private VirtualFiles() {
@@ -32,6 +30,6 @@ final class VirtualFiles {
    */
   @NotNull
   static String toString(@NotNull VirtualFile file, @NotNull Project project) {
-    return Strings.nullToEmpty(VfsUtilCore.getRelativePath(file, project.getBaseDir(), File.separatorChar));
+    return Strings.nullToEmpty(FileUtil.getRelativePath(project.getBasePath(), file.getPath(), '/'));
   }
 }
