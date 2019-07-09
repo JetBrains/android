@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.room.update;
+package com.android.tools.idea.room.migrations.update;
 
-import com.android.tools.idea.room.bundle.DatabaseBundle;
-import com.android.tools.idea.room.bundle.EntityBundle;
+import com.android.tools.idea.room.migrations.json.DatabaseBundle;
+import com.android.tools.idea.room.migrations.json.EntityBundle;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
