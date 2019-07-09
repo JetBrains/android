@@ -36,7 +36,6 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.ui.EditorNotifications;
-import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
@@ -79,7 +78,7 @@ public class GradleFiles {
     @Override
     public void runActivity(@NotNull Project project) {
       // Populate build file hashes on project startup.
-      getInstance(project).updateFileHashes();
+      ApplicationManager.getApplication().executeOnPooledThread(() -> getInstance(project).updateFileHashes());
     }
   }
 
@@ -161,7 +160,7 @@ public class GradleFiles {
   }
 
   private void putHashForFile(@NotNull Map<VirtualFile, Integer> map, @NotNull VirtualFile file) {
-    Integer hash = computeHash(file);
+    Integer hash = ReadAction.compute(() -> computeHash(file));
     if (hash != null) {
       map.put(file, hash);
     }
@@ -278,13 +277,12 @@ public class GradleFiles {
     List<VirtualFile> externalBuildFiles = new ArrayList<>();
 
     List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(myProject).getModules());
-    JobLauncher jobLauncher = JobLauncher.getInstance();
-    Processor<Module> processor = (module) -> {
+    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, null, false, false, (module) -> {
       VirtualFile buildFile = getGradleBuildFile(module);
       if (buildFile != null) {
         File path = VfsUtilCore.virtualToIoFile(buildFile);
         if (path.isFile()) {
-          ReadAction.run(() -> putHashForFile(fileHashes, buildFile));
+          putHashForFile(fileHashes, buildFile);
         }
       }
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
@@ -295,20 +293,13 @@ public class GradleFiles {
             VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
             externalBuildFiles.add(virtualFile);
             if (virtualFile != null) {
-              ReadAction.run(() -> putHashForFile(fileHashes, virtualFile));
+              putHashForFile(fileHashes, virtualFile);
             }
           }
         }
       }
       return true;
-    };
-    if (ApplicationManager.getApplication().isUnitTestMode() || ApplicationManager.getApplication().isHeadlessEnvironment()){
-      for(Module module: modules) {
-        processor.process(module);
-      }
-    } else {
-      jobLauncher.invokeConcurrentlyUnderProgress(modules, null, false, false, processor);
-    }
+    });
 
     storeExternalBuildFiles(externalBuildFiles);
 
@@ -391,17 +382,10 @@ public class GradleFiles {
       if (!project.isInitialized() && project.equals(myProject)) {
         return;
       }
-
-      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
         updateFileHashes();
         removeChangedFiles();
-      }
-      else {
-        ApplicationManager.getApplication().runReadAction(() -> {
-          updateFileHashes();
-          removeChangedFiles();
-        });
-      }
+      });
     }
   }
 
