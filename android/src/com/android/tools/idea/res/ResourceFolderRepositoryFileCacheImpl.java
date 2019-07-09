@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import static com.android.tools.idea.res.AndroidPluginVersion.getAndroidPluginVersion;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.caches.CachesInvalidator;
 import com.intellij.openapi.application.ApplicationManager;
@@ -31,23 +32,18 @@ import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.ContainerUtil;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -60,14 +56,14 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   private static final String CACHE_DIRECTORY = "caches/project_resources";
   private static final String INVALIDATE_CACHE_STAMP = "invalidate_caches_stamp.dat";
 
-  @NotNull private final File myRootDir;
+  @NotNull private final Path myRootDir;
 
   ResourceFolderRepositoryFileCacheImpl() {
-    myRootDir = new File(PathManager.getSystemPath(), CACHE_DIRECTORY);
+    myRootDir = Paths.get(PathManager.getSystemPath()).resolve(CACHE_DIRECTORY);
   }
 
-  ResourceFolderRepositoryFileCacheImpl(@NotNull File rootDirParent) {
-    myRootDir = new File(rootDirParent, CACHE_DIRECTORY);
+  ResourceFolderRepositoryFileCacheImpl(@NotNull Path rootDirParent) {
+    myRootDir = rootDirParent.resolve(CACHE_DIRECTORY);
   }
 
   private static Logger getLogger() {
@@ -76,19 +72,18 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
   @Override
   @Nullable
-  public ResourceFolderRepositoryCachingData getCachingData(@NotNull Project project,
-                                                            @NotNull VirtualFile resourceDir,
-                                                            @Nullable Executor cacheCreationExecutor) {
+  public ResourceFolderRepositoryCachingData getCachingData(
+      @NotNull Project project, @NotNull VirtualFile resourceDir, @Nullable Executor cacheCreationExecutor) {
     String codeVersion = getAndroidPluginVersion();
     if (codeVersion == null) {
       return null;
     }
 
-    File cacheFile = getCacheFile(project, resourceDir);
+    Path cacheFile = getCacheFile(project, resourceDir);
     if (cacheFile == null) {
       return null;
     }
-    return new ResourceFolderRepositoryCachingData(cacheFile.toPath(), isValid(), codeVersion, cacheCreationExecutor);
+    return new ResourceFolderRepositoryCachingData(cacheFile, isValid(), codeVersion, cacheCreationExecutor);
   }
 
   @Override
@@ -101,39 +96,33 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   }
 
   @Nullable
-  private File getCacheFile(@NotNull Project project, @NotNull VirtualFile resourceDir) {
+  private Path getCacheFile(@NotNull Project project, @NotNull VirtualFile resourceDir) {
     // If directory is dirty, we cannot use the cache yet.
     if (!isValid()) {
       return null;
     }
-    // Make up filename with hashCodes. Try to tolerate hash collisions:
+    // Make up filename with hash codes. Try to tolerate hash collisions:
     // The cache file contents will list the original resourceDir as data source, so a potential
     // hash collision will be detected during loading and the cache file will be ignored.
     Path projectComponent = getProjectDir(project);
     if (projectComponent == null) {
       return null;
     }
-    String dirComponent = FileUtil.sanitizeFileName(resourceDir.getParent().getName() + "_" +
-                                                    Integer.toHexString(resourceDir.hashCode()));
-    return projectComponent.resolve(dirComponent).toFile();
+    String dirComponent =
+        FileUtil.sanitizeFileName(resourceDir.getParent().getName()) + '_' + Integer.toHexString(resourceDir.hashCode()) + ".bin";
+    return projectComponent.resolve(dirComponent);
   }
 
   @Nullable
   @VisibleForTesting
-  File getRootDir() {
-    File cacheRootDir = myRootDir;
-    if (!cacheRootDir.exists()) {
-      // If this is the first time the root directory is created, stamp it with a version.
-      if (!cacheRootDir.mkdirs()) {
-        getLogger().error(String.format("Failed to create cache root directory %1$s", cacheRootDir));
-        return null;
-      }
+  Path getRootDir() {
+    try {
+      return Files.createDirectories(myRootDir);
     }
-    if (!cacheRootDir.isDirectory()) {
-      getLogger().error(String.format("Cache root dir %1$s is not a directory", cacheRootDir));
+    catch (IOException e) {
+      getLogger().error("Failed to create cache root directory " + myRootDir);
       return null;
     }
-    return cacheRootDir;
   }
 
   /**
@@ -145,11 +134,11 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   @VisibleForTesting
   @Nullable
   Path getProjectDir(@NotNull Project project) {
-    File rootDir = getRootDir();
+    Path rootDir = getRootDir();
     if (rootDir == null) {
       return null;
     }
-    return ProjectUtil.getProjectCachePath(project, rootDir.toPath());
+    return ProjectUtil.getProjectCachePath(project, rootDir);
   }
 
   @Override
@@ -157,19 +146,16 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     if (!isValid()) {
       return;
     }
-    File rootDir = getRootDir();
+    Path rootDir = getRootDir();
     if (rootDir == null) {
       return;
     }
-    File stamp = new File(rootDir, INVALIDATE_CACHE_STAMP);
-    String errMsg = "Failed to write cache invalidating stamp file " + stamp;
+    Path stampFile = rootDir.resolve(INVALIDATE_CACHE_STAMP);
     try {
-      if (!stamp.createNewFile()) {
-        getLogger().error(errMsg);
-      }
+      Files.createFile(stampFile);
     }
     catch (IOException e) {
-      getLogger().error(errMsg, e);
+      getLogger().error("Failed to write cache invalidating stamp file " + stampFile, e);
     }
   }
 
@@ -178,24 +164,23 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
    */
   @VisibleForTesting
   void delete() {
-    File cacheRootDir = getRootDir();
-    if (cacheRootDir == null) {
+    Path rootDir = getRootDir();
+    if (rootDir == null) {
       return;
     }
     // First delete all the subdirectories except for the stamp.
-    File[] subCaches = cacheRootDir.listFiles();
-    if (subCaches == null) {
-      return;
+    try {
+      Files.list(rootDir).forEach(subCache -> {
+        if (!subCache.getFileName().toString().equals(INVALIDATE_CACHE_STAMP)) {
+          FileUtil.delete(subCache.toFile());
+        }
+      });
     }
-    File stamp = new File(cacheRootDir, INVALIDATE_CACHE_STAMP);
-    for (File subCache : subCaches) {
-      if (!FileUtil.filesEqual(stamp, subCache)) {
-        FileUtil.delete(subCache);
-      }
+    catch (IOException ignored) {
     }
 
     // Finally, delete the stamp and the directory.
-    FileUtil.delete(cacheRootDir);
+    FileUtil.delete(rootDir.toFile());
   }
 
   /**
@@ -203,12 +188,12 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
    */
   @VisibleForTesting
   boolean isValid() {
-    File rootDir = getRootDir();
+    Path rootDir = getRootDir();
     if (rootDir == null) {
       return false;
     }
-    File stamp = new File(rootDir, INVALIDATE_CACHE_STAMP);
-    return !stamp.exists();
+    Path stampFile = rootDir.resolve(INVALIDATE_CACHE_STAMP);
+    return Files.notExists(stampFile);
   }
 
   /**
@@ -222,7 +207,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     @NotNull private final Project myProject;
 
     private final static Object PROJECT_LRU_LOCK = new Object();
-    private static final String LRU_FILE = "project_lru_list.dat";
+    private static final String LRU_FILE = "project_lru_list.txt";
 
     private static final int MAX_PROJECT_CACHES = 12;
 
@@ -242,7 +227,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     void maintainLruCache(int maxProjectCaches) {
       assert maxProjectCaches > 0;
       ResourceFolderRepositoryFileCacheImpl cache = getCache();
-      File cacheRootDir = cache.getRootDir();
+      Path cacheRootDir = cache.getRootDir();
       if (cacheRootDir == null) {
         return;
       }
@@ -254,8 +239,8 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
       synchronized (PROJECT_LRU_LOCK) {
         try {
-          List<File> projectsList = loadListOfProjectCaches(cacheRootDir);
-          List<File> projectsToRemove = updateLruList(myProject, projectsList, maxProjectCaches);
+          List<String> projectsList = loadListOfProjectCaches(cacheRootDir);
+          List<String> projectsToRemove = updateLruList(myProject, projectsList, maxProjectCaches);
           pruneOldProjects(cacheRootDir, projectsToRemove);
           writeListOfProjectCaches(cacheRootDir, projectsList);
         }
@@ -267,61 +252,48 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
     @VisibleForTesting
     @NotNull
-    static List<File> loadListOfProjectCaches(@NotNull File cacheRootDir) throws IOException {
-      File lruFile = new File(cacheRootDir, LRU_FILE);
-      try (ObjectInputStream stream = new ObjectInputStream(new FileInputStream(lruFile))) {
-        return (List<File>)stream.readObject();
+    static List<String> loadListOfProjectCaches(@NotNull Path cacheRootDir) throws IOException {
+      Path lruFile = cacheRootDir.resolve(LRU_FILE);
+      try {
+        return Files.readAllLines(lruFile).stream().map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toList());
       }
-      catch (FileNotFoundException e) {
+      catch (NoSuchFileException e) {
         return new ArrayList<>();
       }
-      catch (ClassNotFoundException e) {
-        throw new IOException(e);
-      }
-      catch (ClassCastException e) {
-        throw new IOException(e);
-      }
     }
 
     @VisibleForTesting
-    static void writeListOfProjectCaches(@NotNull File cacheRootDir, List<File> projectsList) throws IOException {
-      File lruFile = new File(cacheRootDir, LRU_FILE);
-      try (ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream(lruFile))) {
-        stream.writeObject(projectsList);
-      }
+    static void writeListOfProjectCaches(@NotNull Path cacheRootDir, @NotNull List<String> projectsList) throws IOException {
+      Path lruFile = cacheRootDir.resolve(LRU_FILE);
+      Files.write(lruFile, projectsList);
     }
 
     @VisibleForTesting
-    static List<File> updateLruList(@NotNull Project currentProject, @NotNull List<File> projectsList, int maxProjectCaches) {
-      List<File> projectsToRemove = new ArrayList<>();
+    static List<String> updateLruList(@NotNull Project currentProject, @NotNull List<String> projectsList, int maxProjectCaches) {
+      List<String> projectsToRemove = new ArrayList<>();
       Path currentProjectPath = getCache().getProjectDir(currentProject);
       if (currentProjectPath == null) {
         return projectsToRemove;
       }
 
-      File currentProjectDir = currentProjectPath.toFile();
+      String currentProjectDir = currentProjectPath.getFileName().toString();
       projectsList.remove(currentProjectDir);
       projectsList.add(0, currentProjectDir);
-      for (int i = projectsList.size() - 1; i >= maxProjectCaches && i >= 0; --i) {
+      for (int i = projectsList.size(); --i >= maxProjectCaches;) {
         projectsToRemove.add(projectsList.remove(i));
       }
       return projectsToRemove;
     }
 
-    private static void pruneOldProjects(@NotNull File cacheRootDir, @NotNull List<File> projectsToRemove) {
-      // Only attempt to remove directories that are a sub dir of the root.
-      File[] subCaches = cacheRootDir.listFiles();
-      if (subCaches == null) {
-        getLogger().error(String.format("Cache root %1$s is not a directory", cacheRootDir));
-        return;
-      }
-      List<File> subCacheList = Arrays.asList(subCaches);
-      for (File projectDir : projectsToRemove) {
-        if (!subCacheList.contains(projectDir)) {
-          continue;
-        }
-        if (!FileUtil.delete(projectDir)) {
-          getLogger().error(String.format("Failed to prune dir %1$s", projectDir));
+    private static void pruneOldProjects(@NotNull Path cacheRootDir, @NotNull List<String> childNames) {
+      // Only attempt to remove directories that are subdirectories of the root.
+      for (String child : childNames) {
+        Preconditions.checkArgument(!child.isEmpty());
+        Path path = cacheRootDir.resolve(child);
+        if (!FileUtil.delete(path.toFile())) {
+          if (Files.exists(path)) {
+            getLogger().error("Failed to prune directory " + path);
+          }
         }
       }
     }
@@ -356,22 +328,22 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       }
       List<AndroidFacet> facets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID);
       Map<VirtualFile, AndroidFacet> resDirectories = AndroidResourceUtil.getResourceDirectoriesForFacets(facets);
-      Set<File> usedCacheDirectories = new HashSet<>();
+      Set<Path> usedCacheDirectories = new HashSet<>();
       for (VirtualFile resourceDir : resDirectories.keySet()) {
-        File dir = cache.getCacheFile(myProject, resourceDir);
-        ContainerUtil.addIfNotNull(usedCacheDirectories, dir);
-      }
-      File[] cacheFiles = projectCacheBase.toFile().listFiles();
-      if (cacheFiles == null) {
-        getLogger().error("Failed to prune cache files from " + projectCacheBase);
-        return;
-      }
-      for (File child : cacheFiles) {
-        if (!usedCacheDirectories.contains(child)) {
-          if (!FileUtil.delete(child)) {
-            getLogger().error("Failed to prune child " + child);
-          }
+        Path dir = cache.getCacheFile(myProject, resourceDir);
+        if (dir != null) {
+          usedCacheDirectories.add(dir);
         }
+      }
+      try {
+        Files.list(projectCacheBase).forEach(file -> {
+          if (!usedCacheDirectories.contains(file) && !FileUtil.delete(file.toFile())) {
+            getLogger().error("Failed to delete " + file);
+          }
+        });
+      }
+      catch (IOException e) {
+        getLogger().error("Failed to prune cache files from " + projectCacheBase);
       }
     }
   }
