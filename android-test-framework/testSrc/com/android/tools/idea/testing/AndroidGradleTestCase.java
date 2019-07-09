@@ -52,6 +52,7 @@ import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -65,6 +66,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -349,7 +351,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @NotNull
   protected String getTextForFile(@NotNull String relativePath) {
     Project project = getProject();
-    VirtualFile file = project.getBaseDir().findFileByRelativePath(relativePath);
+    VirtualFile file = VfsUtil.findFile(Paths.get(project.getBasePath(), relativePath), false);
     if (file != null) {
       PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
       if (psiFile != null) {
