@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.androidSql.room
+package com.android.tools.idea.lang.androidSql
 
 import com.intellij.openapi.util.Condition
 import com.intellij.psi.PsiElement
@@ -27,7 +27,7 @@ import com.intellij.psi.PsiManager
  * In such cases we wrap original element into [NotRenamableElement]
  * e.g see [com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumnPsiReference.resolve].
  */
-class RoomRenameVetoCondition : Condition<PsiElement> {
+class AndroidSqlRenameVetoCondition : Condition<PsiElement> {
 
   override fun value(psiElement: PsiElement): Boolean {
     return psiElement is NotRenamableElement
@@ -37,7 +37,7 @@ class RoomRenameVetoCondition : Condition<PsiElement> {
 /**
  * Wrapper for [PsiElement] that prevents renaming from reference that resolves to it.
  */
-class NotRenamableElement(val delegate:PsiElement): PsiElement by delegate {
+internal class NotRenamableElement(val delegate:PsiElement): PsiElement by delegate {
   override fun isEquivalentTo(another: PsiElement?): Boolean {
     return PsiManager.getInstance(delegate.project)
       .areElementsEquivalent(delegate, if (another is NotRenamableElement) another.delegate else another)

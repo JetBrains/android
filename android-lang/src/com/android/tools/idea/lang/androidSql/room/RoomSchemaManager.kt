@@ -20,6 +20,8 @@ import com.android.tools.idea.kotlin.findAnnotation
 import com.android.tools.idea.kotlin.findArgumentExpression
 import com.android.tools.idea.kotlin.tryEvaluateConstant
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumn
+import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES
+import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES_FOR_FTS
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getScopeType

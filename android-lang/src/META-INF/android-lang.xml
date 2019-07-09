@@ -17,6 +17,11 @@
 
   <depends>org.intellij.intelliLang</depends>
 
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.lang.androidSql.contextProvider"
+                    interface="com.android.tools.idea.lang.androidSql.AndroidSqlContext$Provider"/>
+  </extensionPoints>
+
   <extensions defaultExtensionNs="com.intellij">
     <!-- Android IDL support -->
     <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
@@ -64,17 +69,8 @@
                      shortName="AndroidUnresolvedRoomSqlReference"
                      enabledByDefault="true"
                      level="ERROR"
-                     implementationClass="com.android.tools.idea.lang.androidSql.RoomUnresolvedReferenceInspection"
+                     implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlUnresolvedReferenceInspection"
                      displayName="Unresolved reference in Room SQL"/>
-
-    <localInspection groupPath="Android"
-                     groupName="Room"
-                     language="RoomSql"
-                     shortName="AndroidRoomQuestionMarkBindParameter"
-                     enabledByDefault="true"
-                     level="ERROR"
-                     implementationClass="com.android.tools.idea.lang.androidSql.RoomBindParameterSyntaxInspection"
-                     displayName="'?' used as parameter in a Room query."/>
 
     <lang.braceMatcher language="RoomSql" implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlPairedBraceMatcher"/>
     <lang.quoteHandler language="RoomSql" implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlQuoteHandler"/>
@@ -83,12 +79,24 @@
     <moduleService serviceImplementation="com.android.tools.idea.lang.androidSql.room.RoomSchemaManager"/>
     <projectService serviceImplementation="com.android.tools.idea.lang.androidSql.room.RoomDependencyChecker"/>
     <referencesSearch implementation="com.android.tools.idea.lang.androidSql.room.RoomReferenceSearchExecutor"/>
-    <vetoRenameCondition implementation="com.android.tools.idea.lang.androidSql.room.RoomRenameVetoCondition"/>
+    <vetoRenameCondition implementation="com.android.tools.idea.lang.androidSql.AndroidSqlRenameVetoCondition"/>
+    <localInspection groupPath="Android"
+                     groupName="Room"
+                     language="RoomSql"
+                     shortName="AndroidRoomQuestionMarkBindParameter"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.android.tools.idea.lang.androidSql.room.RoomBindParameterSyntaxInspection"
+                     displayName="'?' used as parameter in a Room query."/>
 
     <!-- Multidex keep files support -->
     <fileTypeFactory implementation="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepFileTypeFactory"/>
     <lang.parserDefinition language="MultiDexKeep" implementationClass="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepParserDefinition"/>
 
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.lang.androidSql">
+    <contextProvider implementation="com.android.tools.idea.lang.androidSql.room.RoomSqlContext$Provider" />
   </extensions>
 
   <extensions defaultExtensionNs="org.intellij.intelliLang">

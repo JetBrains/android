@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.androidSql.resolution
 
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlColumnDefinitionName
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlWithClauseTable
 import com.intellij.psi.PsiElement
 import com.intellij.util.Processor
@@ -31,5 +32,10 @@ class WithClauseTable(withClauseTable: AndroidSqlWithClauseTable) : AndroidSqlTa
     }
 
     return true
+  }
+
+  private class DefinedColumn(override val definingElement: AndroidSqlColumnDefinitionName) : AndroidSqlColumn {
+    override val name get() = definingElement.nameAsString
+    override val type: SqlType? get() = null
   }
 }

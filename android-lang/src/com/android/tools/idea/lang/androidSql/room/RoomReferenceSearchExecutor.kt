@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.androidSql.room
 
+import com.android.tools.idea.lang.androidSql.NotRenamableElement
 import com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlFindUsagesProvider
 import com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlNameElementManipulator
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumn

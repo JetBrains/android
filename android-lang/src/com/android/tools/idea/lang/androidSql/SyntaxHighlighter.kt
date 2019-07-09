@@ -240,7 +240,7 @@ private enum class AndroidSqlTextAttributes(fallback: TextAttributesKey) {
   IDENTIFIER(DefaultLanguageHighlighterColors.IDENTIFIER),
   ;
 
-  val key = TextAttributesKey.createTextAttributesKey("ROOM_SQL_$name", fallback)
+  val key = TextAttributesKey.createTextAttributesKey("ANDROID_SQL_$name", fallback)
   val keys = arrayOf(key)
 }
 
