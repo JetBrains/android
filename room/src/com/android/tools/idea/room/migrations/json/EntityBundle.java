@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.room.bundle;
+package com.android.tools.idea.room.migrations.json;
 
-import static com.android.tools.idea.room.bundle.SchemaEqualityUtil.checkSchemaEquality;
+import static com.android.tools.idea.room.migrations.json.SchemaEqualityUtil.checkSchemaEquality;
 
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;

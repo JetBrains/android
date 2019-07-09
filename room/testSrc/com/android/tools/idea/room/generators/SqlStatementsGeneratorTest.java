@@ -20,11 +20,12 @@ import static com.android.tools.idea.room.generators.TestUtils.createEntityBundl
 import static com.android.tools.idea.room.generators.TestUtils.createFieldBundle;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.room.bundle.DatabaseBundle;
-import com.android.tools.idea.room.bundle.EntityBundle;
-import com.android.tools.idea.room.bundle.FieldBundle;
-import com.android.tools.idea.room.update.DatabaseUpdate;
-import com.android.tools.idea.room.update.EntityUpdate;
+import com.android.tools.idea.room.migrations.json.DatabaseBundle;
+import com.android.tools.idea.room.migrations.json.EntityBundle;
+import com.android.tools.idea.room.migrations.json.FieldBundle;
+import com.android.tools.idea.room.migrations.generators.SqlStatementsGenerator;
+import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
+import com.android.tools.idea.room.migrations.update.EntityUpdate;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Before;
