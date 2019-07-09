@@ -23,7 +23,6 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.naveditor.model.NavComponentHelper
@@ -77,7 +76,7 @@ object NavModelBuilderUtil {
       `when`(sceneView.selectionModel).thenReturn(selectionModel)
       `when`<DesignSurface>(sceneView.surface).thenReturn(surface)
 
-      `when`<SceneView>(surface.currentSceneView).thenReturn(sceneView)
+      `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
 
       NavSceneManager(model, surface)
     }

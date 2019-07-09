@@ -42,7 +42,7 @@ object ActionDecorator : NavBaseDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     val nlComponent = component.nlComponent
     val color = actionColor(component)
-    val view = component.scene.designSurface.currentSceneView ?: return
+    val view = component.scene.designSurface.focusedSceneView ?: return
     val actionType = nlComponent.getActionType(component.scene.root?.nlComponent)
     val isPopAction = nlComponent.popUpTo != null
     val scale = sceneContext.scale.toFloat()

@@ -29,7 +29,7 @@ open class NavDestinationHitProvider : DefaultHitProvider() {
   override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
     super.addHit(component, sceneTransform, picker)
 
-    val sceneView = sceneTransform.surface?.currentSceneView ?: return
+    val sceneView = sceneTransform.surface?.focusedSceneView ?: return
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
 
     val headerRect = getHeaderRect(sceneView, drawRectangle)

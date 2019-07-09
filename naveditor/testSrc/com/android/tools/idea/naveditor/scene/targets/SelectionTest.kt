@@ -46,7 +46,7 @@ class SelectionTest : NavTestCase() {
     }
     val surface = model.surface as NavDesignSurface
     val sceneView = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.currentSceneView).thenReturn(sceneView)
+    `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
     `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(sceneView)
 
     val scene = model.surface.scene!!

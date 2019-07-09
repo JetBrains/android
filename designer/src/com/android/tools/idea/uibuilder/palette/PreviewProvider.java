@@ -238,7 +238,7 @@ public class PreviewProvider implements Disposable {
   @Nullable
   private SceneView getSceneView() {
     DesignSurface surface = myDesignSurfaceSupplier.get();
-    return surface != null ? surface.getCurrentSceneView() : null;
+    return surface != null ? surface.getFocusedSceneView() : null;
   }
 
   @Nullable

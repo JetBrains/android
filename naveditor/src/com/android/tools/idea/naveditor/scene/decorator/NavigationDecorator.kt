@@ -40,7 +40,7 @@ object NavigationDecorator : NavBaseDecorator() {
       return
     }
 
-    val sceneView = sceneContext.surface?.currentSceneView ?: return
+    val sceneView = sceneContext.surface?.focusedSceneView ?: return
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
     addHeader(list, sceneView, drawRectangle, component)
 

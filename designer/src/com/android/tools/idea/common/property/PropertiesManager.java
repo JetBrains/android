@@ -154,7 +154,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
     }
     else {
       mySurface.addListener(this);
-      SceneView sceneView = mySurface.getCurrentSceneView();
+      SceneView sceneView = mySurface.getFocusedSceneView();
       setSceneView(sceneView);
       List<NlComponent> selection = sceneView != null ?
                                     sceneView.getSelectionModel().getSelection() : Collections.emptyList();
@@ -268,7 +268,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
     if (mySurface == null) {
       return Collections.emptyMap();
     }
-    SceneView view = mySurface.getCurrentSceneView();
+    SceneView view = mySurface.getFocusedSceneView();
     if (view == null) {
       return Collections.emptyMap();
     }
@@ -308,7 +308,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
     if (mySurface == null) {
       return null;
     }
-    SceneView view = mySurface.getCurrentSceneView();
+    SceneView view = mySurface.getFocusedSceneView();
     if (view == null) {
       return null;
     }
