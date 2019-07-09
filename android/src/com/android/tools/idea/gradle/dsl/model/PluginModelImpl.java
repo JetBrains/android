@@ -19,11 +19,12 @@ import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
-import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,13 +44,22 @@ public class PluginModelImpl implements PluginModel {
   private final GradleDslSimpleExpression myDslElement;
 
   @NotNull
-  public static List<PluginModelImpl> create(@NotNull ApplyDslElement dslElement) {
+  public static List<PluginModelImpl> create(@NotNull GradlePropertiesDslElement dslElement) {
     List<GradleDslElement> elements = dslElement.getAllPropertyElements();
     List<PluginModelImpl> results = new ArrayList<>();
 
     for (GradleDslElement e : elements) {
       if (e instanceof GradleDslSimpleExpression) {
-        results.add(new PluginModelImpl(e, (GradleDslSimpleExpression)e));
+        if (e instanceof GradleDslMethodCall) {
+          GradleDslMethodCall element = (GradleDslMethodCall)e;
+          GradleDslExpressionList elementArguments = element.getArgumentsElement();
+          for(GradleDslSimpleExpression item : elementArguments.getSimpleExpressions()) {
+            results.add(new PluginModelImpl(e, item));
+          }
+        }
+        else {
+          results.add(new PluginModelImpl(e, (GradleDslSimpleExpression)e));
+        }
       }
       else if (e instanceof GradleDslExpressionMap) {
         GradleDslElement element = ((GradleDslExpressionMap)e).getElement(PLUGIN);
@@ -68,9 +78,9 @@ public class PluginModelImpl implements PluginModel {
     return results;
   }
 
-  public static Map<String, PluginModel> deduplicatePlugins(@NotNull List<PluginModelImpl> models) {
-    Map<String, PluginModel> modelMap = new LinkedHashMap<>();
-    for (PluginModel model : models) {
+  public static Map<String, PluginModelImpl> deduplicatePlugins(@NotNull List<PluginModelImpl> models) {
+    Map<String, PluginModelImpl> modelMap = new LinkedHashMap<>();
+    for (PluginModelImpl model : models) {
       ResolvedPropertyModel propertyModel = model.name();
       if (propertyModel.getValueType() == STRING) {
         modelMap.put(propertyModel.forceString(), model);
