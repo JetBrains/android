@@ -51,14 +51,22 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertThat(runner.getAmInstrumentCommand()).contains("-e foo bar");
   }
 
-  // @Ignore("Re-enable this after b/37132226 is fixed")
-  public void /*test*/RunnerArgumentsSetByGradleCanBeOverridden() throws Exception {
+  public void testRunnerArgumentsSetByGradleCanBeOverridden() throws Exception {
     loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS);
     AndroidTestRunConfiguration config = createConfigFromClass("com.android.runnerarguments.ExampleInstrumentationTest");
-    config.EXTRA_OPTIONS = "-e new_option true";
+    config.EXTRA_OPTIONS = "-e new_option true -e size large";
 
     RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner(config);
     assertThat(runner.getAmInstrumentCommand()).contains("-e new_option true");
+    assertThat(runner.getAmInstrumentCommand()).contains("-e size large");
+    assertThat(runner.getAmInstrumentCommand()).contains("-e foo bar");
+    assertThat(runner.getAmInstrumentCommand()).doesNotContain("-e size medium");
+
+    // By disabling include-gradle-extra-options, all gradle defined params will be ignored.
+    config.INCLUDE_GRADLE_EXTRA_OPTIONS = false;
+    runner = createRemoteAndroidTestRunner(config);
+    assertThat(runner.getAmInstrumentCommand()).contains("-e new_option true");
+    assertThat(runner.getAmInstrumentCommand()).contains("-e size large");
     assertThat(runner.getAmInstrumentCommand()).doesNotContain("-e size medium");
     assertThat(runner.getAmInstrumentCommand()).doesNotContain("-e foo bar");
   }
@@ -70,8 +78,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertThat(runner.getRunnerName()).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
   }
 
-  // @Ignore("Re-enable this after b/37132226 is fixed")
-  public void /*test*/RunnerObtainedFromGradleCanBeOverridden() throws Exception {
+  public void testRunnerObtainedFromGradleCanBeOverridden() throws Exception {
     loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
     AndroidTestRunConfiguration config = createConfigFromClass("google.testapplication.ApplicationTest");
     config.INSTRUMENTATION_RUNNER_CLASS = "my.awesome.CustomTestRunner";
@@ -109,7 +116,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     LaunchTask task = config.getApplicationLaunchTask(applicationIdProvider, myAndroidFacet, "", false, launchStatus);
     assertThat(task).isInstanceOf(AndroidTestApplicationLaunchTask.class);
 
-    AndroidTestApplicationLaunchTask androidTestTask = (AndroidTestApplicationLaunchTask) task;
+    AndroidTestApplicationLaunchTask androidTestTask = (AndroidTestApplicationLaunchTask)task;
     return androidTestTask.createRemoteAndroidTestRunner(mock(IDevice.class));
   }
 
