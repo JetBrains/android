@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.room.generators;
+package com.android.tools.idea.room.migrations.generators;
 
-import com.android.tools.idea.room.bundle.EntityBundle;
-import com.android.tools.idea.room.bundle.FieldBundle;
-import com.android.tools.idea.room.update.DatabaseUpdate;
-import com.android.tools.idea.room.update.EntityUpdate;
+import com.android.tools.idea.room.migrations.json.EntityBundle;
+import com.android.tools.idea.room.migrations.json.FieldBundle;
+import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
+import com.android.tools.idea.room.migrations.update.EntityUpdate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
