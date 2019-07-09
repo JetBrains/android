@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +33,6 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
@@ -67,13 +68,13 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
   // Copy included projects, update wrapper and gradle files for included projects.
   private void prepareCompositeProject() throws IOException {
     File testDataRoot = new File(getTestDataPath(), toSystemDependentName(COMPOSITE_BUILD));
-    File projectRoot = virtualToIoFile(myFixture.getProject().getBaseDir());
+    Path projectRoot = Paths.get(myFixture.getProject().getBasePath());
 
     List<String> includedProjects = asList("TestCompositeLib1", "TestCompositeLib2", "TestCompositeLib3", "TestCompositeLib4");
     for (String includedProject : includedProjects) {
       File srcRoot = new File(testDataRoot, includedProject);
-      File includedProjectRoot = new File(projectRoot, includedProject);
-      prepareProjectForImport(srcRoot, includedProjectRoot);
+      Path includedProjectRoot = projectRoot.resolve(includedProject);
+      prepareProjectForImport(srcRoot, includedProjectRoot.toFile());
     }
   }
 

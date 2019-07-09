@@ -14,33 +14,16 @@
 package com.android.tools.idea.gradle.dsl.model.ext
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.REFERENCE_TO_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BIG_DECIMAL
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.LIST
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.MAP
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.UNKNOWN
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.PROPERTIES_FILE
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.PlatformTestUtil
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
@@ -2414,7 +2397,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
-    
+
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
       assertEquals(MAP, propertyModel.valueType)
@@ -3375,7 +3358,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
-    ApplicationManager.getApplication().runWriteAction { myProject.baseDir.fileSystem.refresh(false) }
+    ApplicationManager.getApplication().runWriteAction { PlatformTestUtil.getOrCreateProjectTestBaseDir(myProject).fileSystem.refresh(false) }
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop4")

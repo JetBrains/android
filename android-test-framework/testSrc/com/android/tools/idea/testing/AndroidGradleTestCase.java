@@ -53,6 +53,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -70,6 +71,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 
 import static com.android.SdkConstants.*;
@@ -327,8 +329,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
 
     // Sync the model
-    Project project = myFixture.getProject();
-    File projectRoot = virtualToIoFile(project.getBaseDir());
+    File projectRoot = new File(myFixture.getProject().getBasePath());
     prepareProjectForImport(root, projectRoot);
     return projectRoot;
   }
@@ -357,7 +358,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     updateVersionAndDependencies(projectRoot);
 
     // Refresh project dir to have files under of the project.getBaseDir() visible to VFS
-    synchronizeTempDirVfs(getProject().getBaseDir());
+    synchronizeTempDirVfs(Paths.get(getProject().getBasePath()));
     return projectRoot;
   }
 
@@ -478,7 +479,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @NotNull
   protected String getTextForFile(@NotNull String relativePath) {
     Project project = getProject();
-    VirtualFile file = project.getBaseDir().findFileByRelativePath(relativePath);
+    VirtualFile file = VfsUtil.findFile(Paths.get(project.getBasePath(), relativePath), false);
     if (file != null) {
       PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
       if (psiFile != null) {
