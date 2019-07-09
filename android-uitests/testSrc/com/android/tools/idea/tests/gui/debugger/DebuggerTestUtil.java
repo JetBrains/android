@@ -35,10 +35,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class DebuggerTestUtil {
 
-  public static final String AUTO = "Auto";
-  public static final String DUAL = "Dual";
-  public static final String NATIVE = "Native";
-  public static final String JAVA = "Java";
+  public static final String AUTO = "Detect Automatically";
+  public static final String DUAL = "Dual (Java + Native)";
+  public static final String NATIVE = "Native Only";
+  public static final String JAVA = "Java Only";
   public static final String JAVA_DEBUGGER_CONF_NAME = "app-java";
 
   public final static String ABI_TYPE_X86 = "x86";
