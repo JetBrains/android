@@ -16,31 +16,26 @@
 package com.android.tools.idea.room.generators;
 
 import com.android.tools.idea.room.update.DatabaseUpdate;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
-import com.intellij.psi.PsiJavaParserFacade;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiReferenceList;
-import com.intellij.psi.PsiStatement;
-import com.intellij.psi.PsiType;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class JavaMigrationClassGenerator {
   private static final String SUPER_CLASS_NAME = "androidx.room.migration.Migration";
-  private static final String MIGRATION_CLASS_NAME_TEMPLATE = "Migration%d_%d";
+  private static final String MIGRATION_CLASS_NAME_TEMPLATE = "Migration_%d_%d";
   private static final String MIGRATION_METHOD_TEMPLATE = "@Override\n" +
                                                           "public void migrate(androidx.sqlite.db.SupportSQLiteDatabase database) {\n%s}\n";
   private static final String DATABASE_UPDATE_STATEMENT_TEMPLATE = "\tdatabase.execSQL(\"%s\");";
@@ -55,7 +50,8 @@ public class JavaMigrationClassGenerator {
   public static void createMigrationClass(@NotNull Project project,
                                           @NotNull PsiDirectory targetDirectory,
                                           @NotNull DatabaseUpdate databaseUpdate) {
-    String migrationClassName = String.format(MIGRATION_CLASS_NAME_TEMPLATE,
+    String migrationClassName = String.format(Locale.US,
+                                              MIGRATION_CLASS_NAME_TEMPLATE,
                                               databaseUpdate.getPreviousVersion(),
                                               databaseUpdate.getCurrentVersion());
     PsiClass migrationClass = JavaDirectoryService.getInstance().createClass(targetDirectory, migrationClassName);
@@ -87,7 +83,7 @@ public class JavaMigrationClassGenerator {
                                          @NotNull DatabaseUpdate databaseUpdate) {
 
     PsiElementFactory elementFactory = JavaPsiFacade.getInstance(project).getElementFactory();
-    List<String> sqlUpdateStatements = SQLStatementsGenerator.getUpdateStatements(databaseUpdate);
+    List<String> sqlUpdateStatements = SqlStatementsGenerator.getUpdateStatements(databaseUpdate);
     String methodText = String.format(MIGRATION_METHOD_TEMPLATE,
                                       sqlUpdateStatements.stream()
                                         .map(statement -> String.format(DATABASE_UPDATE_STATEMENT_TEMPLATE, trimStatement(statement)))
