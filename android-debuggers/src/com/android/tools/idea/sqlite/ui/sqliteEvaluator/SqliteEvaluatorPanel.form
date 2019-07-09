@@ -7,15 +7,11 @@
     <properties/>
     <border type="none"/>
     <children>
-      <grid id="9233d" layout-manager="BorderLayout" hgap="0" vgap="0">
+      <grid id="9233d" binding="controlsContainer" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints border-constraint="North"/>
         <properties/>
         <border type="none"/>
         <children>
-          <component id="ecc31" class="javax.swing.JTextField" binding="sqliteStatementTextField">
-            <constraints border-constraint="Center"/>
-            <properties/>
-          </component>
           <component id="276ef" class="javax.swing.JButton" binding="evaluateButton">
             <constraints border-constraint="After"/>
             <properties>

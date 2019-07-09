@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.intellij.openapi.project.Project
 
 interface SqliteEditorViewFactory {
   /**
@@ -27,5 +28,5 @@ interface SqliteEditorViewFactory {
   /**
    * Returns a [SqliteEvaluatorView].
    */
-  fun createEvaluatorView(): SqliteEvaluatorView
+  fun createEvaluatorView(project: Project): SqliteEvaluatorView
 }
