@@ -93,7 +93,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
-    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getFocusedSceneView();
     NlComponent target = findTarget(screenView);
     if (target != null) {
       String tagName = target.getTagName();
@@ -137,7 +137,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    SceneView sceneView = mySurface.getFocusedSceneView();
     if (sceneView == null) {
       return;
     }

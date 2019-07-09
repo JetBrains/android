@@ -48,7 +48,7 @@ class FragmentDecoratorTest : NavTestCase() {
     sceneComponent.setPosition(POSITION.x, POSITION.y)
     sceneComponent.setSize(SIZE.width, SIZE.height)
 
-    val sceneView = model.surface.currentSceneView!!
+    val sceneView = model.surface.focusedSceneView!!
     val displayList = DisplayList()
     val context = SceneContext.get(sceneView)
 
@@ -70,7 +70,7 @@ class FragmentDecoratorTest : NavTestCase() {
     sceneComponent.setSize(SIZE.width, SIZE.height)
     sceneComponent.drawState = SceneComponent.DrawState.SELECTED
 
-    val sceneView = model.surface.currentSceneView!!
+    val sceneView = model.surface.focusedSceneView!!
     val displayList = DisplayList()
     val context = SceneContext.get(sceneView)
 

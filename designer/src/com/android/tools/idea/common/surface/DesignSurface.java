@@ -180,7 +180,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myAnalyticsManager = new DesignerAnalyticsManager(this);
 
     mySelectionModel = selectionModel;
-    mySelectionModel.addListener(mySelectionListener);
+    // TODO: handle the case when selection are from different NlModels.
+    // Manager can be null if the selected component is not part of NlModel. For example, a temporarily NlMode.
+    // In that case we don't change focused SceneView.
+    SelectionListener selectionListener = (model, selection) -> {
+      if (getFocusedSceneView() != null) {
+        notifySelectionListeners(selection);
+      }
+      else {
+        notifySelectionListeners(Collections.emptyList());
+      }
+    };
+    mySelectionModel.addListener(selectionListener);
     myInteractionManager = new InteractionManager(this);
 
     myLayeredPane = new MyLayeredPane();
@@ -467,7 +478,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myLayeredPane.setPreferredSize(dimension);
     myScrollPane.revalidate();
 
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
     if (view != null) {
       myProgressPanel.setBounds(getContentOriginX(), getContentOriginY(), view.getSize().width, view.getSize().height);
     }
@@ -518,10 +529,27 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
+  /**
+   * Returns the current focused {@link SceneView} that is responsible of responding to mouse and keyboard events, or null <br>
+   * if there is no focused {@link SceneView}.
+   */
   @Nullable
-  public SceneView getCurrentSceneView() {
-    SceneManager sceneManager = getSceneManager();
-    return sceneManager != null ? sceneManager.getSceneView() : null;
+  public SceneView getFocusedSceneView() {
+    if (myModelToSceneManagers.size() == 1) {
+      // Always return primary SceneView In single-model mode,
+      SceneManager manager = getSceneManager();
+      assert manager != null;
+      return manager.getSceneView();
+    }
+    List<NlComponent> selection = mySelectionModel.getSelection();
+    if (!selection.isEmpty()) {
+      NlComponent primary = selection.get(0);
+      SceneManager manager = myModelToSceneManagers.get(primary.getModel());
+      if (manager != null) {
+        return manager.getSceneView();
+      }
+    }
+    return null;
   }
 
   /**
@@ -595,7 +623,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @return     True if the scaling was changed, false if this was a noop.
    */
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
     if (type == ZoomType.IN && (x < 0 || y < 0)
         && view != null && !getSelectionModel().isEmpty()) {
       Scene scene = getScene();
@@ -778,7 +806,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       y = oldViewPosition.y + myScrollPane.getHeight() / 2;
     }
 
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
 
     @AndroidDpCoordinate int androidX = 0;
     @AndroidDpCoordinate int androidY = 0;
@@ -883,15 +911,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myListeners.remove(listener);
   }
 
-  private final SelectionListener mySelectionListener = (model, selection) -> {
-    if (getCurrentSceneView() != null) {
-      notifySelectionListeners(selection);
-    }
-    else {
-      notifySelectionListeners(Collections.emptyList());
-    }
-  };
-
   public void addPanZoomListener(PanZoomListener listener) {
     if (myZoomListeners == null) {
       myZoomListeners = Lists.newArrayList();
@@ -943,7 +962,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Nullable
   public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    return getCurrentSceneView();
+    return getFocusedSceneView();
   }
 
   /**
@@ -964,7 +983,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Nullable
   public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    return getCurrentSceneView();
+    return getFocusedSceneView();
   }
 
   /**
@@ -1126,10 +1145,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
       paintBackground(g2d, tlx, tly);
 
-      if (getCurrentSceneView() == null) {
-        return;
-      }
-
       Rectangle bounds = myScrollPane.getViewport().getViewRect();
       for (Layer layer : myLayers) {
         if (!layer.isHidden()) {
@@ -1164,8 +1179,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @Override
     public Object getData(@NotNull @NonNls String dataId) {
       if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
-        if (getCurrentSceneView() != null) {
-          SelectionModel selectionModel = getCurrentSceneView().getSelectionModel();
+        if (getFocusedSceneView() != null) {
+          SelectionModel selectionModel = getFocusedSceneView().getSelectionModel();
           NlComponent primary = selectionModel.getPrimary();
           if (primary != null) {
             return primary.getTagDeprecated();
@@ -1173,8 +1188,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         }
       }
       if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
-        if (getCurrentSceneView() != null) {
-          SelectionModel selectionModel = getCurrentSceneView().getSelectionModel();
+        if (getFocusedSceneView() != null) {
+          SelectionModel selectionModel = getFocusedSceneView().getSelectionModel();
           List<NlComponent> selection = selectionModel.getSelection();
           List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
           for (NlComponent component : selection) {
@@ -1416,7 +1431,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return createActionHandler();
     }
     else if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
-      SceneView view = getCurrentSceneView();
+      SceneView view = getFocusedSceneView();
       NlComponent selection = getSelectionModel().getPrimary();
       Scene scene = getScene();
       if (view == null || scene == null || selection == null) {

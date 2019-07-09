@@ -52,7 +52,7 @@ class ActionDecoratorTest : NavTestCase() {
 
     val f1_to_f2 = model.surface.sceneManager?.scene?.getSceneComponent(model.find("f1_to_f2"))!!
 
-    val sceneView = model.surface.currentSceneView!!
+    val sceneView = model.surface.focusedSceneView!!
     val displayList = DisplayList()
 
     ActionDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), f1_to_f2)
@@ -80,7 +80,7 @@ class ActionDecoratorTest : NavTestCase() {
 
     val f1_to_f1 = model.surface.sceneManager?.scene?.getSceneComponent(model.find("f1_to_f1"))!!
 
-    val sceneView = model.surface.currentSceneView!!
+    val sceneView = model.surface.focusedSceneView!!
     val displayList = DisplayList()
 
     ActionDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), f1_to_f1)
@@ -102,7 +102,7 @@ class ActionDecoratorTest : NavTestCase() {
     f1_to_f2.setPosition(0, 0)
     f1_to_f2.setSize(0, 0)
 
-    val sceneView = model.surface.currentSceneView!!
+    val sceneView = model.surface.focusedSceneView!!
     val context = SceneContext.get(sceneView)
     val displayList = DisplayList()
     ActionDecorator.buildListComponent(displayList, 0, context, f1_to_f2)

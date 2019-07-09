@@ -92,7 +92,7 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
       @Override
       public void caretPositionChanged(@NotNull CaretEvent event) {
         DesignSurface surface = designEditor.getComponent().getSurface();
-        SceneView sceneView = surface.getCurrentSceneView();
+        SceneView sceneView = surface.getFocusedSceneView();
         int offset = caretModel.getOffset();
         if (sceneView == null || offset == -1) {
           return;
