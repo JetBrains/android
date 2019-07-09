@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
+import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.intellij.openapi.project.Project
+import com.intellij.ui.EditorTextField
 import java.awt.BorderLayout
 import java.util.ArrayList
 import javax.swing.JComponent
@@ -23,19 +26,21 @@ import javax.swing.JComponent
 /**
  * @see SqliteEvaluatorView
  */
-class SqliteEvaluatorViewImpl : SqliteEvaluatorView {
+class SqliteEvaluatorViewImpl(override val project: Project) : SqliteEvaluatorView {
   private val evaluatorPanel = SqliteEvaluatorPanel()
   override val component: JComponent = evaluatorPanel.root
-
   override val tableView = TableViewImpl()
+
+  private val editorTextField = EditorTextField("", project, AndroidSqlLanguage.INSTANCE.associatedFileType)
 
   private val listeners = ArrayList<SqliteEvaluatorViewListener>()
 
   init {
+    evaluatorPanel.controlsContainer.add(editorTextField, BorderLayout.CENTER)
     evaluatorPanel.root.add(tableView.component, BorderLayout.CENTER)
     evaluatorPanel.evaluateButton.addActionListener {
       listeners.forEach {
-        it.evaluateSqlActionInvoked(evaluatorPanel.sqliteStatementTextField.text)
+        it.evaluateSqlActionInvoked(editorTextField.text)
       }
     }
   }
@@ -49,6 +54,6 @@ class SqliteEvaluatorViewImpl : SqliteEvaluatorView {
   }
 
   override fun showSqliteStatement(sqliteStatement: String) {
-    evaluatorPanel.sqliteStatementTextField.text = sqliteStatement
+    editorTextField.text = sqliteStatement
   }
 }
