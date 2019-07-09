@@ -223,7 +223,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
       updateDesignSurface(activeSurface, surface)
       activeSurface = surface
       (activeSceneView as? ScreenView)?.sceneManager?.removeRenderListener(renderListener)
-      activeSceneView = surface?.currentSceneView
+      activeSceneView = surface?.focusedSceneView
       (activeSceneView as? ScreenView)?.sceneManager?.addRenderListener(renderListener)
     }
     if (surface != null && wantComponentSelectionUpdate(surface, activeSurface, activePanel)) {

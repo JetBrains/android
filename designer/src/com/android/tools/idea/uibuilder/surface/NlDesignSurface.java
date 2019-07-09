@@ -665,6 +665,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (isPreviewSurface()) {
+      // Highlight the clicked widget but keep focus in DesignSurface.
+      // TODO: Remove this after when b/136174865 is implemented, which removes the preview mode.
       onClickPreview(x, y, false);
     }
   }
@@ -672,6 +674,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public void onDoubleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (isPreviewSurface()) {
+      // Navigate the caret to the clicked widget and focus on text editor.
+      // TODO: Remove this after when b/136174865 is implemented, which removes the preview mode.
       onClickPreview(x, y, true);
     }
     else {
@@ -841,11 +845,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   private void modelRendered() {
-    if (getCurrentSceneView() != null) {
-      updateErrorDisplay();
-      repaint();
-      layoutContent();
-    }
+    updateErrorDisplay();
+    repaint();
+    layoutContent();
   }
 
   @Override
@@ -861,7 +863,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   protected boolean useSmallProgressIcon() {
-    if (getCurrentSceneView() == null) {
+    if (getFocusedSceneView() == null) {
       return false;
     }
 
@@ -889,7 +891,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public void scrollToCenter(@NotNull List<NlComponent> list) {
     Scene scene = getScene();
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
     if (list.isEmpty() || scene == null || view == null) {
       return;
     }

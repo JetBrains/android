@@ -157,7 +157,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   private void updateCaret() {
     if (myCaretModel != null && !myIgnoreListener && myUseInteractiveSelector) {
-      SceneView screenView = mySurface.getCurrentSceneView();
+      SceneView screenView = mySurface.getFocusedSceneView();
       if (screenView != null) {
         int offset = myCaretModel.getOffset();
         if (offset != -1) {

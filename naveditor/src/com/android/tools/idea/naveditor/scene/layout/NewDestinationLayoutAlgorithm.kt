@@ -40,7 +40,7 @@ class NewDestinationLayoutAlgorithm : SingleComponentLayoutAlgorithm() {
     @SwingCoordinate val swingPoint = Point(surface.scrollPosition)
     swingPoint.translate(INITIAL_OFFSET, INITIAL_OFFSET)
 
-    val view = surface.currentSceneView ?: return false
+    val view = surface.focusedSceneView ?: return false
     @NavCoordinate val point = Coordinates.getAndroidCoordinate(view, swingPoint)
     @NavCoordinate val incrementalOffset = Coordinates.getAndroidDimension(view, INCREMENTAL_OFFSET)
     @NavCoordinate val tolerance = Coordinates.getAndroidDimension(view, TOLERANCE)

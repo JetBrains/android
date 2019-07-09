@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.scene.targets
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -45,7 +44,7 @@ class ActionTargetTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.currentSceneView).thenReturn(view)
+    `when`<SceneView>(surface.focusedSceneView).thenReturn(view)
     `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(view)
 
     val scene = model.surface.scene!!
@@ -150,7 +149,7 @@ class ActionTargetTest : NavTestCase() {
 
     scene.sceneManager.layout(false)
     val list = DisplayList()
-    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     // Arrows should be down for 2 and 3, right for 4, up for 5 and 6

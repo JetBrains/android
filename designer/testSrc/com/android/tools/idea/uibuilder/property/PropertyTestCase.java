@@ -126,7 +126,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myDesignSurface = (NlDesignSurface)myModel.getSurface();
     Disposer.register(getProject(), myDesignSurface);
     ScreenView view = new ScreenView(myDesignSurface, myDesignSurface.getSceneManager());
-    when(myDesignSurface.getCurrentSceneView()).thenReturn(view);
+    when(myDesignSurface.getFocusedSceneView()).thenReturn(view);
     myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface, getProject());
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
