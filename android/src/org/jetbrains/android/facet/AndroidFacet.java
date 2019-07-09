@@ -142,16 +142,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
     return myMainIdeaSourceSet;
   }
-  
-  /**
-   * @return all resource directories, in the overlay order.
-   * @deprecated use getResourceFolderManager().getFolders() instead
-   */
-  @NotNull
-  @Deprecated
-  public List<VirtualFile> getAllResourceDirectories() {
-    return ResourceFolderManager.getInstance(this).getFolders();
-  }
 
   @Override
   public void disposeFacet() {

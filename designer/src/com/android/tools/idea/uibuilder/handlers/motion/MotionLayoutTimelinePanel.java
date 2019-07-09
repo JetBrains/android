@@ -55,6 +55,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -307,7 +308,8 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     Project project = component.getModel().getProject();
     AndroidFacet facet = component.getModel().getFacet();
 
-    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, facet.getAllResourceDirectories());
+    List<VirtualFile> resourceFolders = ResourceFolderManager.getInstance(facet).getFolders();
+    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, resourceFolders);
     if (resourcesXML.isEmpty()) {
       return;
     }
@@ -635,7 +637,8 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
     Project project = component.getModel().getProject();
     AndroidFacet facet = component.getModel().getFacet();
-    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, facet.getAllResourceDirectories());
+    List<VirtualFile> resourceFolders = ResourceFolderManager.getInstance(facet).getFolders();
+    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, resourceFolders);
     if (resourcesXML.isEmpty()) {
       return null;
     }
