@@ -132,7 +132,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -840,14 +839,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       ourFullRescans++;
 
       // First delete out the previous items.
-      ResourceItemSource<? extends ResourceItem> source = this.mySources.get(file.getVirtualFile());
+      ResourceItemSource<? extends ResourceItem> source = this.mySources.remove(file.getVirtualFile());
       boolean removed = false;
       if (source != null) {
-        for (ResourceItem item : source) {
-          removed |= !removeItems(item.getType(), item.getName(), source).isEmpty();
-        }
-
-        this.mySources.remove(file.getVirtualFile());
+        removed = removeItemsFromSource(source);
       }
 
       file = ensureValid(file);
@@ -989,54 +984,61 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   /**
-   * @see #removeItems(ResourceType, String, ResourceItemSource, XmlTag)
+   * Removes resource items matching the given source file and tag.
+   *
+   * @return true if any resource items were removed from the repository
    */
-  @NotNull
-  private <T extends ResourceItem> List<T> removeItems(@NotNull ResourceType type,
-                                                       @NotNull String name,
-                                                       @NotNull ResourceItemSource<T> source) {
-    return removeItems(type, name, source, null);
+  private boolean removeItemForTag(@NotNull ResourceItemSource<PsiResourceItem> source, @NotNull XmlTag xmlTag) {
+    boolean changed = false;
+
+    synchronized (ITEM_MAP_LOCK) {
+      for (Iterator<PsiResourceItem> sourceIter = source.iterator(); sourceIter.hasNext();) {
+        PsiResourceItem item = sourceIter.next();
+        if (item.wasTag(xmlTag)) {
+          ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, item.getType());
+          List<ResourceItem> items = map.get(item.getName());
+          for (Iterator<ResourceItem> iter = items.iterator(); iter.hasNext(); ) {
+            ResourceItem candidate = iter.next();
+            if (candidate == item) {
+              iter.remove();
+              changed = true;
+              break;
+            }
+          }
+          sourceIter.remove();
+        }
+      }
+
+      return changed;
+    }
   }
 
   /**
-   * Removes resource items matching the given type, name, source file and tag from {@link #myFullTable}. The tag is optional and only
-   * {@link PsiResourceItem}s will be checked against it.
+   * Removes all resource items associated the given source file.
    *
-   * @return removed elements
+   * @return true if any resource items were removed from the repository
    */
-  @NotNull
-  private <T extends ResourceItem> List<T> removeItems(@NotNull ResourceType type,
-                                                       @NotNull String name,
-                                                       @NotNull ResourceItemSource<T> source,
-                                                       @Nullable XmlTag xmlTag) {
-    List<T> removed = new ArrayList<>();
+  private boolean removeItemsFromSource(@NotNull ResourceItemSource<? extends ResourceItem> source) {
+    boolean changed = false;
 
     synchronized (ITEM_MAP_LOCK) {
-      // Remove the item of the given name and type from the given resource file.
-      // We CAN'T just remove items found in ResourceFile.getItems() because that map
-      // flattens everything down to a single item for a given name (it's using a flat
-      // map rather than a multimap) so instead we have to look up from the map instead
-      ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, type);
-      if (map != null) {
-        List<ResourceItem> mapItems = map.get(name);
-        if (mapItems != null) {
-          ListIterator<ResourceItem> iterator = mapItems.listIterator();
-          while (iterator.hasNext()) {
-            ResourceItem item = iterator.next();
-            if (source.isSourceOf(item)) {
-              if (xmlTag == null || !(item instanceof PsiResourceItem) || ((PsiResourceItem)item).wasTag(xmlTag)) {
-                iterator.remove();
-
-                //noinspection unchecked: We know that `item` comes from `source` so it's of the correct type.
-                removed.add((T)item);
-              }
-            }
+      for (ResourceItem item : source) {
+        ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, item.getType());
+        List<ResourceItem> items = map.get(item.getName());
+        for (Iterator<ResourceItem> iter = items.iterator(); iter.hasNext(); ) {
+          ResourceItem candidate = iter.next();
+          if (candidate == item) {
+            iter.remove();
+            changed = true;
+            break;
           }
+        }
+        if (items.isEmpty()) {
+          map.removeAll(item.getName());
         }
       }
     }
-
-    return removed;
+    return changed;
   }
 
   /**
@@ -1292,15 +1294,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                     ResourceType type = getResourceTypeForResourceTag(tag);
                     if (type != null) {
                       synchronized (ITEM_MAP_LOCK) {
-                        ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, type);
-                        if (map == null) {
-                          return;
-                        }
-                        List<PsiResourceItem> removed = removeItems(type, name, resourceFile, tag);
-                        if (!removed.isEmpty()) {
-                          for (PsiResourceItem item : removed) {
-                            resourceFile.removeItem(item);
-                          }
+                        boolean removed = removeItemForTag(resourceFile, tag);
+                        if (removed) {
                           setModificationCount(ourModificationCounter.incrementAndGet());
                           invalidateParentCaches(myNamespace, type);
                         }
@@ -1825,7 +1820,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         iterator.remove();
         VirtualFile sourceFile = entry.getKey();
         if (VfsUtilCore.isAncestor(file, sourceFile, true)) {
-          onSourceRemoved(sourceFile, entry.getValue());
+          ResourceItemSource<? extends ResourceItem> source = entry.getValue();
+          onSourceRemoved(sourceFile, source);
         }
       }
     }
@@ -1838,35 +1834,22 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private void onSourceRemoved(@NotNull VirtualFile file, @NotNull ResourceItemSource<? extends ResourceItem> source) {
-    setModificationCount(ourModificationCounter.incrementAndGet());
-    invalidateParentCaches();
+    boolean removed = removeItemsFromSource(source);
+    if (removed) {
+      setModificationCount(ourModificationCounter.incrementAndGet());
+      invalidateParentCaches();
+    }
 
     ResourceFolderType folderType = ResourceHelper.getFolderType(file);
-    // Check if there may be multiple items to remove.
-    if (folderType == VALUES ||
-        (folderType != null && FolderTypeRelationship.isIdGeneratingFolderType(folderType) && file.getFileType() == StdFileTypes.XML)) {
-      removeItemsFromSource(source);
-    } else if (folderType != null) {
-      // Simpler: remove the file item.
-      if (folderType == DRAWABLE) {
-        FileType fileType = file.getFileType();
-        if (fileType.isBinary() && fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG)) {
-          bitmapUpdated(file);
-        }
+    if (folderType == DRAWABLE) {
+      FileType fileType = file.getFileType();
+      if (fileType.isBinary() && fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG)) {
+        bitmapUpdated(file);
       }
-
-      if (folderType == FONT) {
-        clearFontCache(file);
-      }
-
-      List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
-      for (ResourceType type : resourceTypes) {
-        if (type != ResourceType.ID) {
-          String name = ResourceHelper.getResourceName(file);
-          removeItems(type, name, source);
-        }
-      }
-    } // else: not a resource folder
+    }
+    else if (folderType == FONT) {
+      clearFontCache(file);
+    }
   }
 
   private void rescanJustDataBinding(@NotNull PsiFile psiFile) {
@@ -1884,14 +1867,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
       setModificationCount(ourModificationCounter.incrementAndGet());
       scanBindingLayout(resourceFile, getModificationCount());
-    }
-  }
-
-  private void removeItemsFromSource(@NotNull ResourceItemSource<? extends ResourceItem> source) {
-    synchronized (ITEM_MAP_LOCK) {
-      for (ResourceItem item : source) {
-        removeItems(item.getType(), item.getName(), source);
-      }
     }
   }
 

@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.res
 
-import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceItem
-import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.binding.DefaultBindingLayoutInfo
@@ -27,7 +25,6 @@ import com.android.tools.idea.resources.base.BasicResourceItem
 import com.android.tools.idea.resources.base.RepositoryConfiguration
 import com.android.tools.idea.resources.base.ResourceSourceFile
 import com.google.common.collect.ArrayListMultimap
-import com.google.common.collect.LinkedListMultimap
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -35,19 +32,15 @@ import com.intellij.util.containers.ObjectIntHashMap
 import java.io.IOException
 
 /**
- * Represents a resource file from which [ResourceItem]s are crated by [ResourceFolderRepository].
+ * Represents a resource file from which [ResourceItem]s are created by [ResourceFolderRepository].
  *
- * This is a common abstraction for [PsiResourceFile] (used by [PsiResourceItem]) and [ResourceFile] (used by [ResourceMergerItem]), needed
- * by [ResourceFolderRepository] which needs to deal with both types of [ResourceItem]s as it transitions from DOM parsing to PSI parsing
- * of resource files.
+ * This is a common interface implemented by [PsiResourceFile] and [VfsResourceFile].
  */
 internal interface ResourceItemSource<T : ResourceItem> : Iterable<T> {
   val folderConfiguration: FolderConfiguration
   val folderType: ResourceFolderType?
   val virtualFile: VirtualFile?
   fun addItem(item: T)
-  fun removeItem(item: T)
-  fun isSourceOf(item: ResourceItem): Boolean
 }
 
 /** The [ResourceItemSource] of [PsiResourceItem]s. */
@@ -68,7 +61,7 @@ class PsiResourceFile constructor(
   override val folderConfiguration get() = _folderConfiguration
   override val virtualFile: VirtualFile? get() = _psiFile.virtualFile
   override fun iterator(): Iterator<PsiResourceItem> = _items.values().iterator()
-  override fun isSourceOf(item: ResourceItem): Boolean = (item as? PsiResourceItem)?.sourceFile == this
+  fun isSourceOf(item: ResourceItem): Boolean = (item as? PsiResourceItem)?.sourceFile == this
 
   override fun addItem(item: PsiResourceItem) {
     // Setting the source first is important, since an item's key gets the folder configuration from the source (i.e. this).
@@ -76,7 +69,7 @@ class PsiResourceFile constructor(
     _items.put(item.key, item)
   }
 
-  override fun removeItem(item: PsiResourceItem) {
+  fun removeItem(item: PsiResourceItem) {
     item.sourceFile = null
     _items.remove(item.key, item)
   }
@@ -99,29 +92,26 @@ internal class VfsResourceFile(
     override val virtualFile: VirtualFile?, override val configuration: RepositoryConfiguration
 ) : ResourceSourceFile, ResourceItemSource<BasicResourceItem> {
 
-  private val items = LinkedListMultimap.create<String, BasicResourceItem>()
+  private val items = ArrayList<BasicResourceItem>()
 
   override val folderConfiguration get() = configuration.folderConfiguration
 
   override val folderType get() = getFolderType(virtualFile)
 
-  override fun iterator(): Iterator<BasicResourceItem> = items.values().iterator()
+  override fun iterator(): Iterator<BasicResourceItem> = items.iterator()
 
   override fun addItem(item: BasicResourceItem) {
-    items.put(item.key, item)
+    items.add(item)
   }
-
-  override fun removeItem(item: BasicResourceItem) {
-    items.remove(item.key, item)
-  }
-
-  override fun isSourceOf(item: ResourceItem): Boolean = items.containsKey(item.key)
 
   override val relativePath: String?
     get() = virtualFile?.let { VfsUtilCore.getRelativePath(it, (repository as ResourceFolderRepository).resourceDir) }
 
   fun isValid(): Boolean = virtualFile != null
 
+  /**
+   * Serializes the object to the given stream without the contained resource items.
+   */
   @Throws(IOException::class)
   override fun serialize(stream: Base128OutputStream, configIndexes: ObjectIntHashMap<String>) {
     stream.writeString(relativePath)
