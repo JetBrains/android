@@ -19,12 +19,10 @@ package com.android.tools.idea.testartifacts.instrumented;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -36,6 +34,8 @@ import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.NonGradleApkProvider;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
+import com.android.tools.idea.run.editor.AndroidTestExtraParam;
+import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
@@ -72,9 +72,11 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
 import com.intellij.refactoring.listeners.RefactoringElementAdapter;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import kotlin.sequences.SequencesKt;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -92,8 +94,10 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public static final int TEST_CLASS = 2;
   public static final int TEST_METHOD = 3;
 
-  /** A default value for instrumentation runner class used in Android Gradle Plugin. */
-  public static final String DEFAULT_INSTRUMENTATION_RUNNER_CLASS_IN_AGP = "android.test.InstrumentationTestRunner";
+  /**
+   * A default value for instrumentation runner class used in Android Gradle Plugin.
+   */
+  public static final String DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS = "android.test.InstrumentationTestRunner";
 
   public int TESTING_TYPE = TEST_ALL_IN_MODULE;
   @NotNull public String METHOD_NAME = "";
@@ -104,9 +108,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
    * A fully qualified name of an instrumentation runner class to use. If this is an empty string, the value is inferred from the project:
    * 1) If this is gradle project, values in gradle.build file will be used.
    * 2) If this is non-gradle project, the first instrumentation in AndroidManifest of the instrumentation APK (not the application APK)
-   *    will be used.
-   *
-   * TODO(b/37132226): This property is currently ignored in gradle project. Fix it with revised UI.
+   * will be used.
    */
   @NotNull public String INSTRUMENTATION_RUNNER_CLASS = "";
 
@@ -114,10 +116,14 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
    * An extra instrumentation runner options. If this is an empty string, the value is inferred from the project:
    * 1) If this is gradle project, values in gradle.build file will be used.
    * 2) If this is non-gradle project, no extra options will be set.
-   *
-   * TODO(b/37132226): This property is currently ignored in gradle project. Fix it with revised UI.
    */
   @NotNull public String EXTRA_OPTIONS = "";
+
+  /**
+   * If this is set to true, extra options defined in gradle build file will be merged into {@link #EXTRA_OPTIONS} and passed to
+   * instrumentation.
+   */
+  public boolean INCLUDE_GRADLE_EXTRA_OPTIONS = true;
 
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
     super(project, factory, true);
@@ -155,9 +161,11 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public String suggestedName() {
     if (TESTING_TYPE == TEST_ALL_IN_PACKAGE) {
       return ExecutionBundle.message("test.in.scope.presentable.text", PACKAGE_NAME);
-    } else if (TESTING_TYPE == TEST_CLASS) {
+    }
+    else if (TESTING_TYPE == TEST_CLASS) {
       return ProgramRunnerUtil.shortenName(JavaExecutionUtil.getShortClassName(CLASS_NAME), 0);
-    } else if (TESTING_TYPE == TEST_METHOD) {
+    }
+    else if (TESTING_TYPE == TEST_METHOD) {
       return ProgramRunnerUtil.shortenName(METHOD_NAME, 2) + "()";
     }
     return ExecutionBundle.message("all.tests.scope.presentable.text");
@@ -188,7 +196,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         try {
           testClass =
             getConfigurationModule().checkModuleAndClassName(CLASS_NAME, ExecutionBundle.message("no.test.class.specified.error.text"));
-        } catch (RuntimeConfigurationException e) {
+        }
+        catch (RuntimeConfigurationException e) {
           errors.add(ValidationError.fromException(e));
         }
         if (testClass != null && !JUnitUtil.isTestClass(testClass)) {
@@ -251,7 +260,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     final PsiClass testClass;
     try {
       testClass = configurationModule.checkModuleAndClassName(CLASS_NAME, ExecutionBundle.message("no.test.class.specified.error.text"));
-    } catch (RuntimeConfigurationException e) {
+    }
+    catch (RuntimeConfigurationException e) {
       // We can't proceed without a test class.
       return ImmutableList.of(ValidationError.fromException(e));
     }
@@ -279,7 +289,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         if (!testClass.isInheritor(testCaseClass, true)) {
           errors.add(ValidationError.fatal(ExecutionBundle.message("class.isnt.inheritor.of.testcase.error.message", CLASS_NAME)));
         }
-      } catch (JUnitUtil.NoJUnitException e) {
+      }
+      catch (JUnitUtil.NoJUnitException e) {
         errors.add(ValidationError.warning(ExecutionBundle.message(AndroidBundle.message("cannot.find.testcase.error"))));
       }
     }
@@ -332,7 +343,10 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                 @NotNull String contributorsAmStartOptions,
                                                 boolean waitForDebugger,
                                                 @NotNull LaunchStatus launchStatus) {
-    String runner = getInstrumentationRunner(facet);
+    String runner = INSTRUMENTATION_RUNNER_CLASS;
+    if (isEmptyOrSpaces(runner)) {
+      runner = getDefaultInstrumentationRunner(facet);
+    }
     if (isEmptyOrSpaces(runner)) {
       launchStatus.terminateLaunch("Unable to determine instrumentation runner", true);
       return null;
@@ -347,7 +361,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         launchStatus.terminateLaunch("Unable to determine test package name", true);
         return null;
       }
-    } catch (ApkProvisionException e) {
+    }
+    catch (ApkProvisionException e) {
       launchStatus.terminateLaunch("Unable to determine test package name", true);
       return null;
     }
@@ -397,18 +412,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   }
 
   /**
-   * Returns the qualified class name of instrumentation runner class to be used.
-   *
-   * @see #INSTRUMENTATION_RUNNER_CLASS
+   * Returns the qualified class name of the default instrumentation runner class of the given facet.
    */
   @NotNull
-  private String getInstrumentationRunner(@NotNull AndroidFacet facet) {
-    if (isNotEmpty(INSTRUMENTATION_RUNNER_CLASS) &&
-        // TODO(b/37132226): This property is currently ignored in gradle project. Fix it with revised UI.
-        !GradleProjectInfo.getInstance(getProject()).isBuildWithGradle()) {
-      return INSTRUMENTATION_RUNNER_CLASS;
+  public static String getDefaultInstrumentationRunner(@Nullable AndroidFacet facet) {
+    if (facet == null) {
+      return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
     }
-
     AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     if (androidModel != null) {
       // When a project is a gradle based project, instrumentation runner is always specified
@@ -416,19 +426,18 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       // these values are always overwritten by AGP).
       String runner = androidModel.getSelectedVariant().getMergedFlavor().getTestInstrumentationRunner();
       if (isEmptyOrSpaces(runner)) {
-        return DEFAULT_INSTRUMENTATION_RUNNER_CLASS_IN_AGP;
-      } else {
+        return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
+      }
+      else {
         return runner;
       }
-    } else {
-      // For non-Gradle project, first check user provided instrumentation runner then fallback to AndroidManifest.
-      if (!isEmptyOrSpaces(INSTRUMENTATION_RUNNER_CLASS)) {
-        return INSTRUMENTATION_RUNNER_CLASS;
-      }
+    }
+    else {
+      // In non-Gradle project, instrumentation runner must be defined in AndroidManifest.
       return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> {
         Manifest manifest = facet.getManifest();
         if (manifest == null) {
-          return "";
+          return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
         }
         for (Instrumentation instrumentation : manifest.getInstrumentations()) {
           if (instrumentation != null) {
@@ -438,7 +447,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
             }
           }
         }
-        return "";
+        return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
       });
     }
   }
@@ -449,21 +458,20 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
    * @see #EXTRA_OPTIONS
    */
   @NotNull
-  private String getExtraInstrumentationOptions(@NotNull AndroidFacet facet) {
-    if (isNotEmpty(EXTRA_OPTIONS) &&
-        // TODO(b/37132226): This property is currently ignored in gradle project. Fix it with revised UI.
-        !GradleProjectInfo.getInstance(getProject()).isBuildWithGradle()) {
-      return EXTRA_OPTIONS;
+  public String getExtraInstrumentationOptions(@Nullable AndroidFacet facet) {
+    Collection<AndroidTestExtraParam> extraParams;
+
+    if (INCLUDE_GRADLE_EXTRA_OPTIONS) {
+      extraParams = AndroidTestExtraParamKt.merge(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS),
+                                                  AndroidTestExtraParamKt.getAndroidTestExtraParams(facet));
+    }
+    else {
+      extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
     }
 
-    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-    if (androidModel != null) {
-      return androidModel.getSelectedVariant().getMergedFlavor().getTestInstrumentationRunnerArguments().entrySet().stream()
-        .map(entry -> "-e " + entry.getKey() + " " + entry.getValue())
-        .collect(Collectors.joining(" "));
-    }
-
-    return "";
+    return extraParams.stream()
+      .map(param -> "-e " + param.getNAME() + " " + param.getVALUE())
+      .collect(Collectors.joining(" "));
   }
 
   /**
@@ -478,7 +486,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       if (TESTING_TYPE == TEST_ALL_IN_PACKAGE && !Objects.equals(pkgName, PACKAGE_NAME)) {
         // testing package, but the refactored package does not match our package
         return null;
-      } else if ((TESTING_TYPE != TEST_ALL_IN_PACKAGE) && !Objects.equals(pkgName, getPackageName(CLASS_NAME))) {
+      }
+      else if ((TESTING_TYPE != TEST_ALL_IN_PACKAGE) && !Objects.equals(pkgName, getPackageName(CLASS_NAME))) {
         // testing a class or a method, but the refactored package doesn't match our containing package
         return null;
       }
@@ -490,7 +499,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
             String newPkgName = ((PsiPackage)newElement).getQualifiedName();
             if (TESTING_TYPE == TEST_ALL_IN_PACKAGE) {
               PACKAGE_NAME = newPkgName;
-            } else {
+            }
+            else {
               CLASS_NAME = CLASS_NAME.replace(getPackageName(CLASS_NAME), newPkgName);
             }
           }
@@ -501,13 +511,15 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
           if (newElement instanceof PsiPackage) {
             if (TESTING_TYPE == TEST_ALL_IN_PACKAGE) {
               PACKAGE_NAME = oldQualifiedName;
-            } else {
+            }
+            else {
               CLASS_NAME = CLASS_NAME.replace(getPackageName(CLASS_NAME), oldQualifiedName);
             }
           }
         }
       };
-    } else if ((TESTING_TYPE == TEST_CLASS || TESTING_TYPE == TEST_METHOD) && element instanceof PsiClass) {
+    }
+    else if ((TESTING_TYPE == TEST_CLASS || TESTING_TYPE == TEST_METHOD) && element instanceof PsiClass) {
       if (!StringUtil.equals(JavaExecutionUtil.getRuntimeQualifiedName((PsiClass)element), CLASS_NAME)) {
         return null;
       }
@@ -527,7 +539,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
           }
         }
       };
-    } else if (TESTING_TYPE == TEST_METHOD && element instanceof PsiMethod) {
+    }
+    else if (TESTING_TYPE == TEST_METHOD && element instanceof PsiMethod) {
       PsiMethod psiMethod = (PsiMethod)element;
       if (!StringUtil.equals(psiMethod.getName(), METHOD_NAME)) {
         return null;
