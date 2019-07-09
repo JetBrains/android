@@ -273,6 +273,36 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     else if (methodName == "listOf") {
       return getExpressionList(parentElement, argumentsList, name, argumentsList.arguments, false)
     }
+    else if (methodName == "kotlin") {
+      // If the method has one argument, we should check if it's declared under a dependency block in order to resolve it to a dependency,
+      // or to a plugin otherwise.
+      if (argumentsList.arguments.size == 1) {
+        if (parentElement.fullName == "plugins") {
+          // Get the plugin name from the argument.
+          // Since the argument in not null, getArgumentExpression() is non null, and hence using !! is safe.
+          val pluginName = "kotlin-${unquoteString(argumentsList.arguments[0].getArgumentExpression()!!.text)}"
+          val literalExpression = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
+          literalExpression.setValue(pluginName)
+          return literalExpression
+        }
+        else {
+          val dependencyName = "org.jetbrains.kotlin:kotlin-${unquoteString(argumentsList.arguments[0].getArgumentExpression()!!.text)}"
+          val dependencyLiteral = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
+          dependencyLiteral.setValue(dependencyName)
+          return dependencyLiteral
+        }
+      }
+      // If the method has two arguments then it should automatically resolve to a dependency.
+      else if (argumentsList.arguments.size == 2) {
+        // arguments are not null and each argument will have an non null argumentExpression as well, so using !! in this case is safe.
+        val moduleName = unquoteString(argumentsList.arguments[0].getArgumentExpression()!!.text)
+        val version = unquoteString(argumentsList.arguments[1].getArgumentExpression()!!.text)
+        val dependencyName = "org.jetbrains.kotlin:kotlin-${moduleName}:${version}"
+        val dependencyLiteral = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
+        dependencyLiteral.setValue(dependencyName)
+        return dependencyLiteral
+      }
+    }
 
     // If the CallExpression has one argument only that is a callExpression, we skip the current CallExpression.
     val arguments = argumentsList.arguments
@@ -287,9 +317,13 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           return getCallExpression(
             parentElement, argumentExpression, name, argumentExpression.valueArgumentList!!, argumentsName, false)
         }
-        return getMethodCall(parentElement, psiElement, name, methodName)
+        return getMethodCall(
+          parentElement,
+          psiElement,
+          if (arguments[0].isNamed()) GradleNameElement.create(arguments[0].getArgumentName()!!.text) else name,
+          methodName)
       }
-      if (isFirstCall) {
+      if (isFirstCall && !arguments[0].isNamed()) {
         return getExpressionElement(parentElement, psiElement, name, arguments[0].getArgumentExpression() as KtElement)
       }
       return getMethodCall(parentElement, psiElement, name, methodName)
@@ -333,10 +367,13 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
                                 isLiteral : Boolean) : GradleDslExpressionList {
     val expressionList = GradleDslExpressionList(parentElement, listPsiElement, propertyName, isLiteral)
     valueArguments.map {
-      expression -> (expression as KtValueArgument).getArgumentExpression()
+      expression -> expression as KtValueArgument
     }.mapNotNull {
       argumentExpression -> createExpressionElement(
-      expressionList, argumentExpression!!, GradleNameElement.empty(), argumentExpression)
+      expressionList,
+      argumentExpression.getArgumentExpression()!!,
+      if (argumentExpression.isNamed()) GradleNameElement.create(argumentExpression.getArgumentName()!!.text) else GradleNameElement.empty(),
+      argumentExpression.getArgumentExpression() as KtExpression)
     }.forEach {
       if (it is GradleDslClosure) {
         parentElement.setParsedClosureElement(it)
