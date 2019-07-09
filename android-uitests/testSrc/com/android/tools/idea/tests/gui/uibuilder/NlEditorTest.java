@@ -76,7 +76,7 @@ public class NlEditorTest {
       .open("app/src/main/res/layout/empty_absolute.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layout = editor.getLayoutEditor(true);
     DesignSurface surface = (DesignSurface)layout.getSurface().target();
-    Dimension screenViewSize = surface.getCurrentSceneView().getSize();
+    Dimension screenViewSize = surface.getFocusedSceneView().getSize();
     // Drag components to [0, 0] and [width, height] to prevent them from overlapping each other and interfering with clicking.
     layout
       .dragComponentToSurface("Buttons", "CheckBox", 0, 0)

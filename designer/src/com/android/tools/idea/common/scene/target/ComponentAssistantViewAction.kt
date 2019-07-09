@@ -82,7 +82,7 @@ class ComponentAssistantViewAction @JvmOverloads constructor(
     val sceneComponent = editor.scene.getSceneComponent(selectedComponent) ?: return
 
     val designSurface = sceneComponent.scene.designSurface
-    val context = SceneContext.get(designSurface.currentSceneView)
+    val context = SceneContext.get(designSurface.focusedSceneView)
     val assistantContext = ComponentAssistantFactory.Context(selectedComponent) { cancel ->
       if (cancel) popup.cancel() else popup.close()
     }

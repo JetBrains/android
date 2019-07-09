@@ -181,7 +181,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   public DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent) {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getFocusedSceneView();
     if (screenView != null) {
       if (leafComponent != null) {
         addViewHandlerActions(group, leafComponent, screenView.getSelectionModel().getSelection());
@@ -270,7 +270,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       parent = component.getParent();
     }
 
-    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getFocusedSceneView();
     if (screenView == null) {
       return;
     }
