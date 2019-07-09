@@ -37,6 +37,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,9 +120,9 @@ public class CreateModuleFromArchiveAction extends WriteCommandAction<Object> {
 
   @Override
   protected void run(@NotNull Result<Object> result) throws Throwable {
-    File moduleLocation = GradleUtil.getModuleDefaultPath(myProject.getBaseDir(), myGradlePath);
+    Path moduleLocation = GradleUtil.getModuleDefaultPath(Paths.get(myProject.getBasePath()), myGradlePath);
     try {
-      VirtualFile moduleRoot = VfsUtil.createDirectoryIfMissing(moduleLocation.getAbsolutePath());
+      VirtualFile moduleRoot = VfsUtil.createDirectoryIfMissing(moduleLocation.toAbsolutePath().toString());
       VirtualFile sourceFile = VfsUtil.findFileByIoFile(myArchivePath, true);
       if (sourceFile != null && moduleRoot != null) {
         LargeFileWriteRequestor requestor = new LargeFileWriteRequestor() { };

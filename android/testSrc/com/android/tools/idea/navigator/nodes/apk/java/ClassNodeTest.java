@@ -26,14 +26,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
+import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.apk.debugging.SimpleApplicationContents.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.apk.debugging.SimpleApplicationContents.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -88,8 +89,10 @@ public class ClassNodeTest extends AndroidGradleTestCase {
     myDexSourceFiles = mock(DexSourceFiles.class);
     myNode = new ClassNode(project, myActivityApkClass, mySettings, myDexSourceFiles);
 
-    VirtualFile smaliFile = ApplicationManager.getApplication().runWriteAction((ThrowableComputable<VirtualFile, IOException>)() ->
-      project.getBaseDir().createChildData(this, "Test.smali"));
+    VirtualFile smaliFile = ApplicationManager.getApplication().runWriteAction((ThrowableComputable<VirtualFile, IOException>)() -> {
+      //noinspection CodeBlock2Expr
+      return PlatformTestUtil.getOrCreateProjectTestBaseDir(project).createChildData(this, "Test.smali");
+    });
     File smaliFilePath = virtualToIoFile(smaliFile);
 
     when(myDexSourceFiles.findSmaliFilePathForClass(myActivityApkClass.getFqn())).thenReturn(smaliFilePath);

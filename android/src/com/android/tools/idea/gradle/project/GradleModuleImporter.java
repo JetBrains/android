@@ -30,12 +30,15 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static com.google.common.base.Predicates.*;
@@ -267,17 +270,17 @@ public final class GradleModuleImporter extends ModuleImporter {
                                             @NotNull Map<String, VirtualFile> modules,
                                             @NotNull Project project,
                                             @Nullable GradleSyncListener listener) throws IOException {
-    VirtualFile projectRoot = project.getBaseDir();
+    VirtualFile projectRoot = VfsUtil.createDirectories(project.getBasePath());
     if (projectRoot.findChild(SdkConstants.FN_SETTINGS_GRADLE) == null) {
       projectRoot.createChildData(requestor, SdkConstants.FN_SETTINGS_GRADLE);
     }
     for (Map.Entry<String, VirtualFile> module : modules.entrySet()) {
       String name = module.getKey();
-      File targetFile = GradleUtil.getModuleDefaultPath(projectRoot, name);
+      Path targetFile = GradleUtil.getModuleDefaultPath(Paths.get(projectRoot.getPath()), name);
       VirtualFile moduleSource = module.getValue();
       if (moduleSource != null) {
         if (!isAncestor(projectRoot, moduleSource, true)) {
-          VirtualFile target = createDirectoryIfMissing(targetFile.getAbsolutePath());
+          VirtualFile target = createDirectoryIfMissing(targetFile.toAbsolutePath().toString());
           if (target == null) {
             throw new IOException(String.format("Unable to create directory %1$s", targetFile));
           }
@@ -287,12 +290,12 @@ public final class GradleModuleImporter extends ModuleImporter {
           moduleSource.copy(requestor, target.getParent(), target.getName());
         }
         else {
-          targetFile = virtualToIoFile(moduleSource);
+          targetFile = Paths.get(moduleSource.getPath());
         }
       }
       GradleSettingsFile gradleSettingsFile = GradleSettingsFile.get(project);
       assert gradleSettingsFile != null : "File should have been created";
-      gradleSettingsFile.addModule(name, targetFile);
+      gradleSettingsFile.addModule(name, targetFile.toFile());
     }
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
     request.generateSourcesOnSuccess = false;
