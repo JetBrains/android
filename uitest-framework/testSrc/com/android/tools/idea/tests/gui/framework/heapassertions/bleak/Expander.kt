@@ -239,7 +239,7 @@ open class DefaultObjectExpander(g: HeapGraph, val shouldOmitEdge: (Any, Field, 
   override fun canExpand(obj: Any) = true
 
   override fun expand(n: Node) {
-    for (field in DebugReflectionUtil.getAllFields(n.type)) {
+    for (field in DebugReflectionUtil.getAllFields(n.type).filter { it.modifiers and Modifier.STATIC == 0 }) {
       val value = field.get(n.obj)
       if (value != null && !shouldOmitEdge(n.obj, field, value)) {
         n.addEdgeTo(value, FieldLabel(field))
