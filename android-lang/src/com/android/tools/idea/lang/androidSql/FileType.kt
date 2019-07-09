@@ -21,7 +21,7 @@ import com.intellij.openapi.fileTypes.LanguageFileType
 import icons.AndroidIcons
 import javax.swing.Icon
 
-val ANDROID_SQL_DESCRIPTION = "Android Room SQL"
+const val ANDROID_SQL_DESCRIPTION = "Android Room SQL"
 
 object ANDROID_SQL_FILE_TYPE : LanguageFileType(AndroidSqlLanguage.INSTANCE) {
   override fun getName(): String = ANDROID_SQL_DESCRIPTION
@@ -31,7 +31,7 @@ object ANDROID_SQL_FILE_TYPE : LanguageFileType(AndroidSqlLanguage.INSTANCE) {
 }
 
 /**
- * Icon used for all things related to Room.
+ * Icon used for all things related to our SQL support.
  */
 val ANDROID_SQL_ICON: Icon = AndroidIcons.DeviceExplorer.DatabaseFolder
 

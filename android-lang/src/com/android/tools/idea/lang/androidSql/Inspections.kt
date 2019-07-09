@@ -33,20 +33,24 @@ import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
- * Inspection for the AndroidSqlSql language that only does something when running on a PSI file that's injected into a AndroidSql query.
+ * Base class for SQL inspections that only do something when running on a PSI file with a known [AndroidSqlContext].
  */
-abstract class RoomQueryOnlyInspection : LocalInspectionTool() {
+abstract class AndroidSqlKnownContextInspection : LocalInspectionTool() {
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
-    return if (isThisAndroidSqlQuery(session)) super.buildVisitor(holder, isOnTheFly, session) else PsiElementVisitor.EMPTY_VISITOR
+    return if (isContextKnown(session)) super.buildVisitor(holder, isOnTheFly, session) else PsiElementVisitor.EMPTY_VISITOR
   }
 
-  private fun isThisAndroidSqlQuery(session: LocalInspectionToolSession) = (session.file as? AndroidSqlFile)?.findHostRoomAnnotation() != null
+  private fun isContextKnown(session: LocalInspectionToolSession) = session.file.safeAs<AndroidSqlFile>()?.sqlContext != null
 }
 
-class RoomUnresolvedReferenceInspection : RoomQueryOnlyInspection() {
+/**
+ * Reports unresolved SQL references.
+ */
+class AndroidSqlUnresolvedReferenceInspection : AndroidSqlKnownContextInspection() {
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : AndroidSqlVisitor() {
@@ -79,9 +83,6 @@ class RoomUnresolvedReferenceInspection : RoomQueryOnlyInspection() {
         // string template as such, see the splitLiteralToInjectionParts function and b/77211318. See KT-25906.
         if (sqlFile.getUserData(InjectedLanguageManager.FRANKENSTEIN_INJECTION) == true) return
 
-        // Make sure we're inside a AndroidSql annotation, otherwise we don't know the schema.
-        if (sqlFile.findHostRoomAnnotation() == null) return
-
         if (!(isWellUnderstood(PsiTreeUtil.findPrevParent(referenceElement.containingFile, referenceElement)))) return
 
         val reference = referenceElement.reference ?: return
@@ -100,18 +101,6 @@ class RoomUnresolvedReferenceInspection : RoomQueryOnlyInspection() {
         is AndroidSqlDeleteStatement,
         is AndroidSqlWithClauseStatement -> true
         else -> false
-      }
-    }
-  }
-}
-
-class RoomBindParameterSyntaxInspection : RoomQueryOnlyInspection() {
-  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
-    return object : AndroidSqlVisitor() {
-      override fun visitBindParameter(parameter: AndroidSqlBindParameter) {
-        if (!parameter.isColonNamedParameter) {
-          holder.registerProblem(parameter, "Room only supports named parameters with a leading colon, e.g. :argName.")
-        }
       }
     }
   }

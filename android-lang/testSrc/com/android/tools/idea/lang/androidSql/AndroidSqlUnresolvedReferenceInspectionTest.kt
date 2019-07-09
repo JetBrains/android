@@ -18,10 +18,10 @@ package com.android.tools.idea.lang.androidSql
 import com.android.tools.idea.testing.highlightedAs
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 
-class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
+class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   override fun setUp() {
     super.setUp()
-    myFixture.enableInspections(RoomUnresolvedReferenceInspection::class.java)
+    myFixture.enableInspections(AndroidSqlUnresolvedReferenceInspection::class.java)
   }
 
   fun testInvalidColumn() {
