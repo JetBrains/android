@@ -179,7 +179,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    */
   static final String CACHE_FILE_FORMAT_VERSION = "1";
   private static final byte[] CACHE_FILE_HEADER = "Resource cache".getBytes(UTF_8);
-  private static final double CACHE_FRESHNESS_RATIO = 0.25;
+  private static final double CACHE_FRESHNESS_RATIO = 0.05;
   private static final Comparator<ResourceItemSource<? extends ResourceItem>> SOURCE_COMPARATOR =
       Comparator.comparing(ResourceItemSource::getFolderConfiguration);
   private static final Logger LOG = Logger.getInstance(ResourceFolderRepository.class);
