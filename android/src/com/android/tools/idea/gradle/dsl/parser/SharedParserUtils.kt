@@ -88,6 +88,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement.FLAT_DIR_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement
@@ -242,6 +244,7 @@ private fun createNewElementForFileOrSubProject(resultElement: GradlePropertiesD
     SUBPROJECTS_BLOCK_NAME -> SubProjectsDslElement(resultElement)
     BUILDSCRIPT_BLOCK_NAME -> BuildScriptDslElement(resultElement.dslFile)
     REPOSITORIES_BLOCK_NAME -> RepositoriesDslElement(resultElement)
+    PLUGINS_BLOCK_NAME -> PluginsDslElement(resultElement)
     else -> {
       val projectKey = ProjectPropertiesDslElement.getStandardProjectKey(nestedElementName) ?: return null
       return ProjectPropertiesDslElement(resultElement, GradleNameElement.fake(projectKey))
