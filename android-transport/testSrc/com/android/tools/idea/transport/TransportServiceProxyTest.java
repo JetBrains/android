@@ -252,7 +252,7 @@ public class TransportServiceProxyTest {
         return Collections.singletonList(generatedEvent);
       }
     });
-    proxy.getEvents(Transport.GetEventsRequest.getDefaultInstance(),  new StreamObserver<Common.Event>() {
+    proxy.getEvents(Transport.GetEventsRequest.getDefaultInstance(), new StreamObserver<Common.Event>() {
       @Override
       public void onNext(Common.Event event) {
         receivedEvents.add(event);
@@ -268,7 +268,10 @@ public class TransportServiceProxyTest {
     });
     Common.Event eventToPreprocess = Common.Event.newBuilder().setPid(1).setKind(Common.Event.Kind.ECHO).setIsEnded(true).build();
     Common.Event eventToIgnore = Common.Event.newBuilder().setPid(1).setIsEnded(true).build();
-    thruService.addEvents(eventToPreprocess, eventToIgnore);
+    // Add eventToIgnore before eventToPreprocess because the latch-based synchronization is count on eventToPreprocess.
+    // If eventToIgnore is added after, the service may stop before the event is sent, or the assertion is checked before
+    // the event is received or recorded.
+    thruService.addEvents(eventToIgnore, eventToPreprocess);
     thruService.stopEventThread();
     thruChannel.shutdownNow();
     proxy.disconnect();
