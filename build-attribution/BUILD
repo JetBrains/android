@@ -88,6 +88,7 @@ iml_module(
         "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
