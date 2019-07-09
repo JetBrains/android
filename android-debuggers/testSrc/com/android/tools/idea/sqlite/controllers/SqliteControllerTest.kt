@@ -80,7 +80,7 @@ class SqliteControllerTest : PlatformTestCase() {
     edtExecutor = EdtExecutorService.getInstance()
     taskExecutor = SameThreadExecutor.INSTANCE
     sqliteController = SqliteController(
-      testRootDisposable, sqliteServiceFactory, viewFactory, sqliteView, edtExecutor, taskExecutor
+      project, sqliteServiceFactory, viewFactory, sqliteView, edtExecutor, taskExecutor
     )
     sqliteController.setUp()
 
@@ -252,7 +252,7 @@ class SqliteControllerTest : PlatformTestCase() {
     sqliteView.viewListeners.single().closeTableActionInvoked(tabId!!)
 
     // Assert
-    verify(viewFactory).createEvaluatorView()
+    verify(viewFactory).createEvaluatorView(myProject)
     verify(sqliteView).closeTab(eq(tabId))
   }
 
