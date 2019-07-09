@@ -78,6 +78,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -133,7 +134,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     // Use a file cache that has per-test root directories instead of sharing the system directory.
-    ResourceFolderRepositoryFileCache cache = new ResourceFolderRepositoryFileCacheImpl(new File(myFixture.getTempDirPath())) {
+    ResourceFolderRepositoryFileCache cache = new ResourceFolderRepositoryFileCacheImpl(Paths.get(myFixture.getTempDirPath())) {
       @Override
       @Nullable
       public ResourceFolderRepositoryCachingData getCachingData(@NotNull Project project,
