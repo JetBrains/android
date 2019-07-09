@@ -15,35 +15,15 @@
  */
 package com.android.build.attribution.analyzers
 
-import org.gradle.tooling.events.ProgressEvent
-
 /**
- * A proxy to interact between the build events analyzers and the build attribution manager.
+ * A way of interaction between the build events analyzers and the build attribution manager.
+ * Used to fetch the final data from the analyzers after the build is complete.
  */
 class BuildEventsAnalyzersProxy {
-  private val analyzers: List<BuildEventsAnalyzer>
-
   private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer()
+  private val criticalPathAnalyzer = CriticalPathAnalyzer()
 
-  init {
-    analyzers = listOf(annotationProcessorsAnalyzer)
-  }
-
-  fun onBuildStart() {
-    analyzers.forEach(BuildEventsAnalyzer::onBuildStart)
-  }
-
-  fun onBuildSuccess() {
-    analyzers.forEach(BuildEventsAnalyzer::onBuildSuccess)
-  }
-
-  fun onBuildFailure() {
-    analyzers.forEach(BuildEventsAnalyzer::onBuildFailure)
-  }
-
-  fun receiveEvent(event: ProgressEvent) {
-    analyzers.forEach { it.receiveEvent(event) }
-  }
+  fun getAnalyzers(): List<BuildEventsAnalyzer> = listOf(annotationProcessorsAnalyzer, criticalPathAnalyzer)
 
   fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getAnnotationProcessorsData()
@@ -51,5 +31,17 @@ class BuildEventsAnalyzersProxy {
 
   fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getNonIncrementalAnnotationProcessorsData()
+  }
+
+  fun getCriticalPathDuration(): Long {
+    return criticalPathAnalyzer.criticalPathDuration
+  }
+
+  fun getTasksCriticalPath(): List<CriticalPathAnalyzer.TaskBuildData> {
+    return criticalPathAnalyzer.tasksCriticalPath
+  }
+
+  fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData> {
+    return criticalPathAnalyzer.pluginsCriticalPath
   }
 }

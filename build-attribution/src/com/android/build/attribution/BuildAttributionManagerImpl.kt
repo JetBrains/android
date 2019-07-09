@@ -16,11 +16,13 @@
 package com.android.build.attribution
 
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
+import com.android.build.attribution.analyzers.BuildEventsAnalyzersWrapper
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
+import java.time.Duration
 
 class BuildAttributionManagerImpl(
   private val myProject: Project,
@@ -28,26 +30,27 @@ class BuildAttributionManagerImpl(
 ) : BuildAttributionManager {
   @get:VisibleForTesting
   val analyzersProxy = BuildEventsAnalyzersProxy()
+  private val analyzersWrapper = BuildEventsAnalyzersWrapper(analyzersProxy.getAnalyzers())
 
   override fun onBuildStart() {
-    analyzersProxy.onBuildStart()
+    analyzersWrapper.onBuildStart()
   }
 
   override fun onBuildSuccess() {
-    analyzersProxy.onBuildSuccess()
+    analyzersWrapper.onBuildSuccess()
 
     // TODO: add proper UI
     logBuildAttributionResults()
   }
 
   override fun onBuildFailure() {
-    analyzersProxy.onBuildFailure()
+    analyzersWrapper.onBuildFailure()
   }
 
   override fun statusChanged(event: ProgressEvent?) {
     if (event == null) return
 
-    analyzersProxy.receiveEvent(event)
+    analyzersWrapper.receiveEvent(event)
   }
 
   private fun logBuildAttributionResults() {
@@ -57,6 +60,28 @@ class BuildAttributionManagerImpl(
       if (it.isNotEmpty()) {
         stringBuilder.appendln("Non incremental annotation processors:")
         it.forEach { processor -> stringBuilder.appendln(processor.className + " " + processor.compilationDuration) }
+      }
+    }
+
+    analyzersProxy.getTasksCriticalPath().let {
+      if (it.isNotEmpty()) {
+        stringBuilder.appendln("Tasks critical path:")
+        it.forEach { taskBuildData ->
+          val percentage = taskBuildData.taskExecutionTime * 100 / analyzersProxy.getCriticalPathDuration()
+          stringBuilder.append("Task ${taskBuildData.taskData.getTaskPath()} from ${taskBuildData.taskData.originPlugin}")
+            .appendln(", time ${Duration.ofMillis(taskBuildData.taskExecutionTime)} ($percentage%)")
+        }
+      }
+    }
+
+    analyzersProxy.getPluginsCriticalPath().let {
+      if (it.isNotEmpty()) {
+        stringBuilder.appendln("Plugins determining build duration:")
+        it.forEach { pluginBuildData ->
+          val percentage = pluginBuildData.buildDuration * 100 / analyzersProxy.getCriticalPathDuration()
+          stringBuilder.append("${pluginBuildData.plugin}, time ${Duration.ofMillis(pluginBuildData.buildDuration)}")
+            .appendln(" ($percentage%)")
+        }
       }
     }
 
