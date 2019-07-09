@@ -50,7 +50,6 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_APP_BAR_OVERLAY
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_EXISTS
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_IS_APP_COMPAT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_NO_ACTION_BAR
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_POPUP_OVERLAY
@@ -416,7 +415,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
 
     val map = HashMap<String, Any>()
     map[ATTR_APP_THEME_NAME] = themeName
-    map[ATTR_APP_THEME_IS_APP_COMPAT] = helper.isAppCompatTheme(themeName)
     map[ATTR_APP_THEME_EXISTS] = true
     val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
     addDerivedTheme(map, themeName, ATTR_APP_THEME_NO_ACTION_BAR, hasActionBar == false, helper, configuration)

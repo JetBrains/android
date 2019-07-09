@@ -126,7 +126,6 @@ public class TemplateMetadata {
 
   public static final String ATTR_APP_THEME = "applicationTheme";
   public static final String ATTR_APP_THEME_NAME = "name";
-  public static final String ATTR_APP_THEME_IS_APP_COMPAT = "isAppCompat";
   public static final String ATTR_APP_THEME_EXISTS = "exists";
   public static final String ATTR_APP_THEME_NO_ACTION_BAR = "NoActionBar";
   public static final String ATTR_APP_THEME_APP_BAR_OVERLAY = "AppBarOverlay";
