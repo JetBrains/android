@@ -590,7 +590,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.checkHighlighting()
-      assertThat(resolveReferenceUnderCaret()).isInstanceOf(NamespacedAarRClass::class.java)
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(SmallAarRClass::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("R", "BuildConfig")
     }
@@ -723,7 +723,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.checkHighlighting()
-      assertThat(resolveReferenceUnderCaret()).isInstanceOf(NonNamespacedAarRClass::class.java)
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(TransitiveAarRClass::class.java)
     }
 
     fun testResourceNames_string() {
