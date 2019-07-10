@@ -158,8 +158,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @Override
         @Nullable
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
-          if (ProjectStructureConfigurable.isNewPsdEnabled() &&
-              (System.currentTimeMillis() -
+          if ((System.currentTimeMillis() -
                Long.parseLong(
                  PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0")) >
                PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS)) {
