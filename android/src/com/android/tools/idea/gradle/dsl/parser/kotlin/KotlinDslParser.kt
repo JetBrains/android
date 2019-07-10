@@ -215,6 +215,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       else {
         blockElement = dslFile.getBlockElement(listOf(referenceName), parent) ?: return
       }
+      // Get the block psi element of expression.
+      val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
+
+      blockElement.setPsiElement(argumentsBlock)
       blockElements.add(blockElement)
       blockElements.forEach { block ->
         // Visit the children of this element, with the current block set as parent.
@@ -352,7 +356,11 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           methodName)
       }
       if (isFirstCall && !arguments[0].isNamed()) {
-        return getExpressionElement(parentElement, psiElement, name, arguments[0].getArgumentExpression() as KtElement)
+        return getExpressionElement(
+          parentElement,
+          arguments[0].getArgumentExpression() as PsiElement,
+          name,
+          arguments[0].getArgumentExpression() as KtElement)
       }
       return getMethodCall(parentElement, psiElement, name, methodName)
     }
