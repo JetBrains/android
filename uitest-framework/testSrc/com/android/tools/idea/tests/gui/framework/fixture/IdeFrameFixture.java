@@ -266,6 +266,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public IdeFrameFixture stopAll() {
+    invokeMenuPath("Run", "Stop...");
+    robot().pressAndReleaseKey(KeyEvent.VK_F2, CTRL_MASK); // Stop All (Ctrl + F2)
+    return this;
+  }
+
+  @NotNull
   public IdeFrameFixture stepOver() {
     return invokeMenuPath("Run", "Step Over");
   }
