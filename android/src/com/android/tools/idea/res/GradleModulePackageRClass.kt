@@ -17,7 +17,8 @@ package com.android.tools.idea.res
 
 import com.android.builder.model.AaptOptions
 import com.intellij.psi.PsiManager
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils
+import org.jetbrains.android.dom.manifest.getPackageName
+import org.jetbrains.android.dom.manifest.getTestPackageName
 import org.jetbrains.android.facet.AndroidFacet
 
 class ModuleRClass(
@@ -30,7 +31,7 @@ class ModuleRClass(
   MainResources(facet, namespacing)
 ) {
   class MainResources(val facet: AndroidFacet, val namespacing: AaptOptions.Namespacing) : ResourcesSource {
-    override fun getPackageName(): String? = AndroidManifestUtils.getPackageName(facet)
+    override fun getPackageName(): String? = getPackageName(facet)
     override fun getResourceRepository() = ResourceRepositoryManager.getAppResources(facet)
     override fun getResourceNamespace() = ResourceRepositoryManager.getInstance(facet).namespace
   }
@@ -46,7 +47,7 @@ class ModuleTestRClass(
   TestResources(facet, namespacing)
 ) {
   class TestResources(val facet: AndroidFacet, val namespacing: AaptOptions.Namespacing) : ResourcesSource {
-    override fun getPackageName() = AndroidManifestUtils.getTestPackageName(facet)
+    override fun getPackageName() = getTestPackageName(facet)
     override fun getResourceRepository() = ResourceRepositoryManager.getInstance(facet).testAppResources
     override fun getResourceNamespace() = ResourceRepositoryManager.getInstance(facet).namespace
     override fun isForTest() = true
