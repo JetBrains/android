@@ -53,6 +53,7 @@ public class GradleDistributionInstallErrorHandlerTest extends AndroidGradleTest
     registerSyncErrorToSimulate(expectedNotificationMessage);
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
+/* b/137231583
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
@@ -70,6 +71,7 @@ public class GradleDistributionInstallErrorHandlerTest extends AndroidGradleTest
     assertThat(quickFix).isInstanceOf(DeleteFileAndSyncHyperlink.class);
     DeleteFileAndSyncHyperlink deleteHyperlink = (DeleteFileAndSyncHyperlink)quickFix;
     assertThat(deleteHyperlink.getFile()).isEquivalentAccordingToCompareTo(zipFile);
+b/137231583 */
   }
 
   @NotNull
