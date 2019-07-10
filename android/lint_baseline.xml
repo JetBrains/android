@@ -429,14 +429,6 @@
         id="WrongInvokeLater"
         message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
         <location
-            file="src/com/android/tools/idea/gradle/structure/editors/MavenDependencyLookupDialog.java"
-            line="451"/>
-    </issue>
-
-    <issue
-        id="WrongInvokeLater"
-        message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
-        <location
             file="src/com/android/tools/idea/gradle/structure/configurables/variables/VariablesTable.kt"
             line="336"/>
     </issue>
