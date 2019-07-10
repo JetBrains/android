@@ -677,6 +677,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       // TODO: Remove this after when b/136174865 is implemented, which removes the preview mode.
       onClickPreview(x, y, false);
     }
+    else {
+      super.onSingleClick(x, y);
+    }
   }
 
   @Override
@@ -698,7 +701,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
     NlComponent component = Coordinates.findComponent(sceneView, x, y);
     if (component != null) {
-      NlComponentHelperKt.tryNavigateTo(component, needsFocusEditor);
+      navigateToComponent(component, needsFocusEditor);
     }
   }
 

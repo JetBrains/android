@@ -339,7 +339,6 @@ public class NlEditorTest {
 
   @Test
   public void gotoAction() throws IOException {
-    StudioFlags.NELE_SPLIT_EDITOR.override(false);
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
@@ -349,7 +348,6 @@ public class NlEditorTest {
     nlEditorFixture.rightClick();
     nlEditorFixture.invokeContextMenuAction("Go to XML");
     assertThat(editor.getSelectedTab()).isEqualTo("Text");
-    StudioFlags.NELE_SPLIT_EDITOR.clearOverride();
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/124109589
