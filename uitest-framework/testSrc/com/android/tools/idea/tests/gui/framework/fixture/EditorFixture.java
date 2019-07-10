@@ -508,7 +508,22 @@ public class EditorFixture {
         })
       );
 
-    Editor editor = GuiQuery.get(() -> FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor());
+    Editor editor = GuiQuery.get(() -> {
+      FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+      if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+        FileEditor selectedEditor = manager.getSelectedEditor();
+        if (selectedEditor instanceof SplitEditor) {
+          SplitEditor splitEditor = (SplitEditor)selectedEditor;
+          if (splitEditor.isTextMode()) {
+            return splitEditor.getEditor();
+          }
+          else {
+            return null;
+          }
+        }
+      }
+      return manager.getSelectedTextEditor();
+    });
     if (editor == null) {
       myFrame.requestFocusIfLost();
     }
