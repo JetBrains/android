@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.ui.IssuesViewerPanel
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.intellij.ui.table.TableView
@@ -26,6 +27,7 @@ import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.fixture.JTableFixture
+import org.fest.swing.fixture.JTreeFixture
 import org.fest.swing.timing.Wait
 import java.awt.Component
 import java.awt.Container
@@ -36,9 +38,11 @@ import java.awt.event.KeyEvent
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JEditorPane
+import javax.swing.JTree
 import javax.swing.text.AttributeSet
 import javax.swing.text.ElementIterator
 import javax.swing.text.html.HTML
+import javax.swing.tree.DefaultMutableTreeNode
 
 // The EditorComboBoxFixture and EditorComboBoxDriver are to manage the mismatch between EditorComboBox, which we use in
 // declared dependency configuration management, and the test infrastructure in fest-swing.  It's not clear to me whether
@@ -110,6 +114,36 @@ class DependenciesFixture(
 
   fun findDependenciesTable(): JTableFixture =
     JTableFixture(robot(), robot().finder().findByType<TableView<*>>(container))
+
+  class DependenciesTreeFixture(
+    val robot: Robot,
+    val tree: JTree
+  ) : JTreeFixture(robot, tree) {
+    fun waitForTreeEntry(text: String) {
+      Wait.seconds(5)
+        .expecting("a tree entry '$text'")
+        .until { treeContains(text) }
+      waitForIdle()
+    }
+
+    private fun treeContains(text: String): Boolean {
+      return GuiQuery.get {
+        val root = tree.model.root as DefaultMutableTreeNode
+        root.children().asSequence().forEach {
+          if (it is DefaultMutableTreeNode) {
+            when (val userObject = it.userObject) {
+              is AbstractDependencyNode<*, *> -> if (text == userObject.name) return@get true
+              is String -> if (text == userObject) return@get true
+              else -> Unit
+            }
+          }
+        }
+        return@get false
+      } ?: false
+    }
+  }
+
+  fun findDependenciesTree() = DependenciesTreeFixture(robot(), robot().finder().findByName("dependenciesTree", JTree::class.java))
 
   fun findConfigurationCombo(): JComboBoxFixture =
     EditorComboBoxFixture(robot(), robot().finder().findByName(container, "configuration", JComboBox::class.java, true))
