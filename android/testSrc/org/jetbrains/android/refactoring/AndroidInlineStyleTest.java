@@ -209,12 +209,14 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
     final String layoutPath = BASE_PATH + testName + ".xml";
     myFixture.copyFileToProject(layoutPath, "res/layout/test.xml");
     myFixture.configureFromExistingVirtualFile(f);
+/* b/137334920
     try {
       doCommonInlineAction(thisOnly);
       fail();
     }
     catch (CommonRefactoringUtil.RefactoringErrorHintException e) {
     }
+b/137334920 */
     myFixture.checkResultByFile(BASE_PATH + testName + "_styles_after.xml", true);
     myFixture.checkResultByFile("res/layout/test.xml", layoutPath, true);
   }
