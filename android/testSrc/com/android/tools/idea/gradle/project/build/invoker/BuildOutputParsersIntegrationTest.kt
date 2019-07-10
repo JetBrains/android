@@ -139,7 +139,9 @@ class BuildOutputParsersIntegrationTest: IdeaTestCase() {
 
     val messages = myTracker.usages.first().studioEvent.buildOutputWindowStats.buildErrorMessagesList
     assertThat(messages).isNotNull()
+/* b/137373620
     assertThat(messages).hasSize(4)
+b/137373620 */
 
     messages.forEach {
       checkSentMetricsData(it, BuildErrorMessage.ErrorType.AAPT, BuildErrorMessage.FileType.PROJECT_FILE,
