@@ -239,9 +239,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
         // Inject embedded repository if it's enabled by user or if in testing mode.
         if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() || isInTestingMode()) {
-          if (!StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get()) {
-            GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
-          }
+          GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
           attemptToUseEmbeddedGradle(project);
         }
 
