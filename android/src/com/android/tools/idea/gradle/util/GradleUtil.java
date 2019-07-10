@@ -1034,7 +1034,12 @@ public final class GradleUtil {
     return projectBuildFilesTypes(project).contains(DOT_KTS);
   }
 
-  public static boolean isKtsFile(@NotNull VirtualFile file) {
+  public static boolean isKtsFile(@Nullable VirtualFile file) {
+    // We deal with the null case in this method for the callers convenience.
+    if (file == null) {
+      return false;
+    }
+
     HashSet<String> result = new HashSet<>();
     addBuildFileType(result, file);
     return result.contains(DOT_KTS);

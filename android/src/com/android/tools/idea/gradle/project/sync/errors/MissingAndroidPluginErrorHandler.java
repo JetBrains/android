@@ -56,7 +56,7 @@ public class MissingAndroidPluginErrorHandler extends BaseSyncErrorHandler {
 
     if (project.isInitialized()) {
       List<VirtualFile> buildFiles = getBuildFileForPlugin(project);
-      if (!buildFiles.isEmpty()) {
+      if (!buildFiles.isEmpty() && buildFiles.get(0) != null) {
         VirtualFile buildFile = buildFiles.get(0);
         //TODO(b/130224064): need to remove check when kts fully supported
         if (!GradleUtil.isKtsFile(buildFile)) {
