@@ -63,8 +63,9 @@ class MemoryGenerator(connection: Connection) : DataGenerator(connection) {
   private fun generateAllocStatsSamples(timestamp: Long, properties: GeneratorProperties) {
     val stats = ArrayList<MemoryProfiler.MemoryData.AllocStatsSample>()
     stats.add(MemoryProfiler.MemoryData.AllocStatsSample.newBuilder()
-                .setJavaAllocationCount(random.nextInt())
-                .setJavaFreeCount(random.nextInt())
+                .setAllocStats(Memory.MemoryAllocStatsData.newBuilder()
+                  .setJavaAllocationCount(random.nextInt())
+                  .setJavaFreeCount(random.nextInt()))
                 .setTimestamp(timestamp)
                 .build())
     table.insertAllocStats(properties.session, stats)
