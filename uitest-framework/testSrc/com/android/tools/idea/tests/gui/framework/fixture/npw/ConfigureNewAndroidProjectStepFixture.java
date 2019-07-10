@@ -65,12 +65,6 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
   }
 
   @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> setUseOfflineRepo(boolean select) {
-    selectCheckBoxWithText("Use offline repo", select);
-    return this;
-  }
-
-  @NotNull
   public ConfigureNewAndroidProjectStepFixture<W> setIncludeInstantApp(boolean select) {
     selectCheckBoxWithText("This project will support instant apps", select);
     return this;
