@@ -229,6 +229,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           layoutContent();
           updateScrolledAreaSize();
         }
+        myModelToSceneManagers.values().forEach(it -> it.getScene().needsRebuildList());
       }
     });
 
