@@ -1608,6 +1608,13 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (SystemInfo.isWindows) {
       return "app";
     }
+    // Bug 137161906
+    if (projectName.startsWith("BasicActivity") &&
+        activityState != null &&
+        activityState.hasAttr(ATTR_KOTLIN_SUPPORT) &&
+        activityState.getBoolean(ATTR_KOTLIN_SUPPORT)) {
+      return projectName;
+    }
 
     String specialChars = "!@#$^&()_+=-.`~";
     String nonAsciiChars = "你所有的基地都属于我们";

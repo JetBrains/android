@@ -102,7 +102,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     // The attempt above to add the plugin using the GradleBuildModel failed, now attempt to add the plugin by appending the string.
     val destinationContents = if (buildFile.exists()) nullToEmpty(readTextFile(buildFile)) else ""
     val applyPluginStatement = "apply plugin: '$name'"
-    val result = if (destinationContents.isEmpty()) applyPluginStatement else destinationContents + LINE_SEPARATOR + applyPluginStatement
+    val result = io.mergeBuildFiles(applyPluginStatement, destinationContents, project, "")
     try {
       io.writeFile(this, result, buildFile)
     }
