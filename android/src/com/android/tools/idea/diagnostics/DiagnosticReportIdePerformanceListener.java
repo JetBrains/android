@@ -92,7 +92,8 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
   }
 
   @Override
-  public void uiFreezeFinished(int lengthInSeconds) {
+  public void uiFreezeFinished(long durationMs) {
+    int lengthInSeconds = (int)(durationMs / 1000);
     LOG.info(String.format(Locale.US, "uiFreezeFinished: duration = %d seconds", lengthInSeconds));
     DiagnosticReportBuilder localBuilder = myBuilder;
     if (localBuilder == null) {
