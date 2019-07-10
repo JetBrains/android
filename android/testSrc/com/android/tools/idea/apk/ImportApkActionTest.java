@@ -148,11 +148,6 @@ public class ImportApkActionTest extends JavaProjectTestCase {
     }
 
     @Override
-    public String getLastProjectPath() {
-      return null;
-    }
-
-    @Override
     public void removePath(@Nullable String path) {
     }
 
