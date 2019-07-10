@@ -101,6 +101,17 @@ class BuildAttributionManagerImpl(
       }
     }
 
+    analyzersProxy.getAlwaysRunTasks().let {
+      if (it.isNotEmpty()) {
+        stringBuilder.appendln("Always-run tasks:")
+        it.forEach { alwaysRunTaskData ->
+          stringBuilder.append(
+            "Task ${alwaysRunTaskData.taskData.getTaskPath()} from ${alwaysRunTaskData.taskData.originPlugin} ")
+            .appendln("runs on every build because ${alwaysRunTaskData.reason}")
+        }
+      }
+    }
+
     if (stringBuilder.isNotEmpty()) {
       Logger.getInstance(this::class.java).warn("Build attribution analysis results:\n$stringBuilder")
     }

@@ -20,11 +20,15 @@ package com.android.build.attribution.analyzers
  * Used to fetch the final data from the analyzers after the build is complete.
  */
 class BuildEventsAnalyzersProxy {
+  private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer()
   private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer()
   private val criticalPathAnalyzer = CriticalPathAnalyzer()
   private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer()
 
-  fun getAnalyzers(): List<BuildEventsAnalyzer> = listOf(annotationProcessorsAnalyzer, criticalPathAnalyzer, projectConfigurationAnalyzer)
+  fun getAnalyzers(): List<BuildEventsAnalyzer> = listOf(alwaysRunTasksAnalyzer,
+                                                         annotationProcessorsAnalyzer,
+                                                         criticalPathAnalyzer,
+                                                         projectConfigurationAnalyzer)
 
   fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getAnnotationProcessorsData()
@@ -52,5 +56,9 @@ class BuildEventsAnalyzersProxy {
 
   fun getPluginsSlowingConfiguration(): List<ProjectConfigurationAnalyzer.ProjectConfigurationData> {
     return projectConfigurationAnalyzer.pluginsSlowingConfiguration
+  }
+
+  fun getAlwaysRunTasks(): List<AlwaysRunTasksAnalyzer.AlwaysRunTaskData> {
+    return alwaysRunTasksAnalyzer.getAlwaysRunTasks()
   }
 }
