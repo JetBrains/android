@@ -122,6 +122,8 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       return getResourceDocumentation(element, ((MyResourceElement)element).myResource);
     } else if (element instanceof XmlAttributeValue) {
       return getResourceDocumentation(element, ((XmlAttributeValue)element).getValue());
+    } else if (element instanceof MyDocElement) {
+      return ((MyDocElement)element).getDocumentation();
     }
     if (originalElement instanceof XmlToken) {
       XmlToken token = (XmlToken)originalElement;
@@ -160,9 +162,6 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       }
     }
 
-    if (element instanceof MyDocElement) {
-      return ((MyDocElement)element).myDocumentation;
-    }
     return null;
   }
 
@@ -457,11 +456,10 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
 
   @Override
   public PsiElement getDocumentationElementForLookupItem(@NotNull PsiManager psiManager, @NotNull Object object, @NotNull PsiElement element) {
-    if (object instanceof ResourceReferenceConverter.DocumentationHolder) {
-      ResourceReferenceConverter.DocumentationHolder holder = (ResourceReferenceConverter.DocumentationHolder)object;
-      return new ProvidedDocumentationPsiElement(psiManager, Language.ANY, holder.getValue(), holder.getDocumentation());
+    if (element instanceof XmlToken) {
+      element = element.getParent();
     }
-    if (!(element instanceof XmlAttributeValue) || !(object instanceof String)) {
+    if ((!(element instanceof XmlAttributeValue) && !(element instanceof XmlToken)) || !(object instanceof String)) {
       return null;
     }
     String value = (String)object;
@@ -478,18 +476,13 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     }
     Converter converter = domValue.getConverter();
 
-    if (converter instanceof AttributeValueDocumentationProvider) {
-      String doc = ((AttributeValueDocumentationProvider)converter).getDocumentation(value);
-
-      if (doc != null) {
-        return new MyDocElement(element, doc);
-      }
-    }
-
     if ((value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) && !DataBindingUtil.isBindingExpression(value)) {
       return new MyResourceElement(element, value);
     }
 
+    if (converter instanceof AttributeValueDocumentationProvider) {
+      return new MyDocElement((XmlAttribute)parent, value);
+    }
     return null;
   }
 
@@ -499,12 +492,22 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   }
 
   private static class MyDocElement extends FakePsiElement {
-    final PsiElement myParent;
-    final String myDocumentation;
 
-    private MyDocElement(@NotNull PsiElement parent, @NotNull String documentation) {
+    XmlAttribute myParent;
+    String myValue;
+
+    private MyDocElement(@NotNull XmlAttribute parent, String value) {
       myParent = parent;
-      myDocumentation = documentation;
+      myValue = value;
+    }
+
+    public String getDocumentation() {
+      GenericAttributeValue domValue = DomManager.getDomManager(myParent.getProject()).getDomElement(myParent);
+      if (domValue == null) {
+        return null;
+      }
+      Converter converter = domValue.getConverter();
+      return ((AttributeValueDocumentationProvider)converter).getDocumentation(myValue);
     }
 
     @Override

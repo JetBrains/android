@@ -1525,6 +1525,97 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                           provider.generateDoc(docTargetElement, originalElement))
   }
 
+  fun testAttributeValueAttrCompletionDocumentation() {
+    val file = myFixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      //language=XML
+      """<LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:orientation="vertical"
+            android:layout_width="${caret}"
+            android:layout_height="match_parent">
+        </LinearLayout>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.complete(CompletionType.BASIC)
+
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactlyElementsIn(listOf("match_parent", "wrap_content", "@android:", "@dimen/myDimen", "fill_parent"))
+
+    val lookup = myFixture.lookup
+    var matchParentElement: LookupElement? = null
+    var fillParentElement: LookupElement? = null
+
+    for (element in lookup.items) {
+      when (element.lookupString) {
+        "match_parent" -> matchParentElement = element
+        "fill_parent" -> fillParentElement = element
+      }
+    }
+
+    lookup.currentItem = matchParentElement
+    var ref = myFixture.file.findReferenceAt(myFixture.editor.caretModel.offset)!!
+    var docTargetElement = DocumentationManager.getInstance(project).findTargetElement(
+      myFixture.editor, myFixture.file, ref.element)
+    var documentationProvider = DocumentationManager.getProviderFromElement(docTargetElement)
+    assertThat(documentationProvider.generateDoc(docTargetElement, ref.element)).isEqualTo(
+      """The view should be as big as its parent (minus padding).
+                 Introduced in API Level 8.""".trimIndent())
+
+    lookup.currentItem = fillParentElement
+    ref = myFixture.file.findReferenceAt(myFixture.editor.caretModel.offset)!!
+    docTargetElement = DocumentationManager.getInstance(project).findTargetElement(
+      myFixture.editor, myFixture.file, ref.element)
+    documentationProvider = DocumentationManager.getProviderFromElement(docTargetElement)
+    assertThat(documentationProvider.generateDoc(docTargetElement, ref.element)).isEqualTo(
+      """The view should be as big as its parent (minus padding).
+                 This constant is deprecated starting from API Level 8 and
+                 is replaced by {@code match_parent}.""".trimIndent())
+  }
+
+  fun testAttributeValueColorCompletionDocumentation() {
+    myFixture.addFileToProject(
+      "res/values/colors.xml",
+      """<resources>
+        <color name="colorPrimary">#008577</color>
+      </resources>
+      """.trimIndent())
+    val file = myFixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      //language=XML
+      """<LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <Button
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:shadowColor="${caret}">
+        </LinearLayout>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.complete(CompletionType.BASIC)
+
+    assertThat(myFixture.lookupElementStrings).contains("@color/colorPrimary")
+    var colorElement: LookupElement? = null
+    val lookup = myFixture.lookup
+    for (element in lookup.items) {
+      when (element.lookupString) {
+        "@color/colorPrimary" -> colorElement = element
+      }
+    }
+
+    lookup.currentItem = colorElement
+    val ref = myFixture.file.findReferenceAt(myFixture.editor.caretModel.offset)!!
+    val docTargetElement = DocumentationManager.getInstance(project).findTargetElement(
+      myFixture.editor, myFixture.file, ref.element)
+    val documentationProvider = DocumentationManager.getProviderFromElement(docTargetElement)
+    assertThat(documentationProvider.generateDoc(docTargetElement, ref.element)).isEqualTo(
+      """<html><body><table style="background-color:rgb(0,133,119);width:200px;text-align:center;vertical-align:middle;" border="0">""" +
+        """<tr height="100"><td align="center" valign="middle" height="100" style="color:black">#008577</td></tr></table><BR/>""" +
+        """@color/colorPrimary => #008577<BR/></body></html>""")
+  }
+
+
   fun testDimenUnitsCompletion2() {
     doTestCompletionVariants(getTestName(true) + ".xml", "@android:", "@dimen/myDimen")
   }
