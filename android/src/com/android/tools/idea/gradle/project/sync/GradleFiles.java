@@ -43,6 +43,7 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.Future;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -377,16 +378,17 @@ public class GradleFiles {
     public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
       maybeProcessSyncStarted(project);
     }
+  }
 
-    private void maybeProcessSyncStarted(@NotNull Project project) {
-      if (!project.isInitialized() && project.equals(myProject)) {
-        return;
-      }
-      ApplicationManager.getApplication().executeOnPooledThread(() -> {
-        updateFileHashes();
-        removeChangedFiles();
-      });
+  @VisibleForTesting
+  public Future<?> maybeProcessSyncStarted(@NotNull Project project) {
+    if (!project.isInitialized() && project.equals(myProject)) {
+      return null;
     }
+    return ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      updateFileHashes();
+      removeChangedFiles();
+    });
   }
 
   /**
