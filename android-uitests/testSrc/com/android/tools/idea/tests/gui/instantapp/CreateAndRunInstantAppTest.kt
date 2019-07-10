@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec
 import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.EnableInstantAppSupportDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -114,13 +115,19 @@ class CreateAndRunInstantAppTest {
       .configureNewAndroidProjectStep
       .enterPackageName(projectApplicationId)
       .selectMinimumSdkApi("23")
-      .setIncludeInstantApp(true)
       .wizard()
       .clickFinish()
 
     val ideFrame = guiTest.ideFrame()
     // TODO remove the following workaround wait for http://b/72666461
     ideFrame.waitForGradleProjectSyncToFinish()
+
+    ideFrame.projectView
+      .selectAndroidPane()
+      .clickPath("app")
+      .invokeMenuPath("Refactor", "Enable Instant Apps Support...")
+    EnableInstantAppSupportDialogFixture.find(ideFrame)
+      .clickOk()
 
     // The project is not deployed as an instant app by default anymore. Enable
     // deploying the project as an instant app:
