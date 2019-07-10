@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.impl.EditConfigurationsDialog;
@@ -74,9 +75,9 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
     return this;
   }
 
-  @NotNull
   public void clickOk() {
     findAndClickOkButton(this);
+    waitUntilNotShowing();
   }
 
   @NotNull
@@ -112,6 +113,13 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
     JComboBoxFixture comboBoxFixture = new JComboBoxFixture(robot(), robot().finder().findByType(ModulesComboBox.class, true));
     comboBoxFixture.replaceCellReader(MODULE_PICKER_READER);
     comboBoxFixture.selectItem(moduleName);
+    return this;
+  }
+
+  @NotNull
+  public EditConfigurationsDialogFixture selectDeployAsInstantApp(boolean selected) {
+    JCheckBox instantAppCheckbox = waitUntilShowing(robot(), target(), Matchers.byText(JCheckBox.class, "Deploy as instant app"));
+    instantAppCheckbox.setSelected(selected);
     return this;
   }
 }
