@@ -54,11 +54,6 @@ public class ModuleDependency extends Dependency {
     return myModule;
   }
 
-  private boolean hasEqualPath(@NotNull GradleFacet facet) {
-    String gradlePath = facet.getConfiguration().GRADLE_PROJECT_PATH;
-    return isNotEmpty(gradlePath) && gradlePath.equals(getGradlePath());
-  }
-
   @NotNull
   public String getGradlePath() {
     return myGradlePath;
