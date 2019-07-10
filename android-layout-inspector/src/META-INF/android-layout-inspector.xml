@@ -19,7 +19,7 @@
 
   <actions>
     <action id="Android.RunLayoutInspector" class="com.android.tools.idea.editors.layoutInspector.actions.AndroidRunLayoutInspectorAction">
-      <add-to-group group-id="AndroidToolsGroup" anchor="before" relative-to-action="Android.ShowThemeEditor"/>
+      <add-to-group group-id="AndroidToolsGroup" />
     </action>
   </actions>
 
