@@ -18,7 +18,6 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import org.jetbrains.annotations.NotNull;
@@ -84,8 +83,7 @@ public class DetailedMemoryUsage extends MemoryUsage {
         createLegacyRangedSeries(profilers, OTHERS_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getOthersMem());
     }
 
-    MemoryServiceGrpc.MemoryServiceBlockingStub client = profilers.getClient().getMemoryClient();
-    AllocStatsDataSeries series = new AllocStatsDataSeries(myProfilers, client,
+    AllocStatsDataSeries series = new AllocStatsDataSeries(myProfilers,
                                                            sample -> (long)(sample.getJavaAllocationCount() - sample.getJavaFreeCount()));
     myObjectsSeries = new RangedContinuousSeries(ALLOCATED, profilers.getTimeline().getViewRange(), getObjectsRange(), series);
 

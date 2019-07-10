@@ -429,8 +429,10 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   public void testGcDurationAttachment() {
     // Set up test data from range 0us-10us. Note that the proto timestamps are in nanoseconds.
     MemoryData data = MemoryData.newBuilder()
-      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0).setJavaAllocationCount(0))
-      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000).setJavaAllocationCount(100))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0)
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(0)))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000)
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(100)))
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(1000).setEndTime(2000))
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(6000).setEndTime(7000))
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(8000).setEndTime(9000))
@@ -494,8 +496,10 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   public void testAllocationSamplingRateAttachment() {
     // Set up test data from range 0us-10us. Note that the proto timestamps are in nanoseconds.
     MemoryData data = MemoryData.newBuilder()
-      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0).setJavaAllocationCount(0))
-      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000).setJavaAllocationCount(100))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0)
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(0)))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000)
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(100)))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(1000)
                                     .setSamplingRate(MemoryAllocSamplingData.newBuilder()
