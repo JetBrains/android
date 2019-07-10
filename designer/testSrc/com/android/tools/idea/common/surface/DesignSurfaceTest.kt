@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import java.awt.Dimension
 import java.awt.Rectangle
+import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import javax.swing.JComponent
@@ -102,6 +103,30 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.setScale(0.33, -1, -1)
     assertFalse(surface.setScale(0.332, -1, -1))
     assertTrue(surface.setScale(0.335, -1, -1))
+  }
+
+  fun testResizeSurfaceRebuildTheScene() {
+    val builder = model("relative.xml",
+                        component(RELATIVE_LAYOUT)
+                          .withBounds(0, 0, 1000, 1000)
+                          .matchParentWidth()
+                          .matchParentHeight())
+    val model1 = builder.build()
+    val model2 = builder.build()
+
+    val surface = TestDesignSurface(project, testRootDisposable)
+    surface.addModel(model1)
+    surface.addModel(model2)
+
+    val scene1 = surface.getSceneManager(model1)!!.scene
+    val scene2 = surface.getSceneManager(model2)!!.scene
+    val oldVersion1 = scene1.displayListVersion
+    val oldVersion2 = scene2.displayListVersion
+
+    surface.dispatchEvent(ComponentEvent(surface, ComponentEvent.COMPONENT_RESIZED))
+
+    assert(scene1.displayListVersion > oldVersion1)
+    assert(scene2.displayListVersion > oldVersion2)
   }
 }
 
