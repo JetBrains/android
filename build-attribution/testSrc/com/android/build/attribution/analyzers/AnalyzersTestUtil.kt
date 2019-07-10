@@ -19,14 +19,26 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.PluginIdentifier
+import org.gradle.tooling.events.ScriptPluginIdentifier
+import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent
+import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor
+import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.task.TaskSuccessResult
+import org.gradle.tooling.model.ProjectIdentifier
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
+import java.time.Duration
 
 fun createBinaryPluginIdentifierStub(pluginName: String): BinaryPluginIdentifier {
   val pluginIdentifier = Mockito.mock(BinaryPluginIdentifier::class.java)
+  `when`(pluginIdentifier.displayName).thenReturn(pluginName)
+  return pluginIdentifier
+}
+
+fun createScriptPluginIdentifierStub(pluginName: String): ScriptPluginIdentifier {
+  val pluginIdentifier = Mockito.mock(ScriptPluginIdentifier::class.java)
   `when`(pluginIdentifier.displayName).thenReturn(pluginName)
   return pluginIdentifier
 }
@@ -60,6 +72,31 @@ fun createTaskFinishEventStub(taskPath: String,
   `when`(taskFinishEvent.descriptor).thenReturn(descriptor)
   `when`(taskFinishEvent.result).thenReturn(result)
   return taskFinishEvent
+}
+
+fun createProjectConfigurationFinishEventStub(projectPath: String,
+                                              pluginApplicationResult: List<Pair<PluginIdentifier, Duration>>,
+                                              projectConfigurationStartTime: Long,
+                                              projectConfigurationEndTime: Long): ProjectConfigurationFinishEvent {
+  val projectConfigurationFinishEvent = Mockito.mock(ProjectConfigurationFinishEvent::class.java)
+
+  val project = Mockito.mock(ProjectIdentifier::class.java)
+  `when`(project.projectPath).thenReturn(projectPath)
+
+  val descriptor = Mockito.mock(ProjectConfigurationOperationDescriptor::class.java)
+  `when`(descriptor.project).thenReturn(project)
+
+  val result = Mockito.mock(ProjectConfigurationSuccessResult::class.java)
+  `when`(result.pluginApplicationResults).thenReturn(
+    pluginApplicationResult.map {
+      org.gradle.tooling.events.configuration.internal.DefaultPluginApplicationResult(it.first, it.second)
+    }.toMutableList())
+  `when`(result.startTime).thenReturn(projectConfigurationStartTime)
+  `when`(result.endTime).thenReturn(projectConfigurationEndTime)
+
+  `when`(projectConfigurationFinishEvent.descriptor).thenReturn(descriptor)
+  `when`(projectConfigurationFinishEvent.result).thenReturn(result)
+  return projectConfigurationFinishEvent
 }
 
 fun createTaskData(taskFinishEvent: TaskFinishEvent): TaskData {
