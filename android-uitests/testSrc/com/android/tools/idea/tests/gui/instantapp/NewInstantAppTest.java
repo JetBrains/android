@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.fixture.EnableInstantAppSupportDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
@@ -64,7 +65,6 @@ public class NewInstantAppTest {
       .setSourceLanguage("Java")
       .enterName(projectName)
       .selectMinimumSdkApi("23")
-      .setIncludeInstantApp(true)
       .wizard()
       .clickFinish();
 
@@ -75,7 +75,13 @@ public class NewInstantAppTest {
     guiTest.ideFrame()
       .getProjectView()
       .selectAndroidPane()
-      .clickPath("app");
+      .clickPath("app")
+      .openFromMenu(EnableInstantAppSupportDialogFixture::find, "Refactor", "Enable Instant Apps Support...")
+      .clickOk();
+
+    guiTest.ideFrame()
+      .getProjectView()
+      .selectAndroidPane();
   }
 
   @Test

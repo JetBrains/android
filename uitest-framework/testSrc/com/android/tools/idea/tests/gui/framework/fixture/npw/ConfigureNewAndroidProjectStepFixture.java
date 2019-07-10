@@ -65,12 +65,6 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
   }
 
   @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> setIncludeInstantApp(boolean select) {
-    selectCheckBoxWithText("This project will support instant apps", select);
-    return this;
-  }
-
-  @NotNull
   public ConfigureNewAndroidProjectStepFixture<W> setPairWithPhoneApp(boolean select) {
     selectCheckBoxWithText("Pair with Empty Phone app", select);
     return this;
