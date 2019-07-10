@@ -44,7 +44,7 @@ import kotlin.concurrent.withLock
  *
  * It only contains entries for resources included in the library itself, not any of its dependencies.
  */
-class NamespacedAarRClass(
+class SmallAarRClass(
   psiManager: PsiManager,
   library: Library,
   private val packageName: String,
@@ -60,7 +60,7 @@ class NamespacedAarRClass(
 
   override fun doGetInnerClasses(): Array<PsiClass> {
     return aarResources.getResourceTypes(resourceNamespace)
-      .mapNotNull { if (it.hasInnerClass) NamespacedAarInnerRClass(this, it, resourceNamespace, aarResources) else null }
+      .mapNotNull { if (it.hasInnerClass) SmallAarInnerRClass(this, it, resourceNamespace, aarResources) else null }
       .toTypedArray()
   }
 
@@ -68,9 +68,9 @@ class NamespacedAarRClass(
 }
 
 /**
- * Implementation of [InnerRClassBase] used by [NamespacedAarRClass].
+ * Implementation of [InnerRClassBase] used by [SmallAarRClass].
  */
-private class NamespacedAarInnerRClass(
+private class SmallAarInnerRClass(
   parent: PsiClass,
   resourceType: ResourceType,
   private val resourceNamespace: ResourceNamespace,
@@ -97,7 +97,7 @@ private class NamespacedAarInnerRClass(
  * It contains entries for resources present in the AAR as well as all its dependencies, which is how the build system generates the R class
  * from the symbol file at build time.
  */
-class NonNamespacedAarRClass(
+class TransitiveAarRClass(
   psiManager: PsiManager,
   library: Library,
   private val packageName: String,
@@ -138,23 +138,23 @@ class NonNamespacedAarRClass(
 
     return symbolTable
              .resourceTypes
-             .map { NonNamespacedInnerRClass(this, it, symbolTable) }
+             .map { TransitiveAarInnerRClass(this, it, symbolTable) }
              .toTypedArray()
   }
 
   companion object {
-    private val LOG: Logger = Logger.getInstance(NonNamespacedAarRClass::class.java)
+    private val LOG: Logger = Logger.getInstance(TransitiveAarRClass::class.java)
   }
 
   override fun getInnerClassesDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
 }
 
 /**
- * Implementation of [InnerRClassBase] used by [NonNamespacedAarRClass].
+ * Implementation of [InnerRClassBase] used by [TransitiveAarRClass].
  *
  * It eagerly computes names and types of fields and releases the [SymbolTable].
  */
-private class NonNamespacedInnerRClass(
+private class TransitiveAarInnerRClass(
   parent: PsiClass,
   resourceType: ResourceType,
   symbolTable: SymbolTable
