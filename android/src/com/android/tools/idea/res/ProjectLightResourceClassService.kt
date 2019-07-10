@@ -49,7 +49,8 @@ import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils
+import org.jetbrains.android.dom.manifest.getPackageName
+import org.jetbrains.android.dom.manifest.getTestPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import java.io.IOException
@@ -249,7 +250,7 @@ class ProjectLightResourceClassService(
   private fun findAndroidFacetsWithPackageName(packageName: String): List<AndroidFacet> {
     // TODO(b/110188226): cache this and figure out how to invalidate that cache.
     return projectFacetManager.getFacets(AndroidFacet.ID).filter {
-      AndroidManifestUtils.getPackageName(it) == packageName || AndroidManifestUtils.getTestPackageName(it) == packageName
+      getPackageName(it) == packageName || getTestPackageName(it) == packageName
     }
   }
 
