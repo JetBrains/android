@@ -85,6 +85,22 @@ class BuildAttributionManagerImpl(
       }
     }
 
+    analyzersProxy.getPluginsSlowingConfiguration().let {
+      if (it.isNotEmpty()) {
+        stringBuilder.appendln("Plugins slowing configuration:")
+        it.forEach { projectConfigurationData ->
+          stringBuilder.appendln("> project ${projectConfigurationData.project}:")
+
+          projectConfigurationData.pluginsConfigurationData.forEach { pluginConfigurationData ->
+            val percentage = pluginConfigurationData.configurationDuration.toMillis() * 100 / projectConfigurationData.totalConfigurationTime
+
+            stringBuilder.append("> ${pluginConfigurationData.plugin} took ${pluginConfigurationData.configurationDuration} ")
+              .appendln("($percentage%)")
+          }
+        }
+      }
+    }
+
     if (stringBuilder.isNotEmpty()) {
       Logger.getInstance(this::class.java).warn("Build attribution analysis results:\n$stringBuilder")
     }
