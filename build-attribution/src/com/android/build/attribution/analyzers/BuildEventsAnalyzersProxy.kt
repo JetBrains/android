@@ -22,8 +22,9 @@ package com.android.build.attribution.analyzers
 class BuildEventsAnalyzersProxy {
   private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer()
   private val criticalPathAnalyzer = CriticalPathAnalyzer()
+  private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer()
 
-  fun getAnalyzers(): List<BuildEventsAnalyzer> = listOf(annotationProcessorsAnalyzer, criticalPathAnalyzer)
+  fun getAnalyzers(): List<BuildEventsAnalyzer> = listOf(annotationProcessorsAnalyzer, criticalPathAnalyzer, projectConfigurationAnalyzer)
 
   fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getAnnotationProcessorsData()
@@ -43,5 +44,13 @@ class BuildEventsAnalyzersProxy {
 
   fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData> {
     return criticalPathAnalyzer.pluginsCriticalPath
+  }
+
+  fun getProjectsConfigurationData(): List<ProjectConfigurationAnalyzer.ProjectConfigurationData> {
+    return projectConfigurationAnalyzer.projectsConfigurationData
+  }
+
+  fun getPluginsSlowingConfiguration(): List<ProjectConfigurationAnalyzer.ProjectConfigurationData> {
+    return projectConfigurationAnalyzer.pluginsSlowingConfiguration
   }
 }
