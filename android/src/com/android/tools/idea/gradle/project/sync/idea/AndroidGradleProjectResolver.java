@@ -127,6 +127,7 @@ import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.model.ProjectImportExtraModelProvider;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
@@ -222,7 +223,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     String moduleConfigPath = getModuleConfigPath(resolverCtx, gradleModule, projectPath);
 
     String gradlePath = gradleModule.getGradleProject().getPath();
-    String moduleId = isEmpty(gradlePath) || ":".equals(gradlePath) ? moduleName : gradlePath;
+    String moduleId = GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule);
     ProjectSystemId owner = GradleConstants.SYSTEM_ID;
     String typeId = StdModuleTypes.JAVA.getId();
 

@@ -18,7 +18,7 @@ PROJECT             : testWithCompositeBuild
     MODULE              : TestCompositeLib1-app
         - ModuleGroupPath   : TestCompositeLib1
         - ModuleGroupPath   : app
-        LinkedProjectId     : :app
+        LinkedProjectId     : TestCompositeLib1:app
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1/app
         RootProjectPath     : <PROJECT>
         ModuleFile          : <PROJECT>/TestCompositeLib1/app/TestCompositeLib1-app.iml
@@ -462,7 +462,7 @@ PROJECT             : testWithCompositeBuild
     MODULE              : TestCompositeLib1-lib
         - ModuleGroupPath   : TestCompositeLib1
         - ModuleGroupPath   : lib
-        LinkedProjectId     : :lib
+        LinkedProjectId     : TestCompositeLib1:lib
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1/lib
         RootProjectPath     : <PROJECT>
         ModuleFile          : <PROJECT>/TestCompositeLib1/lib/TestCompositeLib1-lib.iml
@@ -906,7 +906,7 @@ PROJECT             : testWithCompositeBuild
     MODULE              : TestCompositeLib3-app
         - ModuleGroupPath   : TestCompositeLib3
         - ModuleGroupPath   : app
-        LinkedProjectId     : :app
+        LinkedProjectId     : TestCompositeLib3:app
         LinkedProjectPath   : <PROJECT>/TestCompositeLib3/app
         RootProjectPath     : <PROJECT>
         ModuleFile          : <PROJECT>/TestCompositeLib3/app/TestCompositeLib3-app.iml
@@ -1348,7 +1348,7 @@ PROJECT             : testWithCompositeBuild
     MODULE              : TestCompositeLib3-lib
         - ModuleGroupPath   : TestCompositeLib3
         - ModuleGroupPath   : lib
-        LinkedProjectId     : :lib
+        LinkedProjectId     : TestCompositeLib3:lib
         LinkedProjectPath   : <PROJECT>/TestCompositeLib3/lib
         RootProjectPath     : <PROJECT>
         ModuleFile          : <PROJECT>/TestCompositeLib3/lib/TestCompositeLib3-lib.iml
