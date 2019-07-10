@@ -367,8 +367,7 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
     val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor,
                                                                 PreviewEditor(
                                                                   psiFile = psiFile) {
-                                                                  findPreviewMethods(
-                                                                    project, file)
+                                                                  AnnotationPreviewElementFinder.findPreviewMethods(project, file)
                                                                 })
 
     // Queue to avoid refreshing notifications on every key stroke
