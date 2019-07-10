@@ -81,11 +81,6 @@ public final class StudioFlags {
     "Let the user keep templates in the .android folder such that they are kept after a Studio install/upgrade",
     true);
 
-  public static final Flag<Boolean> NPW_OFFLINE_REPO_CHECKBOX = Flag.create(
-    NPW, "offline.repo.checkbox", "Use offline repo shipped with Android Studio",
-    "Checkbox mark adds a path to shipped offline repo to local.properties and references it in build.gradle's dependencies",
-    false);
-
   public static final Flag<Boolean> NPW_TEMPLATES_AUTOMOTIVE = Flag.create(
     NPW, "templates.automotive", "Include 'Automotive' templates in wizards",
     "Show 'Automotive' templates in 'New Project', 'New Module' and 'New component' wizards. Also present 'Automotive' devices in AVD.",
