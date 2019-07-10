@@ -118,7 +118,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
     DependenciesTreeStructure treeStructure = new DependenciesTreeStructure(createRootNode());
     myTreeBuilder = new DependenciesTreeBuilder(myTree, treeModel, treeStructure);
 
-    JScrollPane scrollPane = setUp(myTreeBuilder);
+    JScrollPane scrollPane = setUp(myTreeBuilder, "dependenciesTree");
     getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
     TreeSelectionListener treeSelectionListener = e -> {
