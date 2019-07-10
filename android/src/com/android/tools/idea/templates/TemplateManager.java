@@ -647,9 +647,12 @@ public class TemplateManager {
       myTemplateMap.clear();
     }
     myCategoryTable = TreeBasedTable.create();
-    for (File categoryDirectory : listFiles(getTemplateRootFolder())) {
-      for (File newTemplate : listFiles(categoryDirectory)) {
-        addTemplateToTable(newTemplate, false);
+    File templateRootFolder = getTemplateRootFolder();
+    if (templateRootFolder != null) {
+      for (File categoryDirectory : listFiles(templateRootFolder)) {
+        for (File newTemplate : listFiles(categoryDirectory)) {
+          addTemplateToTable(newTemplate, false);
+        }
       }
     }
 
