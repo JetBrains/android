@@ -69,6 +69,7 @@ public class GenericErrorHandlerTest extends AndroidGradleTestCase {
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+/* b/137231583
     assertNotNull(notificationUpdate);
     assertThat(notificationUpdate.getText()).isEqualTo(errMsg);
 
@@ -76,6 +77,7 @@ public class GenericErrorHandlerTest extends AndroidGradleTestCase {
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
     assertThat(quickFixes).hasSize(1);
     assertThat(quickFixes.get(0)).isInstanceOf(OpenFileHyperlink.class);
+b/137231583 */
 
     assertNull(myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
