@@ -95,7 +95,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JTextField myAppName;
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
-  private JCheckBox myInstantAppCheck;
   private JCheckBox myWearCheck;
   private JCheckBox myTvCheck;
   private JLabel myTemplateIconTitle;
@@ -151,7 +150,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     OptionalProperty<VersionItem> androidSdkInfo = getModel().androidSdkInfo();
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
-    myBindings.bindTwoWay(getModel().dynamicInstantApp(), new SelectedProperty(myInstantAppCheck));
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.language());
 
 
@@ -173,9 +171,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myListeners.listenAll(getModel().formFactor(), myProjectModel.enableCppSupport()).withAndFire(() -> {
       FormFactor formFactor = getModel().formFactor().get();
-      boolean isCppTemplate = myProjectModel.enableCppSupport().get();
 
-      myInstantAppCheck.setVisible(formFactor == FormFactor.MOBILE && !isCppTemplate);
       myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.MOBILE);
       myWearCheck.setVisible(formFactor == FormFactor.WEAR);
       myTvCheck.setVisible(formFactor == FormFactor.TV);
