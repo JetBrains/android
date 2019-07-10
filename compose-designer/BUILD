@@ -45,3 +45,37 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.compose-designer.tests",
+    iml_files = ["intellij.android.compose-designer.tests.iml"],
+    tags = ["no_test_windows"],
+    test_class = "com.android.tools.idea.compose.preview.ComposePreviewTestSuite",
+    test_coverage = True,
+    # keep sorted
+    test_data = [
+        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/idea:platform-build-info",
+        "//tools/idea/java/jdkAnnotations",
+    ] + glob(["testData/**"]),
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+    ],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module, test]",
+    ],
+)
