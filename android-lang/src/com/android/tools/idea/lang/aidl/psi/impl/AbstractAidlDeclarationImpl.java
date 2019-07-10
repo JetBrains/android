@@ -16,7 +16,6 @@
 package com.android.tools.idea.lang.aidl.psi.impl;
 
 import com.android.tools.idea.lang.aidl.psi.AidlDeclaration;
-import com.android.tools.idea.lang.aidl.psi.AidlDeclarationName;
 import com.android.tools.idea.lang.aidl.psi.AidlFile;
 import com.android.tools.idea.lang.aidl.psi.AidlInterfaceDeclaration;
 import com.android.tools.idea.lang.aidl.psi.AidlMethodDeclaration;
@@ -32,6 +31,8 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.IncorrectOperationException;
+import icons.AndroidIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,8 +45,7 @@ public abstract class AbstractAidlDeclarationImpl extends AidlPsiCompositeElemen
   @NotNull
   @Override
   public String getName() {
-    final AidlDeclarationName name = getDeclarationName();
-    return name.getText();
+    return getDeclarationName().getText();
   }
 
   @NotNull
@@ -113,7 +113,24 @@ public abstract class AbstractAidlDeclarationImpl extends AidlPsiCompositeElemen
 
   @Override
   public ItemPresentation getPresentation() {
-    // TODO
-    return null;
+    return new ItemPresentation() {
+      @NotNull
+      @Override
+      public String getPresentableText() {
+        return getName();
+      }
+
+      @Nullable
+      @Override
+      public String getLocationString() {
+        return null;
+      }
+
+      @NotNull
+      @Override
+      public Icon getIcon(boolean unused) {
+        return AndroidIcons.Android;
+      }
+    };
   }
 }
