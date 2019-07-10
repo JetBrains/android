@@ -31,13 +31,12 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.Memory.TrackStatus;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
-import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.cpu.FakeCpuService;
@@ -493,8 +492,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS)
       .addAllocStatsSamples(
-        MemoryData.AllocStatsSample.newBuilder().setTimestamp(FakeTimer.ONE_SECOND_IN_NS).setJavaAllocationCount(5).build()
-      ).build();
+        MemoryData.AllocStatsSample.newBuilder().setTimestamp(FakeTimer.ONE_SECOND_IN_NS)
+          .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(5)))
+      .build();
     myService.setMemoryData(memoryData);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
@@ -511,8 +511,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     memoryData = MemoryData.newBuilder()
       .setEndTimestamp(2 * FakeTimer.ONE_SECOND_IN_NS)
       .addAllocStatsSamples(
-        MemoryData.AllocStatsSample.newBuilder().setTimestamp(2 * FakeTimer.ONE_SECOND_IN_NS).setJavaAllocationCount(10).build()
-      ).build();
+        MemoryData.AllocStatsSample.newBuilder().setTimestamp(2 * FakeTimer.ONE_SECOND_IN_NS)
+          .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(10)))
+      .build();
     myService.setMemoryData(memoryData);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(legends.getLegends().stream().filter(legend -> legend == objectLegend).findFirst().get().getValue()).isNotNull();
@@ -566,8 +567,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     long time = TimeUnit.MICROSECONDS.toNanos(2);
     AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
-    MemoryData.AllocStatsSample allocStatsSample =
-      MemoryData.AllocStatsSample.newBuilder().setJavaAllocationCount(200).setJavaFreeCount(100).build();
+    MemoryData.AllocStatsSample allocStatsSample = MemoryData.AllocStatsSample.newBuilder()
+      .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(200).setJavaFreeCount(100))
+      .build();
     AllocationSamplingRateEvent trackingMode = AllocationSamplingRateEvent
       .newBuilder()
       .setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(
@@ -594,7 +596,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
         trackingMode.toBuilder().setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(
           MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()
         )))
-      .addAllocStatsSamples(allocStatsSample.toBuilder().setJavaAllocationCount(300))
+      .addAllocStatsSamples(allocStatsSample.toBuilder()
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(300).setJavaFreeCount(100)))
       .build();
     myService.setMemoryData(memoryData);
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("N/A");
