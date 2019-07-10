@@ -22,6 +22,8 @@ import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.findAllLibrariesWithResources
 import com.android.tools.idea.findDependenciesWithResources
 import com.android.tools.idea.projectsystem.LightResourceClassService
+import com.android.tools.idea.res.ModuleRClass.SourceSet
+import com.android.tools.idea.res.ModuleRClass.Transitivity
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.concurrency.getAndUnwrap
 import com.android.utils.concurrency.retainAll
@@ -49,6 +51,7 @@ import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.dom.manifest.getTestPackageName
 import org.jetbrains.android.facet.AndroidFacet
@@ -58,12 +61,13 @@ import java.io.IOException
 private data class ResourceClasses(
   val namespaced: PsiClass?,
   val nonNamespaced: PsiClass?,
+  val testNamespaced: PsiClass?,
   val testNonNamespaced: PsiClass?
 ) {
-  val all = sequenceOf(namespaced, nonNamespaced, testNonNamespaced)
+  val all = sequenceOf(namespaced, nonNamespaced, testNamespaced, testNonNamespaced)
 
   companion object {
-    val Empty = ResourceClasses(null, null, null)
+    val Empty = ResourceClasses(null, null, null, null)
   }
 }
 
@@ -182,10 +186,14 @@ class ProjectLightResourceClassService(
 
   private fun getModuleRClasses(facet: AndroidFacet): ResourceClasses {
     return moduleClassesCache.getAndUnwrap(facet) {
+      // TODO: get this from the model
+      val modifier = if (facet.configuration.isLibraryProject) FieldModifier.NON_FINAL else FieldModifier.FINAL
+
       ResourceClasses(
-        namespaced = ModuleRClass(psiManager, facet, AaptOptions.Namespacing.REQUIRED),
-        nonNamespaced = ModuleRClass(psiManager, facet, AaptOptions.Namespacing.DISABLED),
-        testNonNamespaced = ModuleTestRClass(psiManager, facet, AaptOptions.Namespacing.DISABLED)
+        namespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, Transitivity.NON_TRANSITIVE, modifier),
+        nonNamespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, Transitivity.TRANSITIVE, modifier),
+        testNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, Transitivity.NON_TRANSITIVE, modifier),
+        testNonNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, Transitivity.TRANSITIVE, modifier)
       )
     }
   }
@@ -200,10 +208,9 @@ class ProjectLightResourceClassService(
     // Build the classes from what is currently on disk. They may be null if the necessary files are not there, e.g. the res.apk file
     // is required to build the namespaced class.
     return aarClassesCache.getAndUnwrap(aarLibrary) {
-
       ResourceClasses(
         namespaced = aarLibrary.resApkFile?.toFile()?.takeIf { it.exists() }?.let { resApk ->
-          NamespacedAarRClass(
+          SmallAarRClass(
             psiManager,
             ideaLibrary,
             packageName,
@@ -212,9 +219,9 @@ class ProjectLightResourceClassService(
           )
         },
         nonNamespaced = aarLibrary.symbolFile?.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
-          NonNamespacedAarRClass(psiManager, ideaLibrary, packageName, symbolFile)
+          TransitiveAarRClass(psiManager, ideaLibrary, packageName, symbolFile)
         },
-
+        testNamespaced = null,
         testNonNamespaced = null
       )
     }
