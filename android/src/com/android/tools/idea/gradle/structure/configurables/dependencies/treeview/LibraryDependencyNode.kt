@@ -21,14 +21,11 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
-import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryKey
-import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
-import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.util.text.StringUtil.isNotEmpty
 import com.intellij.ui.SimpleTextAttributes
