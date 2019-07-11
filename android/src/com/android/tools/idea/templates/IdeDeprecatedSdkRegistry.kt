@@ -18,33 +18,21 @@ package com.android.tools.idea.templates
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.lint.checks.DEPRECATED_SDK_CACHE_DIR_KEY
 import com.android.tools.lint.checks.DeprecatedSdkRegistry
-import com.google.common.io.ByteStreams
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.PathUtil
-import com.intellij.util.net.HttpConfigurable
+import com.intellij.util.io.HttpRequests
 import java.io.File
-import java.net.HttpURLConnection
 import java.net.URL
 
 /** A [DeprecatedSdkRegistry] that uses IDE mechanisms (including proxy config) to download data. */
 object IdeDeprecatedSdkRegistry : DeprecatedSdkRegistry(getCacheDir()) {
-  override fun readUrlData(url: String, timeout: Int): ByteArray? {
-    val query = URL(url)
-    val connection = HttpConfigurable.getInstance().openConnection(query.toExternalForm())
-    if (timeout > 0) {
-      connection.connectTimeout = timeout
-      connection.readTimeout = timeout
-    }
-    return try {
-      val stream = connection.getInputStream() ?: return null
-      ByteStreams.toByteArray(stream)
-    }
-    finally {
-      (connection as? HttpURLConnection)?.disconnect()
-    }
-  }
+  override fun readUrlData(url: String, timeout: Int) = HttpRequests
+    .request(URL(url).toExternalForm())
+    .connectTimeout(timeout)
+    .readTimeout(timeout)
+    .readBytes(null)
 
   override fun error(throwable: Throwable, message: String?) {
     Logger.getInstance(IdeDeprecatedSdkRegistry::class.java).warn(message, throwable)

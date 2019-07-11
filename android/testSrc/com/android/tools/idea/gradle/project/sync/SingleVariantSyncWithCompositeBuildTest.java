@@ -15,14 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-public class SingleVariantSyncWithCompositeBuildTest extends NewGradleSyncWithCompositeBuildTest {
+public class SingleVariantSyncWithCompositeBuildTest extends GradleSyncWithCompositeBuildTest {
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
     return true;
-  }
-
-  @Override
-  protected boolean useNewSyncInfrastructure() {
-    return false;
   }
 }

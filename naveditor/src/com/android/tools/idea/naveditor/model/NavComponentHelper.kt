@@ -74,6 +74,9 @@ import java.io.File
 import java.util.ArrayList
 import kotlin.streams.toList
 
+private const val ADD_NESTED_COMMAND_NAME = "Add to Nested Graph"
+private const val ADD_NESTED_GROUP_ID = "ADD_NESTED_GROUP_ID"
+
 /*
  * Extensions to NlComponent used by the navigation editor
  */
@@ -466,7 +469,7 @@ fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent?
     return false
   }
 
-  WriteCommandAction.runWriteCommandAction(surface.project, "Add to Nested Graph", null, Runnable {
+  WriteCommandAction.runWriteCommandAction(surface.project, ADD_NESTED_COMMAND_NAME, ADD_NESTED_GROUP_ID, Runnable {
     val graph = newParent() ?: return@Runnable
     val ids = components.map { it.id }
     components.forEach { surface.sceneManager?.performUndoablePositionAction(it) }
@@ -486,7 +489,7 @@ fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent?
         it.actionDestinationId = graph.id
       }
 
-    graph.model.addComponents(components, graph, null, InsertType.MOVE_WITHIN, surface)
+    graph.model.addComponents(components, graph, null, InsertType.MOVE_WITHIN, surface, null, ADD_NESTED_GROUP_ID)
     if (graph.startDestinationId == null) {
       graph.startDestinationId = candidate
     }

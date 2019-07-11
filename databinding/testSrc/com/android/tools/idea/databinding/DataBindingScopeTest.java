@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
@@ -52,8 +51,6 @@ public class DataBindingScopeTest {
     myProjectRule.load(PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB);
     Project project = myProjectRule.getProject();
     AndroidFacet facet = myProjectRule.getAndroidFacet();
-    // temporary fix until test model can detect dependencies properly
-    GradleInvocationResult assembleDebug = myProjectRule.invokeTasks("assembleDebug");
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     assertFalse(syncState.isSyncNeeded().toBoolean());
     assertSame(ModuleDataBinding.getInstance(facet).getDataBindingMode(), DataBindingMode.SUPPORT);

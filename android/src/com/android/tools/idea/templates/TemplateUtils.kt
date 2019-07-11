@@ -211,31 +211,21 @@ object TemplateUtils {
    * @param project The project which contains the given file.
    * @param files   The files on disk.
    * @param select  If true, select the last (topmost) file in the project view
-   * @return true if all files were opened
    */
   @JvmStatic
-  fun openEditors(project: Project, files: Collection<File>, select: Boolean): Boolean {
-    if (files.isEmpty()) {
-      return false
-    }
+  fun openEditors(project: Project, files: Collection<File>, select: Boolean) {
     var last: VirtualFile? = null
-    var result = true
-    files.filter(File::exists).forEach {
-      val vFile = VfsUtil.findFileByIoFile(it, true)
-      if (vFile == null) {
-        result = false
-      }
-      else {
-        last = vFile
-        result = openEditor(project, vFile) && result
-      }
+
+    files.filter(File::exists).mapNotNull {
+      VfsUtil.findFileByIoFile(it, true)
+    }.forEach {
+      last = it
+      openEditor(project, it)
     }
 
     if (select && last != null) {
       selectEditor(project, last!!)
     }
-
-    return result
   }
 
   /**
@@ -245,15 +235,15 @@ object TemplateUtils {
    * @param vFile   The file to open
    */
   @JvmStatic
-  fun openEditor(project: Project, vFile: VirtualFile): Boolean {
-    val descriptor: OpenFileDescriptor =
+  fun openEditor(project: Project, vFile: VirtualFile) {
+    val descriptor =
       if (vFile.fileType === StdFileTypes.XML && AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) {
         OpenFileDescriptor(project, vFile, 0)
       }
       else {
         OpenFileDescriptor(project, vFile)
       }
-    return FileEditorManager.getInstance(project).openEditor(descriptor, true).isNotEmpty()
+      FileEditorManager.getInstance(project).openEditor(descriptor, true)
   }
 
   /**

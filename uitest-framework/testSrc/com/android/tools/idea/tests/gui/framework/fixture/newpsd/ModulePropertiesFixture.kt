@@ -24,4 +24,8 @@ open class ModulePropertiesFixture constructor(
 ) : ConfigPanelFixture() {
   override fun target(): Container = container
   override fun robot(): Robot = robot
+
+  fun compileSdkVersion(): PropertyEditorFixture = findEditor("Compile Sdk Version")
+  fun sourceCompatibility(): PropertyEditorFixture = findEditor("Source Compatibility")
+  fun targetCompatibility(): PropertyEditorFixture = findEditor("Target Compatibility")
 }

@@ -43,7 +43,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   ParsedT,
   PropertyT : Any> T.property(
   description: String,
-  preferredVariableName: ParsedT.() -> String = { "var" },
+  preferredVariableName: ModelT.() -> String = { "var" },
   defaultValueGetter: ((ModelT) -> PropertyT?)? = null,
   resolvedValueGetter: ResolvedT.() -> PropertyT?,
   parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
@@ -124,7 +124,7 @@ private fun List<String>.toPredicate(): (File) -> Boolean =
 class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   private val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
-  val preferredVariableName: ParsedT.() -> String,
+  val preferredVariableName: ModelT.() -> String,
   val defaultValueGetter: ((ModelT) -> PropertyT?)?,
   private val resolvedValueGetter: ResolvedT.() -> PropertyT?,
   private val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
@@ -155,7 +155,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
     : ModelPropertyCoreImpl<PropertyT>(),
       ModelPropertyCore<PropertyT> {
     override val description: String = this@ModelSimplePropertyImpl.description
-    override fun getPreferredVariableName(): String = modelDescriptor.getParsed(model)?.preferredVariableName() ?: "var"
+    override fun getPreferredVariableName(): String = model.preferredVariableName()
     override fun getParsedPropertyForRead(): ResolvedPropertyModel? = modelDescriptor.getParsed(model)?.parsedPropertyGetter()
     override fun getParsedPropertyForWrite(): ResolvedPropertyModel =
       modelDescriptor.getParsed(model)?.let { it.parsedPropertyGetter() ?: it.parsedPropertyInitializer() }!!

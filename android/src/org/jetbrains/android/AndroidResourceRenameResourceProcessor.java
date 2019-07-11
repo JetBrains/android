@@ -101,7 +101,7 @@ import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -489,16 +489,17 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     ResourceFolderType type = manager.getFileResourceFolderType(file);
     if (type == null) return;
     String nameWithoutExtension = FileUtil.getNameWithoutExtension(file.getName());
-    String resourceName = AndroidCommonUtils.getResourceName( type.getName(), file.getName());
+    String resourceName = AndroidBuildCommonUtils.getResourceName(type.getName(), file.getName());
 
-    if (AndroidCommonUtils.getResourceName(type.getName(), nameWithoutExtension).equals(AndroidCommonUtils.getResourceName(type.getName(), newName))) {
+    if (AndroidBuildCommonUtils
+      .getResourceName(type.getName(), nameWithoutExtension).equals(AndroidBuildCommonUtils.getResourceName(type.getName(), newName))) {
       return;
     }
 
     Collection<PsiFile> resourceFiles = manager.findResourceFiles(ResourceNamespace.TODO(), type, resourceName, true, false);
     List<PsiFile> alternativeResources = new ArrayList<>();
     for (PsiFile resourceFile : resourceFiles) {
-      String alternativeFileName = AndroidCommonUtils.getResourceName(type.getName(), resourceFile.getName());
+      String alternativeFileName = AndroidBuildCommonUtils.getResourceName(type.getName(), resourceFile.getName());
       if (!resourceFile.getManager().areElementsEquivalent(file, resourceFile) && alternativeFileName.equals(resourceName)) {
         alternativeResources.add(resourceFile);
       }
@@ -524,7 +525,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     }
     PsiField[] resFields = AndroidResourceUtil.findResourceFieldsForFileResource(file, false);
     for (PsiField resField : resFields) {
-      String newFieldName = AndroidCommonUtils.getResourceName(type.getName(), newName);
+      String newFieldName = AndroidBuildCommonUtils.getResourceName(type.getName(), newName);
       allRenames.put(resField, AndroidResourceUtil.getFieldNameByResourceName(newFieldName));
     }
   }
@@ -587,7 +588,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       // The name of a file resource is the name of the file without the extension.
       // So when dealing with a file, we must first remove the extension in the name
       // before checking if it is already used.
-      newName = AndroidCommonUtils.getResourceName(type.getName(), newName);
+      newName = AndroidBuildCommonUtils.getResourceName(type.getName(), newName);
     }
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
     if (appResources.hasResources(ResourceNamespace.TODO(), type, newName)) {
@@ -709,7 +710,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
         String type = manager.getFileResourceType(file);
         if (type != null) {
           String name = file.getName();
-          return AndroidCommonUtils.getResourceName(type, name);
+          return AndroidBuildCommonUtils.getResourceName(type, name);
         }
       }
       return Lint.getBaseName(file.getName());

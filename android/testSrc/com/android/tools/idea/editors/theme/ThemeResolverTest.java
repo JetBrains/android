@@ -102,18 +102,6 @@ public class ThemeResolverTest extends AndroidTestCase {
     ConfiguredElement<StyleItemResourceValue> value = Iterables.get(theme.getConfiguredValues(), 0);
     assertEquals("windowBackground", value.getElement().getAttr().getName());
     assertEquals("@drawable/pic", value.getElement().getValue());
-
-    // Modify a value.
-    theme.setValue("android:windowBackground", "@drawable/other");
-    FileDocumentManager.getInstance().saveAllDocuments();
-    assertFalse(new String(styleFile.contentsToByteArray(), UTF_8).contains("@drawable/pic"));
-    assertTrue(new String(styleFile.contentsToByteArray(), UTF_8).contains("@drawable/other"));
-
-    // Add a value.
-    theme.setValue("android:windowBackground2", "@drawable/second_background");
-    FileDocumentManager.getInstance().saveAllDocuments();
-    assertTrue(new String(styleFile.contentsToByteArray(), UTF_8).contains("@drawable/other"));
-    assertTrue(new String(styleFile.contentsToByteArray(), UTF_8).contains("@drawable/second_background"));
   }
 
   /** Check that, after a configuration update, the resolver updates the list of themes */
@@ -126,8 +114,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     Configuration configuration = configurationManager.getConfiguration(file);
     ResourceNamespace moduleNamespace = ResourceRepositoryManager.getInstance(myModule).getNamespace();
 
-    ThemeEditorContext context = new ThemeEditorContext(configuration);
-    ThemeResolver resolver = context.getThemeResolver();
+    ThemeResolver resolver = new ThemeResolver(configuration);
     assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V20OnlyTheme")));
     assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V19OnlyTheme")));
     assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V17OnlyTheme")));
@@ -135,8 +122,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     // Set API level 17 and check that only the V17 theme can be resolved.
     //noinspection ConstantConditions
     configuration.setTarget(new CompatibilityRenderTarget(configurationManager.getHighestApiTarget(), 17, null));
-    context = new ThemeEditorContext(configuration);
-    resolver = context.getThemeResolver();
+    resolver = new ThemeResolver(configuration);
     assertNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V20OnlyTheme")));
     assertNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V19OnlyTheme")));
     assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V17OnlyTheme")));

@@ -189,14 +189,6 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/sdk/StudioDownloader.java"
-            line="115"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
             file="src/com/android/tools/idea/gradle/project/sync/compatibility/VersionCompatibilityChecker.java"
             line="92"/>
     </issue>

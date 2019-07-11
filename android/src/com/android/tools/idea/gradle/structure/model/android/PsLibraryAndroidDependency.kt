@@ -99,7 +99,7 @@ open class PsDeclaredLibraryAndroidDependency(
 
     val version: ModelSimpleProperty<PsDeclaredLibraryAndroidDependency, String> = property(
       "Version",
-      preferredVariableName = { preferredVariableName(this) },
+      preferredVariableName = { preferredVariableName(this.parsedModel) },
       resolvedValueGetter = { null },
       parsedPropertyGetter = { this.version() },
       getter = { asString() },

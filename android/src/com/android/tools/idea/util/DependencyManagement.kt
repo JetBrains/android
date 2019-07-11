@@ -114,7 +114,7 @@ fun Module.addDependencies(coordinates: List<GradleCoordinate>, promptUserBefore
     versionedDependencies.forEach(moduleSystem::registerDependency)
 
     if (requestSync) {
-      project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
+      project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
     }
 
   }

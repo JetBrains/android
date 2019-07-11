@@ -24,8 +24,7 @@ import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRun
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.GradleApplicationIdProvider;
-import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
-import com.android.tools.idea.run.editor.TestRunParameters;
+import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -44,22 +43,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     return !SystemInfo.isWindows && super.shouldRunTest();
   }
 
-  public void testRunnerComponentsHiddenWhenGradleProject() throws Exception {
-    loadSimpleApplication();
-
-    AndroidTestRunConfiguration androidTestRunConfiguration =
-      createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.ApplicationTest");
-    assertNotNull(androidTestRunConfiguration);
-
-    AndroidRunConfigurationEditor<?> editor =
-      (AndroidRunConfigurationEditor<?>)androidTestRunConfiguration.getConfigurationEditor();
-
-    TestRunParameters testRunParameters = (TestRunParameters)editor.getConfigurationSpecificEditor();
-    testRunParameters.resetFrom(androidTestRunConfiguration);
-    assertFalse("Runner component is visible in a Gradle project", testRunParameters.getRunnerComponent().isVisible());
-  }
-
-  public void testRunnerArgumentsSet() throws Exception {
+  public void testRunnerArgumentsSetByGradle() throws Exception {
     loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS);
 
     RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("com.android.runnerarguments.ExampleInstrumentationTest");
@@ -67,11 +51,33 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertThat(runner.getAmInstrumentCommand()).contains("-e foo bar");
   }
 
-  public void testRunnerComponentsShouldBeObtainedFromGradleProjects() throws Exception {
+  // @Ignore("Re-enable this after b/37132226 is fixed")
+  public void /*test*/RunnerArgumentsSetByGradleCanBeOverridden() throws Exception {
+    loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS);
+    AndroidTestRunConfiguration config = createConfigFromClass("com.android.runnerarguments.ExampleInstrumentationTest");
+    config.EXTRA_OPTIONS = "-e new_option true";
+
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner(config);
+    assertThat(runner.getAmInstrumentCommand()).contains("-e new_option true");
+    assertThat(runner.getAmInstrumentCommand()).doesNotContain("-e size medium");
+    assertThat(runner.getAmInstrumentCommand()).doesNotContain("-e foo bar");
+  }
+
+  public void testRunnerIsObtainedFromGradleProjects() throws Exception {
     loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
 
     RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("google.testapplication.ApplicationTest");
     assertThat(runner.getRunnerName()).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
+  }
+
+  // @Ignore("Re-enable this after b/37132226 is fixed")
+  public void /*test*/RunnerObtainedFromGradleCanBeOverridden() throws Exception {
+    loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
+    AndroidTestRunConfiguration config = createConfigFromClass("google.testapplication.ApplicationTest");
+    config.INSTRUMENTATION_RUNNER_CLASS = "my.awesome.CustomTestRunner";
+
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner(config);
+    assertThat(runner.getRunnerName()).isEqualTo("my.awesome.CustomTestRunner");
   }
 
   public void testRunnerAtoNotUsed() throws Exception {
@@ -93,18 +99,23 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
   }
 
   private RemoteAndroidTestRunner createRemoteAndroidTestRunner(@NotNull String className) {
-    return createLaunchTask(className).createRemoteAndroidTestRunner(mock(IDevice.class));
+    return createRemoteAndroidTestRunner(createConfigFromClass(className));
   }
 
-  private AndroidTestApplicationLaunchTask createLaunchTask(@NotNull String className) {
+  private RemoteAndroidTestRunner createRemoteAndroidTestRunner(AndroidTestRunConfiguration config) {
     ApplicationIdProvider applicationIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
     LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(new NopProcessHandler());
 
+    LaunchTask task = config.getApplicationLaunchTask(applicationIdProvider, myAndroidFacet, "", false, launchStatus);
+    assertThat(task).isInstanceOf(AndroidTestApplicationLaunchTask.class);
+
+    AndroidTestApplicationLaunchTask androidTestTask = (AndroidTestApplicationLaunchTask) task;
+    return androidTestTask.createRemoteAndroidTestRunner(mock(IDevice.class));
+  }
+
+  private AndroidTestRunConfiguration createConfigFromClass(String className) {
     AndroidTestRunConfiguration androidTestRunConfiguration = createAndroidTestConfigurationFromClass(getProject(), className);
     assertNotNull(androidTestRunConfiguration);
-
-    return (AndroidTestApplicationLaunchTask)androidTestRunConfiguration
-      .getApplicationLaunchTask(applicationIdProvider, myAndroidFacet, "",
-                                false, launchStatus);
+    return androidTestRunConfiguration;
   }
 }

@@ -3,7 +3,7 @@ package org.jetbrains.jps.android.builder;
 import com.intellij.openapi.util.io.FileUtil;
 import gnu.trove.THashMap;
 import gnu.trove.THashSet;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.*;
 import org.jetbrains.jps.android.model.JpsAndroidDexCompilerConfiguration;
@@ -170,7 +170,7 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
   @NotNull
   public static File getOutputFile(@NotNull BuildDataPaths dataPaths, @NotNull JpsModule module) {
     final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(dataPaths, module);
-    return new File(dir, AndroidCommonUtils.CLASSES_FILE_NAME);
+    return new File(dir, AndroidBuildCommonUtils.CLASSES_FILE_NAME);
   }
 
   @Override
@@ -186,7 +186,7 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
-      super(AndroidCommonUtils.DEX_BUILD_TARGET_TYPE_ID, "DEX");
+      super(AndroidBuildCommonUtils.DEX_BUILD_TARGET_TYPE_ID, "DEX");
     }
 
     @Override

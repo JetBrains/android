@@ -47,6 +47,16 @@ public class ChooseAndroidProjectStepFixture<W extends AbstractWizardFixture>
     return this;
   }
 
+  public ChooseAndroidProjectStepFixture<W> selectWearTab() {
+    selectTab("Wear OS");
+    return this;
+  }
+
+  public ChooseAndroidProjectStepFixture<W> selectThingsTab() {
+    selectTab("Android Things");
+    return this;
+  }
+
   private void selectTab(@NotNull String tabName) {
     new JTabbedPaneFixture(robot(), waitUntilFound(robot(), target(), byType(JTabbedPane.class))).selectTab(tabName);
   }

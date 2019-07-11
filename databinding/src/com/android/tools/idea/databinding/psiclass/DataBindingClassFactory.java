@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding.psiclass;
 
 import com.android.tools.idea.databinding.ModuleDataBinding;
-import com.android.tools.idea.res.BindingLayoutInfo;
+import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;

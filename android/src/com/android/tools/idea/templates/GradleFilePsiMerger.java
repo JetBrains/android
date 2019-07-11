@@ -131,6 +131,19 @@ public class GradleFilePsiMerger {
       }
     }
 
+    // Special case for merging "apply plugin: 'xxxx-xxxx'"
+    if (fromRoot.getFirstChild() != null &&
+        fromRoot.getFirstChild().getText().startsWith(GradleFileMergers.APPLY)) {
+      for (PsiElement destination : destinationChildren) {
+        if (destination.getFirstChild() != null &&
+            destination.getFirstChild().getText().equalsIgnoreCase(GradleFileMergers.ANDROID)) {
+          toRoot.addBefore(fromRoot, destination);
+          ensureCorrectSpacing(fromRoot);
+          return;
+        }
+      }
+    }
+
     // Do an element-wise (disregarding order) child comparison
     for (PsiElement child : fromRoot.getChildren()) {
       PsiElement destination = findEquivalentElement(destinationChildren, child);

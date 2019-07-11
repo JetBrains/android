@@ -15,20 +15,19 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profilers.memory.MemoryProfiler.saveLegacyAllocationToFile;
+
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profilers.memory.MemoryProfiler.saveLegacyAllocationToFile;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A session artifact representation of a memory allocation recording (legacy).
@@ -138,18 +137,17 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<MemoryP
   @Override
   public void export(@NotNull OutputStream outputStream) {
     assert canExport();
-    saveLegacyAllocationToFile(myProfilers.getClient().getMemoryClient(), mySession, myInfo, outputStream,
-                               myProfilers.getIdeServices().getFeatureTracker());
+    saveLegacyAllocationToFile(myProfilers.getClient(), mySession, myInfo, outputStream, myProfilers.getIdeServices().getFeatureTracker());
   }
 
   public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,
                                                           @NotNull Common.Session session,
                                                           @NotNull Common.SessionMetaData sessionMetaData) {
     MemoryProfiler.MemoryData response = profilers.getClient().getMemoryClient()
-                                                  .getData(MemoryProfiler.MemoryRequest.newBuilder().setSession(session)
-                                                                                       .setStartTime(session.getStartTimestamp())
-                                                                                       .setEndTime(session.getEndTimestamp())
-                                                                                       .build());
+      .getData(MemoryProfiler.MemoryRequest.newBuilder().setSession(session)
+                 .setStartTime(session.getStartTimestamp())
+                 .setEndTime(session.getEndTimestamp())
+                 .build());
 
     List<SessionArtifact> artifacts = new ArrayList<>();
     for (MemoryProfiler.AllocationsInfo info : response.getAllocationsInfoList()) {

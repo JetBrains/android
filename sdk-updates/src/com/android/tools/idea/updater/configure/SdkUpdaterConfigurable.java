@@ -397,7 +397,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     return Pair.of(message, null);
   }
 
-  private static boolean confirmChange(HtmlBuilder message) {
+  static boolean confirmChange(HtmlBuilder message) {
     String[] options = {Messages.OK_BUTTON, Messages.CANCEL_BUTTON};
     Icon icon = AllIcons.General.Warning;
 

@@ -78,7 +78,6 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -168,14 +167,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
       }
 
       // Regression test: check the model doesn't hold on to dynamic proxies for Gradle Tooling API classes.
-      Object model;
-      if (useNewSyncInfrastructure()) {
-        model = new CachedProjectModels.Loader().loadFromDisk(getProject());
-      }
-      else {
-        model = DataNodeCaches.getInstance(getProject()).getCachedProjectData();
-      }
-
+      Object model = DataNodeCaches.getInstance(getProject()).getCachedProjectData();
       if (model != null) {
         LeakHunter.checkLeak(model, Proxy.class, o -> Arrays.stream(
           o.getClass().getInterfaces()).anyMatch(clazz -> clazz.getName().contains("gradle.tooling")));
@@ -184,11 +176,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     finally {
       super.tearDown();
     }
-  }
-
-  @Override
-  protected boolean useNewSyncInfrastructure() {
-    return false;
   }
 
   @Override
@@ -635,11 +622,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
           "org.gradle.api.plugins.ReportingBasePlugin",
           "org.gradle.api.plugins.JavaBasePlugin",
           "com.android.build.gradle.AppPlugin",
-          useNewSyncInfrastructure() ? "KaptModelBuilderPlugin" : "org.gradle.plugins.ide.idea.IdeaPlugin"
+          "org.gradle.plugins.ide.idea.IdeaPlugin"
         ));
-        if (useNewSyncInfrastructure()) {
-          expectedPlugins.add("BuildScriptClasspathModelBuilderPlugin");
-        }
         assertThat(plugins).containsExactlyElementsIn(expectedPlugins);
       }
       else {

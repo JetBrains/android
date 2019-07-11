@@ -37,7 +37,6 @@ import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStats;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
@@ -195,11 +194,12 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
-    Project project = getProject();
-    AndroidRunConfigurationEditor<AndroidAppRunConfigurationBase> editor =
-      new AndroidRunConfigurationEditor<>(project, Predicates.<AndroidFacet>alwaysFalse(), this);
-    editor.setConfigurationSpecificEditor(new ApplicationRunParameters(project, editor.getModuleSelector()));
-    return editor;
+    return new AndroidRunConfigurationEditor<>(
+      getProject(),
+      facet -> false,
+      this,
+      true,
+      moduleSelector -> new ApplicationRunParameters<>(getProject(), moduleSelector));
   }
 
   @Override

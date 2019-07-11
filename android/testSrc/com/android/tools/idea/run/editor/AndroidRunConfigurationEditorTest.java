@@ -45,14 +45,17 @@ public final class AndroidRunConfigurationEditorTest {
     Mockito.when(configuration1.getApplicableDeployTargetProviders()).thenReturn(providers);
     Mockito.when(configuration1.getProfilerState()).thenReturn(new ProfilerState());
 
-    AndroidRunConfigurationEditor<AndroidTestRunConfiguration> androidRunConfigurationEditor =
-      new AndroidRunConfigurationEditor<>(myRule.getProject(), null, configuration1);
-
     @SuppressWarnings("unchecked")
     ConfigurationSpecificEditor<AndroidTestRunConfiguration> configurationSpecificEditor = Mockito.mock(ConfigurationSpecificEditor.class);
     Mockito.when(configurationSpecificEditor.getComponent()).thenReturn(new JLabel());
 
-    androidRunConfigurationEditor.setConfigurationSpecificEditor(configurationSpecificEditor);
+    AndroidRunConfigurationEditor<AndroidTestRunConfiguration> androidRunConfigurationEditor =
+      new AndroidRunConfigurationEditor<>(
+        myRule.getProject(),
+        facet -> false,
+        configuration1,
+        true,
+        moduleSelector -> configurationSpecificEditor);
 
     DeployTargetContext deployTargetContext = new DeployTargetContext(() -> true, visible -> providers);
 

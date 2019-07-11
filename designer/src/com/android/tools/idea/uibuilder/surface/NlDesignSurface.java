@@ -19,20 +19,16 @@ import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.RULER_SIZE_PX;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 
-import com.android.tools.idea.common.model.DnDTransferComponent;
-import com.android.tools.idea.common.model.DnDTransferItem;
-import com.android.tools.idea.common.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
-import com.android.utils.ImmutableCollectors;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DnDTransferComponent;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -55,6 +51,7 @@ import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
@@ -64,21 +61,26 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.android.utils.ImmutableCollectors;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -89,26 +91,95 @@ import org.jetbrains.annotations.Nullable;
  * or more device renderings, etc
  */
 public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility {
+  public static class Builder {
+    private final Project myProject;
+    private final Disposable myParentDisposable;
+    private boolean isPreview = false;
+    private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider =
+      NlDesignSurface::defaultSceneManagerProvider;
+
+    private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
+      myProject = project;
+      myParentDisposable = parentDisposable;
+    }
+
+    /**
+     * Marks the {@link NlDesignSurface} as being in preview mode.
+     */
+    @NotNull
+    public Builder setIsPreview(boolean isPreview) {
+      this.isPreview = isPreview;
+      return this;
+    }
+
+    /**
+     * Allows customizing the {@link LayoutlibSceneManager}. Use this method if you need to apply additional settings to it or if you
+     * need to completely replace it, for example for tests.
+     * @see NlDesignSurface#defaultSceneManagerProvider(NlDesignSurface, NlModel)
+     */
+    @NotNull
+    public Builder setSceneManagerProvider(@NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider) {
+      this.sceneManagerProvider = sceneManagerProvider;
+      return this;
+    }
+
+    @NotNull
+    public NlDesignSurface build() {
+      return new NlDesignSurface(myProject, myParentDisposable, isPreview, sceneManagerProvider);
+    }
+  }
+
   @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
-  @SwingCoordinate private int myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
-  @SwingCoordinate private int myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
+  @SwingCoordinate private int myScreenX = DEFAULT_SCREEN_OFFSET_X;
+  @SwingCoordinate private int myScreenY = DEFAULT_SCREEN_OFFSET_Y;
   private boolean myIsCanvasResizing = false;
+  private boolean myIsShowModelNames = false;
   private boolean myStackVertically;
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
   private boolean myCentered;
-  private final boolean myInPreview;
+  private final boolean isInPreview;
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
   private final RenderListener myRenderListener = this::modelRendered;
   private RenderIssueProvider myRenderIssueProvider;
   private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
   @NotNull private final NlAnalyticsManager myAnalyticsManager;
+  /**
+   * Allows customizing the generation of {@link SceneManager}s
+   */
+  private final BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider;
 
-  public NlDesignSurface(@NotNull Project project, boolean inPreview, @NotNull Disposable parentDisposable) {
+  private NlDesignSurface(@NotNull Project project,
+                          @NotNull Disposable parentDisposable,
+                          boolean isInPreview,
+                          @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider) {
     super(project, new SelectionModel(), parentDisposable);
-    myInPreview = inPreview;
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
+    this.isInPreview = isInPreview;
+    mySceneManagerProvider = sceneManagerProvider;
+  }
+
+  /**
+   * Default {@link LayoutlibSceneManager} provider.
+   */
+  @NotNull
+  public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
+    return new LayoutlibSceneManager(model, surface);
+  }
+
+  @NotNull
+  public static Builder builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
+    return new Builder(project, parentDisposable);
+  }
+
+  @NotNull
+  @Override
+  protected SceneManager createSceneManager(@NotNull NlModel model) {
+    LayoutlibSceneManager manager = mySceneManagerProvider.apply(this, model);
+    manager.addRenderListener(myRenderListener);
+
+    return manager;
   }
 
   @NotNull
@@ -118,7 +189,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   public boolean isPreviewSurface() {
-    return myInPreview;
+    return isInPreview;
   }
 
   /**
@@ -141,6 +212,21 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public boolean isLayoutDisabled() {
     return myIsCanvasResizing;
+  }
+
+  public boolean isShowModelNames() {
+    boolean displayModelNameFlag = StudioFlags.NELE_DISPLAY_MODEL_NAME.get();
+    if (!displayModelNameFlag) {
+      Logger.getInstance(getClass()).info("Displaying model name is not enabled.");
+    }
+    return displayModelNameFlag && myIsShowModelNames;
+  }
+
+  /**
+   * Set to display the model names on the top of SceneViews or not.
+   */
+  public void setShowModelNames(boolean displayed) {
+    myIsShowModelNames = displayed;
   }
 
   @NotNull
@@ -170,22 +256,18 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
   }
 
+  /**
+   * Builds a new {@link NlDesignSurface} with the default settings
+   */
   @NotNull
-  @Override
-  protected SceneManager createSceneManager(@NotNull NlModel model) {
-    LayoutlibSceneManager manager = new LayoutlibSceneManager(model, this);
-    manager.addRenderListener(myRenderListener);
-    return manager;
+  public static NlDesignSurface build(@NotNull Project project, @NotNull Disposable parentDisposable) {
+    return new Builder(project, parentDisposable).build();
   }
 
   @Nullable
   @Override
   public LayoutlibSceneManager getSceneManager() {
     return (LayoutlibSceneManager)super.getSceneManager();
-  }
-
-  private int getSceneViewNumber() {
-    return myModelToSceneManagers.size() * (getSceneMode() == SceneMode.BOTH ? 2 : 1);
   }
 
   /**
@@ -219,46 +301,95 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @NotNull
   @Override
-  public Rectangle getRenderableBoundsOfSceneView(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
+  public Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
     if (rectangle == null) {
       rectangle = new Rectangle();
     }
+    List<SceneView> sceneViews = new ArrayList<>();
+    Iterator<SceneManager> managerIterator = myModelToSceneManagers.values().iterator();
+    // If there is no SceneManager then this function shouldn't be called. (The input argument SceneView is from SceneManager.)
+    assert managerIterator.hasNext();
+    SceneManager primaryManager = managerIterator.next();
+    sceneViews.add(primaryManager.getSceneView());
+    if (mySceneMode == SceneMode.BOTH) {
+      SceneView secondarySceneView = ((LayoutlibSceneManager) primaryManager).getSecondarySceneView();
+      if (secondarySceneView != null) {
+        // menu and preference always has only one SceneView even scene mode is both.
+        sceneViews.add(secondarySceneView);
+      }
+    }
+    managerIterator.forEachRemaining(it -> sceneViews.add(it.getSceneView()));
+
     Rectangle viewRect = myScrollPane.getViewport().getViewRect();
-
-    LayoutlibSceneManager sceneManager = getSceneManager();
-    assert sceneManager != null;
-    SceneView primary = sceneManager.getSceneView();
-    SceneView secondary = sceneManager.getSecondarySceneView();
-
-    if (secondary == null) {
+    if (sceneViews.size() == 1) {
       rectangle.setBounds(viewRect);
       return rectangle;
     }
 
-    // When displaying both Design and Blueprint, we need to make sure they didn't overlap each other.
-    if (isStackVertically()) {
-      int primaryBottom = primary.getY() + primary.getSize().height;
-      int gapMidY = (primaryBottom + secondary.getY()) / 2;
-      if (sceneView == primary) {
-        viewRect.height = gapMidY;
+    int leftBound = viewRect.x;
+    int topBound = viewRect.y;
+    int rightBound = viewRect.x + viewRect.width;
+    int bottomBound = viewRect.y + viewRect.height;
+
+    int index = sceneViews.indexOf(sceneView);
+    assert index != -1;
+    int lastSceneViewIndex = sceneViews.size() - 1;
+    if (myStackVertically) {
+      rectangle.x = leftBound;
+      rectangle.width = rightBound - leftBound;
+
+      // Calculate top bound.
+      if (index == 0) {
+        // The top-most SceneView can render to the top edge of DesignSurface.
+        rectangle.y = topBound;
       }
       else {
-        viewRect.y = gapMidY;
-        viewRect.height = viewRect.height - gapMidY + viewRect.y;
+        // The top side of SceneView shouldn't cover other SceneViews.
+        SceneView previousSceneView = sceneViews.get(index - 1);
+        int previousBottom = previousSceneView.getY() + previousSceneView.getSize().height;
+        rectangle.y = Math.max(topBound, (previousBottom + sceneView.getY() - sceneView.getNameLabelHeight()) / 2);
+      }
+
+      // Calculate bottom bound (represent by height).
+      if (index == lastSceneViewIndex) {
+        // The last SceneView can render to the bottom edge of DesignSurface.
+        rectangle.height = bottomBound - rectangle.y;
+      }
+      else {
+        // The bottom side of SceneView shouldn't cover other SceneViews.
+        SceneView nextSceneView = sceneViews.get(index + 1);
+        int bottom = sceneView.getY() + sceneView.getSize().height;
+        rectangle.height = Math.min(bottomBound, (bottom + nextSceneView.getY() - nextSceneView.getNameLabelHeight()) / 2) - rectangle.y;
       }
     }
     else {
-      int primaryRight = primary.getX() + primary.getSize().width;
-      int gapMidX = (primaryRight + secondary.getX()) / 2;
-      if (sceneView == primary) {
-        viewRect.width = gapMidX;
+      rectangle.y = topBound;
+      rectangle.height = bottomBound - topBound;
+
+      // Calculate left bound.
+      if (index == 0) {
+        // The left-most SceneView can render to the left edge of DesignSurface.
+        rectangle.x = leftBound;
       }
       else {
-        viewRect.x = gapMidX;
-        viewRect.width = viewRect.width - gapMidX + viewRect.x;
+        // The left side of SceneView shouldn't cover other SceneViews.
+        SceneView previousSceneView = sceneViews.get(index - 1);
+        int previousRight = previousSceneView.getX() + previousSceneView.getSize().width;
+        rectangle.x = Math.max(leftBound, (previousRight + sceneView.getX()) / 2);
+      }
+
+      // Calculate right bound (represent by width).
+      if (index == lastSceneViewIndex) {
+        // The last SceneView can render to the right edge of DesignSurface.
+        rectangle.width = rightBound - rectangle.x;
+      }
+      else {
+        // The right side of SceneView shouldn't cover other SceneViews.
+        SceneView nextSceneView = sceneViews.get(index + 1);
+        int right = sceneView.getX() + sceneView.getSize().width;
+        rectangle.width = Math.min(rightBound, (right + nextSceneView.getX()) / 2) - rectangle.x;
       }
     }
-    rectangle.setBounds(viewRect);
     return rectangle;
   }
 
@@ -288,25 +419,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   public Dimension getScrolledAreaSize() {
-    SceneManager manager = getSceneManager();
-    SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
-    if (primarySceneView == null) {
+    int contentWidth = getRequiredWidth();
+    int contentHeight = getRequiredHeight();
+    if (contentWidth <= 0 || contentHeight <= 0) {
+      // There is no scrollable area, return null. This may happen when there is no Model, SceneManager, or SceneView.
       return null;
-    }
-    Dimension size = primarySceneView.getSize();
-    // TODO: Account for the size of the blueprint screen too? I should figure out if I can automatically make it jump
-    // to the side or below based on the form factor and the available size
-    int contentWidth;
-    int contentHeight;
-
-    // TODO: adjust it to better result.
-    if (isStackVertically()) {
-      contentWidth = size.width;
-      contentHeight = (size.height + SCREEN_DELTA) * getSceneViewNumber() - SCREEN_DELTA;
-    }
-    else {
-      contentWidth = (size.width + SCREEN_DELTA) * getSceneViewNumber() - SCREEN_DELTA;
-      contentHeight = size.height;
     }
     return new Dimension(contentWidth + 2 * DEFAULT_SCREEN_OFFSET_X,
                          contentHeight + 2 * DEFAULT_SCREEN_OFFSET_Y);
@@ -391,67 +508,132 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (!iterator.hasNext()) {
       return;
     }
-    LayoutlibSceneManager manager = (LayoutlibSceneManager) iterator.next();
-    SceneView primarySceneView = manager.getSceneView();
-    Dimension screenViewSize = primarySceneView.getSize();
+    LayoutlibSceneManager primaryManager = (LayoutlibSceneManager) iterator.next();
+    Dimension primarySceneViewSize = primaryManager.getSceneView().getSize();
 
     // Position primary screen
     int availableWidth = myScrollPane.getWidth();
     int availableHeight = myScrollPane.getHeight();
-    myStackVertically = isVerticalScreenConfig(availableWidth, availableHeight, screenViewSize);
+    myStackVertically = isVerticalScreenConfig(availableWidth, availableHeight, primarySceneViewSize);
 
-    // If we are resizing the canvas, do not relocate the primary screen
+    // First find the top-left position of primary SceneView.
     if (!myIsCanvasResizing) {
+      // If we are resizing the canvas, do not relocate the primary SceneView.
       if (myCentered && availableWidth > 10 && availableHeight > 10) {
-        int requiredWidth = screenViewSize.width;
-        if (mySceneMode == SceneMode.BOTH && !myStackVertically) {
-          requiredWidth += SCREEN_DELTA;
-          requiredWidth += screenViewSize.width;
-        }
-        myScreenX = Math.max((availableWidth - requiredWidth) / 2, RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X);
-
-        int requiredHeight = screenViewSize.height;
-        if (mySceneMode == SceneMode.BOTH && myStackVertically) {
-          requiredHeight += SCREEN_DELTA;
-          requiredHeight += screenViewSize.height;
-        }
-        myScreenY = Math.max((availableHeight - requiredHeight) / 2, RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y);
+        int requiredWidth = getRequiredWidth();
+        int requiredHeight = getRequiredHeight();
+        myScreenX = Math.max((availableWidth - requiredWidth) / 2, DEFAULT_SCREEN_OFFSET_X);
+        myScreenY = Math.max((availableHeight - requiredHeight) / 2, DEFAULT_SCREEN_OFFSET_Y);
       }
       else {
-        myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
-        myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
+        myScreenX = DEFAULT_SCREEN_OFFSET_X;
+        myScreenY = DEFAULT_SCREEN_OFFSET_Y;
       }
     }
 
-    SceneView secondarySceneView = manager.getSecondarySceneView();
-
-    primarySceneView.setLocation(myScreenX, myScreenY);
-
-    // Position blueprint view
-    if (secondarySceneView != null) {
+    // Calculate the positions of all scenes by using the position of primary SceneView.
+    int nextX = myScreenX;
+    int nextY = myScreenY;
+    for (SceneManager manager : myModelToSceneManagers.values()) {
+      SceneView sceneView = manager.getSceneView();
+      SceneView secondView = ((LayoutlibSceneManager) manager).getSecondarySceneView();
 
       if (myStackVertically) {
         // top/bottom stacking
-        secondarySceneView.setLocation(myScreenX, myScreenY + screenViewSize.height + SCREEN_DELTA);
+        nextY += sceneView.getNameLabelHeight();
+        sceneView.setLocation(nextX, nextY);
+        nextY += sceneView.getSize().height + SCREEN_DELTA;
+        if (secondView != null) {
+          nextY += secondView.getNameLabelHeight();
+          secondView.setLocation(nextX, nextY);
+          nextY += secondView.getSize().height + SCREEN_DELTA;
+        }
       }
       else {
         // left/right ordering
-        secondarySceneView.setLocation(myScreenX + screenViewSize.width + SCREEN_DELTA, myScreenY);
+        sceneView.setLocation(nextX, myScreenY);
+        nextX += sceneView.getSize().width + SCREEN_DELTA;
+        if (secondView != null) {
+          secondView.setLocation(nextX, nextY);
+          nextX += secondView.getSize().width + SCREEN_DELTA;
+        }
       }
-    }
-
-    manager.getScene().needsRebuildList();
-
-    int nextX = myScreenX + screenViewSize.width + SCREEN_DELTA;
-    while (iterator.hasNext()) {
-      LayoutlibSceneManager additionalManager = (LayoutlibSceneManager) iterator.next();
-      SceneView view = additionalManager.getSceneView();
-      view.setLocation(nextX, myScreenY);
-      nextX += screenViewSize.width + SCREEN_DELTA;
     }
 
     revalidate();
     repaint();
+  }
+
+  /**
+   * Take the largest width when stacking vertically or combine all of them otherwise. <br>
+   * When combining the width, all spaces between different {@link SceneView}s are included.
+   *
+   * @return the required width to display all {@link SceneView}s.
+   */
+  private int getRequiredWidth() {
+    int requiredWidth = 0;
+    if (myStackVertically) {
+      for (SceneManager sceneManager : myModelToSceneManagers.values()) {
+        SceneView view = sceneManager.getSceneView();
+        requiredWidth = Math.max(requiredWidth, view.getSize().width);
+        SceneView secondView = ((LayoutlibSceneManager)sceneManager).getSecondarySceneView();
+        if (secondView != null) {
+          requiredWidth = Math.max(requiredWidth, secondView.getSize().width);
+        }
+      }
+    }
+    else {
+      for (SceneManager sceneManager : myModelToSceneManagers.values()) {
+        SceneView view = sceneManager.getSceneView();
+        requiredWidth += view.getSize().width;
+        requiredWidth += SCREEN_DELTA;
+        SceneView secondView = ((LayoutlibSceneManager)sceneManager).getSecondarySceneView();
+        if (secondView != null) {
+          requiredWidth += secondView.getSize().width;
+          requiredWidth += SCREEN_DELTA;
+        }
+      }
+      // Remove tailed space.
+      requiredWidth -= SCREEN_DELTA;
+    }
+    return Math.max(0, requiredWidth);
+  }
+
+  /**
+   * Combine all heights when stacking vertically or take the largest one otherwise.<br>
+   * When combining the width, all spaces between different {@link SceneView}s are included.
+   *
+   * @return the required height to display all {@link SceneView}s.
+   */
+  private int getRequiredHeight() {
+    int requiredHeight = 0;
+    if (myStackVertically) {
+      for (SceneManager sceneManager : myModelToSceneManagers.values()) {
+        SceneView view = sceneManager.getSceneView();
+        requiredHeight += view.getNameLabelHeight();
+        requiredHeight += view.getSize().height;
+        requiredHeight += SCREEN_DELTA;
+        SceneView secondView = ((LayoutlibSceneManager)sceneManager).getSecondarySceneView();
+        if (secondView != null) {
+          requiredHeight += secondView.getNameLabelHeight();
+          requiredHeight += secondView.getSize().height;
+          requiredHeight += SCREEN_DELTA;
+        }
+      }
+      // Remove tailed space.
+      requiredHeight -= SCREEN_DELTA;
+    }
+    else {
+      for (SceneManager sceneManager : myModelToSceneManagers.values()) {
+        SceneView view = sceneManager.getSceneView();
+        requiredHeight = Math.max(requiredHeight, view.getSize().height);
+        SceneView secondView = ((LayoutlibSceneManager)sceneManager).getSecondarySceneView();
+        if (secondView != null) {
+          requiredHeight = Math.max(requiredHeight, secondView.getSize().height);
+        }
+      }
+    }
+    return Math.max(0, requiredHeight);
   }
 
   @Override
@@ -508,98 +690,59 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
   }
 
-  public boolean isStackVertically() {
-    return myStackVertically;
-  }
-
   @Override
   @NotNull
   public Dimension getContentSize(@Nullable Dimension dimension) {
     if (dimension == null) {
       dimension = new Dimension();
     }
-    LayoutlibSceneManager manager = getSceneManager();
-    SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
-    SceneView secondarySceneView = manager != null ? manager.getSecondarySceneView() : null;
-    if (mySceneMode == SceneMode.BOTH
-        && primarySceneView != null && secondarySceneView != null) {
-      if (isStackVertically()) {
-        dimension.setSize(
-          primarySceneView.getSize().getWidth(),
-          primarySceneView.getSize().getHeight() + secondarySceneView.getSize().getHeight()
-        );
-      }
-      else {
-        dimension.setSize(
-          primarySceneView.getSize().getWidth() + secondarySceneView.getSize().getWidth(),
-          primarySceneView.getSize().getHeight()
-        );
-      }
-    }
-    else if (getCurrentSceneView() != null) {
-      dimension.setSize(
-        getCurrentSceneView().getSize().getWidth(),
-        getCurrentSceneView().getSize().getHeight());
+
+    int width = getRequiredWidth();
+    int height = getRequiredHeight();
+    if (width == 0 && height == 0) {
+      dimension.setSize(0, 0);
+      return dimension;
     }
 
-    // TODO: adjust it to better result.
-    if (isStackVertically()) {
-      dimension.height *= myModelToSceneManagers.size();
-    }
-    else {
-      dimension.width *= myModelToSceneManagers.size();
-    }
+    dimension.setSize(width, height);
     return dimension;
   }
 
   @SwingCoordinate
   @Override
   protected Dimension getDefaultOffset() {
-    return new Dimension(2 * DEFAULT_SCREEN_OFFSET_X + RULER_SIZE_PX, 2 * DEFAULT_SCREEN_OFFSET_Y + RULER_SIZE_PX);
+    return new Dimension(2 * DEFAULT_SCREEN_OFFSET_X, 2 * DEFAULT_SCREEN_OFFSET_Y);
   }
 
   @SwingCoordinate
   @NotNull
   @Override
   protected Dimension getPreferredContentSize(@SwingCoordinate int availableWidth, @SwingCoordinate int availableHeight) {
-    SceneManager primarySceneManager = getSceneManager();
-    SceneView primarySceneView = primarySceneManager != null ? primarySceneManager.getSceneView() : null;
-    if (primarySceneView == null) {
-      return JBUI.emptySize();
-    }
-    Dimension preferredSize = primarySceneView.getPreferredSize();
+    int requiredWidth = 0;
+    int requiredHeight = 0;
 
-    int requiredWidth = preferredSize.width;
-    int requiredHeight = preferredSize.height;
-
-    // TODO: adjust it to better result.
     for (SceneManager sceneManager: myModelToSceneManagers.values()) {
-      if (sceneManager == primarySceneManager) {
-        continue;
-      }
       Dimension size = sceneManager.getSceneView().getPreferredSize();
-      if (isStackVertically()) {
+      SceneView secondarySceneView = ((LayoutlibSceneManager) sceneManager).getSecondarySceneView();
+      if (myStackVertically) {
         requiredWidth = Math.max(requiredWidth, size.width);
 
         requiredHeight += size.height;
         requiredHeight += SCREEN_DELTA;
+        if (secondarySceneView != null) {
+          requiredHeight += size.height;
+          requiredHeight += SCREEN_DELTA;
+        }
       }
       else {
         requiredWidth += size.width;
         requiredWidth += SCREEN_DELTA;
+        if (secondarySceneView != null) {
+          requiredWidth += size.width;
+          requiredWidth += SCREEN_DELTA;
+        }
 
         requiredHeight = Math.max(requiredHeight, size.height);
-      }
-    }
-
-    if (mySceneMode == SceneMode.BOTH) {
-      if (isVerticalScreenConfig(availableWidth, availableHeight, preferredSize)) {
-        requiredHeight *= 2;
-        requiredHeight += SCREEN_DELTA;
-      }
-      else {
-        requiredWidth *= 2;
-        requiredWidth += SCREEN_DELTA;
       }
     }
 
@@ -706,11 +849,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  public void forceUserRequestedRefresh() {
+  public CompletableFuture<Void> forceUserRequestedRefresh() {
+    ArrayList<CompletableFuture<Void>> refreshFutures = new ArrayList<>();
     for (SceneManager sceneManager : myModelToSceneManagers.values()) {
       LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager) sceneManager;
-      layoutlibSceneManager.requestUserInitiatedRender();
+      refreshFutures.add(layoutlibSceneManager.requestUserInitiatedRender());
     }
+
+    return CompletableFuture.allOf(refreshFutures.toArray(new CompletableFuture[refreshFutures.size()]));
   }
 
   @Override

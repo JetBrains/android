@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.MemoryProfiler
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -130,7 +130,7 @@ class SessionItemTest {
     val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
     Truth.assertThat(sessionItem.subtitle).isEqualTo(SessionItem.SESSION_LOADING)
 
-    val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
+    val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
     sessionsManager.update()
     Truth.assertThat(sessionItem.subtitle).isEqualTo("Heap Dump")

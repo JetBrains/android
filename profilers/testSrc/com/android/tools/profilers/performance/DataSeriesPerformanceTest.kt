@@ -175,8 +175,7 @@ class DataSeriesPerformanceTest {
 
     init {
       val stage = MemoryProfilerStage(profilers)
-      liveAllocation = LiveAllocationCaptureObject(profilers.client.memoryClient, session, 0, MoreExecutors.newDirectExecutorService(),
-                                                   stage)
+      liveAllocation = LiveAllocationCaptureObject(profilers.client, session, 0, MoreExecutors.newDirectExecutorService(), stage)
     }
   }
 

@@ -31,11 +31,6 @@ public class IdeaGradleSyncTest extends GradleSyncTestCase {
   }
 
   @Override
-  protected boolean useNewSyncInfrastructure() {
-    return false;
-  }
-
-  @Override
   protected boolean useSingleVariantSyncInfrastructure() {
     return false;
   }

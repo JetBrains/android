@@ -26,7 +26,6 @@ import com.android.tools.idea.templates.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -101,7 +100,6 @@ public final class NewProjectModuleModel extends WizardModel {
   protected void handleFinished() {
     myProjectModel.getNewModuleModels().clear();
 
-    Project project = myNewModuleModel.getProject().getValueOrNull();
     String projectLocation = myProjectModel.projectLocation().get();
     boolean hasCompanionApp = myHasCompanionApp.get();
 
@@ -110,44 +108,35 @@ public final class NewProjectModuleModel extends WizardModel {
     Map<String, Object> projectTemplateValues = myProjectModel.getTemplateValues();
     addModuleToProject(myNewModuleModel, myFormFactor.get(), myProjectModel, projectTemplateValues);
 
-    int formFactorsCount = 1;
     if (hasCompanionApp) {
-      formFactorsCount++;
       NewModuleModel companionModuleModel = createCompanionModuleModel(myProjectModel);
       RenderTemplateModel companionRenderModel = createCompanionRenderModel(projectLocation, companionModuleModel);
       addModuleToProject(companionModuleModel, FormFactor.MOBILE, myProjectModel, projectTemplateValues);
 
       companionRenderModel.getAndroidSdkInfo().setValue(androidSdkInfo().getValue());
-      companionModuleModel.getRenderTemplateValues().setValue(companionRenderModel.getTemplateValues());
+      companionModuleModel.setRenderTemplateModel(companionRenderModel);
 
       companionModuleModel.handleFinished();
       companionRenderModel.handleFinished();
     }
-    projectTemplateValues.put(ATTR_NUM_ENABLED_FORM_FACTORS, formFactorsCount);
 
     RenderTemplateModel newRenderTemplateModel = createMainRenderModel(projectLocation);
-    myNewModuleModel.getRenderTemplateValues().setValue(newRenderTemplateModel.getTemplateValues());
+    myNewModuleModel.setRenderTemplateModel(newRenderTemplateModel);
 
-    boolean noActivitySelected = newRenderTemplateModel.getTemplateHandle() == null;
-    if (noActivitySelected) {
-      myNewModuleModel.setDefaultRenderTemplateValues(newRenderTemplateModel, project);
-    }
-    else if (newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
+    boolean hasActivity = newRenderTemplateModel.getTemplateHandle() != null;
+    if (hasActivity && newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
       addRenderDefaultTemplateValues(newRenderTemplateModel);
     }
-
-    new TemplateValueInjector(myNewModuleModel.getTemplateValues())
-      .setProjectDefaults(project, myNewModuleModel.getApplicationName().get());
 
     projectTemplateValues.put(ATTR_IS_DYNAMIC_INSTANT_APP, myDynamicInstantApp.get());
 
     myNewModuleModel.handleFinished();
     if (newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
-      if (noActivitySelected) {
-        newRenderTemplateModel.handleSkipped();
+      if (hasActivity) {
+        newRenderTemplateModel.handleFinished();
       }
       else {
-        newRenderTemplateModel.handleFinished();
+        newRenderTemplateModel.handleSkipped(); // "No Activity" selected
       }
     }
   }
@@ -198,9 +187,6 @@ public final class NewProjectModuleModel extends WizardModel {
     NewModuleModel companionModuleModel = new NewModuleModel(projectModel, moduleTemplateFile);
     companionModuleModel.getModuleName().set(getModuleName(FormFactor.MOBILE));
 
-    new TemplateValueInjector(companionModuleModel.getTemplateValues())
-      .setProjectDefaults(projectModel.project().getValueOrNull(), companionModuleModel.getApplicationName().get());
-
     return companionModuleModel;
   }
 
@@ -239,7 +225,7 @@ public final class NewProjectModuleModel extends WizardModel {
 
     try {
       Collection<Parameter> renderParameters = templateMetadata.getParameters();
-      Map<Parameter, Object> parameterValues = ParameterValueResolver.resolve(renderParameters, userValues, additionalValues);
+      Map<Parameter, Object> parameterValues = ParameterValueResolver.Companion.resolve(renderParameters, userValues, additionalValues);
       parameterValues.forEach((parameter, value) -> templateValues.put(parameter.id, value));
     } catch (CircularParameterDependencyException e) {
       getLog().error("Circular dependency between parameters in template %1$s", e, templateMetadata.getTitle());

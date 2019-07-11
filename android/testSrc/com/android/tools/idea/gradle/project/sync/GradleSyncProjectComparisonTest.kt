@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.testutils.TestUtils
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.asParsed
@@ -41,8 +42,8 @@ import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
 import com.android.tools.idea.testing.TestProjectPaths.VARIANT_SPECIFIC_DEPENDENCIES
-import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
+import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.google.common.truth.Truth.assertAbout
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
@@ -80,25 +81,15 @@ import java.io.File
                --jvmopt='-DUPDATE_TEST_SNAPSHOTS' --test_output=streamed --runs_per_test=3
  */
 abstract class GradleSyncProjectComparisonTest(
-    private val useNewSync: Boolean,
     private val singleVariantSync: Boolean = false
 ) : GradleSyncIntegrationTestCase(), SnapshotComparisonTest {
-  override fun useNewSyncInfrastructure(): Boolean = useNewSync
   override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
   override fun useCompoundSyncInfrastructure(): Boolean = false
 
-  class NewSyncGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest(useNewSync = true)
+  class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest()
 
-  class NewSyncSingleVariantGradleSyncProjectComparisonTest :
-      GradleSyncProjectComparisonTest(useNewSync = true, singleVariantSync = true) {
-    /** TODO(b/124504437): Enable this test */
-    override fun testNdkProjectSync() = Unit
-  }
-
-  class OldSyncGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest(useNewSync = false)
-
-  class OldSyncSingleVariantGradleSyncProjectComparisonTest :
-      GradleSyncProjectComparisonTest(useNewSync = false, singleVariantSync = true) {
+  class SingleVariantGradleSyncProjectComparisonTest :
+      GradleSyncProjectComparisonTest(singleVariantSync = true) {
     /** TODO(b/124504437): Enable this test */
     override fun testNdkProjectSync() = Unit
   }
@@ -106,10 +97,7 @@ abstract class GradleSyncProjectComparisonTest(
   override val snapshotDirectoryName = "syncedProjectSnapshots"
   override val snapshotSuffixes = listOfNotNull(
     // Suffixes to use to override the default expected result.
-    ".new_sync.single_variant".takeIf { useNewSync && singleVariantSync },
-    ".old_sync.single_variant".takeIf { !useNewSync && singleVariantSync },
-    ".new_sync".takeIf { useNewSync },
-    ".old_sync".takeIf { !useNewSync },
+    ".single_variant".takeIf { singleVariantSync },
     ""
   )
 
@@ -142,6 +130,15 @@ abstract class GradleSyncProjectComparisonTest(
     val projectSettings = GradleProjectSettings()
     projectSettings.distributionType = DEFAULT_WRAPPED
     GradleSettings.getInstance(project).linkedProjectsSettings = listOf(projectSettings)
+  }
+
+  fun testImportNoSync() {
+    val projectRootPath = prepareProjectForImport(SIMPLE_APPLICATION)
+    val request = GradleProjectImporter.Request(project)
+    GradleProjectImporter.getInstance().importProjectNoSync(request)
+    AndroidTestBase.refreshProjectFiles()
+    val text = project.saveAndDump()
+    assertIsEqualToSnapshot(text)
   }
 
   // https://code.google.com/p/android/issues/detail?id=233038

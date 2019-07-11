@@ -45,7 +45,8 @@ public class ProfilerServiceProxyManager {
     transportProxy.registerProxyService(new MemoryServiceProxy(
       device, transportChannel,
       Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(MEMORY_PROXY_EXECUTOR_NAME).build()),
-      (d, p) -> new StudioLegacyAllocationTracker(d, p)));
+      (d, p) -> new StudioLegacyAllocationTracker(d, p),
+      transportProxy.getBytesCache()));
     transportProxy.registerProxyService(new NetworkServiceProxy(transportChannel));
     transportProxy.registerProxyService(new EnergyServiceProxy(transportChannel));
   }

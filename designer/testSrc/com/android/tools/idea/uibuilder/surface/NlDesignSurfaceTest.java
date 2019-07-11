@@ -56,7 +56,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    mySurface = new NlDesignSurface(getProject(), false, getTestRootDisposable());
+    mySurface = NlDesignSurface.build(getProject(), getTestRootDisposable());
   }
 
   @Override

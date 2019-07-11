@@ -21,7 +21,7 @@ import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
-import com.android.tools.idea.gradle.project.sync.ng.SelectedVariants
+import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.UnsupportedMethodException
 import java.util.Collections

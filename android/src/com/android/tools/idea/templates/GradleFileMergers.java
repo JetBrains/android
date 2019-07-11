@@ -36,6 +36,16 @@ public class GradleFileMergers {
    */
   static final String DEPENDENCIES = "dependencies";
 
+  /**
+   * Name of the apply plugin DSL block. E.g. apply plugin: 'com.android.application'
+   */
+  static final String APPLY = "apply";
+
+  /**
+   * Name of the android DSL block.
+   */
+  static final String ANDROID = "android";
+
   private static final ImmutableList<String> KNOWN_CONFIGURATIONS_IN_ORDER =
     ImmutableList.of("feature", "api", "implementation", "compile",
                      "testApi", "testImplementation", "testCompile",

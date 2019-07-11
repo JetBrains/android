@@ -99,14 +99,14 @@ class SceneHitListener {
    *
    * @return preferred target
    */
-  public Target getClosestTarget(@JdkConstants.InputEventMask int modifier) {
+  public Target getClosestTarget(@JdkConstants.InputEventMask int modifiersEx) {
     int count = myHitTargets.size();
     if (count == 0) {
       return null;
     }
     List<NlComponent> selection = mySelectionModel.getSelection();
 
-    if ((modifier & InputEvent.ALT_MASK) != 0) {
+    if ((modifiersEx & InputEvent.ALT_DOWN_MASK) != 0) {
       // b/132195092: When ALT is pressed, the selected component is hit first. This is a temporary workaround.
       Target candidate = null;
       for (int i = count - 1; i >= 0; i--) {

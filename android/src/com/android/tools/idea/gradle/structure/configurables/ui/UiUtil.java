@@ -45,11 +45,12 @@ public final class UiUtil {
   }
 
   @NotNull
-  public static JScrollPane setUp(@NotNull AbstractBaseTreeBuilder treeBuilder) {
+  public static JScrollPane setUp(@NotNull AbstractBaseTreeBuilder treeBuilder, @NotNull String name) {
     JTree tree = treeBuilder.getUi().getTree();
 
     tree.setExpandsSelectedPaths(true);
     tree.setRootVisible(false);
+    tree.setName(name);
     TreeSelectionModel selectionModel = tree.getSelectionModel();
     selectionModel.setSelectionMode(DISCONTIGUOUS_TREE_SELECTION);
 

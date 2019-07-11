@@ -91,7 +91,6 @@ public class TemplateMetadata {
   public static final String ATTR_MODULE_SIMPLE_NAME = "projectSimpleName"; // Same as ATTR_MODULE_NAME but no spaces or other symbols
   public static final String ATTR_INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_IS_LOW_MEMORY = "isLowMemory";
-  public static final String ATTR_NUM_ENABLED_FORM_FACTORS = "NumberOfEnabledFormFactors";
   public static final String ATTR_USE_OFFLINE_REPO = "useOfflineRepo";
   public static final String ATTR_OFFLINE_REPO_PATH = "offlineRepoPath";
 
@@ -117,7 +116,6 @@ public class TemplateMetadata {
   public static final String ATTR_BASE_FEATURE_RES_DIR = "baseFeatureResDir";
   public static final String ATTR_CLASS_NAME = "className";
 
-  public static final String ATTR_USE_NAV_CONTROLLER = "useNavController";
   public static final String ATTR_KOTLIN_SUPPORT = "includeKotlinSupport";
   public static final String ATTR_ANDROIDX_SUPPORT = "addAndroidXSupport";
   public static final String ATTR_LANGUAGE = "language"; // Java vs Kotlin
@@ -128,7 +126,6 @@ public class TemplateMetadata {
 
   public static final String ATTR_APP_THEME = "applicationTheme";
   public static final String ATTR_APP_THEME_NAME = "name";
-  public static final String ATTR_APP_THEME_IS_APP_COMPAT = "isAppCompat";
   public static final String ATTR_APP_THEME_EXISTS = "exists";
   public static final String ATTR_APP_THEME_NO_ACTION_BAR = "NoActionBar";
   public static final String ATTR_APP_THEME_APP_BAR_OVERLAY = "AppBarOverlay";

@@ -118,20 +118,7 @@ abstract class ChooseGalleryItemStep(moduleModel: NewModuleModel,
   override fun onEntering() = validateTemplate()
 
   override fun onProceeding() {
-    // TODO: From David: Can we look into moving this logic into handleFinished?
-    // There should be multiple hashtables that a model points to, which gets merged at the last second.
-    // That way, we can clear one of the hashtables.
-
-    val moduleModel = model
-    val project = moduleModel.project.valueOrNull
-    if (renderModel.templateHandle == null) { // "Add No Activity" selected
-      moduleModel.setDefaultRenderTemplateValues(renderModel, project)
-    }
-    else {
-      moduleModel.renderTemplateValues.setValue(renderModel.templateValues)
-    }
-
-    TemplateValueInjector(moduleModel.templateValues).setProjectDefaults(project, moduleModel.applicationName.get())
+    model.setRenderTemplateModel(renderModel)
   }
 
 

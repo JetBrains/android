@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isCompoundSync;
 import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
@@ -40,13 +39,10 @@ import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlH
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
-import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.project.IndexingSuspender;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.build.DefaultBuildDescriptor;
@@ -109,7 +105,7 @@ public class GradleSyncInvoker {
   }
 
   /**
-   * This method should not be called within a {@link DumbModeTask}, the {@link IndexingSuspender} will take care of ensuring that
+   * This method should not be called within a {@link DumbModeTask}, the platform will take care of ensuring that
    * sync is not run at the same time as indexing.
    */
   public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
@@ -118,7 +114,7 @@ public class GradleSyncInvoker {
   }
 
   /**
-   * This method should not be called within a {@link DumbModeTask}, the {@link IndexingSuspender} will take care of ensuring that
+   * This method should not be called within a {@link DumbModeTask}, the platform will take care of ensuring that
    * sync is not run at the same time as indexing.
    */
   public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
@@ -129,7 +125,7 @@ public class GradleSyncInvoker {
   }
 
   /**
-   * This method should not be called within a {@link DumbModeTask}, the {@link IndexingSuspender} will take care of ensuring that
+   * This method should not be called within a {@link DumbModeTask}, the platform will take care of ensuring that
    * sync is not run at the same time as indexing.
    */
   public void requestProjectSync(@NotNull Project project, @NotNull Request request) {
@@ -137,7 +133,7 @@ public class GradleSyncInvoker {
   }
 
   /**
-   * This method should not be called within a {@link DumbModeTask}, the {@link IndexingSuspender} will take care of ensuring that
+   * This method should not be called within a {@link DumbModeTask}, the platform will take care of ensuring that
    * sync is not run at the same time as indexing.
    */
   public void requestProjectSync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
@@ -237,16 +233,12 @@ public class GradleSyncInvoker {
       return;
     }
 
-
-    boolean useNewGradleSync = NewGradleSync.isEnabled(project);
-
     CountDownLatch latch =
-      (ApplicationManager.getApplication().isUnitTestMode() && request.generateSourcesOnSuccess && isCompoundSync(project))
+      (ApplicationManager.getApplication().isUnitTestMode() && request.generateSourcesOnSuccess && GradleSyncState.isCompoundSync())
       ? createSourceGenerationLatch(project)
       : null;
 
-    GradleSync gradleSync = useNewGradleSync ? new NewGradleSync(project) : new IdeaGradleSync(project);
-    gradleSync.sync(request, listener);
+    new IdeaGradleSync(project).sync(request, listener);
 
     if (latch != null) {
       try {
@@ -341,8 +333,7 @@ public class GradleSyncInvoker {
 
   @NotNull
   public List<GradleModuleModels> fetchGradleModels(@NotNull Project project, @NotNull ProgressIndicator indicator) {
-    GradleSync gradleSync = NewGradleSync.isEnabled(project) ? new NewGradleSync(project) : new IdeaGradleSync(project);
-    return gradleSync.fetchGradleModels(indicator);
+    return new IdeaGradleSync(project).fetchGradleModels(indicator);
   }
 
   public static class Request {

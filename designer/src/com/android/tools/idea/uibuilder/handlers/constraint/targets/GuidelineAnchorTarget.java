@@ -32,7 +32,7 @@ public class GuidelineAnchorTarget extends ConstraintAnchorTarget {
   boolean myIsHorizontal;
 
   @Override
-  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifier) {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     if (myIsHorizontal) {
       return Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
     }

@@ -34,14 +34,13 @@ public interface ProguardTypes {
 
   IElementType CLOSE_BRACE = new ProguardTokenType("CLOSE_BRACE");
   IElementType CRLF = new ProguardTokenType("CRLF");
-  IElementType FILENAME_FLAG_ARG = new ProguardTokenType("FILENAME_FLAG_ARG");
+  IElementType DOUBLE_QUOTED_STRING = new ProguardTokenType("DOUBLE_QUOTED_STRING");
   IElementType FLAG_ARG = new ProguardTokenType("FLAG_ARG");
   IElementType FLAG_NAME = new ProguardTokenType("FLAG_NAME");
   IElementType JAVA_DECL = new ProguardTokenType("JAVA_DECL");
   IElementType LINE_CMT = new ProguardTokenType("LINE_CMT");
-  IElementType MANDATORY_FILENAME_FLAG_NAME = new ProguardTokenType("MANDATORY_FILENAME_FLAG_NAME");
   IElementType OPEN_BRACE = new ProguardTokenType("OPEN_BRACE");
-  IElementType OPTIONAL_FILENAME_FLAG_NAME = new ProguardTokenType("OPTIONAL_FILENAME_FLAG_NAME");
+  IElementType SINGLE_QUOTED_STRING = new ProguardTokenType("SINGLE_QUOTED_STRING");
   IElementType WS = new ProguardTokenType("WS");
 
   class Factory {
