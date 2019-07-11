@@ -32,12 +32,13 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
   override fun actionPerformed(e: AnActionEvent) {
     Messages.showInfoMessage(e.project, "Generating migration", "Room migration generator")
     val project = e.project ?: return
-    val fileArray = e.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY) ?: return
-    if (fileArray.size == 2 && fileArray[0] != null && fileArray[1] != null) {
-      val module = ModuleUtilCore.findModuleForFile(fileArray[0], project) ?: return
+    val files = e.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY) ?: return
+    if (files.size == 2) {
+      files.sortBy { it.nameWithoutExtension }
+      val module = ModuleUtilCore.findModuleForFile(files[0], project) ?: return
       val directory = PsiManager.getInstance(project).findDirectory(module.rootManager.sourceRoots[0]) ?: return
-      val oldSchema = SchemaBundle.deserialize(fileArray[0].inputStream)
-      val newSchema = SchemaBundle.deserialize(fileArray[1].inputStream)
+      val oldSchema = SchemaBundle.deserialize(files[0].inputStream)
+      val newSchema = SchemaBundle.deserialize(files[1].inputStream)
       WriteCommandAction.runWriteCommandAction(project) {
         JavaMigrationClassGenerator.createMigrationClass(project, directory, DatabaseUpdate(oldSchema.database, newSchema.database))
       }
