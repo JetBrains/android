@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsLibraryKey
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
@@ -120,26 +121,15 @@ abstract class LibraryDependencyNode(
   protected abstract fun createChildren(): List<AbstractDependencyNode<*>>
 
   override fun getChildren(): Array<SimpleNode> = cachedChildren ?: createChildren().toTypedArray<SimpleNode>().also { cachedChildren = it }
+}
 
-  override fun matches(model: PsModel): Boolean {
-    return when (model) {
-      is PsDeclaredLibraryDependency -> {
-        // Only top level LibraryDependencyNodes can match declared dependencies.
-        val nodeSpec = firstModel.spec  // All the models have the same library key.
-        parent !is LibraryDependencyNode && model.spec.toLibraryKey() == nodeSpec.toLibraryKey() && run {
-          val parsedModel = model.parsedModel
-          models.any { ourModel ->
-            parsedModel is ArtifactDependencyModel &&
-            getDependencyParsedModels(ourModel).any { resolvedFromParsedDependency ->
-              resolvedFromParsedDependency is ArtifactDependencyModel &&
-              parsedModel.configurationName() == resolvedFromParsedDependency.configurationName()
-            }
-          }
-        }
-      }
-      else -> false
-    }
-  }
+class LibraryGroupDependencyNode(parent: AbstractPsNode,
+                                 val library: PsLibraryKey,
+                                 val dependencies: List<PsLibraryDependency>
+) : AbstractDependencyNode<PsLibraryDependency>(parent, dependencies) {
+  internal var children: List<SimpleNode> = listOf()
+  override fun getChildren(): Array<SimpleNode> = children.toTypedArray()
+  override fun nameOf(model: PsLibraryDependency): String = model.spec.getDisplayText(true, false)
 }
 
 abstract class ResolvedLibraryDependencyNode(

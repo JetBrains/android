@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview
 
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode.Companion.getDependencyParsedModels
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.testResolve
+import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
 import org.hamcrest.CoreMatchers.equalTo
@@ -169,42 +173,6 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
             libsam1-1.1.jar (../lib)
             libsam2-1.1.jar (../lib)""".trimIndent()
     val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
-    // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-    assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
-  }
-
-  fun testLibraryMatchingStructure() {
-    val appModule = project.findModuleByGradlePath(":mainModule") as PsAndroidModule
-    @Suppress("LocalVariableName")
-    val lib1_09 = appModule.dependencies.findLibraryDependencies("com.example.libs", "lib1").firstOrNull { it.spec.version == "0.9.1" }
-    assumeThat(lib1_09, notNullValue()); lib1_09!!
-    val node = ResolvedDependenciesTreeRootNode(appModule, PsUISettings())
-
-    // Note: indentation matters!
-    val expectedProjectStructure = """
-    mainModule
-        freeDebug
-        freeDebugAndroidTest
-            freeDebug
-        freeDebugUnitTest
-            freeDebug
-        freeRelease
-            lib1:1.0,0.9.1→1.0 (com.example.libs)
-        freeReleaseUnitTest
-            freeRelease
-                lib1:1.0,0.9.1→1.0 (com.example.libs)
-        paidDebug
-        paidDebugAndroidTest
-            paidDebug
-        paidDebugUnitTest
-            paidDebug
-        paidRelease
-            lib1:1.0,0.9.1→1.0 (com.example.libs)
-        paidReleaseUnitTest
-            paidRelease
-                lib1:1.0,0.9.1→1.0 (com.example.libs)""".trimIndent()
-
-    val treeStructure = node.testStructure { it !is LibraryDependencyNode || it.matches(lib1_09) }
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
   }
