@@ -982,6 +982,21 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# sanity test
+java_test(
+    name = "CMakeListsTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/debugger/CMakeListsHelloJni/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.CMakeListsTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # fast test
 java_test(
     name = "LintTest",
