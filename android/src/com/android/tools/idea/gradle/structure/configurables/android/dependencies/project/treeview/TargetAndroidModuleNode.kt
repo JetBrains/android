@@ -30,10 +30,13 @@ class TargetAndroidModuleNode internal constructor(
   module: PsAndroidModule,
   private val version: String?,
   private val children: List<AbstractPsModelNode<*>>
-) : AbstractPsModelNode<PsAndroidModule>(parent, module, parent.uiSettings), CellAppearanceEx {
+) : AbstractPsModelNode<PsAndroidModule>(parent, parent.uiSettings), CellAppearanceEx {
+
+  override val models: List<PsAndroidModule> = listOf(module)
 
   init {
     autoExpandNode = true
+    updateNameAndIcon()
   }
 
   override fun getChildren(): Array<SimpleNode> = children.toTypedArray()
