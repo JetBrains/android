@@ -31,6 +31,7 @@ import com.android.tools.idea.observable.core.DoubleProperty;
 import com.android.tools.idea.observable.core.DoubleValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -43,6 +44,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.StringReader;
 import java.nio.file.Files;
+import java.util.Objects;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.jetbrains.annotations.NotNull;
@@ -60,37 +62,43 @@ import org.xml.sax.InputSource;
  */
 public final class VectorAsset extends BaseAsset {
   private static final String ERROR_EMPTY_PREVIEW = "Could not generate a preview";
+  private static final VectorDrawableInfo SELECT_A_FILE =
+      new VectorDrawableInfo(new Validator.Result(Severity.WARNING, "Please select a file"));
 
-  @NotNull private final ObjectProperty<File> myPath = new ObjectValueProperty<>(new File(System.getProperty("user.home")));
+  @NotNull private final OptionalValueProperty<File> myPath = new OptionalValueProperty<>(new File(System.getProperty("user.home")));
   @NotNull private final BoolProperty myAutoMirrored = new BoolValueProperty();
   @NotNull private final DoubleProperty myOutputWidth = new DoubleValueProperty();
   @NotNull private final DoubleProperty myOutputHeight = new DoubleValueProperty();
 
-  @NotNull private final ObjectProperty<VectorDrawableInfo> myVectorDrawableInfo =
-      new ObjectValueProperty<>(new VectorDrawableInfo(new Validator.Result(Severity.WARNING, "Please select a file")));
+  @NotNull private final ObjectProperty<VectorDrawableInfo> myVectorDrawableInfo = new ObjectValueProperty<>(SELECT_A_FILE);
 
   public VectorAsset() {
     InvalidationListener listener = () -> {
-      File file = myPath.get();
-      ApplicationManager.getApplication().executeOnPooledThread(() -> {
-        VectorDrawableInfo drawableInfo = convertToVectorDrawable(file);
-        EdtInvocationManager.getInstance().invokeLater(() -> {
-          if (isCurrentFile(file)) {
-            myVectorDrawableInfo.set(drawableInfo);
-          }
+      File file = myPath.getValueOrNull();
+      if (file != null) {
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+          VectorDrawableInfo drawableInfo = convertToVectorDrawable(file);
+          EdtInvocationManager.getInstance().invokeLater(() -> {
+            if (isCurrentFile(file)) {
+              myVectorDrawableInfo.set(drawableInfo);
+            }
+          });
         });
-      });
+      }
+      else {
+        myVectorDrawableInfo.set(SELECT_A_FILE);
+      }
     };
     myPath.addListener(listener);
     listener.onInvalidated();
   }
 
-  public boolean isCurrentFile(@NotNull Object file) {
-    return file.equals(myPath.get());
+  public boolean isCurrentFile(@Nullable Object file) {
+    return Objects.equals(file, myPath.getValueOrNull());
   }
 
   @NotNull
-  public ObjectProperty<File> path() {
+  public OptionalValueProperty<File> path() {
     return myPath;
   }
 
@@ -137,7 +145,7 @@ public final class VectorAsset extends BaseAsset {
       return new VectorDrawableInfo("File " + filename + " does not exist");
     }
     if (file.isDirectory()) {
-      return new VectorDrawableInfo(new Validator.Result(Severity.WARNING, "Please select a file"));
+      return SELECT_A_FILE;
     }
 
     String xmlFileContent = null;
@@ -216,7 +224,8 @@ public final class VectorAsset extends BaseAsset {
    */
   @NotNull
   public Preview generatePreview(int previewWidth) {
-    VectorDrawableInfo drawableInfo = convertToVectorDrawable(myPath.get());
+    File file = myPath.getValueOrNull();
+    VectorDrawableInfo drawableInfo = file == null ? SELECT_A_FILE : convertToVectorDrawable(file);
     return generatePreview(drawableInfo, previewWidth, null);
   }
 
