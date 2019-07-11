@@ -48,12 +48,16 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.UnknownFileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -306,6 +310,21 @@ public class AndroidAnnotatorUtil {
     }
 
     return ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(layout);
+  }
+
+
+  /**
+   * Return {@link FileType} if found, or {@link UnknownFileType#INSTANCE} otherwise.
+   */
+  @NotNull
+  public static FileType getFileType(@NotNull PsiElement element) {
+    return ApplicationManager.getApplication().runReadAction((Computable<FileType>)() -> {
+      PsiFile file = element.getContainingFile();
+      if (file != null) {
+        return file.getFileType();
+      }
+      return UnknownFileType.INSTANCE;
+    });
   }
 
   public static class ColorRenderer extends GutterIconRenderer {
