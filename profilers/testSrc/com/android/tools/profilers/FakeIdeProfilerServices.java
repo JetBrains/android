@@ -58,7 +58,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
                                                                                         Cpu.CpuTraceMode.SAMPLED);
 
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
-  private final NativeFrameSymbolizer myFakeSymbolizer = (abi, nativeFrame) -> nativeFrame;
+  private NativeFrameSymbolizer myFakeSymbolizer = (abi, nativeFrame) -> nativeFrame;
   private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
   private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
 
@@ -203,6 +203,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public NativeFrameSymbolizer getNativeFrameSymbolizer() {
     return myFakeSymbolizer;
+  }
+
+  public void setNativeFrameSymbolizer(@NotNull NativeFrameSymbolizer symbolizer) {
+    myFakeSymbolizer = symbolizer;
   }
 
   @NotNull

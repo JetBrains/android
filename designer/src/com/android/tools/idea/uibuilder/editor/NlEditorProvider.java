@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.idea.common.editor.DesignerEditor;
 import com.android.tools.idea.common.editor.DesignerEditorProvider;
-import com.android.tools.idea.common.type.DesignerTypeRegistrar;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
+import com.android.tools.idea.common.type.DesignerTypeRegistrar;
 import com.android.tools.idea.uibuilder.type.AdaptativeIconFileType;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
-import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
 import com.android.tools.idea.uibuilder.type.StateListFileType;
 import com.android.tools.idea.uibuilder.type.VectorFileType;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
@@ -46,7 +46,7 @@ public class NlEditorProvider extends DesignerEditorProvider {
 
   @NotNull
   @Override
-  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+  public DesignerEditor createDesignEditor(@NotNull Project project, @NotNull VirtualFile file) {
     return new NlEditor(file, project);
   }
 

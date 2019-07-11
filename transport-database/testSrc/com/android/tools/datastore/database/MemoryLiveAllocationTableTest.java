@@ -66,7 +66,6 @@ public class MemoryLiveAllocationTableTest extends DatabaseTest<MemoryLiveAlloca
   private static final String NATIVE_LIB3 = "/path/to/native/lib3.so";
   private static final long JNI_REF_VALUE1 = 2001;
   private static final long JNI_REF_VALUE2 = 2002;
-  private static final long JNI_REF_VALUE3 = 2003;
 
   @Override
   @NotNull
@@ -90,12 +89,7 @@ public class MemoryLiveAllocationTableTest extends DatabaseTest<MemoryLiveAlloca
     });
     methodCalls.add((table) -> table.getAllocationContexts(session, 0, 0));
     methodCalls.add((table) -> table.getAllocationEvents(session, 0, 0));
-    methodCalls.add((table) -> table.getJniReferencesEventsFromRange(session, 0, 0));
-    methodCalls.add((table) -> table.getJniReferencesSnapshot(session, 0));
-    methodCalls.add((table) -> {
-      NativeBacktrace backtrace = NativeBacktrace.newBuilder().addAddresses(1).build();
-      table.resolveNativeBacktrace(session, backtrace);
-    });
+    methodCalls.add((table) -> table.getJniReferenceEvents(session, 0, 0));
     methodCalls.add((table) -> table.insertOrReplaceAllocationSamplingRateEvent(session, AllocationSamplingRateEvent.getDefaultInstance()));
     methodCalls.add((table) -> table.getAllocationSamplingRateEvents(session.getSessionId(), 0, 0));
     return methodCalls;
@@ -165,54 +159,6 @@ public class MemoryLiveAllocationTableTest extends DatabaseTest<MemoryLiveAlloca
   }
 
   @Test
-  public void testRepeatedInsertAndQueryOfJniRefs() {
-    long timestamp = 0;
-    final int ITERATION_COUNT = 10;
-    final int BATCH_SIZE = 1000;
-    for (int iteration = 0; iteration < ITERATION_COUNT; iteration++) {
-      BatchJNIGlobalRefEvent.Builder insertBatchBuilder = BatchJNIGlobalRefEvent.newBuilder();
-      insertBatchBuilder.setMemoryMap(createMemoryMap());
-      for (int counter = 1; counter <= BATCH_SIZE; counter++) {
-        int seed = iteration * BATCH_SIZE * 2 + counter;
-        JNIGlobalReferenceEvent alloc = JNIGlobalReferenceEvent
-          .newBuilder()
-          .setEventType(CREATE_GLOBAL_REF)
-          .setObjectTag(KLASS1_INSTANCE1_TAG + seed)
-          .setRefValue(JNI_REF_VALUE1 + seed)
-          .setThreadId(THREAD1)
-          .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2))
-          .setTimestamp(seed).build();
-        insertBatchBuilder.addEvents(alloc);
-      }
-
-      for (int counter = 1; counter <= BATCH_SIZE; counter++) {
-        int seed = iteration * BATCH_SIZE * 2 + counter;
-        JNIGlobalReferenceEvent dealloc = JNIGlobalReferenceEvent
-          .newBuilder()
-          .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
-          .setObjectTag(KLASS1_INSTANCE1_TAG + seed)
-          .setRefValue(JNI_REF_VALUE1 + seed)
-          .setThreadId(THREAD3)
-          .setBacktrace(createBacktrace(NATIVE_ADDRESS2, NATIVE_ADDRESS1))
-          .setTimestamp(seed + 1)
-          .build();
-        insertBatchBuilder.addEvents(dealloc);
-      }
-
-      BatchJNIGlobalRefEvent insertBatch = insertBatchBuilder.build();
-      getTable().insertJniReferenceData(VALID_SESSION, insertBatch);
-
-      BatchJNIGlobalRefEvent queryBatch =
-        getTable().getJniReferencesEventsFromRange(VALID_SESSION, timestamp, Long.MAX_VALUE);
-      timestamp = queryBatch.getTimestamp() + 1;
-      assertThat(queryBatch.getEventsCount()).isEqualTo(insertBatch.getEventsCount());
-      for (int i = 0; i < queryBatch.getEventsCount(); i++) {
-        assertThat(queryBatch.getEvents(i)).isEqualTo(insertBatch.getEvents(i));
-      }
-    }
-  }
-
-  @Test
   public void testInsertAndQueryJniRefEvents() {
     // create jni ref for instance 1 at t=1
     JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent
@@ -245,95 +191,14 @@ public class MemoryLiveAllocationTableTest extends DatabaseTest<MemoryLiveAlloca
       .setTimestamp(10).build();
 
     BatchJNIGlobalRefEvent.Builder insertBatch = BatchJNIGlobalRefEvent.newBuilder();
-    insertBatch.setMemoryMap(createMemoryMap());
-    insertBatch.addEvents(alloc1).addEvents(alloc2).addEvents(dealloc1);
+    insertBatch.setTimestamp(1).addEvents(alloc1).addEvents(alloc2).addEvents(dealloc1);
     getTable().insertJniReferenceData(VALID_SESSION, insertBatch.build());
 
     // Query all events
-    BatchJNIGlobalRefEvent queryBatch = getTable().getJniReferencesEventsFromRange(VALID_SESSION, 0, Long.MAX_VALUE);
-    assertThat(queryBatch.getEventsCount()).isEqualTo(3);
-    assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
-    assertThat(queryBatch.getEvents(1)).isEqualTo(alloc2);
-    assertThat(queryBatch.getEvents(2)).isEqualTo(dealloc1);
-    assertThat(queryBatch.getTimestamp()).isEqualTo(dealloc1.getTimestamp());
-
-    // Query events within [5,7]
-    queryBatch = getTable().getJniReferencesEventsFromRange(VALID_SESSION, 5, 7);
-    assertThat(queryBatch.getEventsCount()).isEqualTo(1);
-    assertThat(queryBatch.getEvents(0)).isEqualTo(alloc2);
-    assertThat(queryBatch.getTimestamp()).isEqualTo(alloc2.getTimestamp());
-
-    // Query events within [0,10]
-    queryBatch = getTable().getJniReferencesEventsFromRange(VALID_SESSION, 0, 10);
-    assertThat(queryBatch.getEventsCount()).isEqualTo(2);
-    assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
-    assertThat(queryBatch.getEvents(1)).isEqualTo(alloc2);
-    assertThat(queryBatch.getTimestamp()).isEqualTo(alloc2.getTimestamp());
-
-    // Query events within [7,100]
-    queryBatch = getTable().getJniReferencesEventsFromRange(VALID_SESSION, 7, 100);
-    assertThat(queryBatch.getEventsCount()).isEqualTo(1);
-    assertThat(queryBatch.getEvents(0)).isEqualTo(dealloc1);
-    assertThat(queryBatch.getTimestamp()).isEqualTo(dealloc1.getTimestamp());
-
-    // Query references alive at t=2. only alloc1
-    queryBatch = getTable().getJniReferencesSnapshot(VALID_SESSION, 2);
-    assertThat(queryBatch.getEventsCount()).isEqualTo(1);
-    assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
-    assertThat(queryBatch.getTimestamp()).isEqualTo(alloc1.getTimestamp());
-
-    // Query references alive at t=7. all of them
-    queryBatch = getTable().getJniReferencesSnapshot(VALID_SESSION, 7);
-    assertThat(queryBatch.getEventsCount()).isEqualTo(2);
-    assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
-    assertThat(queryBatch.getEvents(1)).isEqualTo(alloc2);
-    assertThat(queryBatch.getTimestamp()).isEqualTo(alloc2.getTimestamp());
-
-    // Query references alive at t=100. only alloc2
-    queryBatch = getTable().getJniReferencesSnapshot(VALID_SESSION, 100);
-    assertThat(queryBatch.getEventsCount()).isEqualTo(1);
-    assertThat(queryBatch.getEvents(0)).isEqualTo(alloc2);
-    assertThat(queryBatch.getTimestamp()).isEqualTo(alloc2.getTimestamp());
-  }
-
-  @Test
-  public void testJniRefEventsWithEmptyBacktrace() {
-    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent
-      .newBuilder()
-      .setEventType(CREATE_GLOBAL_REF)
-      .setObjectTag(KLASS1_INSTANCE1_TAG)
-      .setRefValue(JNI_REF_VALUE1)
-      .setThreadId(THREAD1)
-      .setTimestamp(1).build();
-
-    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent
-      .newBuilder()
-      .setEventType(CREATE_GLOBAL_REF)
-      .setObjectTag(KLASS1_INSTANCE2_TAG)
-      .setRefValue(JNI_REF_VALUE2)
-      .setThreadId(THREAD2)
-      .setBacktrace(createBacktrace(NATIVE_ADDRESS2, NATIVE_ADDRESS1))
-      .setTimestamp(5).build();
-
-    JNIGlobalReferenceEvent alloc3 = JNIGlobalReferenceEvent
-      .newBuilder()
-      .setEventType(CREATE_GLOBAL_REF)
-      .setObjectTag(KLASS1_INSTANCE1_TAG)
-      .setRefValue(JNI_REF_VALUE3)
-      .setThreadId(THREAD3)
-      .setTimestamp(10).build();
-
-    BatchJNIGlobalRefEvent.Builder insertBatch = BatchJNIGlobalRefEvent.newBuilder();
-    insertBatch.setMemoryMap(createMemoryMap());
-    insertBatch.addEvents(alloc1).addEvents(alloc2).addEvents(alloc3);
-    getTable().insertJniReferenceData(VALID_SESSION, insertBatch.build());
-
-    // Query all events
-    BatchJNIGlobalRefEvent queryBatch = getTable().getJniReferencesEventsFromRange(VALID_SESSION, 0, Long.MAX_VALUE);
-    assertThat(queryBatch.getEventsCount()).isEqualTo(3);
-    assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
-    assertThat(queryBatch.getEvents(1)).isEqualTo(alloc2);
-    assertThat(queryBatch.getEvents(2)).isEqualTo(alloc3);
+    List<BatchJNIGlobalRefEvent> queryBatch = getTable().getJniReferenceEvents(VALID_SESSION, 0, Long.MAX_VALUE);
+    assertThat(queryBatch.size()).isEqualTo(1);
+    assertThat(queryBatch.get(0)).isEqualTo(insertBatch.build());
+    assertThat(queryBatch.get(0).getTimestamp()).isEqualTo(1);
   }
 
   @Test
@@ -363,73 +228,6 @@ public class MemoryLiveAllocationTableTest extends DatabaseTest<MemoryLiveAlloca
     List<BatchAllocationEvents> querySample = getTable().getAllocationEvents(VALID_SESSION, 0, Long.MAX_VALUE);
     assertThat(querySample.size()).isEqualTo(1);
     assertThat(querySample.get(0)).isEqualTo(insertSample);
-  }
-
-  @Test
-  public void testPruningJniRefs() {
-    getTable().setAllocationCountLimit(2);
-
-    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent
-      .newBuilder()
-      .setEventType(CREATE_GLOBAL_REF)
-      .setObjectTag(KLASS1_INSTANCE1_TAG)
-      .setRefValue(JNI_REF_VALUE1)
-      .setThreadId(THREAD1)
-      .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2))
-      .setTimestamp(1).build();
-
-    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent
-      .newBuilder()
-      .setEventType(CREATE_GLOBAL_REF)
-      .setObjectTag(KLASS1_INSTANCE2_TAG)
-      .setRefValue(JNI_REF_VALUE2)
-      .setThreadId(THREAD1)
-      .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2))
-      .setTimestamp(3).build();
-
-    JNIGlobalReferenceEvent alloc3 = JNIGlobalReferenceEvent
-      .newBuilder()
-      .setEventType(CREATE_GLOBAL_REF)
-      .setObjectTag(KLASS2_INSTANCE1_TAG)
-      .setRefValue(JNI_REF_VALUE3)
-      .setThreadId(THREAD1)
-      .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2))
-      .setTimestamp(4).build();
-
-    BatchJNIGlobalRefEvent insertBatch = BatchJNIGlobalRefEvent.newBuilder()
-      .addEvents(alloc1).addEvents(alloc2).addEvents(alloc3).build();
-    getTable().insertJniReferenceData(VALID_SESSION, insertBatch);
-
-    BatchJNIGlobalRefEvent queryBatch = getTable().getJniReferencesSnapshot(VALID_SESSION, 10);
-    assertThat(queryBatch.getEventsCount()).isEqualTo(3);
-
-    JNIGlobalReferenceEvent dealloc2 = JNIGlobalReferenceEvent
-      .newBuilder()
-      .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
-      .setObjectTag(KLASS2_INSTANCE1_TAG)
-      .setRefValue(JNI_REF_VALUE3)
-      .setThreadId(THREAD1)
-      .setBacktrace(createBacktrace(NATIVE_ADDRESS2, NATIVE_ADDRESS1))
-      .setTimestamp(100).build();
-
-    JNIGlobalReferenceEvent dealloc3 = JNIGlobalReferenceEvent
-      .newBuilder()
-      .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
-      .setObjectTag(KLASS2_INSTANCE1_TAG)
-      .setRefValue(JNI_REF_VALUE3)
-      .setThreadId(THREAD1)
-      .setBacktrace(createBacktrace(NATIVE_ADDRESS2, NATIVE_ADDRESS1))
-      .setTimestamp(80).build();
-
-    insertBatch = BatchJNIGlobalRefEvent.newBuilder()
-      .addEvents(dealloc2).addEvents(dealloc3).build();
-    getTable().insertJniReferenceData(VALID_SESSION, insertBatch);
-
-    // At this time record about JNI_REF_VALUE3 should be pruned.
-    queryBatch = getTable().getJniReferencesSnapshot(VALID_SESSION, 10);
-    assertThat(queryBatch.getEventsCount()).isEqualTo(2);
-    assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
-    assertThat(queryBatch.getEvents(1)).isEqualTo(alloc2);
   }
 
   @Test

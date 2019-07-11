@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import static com.android.tools.idea.common.model.NlModel.DELAY_AFTER_TYPING_MS;
+
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.Density;
@@ -76,7 +78,6 @@ import org.jetbrains.annotations.Nullable;
 public class NlPreviewForm implements Disposable, CaretListener {
 
   public static final String PREVIEW_DESIGN_SURFACE = "NlPreviewFormDesignSurface";
-  public static final int DELAY_AFTER_TYPING_MS = 250;
 
   private final NlPreviewManager myManager;
   private final Project myProject;
@@ -112,7 +113,9 @@ public class NlPreviewForm implements Disposable, CaretListener {
   public NlPreviewForm(NlPreviewManager manager) {
     myManager = manager;
     myProject = myManager.getProject();
-    mySurface = new NlDesignSurface(myProject, true, this);
+    mySurface = NlDesignSurface.builder(myProject, this)
+      .setIsPreview(true)
+      .build();
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
     mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);

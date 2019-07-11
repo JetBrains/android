@@ -26,7 +26,6 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction;
@@ -499,11 +498,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       //
       // (Longer term we consider having a singleton Toolkit listener which listens
       // for AWT events globally and tracks the most recent global modifier key state.)
-      int modifiers = mySurface.getInteractionManager().getLastModifiers();
+      int modifiersEx = mySurface.getInteractionManager().getLastModifiersEx();
 
       myCurrentPresentation = e.getPresentation();
       try {
-        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, modifiers);
+        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, modifiersEx);
       }
       finally {
         myCurrentPresentation = null;

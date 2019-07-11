@@ -183,4 +183,12 @@ public class LiveAllocationInstanceObject implements InstanceObject {
     }
     myJniRefs.put(ref.getRefValue(), ref);
   }
+
+  public void removeJniRef(@NotNull JniReferenceInstanceObject ref) {
+    if (myJniRefs == null) {
+      return;
+    }
+
+    myJniRefs.remove(ref.getRefValue());
+  }
 }

@@ -122,13 +122,6 @@ public class StyleItemNameConverter extends ResolvingConverter<ResourceUrl> {
                                String stringValue,
                                @Nullable ResourceUrl resolveResult,
                                ConvertContext context) {
-    if (element instanceof LazyValueResourceElementWrapper) {
-      element = ((LazyValueResourceElementWrapper)element).computeElement();
-
-      if (element == null) {
-        return false;
-      }
-    }
     PsiElement target = resolve(resolveResult, context);
     if (element.getManager().areElementsEquivalent(target, element)) {
       return true;

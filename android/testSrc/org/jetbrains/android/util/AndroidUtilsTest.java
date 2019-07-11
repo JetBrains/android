@@ -15,13 +15,15 @@
  */
 package org.jetbrains.android.util;
 
-import com.intellij.testFramework.LightIdeaTestCase;
-
+import static com.google.common.truth.Truth.assertThat;
 import static org.jetbrains.android.util.AndroidUtils.isValidAndroidPackageName;
 import static org.jetbrains.android.util.AndroidUtils.isValidJavaPackageName;
 import static org.jetbrains.android.util.AndroidUtils.validateAndroidPackageName;
 
-public class AndroidUtilsTest extends LightIdeaTestCase {
+import com.intellij.psi.xml.XmlFile;
+import org.jetbrains.android.AndroidTestCase;
+
+public class AndroidUtilsTest extends AndroidTestCase {
   public void testIsValidJavaPackageName() {
     assertFalse(isValidJavaPackageName(""));
     assertFalse(isValidJavaPackageName("."));
@@ -61,7 +63,31 @@ public class AndroidUtilsTest extends LightIdeaTestCase {
 
   public void testGetUnqualifiedName() {
     assertEquals("View", AndroidUtils.getUnqualifiedName("android.view.View"));
-    assertEquals(null, AndroidUtils.getUnqualifiedName("android.view."));
-    assertEquals(null, AndroidUtils.getUnqualifiedName("StringWithoutDots"));
+    assertNull(AndroidUtils.getUnqualifiedName("android.view."));
+    assertNull(AndroidUtils.getUnqualifiedName("StringWithoutDots"));
+  }
+
+  public void testGetDeclaredContextFqcnWithoutContext() throws Exception {
+    XmlFile file = (XmlFile)myFixture.addFileToProject("layout/simple.xml", "<root></root>");
+    String context = AndroidUtils.getDeclaredContextFqcn(myModule, file);
+    assertThat(context).isNull();
+  }
+
+  public void testGetDeclaredContextFqcnWithRelativeContext() throws Exception {
+    XmlFile file = (XmlFile)myFixture.addFileToProject("a.xml", "<root " +
+                                                                "  xmlns:tools=\"http://schemas.android.com/tools\" " +
+                                                                "  tools:context=\".MainActivity\">" +
+                                                                "</root>");
+    String context = AndroidUtils.getDeclaredContextFqcn(myModule, file);
+    assertThat(context).isEqualTo("p1.p2.MainActivity");
+  }
+
+  public void testGetDeclaredContextFqcnWithFullyQualifiedContext() throws Exception {
+    XmlFile file = (XmlFile)myFixture.addFileToProject("a.xml", "<root " +
+                                                                "  xmlns:tools=\"http://schemas.android.com/tools\" " +
+                                                                "  tools:context=\"com.example.android.MainActivity\">" +
+                                                                "</root>");
+    String context = AndroidUtils.getDeclaredContextFqcn(myModule, file);
+    assertThat(context).isEqualTo("com.example.android.MainActivity");
   }
 }

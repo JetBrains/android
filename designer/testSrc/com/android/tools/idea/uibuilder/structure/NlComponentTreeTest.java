@@ -45,8 +45,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
@@ -110,20 +108,16 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
       }
     };
-    mySurface = new NlDesignSurface(getProject(), false, myDisposable) {
-      @NotNull
-      @Override
-      public CompletableFuture<Void> requestRender() {
-        // We do not need layoutlib renders for these tests
-        return CompletableFuture.completedFuture(null);
-      }
-
-      @NotNull
-      @Override
-      protected SceneManager createSceneManager(@NotNull NlModel model) {
-        return new SyncLayoutlibSceneManager((SyncNlModel) model);
-      }
-    };
+    mySurface = NlDesignSurface.builder(getProject(), myDisposable)
+      .setSceneManagerProvider((surface, model) -> new SyncLayoutlibSceneManager((SyncNlModel) model) {
+        @NotNull
+        @Override
+        public CompletableFuture<Void> requestRender() {
+          // This test does not need Layoutlib renders
+          return CompletableFuture.completedFuture(null);
+        }
+      })
+      .build();
     mySurface.setModel(myModel);
     myTree = new NlComponentTree(getProject(), mySurface);
     registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);

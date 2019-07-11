@@ -39,6 +39,7 @@ public class ExtractVariableForm {
       }
     }
     myValueEditor = editor;
+    myValueEditor.setName("value");
     myPanel.add(myValueEditor,
                 new GridConstraints(1, 1, 1, 1,
                                     GridConstraints.ALIGN_FILL, GridConstraints.FILL_BOTH,

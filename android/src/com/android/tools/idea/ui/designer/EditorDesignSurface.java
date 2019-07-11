@@ -17,9 +17,12 @@ package com.android.tools.idea.ui.designer;
 
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.idea.configurations.Configuration;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.Iterables;
+import java.awt.LayoutManager;
+import java.util.concurrent.CompletableFuture;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 
 /**
  * A layout editor design surface.
@@ -29,11 +32,26 @@ public abstract class EditorDesignSurface extends AdtPrimaryPanel {
     super(layout);
   }
 
+  /**
+   * @deprecated use {@link #getConfigurations()} instead. Using this method means that you won't support multi-model configurations
+   */
+  @Deprecated
   @Nullable
-  abstract public Configuration getConfiguration();
+  public final Configuration getConfiguration() {
+    return Iterables.getFirst(getConfigurations(), null);
+  }
 
   /**
-   * When called, this will trigger a refresh of the layout. Only call this method if the action is initiated by the user.
+   * Returns all the configurations represented in the surface. Since there are multiple models, there can be multiple configurations
+   * being rendered.
    */
-  abstract public void forceUserRequestedRefresh();
+  @NotNull
+  abstract public ImmutableCollection<Configuration> getConfigurations();
+
+  /**
+   * When called, this will trigger a refresh of the layout and returns a {@link CompletableFuture} that will complete when the refresh
+   * has completed.
+   * Only call this method if the action is initiated by the user.
+   */
+  abstract public CompletableFuture<Void> forceUserRequestedRefresh();
 }

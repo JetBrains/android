@@ -15,13 +15,14 @@
  */
 package org.jetbrains.android;
 
-import static com.intellij.util.ArrayUtilRt.find;
+import static com.intellij.psi.search.GlobalSearchScope.notScope;
 import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.android.tools.idea.psi.TagToClassMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,11 +37,13 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,6 +51,8 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 class TagToClassMapperImpl implements TagToClassMapper {
+  private static final Logger LOG = Logger.getInstance(TagToClassMapper.class);
+
   private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps = new HashMap<>();
   private final Map<String, CachedValue<Map<String, PsiClass>>> myClassMaps = Maps.newConcurrentMap();
 
@@ -87,17 +92,17 @@ class TagToClassMapperImpl implements TagToClassMapper {
     Map<String, SmartPsiElementPointer<PsiClass>> classMap = getInitialClassMap(className, false);
     Map<String, PsiClass> result = new HashMap<>();
     boolean shouldRebuildInitialMap = false;
+    int apiLevel = getMinApiLevel();
 
     for (String key : classMap.keySet()) {
       SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
-
-      if (!isUpToDate(pointer, key)) {
-        shouldRebuildInitialMap = true;
-        break;
-      }
       PsiClass aClass = pointer.getElement();
 
       if (aClass != null) {
+        if (!isUpToDate(aClass, key, apiLevel)) {
+          shouldRebuildInitialMap = true;
+          break;
+        }
         result.put(key, aClass);
       }
     }
@@ -115,29 +120,32 @@ class TagToClassMapperImpl implements TagToClassMapper {
         }
       }
     }
-    fillMap(className, ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN), result, false);
+    fillMap(className, projectClassesScope(), result);
     return result;
   }
 
-  private static boolean isUpToDate(@NotNull SmartPsiElementPointer<PsiClass> pointer, String tagName) {
-    PsiClass aClass = pointer.getElement();
-    if (aClass == null) {
-      return false;
-    }
-    String[] tagNames = getTagNamesByClass(aClass, -1);
-    return find(tagNames, tagName) >= 0;
+  private static boolean isUpToDate(@NotNull PsiClass aClass, @NotNull String tagName, int apiLevel) {
+    return ArrayUtil.contains(tagName, getTagNamesByClass(aClass, apiLevel));
   }
 
   @NotNull
   private Map<String, SmartPsiElementPointer<PsiClass>> getInitialClassMap(@NotNull String className, boolean forceRebuild) {
-    Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap;
-    viewClassMap = myInitialClassMaps.get(className);
+    Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap = myInitialClassMaps.get(className);
     if (viewClassMap != null && !forceRebuild) {
       return viewClassMap;
     }
+    return computeInitialClassMap(className);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  Map<String, SmartPsiElementPointer<PsiClass>> computeInitialClassMap(@NotNull String className) {
+    LOG.info("Building initial class map for " + className);
+
+    Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap = null;
     Map<String, PsiClass> map = new HashMap<>();
 
-    if (fillMap(className, ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN), map, true)) {
+    if (fillMap(className, dependenciesClassesScope(), map)) {
       viewClassMap = new HashMap<>(map.size());
       SmartPointerManager manager = SmartPointerManager.getInstance(myModule.getProject());
 
@@ -149,16 +157,35 @@ class TagToClassMapperImpl implements TagToClassMapper {
     return viewClassMap != null ? viewClassMap : Collections.emptyMap();
   }
 
+  @NotNull
+  private GlobalSearchScope moduleResolveScope() {
+    return ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN);
+  }
+
+  @NotNull
+  private GlobalSearchScope allLibrariesScope() {
+    return ProjectScope.getLibrariesScope(myModule.getProject());
+  }
+
+  @NotNull
+  private GlobalSearchScope projectClassesScope() {
+    return moduleResolveScope().intersectWith(notScope(allLibrariesScope()));
+  }
+
+  @NotNull
+  private GlobalSearchScope dependenciesClassesScope() {
+    return moduleResolveScope().intersectWith(allLibrariesScope());
+  }
+
   private boolean fillMap(@NotNull String className,
                           @NotNull GlobalSearchScope scope,
-                          @NotNull Map<String, PsiClass> map,
-                          boolean libClassesOnly) {
+                          @NotNull Map<String, PsiClass> map) {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
     PsiClass baseClass = ApplicationManager.getApplication().runReadAction((Computable<PsiClass>)() -> {
       PsiClass aClass;
       // facade.findClass uses index to find class by name, which might throw an IndexNotReadyException in dumb mode
       try {
-        aClass = facade.findClass(className, ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN));
+        aClass = facade.findClass(className, moduleResolveScope());
       }
       catch (IndexNotReadyException e) {
         aClass = null;
@@ -169,8 +196,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
       return false;
     }
 
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myModule);
-    int api = androidModuleInfo == null ? 1 : androidModuleInfo.getModuleMinApi();
+    int api = getMinApiLevel();
 
     String[] baseClassTagNames = getTagNamesByClass(baseClass, api);
     for (String tagName : baseClassTagNames) {
@@ -178,9 +204,6 @@ class TagToClassMapperImpl implements TagToClassMapper {
     }
     try {
       ClassInheritorsSearch.search(baseClass, scope, true).forEach(c -> {
-        if (libClassesOnly && c.getManager().isInProject(c)) {
-          return true;
-        }
         String[] tagNames = getTagNamesByClass(c, api);
         for (String tagName : tagNames) {
           map.put(tagName, c);
@@ -193,6 +216,11 @@ class TagToClassMapperImpl implements TagToClassMapper {
       return false;
     }
     return !map.isEmpty();
+  }
+
+  private int getMinApiLevel() {
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myModule);
+    return androidModuleInfo == null ? 1 : androidModuleInfo.getModuleMinApi();
   }
 
   public void clear() {

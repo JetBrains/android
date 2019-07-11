@@ -23,9 +23,8 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.GraphicalResourceRendererEditor;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceHelper;
@@ -81,7 +80,7 @@ public class StateListPicker extends JPanel {
 
     myModule = module;
     myConfiguration = configuration;
-    myRenderTask = DrawableRendererEditor.configureRenderTask(module, configuration);
+    myRenderTask = ThemeEditorUtils.configureRenderTask(module, configuration);
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     if (stateList != null) {
       setStateList(stateList);
@@ -126,8 +125,8 @@ public class StateListPicker extends JPanel {
     assert facet != null;
     assert myStateList != null;
     List<String> completionStrings = ResourceHelper.getCompletionFromTypes(facet, myStateList.getFolderType() == ResourceFolderType.COLOR
-                                                                                  ? GraphicalResourceRendererEditor.COLORS_ONLY
-                                                                                  : GraphicalResourceRendererEditor.DRAWABLES_ONLY);
+                                                                                  ? ThemeEditorConstants.COLORS_ONLY
+                                                                                  : ThemeEditorConstants.DRAWABLES_ONLY);
     stateComponent.getResourceComponent().setCompletionStrings(completionStrings);
     stateComponent.getAlphaComponent().setCompletionStrings(ResourceHelper.getCompletionFromTypes(facet, DIMENSIONS_ONLY));
 
@@ -238,10 +237,10 @@ public class StateListPicker extends JPanel {
       EnumSet<ResourceType> allowedTypes;
       assert myStateList != null;
       if (myStateList.getFolderType() == ResourceFolderType.COLOR) {
-        allowedTypes = GraphicalResourceRendererEditor.COLORS_ONLY;
+        allowedTypes = ThemeEditorConstants.COLORS_ONLY;
       }
       else {
-        allowedTypes = GraphicalResourceRendererEditor.DRAWABLES_ONLY;
+        allowedTypes = ThemeEditorConstants.DRAWABLES_ONLY;
       }
 
       ChooseResourceDialog.ResourceNameVisibility resourceNameVisibility = ChooseResourceDialog.ResourceNameVisibility.FORCE;

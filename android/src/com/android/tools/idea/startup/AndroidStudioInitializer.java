@@ -28,6 +28,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
@@ -84,7 +85,11 @@ public class AndroidStudioInitializer implements Runnable {
     setUpNewFilePopupActions();
     setUpMakeActions();
     disableGroovyLanguageInjection();
-    setUpNewProjectActions();
+
+    if (StudioFlags.CUSTOM_JAVA_NEW_CLASS_DIALOG.get()) {
+      replaceNewClassDialog();
+    }
+
     setupAnalytics();
     disableIdeaJUnitConfigurations();
     hideRarelyUsedIntellijActions();
@@ -226,7 +231,7 @@ public class AndroidStudioInitializer implements Runnable {
     });
   }
 
-  private static void setUpNewProjectActions() {
+  private static void replaceNewClassDialog() {
     replaceAction("NewClass", new CreateClassAction());
 
     // Update the text for the file creation templates.

@@ -214,7 +214,9 @@ public class MoreFontsDialog extends DialogWrapper {
     }
     catch (Exception ex) {
       Logger.getInstance(MoreFontsDialog.class).warn("Could not create font resource file", ex);
-      Messages.showErrorDialog(myContentPanel, "Could not create font resource file");
+      Messages.showErrorDialog(myContentPanel, ex instanceof FontFamilyCreator.UpdateManifestFileException
+                                               ? ex.getMessage()
+                                               : "Could not create font resource file");
       return;
     }
     super.doOKAction();  // close dialog

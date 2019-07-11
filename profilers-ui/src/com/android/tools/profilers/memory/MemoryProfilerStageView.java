@@ -39,7 +39,6 @@ import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.Gray;
@@ -529,7 +528,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setDurationBg(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
         .setIconMapper(durationData -> {
             LiveAllocationSamplingMode mode = LiveAllocationSamplingMode
-              .getModeFromFrequency(durationData.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval());
+              .getModeFromFrequency(durationData.getCurrentRate().getSamplingNumInterval());
             return getIconForSamplingMode(mode);
           })
         .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.getIconWidth() / 2f,

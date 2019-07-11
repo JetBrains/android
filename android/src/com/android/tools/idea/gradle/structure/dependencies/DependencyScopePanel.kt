@@ -22,6 +22,7 @@ class DependencyScopePanel(module: PsModule, importantFor: PsModule.ImportantFor
 
   val configurations = module.getConfigurations().toSet()
   val comboBox = createQuickSearchComboBox(module.parent.ideProject, module.getConfigurations(), module.getConfigurations(importantFor))
+    .apply { name = "configuration" }
 
   init {
     setUpContents(comboBox, INSTRUCTIONS)

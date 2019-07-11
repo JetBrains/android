@@ -47,11 +47,6 @@ class SqliteEvaluatorController(
 
   fun setUp() {
     view.addListener(sqliteEvaluatorViewListener)
-    view.show()
-  }
-
-  fun requestFocus() {
-    view.requestFocus()
   }
 
   override fun dispose() {
@@ -72,9 +67,6 @@ class SqliteEvaluatorController(
           view.tableView.reportError("Error executing sqlQueryCommand", it)
         }
       }
-    }
-
-    override fun sessionClosed() {
     }
 
     private fun executeUpdate(sqlUpdateCommand: String) {

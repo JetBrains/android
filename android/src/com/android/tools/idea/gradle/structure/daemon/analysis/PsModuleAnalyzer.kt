@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsModuleType
 import com.android.tools.idea.gradle.structure.model.PsQuickFix
-import com.android.tools.idea.gradle.structure.quickfix.PsDependencyScopeQuickFixPath
+import com.android.tools.idea.gradle.structure.quickfix.PsDependencyConfigurationQuickFixPath
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyPlusQuickFixPath
 
 fun analyzeDeclaredDependency(dependency: PsDeclaredLibraryDependency): Sequence<PsIssue> {
@@ -74,10 +74,10 @@ fun analyzeDependencyScope(dependency: PsDeclaredDependency): Iterable<PsIssue> 
       apiReplacement = configurationName.removeSuffix("Compile") + "Api"
     }
 
-    val implementationFix = PsDependencyScopeQuickFixPath(dependency, implementationReplacement)
+    val implementationFix = PsDependencyConfigurationQuickFixPath(dependency, implementationReplacement)
     return if (suggestApi) {
       listOf(
-        PsDependencyScopeQuickFixPath(dependency, apiReplacement),
+        PsDependencyConfigurationQuickFixPath(dependency, apiReplacement),
         implementationFix
       )
     }

@@ -49,4 +49,6 @@ open class ProductFlavorsFixture constructor(
 
   fun minSdkVersion(): PropertyEditorFixture = findEditor("Min SDK Version")
   fun targetSdkVersion(): PropertyEditorFixture = findEditor("Target SDK Version")
+  fun versionCode(): PropertyEditorFixture = findEditor("Version Code")
+  fun versionName(): PropertyEditorFixture = findEditor("Version Name")
 }

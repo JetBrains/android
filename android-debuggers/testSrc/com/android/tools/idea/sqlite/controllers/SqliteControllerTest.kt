@@ -21,15 +21,15 @@ import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.editors.sqlite.SqliteTestUtil
 import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.mocks.MockSqliteEditorViewFactory
+import com.android.tools.idea.sqlite.mocks.MockSqliteServiceFactory
 import com.android.tools.idea.sqlite.mocks.MockSqliteView
-import com.android.tools.idea.sqlite.model.SqliteModel
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
-import com.android.tools.idea.sqlite.ui.mainView.SqliteViewListener
 import com.google.common.util.concurrent.Futures
 import com.intellij.concurrency.SameThreadExecutor
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -49,7 +49,6 @@ class SqliteControllerTest : PlatformTestCase() {
 
   private lateinit var sqliteUtil: SqliteTestUtil
 
-  private lateinit var sqliteModel: SqliteModel
   private lateinit var sqliteView: MockSqliteView
   private lateinit var sqliteService: SqliteService
   private lateinit var edtExecutor: EdtExecutorService
@@ -57,7 +56,10 @@ class SqliteControllerTest : PlatformTestCase() {
   private lateinit var sqliteController: SqliteController
   private lateinit var orderVerifier: InOrder
 
+  private lateinit var sqliteServiceFactory: MockSqliteServiceFactory
   private lateinit var viewFactory: MockSqliteEditorViewFactory
+
+  private lateinit var sqliteFile: VirtualFile
 
   private val testSqliteTable = SqliteTable("testTable", arrayListOf())
   private lateinit var sqliteResultSet: SqliteResultSet
@@ -65,21 +67,22 @@ class SqliteControllerTest : PlatformTestCase() {
   override fun setUp() {
     super.setUp()
 
+    sqliteServiceFactory = MockSqliteServiceFactory()
     viewFactory = spy(MockSqliteEditorViewFactory::class.java)
 
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
 
-    val file = sqliteUtil.createTestSqliteDatabase()
-    sqliteModel = SqliteModel(file)
+    sqliteFile = sqliteUtil.createTestSqliteDatabase()
 
     sqliteView = spy(MockSqliteView::class.java)
-    sqliteService = mock(SqliteService::class.java)
+    sqliteService = sqliteServiceFactory.sqliteService
     edtExecutor = EdtExecutorService.getInstance()
     taskExecutor = SameThreadExecutor.INSTANCE
     sqliteController = SqliteController(
-      testRootDisposable, viewFactory, sqliteModel, sqliteView, sqliteService, edtExecutor, taskExecutor
+      testRootDisposable, sqliteServiceFactory, viewFactory, sqliteView, edtExecutor, taskExecutor
     )
+    sqliteController.setUp()
 
     sqliteResultSet = mock(SqliteResultSet::class.java)
     `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(testSqliteTable.columns))
@@ -98,17 +101,15 @@ class SqliteControllerTest : PlatformTestCase() {
     }
   }
 
-  fun testSetUp() {
+  fun testOpenSqliteDatabase() {
     // Prepare
     `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
 
     // Act
-    sqliteController.setUp()
+    sqliteController.openSqliteDatabase(sqliteFile)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    orderVerifier.verify(sqliteView).addListener(any(SqliteViewListener::class.java))
-    orderVerifier.verify(sqliteView).setUp()
     orderVerifier.verify(sqliteView).startLoading("Opening Sqlite database...")
 
     orderVerifier.verify(sqliteService).openDatabase()
@@ -117,13 +118,13 @@ class SqliteControllerTest : PlatformTestCase() {
     orderVerifier.verify(sqliteView).stopLoading()
   }
 
-  fun testSetUpFailureOpenDatabase() {
+  fun testOpenSqliteDatabaseFailureOpenDatabase() {
     // Prepare
     val throwable = Throwable()
     `when`(sqliteService.openDatabase()).thenReturn(Futures.immediateFailedFuture(throwable))
 
     // Act
-    sqliteController.setUp()
+    sqliteController.openSqliteDatabase(sqliteFile)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -134,40 +135,40 @@ class SqliteControllerTest : PlatformTestCase() {
       .reportErrorRelatedToService(eq(sqliteService), eq("Error opening Sqlite database"), refEq(throwable))
   }
 
-  fun testSetUpFailureReadSchema() {
+  fun testOpenSqliteDatabaseFailureReadSchema() {
     // Prepare
     val throwable = Throwable()
     `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFailedFuture(throwable))
 
     // Act
-    sqliteController.setUp()
+    sqliteController.openSqliteDatabase(sqliteFile)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
     verify(sqliteView).reportErrorRelatedToService(eq(sqliteService), eq("Error opening Sqlite database"), refEq(throwable))
   }
 
-  fun testSetUpIsDisposed() {
+  fun testOpenSqliteDatabaseIsDisposed() {
     // Prepare
     `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
 
     // Act
     Disposer.dispose(sqliteController)
-    sqliteController.setUp()
+    sqliteController.openSqliteDatabase(sqliteFile)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
     orderVerifier.verify(sqliteView, times(0)).stopLoading()
   }
 
-  fun testSetUpFailureIsDisposed() {
+  fun testOpenSqliteDatabaseFailureIsDisposed() {
     // Prepare
     val throwable = Throwable()
     `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFailedFuture(throwable))
 
     // Act
     Disposer.dispose(sqliteController)
-    sqliteController.setUp()
+    sqliteController.openSqliteDatabase(sqliteFile)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -175,10 +176,10 @@ class SqliteControllerTest : PlatformTestCase() {
       .reportErrorRelatedToService(eq(sqliteService), eq("Error opening Sqlite database"), refEq(throwable))
   }
 
-  fun testDisplayTableIsCalled() {
+  fun testDisplayResultSetIsCalledForTable() {
     // Prepare
     `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
-    sqliteController.setUp()
+    sqliteController.openSqliteDatabase(sqliteFile)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
@@ -186,29 +187,62 @@ class SqliteControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(sqliteView).displayTable(eq(testSqliteTable.name), any(JComponent::class.java))
+    verify(sqliteView).displayResultSet(eq(TabId.TableTab(testSqliteTable.name)), eq(testSqliteTable.name), any(JComponent::class.java))
   }
 
-  fun testCloseTableIsCalled() {
+  fun testDisplayResultSetIsCalledForEvaluatorView() {
     // Prepare
     `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
-    sqliteController.setUp()
+    sqliteController.openSqliteDatabase(sqliteFile)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Act
+    sqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(sqliteView)
+      .displayResultSet(any(TabId.AdHocQueryTab::class.java), any(String::class.java), any(JComponent::class.java))
+  }
+
+  fun testCloseTabIsCalledForTable() {
+    // Prepare
+    `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
+    sqliteController.openSqliteDatabase(sqliteFile)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
     sqliteView.viewListeners.single().tableNodeActionInvoked(testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    sqliteView.viewListeners.single().closeTableActionInvoked(testSqliteTable.name)
+    sqliteView.viewListeners.single().closeTableActionInvoked(TabId.TableTab(testSqliteTable.name))
 
     // Assert
     verify(viewFactory).createTableView()
-    verify(sqliteView).closeTable(eq(testSqliteTable.name))
+    verify(sqliteView).closeTab(eq(TabId.TableTab(testSqliteTable.name)))
   }
 
-  fun testFocusTableIsCalled() {
+  fun testCloseTabIsCalledForEvaluatorView() {
     // Prepare
     `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
-    sqliteController.setUp()
+    sqliteController.openSqliteDatabase(sqliteFile)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Act
+    sqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val tabId = sqliteView.lastDisplayedResultSetTabId
+    assert(tabId is TabId.AdHocQueryTab)
+    sqliteView.viewListeners.single().closeTableActionInvoked(tabId!!)
+
+    // Assert
+    verify(viewFactory).createEvaluatorView()
+    verify(sqliteView).closeTab(eq(tabId))
+  }
+
+  fun testFocusTabIsCalled() {
+    // Prepare
+    `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
+    sqliteController.openSqliteDatabase(sqliteFile)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
@@ -218,7 +252,8 @@ class SqliteControllerTest : PlatformTestCase() {
 
     // Assert
     verify(viewFactory).createTableView()
-    verify(sqliteView).displayTable(eq(testSqliteTable.name), any(JComponent::class.java))
-    verify(sqliteView).focusTable(eq(testSqliteTable.name))
+    verify(sqliteView)
+      .displayResultSet(eq(TabId.TableTab(testSqliteTable.name)), eq(testSqliteTable.name), any(JComponent::class.java))
+    verify(sqliteView).focusTab(eq(TabId.TableTab(testSqliteTable.name)))
   }
 }

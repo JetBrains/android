@@ -105,7 +105,7 @@ public abstract class ToggleViewAction extends AbstractViewAction {
                                        @NotNull ViewHandler handler,
                                        @NotNull NlComponent component,
                                        @NotNull List<NlComponent> selectedChildren,
-                                       @InputEventMask int modifiers) {
+                                       @InputEventMask int modifiersEx) {
   }
 
   /**

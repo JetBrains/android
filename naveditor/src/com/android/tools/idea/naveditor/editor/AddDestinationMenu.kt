@@ -16,7 +16,6 @@ package com.android.tools.idea.naveditor.editor
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
@@ -66,6 +65,7 @@ import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.resourceManagers.LocalResourceManager
+import org.jetbrains.android.util.AndroidUtils
 import java.awt.BorderLayout
 import java.awt.event.HierarchyEvent
 import java.awt.event.KeyAdapter
@@ -74,7 +74,6 @@ import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
-import java.util.LinkedHashMap
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JComponent
@@ -109,7 +108,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
       val layoutFiles = resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
         .filterIsInstance<XmlFile>()
-        .associateBy { AndroidPsiUtils.getContextClass(module, it) }
+        .associateBy { AndroidUtils.getContextClass(module, it) }
 
       val classToDestination = mutableMapOf<PsiClass, Destination>()
       val schema = model.schema

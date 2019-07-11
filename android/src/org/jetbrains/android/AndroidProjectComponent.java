@@ -75,10 +75,16 @@ public class AndroidProjectComponent implements ProjectComponent, Disposable {
   private void registerTemplatesAutoRefresh() {
     myProject.getMessageBus().connect(this).subscribe(ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC, result -> {
       if (result.isSuccessful()) {
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        Runnable runnable = () -> {
           if (myProject.isDisposed() || !ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) return;
           TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
-        });
+        };
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+          runnable.run();
+        }
+        else {
+          ApplicationManager.getApplication().executeOnPooledThread(runnable);
+        }
       }
     });
   }

@@ -43,6 +43,10 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
   @NotNull private final GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker;
   @NotNull private final GradleProjectInfo myProjectInfo;
 
+  public GeneratedFileNotificationProvider(@NotNull Project project) {
+    this(project, GeneratedSourceFileChangeTracker.getInstance(project), GradleProjectInfo.getInstance(project));
+  }
+
   public GeneratedFileNotificationProvider(@NotNull Project project,
                                            @NotNull GeneratedSourceFileChangeTracker changeTracker,
                                            @NotNull GradleProjectInfo projectInfo) {

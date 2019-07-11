@@ -74,9 +74,9 @@ import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
-import com.android.tools.idea.gradle.project.sync.ng.SelectedVariantCollector;
-import com.android.tools.idea.gradle.project.sync.ng.SelectedVariants;
-import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions;
+import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
+import com.android.tools.idea.gradle.project.sync.SelectedVariants;
+import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -88,6 +88,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -112,6 +113,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipException;
+import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -125,6 +127,7 @@ import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.model.ProjectImportExtraModelProvider;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
@@ -133,6 +136,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
+  private static final Logger LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
@@ -219,7 +223,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     String moduleConfigPath = getModuleConfigPath(resolverCtx, gradleModule, projectPath);
 
     String gradlePath = gradleModule.getGradleProject().getPath();
-    String moduleId = isEmpty(gradlePath) || ":".equals(gradlePath) ? moduleName : gradlePath;
+    String moduleId = GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule);
     ProjectSystemId owner = GradleConstants.SYSTEM_ID;
     String typeId = StdModuleTypes.JAVA.getId();
 
@@ -240,7 +244,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @Override
-  public void buildFinished() {
+  public void buildFinished(@Nullable GradleConnectionException exception) {
+    if (exception != null) {
+      // We don't actually want to report the errors that are coming from the task running phase of the Gradle process, these will be
+      // reporting during a build. This may result in extra red symbols in the IDE however since we can already get in to a state with
+      // red symbols (via generated source) this is something that we can accept.
+      // This this allows us to make sync only fail if configuration or model building has failed. So configured project iff Setup IDE.
+      LOG.info("Exception thrown during task execution", exception);
+    }
+
     Project project = myProjectFinder.findProject(resolverCtx);
     if (project == null) {
       return;

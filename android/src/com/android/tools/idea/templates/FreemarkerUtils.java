@@ -48,6 +48,7 @@ public final class FreemarkerUtils {
 
     // Builtin conversion methods
     paramMap.put("activityToLayout", new FmActivityToLayoutMethod());
+    paramMap.put("fragmentToLayout", new FmFragmentToLayoutMethod());
     paramMap.put("camelCaseToUnderscore", new FmCamelCaseToUnderscoreMethod());
     paramMap.put("classToResource", new FmClassNameToResourceMethod());
     paramMap.put("compareVersions", new FmCompareVersionsMethod());

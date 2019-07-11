@@ -66,7 +66,7 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
       return empty
     }
     val surface = sceneContext.surface ?: return empty
-    val configuration = surface.configuration ?: return empty
+    val configuration = if (surface.configurations.isNotEmpty()) surface.configurations.single() else return empty
     val facet = surface.model?.facet ?: return empty
 
     val resourceUrl = ResourceUrl.parse(layout) ?: return empty

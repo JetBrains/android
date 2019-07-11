@@ -26,6 +26,7 @@ import com.intellij.openapi.util.Computable;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 // TODO: Refactor this into part of transaction for NlComponent
 public final class NlWriteCommandActionUtil {
@@ -38,12 +39,16 @@ public final class NlWriteCommandActionUtil {
   }
 
   public static void run(@NotNull List<NlComponent> components, @NotNull String name, @NotNull Runnable runnable) {
+    run(components, name, null, runnable);
+  }
+
+  public static void run(@NotNull List<NlComponent> components, @NotNull String name, @Nullable String groupId, @NotNull Runnable runnable) {
     NlModel model = checkComponents(components);
     Runnable withCleanUp = () -> {
       runnable.run();
       cleanUp(components);
     };
-    WriteCommandAction.runWriteCommandAction(model.getProject(), name, null, withCleanUp, model.getFile());
+    WriteCommandAction.runWriteCommandAction(model.getProject(), name, groupId, withCleanUp, model.getFile());
   }
 
   public static <T> T compute(@NotNull NlComponent component, @NotNull String name, @NotNull Computable<T> computable) {

@@ -36,7 +36,7 @@ import org.jetbrains.android.maven.AndroidMavenProvider;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +65,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
     }
 
     if (items != null && items.length > 0) {
-      context.getProgressIndicator().setText("Generating " + AndroidCommonUtils.CLASSES_FILE_NAME + "...");
+      context.getProgressIndicator().setText("Generating " + AndroidBuildCommonUtils.CLASSES_FILE_NAME + "...");
       return new ProcessAction(context, items).compute();
     }
     return ProcessingItem.EMPTY_ARRAY;
@@ -137,12 +137,12 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
           final boolean shouldRunProguard = AndroidCompileUtil.getProguardConfigFilePathIfShouldRun(facet, myContext) != null;
 
           if (shouldRunProguard) {
-            final VirtualFile obfuscatedSourcesJar = dexOutputDir.findChild(AndroidCommonUtils.PROGUARD_OUTPUT_JAR_NAME);
+            final VirtualFile obfuscatedSourcesJar = dexOutputDir.findChild(AndroidBuildCommonUtils.PROGUARD_OUTPUT_JAR_NAME);
             if (obfuscatedSourcesJar == null) {
               myContext.addMessage(CompilerMessageCategory.INFORMATION, "Dex won't be launched for module " +
                                                                         module.getName() +
                                                                         " because file " +
-                                                                        AndroidCommonUtils.PROGUARD_OUTPUT_JAR_NAME +
+                                                                        AndroidBuildCommonUtils.PROGUARD_OUTPUT_JAR_NAME +
                                                                         " doesn't exist", null, -1, -1);
               continue;
             }

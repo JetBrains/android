@@ -82,7 +82,7 @@ public interface AidlTokenTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-       if (type == BODY) {
+      if (type == BODY) {
         return new AidlBodyImpl(node);
       }
       else if (type == CLASS_OR_INTERFACE_TYPE) {

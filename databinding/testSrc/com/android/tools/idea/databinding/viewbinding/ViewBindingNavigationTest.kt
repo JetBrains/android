@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.databinding.viewbinding
 
-import com.android.ide.common.blame.Message
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.isViewBindingEnabled
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.res.BindingLayoutInfoFile
+import com.android.tools.idea.res.binding.BindingLayoutInfoFile
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiClassOwner
@@ -62,11 +60,6 @@ class ViewBindingNavigationTest {
   fun setUp() {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING)
-
-    // Temporary fix until test model can detect dependencies properly.
-    val assembleDebug = projectRule.invokeTasks("assembleDebug")
-    assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
-      .that(assembleDebug.isBuildSuccessful).isTrue()
 
     val syncState = GradleSyncState.getInstance(projectRule.project)
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()

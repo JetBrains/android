@@ -21,7 +21,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Type;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -58,7 +58,7 @@ public class HeapDumpInstanceObjectTest {
     StudioProfilers profilers = new StudioProfilers(profilerClient, profilerServices, new FakeTimer());
     MemoryProfilerStage stage = new MemoryProfilerStage(new StudioProfilers(profilerClient, profilerServices, new FakeTimer()),
                                                         new FakeCaptureObjectLoader());
-    myCaptureObject = new FakeHeapDumpCaptureObject(profilers.getClient().getMemoryClient(), stage);
+    myCaptureObject = new FakeHeapDumpCaptureObject(profilers.getClient(), stage);
   }
 
   /**
@@ -269,7 +269,7 @@ public class HeapDumpInstanceObjectTest {
   private static class FakeHeapDumpCaptureObject extends HeapDumpCaptureObject {
     private Map<Instance, HeapDumpInstanceObject> myInstanceObjectMap = new HashMap<>();
 
-    public FakeHeapDumpCaptureObject(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+    public FakeHeapDumpCaptureObject(@NotNull ProfilerClient client,
                                      MemoryProfilerStage stage) {
       super(client, Common.Session.getDefaultInstance(), HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build(), null,
             new FakeFeatureTracker(), stage);

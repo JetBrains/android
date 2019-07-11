@@ -15,16 +15,33 @@
  */
 package com.android.tools.idea.common.editor;
 
+import static com.android.tools.idea.common.model.NlModel.DELAY_AFTER_TYPING_MS;
+import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
+
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.hint.ImplementationViewComponent;
+import com.intellij.openapi.editor.CaretModel;
+import com.intellij.openapi.editor.event.CaretEvent;
+import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
+import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import java.util.Arrays;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
@@ -36,6 +53,7 @@ import org.jetbrains.annotations.NotNull;
  * {@link #createEditor(Project, VirtualFile)}, and specifying their ID via {@link #getEditorTypeId()}.
  */
 public abstract class DesignerEditorProvider implements FileEditorProvider, DumbAware {
+
   /**
    * Name of the class that handles the quick definition feature in IntelliJ.
    * This class should be used by quick definition only.
@@ -55,7 +73,56 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
 
   @NotNull
   @Override
-  public abstract FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file);
+  public final FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+    DesignerEditor designEditor = createDesignEditor(project, file);
+    if (!StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      return designEditor;
+    }
+    TextEditor textEditor = (TextEditor)TextEditorProvider.getInstance().createEditor(project, file);
+    addCaretListener(textEditor, designEditor);
+    return new SplitEditor(textEditor, designEditor, "Design", project);
+  }
+
+  private static void addCaretListener(@NotNull TextEditor editor, @NotNull DesignerEditor designEditor) {
+    CaretModel caretModel = editor.getEditor().getCaretModel();
+    MergingUpdateQueue updateQueue = new MergingUpdateQueue("split.editor.preview.edit", DELAY_AFTER_TYPING_MS,
+                                                            true, null, designEditor, null, SWING_THREAD);
+    updateQueue.setRestartTimerOnAdd(true);
+    caretModel.addCaretListener(new CaretListener() {
+      @Override
+      public void caretPositionChanged(@NotNull CaretEvent event) {
+        DesignSurface surface = designEditor.getComponent().getSurface();
+        SceneView sceneView = surface.getCurrentSceneView();
+        int offset = caretModel.getOffset();
+        if (sceneView == null || offset == -1) {
+          return;
+        }
+
+        NlModel model = sceneView.getSceneManager().getModel();
+        ImmutableList<NlComponent> views = model.findByOffset(offset);
+        if (views.isEmpty()) {
+          views = model.getComponents();
+        }
+        // TODO: handle preference screen intent special case if needed.
+        SelectionModel selectionModel = sceneView.getSelectionModel();
+        selectionModel.setSelection(views);
+        updateQueue.queue(new Update("Design editor update") {
+          @Override
+          public void run() {
+            surface.repaint();
+          }
+
+          @Override
+          public boolean canEat(Update update) {
+            return true;
+          }
+        });
+      }
+    });
+  }
+
+  @NotNull
+  public abstract DesignerEditor createDesignEditor(@NotNull Project project, @NotNull VirtualFile file);
 
   @NotNull
   @Override
@@ -69,6 +136,11 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
   @NotNull
   @Override
   public FileEditorPolicy getPolicy() {
+    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      // When using the split editor, we hide the default one since the split editor already includes the text-only view.
+      return FileEditorPolicy.HIDE_DEFAULT_EDITOR;
+    }
+
     if (AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
       return FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR;
     }

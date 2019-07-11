@@ -11,6 +11,7 @@ iml_module(
     test_coverage = True,
     test_data = [
         "//tools/idea:platform-build-info",
+        "//tools/idea/java/jdkAnnotations",
     ],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],

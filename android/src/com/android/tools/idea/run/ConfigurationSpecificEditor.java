@@ -16,11 +16,10 @@
 
 package com.android.tools.idea.run;
 
-import com.intellij.ui.PanelWithAnchor;
+import com.intellij.openapi.Disposable;
+import java.awt.Component;
 
-import java.awt.*;
-
-public interface ConfigurationSpecificEditor<T> extends PanelWithAnchor {
+public interface ConfigurationSpecificEditor<T> extends Disposable {
   void applyTo(T t);
   void resetFrom(T t);
   Component getComponent();

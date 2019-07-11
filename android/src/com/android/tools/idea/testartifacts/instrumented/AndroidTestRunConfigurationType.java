@@ -27,7 +27,7 @@ import com.intellij.openapi.util.NotNullLazyValue;
 import com.intellij.ui.LayeredIcon;
 import icons.StudioIcons;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -75,7 +75,7 @@ public final class AndroidTestRunConfigurationType implements ConfigurationType 
   @Override
   @NotNull
   public String getId() {
-    return AndroidCommonUtils.ANDROID_TEST_RUN_CONFIGURATION_TYPE;
+    return AndroidBuildCommonUtils.ANDROID_TEST_RUN_CONFIGURATION_TYPE;
   }
 
   @Override

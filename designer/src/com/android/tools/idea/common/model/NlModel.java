@@ -44,7 +44,6 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
@@ -93,6 +92,8 @@ import org.jetbrains.annotations.Nullable;
  * Model for an XML file
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
+  public static final int DELAY_AFTER_TYPING_MS = 250;
+
   private static final boolean CHECK_MODEL_INTEGRITY = false;
   private final Set<String> myPendingIds = Sets.newHashSet();
 
@@ -159,7 +160,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       Disposer.register(parent, this);
     }
     myType = DesignerEditorFileTypeKt.typeOf(getFile());
-    myUpdateQueue = new MergingUpdateQueue("android.layout.preview.edit", NlPreviewForm.DELAY_AFTER_TYPING_MS,
+    myUpdateQueue = new MergingUpdateQueue("android.layout.preview.edit", DELAY_AFTER_TYPING_MS,
                                            true, null, null, null, SWING_THREAD);
     myUpdateQueue.setRestartTimerOnAdd(true);
   }
@@ -987,6 +988,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     addComponents(toAdd, receiver, before, insertType, surface, null);
   }
 
+  public void addComponents(@NotNull List<NlComponent> componentToAdd,
+                            @NotNull NlComponent receiver,
+                            @Nullable NlComponent before,
+                            @NotNull InsertType insertType,
+                            @Nullable DesignSurface surface,
+                            @Nullable Runnable attributeUpdatingTask) {
+    addComponents(componentToAdd, receiver, before, insertType, surface, attributeUpdatingTask, null);
+  }
+
   /**
    * Adds components to the specified receiver before the given sibling.
    * If insertType is a move the components specified should be components from this model.
@@ -996,7 +1006,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                             @Nullable NlComponent before,
                             @NotNull InsertType insertType,
                             @Nullable DesignSurface surface,
-                            @Nullable Runnable attributeUpdatingTask) {
+                            @Nullable Runnable attributeUpdatingTask,
+                            @Nullable String groupId) {
     // Fix for b/124381110
     // The components may be added by addComponentInWriteCommand after this method returns.
     // Make a copy of the components such that the caller can change the list without causing problems.
@@ -1005,7 +1016,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return;
     }
 
-    Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask);
+    Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask, groupId);
     NlDependencyManager.getInstance().addDependenciesAsync(toAdd, getFacet(), "Adding Components...", callback);
   }
 
@@ -1014,9 +1025,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                           @Nullable NlComponent before,
                                           @NotNull InsertType insertType,
                                           @Nullable DesignSurface surface,
-                                          @Nullable Runnable attributeUpdatingTask) {
+                                          @Nullable Runnable attributeUpdatingTask,
+                                          @Nullable String groupId) {
     DumbService.getInstance(getProject()).runWhenSmart(() -> {
-      NlWriteCommandActionUtil.run(toAdd, generateAddComponentsDescription(toAdd, insertType), () -> {
+      NlWriteCommandActionUtil.run(toAdd, generateAddComponentsDescription(toAdd, insertType), groupId, () -> {
         if (attributeUpdatingTask != null) {
           // Update the attribute before adding components, if need.
           attributeUpdatingTask.run();
@@ -1145,14 +1157,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           notifyModifiedViaUpdateQueue(ChangeType.EDIT);
           break;
         case IMAGE_RESOURCE_CHANGED:
-          RefreshRenderAction.clearCache(getConfiguration());
+          RefreshRenderAction.clearCache(ImmutableList.of(getConfiguration()));
           notifyModified(ChangeType.RESOURCE_CHANGED);
           break;
         case GRADLE_SYNC:
         case PROJECT_BUILD:
         case VARIANT_CHANGED:
         case SDK_CHANGED:
-          RefreshRenderAction.clearCache(getConfiguration());
+          RefreshRenderAction.clearCache(ImmutableList.of(getConfiguration()));
           notifyModified(ChangeType.BUILD);
           break;
         case CONFIGURATION_CHANGED:

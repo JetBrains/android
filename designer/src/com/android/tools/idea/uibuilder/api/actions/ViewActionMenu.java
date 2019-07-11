@@ -59,7 +59,7 @@ public class ViewActionMenu extends AbstractViewAction {
                                  @NotNull ViewHandler handler,
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
-                                 @InputEventMask int modifiers) {
+                                 @InputEventMask int modifiersEx) {
     presentation.setLabel(getLabel());
   }
 

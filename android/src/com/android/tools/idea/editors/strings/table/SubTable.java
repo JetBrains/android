@@ -26,6 +26,7 @@ import com.intellij.ui.table.JBTable;
 import java.awt.datatransfer.Transferable;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -84,6 +85,13 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
       .map(this::convertColumnIndexToModel)
       .map(model::convertColumnIndexToDelegate)
       .toArray();
+  }
+
+  @NotNull
+  Object getColumnAt(int viewColumnIndex) {
+    return IntStream.range(0, getRowCount())
+      .mapToObj(viewRowIndex -> getValueAt(viewRowIndex, viewColumnIndex))
+      .collect(Collectors.toList());
   }
 
   @NotNull

@@ -163,9 +163,9 @@ public class AndroidApkBuilder {
           finalPackage(dexPath, resourceRoots, externalJars, nativeLibsFolders, finalApk, resPackagePath, customKeystorePath, false,
                        resourceFilter));
       }
-      final String zipAlignPath = AndroidCommonUtils.getZipAlign(sdkPath, target);
+      final String zipAlignPath = AndroidBuildCommonUtils.getZipAlign(sdkPath, target);
       boolean withAlignment = new File(zipAlignPath).exists();
-      String unalignedApk = AndroidCommonUtils.addSuffixToFileName(finalApk, UNALIGNED_SUFFIX);
+      String unalignedApk = AndroidBuildCommonUtils.addSuffixToFileName(finalApk, UNALIGNED_SUFFIX);
 
       Map<AndroidCompilerMessageKind, List<String>> map2 = filterUsingKeystoreMessages(
         finalPackage(dexPath, resourceRoots, externalJars, nativeLibsFolders, withAlignment ? unalignedApk : finalApk, resPackagePath,
@@ -231,9 +231,9 @@ public class AndroidApkBuilder {
     try {
 
       String keyStoreOsPath = customKeystorePath != null && !customKeystorePath.isEmpty()
-                              ? customKeystorePath 
+                              ? customKeystorePath
                               : DebugKeyProvider.getDefaultKeyStoreOsPath();
-      
+
       DebugKeyProvider provider = createDebugKeyProvider(result, keyStoreOsPath);
 
       X509Certificate certificate = signed ? (X509Certificate)provider.getCertificate() : null;
@@ -294,7 +294,7 @@ public class AndroidApkBuilder {
         fis.close();
       }
 
-      builder.writeFile(dexEntryFile, AndroidCommonUtils.CLASSES_FILE_NAME);
+      builder.writeFile(dexEntryFile, AndroidBuildCommonUtils.CLASSES_FILE_NAME);
 
       final HashSet<String> added = new HashSet<String>();
       for (String resourceRootPath : javaResourceRoots) {

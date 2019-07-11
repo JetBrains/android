@@ -56,7 +56,7 @@ public class SmaliFileNotificationProviderTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
     Project project = getProject();
-    myNotificationProvider = new SmaliFileNotificationProvider(project, DexSourceFiles.getInstance(project));
+    myNotificationProvider = new SmaliFileNotificationProvider(project);
   }
 
   @Override

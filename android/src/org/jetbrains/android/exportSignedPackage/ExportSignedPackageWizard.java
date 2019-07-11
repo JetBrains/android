@@ -73,7 +73,7 @@ import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -461,7 +461,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
     assert platform != null;
     String sdkPath = platform.getSdkData().getLocation().getPath();
-    String zipAlignPath = AndroidCommonUtils.getZipAlign(sdkPath, platform.getTarget());
+    String zipAlignPath = AndroidBuildCommonUtils.getZipAlign(sdkPath, platform.getTarget());
 
     File zipalign = new File(zipAlignPath);
     if (!zipalign.isFile()) {
@@ -486,7 +486,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
     if (runZipAlign) {
       File realDestFile = new File(apkPath);
-      String message = AndroidCommonUtils.executeZipAlign(zipAlignPath, destFile, realDestFile);
+      String message = AndroidBuildCommonUtils.executeZipAlign(zipAlignPath, destFile, realDestFile);
       if (message != null) {
         showErrorInDispatchThread(message);
         return;
@@ -527,7 +527,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     File srcApk = new File(FileUtil.toSystemDependentName(srcApkPath));
 
     if (isSigned()) {
-      AndroidCommonUtils.signApk(srcApk, destFile, getPrivateKey(), getCertificate());
+      AndroidBuildCommonUtils.signApk(srcApk, destFile, getPrivateKey(), getCertificate());
     }
     else {
       FileUtil.copy(srcApk, destFile);

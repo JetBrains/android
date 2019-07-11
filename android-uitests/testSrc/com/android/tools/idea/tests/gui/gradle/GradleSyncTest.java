@@ -26,6 +26,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -37,6 +39,7 @@ import com.android.tools.idea.ui.GuiTestingService;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.externalSystem.configurationStore.ProjectFileSystemExternalSystemStorage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
@@ -496,33 +499,21 @@ public class GradleSyncTest {
 
   @Test
   public void gradleModelCache() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+    File projectDir = guiTest.setUpProject("SimpleApplication");
 
-    File projectPath = ideFrameFixture.getProjectPath();
-    ideFrameFixture.closeProject();
+    // First time, open the project to sync.
+    IdeFrameFixture ideFrame = guiTest.openProject(projectDir);
+    ideFrame.waitForGradleProjectSyncToFinish();
+    ideFrame.closeProject();
 
-    AtomicBoolean syncSkipped = new AtomicBoolean(false);
+    // Second time, open the project expecting no sync.
+    ideFrame = guiTest.openProject(projectDir);
+    ideFrame.waitForGradleProjectSyncToFinish();
 
-    // Reopen project and verify that sync was skipped (i.e. model loaded from cache)
-    ApplicationManager.getApplication().invokeAndWait(
-      () -> {
-        try {
-          ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-          Project project = projectManager.convertAndLoadProject(projectPath.getPath());
-          GradleSyncState.subscribe(project, new GradleSyncListener() {
-            @Override
-            public void syncSkipped(@NotNull Project project) {
-              syncSkipped.set(true);
-            }
-          });
-          projectManager.openProject(project);
-        }
-        catch (IOException e) {
-          // Do nothing
-        }
-      });
+    ProjectSystemSyncManager.SyncResult lastSyncResult =
+      ProjectSystemService.getInstance(ideFrame.getProject()).getProjectSystem().getSyncManager().getLastSyncResult();
+    ideFrame.closeProject();
 
-    Wait.seconds(5).expecting("sync to be skipped").until(syncSkipped::get);
+    assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED);
   }
 }

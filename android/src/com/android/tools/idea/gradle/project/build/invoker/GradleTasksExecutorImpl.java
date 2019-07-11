@@ -37,6 +37,7 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
+import com.android.build.attribution.BuildAttributionManager;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
@@ -59,6 +60,7 @@ import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -94,6 +96,7 @@ import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.events.OperationType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -220,6 +223,8 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       GradleBuildState buildState = GradleBuildState.getInstance(myProject);
       buildState.buildStarted(new BuildContext(project, gradleTasks, buildMode));
 
+      BuildAttributionManager buildAttributionManager = null;
+
       try {
         AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
         List<String> commandLineArguments = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
@@ -282,6 +287,15 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           }
         }, connection);
 
+        if (StudioFlags.BUILD_ATTRIBUTION_ENABLED.get()) {
+          buildAttributionManager = ServiceManager.getService(myProject, BuildAttributionManager.class);
+          // Don't listen to transform events due to b/136194724
+          operation
+            .addProgressListener(buildAttributionManager, OperationType.GENERIC, OperationType.PROJECT_CONFIGURATION, OperationType.TASK,
+                                 OperationType.TEST);
+          buildAttributionManager.onBuildStart();
+        }
+
         File javaHome = IdeSdks.getInstance().getJdkPath();
         if (javaHome != null) {
           operation.setJavaHome(javaHome);
@@ -305,6 +319,9 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
         buildState.buildFinished(SUCCESS);
         taskListener.onSuccess(id);
+        if (buildAttributionManager != null) {
+          buildAttributionManager.onBuildSuccess();
+        }
       }
       catch (BuildException e) {
         buildError = e;
@@ -315,6 +332,10 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       }
       finally {
         if (buildError != null) {
+          if (buildAttributionManager != null) {
+            buildAttributionManager.onBuildFailure();
+          }
+
           if (wasBuildCanceled(buildError)) {
             buildState.buildFinished(CANCELED);
             taskListener.onCancel(id);
