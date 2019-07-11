@@ -23,9 +23,17 @@ import com.android.tools.idea.gradle.structure.model.*
 abstract class AbstractDependencyNode<T : PsBaseDependency> : AbstractPsModelNode<T> {
 
   val isDeclared: Boolean get() = models.any { it.isDeclared }
+  final override val models: List<T>
 
-  protected constructor(parent: AbstractPsNode, dependency: T) : super(parent, dependency, parent.uiSettings)
-  protected constructor(parent: AbstractPsNode, dependencies: List<T>) : super(parent, dependencies, parent.uiSettings)
+  protected constructor(parent: AbstractPsNode, dependency: T) : super(parent, parent.uiSettings) {
+    models = listOf(dependency)
+    updateNameAndIcon()
+  }
+
+  protected constructor(parent: AbstractPsNode, dependencies: List<T>) : super(parent, parent.uiSettings) {
+    models = dependencies
+    updateNameAndIcon()
+  }
 
   companion object {
     fun createResolvedNode(parent: AbstractPsNode,

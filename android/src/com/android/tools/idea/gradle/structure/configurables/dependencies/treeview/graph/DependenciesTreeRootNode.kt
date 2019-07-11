@@ -39,7 +39,13 @@ import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import java.util.function.Consumer
 
-class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : AbstractPsResettableNode<PsProject>(model, uiSettings) {
+class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : AbstractPsResettableNode<PsProject>(uiSettings) {
+  override val models: List<PsProject> = listOf(model)
+
+  init {
+    updateNameAndIcon()
+  }
+
   private val dependencyNodeComparator: DependencyNodeComparator = DependencyNodeComparator(
     PsDependencyComparator(PsUISettings().apply { DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true }))
 
