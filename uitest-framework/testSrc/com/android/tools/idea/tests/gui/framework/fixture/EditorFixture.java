@@ -892,6 +892,7 @@ public class EditorFixture {
     BACK_SPACE("EditorBackSpace"),
     COMPLETE_CURRENT_STATEMENT("EditorCompleteStatement"),
     DELETE_LINE("EditorDeleteLine"),
+    LINE_END("EditorLineEnd"),
     DOWN("EditorDown"),
     ESCAPE("EditorEscape"),
     GOTO_DECLARATION("GotoDeclaration"),
