@@ -27,6 +27,7 @@ import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
@@ -119,7 +120,7 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
   @NotNull
   public EditConfigurationsDialogFixture selectDeployAsInstantApp(boolean selected) {
     JCheckBox instantAppCheckbox = waitUntilShowing(robot(), target(), Matchers.byText(JCheckBox.class, "Deploy as instant app"));
-    instantAppCheckbox.setSelected(selected);
+    new JCheckBoxFixture(robot(), instantAppCheckbox).setSelected(selected);
     return this;
   }
 }
