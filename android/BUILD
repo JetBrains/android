@@ -355,8 +355,8 @@ filegroup(
         ],
         "//conditions:default": [
             "//tools/base/deploy/installer:test-installer",
-            "//tools/base/deploy/installer:bash_bridge",
             "//tools/base/deploy/installer:android-installer",
+            "//tools/base/deploy/installer/tests:artifacts",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
     }) + ["//tools/base/deploy/deployer:java_version"],

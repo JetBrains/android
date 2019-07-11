@@ -330,7 +330,7 @@ java_test(
         "//tools/base/bazel:windows": [],
         "//conditions:default": [
             "//tools/base/deploy/installer:test-installer",
-            "//tools/base/deploy/installer:bash_bridge",
+            "//tools/base/deploy/installer/tests:artifacts",
         ],
     }),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.deploy.DeploymentTest"],
