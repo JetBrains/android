@@ -17,26 +17,25 @@ package com.android.tools.idea.gradle.structure.configurables.ui.treeview
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.model.PsModel
+import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
 import com.intellij.ui.treeStructure.SimpleNode
 
-abstract class AbstractPsResettableNode<T : PsModel> protected constructor(uiSettings: PsUISettings) : AbstractPsModelNode<T>(uiSettings) {
+abstract class AbstractPsResettableNode<K, M : PsModel> protected constructor(uiSettings: PsUISettings)
+  : AbstractPsModelNode<M>(uiSettings) {
 
-  private var myChildren: List<AbstractPsModelNode<*>>? = null
+  abstract val collection: PsCollectionBase<out AbstractPsModelNode<*>, K, Unit>
+
+  private var myChildren: Array<SimpleNode>? = null
 
   init {
     autoExpandNode = true
   }
 
-  override fun getChildren(): Array<SimpleNode> {
-    if (myChildren == null) {
-      myChildren = createChildren()
-    }
-    return myChildren!!.toTypedArray()
-  }
+  override fun getChildren(): Array<SimpleNode> =
+    myChildren ?: collection.items.toTypedArray<SimpleNode>().also { myChildren = it }
 
   fun reset() {
+    collection.refresh()
     myChildren = null
   }
-
-  protected abstract fun createChildren(): List<AbstractPsModelNode<*>>
 }
