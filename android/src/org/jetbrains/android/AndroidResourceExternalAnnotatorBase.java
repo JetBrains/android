@@ -23,6 +23,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.diagnostic.Logger;
@@ -158,7 +159,12 @@ public abstract class AndroidResourceExternalAnnotatorBase
     if (color == null) {
       return null;
     }
-    return new AndroidAnnotatorUtil.ColorRenderer(element, color, false);
+    // This adds the gutter icon for color reference in xml, java, and kotlin files.
+    // For xml files, we want to open raw color and color resource picker.
+    // For java and kotlin files, we should open color resource picker only and set R.color.[resource_name] to the field.
+    // TODO: Open color resource picker for java and kotlin files.
+    boolean isClickable = AndroidAnnotatorUtil.getFileType(element) == XmlFileType.INSTANCE;
+    return new AndroidAnnotatorUtil.ColorRenderer(element, color, isClickable);
   }
 
   @Override
