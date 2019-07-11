@@ -140,16 +140,16 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
-    super.begin(x, y, modifiers);
-    moveTo(x, y, modifiers, false);
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
+    super.begin(x, y, modifiersEx);
+    moveTo(x, y, modifiersEx, false);
     myDesignSurface.startDragDropInteraction();
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
-    super.update(x, y, modifiers);
-    moveTo(x, y, modifiers, false);
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
+    super.update(x, y, modifiersEx);
+    moveTo(x, y, modifiersEx, false);
   }
 
   /**
@@ -159,9 +159,9 @@ public class DragDropInteraction extends Interaction {
   public boolean acceptsDrop() { return myDoesAcceptDropAtLastPosition; }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
-    super.end(x, y, modifiers, canceled);
-    moveTo(x, y, modifiers, !canceled);
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx, boolean canceled) {
+    super.end(x, y, modifiersEx, canceled);
+    moveTo(x, y, modifiersEx, !canceled);
     canceled |= myDragHandler == null;
     mySceneView = myDesignSurface.getSceneView(x, y);
     if (mySceneView != null && myDragReceiver != null && !canceled) {

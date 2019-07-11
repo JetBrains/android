@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.TestDataPaths
+import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.application.ApplicationManager
@@ -26,12 +27,8 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.search.PsiElementProcessor
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -46,7 +43,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.picocontainer.MutablePicoContainer
-import java.io.File
+import java.nio.file.Paths
 
 @RunsInEdt
 class ResourceFolderDataBindingTest {
@@ -73,7 +70,7 @@ class ResourceFolderDataBindingTest {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
 
     // Use a file cache that has per-test root directories instead of sharing the system directory.
-    val cache = ResourceFolderRepositoryFileCacheImpl(File(fixture.tempDirPath))
+    val cache = ResourceFolderRepositoryFileCacheImpl(Paths.get(fixture.tempDirPath))
     oldFileCacheService = overrideCacheService(cache)
   }
 
@@ -82,20 +79,12 @@ class ResourceFolderDataBindingTest {
     overrideCacheService(oldFileCacheService)
   }
 
-
   private fun setupTestWithDataBinding() {
     registry = ResourceFolderRegistry.getInstance(project)
     val file = fixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
     psiFile = PsiManager.getInstance(project).findFile(file)!!
     resources = createRepository()
     assertEquals(1, resources.dataBindingResourceFiles.size)
-  }
-
-  private fun setupWithLayoutFile(layoutContents: String) {
-    registry = ResourceFolderRegistry.getInstance(project)
-    psiFile = fixture.addFileToProject("res/layout/layout_with_data_binding.xml", layoutContents)
-    resources = createRepository()
-    UIUtil.dispatchAllInvocationEvents()
   }
 
   @Test
@@ -206,224 +195,6 @@ class ResourceFolderDataBindingTest {
     )
   }
 
-  @Test
-  fun testAddIdToView() {
-    setupWithLayoutFile(
-      """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-        </layout>
-      """.trimIndent()
-    )
-    assertViewsWithIds()
-    val orientation = findChild {
-      (it is XmlAttribute) && it.localName == "orientation"
-    }
-    assertNotNull(orientation)
-    insertXml(
-      offset = orientation!!.textOffset,
-      xml = """android:id="@+id/root_view" """
-    )
-    assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
-    )
-  }
-
-  @Test
-  fun testRemoveIdFromView() {
-    setupWithLayoutFile(
-      """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:id="@+id/root_view"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-        </layout>
-      """.trimIndent()
-    )
-    assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
-    )
-    val idAttr = findChild {
-      (it is XmlAttribute) && it.localName == "id"
-    }
-    assertNotNull(idAttr)
-    deleteXml(idAttr!!.textRange)
-    assertViewsWithIds()
-  }
-
-  @Test
-  fun testChangeId() {
-    setupWithLayoutFile(
-      """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:id="@+id/root_view"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-        </layout>
-      """.trimIndent()
-    )
-    assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
-    )
-    val idAttr = findChild {
-      (it is XmlAttribute) && it.localName == "id"
-    }
-    assertNotNull(idAttr)
-    updateXml(
-      range = (idAttr as XmlAttribute).valueElement!!.valueTextRange,
-      xml = "@+id/new_id"
-    )
-    assertViewsWithIds(
-      "newId" to "android.widget.LinearLayout"
-    )
-  }
-
-  @Test
-  fun testChangeViewType() {
-    setupWithLayoutFile(
-      """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:id="@+id/root_view"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"/>
-        </layout>
-      """.trimIndent()
-    )
-    val linearLayout = findChild {
-      (it is XmlTag) && it.localName == "LinearLayout"
-    } as? XmlTag
-    assertNotNull(linearLayout)
-    updateXml(
-      range = TextRange(linearLayout!!.startOffsetInParent, linearLayout.startOffsetInParent + "<LinearLayout".length),
-      xml = "<TextView"
-    )
-    assertViewsWithIds(
-      "rootView" to "android.widget.TextView"
-    )
-  }
-
-  @Test
-  fun testAddViewWithId() {
-    setupWithLayoutFile(
-      """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:id="@+id/root_view"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-        </layout>
-      """.trimIndent()
-    )
-    assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
-    )
-    val linearLayout = findChild {
-      (it is XmlTag) && it.localName == "LinearLayout"
-    } as? XmlTag
-    assertNotNull(linearLayout)
-
-    insertXml(
-      offset = linearLayout!!.textRange.endOffset,
-      xml = """
-        <TextView
-            android:id="@+id/view2"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-        />
-        """.trimIndent()
-    )
-    assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout",
-      "view2" to "android.widget.TextView"
-    )
-  }
-
-  @Test
-  fun testUnrelatedChange_attr() {
-    setupWithLayoutFile(
-      """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:id="@+id/root_view"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-        </layout>
-      """.trimIndent()
-    )
-    assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
-    )
-    val startModificationCnt = getInfo().modificationCount
-    val orientationAttr = findChild {
-      (it is XmlAttribute) && it.localName == "orientation"
-    }
-    assertNotNull(orientationAttr)
-    updateXml(
-      range = (orientationAttr as XmlAttribute).valueElement!!.valueTextRange,
-      xml = "horizontal"
-    )
-    val endModificationCnt = getInfo().modificationCount
-    assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
-    )
-    assertEquals(startModificationCnt, endModificationCnt)
-  }
-
-  @Test
-  fun testUnrelatedChange_addView() {
-    setupWithLayoutFile(
-      """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:id="@+id/root_view"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-        </layout>
-      """.trimIndent()
-    )
-    assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
-    )
-    val startModificationCnt = getInfo().modificationCount
-    val linearLayout = findChild {
-      (it is XmlTag) && it.localName == "LinearLayout"
-    } as? XmlTag
-    assertNotNull(linearLayout)
-
-    insertXml(
-      offset = linearLayout!!.textRange.endOffset,
-      xml = """
-        <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-        />
-        """.trimIndent()
-    )
-    val endModificationCnt = getInfo().modificationCount
-    assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
-    )
-    assertEquals(startModificationCnt, endModificationCnt)
-  }
-
   private fun insertXml(offset: Int, xml: String) {
     val documentManager = PsiDocumentManager.getInstance(project)
     val document = documentManager.getDocument(psiFile)!!
@@ -463,14 +234,6 @@ class ResourceFolderDataBindingTest {
     assertImports(
       "p1.p2.import1" to null,
       "p1.p2.import2" to "i2"
-    )
-    assertViewsWithIds(
-      "magicView" to "foo.bar.Magic",
-      "normalViewTag" to "android.view.View",
-      "surfaceView1" to "android.view.SurfaceView",
-      "textView1" to "android.widget.TextView",
-      "viewTag" to "android.view.ViewGroup",
-      "webView1" to "android.webkit.WebView"
     )
   }
 
@@ -515,20 +278,6 @@ class ResourceFolderDataBindingTest {
     assertEquals(expected.toSet(), importsInInfo)
   }
 
-  /**
-   * asserts all views with ids.
-   * Pairs are variable name to view type
-   */
-  private fun assertViewsWithIds(vararg expected: Pair<String, String>) {
-    val viewsInInfo = getInfo()
-      .viewsWithIds
-      .map {
-        Pair(it.name, DataBindingUtil.resolveViewPsiType(it, facet)!!.canonicalText)
-      }
-      .toSet()
-    assertEquals(expected.toSet(), viewsInInfo)
-  }
-
   private fun getInfo(): BindingLayoutInfo {
     val appPackage = DataBindingUtil.getGeneratedPackageName(facet)
     return resources.dataBindingResourceFiles["$appPackage.databinding.LayoutWithDataBindingBinding"]!!
@@ -543,14 +292,6 @@ class ResourceFolderDataBindingTest {
       }
     assertNotNull("cannot find variable with name $name", variable)
     return variable!!.xmlTag
-  }
-
-  private fun findChild(predicate: (PsiElement) -> Boolean): PsiElement? {
-    val processor = PsiElementProcessor.FindFilteredElement<PsiElement> {
-      predicate(it)
-    }
-    PsiTreeUtil.processElements(psiFile, processor)
-    return processor.foundElement
   }
 
   companion object {

@@ -21,6 +21,7 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetIcon
+import com.android.tools.idea.ui.resourcemanager.rendering.DefaultIconProvider
 import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.ui.resourcemanager.widget.Separator
 import com.android.tools.idea.ui.resourcemanager.widget.SingleAssetCard
@@ -56,15 +57,15 @@ import javax.swing.JPanel
 import javax.swing.KeyStroke
 import javax.swing.SwingConstants
 
-private val ASSET_CARD_WIDTH = JBUI.scale(150)
+private val ASSET_CARD_WIDTH get() = JBUI.scale(150)
 
-private val SEPARATOR_BORDER = JBUI.Borders.empty(2, 4)
+private val SEPARATOR_BORDER get() = JBUI.Borders.empty(2, 4)
 
-private val HEADER_PANEL_BORDER = BorderFactory.createCompoundBorder(
+private val HEADER_PANEL_BORDER get() = BorderFactory.createCompoundBorder(
   JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
   JBUI.Borders.empty(6, 5))
 
-private val BACK_BUTTON_SIZE = JBUI.size(20)
+private val BACK_BUTTON_SIZE get() = JBUI.size(20)
 
 /**
  * A [JPanel] displaying the [DesignAsset]s composing the provided [designAssetSet].
@@ -185,15 +186,18 @@ class ResourceDetailView(
    * The thumbnail is populated asynchronously.
    */
   private fun createAssetCard(asset: DesignAsset) = SingleAssetCard().apply {
-    withChessboard = true
     viewWidth = ASSET_CARD_WIDTH
     title = asset.qualifiers.joinToString("-") { it.folderSegment }.takeIf { it.isNotBlank() } ?: "default"
     subtitle = asset.file.name
     metadata = asset.getDisplayableFileSize()
-    val assetIcon = AssetIcon(viewModel.assetPreviewManager, asset, thumbnailSize.width,
+    val previewManager = viewModel.assetPreviewManager
+    val previewProvider = previewManager.getPreviewProvider(asset.type)
+    withChessboard = previewProvider.supportsTransparency
+    val assetIcon = AssetIcon(previewManager, asset, thumbnailSize.width,
                               thumbnailSize.height)
-    thumbnail = JBLabel(assetIcon).apply { verticalAlignment = SwingConstants.CENTER }
-
+    val iconLabel = JBLabel(assetIcon).apply { verticalAlignment = SwingConstants.CENTER }
+    // DefaultIconProvider provides an empty icon, to avoid comparison, we just set the thumbnail to null.
+    thumbnail = if (previewProvider is DefaultIconProvider) null else iconLabel
     // Mouse listener to open the file on double click
     addFocusListener(cardFocusListener)
     addMouseListener(object : MouseAdapter() {

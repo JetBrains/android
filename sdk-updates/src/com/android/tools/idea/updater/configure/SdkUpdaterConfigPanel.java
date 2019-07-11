@@ -17,9 +17,11 @@ package com.android.tools.idea.updater.configure;
 
 import com.android.repository.api.*;
 import com.android.repository.api.RepoManager.RepoLoadedCallback;
+import com.android.repository.impl.installer.AbstractPackageOperation;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -41,6 +43,8 @@ import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
+import com.android.utils.FileUtils;
+import com.android.utils.HtmlBuilder;
 import com.google.common.collect.*;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
@@ -53,8 +57,11 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.updateSettings.impl.UpdateSettingsConfigurable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -122,6 +129,11 @@ public class SdkUpdaterConfigPanel implements Disposable {
    * Link to allow you to edit the SDK location.
    */
   private HyperlinkLabel myEditSdkLink;
+
+  /**
+   * Link to clean up disk space that might be occupied e.g. by temporary files within the selected SDK location.
+   */
+  private HyperlinkLabel myCleanupDiskLink;
 
   /**
    * Error message that shows if the selected SDK location is invalid.
@@ -222,6 +234,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
 
     ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
     setUpSingleSdkChooser();
+    setUpDiskCleanupLink();
     myBindingsManager.bindTwoWay(
       mySelectedSdkLocation,
       new AdapterProperty<String, Optional<File>>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
@@ -367,6 +380,68 @@ public class SdkUpdaterConfigPanel implements Disposable {
       }
     });
     mySdkLocationTextField.setEditable(false);
+  }
+
+  private void setUpDiskCleanupLink() {
+    myCleanupDiskLink.setHyperlinkText("Optimize disk space");
+    myCleanupDiskLink.addHyperlinkListener(e -> {
+      File sdkLocation = getSelectedSdkLocation();
+      if (sdkLocation == null) {
+        return;
+      }
+
+      final Set<String> SDK_DIRECTORIES_TO_CLEANUP = ImmutableSet.of(
+        AbstractPackageOperation.REPO_TEMP_DIR_FN, AbstractPackageOperation.DOWNLOAD_INTERMEDIATES_DIR_FN
+      );
+
+      HtmlBuilder cleanupMessageBuilder;
+      try {
+        cleanupMessageBuilder = ProgressManager.getInstance().runProcessWithProgressSynchronously(
+          () -> {
+            HtmlBuilder htmlBuilder = new HtmlBuilder();
+            long totalSizeToCleanup = 0;
+            htmlBuilder.openHtmlBody();
+            htmlBuilder.addHtml("The files under the following SDK locations can be safely cleaned up:").newline().beginList();
+            for (String cleanupDir : SDK_DIRECTORIES_TO_CLEANUP) {
+              File cleanupDirFile = new File(sdkLocation, cleanupDir);
+              long size = 0;
+              for (File f : FileUtils.getAllFiles(cleanupDirFile)) {
+                size += f.length();
+              }
+              if (size > 0) {
+                htmlBuilder.listItem().addHtml(cleanupDirFile.getAbsolutePath() + " (" + new Storage(size).toUiString() + ") ");
+                totalSizeToCleanup += size;
+              }
+            }
+            htmlBuilder.endList();
+            htmlBuilder.addHtml("Do you want to proceed with deleting the specified files?");
+            htmlBuilder.closeHtmlBody();
+
+            if (totalSizeToCleanup > 0) {
+              return htmlBuilder;
+            }
+            return null;
+          },"Analyzing SDK Disk Space Utilization", true, null);
+      }
+      catch (ProcessCanceledException ex) {
+        return;
+      }
+
+      if (cleanupMessageBuilder == null) {
+        Messages.showInfoMessage(myRootPane,
+                                 "The disk space utilized by this SDK is already optimized.",
+                                 "SDK Disk Space Utilization");
+      }
+      else if (SdkUpdaterConfigurable.confirmChange(cleanupMessageBuilder)) {
+        ProgressManager.getInstance().runProcessWithProgressSynchronously(
+          () -> {
+            for (String cleanupDir : SDK_DIRECTORIES_TO_CLEANUP) {
+              File cleanupDirFile = new File(sdkLocation, cleanupDir);
+              FileUtil.delete(cleanupDirFile);
+            }
+          },"Deleting SDK Temporary Files", false, null);
+      }
+    });
   }
 
   @Override
@@ -607,8 +682,14 @@ public class SdkUpdaterConfigPanel implements Disposable {
   public void reset() {
     refresh(true);
     Collection<File> sdkLocations = getSdkLocations();
-    if (getSdkLocations().size() == 1) {
+    if (sdkLocations.size() == 1) {
       mySdkLocationTextField.setText(sdkLocations.iterator().next().getPath());
+    }
+    if (sdkLocations.isEmpty()) {
+      myCleanupDiskLink.setEnabled(false);
+    }
+    else {
+      myCleanupDiskLink.setEnabled(true);
     }
     myPlatformComponentsPanel.reset();
     myToolComponentsPanel.reset();

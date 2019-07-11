@@ -139,7 +139,7 @@ public final class GradleProjects {
   }
 
   /**
-   * Indicates whether the given module is the one that represents the project.
+   * Indicates whether the given module is the one that represents the project or one of the projects included in the composite build.
    * <p>
    * For example, in this project:
    * <pre>
@@ -161,7 +161,8 @@ public final class GradleProjects {
   }
 
   /**
-   * Returns the gradle path of a module, for example ":app" or ":lib:mylib"
+   * Returns the gradle path of a module, for example ":app" or ":lib:mylib". In the case of a module from a project included in the
+   * composite build, the returned Gradle path is prefixed by the included project name, i.e. included_project:libs:mylib .
    * @param module the give module
    * @return the gradle path or {@code null} if not a gradle module or can't find the path.
    */
@@ -175,7 +176,7 @@ public final class GradleProjects {
       return null;
     }
 
-    return linkedProjectId.startsWith(":") ? linkedProjectId : ":";
+    return linkedProjectId.contains(":") ? linkedProjectId : ":";
   }
 
   /**

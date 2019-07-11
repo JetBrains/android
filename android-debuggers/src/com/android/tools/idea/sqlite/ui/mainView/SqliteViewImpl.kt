@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sqlite.ui.mainView
 
+import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
@@ -22,17 +24,17 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.SqliteService
-import com.android.tools.idea.sqlite.model.SqliteModel
+import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.renderers.SchemaTreeCellRenderer
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeFocusManager
@@ -43,32 +45,50 @@ import com.intellij.ui.tabs.UiDecorator
 import com.intellij.ui.tabs.impl.JBEditorTabs
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.event.InputEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.util.ArrayList
 import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.OverlayLayout
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
+@UiThread
 class SqliteViewImpl(
   project: Project,
-  private val model: SqliteModel,
-  fileEditor: FileEditor
+  parentDisposable: Disposable
 ) : SqliteView {
-  private val listeners = ArrayList<SqliteViewListener>()
-  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", fileEditor)
   private val viewContext = SqliteViewContext()
-  private var panel = SqliteEditorPanel()
-  override val component: JComponent = workBench
+  private val listeners = mutableListOf<SqliteViewListener>()
 
+  private val rootPanel = JPanel()
+  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null)
+  private var sqliteEditorPanel = SqliteEditorPanel()
+  private val defaultUiPanel = DefaultUiPanel()
   private val tabs = JBEditorTabs(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
-  private val openTabs = mutableMapOf<String, TabInfo>()
+
+  override val component: JComponent = rootPanel
+
+  private val openTabs = mutableMapOf<TabId, TabInfo>()
 
   init {
-    Disposer.register(fileEditor, workBench)
+    Disposer.register(parentDisposable, workBench)
+
+    val definitions = mutableListOf<ToolWindowDefinition<SqliteViewContext>>()
+    definitions.add(SchemaPanelToolContent.getDefinition())
+    workBench.init(sqliteEditorPanel.mainPanel, viewContext, definitions)
+
+    rootPanel.layout = OverlayLayout(rootPanel)
+    rootPanel.add(defaultUiPanel.rootPanel)
+    rootPanel.add(workBench)
+    workBench.isVisible = false
+
+    defaultUiPanel.label.font = AdtUiUtils.EMPTY_TOOL_WINDOW_FONT
+    defaultUiPanel.label.foreground = UIUtil.getInactiveTextColor()
   }
 
   override fun addListener(listener: SqliteViewListener) {
@@ -79,21 +99,14 @@ class SqliteViewImpl(
     listeners.remove(listener)
   }
 
-  override fun setUp() { }
-
   override fun startLoading(text: String) {
+    workBench.isVisible = true
+    defaultUiPanel.rootPanel.isVisible = false
     workBench.setLoadingText(text)
   }
 
   override fun stopLoading() {
-    panel.deviceIdText.text = model.sqliteFileId.deviceId
-    panel.devicePathText.text = model.sqliteFileId.devicePath
-
-    val definitions = ArrayList<ToolWindowDefinition<SqliteViewContext>>()
-    definitions.add(SchemaPanelToolContent.getDefinition())
-    workBench.init(panel.mainPanel, viewContext, definitions)
-
-    panel.openSqlEvalDialog.addActionListener { listeners.forEach{ it.openSqliteEvaluatorActionInvoked() } }
+    sqliteEditorPanel.openSqliteEvaluator.addActionListener { listeners.forEach{ it.openSqliteEvaluatorTabActionInvoked() } }
 
     tabs.apply {
       isTabDraggingEnabled = true
@@ -101,7 +114,7 @@ class SqliteViewImpl(
       addTabMouseListener(TabMouseListener())
     }
 
-    panel.tabsRoot.add(tabs)
+    sqliteEditorPanel.tabsRoot.add(tabs)
   }
 
   override fun displaySchema(schema: SqliteSchema) {
@@ -112,19 +125,19 @@ class SqliteViewImpl(
     setupSchemaTree()
   }
 
-  override fun displayTable(tableName: String, component: JComponent) {
-    val tab = createSqliteExplorerTab(tableName, component)
+  override fun displayResultSet(tableId: TabId, tableName: String, component: JComponent) {
+    val tab = createSqliteExplorerTab(tableId, tableName, component)
     tabs.addTab(tab)
     tabs.select(tab, true)
-    openTabs[tableName] = tab
+    openTabs[tableId] = tab
   }
 
-  override fun focusTable(tableName: String) {
-    tabs.select(openTabs[tableName]!!, true)
+  override fun focusTab(tabId: TabId) {
+    tabs.select(openTabs[tabId]!!, true)
   }
 
-  override fun closeTable(tableName: String) {
-    val tab = openTabs.remove(tableName)
+  override fun closeTab(tabId: TabId) {
+    val tab = openTabs.remove(tabId)
     tabs.removeTab(tab)
   }
 
@@ -133,13 +146,13 @@ class SqliteViewImpl(
     workBench.loadingStopped(errorMessage)
   }
 
-  private fun createSqliteExplorerTab(tableName: String, tabContent: JComponent): TabInfo {
+  private fun createSqliteExplorerTab(tableId: TabId, tableName: String, tabContent: JComponent): TabInfo {
     val tab = TabInfo(tabContent)
 
     val tabActionGroup = DefaultActionGroup()
     tabActionGroup.add(object : AnAction("Close tabs", "Click to close tab", AllIcons.Actions.Close) {
       override fun actionPerformed(e: AnActionEvent) {
-        listeners.forEach { it.closeTableActionInvoked(tableName) }
+        listeners.forEach { it.closeTableActionInvoked(tableId) }
       }
 
       override fun update(e: AnActionEvent) {

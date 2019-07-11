@@ -22,7 +22,7 @@ import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.level2.GlobalLibraryMap
 import com.android.java.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
-import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions
+import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
@@ -86,7 +86,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       }
     }
 
-    if (!androidModules.isEmpty()) {
+    if (androidModules.isNotEmpty()) {
       val module = androidModules[0].ideaModule
       controller.findModel(module.gradleProject, GlobalLibraryMap::class.java)?.also { globalLibraryMap ->
         consumer.consume(module, globalLibraryMap, GlobalLibraryMap::class.java)
@@ -103,7 +103,10 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
                            ?: throw IllegalStateException("Single variant sync requested, but SelectedVariants were null!")
     chooseSelectedVariants(controller, androidModules, selectedVariants, syncActionOptions.shouldGenerateSources())
     androidModules.forEach { module ->
-      consumer.consume(module.ideaModule, module.variantGroup, VariantGroup::class.java)
+      // Variants can be empty if single-variant sync is enabled but not supported for current module.
+      if (module.variantGroup.variants.isNotEmpty()) {
+        consumer.consume(module.ideaModule, module.variantGroup, VariantGroup::class.java)
+      }
     }
   }
 
@@ -113,7 +116,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     consumer: ProjectImportExtraModelProvider.BuildModelConsumer
   ) {
     project.modules.forEach { module ->
-      controller.findModel(module.gradleProject, ProjectSyncIssues::class.java)?.also {  projectSyncIssues ->
+      controller.findModel(module.gradleProject, ProjectSyncIssues::class.java)?.also { projectSyncIssues ->
         consumer.consume(module, projectSyncIssues, ProjectSyncIssues::class.java)
       }
     }

@@ -23,7 +23,6 @@ import static com.intellij.util.ExceptionUtil.rethrowUnchecked;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
@@ -48,11 +47,9 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
  */
 public class GradleProjectImporter {
-  private static final Logger LOG = Logger.getInstance(GradleProjectImporter.class);
   // A copy of a private constant from GradleJvmStartupActivity.
   @NonNls private static final String SHOW_UNLINKED_GRADLE_POPUP = "show.inlinked.gradle.project.popup";
   @NotNull private final SdkSync mySdkSync;
-  @NotNull private final GradleSyncInvoker myGradleSyncInvoker;
   @NotNull private final NewProjectSetup myNewProjectSetup;
   @NotNull private final ProjectFolder.Factory myProjectFolderFactory;
 
@@ -61,17 +58,15 @@ public class GradleProjectImporter {
     return ServiceManager.getService(GradleProjectImporter.class);
   }
 
-  public GradleProjectImporter(@NotNull SdkSync sdkSync, @NotNull GradleSyncInvoker gradleSyncInvoker) {
-    this(sdkSync, gradleSyncInvoker, new NewProjectSetup(), new ProjectFolder.Factory());
+  public GradleProjectImporter(@NotNull SdkSync sdkSync) {
+    this(sdkSync, new NewProjectSetup(), new ProjectFolder.Factory());
   }
 
   @VisibleForTesting
   GradleProjectImporter(@NotNull SdkSync sdkSync,
-                        @NotNull GradleSyncInvoker gradleSyncInvoker,
                         @NotNull NewProjectSetup newProjectSetup,
                         @NotNull ProjectFolder.Factory projectFolderFactory) {
     mySdkSync = sdkSync;
-    myGradleSyncInvoker = gradleSyncInvoker;
     myNewProjectSetup = newProjectSetup;
     myProjectFolderFactory = projectFolderFactory;
   }

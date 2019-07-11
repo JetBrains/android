@@ -17,14 +17,16 @@ package com.android.tools.idea.tests.gui.framework.aspects;
 
 import static org.junit.Assert.fail;
 
-import com.android.tools.idea.tests.gui.framework.AspectsAgentLogger;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -44,7 +46,7 @@ public class AspectsAgentLogTest {
 
   @Test
   public void checkForViolations() throws IOException {
-    File aspectsLog = AspectsAgentLogger.getAspectsAgentLog();
+    File aspectsLog = AspectsAgentLogUtil.getAspectsAgentLog();
     if (aspectsLog == null) {
       LOGGER.info("The aspects agent log was not checked.");
       return;
@@ -94,6 +96,35 @@ public class AspectsAgentLogTest {
     }
     else {
       LOGGER.info("No aspects agent violations found. Congratulations!");
+    }
+  }
+
+  @Test
+  public void filterBaselineMethods() throws IOException {
+    File activeStackTraces = AspectsAgentLogUtil.getAspectsActiveStackTracesLog();
+    if (activeStackTraces == null) {
+      LOGGER.info("The aspects agent active stacktraces were not checked.");
+      return;
+    }
+    // Create a set with the stacktraces that were hit in the current run of UI tests.
+    Set<String> generatedBaseline = new HashSet<>(Files.readAllLines(activeStackTraces.toPath()));
+
+    // Create a set with the stacktraces currently whitelisted in the baseline.
+    Set<String> currentBaseline = new HashSet<>(Files.readAllLines(Paths.get(GuiTestOptions.INSTANCE.getAspectsAgentBaseline())));
+
+    // Check whether we can remove some of the stacktraces from the baseline.
+    currentBaseline.removeAll(generatedBaseline);
+    if (!currentBaseline.isEmpty()) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("The following stack traces can probably be removed from the aspects agent baseline:\n");
+      currentBaseline.forEach((stacktrace -> {
+        sb.append(stacktrace);
+        sb.append("\n");
+      }));
+      LOGGER.warn(sb.toString());
+    }
+    else {
+      LOGGER.info("Baseline is up to date.");
     }
   }
 }

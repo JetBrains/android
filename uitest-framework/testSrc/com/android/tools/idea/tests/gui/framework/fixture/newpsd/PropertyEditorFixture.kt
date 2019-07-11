@@ -25,6 +25,7 @@ import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JTextComponentFixture
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.Container
+import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JList
 import javax.swing.JTextField
@@ -40,12 +41,12 @@ class PropertyEditorFixture(
 
 
   fun selectItem(text: String) {
-    val comboBoxFixture = createComboBoxFicture()
+    val comboBoxFixture = createComboBoxFixture()
     comboBoxFixture.selectItem(text)
   }
 
   fun selectItemWithKeyboard(text: String, andTab: Boolean = false) {
-    val comboBoxFixture = createComboBoxFicture()
+    val comboBoxFixture = createComboBoxFixture()
     comboBoxFixture.focus()
     val contents = comboBoxFixture.contents()
     val index = contents.indexOf(text)
@@ -61,19 +62,27 @@ class PropertyEditorFixture(
     val comboBox = JComboBoxFixture(
       robot(),
       robot().finder().findByType<ComboBox<*>>(container))
+    comboBox.selectAllText()
     comboBox.enterText(text)
     robot().type(9.toChar())
   }
 
   fun getText(): String {
-    val textFiexture = JTextComponentFixture(
+    val textFixture = JTextComponentFixture(
       robot(),
       robot().finder().findByType<JTextField>(
         robot().finder().findByType<ComboBox<*>>(container)))
-    return textFiexture.text().orEmpty()
+    return textFixture.text().orEmpty()
   }
 
-  private fun createComboBoxFicture(): JComboBoxFixture {
+  fun invokeExtractVariable(): ExtractVariableFixture {
+    val comboBoxFixture = createComboBoxFixture()
+    comboBoxFixture.focus()
+    robot().pressAndReleaseKey(KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK)
+    return ExtractVariableFixture.find(robot())
+  }
+
+  private fun createComboBoxFixture(): JComboBoxFixture {
     val comboBoxFixture = JComboBoxFixture(robot(), robot().finder().findByType<ComboBox<*>>(
         container))
     comboBoxFixture.replaceCellReader { comboBox, index ->

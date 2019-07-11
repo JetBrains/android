@@ -97,10 +97,10 @@ class SerializationTest : TestCase() {
   fun testDrawSelfAction() {
     val factory = { s: String -> DrawSelfAction(s) }
 
-    testSerialization("DrawSelfAction,10.0x20.0,30.0x40.0,ffff0000",
-                      DrawSelfAction(Point2D.Float(10f, 20f), Point2D.Float(30f, 40f), Color.RED), factory)
-    testSerialization("DrawSelfAction,50.0x60.0,70.0x80.0,ff0000ff",
-                      DrawSelfAction(Point2D.Float(50f, 60f), Point2D.Float(70f, 80f), Color.BLUE), factory)
+    testSerialization("DrawSelfAction,10.0x20.0x30.0x40.0,1.0,ffff0000,false",
+                      DrawSelfAction(Rectangle2D.Float(10f, 20f,30f, 40f), 1f, Color.RED, false), factory)
+    testSerialization("DrawSelfAction,50.0x60.0x70.0x80.0,2.0,ff0000ff,true",
+                      DrawSelfAction(Rectangle2D.Float(50f, 60f,70f, 80f), 2f, Color.BLUE, true), factory)
   }
 
   fun testDrawPlaceholder() {

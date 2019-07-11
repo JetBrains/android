@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,7 +94,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
       ResourceFolderType folderType = FolderTypeRelationship.getNonValuesRelatedFolder(resType);
       if (folderType != null && newElementName.contains(".")) {
         // If it does, we need to chop off its extension when inserting the new value.
-        newResName = AndroidCommonUtils.getResourceName(resType.getName(), newElementName);
+        newResName = AndroidBuildCommonUtils.getResourceName(resType.getName(), newElementName);
       }
       else {
         newResName = newElementName;

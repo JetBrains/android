@@ -27,16 +27,14 @@ import com.intellij.util.messages.Topic
 interface ProjectSystemSyncManager {
   /**
    * Triggers synchronizing the IDE model with the build system model of the project. Source generation
-   * may be triggered regardless of the value of [requireSourceGeneration], though implementing classes may
-   * use this flag for optimization. If source generation is triggered, the future result of the sync request will
+   * may be triggered when sync completes. If source generation is triggered, the future result of the sync request will
    * not be set until after source generation completes.
    *
    * @param reason the caller's reason for requesting a sync
-   * @param requireSourceGeneration a hint to the underlying project system to optionally generate sources after a successful sync
    *
    * @return the future result of the sync request
    */
-  fun syncProject(reason: ProjectSystemSyncManager.SyncReason, requireSourceGeneration: Boolean = true): ListenableFuture<SyncResult>
+  fun syncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<SyncResult>
 
   /**
    * Returns whether or not a sync is in progress. The return value of this method can change at any time as syncs are performed.

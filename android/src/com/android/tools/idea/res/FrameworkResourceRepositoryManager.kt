@@ -24,6 +24,7 @@ import com.android.tools.idea.resources.aar.RESOURCE_CACHE_DIRECTORY
 import com.google.common.hash.Hashing
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
+import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -83,5 +84,10 @@ class FrameworkResourceRepositoryManager {
     val filename = String.format("%s_%s.bin", prefix, pathHash)
     val cacheFile = Paths.get(PathManager.getSystemPath(), RESOURCE_CACHE_DIRECTORY, filename)
     return CachingData(cacheFile, contentVersion, codeVersion, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor())
+  }
+
+  @TestOnly
+  fun clearCache() {
+    cache.clear()
   }
 }

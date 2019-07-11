@@ -29,6 +29,7 @@ import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.NavLogEvent
@@ -91,6 +92,8 @@ import kotlin.test.assertNotEquals
 class NavDesignSurfaceTest : NavTestCase() {
 
   fun testSwitchTabMetrics() {
+    // TODO(b/136174865): port metrics to split editor
+    StudioFlags.NELE_SPLIT_EDITOR.override(false)
     val model = model("nav.xml") { navigation() }
     val file = model.virtualFile
     val fileEditorManager = FileEditorManagerImpl(project, DockManager.getInstance(project))
@@ -111,6 +114,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       fileEditorManager.setSelectedEditor(file, NAV_EDITOR_ID)
       verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.SELECT_DESIGN_TAB).build())
     }
+    StudioFlags.NELE_SPLIT_EDITOR.clearOverride()
   }
 
   fun testOpenFileMetrics() {

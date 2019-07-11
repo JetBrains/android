@@ -53,6 +53,9 @@ public final class ComponentTreeTest {
     Path activityMainXmlRelativePath = FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");
 
     EditorFixture editor = myGuiTest.ideFrame().getEditor()
+      // When we create a project using the wizard, files are open with the default editor before sync. After sync, close file in case it
+      // before opening, to cover the case of HIDE_DEFAULT_EDITOR policy.
+      .closeFile(activityMainXmlRelativePath.toString())
       .open(activityMainXmlRelativePath)
       .replaceText(
         "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +

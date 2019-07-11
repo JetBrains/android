@@ -19,6 +19,7 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.xml.AndroidManifest.NODE_INTENT;
 
 import com.android.SdkConstants;
+import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.MergedManifestSnapshot;
@@ -82,9 +83,18 @@ public class DefaultActivityLocator extends ActivityLocator {
 
     // Workaround for b/123339491 since the Mac touchbar icon updater will call this method on the UI thread
     // This workaround avoids calculating the MergedManifest on the UI thread.
-    final MergedManifestSnapshot mergedManifest = useCachedManifest ?
-                                                  MergedManifestManager.getCachedSnapshot(facet) :
-                                                  MergedManifestManager.getSnapshot(facet);
+    final MergedManifestSnapshot mergedManifest;
+    if (useCachedManifest) {
+      AsyncSupplier<MergedManifestSnapshot> manifestSupplier = MergedManifestManager.getMergedManifestSupplier(facet.getModule());
+      // This will trigger recomputation of the merged manifest in the background if it's out of date
+      // or has never been computed. Doing so won't help us this time, but it will help keep the manifest
+      // fresh for future callers.
+      manifestSupplier.get();
+      mergedManifest = manifestSupplier.getNow();
+    }
+    else {
+      mergedManifest = MergedManifestManager.getFreshSnapshot(facet.getModule());
+    }
 
     if (mergedManifest == null) {
       return null;

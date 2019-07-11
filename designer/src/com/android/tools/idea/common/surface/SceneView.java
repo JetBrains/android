@@ -102,6 +102,12 @@ public abstract class SceneView {
     return getSize(null);
   }
 
+  /**
+   * Get the height of the name label which displays the name on the top of SceneView.
+   * The value is sum of text height and space between text and SceneView.
+   */
+  abstract public int getNameLabelHeight();
+
   @NotNull
   abstract public Dimension getPreferredSize(@Nullable Dimension dimension);
 
@@ -204,13 +210,6 @@ public abstract class SceneView {
   @NotNull
   public SceneManager getSceneManager() {
     return myManager;
-  }
-
-  /**
-   * Sets the tool tip to be shown
-   */
-  public void setToolTip(@Nullable String toolTip) {
-    getSurface().setDesignToolTip(toolTip);
   }
 
   @NotNull

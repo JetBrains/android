@@ -172,9 +172,9 @@ public class SimplerCanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int startMask) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     myPerfDebugHelper.start("[Simple Resize] - begin");
-    super.begin(x, y, startMask);
+    super.begin(x, y, modifiersEx);
     myCurrentX = x;
     myCurrentY = y;
 
@@ -205,7 +205,7 @@ public class SimplerCanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     myPerfDebugHelper.start("[Simple Resize] - update");
     if (myOriginalDevice.isScreenRound()) {
       // Force aspect preservation
@@ -220,7 +220,7 @@ public class SimplerCanvasResizeInteraction extends Interaction {
     }
 
     snapToDevice(x, y);
-    super.update(myCurrentX, myCurrentY, modifiers);
+    super.update(myCurrentX, myCurrentY, modifiersEx);
 
     JComponent layeredPane = myDesignSurface.getLayeredPane();
     int maxX = Coordinates.getSwingX(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
@@ -252,9 +252,9 @@ public class SimplerCanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx, boolean canceled) {
     myPerfDebugHelper.start("[Simple Resize] - end");
-    super.end(x, y, modifiers, canceled);
+    super.end(x, y, modifiersEx, canceled);
 
     // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
     myDesignSurface.setResizeMode(false);

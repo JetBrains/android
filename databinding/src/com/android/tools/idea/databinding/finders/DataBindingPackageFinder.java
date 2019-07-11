@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.databinding.finders;
 
-import static com.android.tools.idea.databinding.ViewBindingUtil.isViewBindingEnabled;
-
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
-import com.android.tools.idea.res.BindingLayoutInfo;
+import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
@@ -33,12 +30,9 @@ import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.util.ArrayUtil;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -66,20 +60,6 @@ public class DataBindingPackageFinder extends PsiElementFinder {
     myComponent = project.getComponent(DataBindingProjectComponent.class);
     myPackageCache = CachedValuesManager.getManager(project).createCachedValue(
       new ProjectResourceCachedValueProvider<Map<String, PsiPackage>, Set<String>>(myComponent) {
-
-        @NotNull
-        @Override
-        protected AndroidFacet[] getFacets() {
-          AndroidFacet[] viewBindingEnabledFacets = Arrays.stream(ModuleManager.getInstance(myComponent.getProject()).getModules())
-            .map(module -> AndroidFacet.getInstance(module))
-            .filter(Objects::nonNull)
-            .filter(facet -> isViewBindingEnabled(facet))
-            .toArray(AndroidFacet[]::new);
-          if (ArrayUtil.isEmpty(viewBindingEnabledFacets)) {
-            return super.getFacets();
-          }
-          return viewBindingEnabledFacets;
-        }
 
         @NotNull
         @Override

@@ -17,10 +17,8 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
-import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.sqlite.SqliteService
-import com.android.tools.idea.sqlite.model.SqliteModel
-import com.android.tools.idea.sqlite.model.SqliteModelListener
+import com.android.tools.idea.sqlite.SqliteServiceFactory
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
@@ -32,21 +30,23 @@ import com.google.common.util.concurrent.FutureCallback
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.EdtExecutorService
+import org.jetbrains.ide.PooledThreadExecutor
 import java.util.concurrent.Executor
+import kotlin.properties.Delegates
 
 /**
- * Implementation of the application logic related to viewing/editing of a single sqlite database.
+ * Implementation of the application logic related to viewing/editing sqlite databases.
  *
  * All methods are assumed to run on the UI (EDT) thread.
  */
 @UiThread
 class SqliteController(
   parentDisposable: Disposable,
+  private val sqliteServiceFactory: SqliteServiceFactory,
   private val viewFactory: SqliteEditorViewFactory,
-  private val sqliteModel: SqliteModel,
-  private val sqliteView: SqliteView,
-  private val sqliteService: SqliteService,
+  val sqliteView: SqliteView,
   edtExecutor: EdtExecutorService,
   taskExecutor: Executor
 ) : Disposable {
@@ -57,17 +57,22 @@ class SqliteController(
   private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val taskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
 
-  private var sqliteEvaluatorController: SqliteEvaluatorController? = null
-
   /**
-   * Controllers for all open result views, keyed by table name.
+   * Controllers for all open tabs, keyed by id.
    *
-   * <p>Multiple tables can be open at the same time in different tabs. This map keeps track of corresponding controllers.
+   * <p>Multiple tables can be open at the same time in different tabs.
+   * This map keeps track of corresponding controllers.
    */
-  private val resultSetControllers = mutableMapOf<String, ResultSetController>()
+  private val resultSetControllers = mutableMapOf<TabId, Disposable>()
 
   private val sqliteViewListener = SqliteViewListenerImpl()
-  private val sqliteModelListener = SqliteModelListenerImpl()
+
+  private lateinit var sqliteService: SqliteService
+
+  private var sqliteSchema: SqliteSchema by Delegates.observable(SqliteSchema.EMPTY) { _, _, newValue ->
+    logger.info("Schema changed $newValue")
+    sqliteView.displaySchema(newValue)
+  }
 
   init {
     Disposer.register(parentDisposable, this)
@@ -75,16 +80,17 @@ class SqliteController(
 
   fun setUp() {
     sqliteView.addListener(sqliteViewListener)
-    sqliteModel.addListener(sqliteModelListener)
+  }
 
-    sqliteView.setUp()
+  fun openSqliteDatabase(sqliteFile: VirtualFile) {
+    sqliteService = sqliteServiceFactory.getSqliteService(sqliteFile, this, PooledThreadExecutor.INSTANCE)
+
     sqliteView.startLoading("Opening Sqlite database...")
     loadDbSchema()
   }
 
   override fun dispose() {
     sqliteView.removeListener(sqliteViewListener)
-    sqliteModel.removeListener(sqliteModelListener)
   }
 
   private fun loadDbSchema() {
@@ -111,7 +117,7 @@ class SqliteController(
 
   private fun setDatabaseSchema(schema: SqliteSchema) {
     if (!Disposer.isDisposed(this)) {
-      sqliteModel.schema = schema
+      this.sqliteSchema = schema
     }
   }
 
@@ -129,8 +135,9 @@ class SqliteController(
 
   private inner class SqliteViewListenerImpl : SqliteViewListener {
     override fun tableNodeActionInvoked(table: SqliteTable) {
-      if(resultSetControllers.containsKey(table.name)) {
-        sqliteView.focusTable(table.name)
+      val tableId = TabId.TableTab(table.name)
+      if (tableId in resultSetControllers) {
+        sqliteView.focusTab(tableId)
         return
       }
 
@@ -139,7 +146,7 @@ class SqliteController(
           if (sqliteResultSet != null) {
 
             val tableView = viewFactory.createTableView()
-            sqliteView.displayTable(table.name, tableView.component)
+            sqliteView.displayResultSet(tableId, table.name, tableView.component)
 
             val resultSetController = ResultSetController(
               this@SqliteController,
@@ -147,7 +154,7 @@ class SqliteController(
               edtExecutor
             ).also { it.setUp() }
 
-            resultSetControllers[table.name] = resultSetController
+            resultSetControllers[tableId] = resultSetController
           }
         }
 
@@ -157,27 +164,28 @@ class SqliteController(
       })
     }
 
-    override fun closeTableActionInvoked(tableName: String) {
-      sqliteView.closeTable(tableName)
+    override fun openSqliteEvaluatorTabActionInvoked() {
+      val tableId = TabId.AdHocQueryTab()
 
-      val controller = resultSetControllers.remove(tableName)
-      controller?.let(Disposer::dispose)
-    }
+      val sqliteEvaluatorView = viewFactory.createEvaluatorView()
+      // TODO(b/136556640) What name should we use for these tabs?
+      sqliteView.displayResultSet(tableId, "New Query", sqliteEvaluatorView.component)
 
-    override fun openSqliteEvaluatorActionInvoked() {
-      if(sqliteEvaluatorController != null) {
-        sqliteEvaluatorController?.requestFocus()
-        return
-      }
-
-      val sqlEvaluatorView = viewFactory.createEvaluatorDialog()
-
-      sqliteEvaluatorController = SqliteEvaluatorController(
+      val sqliteEvaluatorController = SqliteEvaluatorController(
         this@SqliteController,
-        sqlEvaluatorView, sqliteService, edtExecutor
+        sqliteEvaluatorView, sqliteService, edtExecutor
       ).also { it.setUp() }
 
-      sqlEvaluatorView.addListener(SqliteEvaluatorViewListenerImpl())
+      resultSetControllers[tableId] = sqliteEvaluatorController
+
+      sqliteEvaluatorView.addListener(SqliteEvaluatorViewListenerImpl())
+    }
+
+    override fun closeTableActionInvoked(tableId: TabId) {
+      sqliteView.closeTab(tableId)
+
+      val controller = resultSetControllers.remove(tableId)
+      controller?.let(Disposer::dispose)
     }
   }
 
@@ -185,21 +193,10 @@ class SqliteController(
     override fun evaluateSqlActionInvoked(sqlInstruction: String) {
       updateView()
     }
-
-    override fun sessionClosed() {
-      sqliteEvaluatorController = null
-    }
   }
+}
 
-  private inner class SqliteModelListenerImpl : SqliteModelListener {
-    override fun schemaChanged(schema: SqliteSchema) {
-      logger.info("Schema changed $schema")
-      sqliteView.displaySchema(schema)
-    }
-
-    override fun deviceFileIdChanged(fileId: DeviceFileId) {
-      logger.info("Device file id changed: $fileId")
-      //TODO(b/131588252)
-    }
-  }
+sealed class TabId {
+  data class TableTab(val tableName: String) : TabId()
+  class AdHocQueryTab : TabId()
 }

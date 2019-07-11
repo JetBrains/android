@@ -18,7 +18,7 @@
 package com.android.tools.idea.lang.databinding
 
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.res.BindingLayoutInfo
+import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.ModuleUtilCore

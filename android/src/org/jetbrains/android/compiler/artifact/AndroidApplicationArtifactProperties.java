@@ -14,7 +14,7 @@ import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NotNull;
 
@@ -76,8 +76,8 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
                                ? getPlainKeyPassword() : null;
     try {
       final Map<AndroidCompilerMessageKind,List<String>> messages =
-        AndroidCommonUtils.buildArtifact(artifactName, messagePrefix, sdkLocation, platform.getTarget(), artifactFilePath,
-                                         keyStorePath, myKeyAlias, keyStorePassword, keyPassword);
+        AndroidBuildCommonUtils.buildArtifact(artifactName, messagePrefix, sdkLocation, platform.getTarget(), artifactFilePath,
+                                              keyStorePath, myKeyAlias, keyStorePassword, keyPassword);
       AndroidCompileUtil.addMessages(context, AndroidCompileUtil.toCompilerMessageCategoryKeys(messages), null);
     }
     catch (GeneralSecurityException e) {

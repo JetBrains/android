@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.testing;
 
-import com.android.tools.idea.sdk.IdeSdks;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
+
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ComponentManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.impl.ProjectImpl;
@@ -27,18 +31,13 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.NotNullLazyKey;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.util.pico.DefaultPicoContainer;
+import java.lang.reflect.Field;
+import java.util.ArrayDeque;
+import java.util.Queue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.stubbing.Answer;
 import org.picocontainer.ComponentAdapter;
-
-import java.lang.reflect.Field;
-import java.util.ArrayDeque;
-import java.util.Queue;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.mock;
 
 public final class IdeComponents implements Disposable {
   private Project myProject;
@@ -89,8 +88,8 @@ public final class IdeComponents implements Disposable {
     doReplaceService(myProject, serviceType, newServiceInstance, myUndoQueue);
   }
 
-  public void replaceProjectDumbService(@NotNull DumbService newServiceInstance) {
-    doReplaceProjectDumbService(myProject, newServiceInstance, myUndoQueue);
+  public <T> void replaceModuleService(@NotNull Module module, @NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
+    doReplaceService(module, serviceType, newServiceInstance, myUndoQueue);
   }
 
   /**

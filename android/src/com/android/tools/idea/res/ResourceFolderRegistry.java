@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.concurrency.CacheUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -35,7 +36,6 @@ import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
@@ -46,10 +46,8 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +95,7 @@ public class ResourceFolderRegistry implements Disposable {
   }
 
   @NotNull
-  public ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir) {
+  public ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir) {
     // ResourceFolderRepository.create may require the IDE read lock. To avoid deadlocks it is always obtained first, before the caches
     // locks.
     return ReadAction.compute(() -> get(facet, dir, ResourceRepositoryManager.getInstance(facet).getNamespace()));
@@ -105,11 +103,11 @@ public class ResourceFolderRegistry implements Disposable {
 
   @VisibleForTesting
   @NotNull
-  ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir, @NotNull ResourceNamespace namespace) {
+  ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir, @NotNull ResourceNamespace namespace) {
     Cache<VirtualFile, ResourceFolderRepository> cache =
         namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
 
-    ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> ResourceFolderRepository.create(facet, dir, namespace));
+    ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> createRepository(facet, dir, namespace));
 
     assert repository.getNamespace().equals(namespace);
 
@@ -117,6 +115,15 @@ public class ResourceFolderRegistry implements Disposable {
     // assert repository.getFacet().equals(facet);
 
     return repository;
+  }
+
+  @NotNull
+  private static ResourceFolderRepository createRepository(@NotNull AndroidFacet facet,
+                                                           @NotNull VirtualFile dir,
+                                                           @NotNull ResourceNamespace namespace) {
+    ResourceFolderRepositoryCachingData cachingData = ResourceFolderRepositoryFileCacheService.get()
+        .getCachingData(facet.getModule().getProject(), dir, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor());
+    return ResourceFolderRepository.create(facet, dir, namespace, cachingData);
   }
 
   @Nullable
@@ -176,17 +183,15 @@ public class ResourceFolderRegistry implements Disposable {
       if (resDirectories.isEmpty()) {
         return;
       }
+
       // Make sure the cache root is created before parallel execution to avoid racing to create the root.
-      Path projectCacheRoot = ResourceFolderRepositoryFileCacheService.get().getProjectDir(myProject);
-      if (projectCacheRoot == null) {
-        return;
-      }
       try {
-        FileUtil.ensureExists(projectCacheRoot.toFile());
+        ResourceFolderRepositoryFileCacheService.get().createDirForProject(myProject);
       }
       catch (IOException e) {
         return;
       }
+
       Application application = ApplicationManager.getApplication();
       // Beware if the current thread is holding the write lock. The current thread will
       // end up waiting for helper threads to finish, and the helper threads will be
@@ -195,9 +200,7 @@ public class ResourceFolderRegistry implements Disposable {
 
       int numDone = 0;
 
-      // Cap the threads to 4 for now. Scaling is okay from 1 to 2, but not necessarily much better as we go higher.
-      int maxThreads = Math.min(4, Runtime.getRuntime().availableProcessors());
-      ExecutorService parallelExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRegistry", maxThreads);
+      ExecutorService parallelExecutor = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
       List<Future<ResourceFolderRepository>> repositoryJobs = new ArrayList<>();
       for (Map.Entry<VirtualFile, AndroidFacet> entry : resDirectories.entrySet()) {
         AndroidFacet facet = entry.getValue();

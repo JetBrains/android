@@ -2,7 +2,7 @@ package org.jetbrains.jps.android.builder;
 
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.compiler.tools.AndroidApkBuilder;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.ProjectPaths;
 import org.jetbrains.jps.android.AndroidJpsUtil;
@@ -118,7 +118,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
-      super(AndroidCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID, "Packaging");
+      super(AndroidBuildCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID, "Packaging");
     }
 
     @Override

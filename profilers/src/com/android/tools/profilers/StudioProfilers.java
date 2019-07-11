@@ -26,14 +26,16 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Device;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
+import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
@@ -898,12 +900,25 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       int samplingRateOff = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
       // If live allocation is already disabled, don't send any request.
       if (savedSamplingRate != samplingRateOff) {
-        getClient().getMemoryClient().setAllocationSamplingRate(
-          SetAllocationSamplingRateRequest
-            .newBuilder()
-            .setSession(getSession())
-            .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(enabled ? savedSamplingRate : samplingRateOff))
-            .build());
+        MemoryAllocSamplingData samplingRate = MemoryAllocSamplingData.newBuilder()
+          .setSamplingNumInterval(enabled ? savedSamplingRate : samplingRateOff)
+          .build();
+
+        if (getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+          getClient().getTransportClient().execute(
+            Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
+                                                               .setStreamId(getSession().getStreamId())
+                                                               .setPid(getSession().getPid())
+                                                               .setType(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING)
+                                                               .setMemoryAllocSampling(samplingRate))
+              .build());
+        }
+        else {
+          getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
+                                                                    .setSession(getSession())
+                                                                    .setSamplingRate(samplingRate)
+                                                                    .build());
+        }
       }
     }
   }

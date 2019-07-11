@@ -294,8 +294,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                      @NotNull ViewHandler handler,
                                      @NotNull NlComponent component,
                                      @NotNull List<NlComponent> selectedChildren,
-                                     @InputEventMask int modifiers) {
-        super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiers);
+                                     @InputEventMask int modifiersEx) {
+        super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiersEx);
         presentation.setVisible(isConstraintLayoutChild(selectedChildren));
       }
     });
@@ -314,8 +314,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                        @NotNull ViewHandler handler,
                                        @NotNull NlComponent component,
                                        @NotNull List<NlComponent> selectedChildren,
-                                       @InputEventMask int modifiers) {
-          super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiers);
+                                       @InputEventMask int modifiersEx) {
+          super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiersEx);
           presentation.setVisible(isConstraintLayoutChild(selectedChildren));
         }
       });
@@ -574,7 +574,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
+                                   @InputEventMask int modifiersEx) {
       presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
       presentation.setLabel("Clear Constraints of Selection");
     }
@@ -615,7 +615,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
+                                   @InputEventMask int modifiersEx) {
       presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD);
       presentation.setLabel("Convert to MotionLayout");
     }
@@ -662,7 +662,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
+                                   @InputEventMask int modifiersEx) {
       presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.INFER_CONSTRAINTS);
       presentation.setLabel("Infer Constraints");
     }
@@ -692,7 +692,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
+                                   @InputEventMask int modifiersEx) {
       presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.INFER_CONSTRAINTS);
       presentation.setLabel("Infer Constraints (new)");
     }
@@ -998,7 +998,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
+                                   @InputEventMask int modifiersEx) {
       boolean show = true;
       if (myType == VERTICAL_BARRIER || myType == HORIZONTAL_BARRIER) {
         show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 0);
@@ -1140,11 +1140,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
+                                   @InputEventMask int modifiersEx) {
 
       Icon icon = myAlignIcon;
       if (myConstrainIcon != null) {
-        if (ToggleAutoConnectAction.isAutoconnectOn() || (InputEvent.CTRL_MASK & modifiers) == 0) {
+        if (ToggleAutoConnectAction.isAutoconnectOn() || (InputEvent.CTRL_MASK & modifiersEx) == 0) {
           icon = myConstrainIcon;
         }
       }
@@ -1394,11 +1394,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
+                                   @InputEventMask int modifiersEx) {
       // TODO: Use AndroidIcons.SherpaIcons.Margin instead?
       updateIcon();
       if (myMarginIcon instanceof ControlIcon) {
-        ((ControlIcon)myMarginIcon).setHighlight(ToggleAutoConnectAction.isAutoconnectOn() || (InputEvent.CTRL_MASK & modifiers) == 0);
+        ((ControlIcon)myMarginIcon).setHighlight(ToggleAutoConnectAction.isAutoconnectOn() || (InputEvent.CTRL_MASK & modifiersEx) == 0);
       }
       presentation.setIcon(myMarginIcon);
     }
@@ -1705,12 +1705,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                      @NotNull ViewHandler handler,
                                      @NotNull NlComponent component,
                                      @NotNull List<NlComponent> selectedChildren,
-                                     @InputEventMask int modifiers) {
+                                     @InputEventMask int modifiersEx) {
 
 
         Icon icon = myConnectConstraintIcon;
         if (myConstrainIcon != null) {
-          if (ToggleAutoConnectAction.isAutoconnectOn() || (InputEvent.CTRL_MASK & modifiers) == 0) {
+          if (ToggleAutoConnectAction.isAutoconnectOn() || (InputEvent.CTRL_MASK & modifiersEx) == 0) {
             icon = myConstrainIcon;
           }
         }
@@ -1755,7 +1755,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                      @NotNull ViewHandler handler,
                                      @NotNull NlComponent component,
                                      @NotNull List<NlComponent> selectedChildren,
-                                     int modifiers) {
+                                     int modifiersEx) {
         String label;
         if (selectedChildren.size() > mIndex) {
           label = selectedChildren.get(mIndex).getId();

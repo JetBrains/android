@@ -1,6 +1,6 @@
 package org.jetbrains.jps.android.builder;
 
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.ProjectPaths;
@@ -58,14 +58,14 @@ public class AndroidLibraryPackagingTarget extends AndroidBuildTarget {
   @NotNull
   public File getOutputFile(BuildDataPaths dataPaths) {
     final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(dataPaths, myModule);
-    return new File(dir, AndroidCommonUtils.CLASSES_JAR_FILE_NAME);
+    return new File(dir, AndroidBuildCommonUtils.CLASSES_JAR_FILE_NAME);
   }
 
   public static class MyTargetType extends AndroidBuildTargetType<AndroidLibraryPackagingTarget> {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
-      super(AndroidCommonUtils.LIBRARY_PACKAGING_BUILD_TARGET_ID, "Library Packaging");
+      super(AndroidBuildCommonUtils.LIBRARY_PACKAGING_BUILD_TARGET_ID, "Library Packaging");
     }
 
     @Nullable

@@ -54,7 +54,6 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
 
     // Assert
     verify(sqliteEvaluatorView).addListener(any(SqliteEvaluatorViewListener::class.java))
-    verify(sqliteEvaluatorView).show()
   }
 
   fun testEvaluateSqlActionQuerySuccess() {

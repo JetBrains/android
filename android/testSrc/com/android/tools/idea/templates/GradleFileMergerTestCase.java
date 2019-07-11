@@ -123,6 +123,12 @@ public abstract class GradleFileMergerTestCase extends AndroidGradleTestCase {
                    "templates/MergedDependenciesBlock.gradle");
   }
 
+  public void testAddApplyPlugin() throws Exception {
+    checkFileMerge("templates/Base.gradle",
+                   "templates/AddApplyPlugin.gradle",
+                   "templates/MergedApplyPlugin.gradle");
+  }
+
   public void testRemoveExistingDependencies() throws Exception {
     checkDependenciesRemoved("compile", "compile");
     checkDependenciesRemoved("compile", "implementation");

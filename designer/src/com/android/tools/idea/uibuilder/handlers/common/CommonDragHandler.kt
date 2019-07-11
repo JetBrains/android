@@ -121,7 +121,6 @@ internal class CommonDragHandler(editor: ViewEditor,
      * TODO: makes [CommonDragHandler] can be used in all [ViewGroupHandler].
      */
     private val HANDLER_CLASSES_NOT_SUPPORT= listOf(
-      DelegatingViewGroupHandler::class,
       ItemHandler::class,
       MenuHandler::class,
       PreferenceCategoryHandler::class,
@@ -130,6 +129,12 @@ internal class CommonDragHandler(editor: ViewEditor,
     )
 
     @JvmStatic
-    fun isSupportCommonDragHandler(handler: ViewGroupHandler) = handler::class !in HANDLER_CLASSES_NOT_SUPPORT
+    fun isSupportCommonDragHandler(handler: ViewGroupHandler): Boolean {
+      var checkedHandler = handler
+      while (checkedHandler is DelegatingViewGroupHandler) {
+        checkedHandler = checkedHandler.delegateHandler
+      }
+      return HANDLER_CLASSES_NOT_SUPPORT.none { it.isInstance(checkedHandler) }
+    }
   }
 }

@@ -4,8 +4,8 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.navigation.GotoRelatedProvider;
 import com.intellij.openapi.application.ApplicationManager;
@@ -15,25 +15,47 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.FileIndexFacade;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.JavaRecursiveElementWalkingVisitor;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpressionList;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.containers.HashSet;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.swing.Icon;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.*;
+import org.jetbrains.kotlin.asJava.LightClassUtilsKt;
+import org.jetbrains.kotlin.asJava.classes.KtLightClass;
+import org.jetbrains.kotlin.idea.KotlinLanguage;
+import org.jetbrains.kotlin.psi.KtCallExpression;
+import org.jetbrains.kotlin.psi.KtClass;
+import org.jetbrains.kotlin.psi.KtExpression;
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression;
+import org.jetbrains.kotlin.psi.psiUtil.KtPsiUtilKt;
 
 /**
  * @author Eugene.Kudelevsky
@@ -124,7 +146,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
 
     // TODO: Handle menus as well!
     if (ResourceFolderType.LAYOUT == resourceType) {
-      return collectRelatedJavaFiles(file, facet);
+      return collectRelatedClasses(file, facet);
     }
     return null;
   }
@@ -185,10 +207,10 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
   }
 
   @Nullable
-  private static Computable<List<GotoRelatedItem>> collectRelatedJavaFiles(@NotNull final XmlFile file,
-                                                                           @NotNull final AndroidFacet facet) {
+  private static Computable<List<GotoRelatedItem>> collectRelatedClasses(@NotNull final XmlFile file,
+                                                                         @NotNull final AndroidFacet facet) {
     final String resType = ResourceType.LAYOUT.getName();
-    final String resourceName = AndroidCommonUtils.getResourceName(resType, file.getName());
+    final String resourceName = AndroidBuildCommonUtils.getResourceName(resType, file.getName());
     final PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, resType, resourceName, true);
 
     if (fields.length == 0 || fields.length > 1) {
@@ -203,7 +225,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
       final List<PsiClass> psiContextClasses = new ArrayList<>();
 
       // Explicitly chosen in the layout/menu file with a tools:context attribute?
-      PsiClass declared = AndroidPsiUtils.getContextClass(module, file);
+      PsiClass declared = AndroidUtils.getContextClass(module, file);
       if (declared != null) {
         return Collections.singletonList(new GotoRelatedItem(declared, "JAVA"));
       }
@@ -224,34 +246,81 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
 
       ReferencesSearch.search(field, scope).forEach(reference -> {
         PsiElement element = reference.getElement();
-
-        if (!(element instanceof PsiReferenceExpression)) {
-          return true;
+        GotoRelatedItem item = null;
+        if (element.getLanguage().is(KotlinLanguage.INSTANCE)) {
+          item = checkKotlinReference(psiContextClasses, element);
+        } else if (element.getLanguage().is(JavaLanguage.INSTANCE)) {
+          item = checkJavaReference(psiContextClasses, element);
         }
-        element = element.getParent();
-
-        if (!(element instanceof PsiExpressionList)) {
-          return true;
+        if (item != null) {
+          result.add(item);
         }
-        element = element.getParent();
-
-        if (!(element instanceof PsiMethodCallExpression)) {
-          return true;
-        }
-        final String methodName = ((PsiMethodCallExpression)element).
-          getMethodExpression().getReferenceName();
-
-        if ("setContentView".equals(methodName) || "inflate".equals(methodName)) {
-          final PsiClass relatedClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
-
-          if (relatedClass != null && isInheritorOfOne(relatedClass, psiContextClasses)) {
-            result.add(new GotoRelatedItem(relatedClass, "JAVA"));
-          }
-        }
-        return true;
       });
       return result;
     };
+  }
+
+  /**
+   * @param psiContextClasses List of {android.app.Activity}, {android.app.Fragment}, support library Fragment and AndroidX Fragment if they
+   *                          are available in current module scope.
+   * @param element Reference to a layout in a Java class.
+   * @return GotoRelateItem to the class where element is located.
+   */
+  @Nullable
+  private static GotoRelatedItem checkJavaReference(@NotNull List<PsiClass> psiContextClasses, @NotNull PsiElement element) {
+    if (!(element instanceof PsiReferenceExpression)) {
+      return null;
+    }
+    element = element.getParent();
+
+    if (!(element instanceof PsiExpressionList)) {
+      return null;
+    }
+    element = element.getParent();
+
+    if (!(element instanceof PsiMethodCallExpression)) {
+      return null;
+    }
+    final String methodName = ((PsiMethodCallExpression)element).getMethodExpression().getReferenceName();
+
+    if ("setContentView".equals(methodName) || "inflate".equals(methodName)) {
+      final PsiClass relatedClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
+
+      if (relatedClass != null && isInheritorOfOne(relatedClass, psiContextClasses)) {
+        return new GotoRelatedItem(relatedClass, "");
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @param psiContextClasses List of {android.app.Activity}, {android.app.Fragment}, support library Fragment and AndroidX Fragment if they
+   *                          are available in current module scope.
+   * @param element Reference to a layout in a Kotlin class.
+   * @return
+   */
+  @Nullable
+  private static GotoRelatedItem checkKotlinReference(List<PsiClass> psiContextClasses, @NotNull PsiElement element) {
+    KtCallExpression callExpression = PsiTreeUtil.getParentOfType(element, KtCallExpression.class);
+    if (callExpression == null) {
+      return null;
+    }
+    KtExpression calleeExpression = callExpression.getCalleeExpression();
+    if (!(calleeExpression instanceof KtNameReferenceExpression)) {
+      return null;
+    }
+    String methodName = ((KtNameReferenceExpression)calleeExpression).getReferencedName();
+    if ("setContentView".equals(methodName) || "inflate".equals(methodName)) {
+      KtClass relatedClass = KtPsiUtilKt.containingClass(callExpression);;
+      if (relatedClass == null) {
+        return null;
+      }
+      KtLightClass lightClass = LightClassUtilsKt.toLightClass(relatedClass);
+      if (lightClass != null && isInheritorOfOne(lightClass, psiContextClasses)) {
+        return new GotoRelatedItem(relatedClass, "");
+      }
+    }
+    return null;
   }
 
   private static boolean isInheritorOfOne(@NotNull PsiClass psiClass, @NotNull Collection<PsiClass> possibleBaseClasses) {

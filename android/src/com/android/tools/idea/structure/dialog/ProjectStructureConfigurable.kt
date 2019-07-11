@@ -27,6 +27,7 @@ import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES
 import com.google.wireless.android.sdk.stats.PSDEvent
+import com.intellij.icons.AllIcons
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
@@ -44,6 +45,7 @@ import com.intellij.openapi.project.ProjectBundle
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.MasterDetailsComponent
 import com.intellij.openapi.ui.MessageType
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.WindowManager
@@ -61,6 +63,7 @@ import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.util.EventDispatcher
 import com.intellij.util.io.storage.HeavyProcessLatch
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import com.intellij.util.ui.UIUtil.requestFocus
@@ -299,8 +302,21 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       }
 
       override fun doCancelAction() {
-        // Do not close on Escape.
-        if (IdeEventQueue.getInstance().trueCurrentEvent.safeAs<KeyEvent>()?.keyCode == KeyEvent.VK_ESCAPE) return
+        // Ask for confirmation to close on ESC with not apllied changes.
+        if (IdeEventQueue.getInstance().trueCurrentEvent.safeAs<KeyEvent>()?.keyCode == KeyEvent.VK_ESCAPE) {
+          if (isModified) {
+            if (Messages.showDialog(
+                myProject,
+                "You have made changes that have not been applied.",
+                "Discard changes?",
+                arrayOf("Discard changes", "Continue editing"),
+                0,
+                UIUtil.getQuestionIcon()
+              ) != 0) {
+              return
+            }
+          }
+        }
         super.doCancelAction()
       }
 

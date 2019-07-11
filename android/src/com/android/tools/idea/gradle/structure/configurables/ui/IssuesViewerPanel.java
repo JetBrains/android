@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.configurables.issues.DependencyVi
 import com.android.tools.idea.gradle.structure.configurables.issues.NavigationHyperlinkListener;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsPath;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.SimpleColoredComponent;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
@@ -33,9 +34,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IssuesViewerPanel extends CollapsiblePanel {
-  private PsIssue.Severity mySeverity;
+  @VisibleForTesting
+  public PsIssue.Severity mySeverity;
   private List<PsIssue> myIssues;
-  private JEditorPane issuesView;
+  @VisibleForTesting
+  public JEditorPane issuesView;
 
   private static final PropertyChangeListener propertyChangeListener = new PropertyChangeListener() {
     @Override

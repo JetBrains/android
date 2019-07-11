@@ -29,28 +29,21 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -327,167 +320,6 @@ public class ThemeEditorStyle {
   }
 
   /**
-   * Sets the value of given attribute in a specific folder.
-   *
-   * @param configuration FolderConfiguration of style that will be modified
-   * @param attribute     the style attribute name
-   * @param value         the style attribute value
-   */
-  private void setValue(@NotNull FolderConfiguration configuration, @NotNull String attribute, @NotNull String value) {
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
-    XmlTag styleTag = findXmlTagFromConfiguration(configuration);
-    assert styleTag != null;
-
-    XmlTag tag = getValueTag(styleTag, attribute);
-    if (tag != null) {
-      tag.getValue().setEscapedText(value);
-    }
-    else {
-      // The value didn't exist, add it.
-      XmlTag child = styleTag.createChildTag(SdkConstants.TAG_ITEM, styleTag.getNamespace(), value, false);
-      child.setAttribute(SdkConstants.ATTR_NAME, attribute);
-      styleTag.addSubTag(child, false);
-    }
-  }
-
-  /**
-   * Sets the value of given attribute in all possible folders where this style is defined. If attribute or value can be used from certain API level,
-   * folders below that level won't be modified, instead new folder with certain API will be created.
-   * Note: {@link LocalResourceRepository}'s won't get updated immediately
-   *
-   * @param attribute the style attribute name
-   * @param value     the style attribute value
-   */
-  public void setValue(@NotNull String attribute, @NotNull String value) {
-    if (!isProjectStyle()) {
-      throw new UnsupportedOperationException("Non project styles can not be modified");
-    }
-    Project project = myManager.getProject();
-    int maxApi =
-      Math.max(ResolutionUtils.getOriginalApiLevel(value, myManager.getProject()), ResolutionUtils.getOriginalApiLevel(attribute, project));
-    int minSdk = ThemeEditorUtils.getMinApiLevel(myManager.getModule());
-
-    // When api level of both attribute and value is not greater that Minimum SDK,
-    // we should modify every FolderConfiguration, thus we set desiredApi to -1
-    int desiredApi = (maxApi <= minSdk) ? -1 : maxApi;
-
-    new WriteCommandAction.Simple(project, "Setting value of " + attribute) {
-      @Override
-      protected void run() {
-        // We use the ThemeEditorVirtual file as the affected file for this command to allow undo/redo operations
-        // from the Theme Editor
-        CommandProcessor.getInstance().addAffectedFiles(project, ThemeEditorVirtualFile.getThemeEditorFile(project));
-
-        Collection<FolderConfiguration> toBeCopied = findToBeCopied(desiredApi);
-        for (FolderConfiguration configuration : toBeCopied) {
-          XmlTag styleTag = findXmlTagFromConfiguration(configuration);
-          assert styleTag != null;
-          ThemeEditorUtils.copyTheme(desiredApi, styleTag);
-        }
-
-        if (!toBeCopied.isEmpty()) {
-          // We need to refreshResource, to get all copied styles
-          // Otherwise, LocalResourceRepositories won't get updated, so we won't get copied styles
-          AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
-          if (facet != null) {
-            ResourceRepositoryManager.getInstance(facet).resetAllCaches();
-            // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
-            FileDocumentManager.getInstance().saveAllDocuments();
-          }
-        }
-
-        Collection<ResourceItem> styleItems = getStyleResourceItems();
-        for (ResourceItem style : styleItems) {
-          FolderConfiguration configuration = style.getConfiguration();
-          int version = ThemeEditorUtils.getVersionFromConfiguration(configuration);
-          // If version qualifier is higher than 'desiredApi' then
-          // it means than we can modify 'attribute' to value 'value'.
-          if (version >= desiredApi) {
-            setValue(configuration, attribute, value);
-          }
-        }
-      }
-    }.execute();
-  }
-
-  /**
-   * Sets the parent of the style in a specific folder.
-   *
-   * @param configuration FolderConfiguration of style that will be modified
-   * @param newParent     new name of the parent
-   */
-  private void setParent(@NotNull FolderConfiguration configuration, @NotNull String newParent) {
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
-    XmlTag styleTag = findXmlTagFromConfiguration(configuration);
-    assert styleTag != null;
-    styleTag.setAttribute(SdkConstants.ATTR_PARENT, newParent);
-  }
-
-  /**
-   * Sets the parent of the style in all possible folders where this style is defined.
-   * If new parent can be used from certain API level, folders below that level won't be modified,
-   * instead new folder with API of the new parent will be created.
-   * <p>Note: {@link LocalResourceRepository}'s won't get updated immediately.
-   *
-   * @param qualifiedThemeName new name of the parent
-   */
-  public void setParent(@NotNull String qualifiedThemeName) {
-    if (!isProjectStyle()) {
-      throw new UnsupportedOperationException("Non project styles can not be modified");
-    }
-
-    assert !qualifiedThemeName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX);
-    assert !qualifiedThemeName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX);
-
-    String newParentResourceUrl = ResolutionUtils.getStyleResourceUrl(qualifiedThemeName);
-    Project project = myManager.getProject();
-    int parentApi = ResolutionUtils.getOriginalApiLevel(newParentResourceUrl, project);
-    int minSdk = ThemeEditorUtils.getMinApiLevel(myManager.getModule());
-
-    // When api level of both attribute and value is not greater that Minimum SDK,
-    // we should modify every FolderConfiguration, thus we set desiredApi to -1
-    int desiredApi = (parentApi <= minSdk) ? -1 : parentApi;
-
-    new WriteCommandAction.Simple(project, "Updating Parent to " + qualifiedThemeName) {
-      @Override
-      protected void run() {
-        // We use the ThemeEditorVirtual file as the affected file for this command to allow undo/redo operations
-        // from the Theme Editor
-        CommandProcessor.getInstance().addAffectedFiles(project, ThemeEditorVirtualFile.getThemeEditorFile(project));
-
-        Collection<FolderConfiguration> toBeCopied = findToBeCopied(desiredApi);
-        for (FolderConfiguration configuration : toBeCopied) {
-          XmlTag styleTag = findXmlTagFromConfiguration(configuration);
-          assert styleTag != null;
-          ThemeEditorUtils.copyTheme(desiredApi, styleTag);
-        }
-
-        if (!toBeCopied.isEmpty()) {
-          // We need to refreshResource, to get all copied styles
-          // Otherwise, LocalResourceRepositories won't get updated, so we won't get copied styles
-          AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
-          if (facet != null) {
-            ResourceRepositoryManager.getInstance(facet).resetAllCaches();
-            // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
-            FileDocumentManager.getInstance().saveAllDocuments();
-          }
-        }
-
-        Collection<ResourceItem> styleItems = getStyleResourceItems();
-        for (ResourceItem style : styleItems) {
-          FolderConfiguration configuration = style.getConfiguration();
-          int version = ThemeEditorUtils.getVersionFromConfiguration(configuration);
-          // If version qualifier is higher than 'desiredApi' then
-          // it means than we can modify 'attribute' to value 'value'.
-          if (version >= desiredApi) {
-            setParent(configuration, qualifiedThemeName);
-          }
-        }
-      }
-    }.execute();
-  }
-
-  /**
    * @param attribute The style attribute name.
    * @return the XmlTag that contains the value for a given attribute in the current style.
    */
@@ -517,40 +349,6 @@ public class ThemeEditorStyle {
     });
 
     return resultXmlTag.get();
-  }
-
-  /**
-   * Deletes an attribute of that particular style from all the relevant xml files
-   */
-  public void removeAttribute(@NotNull String attribute) {
-    if (!isProjectStyle()) {
-      throw new UnsupportedOperationException("Non project styles can not be modified");
-    }
-    Project project = myManager.getProject();
-    Collection<PsiFile> toBeEdited = new HashSet<>();
-    Collection<XmlTag> toBeRemoved = new HashSet<>();
-    for (ResourceItem resourceItem : getStyleResourceItems()) {
-      XmlTag sourceXml = LocalResourceRepository.getItemTag(project, resourceItem);
-      assert sourceXml != null;
-      XmlTag tag = getValueTag(sourceXml, attribute);
-      if (tag != null) {
-        toBeEdited.add(tag.getContainingFile());
-        toBeRemoved.add(tag);
-      }
-    }
-
-    new WriteCommandAction.Simple(project, "Removing " + attribute, toBeEdited.toArray(PsiFile.EMPTY_ARRAY)) {
-      @Override
-      protected void run() {
-        // We use the ThemeEditorVirtual file as the affected file for this command to allow undo/redo operations
-        // from the Theme Editor
-        CommandProcessor.getInstance().addAffectedFiles(project, ThemeEditorVirtualFile.getThemeEditorFile(project));
-
-        for (XmlTag tag : toBeRemoved) {
-          tag.delete();
-        }
-      }
-    }.execute();
   }
 
   /**

@@ -26,11 +26,13 @@ import com.intellij.ui.table.TableView
 import org.fest.swing.core.Robot
 import org.fest.swing.driver.BasicJTableCellReader
 import org.fest.swing.fixture.JButtonFixture
+import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JTableFixture
 import org.fest.swing.fixture.JTextComponentFixture
 import org.fest.swing.timing.Wait
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.JButton
+import javax.swing.JComboBox
 import javax.swing.JDialog
 import javax.swing.JTable
 
@@ -72,6 +74,9 @@ class AddLibraryDependencyDialogFixture private constructor(
               .orEmpty()
         })
       }
+
+  fun findConfigurationCombo(): JComboBoxFixture =
+    EditorComboBoxFixture(robot(), robot().finder().findByName(container, "configuration", JComboBox::class.java, true))
 
   fun clickOk() = clickOkAndWaitDialogDisappear()
 

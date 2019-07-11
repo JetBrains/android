@@ -79,7 +79,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
 
     List<VirtualFile> resourceDirectories = folderManager.getFolders();
 
-    DynamicResourceValueRepository dynamicResources = DynamicResourceValueRepository.create(facet, namespace);
+    DynamicValueResourceRepository dynamicResources = DynamicValueResourceRepository.create(facet, namespace);
     ModuleResourceRepository moduleRepository;
 
     try {
@@ -198,7 +198,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
         map.put(resourceDir, folderRepository);
       }
       else {
-        assert repository instanceof DynamicResourceValueRepository;
+        assert repository instanceof DynamicValueResourceRepository;
         if (other == null) {
           other = new ArrayList<>();
         }
@@ -262,7 +262,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
   public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet,
                                                        @NotNull Collection<VirtualFile> resourceDirectories,
                                                        @NotNull ResourceNamespace namespace,
-                                                       @Nullable DynamicResourceValueRepository dynamicResourceValueRepository) {
+                                                       @Nullable DynamicValueResourceRepository dynamicResourceValueRepository) {
     assert ApplicationManager.getApplication().isUnitTestMode();
     List<LocalResourceRepository> delegates =
         new ArrayList<>(resourceDirectories.size() + (dynamicResourceValueRepository == null ? 0 : 1));

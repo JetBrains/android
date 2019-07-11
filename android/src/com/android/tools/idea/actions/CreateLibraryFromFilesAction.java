@@ -215,7 +215,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
 
       // Request a sync
       ApplicationManager.getApplication().invokeLater(() -> ProjectSystemUtil.getProjectSystem(myProject)
-        .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true));
+        .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED));
 
       super.doOKAction();
     }

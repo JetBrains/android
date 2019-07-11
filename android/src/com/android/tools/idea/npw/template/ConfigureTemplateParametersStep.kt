@@ -290,7 +290,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     return when (parameter.type) {
       Parameter.Type.STRING -> RowEntry(name, TextFieldProvider(parameter))
       Parameter.Type.BOOLEAN -> RowEntry(CheckboxProvider(parameter), false)
-      Parameter.Type.SEPARATOR -> RowEntry(SeparatorProvider(parameter), true)
+      Parameter.Type.SEPARATOR -> RowEntry(SeparatorProvider(), true)
       Parameter.Type.ENUM -> RowEntry(name, EnumComboProvider(parameter))
     }
   }
@@ -478,7 +478,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       headerLabel.labelFor = component
     }
 
-    constructor(componentProvider: ParameterComponentProvider<T>, stretch: Boolean) {
+    constructor(componentProvider: ComponentProvider<T>, stretch: Boolean) {
       header = null
       wantGrow = stretch
       this.componentProvider = componentProvider

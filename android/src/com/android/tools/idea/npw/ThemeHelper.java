@@ -39,9 +39,8 @@ import org.jetbrains.annotations.Nullable;
  * Theme utility class for use with templates.
  */
 public class ThemeHelper {
-  private static final String DEFAULT_THEME_NAME = "AppTheme";    //$NON-NLS-1$
-  private static final String ALTERNATE_THEME_NAME = "Theme.App"; //$NON-NLS-1$
-  private static final String APP_COMPAT = "Theme.AppCompat.";    //$NON-NLS-1$
+  private static final String DEFAULT_THEME_NAME = "AppTheme";
+  private static final String ALTERNATE_THEME_NAME = "Theme.App";
 
   private final Module myModule;
   private final LocalResourceRepository myProjectRepository;
@@ -67,11 +66,6 @@ public class ThemeHelper {
     return null;
   }
 
-  public boolean isAppCompatTheme(@NotNull String themeName) {
-    StyleResourceValue theme = getProjectStyleResource(themeName);
-    return isAppCompatTheme(themeName, theme);
-  }
-
   public static boolean themeExists(@NotNull Configuration configuration, @NotNull String themeName) {
     return getStyleResource(configuration, themeName) != null;
   }
@@ -86,7 +80,6 @@ public class ThemeHelper {
       return null;
     }
     ResourceResolver resolver = configuration.getResourceResolver();
-    assert resolver != null;
 
     // TODO(namespaces): resolve themeName in the context of the right manifest file.
     ResourceValue value =
@@ -101,7 +94,6 @@ public class ThemeHelper {
   private static StyleResourceValue getStyleResource(@NotNull Configuration configuration, @NotNull String themeName) {
     configuration.setTheme(themeName);
     ResourceResolver resolver = configuration.getResourceResolver();
-    assert resolver != null;
 
     ResourceUrl url = ResourceUrl.parse(themeName);
     if (url == null) {
@@ -125,23 +117,5 @@ public class ThemeHelper {
       return null;
     }
     return (StyleResourceValue)items.get(0).getResourceValue();
-  }
-
-  private boolean isAppCompatTheme(@NotNull String themeName, @Nullable StyleResourceValue localTheme) {
-    while (localTheme != null) {
-      // TODO: namespaces
-      String parentThemeName = localTheme.getParentStyleName();
-      if (parentThemeName == null) {
-        if (themeName.lastIndexOf('.') > 0) {
-          parentThemeName = themeName.substring(0, themeName.lastIndexOf('.'));
-        }
-        else {
-          return false;
-        }
-      }
-      themeName = parentThemeName;
-      localTheme = getProjectStyleResource(themeName);
-    }
-    return themeName.startsWith(APP_COMPAT);
   }
 }

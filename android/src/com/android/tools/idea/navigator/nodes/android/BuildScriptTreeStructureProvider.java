@@ -37,7 +37,7 @@ public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
   @Override
   public Collection<AbstractTreeNode> modify(@NotNull AbstractTreeNode parent,
                                              @NotNull Collection<AbstractTreeNode> children,
-                                             ViewSettings settings) {
+                                             @Nullable ViewSettings settings) {
     if (parent instanceof AndroidBuildScriptsGroupNode) {
       return children;
     }
@@ -47,7 +47,7 @@ public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
 
   @Nullable
   @Override
-  public Object getData(@NotNull Collection<AbstractTreeNode> selected, String dataName) {
+  public Object getData(@NotNull Collection<AbstractTreeNode> selected, @NotNull String dataName) {
     return myRealTreeStructureProvider.getData(selected, dataName);
   }
 

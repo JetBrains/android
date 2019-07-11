@@ -137,56 +137,6 @@ heap_dump_infos {
 }
 </message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetHeapDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest">
-        <Message>session {
-  session_id: 1234
-  pid: 4321
-}
-dump_time: 86400000000000
-</Message>
-        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest</clazz>
-        <functionCalled>profiler.proto.MemoryService/GetHeapDump</functionCalled>
-        <message>session {
-  session_id: 1234
-  pid: 4321
-}
-dump_time: 86400000000000
-</message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetHeapDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataResponse">
-        <Message>status: SUCCESS
-data: "Test Data"
-</Message>
-        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$DumpDataResponse</clazz>
-        <functionCalled>profiler.proto.MemoryService/GetHeapDump</functionCalled>
-        <message>status: SUCCESS
-data: "Test Data"
-</message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetHeapDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest">
-        <Message>session {
-  session_id: 1234
-  pid: 4321
-}
-dump_time: 86401000000000
-</Message>
-        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest</clazz>
-        <functionCalled>profiler.proto.MemoryService/GetHeapDump</functionCalled>
-        <message>session {
-  session_id: 1234
-  pid: 4321
-}
-dump_time: 86401000000000
-</message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetHeapDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataResponse">
-        <Message>status: FAILURE_UNKNOWN
-</Message>
-        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$DumpDataResponse</clazz>
-        <functionCalled>profiler.proto.MemoryService/GetHeapDump</functionCalled>
-        <message>status: FAILURE_UNKNOWN
-</message>
-    </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopRequest">
         <Message>session {
   session_id: 1234

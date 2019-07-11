@@ -30,13 +30,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Manages the start/stop of a proxy layer that run services bridging between the transport database and device daemon.
  */
-public final class TransportProxy {
+public class TransportProxy {
 
   public interface ProxyCommandHandler {
     Transport.ExecuteResponse execute(Commands.Command command);

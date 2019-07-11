@@ -52,7 +52,7 @@ constructor(protected val myIcon: Icon?,
                                   handler: ViewHandler,
                                   component: NlComponent,
                                   selectedChildren: MutableList<NlComponent>,
-                                  modifiers: Int) {
+                                  modifiersEx: Int) {
     presentation.setIcon(icon)
     presentation.setLabel(label)
     presentation.setVisible(true)

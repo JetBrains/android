@@ -60,7 +60,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   }
 
   override fun getSyncManager(): ProjectSystemSyncManager = object: ProjectSystemSyncManager {
-    override fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
+    override fun syncProject(reason: SyncReason): ListenableFuture<SyncResult> {
       AppUIUtil.invokeLaterIfProjectAlive(project) {
         project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
       }

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator;
 
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class SqliteEvaluatorPanel {
   public JPanel root;
-  public JTextField textField;
+  public JTextField sqliteQueryTextField;
+  public JButton evaluateButton;
 }

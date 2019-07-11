@@ -30,6 +30,7 @@ public class AssistantTestSuite extends IdeaTestSuiteBase {
     symlinkToIdeaHome(
         "tools/adt/idea/android/annotations",
         "tools/adt/idea/android/testData",
-        "tools/base/templates");
+        "tools/base/templates",
+        "tools/idea/java");
   }
 }

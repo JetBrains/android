@@ -764,7 +764,7 @@ public class MemoryClassifierViewTest {
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
                                                                           ProfilersTestData.SESSION_DATA,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
@@ -859,7 +859,7 @@ public class MemoryClassifierViewTest {
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
                                                                           ProfilersTestData.SESSION_DATA,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
@@ -986,7 +986,7 @@ public class MemoryClassifierViewTest {
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
                                                                           ProfilersTestData.SESSION_DATA,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),

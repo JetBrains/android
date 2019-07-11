@@ -126,6 +126,16 @@ public class ProguardCompletionTest extends LightCodeInsightFixtureTestCase {
   public void testDumpCompletion() throws Throwable {
     performTestFilenameCompletion("dumpcompletion.pro", "dog.pro");
   }
+
+  // TODO(xof): rework so that we don't have to manually generate all (flags)x(quotes) test cases
+  //  but get full coverage
+  public void testFilenameCompletionWithSingleQuotes() throws Throwable {
+    performTestFilenameCompletion("dumpwithsinglequotescompletion.pro", "dog.pro");
+  }
+
+  public void testFilenameCompletionWithDoubleQuotes() throws Throwable {
+    performTestFilenameCompletion("dumpwithdoublequotescompletion.pro", "dog.pro");
+  }
   /**
    * Tests basic completion on the input file {@code fileBefore} at caret position, comparing it
    * against the contents of the file {@code fileAfter}.
