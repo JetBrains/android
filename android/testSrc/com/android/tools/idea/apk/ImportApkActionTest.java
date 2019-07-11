@@ -163,7 +163,7 @@ public class ImportApkActionTest extends JavaProjectTestCase {
     }
 
     @Override
-    public void reopenLastProjectOnStart() {
+    public void reopenLastProjectsOnStart() {
     }
   }
 }
