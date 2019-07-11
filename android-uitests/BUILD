@@ -1481,9 +1481,7 @@ java_test(
     size = "enormous",
     data = COMMON_DATA + glob([
         "testData/debugger/BasicCmakeAppForUI/**",
-    ]) + [
-        "//prebuilts/studio/sdk:platforms/android-24",
-    ] + select({
+    ]) + select({
         ":has_emulator": [
             "@externsdk//:system-images",
             "@externsdk//:emulator",
