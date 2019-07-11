@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
@@ -56,6 +57,25 @@ fun <T> createResolvedLibraryDependencyNode(
   return object : ResolvedLibraryDependencyNode(parent, dependency, name) {
     override fun createChildren(): List<AbstractDependencyNode<*>> = setUpChildren(this, dependency)
   }
+}
+
+fun <T> createGroupOrLibraryDependencyNode(
+  parent: AbstractPsNode,
+  libraryKey: PsLibraryKey,
+  dependencies: List<T>
+): AbstractDependencyNode<PsLibraryDependency>
+  where T : PsLibraryDependency,
+        T : PsBaseDependency = when {
+  dependencies.distinctBy { it.spec }.size == 1 ->
+    createLibraryDependencyNode(parent, dependencies, forceGroupId = true)
+  else ->
+    object : LibraryDependencyNode(parent, dependencies, libraryKey.toString()) {
+      override fun createChildren(): List<AbstractDependencyNode<*>> =
+        dependencies.groupBy { it.spec }
+          .entries
+          .sortedBy { it.key.version }
+          .map { (_, list) -> createLibraryDependencyNode(this, list, false) }
+    }
 }
 
 fun <T> createLibraryDependencyNode(
@@ -118,15 +138,6 @@ abstract class LibraryDependencyNode(
   protected abstract fun createChildren(): List<AbstractDependencyNode<*>>
 
   override fun getChildren(): Array<SimpleNode> = cachedChildren ?: createChildren().toTypedArray<SimpleNode>().also { cachedChildren = it }
-}
-
-class LibraryGroupDependencyNode(parent: AbstractPsNode,
-                                 val library: PsLibraryKey,
-                                 val dependencies: List<PsLibraryDependency>
-) : AbstractDependencyNode<PsLibraryDependency>(parent, dependencies) {
-  internal var children: List<SimpleNode> = listOf()
-  override fun getChildren(): Array<SimpleNode> = children.toTypedArray()
-  override fun nameOf(model: PsLibraryDependency): String = model.spec.getDisplayText(true, false)
 }
 
 abstract class ResolvedLibraryDependencyNode(

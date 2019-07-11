@@ -17,9 +17,8 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.treev
 
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.JarDependencyNode
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.LibraryGroupDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ModuleDependencyNode
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.createLibraryDependencyNode
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.createGroupOrLibraryDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode
@@ -78,19 +77,8 @@ class DependenciesTreeRootNode(
 
       override fun create(key: DependencyKey): AbstractDependencyNode<*> = when (key) {
         is LibraryKey -> {
-          val dependencies = collector.libraryDependenciesBySpec[key.library].orEmpty()
-
-          when {
-            dependencies.distinctBy { it.spec }.size == 1 ->
-              createLibraryDependencyNode(this@DependenciesTreeRootNode, dependencies, forceGroupId = true)
-            else ->
-              LibraryGroupDependencyNode(this@DependenciesTreeRootNode, key.library, dependencies).apply {
-                children = dependencies.groupBy { it.spec }
-                  .entries
-                  .sortedBy { it.key.version }
-                  .map { (_, list) -> createLibraryDependencyNode(this, list, false) }
-              }
-          }
+          val dependencies = collector.libraryDependenciesBySpec[key.library]!!
+          createGroupOrLibraryDependencyNode(this@DependenciesTreeRootNode, key.library, dependencies)
         }
         is ModuleKey -> {
           val dependencies = collector.moduleDependenciesByGradlePath[key.modulePath].orEmpty()
