@@ -20,10 +20,8 @@ import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
 import com.intellij.ui.treeStructure.SimpleNode
 
-abstract class AbstractPsResettableNode<K, M : PsModel> protected constructor(uiSettings: PsUISettings)
+abstract class AbstractPsResettableNode<K, N: SimpleNode, M : PsModel> protected constructor(uiSettings: PsUISettings)
   : AbstractPsModelNode<M>(uiSettings) {
-
-  abstract val collection: PsCollectionBase<out AbstractPsModelNode<*>, K, Unit>
 
   private var myChildren: Array<SimpleNode>? = null
 
@@ -31,11 +29,27 @@ abstract class AbstractPsResettableNode<K, M : PsModel> protected constructor(ui
     autoExpandNode = true
   }
 
-  override fun getChildren(): Array<SimpleNode> =
-    myChildren ?: collection.items.toTypedArray<SimpleNode>().also { myChildren = it }
+  protected abstract fun getKeys(from: Unit): Set<K>
+  protected abstract fun create(key: K): N
+  protected abstract fun update(key: K, node: N)
 
   fun reset() {
     collection.refresh()
     myChildren = null
   }
+
+  final override fun getChildren(): Array<SimpleNode> =
+    myChildren ?: let {
+      collection.refresh()
+      val result = collection.items.toTypedArray<SimpleNode>()
+      myChildren = result
+      result
+    }
+
+  private val collection: PsCollectionBase<out N, K, Unit> =
+    object : PsCollectionBase<N, K, Unit>(Unit) {
+      override fun getKeys(from: Unit): Set<K> = this@AbstractPsResettableNode.getKeys(from)
+      override fun create(key: K): N = this@AbstractPsResettableNode.create(key)
+      override fun update(key: K, model: N) = this@AbstractPsResettableNode.update(key, model)
+    }
 }
