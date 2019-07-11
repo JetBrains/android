@@ -50,6 +50,9 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) :
   private val drawablePreviewProvider by lazy {
     DrawableIconProvider(facet, resourceResolver, imageCache)
   }
+  private val fontPreviewProvider by lazy {
+    FontIconProvider(facet)
+  }
 
   private var resourceResolver = createResourceResolver(facet)
 
@@ -63,6 +66,7 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) :
       ResourceType.DRAWABLE,
       ResourceType.MIPMAP,
       ResourceType.LAYOUT -> drawablePreviewProvider
+      ResourceType.FONT -> fontPreviewProvider
       else -> DefaultIconProvider.INSTANCE
     }
 }
