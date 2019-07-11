@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.treev
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.DependencyNodeComparator
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.JarDependencyNode
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.LibraryGroupDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ModuleDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.createLibraryDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings

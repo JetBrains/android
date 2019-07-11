@@ -39,8 +39,6 @@ abstract class AbstractPsModelNode<T : PsModel> : AbstractPsNode, PsModelNode<T>
     icon = buildIcon()
   }
 
-  open fun matches(model: PsModel): Boolean = models.any { it == model }
-
   override fun doUpdate() {
     val presentation = templatePresentation
     presentation.clearText()
