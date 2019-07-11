@@ -54,8 +54,8 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
           android.arch.core:common:1.1.1
           android.arch.core:runtime:1.1.1
           android.arch.lifecycle:common:1.1.1
-          android.arch.lifecycle:livedata-core:1.1.1
           android.arch.lifecycle:livedata:1.1.1
+          android.arch.lifecycle:livedata-core:1.1.1
           android.arch.lifecycle:runtime:1.1.1
           android.arch.lifecycle:viewmodel:1.1.1
           com.android.support:animated-vector-drawable:28.0.0
