@@ -24,7 +24,13 @@ import com.android.tools.idea.gradle.structure.model.android.PsVariant
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 
 class ResolvedDependenciesTreeRootNode(val module: PsModule, uiSettings: PsUISettings) :
-  AbstractPsResettableNode<PsModule>(module, uiSettings) {
+  AbstractPsResettableNode<PsModule>(uiSettings) {
+
+  override val models: List<PsModule> = listOf(module)
+
+  init {
+    updateNameAndIcon()
+  }
 
   override fun createChildren(): List<AbstractPsModelNode<*>> =
     when (module) {
