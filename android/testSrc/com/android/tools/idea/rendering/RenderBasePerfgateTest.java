@@ -23,10 +23,12 @@ import static com.android.tools.idea.rendering.PerfgateRenderUtil.sRenderTimeBen
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 
+import com.android.flags.junit.RestoreFlagRule;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.android.tools.perflogger.Metric;
 import com.android.tools.perflogger.Metric.MetricSample;
 import com.google.common.util.concurrent.Futures;
@@ -75,11 +77,13 @@ public class RenderBasePerfgateTest extends AndroidTestCase {
       RenderTestUtil.afterRenderTestCase();
     } finally {
       StudioFlags.NELE_NATIVE_LAYOUTLIB.clearOverride();
+      FrameworkResourceRepositoryManager.getInstance().clearCache();
       super.tearDown();
     }
   }
 
   public void testBaseInflate() throws Exception {
+    StudioFlags.NELE_NATIVE_LAYOUTLIB.override(false);
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
@@ -95,6 +99,7 @@ public class RenderBasePerfgateTest extends AndroidTestCase {
   }
 
   public void testBaseRender() throws Exception {
+    StudioFlags.NELE_NATIVE_LAYOUTLIB.override(false);
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);

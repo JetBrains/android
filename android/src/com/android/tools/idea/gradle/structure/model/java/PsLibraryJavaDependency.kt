@@ -105,7 +105,7 @@ class PsDeclaredLibraryJavaDependency(
 
     val version: ModelSimpleProperty<PsDeclaredLibraryJavaDependency, String> = property(
       "Version",
-      preferredVariableName = { preferredVariableName(this) },
+      preferredVariableName = { preferredVariableName(this.parsedModel) },
       resolvedValueGetter = { null },
       parsedPropertyGetter = { this.version() },
       getter = { asString() },

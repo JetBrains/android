@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.removeSyncContextDataFrom;
-import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.setSingleVariantSyncState;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_CACHED_SETUP_FAILED;
@@ -53,7 +52,6 @@ import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
@@ -172,9 +170,7 @@ public class PostSyncProjectSetup {
                            @Nullable ExternalSystemTaskId taskId,
                            @Nullable GradleSyncListener syncListener) {
     try {
-      if (!StudioFlags.NEW_SYNC_INFRA_ENABLED.get()) {
-        removeSyncContextDataFrom(myProject);
-      }
+      removeSyncContextDataFrom(myProject);
 
       myGradleProjectInfo.setNewProject(false);
       myGradleProjectInfo.setImportedProject(false);
@@ -254,8 +250,6 @@ public class PostSyncProjectSetup {
       myModuleSetup.setUpModules(null);
 
       finishSuccessfulSync(taskId);
-      // Update single-variant state, the eligibility can be changed from last sync if kotlin is added/removed, or AGP version is changed.
-      setSingleVariantSyncState(myProject);
     }
     catch (Throwable t) {
       mySyncState.syncFailed("setup project failed: " + t.getMessage(), t, syncListener);

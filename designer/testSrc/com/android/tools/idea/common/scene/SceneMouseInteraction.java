@@ -45,7 +45,7 @@ public class SceneMouseInteraction {
   private final Scene myScene;
   float myLastX;
   float myLastY;
-  @JdkConstants.InputEventMask private int myModifiers = 0;
+  @JdkConstants.InputEventMask private int myModifiersEx = 0;
   DisplayList myDisplayList = new DisplayList();
 
   public SceneMouseInteraction(Scene scene) {
@@ -58,11 +58,11 @@ public class SceneMouseInteraction {
 
   /**
    * Function to set modifiers to this interaction.
-   * All the following mouse and key events apply to the given modifiers.
+   * All the following mouse and key events apply to the given modifiersEx.
    */
-  public void setModifiers(@JdkConstants.InputEventMask int modifiers) {
-    myModifiers = modifiers;
-    myScene.getDesignSurface().getInteractionManager().setModifier(modifiers);
+  public void setModifiersEx(@JdkConstants.InputEventMask int modifiersEx) {
+    myModifiersEx = modifiersEx;
+    myScene.getDesignSurface().getInteractionManager().setModifier(modifiersEx);
   }
 
   @NotNull
@@ -193,7 +193,7 @@ public class SceneMouseInteraction {
   }
 
   public void mouseDown(float x, float y) {
-    mouseDown(x, y, myModifiers);
+    mouseDown(x, y, myModifiersEx);
   }
 
   public void mouseDown(float x, float y, @JdkConstants.InputEventMask int modifier) {
@@ -222,12 +222,12 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     if (deltaX != 0 || deltaY != 0) {
       for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag(transform, (int)dx, (int)dy, myModifiers);
+        myScene.mouseDrag(transform, (int)dx, (int)dy, myModifiersEx);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
         dx += deltaX;
         dy += deltaY;
       }
-      myScene.mouseDrag(transform, (int)x, (int)y, myModifiers);
+      myScene.mouseDrag(transform, (int)x, (int)y, myModifiersEx);
     }
     myLastX = x;
     myLastY = y;
@@ -314,7 +314,7 @@ public class SceneMouseInteraction {
    * @param componentId the id of the component we will release the mouse above
    */
   public void mouseRelease(String componentId) {
-    mouseRelease(componentId, 0, myModifiers);
+    mouseRelease(componentId, 0, myModifiersEx);
   }
 
   /**
@@ -353,14 +353,14 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     if (deltaX != 0 || deltaY != 0) {
       for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag(transform, (int)dx, (int)dy, myModifiers);
+        myScene.mouseDrag(transform, (int)dx, (int)dy, myModifiersEx);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
         dx += deltaX;
         dy += deltaY;
       }
-      myScene.mouseDrag(transform, (int)x, (int)y, myModifiers);
+      myScene.mouseDrag(transform, (int)x, (int)y, myModifiersEx);
     }
-    myScene.mouseRelease(transform, (int)x, (int)y, myModifiers);
+    myScene.mouseRelease(transform, (int)x, (int)y, myModifiersEx);
     repaint();
   }
 
@@ -382,12 +382,12 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     if (deltaX != 0 || deltaY != 0) {
       for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag(transform, (int)dx, (int)dy, myModifiers);
+        myScene.mouseDrag(transform, (int)dx, (int)dy, myModifiersEx);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
         dx += deltaX;
         dy += deltaY;
       }
-      myScene.mouseDrag(transform, (int)x, (int)y, myModifiers);
+      myScene.mouseDrag(transform, (int)x, (int)y, myModifiersEx);
     }
     myScene.mouseCancel();
     repaint();
@@ -466,7 +466,7 @@ public class SceneMouseInteraction {
     ViewHandlerManager handlerManager = ViewHandlerManager.get(nlComponent.getModel().getProject());
     ViewHandler viewHandler = handlerManager.getHandler(nlComponent);
 
-    viewAction.perform(viewEditor, viewHandler, nlComponent, myScene.getSelection(), myModifiers);
+    viewAction.perform(viewEditor, viewHandler, nlComponent, myScene.getSelection(), myModifiersEx);
   }
 
   public void performViewAction(@NotNull String componentId, @NotNull Predicate<ViewAction> selector) {

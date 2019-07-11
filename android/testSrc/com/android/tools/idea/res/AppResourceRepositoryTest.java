@@ -195,9 +195,9 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     // This is necessary to use DynamicResourceValueRepository.
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
-    BiFunction<ResourceNamespace, String, DynamicResourceValueRepository> makeDynamicRepo = (namespace, value) -> {
+    BiFunction<ResourceNamespace, String, DynamicValueResourceRepository> makeDynamicRepo = (namespace, value) -> {
       DynamicResourceValue field = new DynamicResourceValue(ResourceType.STRING, value);
-      return DynamicResourceValueRepository.createForTest(myFacet, namespace, Collections.singletonMap("model_value", field));
+      return DynamicValueResourceRepository.createForTest(myFacet, namespace, Collections.singletonMap("model_value", field));
     };
     ResourceNamespace appNamespace = ResourceNamespace.fromPackageName("com.example.app");
 

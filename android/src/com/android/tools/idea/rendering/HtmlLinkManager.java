@@ -208,7 +208,7 @@ public class HtmlLinkManager {
       assert module.getModuleFile() != null;
       handleAddDependency(url, module);
       ProjectSystemUtil.getSyncManager(module.getProject())
-        .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
+        .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
     }
     else if (url.startsWith(URL_COMMAND)) {
       WriteCommandAction command = getLinkCommand(url);
@@ -368,7 +368,7 @@ public class HtmlLinkManager {
     assert url.equals(URL_SYNC) : url;
 
     ProjectSystemSyncManager.SyncReason reason = project.isInitialized() ? ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED : ProjectSystemSyncManager.SyncReason.PROJECT_LOADED;
-    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(reason, true);
+    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(reason);
   }
 
   public String createEditClassPathUrl() {
@@ -924,7 +924,7 @@ public class HtmlLinkManager {
 
   private static void handleRefreshRenderUrl(@Nullable EditorDesignSurface surface) {
       if (surface != null) {
-        RefreshRenderAction.clearCache(surface.getConfiguration());
+        RefreshRenderAction.clearCache(surface.getConfigurations());
       }
   }
 

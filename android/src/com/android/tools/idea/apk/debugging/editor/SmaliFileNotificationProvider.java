@@ -45,9 +45,9 @@ public class SmaliFileNotificationProvider extends EditorNotifications.Provider<
   @NotNull private final Project myProject;
   @NotNull private final DexSourceFiles myDexSourceFiles;
 
-  public SmaliFileNotificationProvider(@NotNull Project project, @NotNull DexSourceFiles dexSourceFiles) {
+  public SmaliFileNotificationProvider(@NotNull Project project) {
     myProject = project;
-    myDexSourceFiles = dexSourceFiles;
+    myDexSourceFiles = DexSourceFiles.getInstance(project);
   }
 
   @Override

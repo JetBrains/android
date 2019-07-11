@@ -35,6 +35,8 @@ import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -91,24 +93,29 @@ public final class NewBenchmarkModuleModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    AndroidModuleTemplate modulePaths = createDefaultTemplateAt(myProject.getBasePath(), moduleName().get()).getPaths();
+    new Task.Modal(myProject, message("android.compile.messages.generating.r.java.content.name"), false) {
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        AndroidModuleTemplate modulePaths = createDefaultTemplateAt(myProject.getBasePath(), moduleName().get()).getPaths();
 
-    Map<String, Object> myTemplateValues = Maps.newHashMap();
-    new TemplateValueInjector(myTemplateValues)
-      .setProjectDefaults(myProject, moduleName().get())
-      .setModuleRoots(modulePaths, myProject.getBasePath(), moduleName().get(), packageName().get())
-      .setJavaVersion(myProject)
-      .setLanguage(myLanguage.getValue())
-      .setBuildVersion(myMinSdk.getValue(), myProject);
+        Map<String, Object> myTemplateValues = Maps.newHashMap();
+        new TemplateValueInjector(myTemplateValues)
+          .setProjectDefaults(myProject, moduleName().get())
+          .setModuleRoots(modulePaths, myProject.getBasePath(), moduleName().get(), packageName().get())
+          .setJavaVersion(myProject)
+          .setLanguage(myLanguage.getValue())
+          .setBuildVersion(myMinSdk.getValue(), myProject);
 
-    myTemplateValues.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
-    myTemplateValues.put(TemplateMetadata.ATTR_IS_LIBRARY_MODULE, true);
+        myTemplateValues.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
+        myTemplateValues.put(TemplateMetadata.ATTR_IS_LIBRARY_MODULE, true);
 
-    File moduleRoot = modulePaths.getModuleRoot();
-    assert moduleRoot != null;
-    if (doDryRun(moduleRoot, myTemplateValues)) {
-      render(moduleRoot, myTemplateValues);
-    }
+        File moduleRoot = modulePaths.getModuleRoot();
+        assert moduleRoot != null;
+        if (doDryRun(moduleRoot, myTemplateValues)) {
+          render(moduleRoot, myTemplateValues);
+        }
+      }
+    }.queue();
   }
 
   private boolean doDryRun(@NotNull File moduleRoot, @NotNull Map<String, Object> templateValues) {

@@ -34,6 +34,7 @@ import com.android.tools.adtui.model.filter.FilterModel;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.idea.transport.faketransport.commands.BeginSession;
+import com.android.tools.idea.transport.faketransport.commands.MemoryAllocSampling;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
@@ -1594,9 +1595,21 @@ public final class CpuProfilerStageTest extends AspectObserver {
     }
     myTimer.setCurrentTimeNs(30);
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
-    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      assertThat(((MemoryAllocSampling)myTransportService.getRegisteredCommand(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING))
+                   .getLastSamplingRate()).isEqualTo(1);
+    }
+    else {
+      assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    }
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
-    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      assertThat(((MemoryAllocSampling)myTransportService.getRegisteredCommand(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING))
+                   .getLastSamplingRate()).isEqualTo(1);
+    }
+    else {
+      assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    }
 
     // Set profiling config to true.
     // Now all conditions are met, live allocation should be disabled during capture and re-enabled after capture is stopped.
@@ -1605,9 +1618,21 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     myTimer.setCurrentTimeNs(40);
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
-    assertThat(myMemoryService.getSamplingRate()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue());
+    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      assertThat(((MemoryAllocSampling)myTransportService.getRegisteredCommand(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING))
+                   .getLastSamplingRate()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue());
+    }
+    else {
+      assertThat(myMemoryService.getSamplingRate()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue());
+    }
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
-    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      assertThat(((MemoryAllocSampling)myTransportService.getRegisteredCommand(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING))
+                   .getLastSamplingRate()).isEqualTo(1);
+    }
+    else {
+      assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    }
   }
 
   @Test

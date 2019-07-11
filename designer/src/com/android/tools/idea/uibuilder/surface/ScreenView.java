@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.collect.ImmutableList;
@@ -47,6 +48,9 @@ public class ScreenView extends ScreenViewBase {
 
     if (myShowBorder) {
       builder.add(new BorderLayer(this));
+    }
+    if (StudioFlags.NELE_DISPLAY_MODEL_NAME.get() && getSurface().isShowModelNames()) {
+      builder.add(new ModelNameLayer(this));
     }
     builder.add(new ScreenViewLayer(this));
 

@@ -47,7 +47,7 @@ import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.SaveFileListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -151,7 +151,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
       }
       else {
         final List<String> urls = new ArrayList<String>();
-        urls.add(AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
+        urls.add(AndroidBuildCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
         final Pair<VirtualFile, Boolean> pair = AndroidCompileUtil.getDefaultProguardConfigFile(facet);
 
         if (pair != null) {

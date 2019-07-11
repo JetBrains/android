@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.widget
 
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.border
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.intellij.ui.JBColor
@@ -37,6 +38,7 @@ import javax.swing.Box
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 import javax.swing.border.Border
 import kotlin.properties.Delegates
 
@@ -48,44 +50,44 @@ import kotlin.properties.Delegates
  */
 private const val THUMBNAIL_HEIGHT_WIDTH_RATIO = 23 / 26f
 
-private val LARGE_MAIN_CELL_BORDER_SELECTED = BorderFactory.createCompoundBorder(
+private val LARGE_MAIN_CELL_BORDER_SELECTED get() = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(10),
-  RoundedLineBorder(UIUtil.getTreeSelectionBackground(true), 4, 2)
+  RoundedLineBorder(UIUtil.getTreeSelectionBackground(true), JBUI.scale(4), JBUI.scale(2))
 )
 
 
-private val LARGE_MAIN_CELL_BORDER_UNFOCUSED = BorderFactory.createCompoundBorder(
+private val LARGE_MAIN_CELL_BORDER_UNFOCUSED get() = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(10),
-  RoundedLineBorder(UIUtil.getTreeSelectionBackground(false), 4, 2)
+  RoundedLineBorder(UIUtil.getTreeSelectionBackground(false), JBUI.scale(4), JBUI.scale(2))
 )
 
 private var PREVIEW_BORDER_COLOR: Color = border
 
-private val LARGE_MAIN_CELL_BORDER = BorderFactory.createCompoundBorder(
+private val LARGE_MAIN_CELL_BORDER get() = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(11),
-  RoundedLineBorder(PREVIEW_BORDER_COLOR, 4, 1)
+  RoundedLineBorder(PREVIEW_BORDER_COLOR, JBUI.scale(4), JBUI.scale(1))
 )
 
-private val ROW_CELL_BORDER = JBUI.Borders.empty(4)
+private val ROW_CELL_BORDER get() = JBUI.Borders.empty(4)
 
-private val ROW_CELL_BORDER_SELECTED = BorderFactory.createCompoundBorder(
+private val ROW_CELL_BORDER_SELECTED get() = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(2),
-  RoundedLineBorder(UIUtil.getTreeSelectionBackground(true), 4, 2)
+  RoundedLineBorder(UIUtil.getTreeSelectionBackground(true), JBUI.scale(4), JBUI.scale(2))
 )
 
-private val ROW_CELL_BORDER_UNFOCUSED = BorderFactory.createCompoundBorder(
+private val ROW_CELL_BORDER_UNFOCUSED get() = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(2),
-  RoundedLineBorder(UIUtil.getTreeSelectionBackground(false), 4, 2)
+  RoundedLineBorder(UIUtil.getTreeSelectionBackground(false), JBUI.scale(4), JBUI.scale(2))
 )
 
-private val BOTTOM_PANEL_BORDER = JBUI.Borders.empty(5, 8, 10, 10)
+private val BOTTOM_PANEL_BORDER get()  = JBUI.Borders.empty(5, 8, 10, 10)
 
-private val PRIMARY_FONT = UIUtil.getLabelFont().deriveFont(mapOf(TextAttribute.WEIGHT to TextAttribute.WEIGHT_DEMIBOLD,
-                                                                  TextAttribute.SIZE to JBUI.scaleFontSize(14f)))
+private val PRIMARY_FONT get() = UIUtil.getLabelFont().deriveFont(mapOf(TextAttribute.WEIGHT to TextAttribute.WEIGHT_DEMIBOLD,
+                                                                              TextAttribute.SIZE to JBUI.scaleFontSize(14f)))
 
-private val SECONDARY_FONT_SIZE = JBUI.scaleFontSize(12f).toFloat()
+private val SECONDARY_FONT_SIZE get() = JBUI.scaleFontSize(12f).toFloat()
 
-private val SECONDARY_FONT_COLOR = JBColor(UIUtil.getInactiveTextColor().darker(), UIUtil.getInactiveTextColor())
+private val SECONDARY_FONT_COLOR get() = JBColor(UIUtil.getInactiveTextColor().darker(), UIUtil.getInactiveTextColor())
 
 private const val DEFAULT_WIDTH = 120
 
@@ -116,6 +118,12 @@ abstract class AssetView : JPanel(BorderLayout()) {
       if (new != null) {
         contentWrapper.add(new)
       }
+    }
+    // When there's nothing to preview, SingleAssetCard and RowAssetView have different behaviors, so we let them deal with it.
+    if (new == null) {
+      setNonIconLayout()
+    } else {
+      setIconLayout()
     }
   }
 
@@ -170,10 +178,10 @@ abstract class AssetView : JPanel(BorderLayout()) {
 
   var isNew: Boolean by Delegates.observable(false) { _, _, new -> newLabel.isVisible = new }
 
-  protected val newLabel = object : JBLabel(" NEW ") {
+  protected val newLabel = object : JBLabel(" NEW ", SwingConstants.CENTER) {
 
     init {
-      font = UIUtil.getLabelFont().deriveFont(8f)
+      font = JBUI.Fonts.label(8f)
       foreground = JBColor.WHITE
       isVisible = isNew
     }
@@ -208,6 +216,12 @@ abstract class AssetView : JPanel(BorderLayout()) {
   protected abstract fun computeThumbnailSize(width: Int): Dimension
 
   protected abstract fun getBorder(selected: Boolean, focused: Boolean): Border
+
+  /** Adjust layout when there is no icon to preview. */
+  protected abstract fun setNonIconLayout()
+
+  /** Adjust layout for when there's an icon to preview. */
+  protected abstract fun setIconLayout()
 }
 
 /**
@@ -231,6 +245,11 @@ class SingleAssetCard : AssetView() {
     border = BOTTOM_PANEL_BORDER
   }
 
+  private val emptyLabel = JBLabel("Nothing to show", SwingConstants.CENTER).apply {
+    foreground = AdtUiUtils.DEFAULT_FONT_COLOR
+    font = JBUI.Fonts.label(10f)
+  }
+
   init {
     isOpaque = false
     border = LARGE_MAIN_CELL_BORDER
@@ -251,6 +270,15 @@ class SingleAssetCard : AssetView() {
     if (focused) LARGE_MAIN_CELL_BORDER_SELECTED else LARGE_MAIN_CELL_BORDER_UNFOCUSED
   }
   else LARGE_MAIN_CELL_BORDER
+
+  override fun setIconLayout() {
+    // No need to do anything.
+  }
+
+  override fun setNonIconLayout() {
+    contentWrapper.removeAll()
+    contentWrapper.add(emptyLabel)
+  }
 }
 
 /**
@@ -321,5 +349,13 @@ class RowAssetView : AssetView() {
   }
 
   override fun computeThumbnailSize(width: Int) = Dimension(width, width)
+
+  override fun setNonIconLayout() {
+    contentWrapper.isVisible = false
+  }
+
+  override fun setIconLayout() {
+    contentWrapper.isVisible = true
+  }
 }
 

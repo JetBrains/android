@@ -17,19 +17,18 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.TimeUnit;
-
 abstract class CaptureDataSeries<T extends CaptureObject> implements DataSeries<CaptureDurationData<T>> {
-  @NotNull protected final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
+  @NotNull protected final ProfilerClient myClient;
   @NotNull protected final Common.Session mySession;
   @NotNull protected final FeatureTracker myFeatureTracker;
 
-  protected CaptureDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  protected CaptureDataSeries(@NotNull ProfilerClient client,
                               @NotNull Common.Session session,
                               @NotNull FeatureTracker featureTracker) {
     myClient = client;

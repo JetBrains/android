@@ -16,11 +16,11 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.facet.Facet;
@@ -30,6 +30,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenameProcessor;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -218,9 +219,7 @@ public class StringResourceData {
 
   @NotNull
   public List<StringResourceKey> getKeys() {
-    return myKeyToResourceMap.keySet().stream()
-      .sorted()
-      .collect(Collectors.toList());
+    return new ArrayList<>(myKeyToResourceMap.keySet());
   }
 
   @NotNull

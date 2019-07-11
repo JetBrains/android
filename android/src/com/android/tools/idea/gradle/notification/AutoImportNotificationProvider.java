@@ -42,9 +42,9 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
   @NotNull private final Project myProject;
   @NotNull private final EditorNotifications myNotifications;
 
-  public AutoImportNotificationProvider(@NotNull Project project, @NotNull EditorNotifications notifications) {
+  public AutoImportNotificationProvider(@NotNull Project project) {
     myProject = project;
-    myNotifications = notifications;
+    myNotifications = EditorNotifications.getInstance(project);
   }
 
   @Override

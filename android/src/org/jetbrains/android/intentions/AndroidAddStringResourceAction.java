@@ -284,7 +284,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
         PsiParameter parameter = parameterList.getParameters()[i];
         PsiParameter otherParameter = otherParameterList.getParameters()[i];
 
-        // We want to find a method that all parameters matches except ith parameter be int.
+        // We want to find a method that all parameters matches except ith parameter be int and annotated with STRING_RES_ANNOTATION.
         if (i == index) {
           if (!PsiType.INT.equals(otherParameter.getType())) {
             found = false;
@@ -292,7 +292,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
           }
           else {
             if (!AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION.oldName(), CHECK_EXTERNAL) &&
-                AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION.newName(), CHECK_EXTERNAL)) {
+                !AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION.newName(), CHECK_EXTERNAL)) {
               found = false;
               break;
             }

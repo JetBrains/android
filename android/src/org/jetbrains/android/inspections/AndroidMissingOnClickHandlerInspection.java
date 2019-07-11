@@ -27,13 +27,15 @@ import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import org.jetbrains.kotlin.asJava.LightClassUtilsKt;
+import org.jetbrains.kotlin.psi.KtClass;
 
 /**
  * @author Eugene.Kudelevsky
@@ -70,6 +72,12 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
           if (aClass.isInheritor(activityClass, true)) {
             result.add(aClass);
           }
+        } else if (element instanceof KtClass) {
+          final PsiClass aClass = LightClassUtilsKt.toLightClass((KtClass)element);
+
+          if (aClass != null && aClass.isInheritor(activityClass, true)) {
+            result.add(aClass);
+          }
         }
       }
       return result;
@@ -82,7 +90,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
   @NotNull
   private static Set<PsiClass> findRelatedActivitiesForMenu(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     final String resType = ResourceType.MENU.getName();
-    final String resourceName = AndroidCommonUtils.getResourceName(resType, file.getName());
+    final String resourceName = AndroidBuildCommonUtils.getResourceName(resType, file.getName());
     final PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, resType, resourceName, true);
 
     if (fields.length == 0) {

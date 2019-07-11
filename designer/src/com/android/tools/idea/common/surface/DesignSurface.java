@@ -45,6 +45,7 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -328,15 +329,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Add an {@link NlModel} to DesignSurface. If it is added before then nothing happens.
+   * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, only
+   * the refresh will be triggered.
+   * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
    * @param model the added {@link NlModel}
    */
-  public void addModel(@NotNull NlModel model) {
-    addModelImpl(model);
+  @NotNull
+  public CompletableFuture<Void> addModel(@NotNull NlModel model) {
+    SceneManager modelSceneManager = addModelImpl(model);
 
     // We probably do not need to request a render for all models but it is currently the
     // only point subclasses can override to disable the layoutlib render behaviour.
-    requestRender()
+    return modelSceneManager.requestRender()
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
         zoomToFit();
@@ -381,7 +385,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     reactivateInteractionManager();
     zoomToFit();
-    requestRender();
   }
 
   /**
@@ -943,12 +946,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Return the bounds which SceneView can draw on.
+   * Return the bounds which SceneView can draw invisible components.<br>
+   * The bounds is bigger than the size of SceneView and not overlaps to other SceneViews.
+   *
+   * component in this bounds, which may be outside the SceneView.
    * @param rectangle The rectangle to receive the dimension. If this is null, a new instance will be created.
    * @see JComponent#getBounds(Rectangle)
    */
   @NotNull
-  public abstract Rectangle getRenderableBoundsOfSceneView(@NotNull SceneView sceneView, @Nullable Rectangle rectangle);
+  public abstract Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle);
 
   /**
    * Return the SceneView under the given position
@@ -1433,10 +1439,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public abstract boolean isLayoutDisabled();
 
-  @Nullable
+  @NotNull
   @Override
-  public Configuration getConfiguration() {
-    return getModel() != null ? getModel().getConfiguration() : null;
+  public ImmutableCollection<Configuration> getConfigurations() {
+    return getModels().stream()
+      .map(NlModel::getConfiguration)
+      .collect(ImmutableList.toImmutableList());
   }
 
   @NotNull

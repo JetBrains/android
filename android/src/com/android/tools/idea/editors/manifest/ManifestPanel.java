@@ -886,7 +886,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private static void requestSync(Project project) {
     assert ApplicationManager.getApplication().isDispatchThread();
-    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
+    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
   }
 
   private static void removePackageAttribute(XmlFile manifestFile) {

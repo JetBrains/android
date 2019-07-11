@@ -15,30 +15,34 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static com.android.tools.profilers.memory.MemoryProfiler.saveLegacyAllocationToFile;
+
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
-import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.android.tools.profilers.memory.MemoryProfiler.saveLegacyAllocationToFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class LegacyAllocationCaptureObject implements CaptureObject {
   static final int DEFAULT_HEAP_ID = 0;
   static final String DEFAULT_HEAP_NAME = "default";
   static final long DEFAULT_CLASSLOADER_ID = -1;
 
-  @NotNull private final MemoryServiceBlockingStub myClient;
+  @NotNull private final ProfilerClient myClient;
   @NotNull private final ClassDb myClassDb;
   @NotNull private final Common.Session mySession;
   @NotNull private final MemoryProfiler.AllocationsInfo myInfo;
@@ -50,7 +54,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   // Allocation records do not have heap information, but we create a fake HeapSet container anyway so that we have a consistent MemoryObject model.
   private final HeapSet myFakeHeapSet;
 
-  public LegacyAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
+  public LegacyAllocationCaptureObject(@NotNull ProfilerClient client,
                                        @NotNull Common.Session session,
                                        @NotNull MemoryProfiler.AllocationsInfo info,
                                        @NotNull FeatureTracker featureTracker) {
@@ -108,10 +112,10 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
     MemoryProfiler.LegacyAllocationEventsResponse response;
     while (true) {
-      response = myClient.getLegacyAllocationEvents(MemoryProfiler.LegacyAllocationEventsRequest.newBuilder()
-                                                      .setSession(mySession)
-                                                      .setStartTime(myStartTimeNs)
-                                                      .setEndTime(myEndTimeNs).build());
+      response = myClient.getMemoryClient().getLegacyAllocationEvents(MemoryProfiler.LegacyAllocationEventsRequest.newBuilder()
+                                                                        .setSession(mySession)
+                                                                        .setStartTime(myStartTimeNs)
+                                                                        .setEndTime(myEndTimeNs).build());
       if (response.getStatus() == MemoryProfiler.LegacyAllocationEventsResponse.Status.SUCCESS) {
         break;
       }
@@ -135,7 +139,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
       .addAllStackIds(response.getEventsList().stream().map(LegacyAllocationEvent::getStackId).collect(Collectors.toSet()))
       .addAllClassIds(response.getEventsList().stream().map(LegacyAllocationEvent::getClassId).collect(Collectors.toSet()))
       .build();
-    MemoryProfiler.LegacyAllocationContextsResponse contextsResponse = myClient.getLegacyAllocationContexts(contextRequest);
+    MemoryProfiler.LegacyAllocationContextsResponse contextsResponse = myClient.getMemoryClient().getLegacyAllocationContexts(contextRequest);
 
     // TODO remove this map, since we have built-in functionality in ClassDb now.
     Map<Integer, ClassDb.ClassEntry> classEntryMap = new HashMap<>();

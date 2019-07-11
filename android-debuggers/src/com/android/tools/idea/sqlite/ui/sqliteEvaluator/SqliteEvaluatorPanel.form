@@ -7,10 +7,23 @@
     <properties/>
     <border type="none"/>
     <children>
-      <component id="ecc31" class="javax.swing.JTextField" binding="textField">
+      <grid id="9233d" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints border-constraint="North"/>
         <properties/>
-      </component>
+        <border type="none"/>
+        <children>
+          <component id="ecc31" class="javax.swing.JTextField" binding="sqliteQueryTextField">
+            <constraints border-constraint="Center"/>
+            <properties/>
+          </component>
+          <component id="276ef" class="javax.swing.JButton" binding="evaluateButton">
+            <constraints border-constraint="After"/>
+            <properties>
+              <text value="Evaluate"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
     </children>
   </grid>
 </form>

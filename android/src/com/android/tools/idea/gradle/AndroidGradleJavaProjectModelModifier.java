@@ -166,10 +166,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         return null;
       }
       String configurationName = getConfigurationName(module, scope, openedFile);
-      String updatedConfigName =
-        GradleUtil.mapConfigurationName(configurationName, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
       DependenciesModel dependencies = buildModel.dependencies();
-      dependencies.addArtifact(updatedConfigName, dependencySpec);
+      dependencies.addArtifact(configurationName, dependencySpec);
       buildModelsToUpdate.add(buildModel);
     }
 
@@ -228,6 +226,14 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @NotNull
   private static String getConfigurationName(@NotNull Module module, @NotNull DependencyScope scope, @Nullable VirtualFile openedFile) {
+    return GradleUtil.mapConfigurationName(
+      getLegacyConfigurationName(module, scope, openedFile), GradleUtil.getAndroidGradleModelVersionInUse(module), false);
+  }
+
+  @NotNull
+  private static String getLegacyConfigurationName(@NotNull Module module,
+                                                   @NotNull DependencyScope scope,
+                                                   @Nullable VirtualFile openedFile) {
     if (!scope.isForProductionCompile()) {
       TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
 

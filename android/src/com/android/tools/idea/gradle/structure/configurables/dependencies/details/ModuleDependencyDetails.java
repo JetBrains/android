@@ -39,7 +39,7 @@ public class ModuleDependencyDetails implements ConfigurationDependencyDetails {
   private JXLabel myGradlePathLabel;
   private JBLabel myConfigurationLabel;
   private HyperlinkLabel myGoToLabel;
-  private JComboBox<String> myConfiguration;
+  private JPanel myConfigurationPanel;
 
   private PsModuleDependency myDependency;
 
@@ -47,7 +47,7 @@ public class ModuleDependencyDetails implements ConfigurationDependencyDetails {
     myContext = context;
     myShowScope = showScope;
     myConfigurationLabel.setVisible(showScope);
-    myConfiguration.setVisible(showScope);
+    myConfigurationPanel.setVisible(showScope);
 
     myGoToLabel.setHyperlinkText("See Dependencies");
     myGoToLabel.addHyperlinkListener(new HyperlinkAdapter() {
@@ -96,11 +96,12 @@ public class ModuleDependencyDetails implements ConfigurationDependencyDetails {
   }
 
   @Override
-  public JComboBox<String> getConfigurationUI() {
-    return myConfiguration;
+  public PsContext getContext() {
+    return myContext;
   }
 
-  private void createUIComponents() {
-    myConfiguration = createConfigurationUI();
+  @Override
+  public JPanel getConfigurationUI() {
+    return myConfigurationPanel;
   }
 }

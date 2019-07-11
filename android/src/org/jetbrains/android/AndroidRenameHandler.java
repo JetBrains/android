@@ -45,7 +45,7 @@ import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -312,7 +312,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
         if (!AndroidUtils.isValidAndroidPackageName(name)) {
           throw new ConfigurationException(AndroidBundle.message("not.valid.package.name.error", name));
         }
-        if (!AndroidCommonUtils.contains2Identifiers(name)) {
+        if (!AndroidBuildCommonUtils.contains2Identifiers(name)) {
           throw new ConfigurationException(AndroidBundle.message("package.name.must.contain.2.ids.error"));
         }
         super.canRun();

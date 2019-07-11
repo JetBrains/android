@@ -323,7 +323,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     myInteraction.mouseRelease("button3", AnchorTarget.Type.TOP);
     assertTrue(target.isConnected());
 
-    myInteraction.setModifiers(AdtUiUtils.getActionMask());
+    myInteraction.setModifiersEx(AdtUiUtils.getActionMask());
     myInteraction.mouseDown("button3", AnchorTarget.Type.TOP);
     myInteraction.mouseRelease("button3", AnchorTarget.Type.TOP);
     assertFalse(target.isConnected());

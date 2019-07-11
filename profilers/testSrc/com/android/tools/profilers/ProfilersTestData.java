@@ -36,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
  * Profiler test data holder class.
  */
 public final class ProfilersTestData {
-
   // Un-initializable.
   private ProfilersTestData() {
   }
@@ -52,6 +51,33 @@ public final class ProfilersTestData {
 
   public static final Common.AgentData DEFAULT_AGENT_DETACHED_RESPONSE =
     Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.UNATTACHABLE).build();
+
+  // Used for testing JNI reference tracking.
+  public static final Long NATIVE_ADDRESSES_BASE = 0xBAADF00Dl;
+  public static final Long SYSTEM_NATIVE_ADDRESSES_BASE = NATIVE_ADDRESSES_BASE - 1;
+  // Used for testing JNI reference tracking.
+  public static final List<String> FAKE_NATIVE_MODULE_NAMES = Arrays.asList(
+    "/data/app/com.example.sum-000==/lib/arm64/libfoo.so",
+    "/data/app/com.example.sum-000==/lib/arm/libbar.so",
+    "/data/app/com.example.sum-000==/lib/x86/libfoo.so",
+    "/data/app/com.example.sum-000==/lib/x86_64/libbar.so"
+  );
+  // Used for testing JNI reference tracking.
+  public static final List<String> FAKE_NATIVE_FUNCTION_NAMES = Arrays.asList(
+    "NativeNamespace::Foo::FooMethodA(string, int)",
+    "NativeNamespace::Bar::BarMethodA(string, int)",
+    "NativeNamespace::Foo::FooMethodB(string, int)",
+    "NativeNamespace::Bar::BarMethodB(string, int)"
+  );
+  // Used for testing JNI reference tracking.
+  public static final List<String> FAKE_NATIVE_SOURCE_FILE = Arrays.asList(
+    "/a/path/to/sources/foo.cc",
+    "/a/path/to/sources/bar.cc",
+    "/a/path/to/sources/foo.h",
+    "/a/path/to/sources/bar.h"
+  );
+  // Used for testing JNI reference tracking.
+  public static final String FAKE_SYSTEM_NATIVE_MODULE = "/system/lib64/libnativewindow.so";
 
   @NotNull
   public static Common.Event.Builder generateNetworkTxEvent(long timestampUs, int throughput) {
@@ -139,6 +165,23 @@ public final class ProfilersTestData {
   public static Common.Event.Builder generateMemoryGcData(long timestampUs, Memory.MemoryGcData gcData) {
     long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
     return Common.Event.newBuilder().setTimestamp(timestampNs).setKind(Common.Event.Kind.MEMORY_GC).setMemoryGc(gcData);
+  }
+
+  @NotNull
+  public static Common.Event.Builder generateMemoryHeapDumpData(long groupId, long timestampUs, Memory.HeapDumpInfo info) {
+    long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
+    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(groupId).setKind(Common.Event.Kind.MEMORY_HEAP_DUMP)
+      .setIsEnded(true).setMemoryHeapdump(Memory.MemoryHeapDumpData.newBuilder().setInfo(info));
+  }
+
+  public static Common.Event.Builder generateMemoryAllocSamplingData(Common.Session session,
+                                                                     long timestampNs,
+                                                                     Memory.MemoryAllocSamplingData data) {
+    return Common.Event.newBuilder()
+      .setPid(session.getPid())
+      .setTimestamp(timestampNs)
+      .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+      .setMemoryAllocSampling(data);
   }
 
   @NotNull

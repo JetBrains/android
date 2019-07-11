@@ -23,6 +23,8 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -30,16 +32,13 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarn
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
-import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL
 import com.android.tools.idea.gradle.util.GradleUtil.getLastKnownAndroidGradlePluginVersion
 import com.android.tools.idea.gradle.util.GradleUtil.getLastSuccessfulAndroidGradlePluginVersion
 import com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes
 import com.android.tools.idea.gradle.util.GradleVersions
-import com.android.tools.idea.gradle.variant.view.BuildVariantView
 import com.android.tools.idea.project.AndroidProjectInfo
-import com.android.tools.idea.project.IndexingSuspender
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.withProjectId
@@ -126,11 +125,6 @@ open class GradleSyncState(
     projectStructure: ProjectStructure
   ) : this(project, androidProjectInfo, gradleProjectInfo, messageBus, projectStructure, StateChangeNotification(project))
 
-  init {
-    // Call in to make sure IndexingSuspender instance is constructed.
-    IndexingSuspender.ensureInitialised(project)
-  }
-
   companion object {
     @JvmField
     val JDK_LOCATION_WARNING_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME")
@@ -154,6 +148,19 @@ open class GradleSyncState(
 
     @JvmStatic
     fun getInstance(project: Project) : GradleSyncState = ServiceManager.getService(project, GradleSyncState::class.java)
+
+    @JvmStatic
+    fun isSingleVariantSync(): Boolean {
+      return StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() || GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC
+    }
+
+    // Since Gradle plugin don't have the concept of selected variant and we don't want to generate sources for all variants, we only
+    // activate Compound Sync if Single Variant Sync is also enabled.
+    @JvmStatic
+    fun isCompoundSync(): Boolean = StudioFlags.COMPOUND_SYNC_ENABLED.get() && isSingleVariantSync()
+
+    @JvmStatic
+    fun isLevel4Model(): Boolean = StudioFlags.L4_DEPENDENCY_MODEL.get()
   }
 
   open var lastSyncedGradleVersion : GradleVersion? = null
@@ -236,14 +243,13 @@ open class GradleSyncState(
     }
 
     shouldRemoveModelsOnFailure = request.variantOnlySyncOptions == null
-    val syncType = if (NewGradleSync.isEnabled(project)) "" else " IDEA"
-    val singleVariant = if (NewGradleSync.isSingleVariantSync(project)) " single-variant" else ""
-    LOG.info("Started$syncType$singleVariant sync with Gradle for project '${project.name}'.")
+    val singleVariant = if (GradleSyncState.isSingleVariantSync()) " single-variant" else ""
+    LOG.info("Started$singleVariant sync with Gradle for project '${project.name}'.")
 
     setSyncStartedTimeStamp()
     trigger = request.trigger
 
-    addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started with$syncType$singleVariant sync", MessageType.INFO, null)
+    addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started with $singleVariant sync", MessageType.INFO, null)
 
     changeNotification.notifyStateChanged()
 
@@ -620,9 +626,8 @@ open class GradleSyncState(
 
   private fun getSyncType(): GradleSyncStats.GradleSyncType = when {
     // Check in implied order (Compound requires SVS requires New Sync)
-    NewGradleSync.isCompoundSync(project) -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_COMPOUND
-    NewGradleSync.isSingleVariantSync(project) -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT
-    NewGradleSync.isEnabled(project) -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_NEW_SYNC
+    GradleSyncState.isCompoundSync() -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_COMPOUND
+    GradleSyncState.isSingleVariantSync() -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT
     else -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_IDEA
   }
 }

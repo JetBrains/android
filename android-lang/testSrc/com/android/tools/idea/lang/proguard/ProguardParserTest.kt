@@ -29,7 +29,7 @@ abstract class ProguardParserTest : ParsingTestCase("no_data_path_needed",
   override fun getTestDataPath() = com.android.tools.idea.lang.getTestDataPath()
 
   // TODO(xof): duplicate code with our other parser tests (e.g. RoomSqlParserTest)
-  protected fun check(input: String) {
+  protected fun checkLex(input: String) {
     assert(getErrorMessage(input) == null, lazyMessage = { toParseTreeText(input) })
 
     val lexer = ProguardLexer()
@@ -53,44 +53,76 @@ abstract class ProguardParserTest : ParsingTestCase("no_data_path_needed",
   private fun getErrorMessage(psiFile: PsiFile?) = PsiTreeUtil.findChildOfType(psiFile, PsiErrorElement::class.java)?.errorDescription
 
   // TODO(xof): this one isn't duplicate but probably it should be available
-  protected fun checkNot(input: String) {
+  protected fun checkNotLex(input: String, expectedLexerError: String? = null) {
     try {
-      check(input)
-    } catch (e: AssertionError) {
-      // expected
+      checkLex(input)
+    }
+    catch (e: AssertionError) {
+      if (expectedLexerError != null) {
+        assert(getErrorMessage(input) == expectedLexerError)
+      }
+      return
+    }
+    fail()
+  }
+
+  private fun checkParse(input: String) {
+    assert(getErrorMessage(input) == null)
+  }
+
+  private fun checkNotParse(input: String, expectedParserError: String? = null) {
+    try {
+      checkParse(input)
+    }
+    catch (e: AssertionError) {
+      if (expectedParserError != null) {
+        assert(getErrorMessage(input) == expectedParserError)
+      }
       return
     }
     fail()
   }
 
   protected fun checkFilenameFlag(flag: String, mandatory: Boolean, spaceRequired: Boolean = true) {
-    check("${flag} general.pro")
+    checkLex("${flag} general.pro")
     if (spaceRequired) {
       // TODO(b/72461769): The lexer is too lax for this to fail
-      // checkNot("${flag}general.pro")
-    } else {
-      check("${flag}general.pro")
+      // checkNotLex("${flag}general.pro")
     }
-    check("${flag} general.pro # with comment")
-    check("${flag} 'name with spaces.pro'")
-    check("${flag} \"name with spaces.pro\"")
+    else {
+      checkParse("${flag}general.pro")
+    }
+    checkParse("${flag} general.pro # with comment")
+    checkParse("${flag} 'name with spaces.pro'")
+    checkParse("${flag} \"name with spaces.pro\"")
 
-    checkNot("${flag} one.pro two.pro")
-    if(mandatory) {
-      checkNot("${flag}")
-      checkNot("${flag} ")
-      checkNot("${flag} # with comment")
-    } else {
-      check("${flag}")
-      check("${flag} ")
-      check("${flag} # with comment")
+    checkNotParse("${flag} one.pro two.pro",
+                "ProguardTokenType.CRLF or ProguardTokenType.LINE_CMT expected, got 'two.pro'")
+    if (mandatory) {
+      // TODO(xof): this error message is misleading: it should not allow CRLF or LINE_CMT
+      val expectedParserError = "<filename arg>, ProguardTokenType.CRLF or ProguardTokenType.LINE_CMT expected"
+      checkNotParse("${flag}", expectedParserError)
+      checkNotParse("${flag} ", expectedParserError)
+      checkNotParse("${flag} # with comment", expectedParserError)
     }
-    checkNot("${flag}'")
-    checkNot("${flag} '")
-    checkNot("${flag}\"")
-    checkNot("${flag} \"")
-    checkNot("${flag} ' # not a comment")
-    checkNot("${flag} \" # not a comment")
+    else {
+      checkParse("${flag}")
+      checkParse("${flag} ")
+      checkParse("${flag} # with comment")
+    }
+    run {
+      val expectedLexerErrorStem = when {
+        // TODO(xof): again, this error message is misleading and shouldn't allow CRLF or LINE_CMT
+        mandatory -> "<filename arg>, ProguardTokenType.CRLF or ProguardTokenType.LINE_CMT expected, got "
+        else -> "<filename arg>, ProguardTokenType.CRLF or ProguardTokenType.LINE_CMT expected, got "
+      }
+      checkNotLex("${flag}'", "$expectedLexerErrorStem'''")
+      checkNotLex("${flag} '", "$expectedLexerErrorStem'''")
+      checkNotLex("${flag}\"", "$expectedLexerErrorStem'\"'")
+      checkNotLex("${flag} \"", "$expectedLexerErrorStem'\"'")
+      checkNotLex("${flag} ' # not a comment", "$expectedLexerErrorStem'' # not a comment'")
+      checkNotLex("${flag} \" # not a comment", "$expectedLexerErrorStem'\" # not a comment'")
+    }
   }
 
 }

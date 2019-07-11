@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.testFramework.IdeaTestCase;
 
@@ -23,10 +22,6 @@ import com.intellij.testFramework.IdeaTestCase;
  * Tests for {@link com.android.tools.idea.flags.StudioFlags} that are specific to the Gradle Project System.
  */
 public class GradleProjectSystemFlagsTest extends IdeaTestCase {
-  public void testNewSyncEnabledTest() {
-    assertFalse(StudioFlags.NEW_SYNC_INFRA_ENABLED.get());
-  }
-
   public void testNewPsdEnabledTest() {
     assertTrue(ProjectStructureConfigurable.isNewPsdEnabled());
   }

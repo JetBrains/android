@@ -50,7 +50,7 @@ private class TestSyncManager(val project: Project) : ProjectSystemSyncManager {
   var testIsSyncInProgress: Boolean = false
   var testLastSyncResult: SyncResult = SyncResult.UNKNOWN
 
-  override fun syncProject(reason: ProjectSystemSyncManager.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
+  override fun syncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<SyncResult> {
     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 

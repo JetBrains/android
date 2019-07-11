@@ -35,6 +35,7 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.function.Function;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -69,7 +70,11 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private AndroidDebuggerPanel myAndroidDebuggerPanel;
   private final AndroidProfilersPanel myAndroidProfilersPanel;
 
-  public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator, T config) {
+  public AndroidRunConfigurationEditor(Project project,
+                                       Predicate<AndroidFacet> libraryProjectValidator,
+                                       T config,
+                                       boolean showLogcatCheckbox,
+                                       Function<ConfigurationModuleSelector, ConfigurationSpecificEditor<T>> configurationSpecificEditorFactory) {
     Disposer.register(project, this);
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
       @Override
@@ -129,14 +134,13 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myAndroidProfilersPanel = new AndroidProfilersPanel(project, config.getProfilerState());
     myTabbedPane.add("Profiling", myAndroidProfilersPanel.getComponent());
 
-    checkValidationResults(config.validate(null));
-  }
+    myConfigurationSpecificEditor = configurationSpecificEditorFactory.apply(myModuleSelector);
+    Disposer.register(this, myConfigurationSpecificEditor);
+    myConfigurationSpecificPanel.add(myConfigurationSpecificEditor.getComponent());
 
-  public void setConfigurationSpecificEditor(ConfigurationSpecificEditor<T> configurationSpecificEditor) {
-    myConfigurationSpecificEditor = configurationSpecificEditor;
-    myConfigurationSpecificPanel.add(configurationSpecificEditor.getComponent());
-    setAnchor(myConfigurationSpecificEditor.getAnchor());
-    myShowLogcatCheckBox.setVisible(configurationSpecificEditor instanceof ApplicationRunParameters);
+    myShowLogcatCheckBox.setVisible(showLogcatCheckbox);
+
+    checkValidationResults(config.validate(null));
   }
 
   /**
@@ -230,11 +234,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
         ((ApplicationRunParameters)myConfigurationSpecificEditor).onModuleChanged();
       }
     }
-  }
-
-  @VisibleForTesting
-  public ConfigurationSpecificEditor<T> getConfigurationSpecificEditor() {
-    return myConfigurationSpecificEditor;
   }
 
   @Nullable

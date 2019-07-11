@@ -82,8 +82,8 @@ public class ChainCycleViewAction extends DirectViewAction {
                                  @NotNull ViewHandler handler,
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
-                                 int modifiers) {
-    super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiers);
+                                 int modifiersEx) {
+    super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiersEx);
 
     boolean isVisible = true;
     if (selectedChildren.isEmpty()) {

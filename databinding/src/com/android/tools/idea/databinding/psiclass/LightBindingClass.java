@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.databinding.psiclass;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 import static com.android.tools.idea.databinding.ViewBindingUtil.getViewBindingClassName;
-import static com.android.tools.idea.res.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT;
+import static com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.DataBindingResourceType;
@@ -24,13 +27,19 @@ import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
-import com.android.tools.idea.res.BindingLayoutInfo;
-import com.android.tools.idea.res.PsiDataBindingResourceItem;
+import com.android.tools.idea.databinding.index.BindingXmlIndex;
+import com.android.tools.idea.databinding.index.ViewIdInfo;
+import com.android.tools.idea.res.binding.BindingLayoutInfo;
+import com.android.tools.idea.res.binding.DefaultBindingLayoutInfo;
+import com.android.tools.idea.res.binding.MergedBindingLayoutInfo;
+import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -48,6 +57,7 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.ResolveState;
+import com.intellij.psi.XmlRecursiveElementWalkingVisitor;
 import com.intellij.psi.impl.light.LightField;
 import com.intellij.psi.impl.light.LightFieldBuilder;
 import com.intellij.psi.impl.light.LightIdentifier;
@@ -56,8 +66,13 @@ import com.intellij.psi.impl.light.LightMethodBuilder;
 import com.intellij.psi.scope.ElementClassHint;
 import com.intellij.psi.scope.NameHint;
 import com.intellij.psi.scope.PsiScopeProcessor;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiModificationTracker;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.indexing.FileBasedIndex;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -129,43 +144,28 @@ public class LightBindingClass extends AndroidLightClassBase {
         }
       }, false);
 
-    myPsiFieldsCache =
-      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiField[]>(facet, myLock) {
-        @Override
-        protected PsiField[] doCompute() {
-          if (myInfo.getMergedInfo() != null) {
-            // fields are generated in the base class.
-            return PsiField.EMPTY_ARRAY;
-          }
-          List<BindingLayoutInfo.ViewWithId> viewsWithIds = myInfo.getViewsWithIds();
-          PsiElementFactory factory = PsiElementFactory.SERVICE.getInstance(myInfo.getProject());
-          PsiField[] result = new PsiField[viewsWithIds.size()];
-          int i = 0;
-          int unresolved = 0;
-          for (BindingLayoutInfo.ViewWithId viewWithId : viewsWithIds) {
-            PsiField psiField = createPsiField(viewWithId);
-            if (psiField == null) {
-              unresolved++;
-            }
-            else {
-              result[i++] = psiField;
-            }
-          }
-          if (unresolved > 0) {
-            PsiField[] validResult = new PsiField[i];
-            System.arraycopy(result, 0, validResult, 0, i);
-            return validResult;
-          }
-          return result;
-        }
-
-        @Override
-        protected PsiField[] defaultValue() {
-          return PsiField.EMPTY_ARRAY;
-        }
-      }, false);
+    myPsiFieldsCache = cachedValuesManager
+      .createCachedValue(() -> CachedValueProvider.Result.create(computeFields(), PsiModificationTracker.MODIFICATION_COUNT));
 
     setModuleInfo(facet.getModule(), false);
+  }
+
+  private PsiField[] computeFields() {
+    if (myInfo.getMergedInfo() != null) {
+      // fields are generated in the base class.
+      return PsiField.EMPTY_ARRAY;
+    }
+
+    List<DefaultBindingLayoutInfo> infoList = myInfo.isMerged()
+                                              ? ((MergedBindingLayoutInfo)myInfo).getInfos()
+                                              : Lists.newArrayList((DefaultBindingLayoutInfo)myInfo);
+    return infoList.stream()
+      .flatMap(bindingInfo -> FileBasedIndex.getInstance()
+        .getValues(BindingXmlIndex.NAME, BindingXmlIndex.getKeyForFile(bindingInfo.getPsiFile().getVirtualFile()),
+                   GlobalSearchScope.fileScope(bindingInfo.getPsiFile())).stream())
+      .flatMap(layoutInfo -> layoutInfo.getViewIds().stream())
+      .map(idInfo -> createPsiField(idInfo))
+      .toArray(PsiField[]::new);
   }
 
   /**
@@ -429,14 +429,15 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   @Nullable
-  private PsiField createPsiField(@NotNull BindingLayoutInfo.ViewWithId viewWithId) {
-    PsiType type = DataBindingUtil.resolveViewPsiType(viewWithId, myFacet);
+  private PsiField createPsiField(@NotNull ViewIdInfo idInfo) {
+    String name = DataBindingUtil.convertToJavaFieldName(idInfo.getId());
+    PsiType type = DataBindingUtil.resolveViewPsiType(idInfo, myFacet);
     if (type == null) {
       return null;
     }
-    LightFieldBuilder field = new LightFieldBuilder(viewWithId.name, type, viewWithId.tag);
+    LightFieldBuilder field = new LightFieldBuilder(PsiManager.getInstance(myInfo.getProject()), name, type);
     field.setModifiers("public", "final");
-    return new LightDataBindingField(viewWithId, PsiManager.getInstance(myInfo.getProject()), field, this);
+    return new LightDataBindingField(idInfo, getManager(), field, this);
   }
 
   @Override
@@ -503,14 +504,36 @@ public class LightBindingClass extends AndroidLightClassBase {
    * The light field class that represents the generated view fields for a layout file.
    */
   public static class LightDataBindingField extends LightField {
-    private final BindingLayoutInfo.ViewWithId myViewWithId;
+    private final ViewIdInfo myViewIdInfo;
 
-    public LightDataBindingField(BindingLayoutInfo.ViewWithId viewWithId,
+    private final CachedValue<XmlTag> tagCache = CachedValuesManager.getManager(getProject())
+      .createCachedValue(() -> CachedValueProvider.Result.create(computeTag(), PsiModificationTracker.MODIFICATION_COUNT));
+
+    public LightDataBindingField(@NotNull ViewIdInfo viewIdInfo,
                                  @NotNull PsiManager manager,
                                  @NotNull PsiField field,
                                  @NotNull PsiClass containingClass) {
       super(manager, field, containingClass);
-      myViewWithId = viewWithId;
+      myViewIdInfo = viewIdInfo;
+    }
+
+    @Nullable
+    private XmlTag computeTag() {
+      final Ref<XmlTag> resultTag = new Ref<>();
+      if (getContainingFile() != null) {
+        getContainingFile().accept(new XmlRecursiveElementWalkingVisitor() {
+          @Override
+          public void visitXmlTag(XmlTag tag) {
+            super.visitXmlTag(tag);
+            String idValue = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
+            if (idValue != null && myViewIdInfo.getId().equals(stripPrefixFromId(idValue))) {
+              resultTag.set(tag);
+              stopWalking();
+            }
+          }
+        });
+      }
+      return resultTag.get();
     }
 
     @Override
@@ -528,7 +551,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     @Override
     @NotNull
     public PsiElement getNavigationElement() {
-      return myViewWithId.tag;
+      return tagCache.getValue();
     }
 
     @Override

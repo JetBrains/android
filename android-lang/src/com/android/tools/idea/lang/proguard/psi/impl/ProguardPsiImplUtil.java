@@ -21,6 +21,12 @@ import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferen
 
 public class ProguardPsiImplUtil {
   public static PsiReference[] getReferences(ProguardFilenameArg arg) {
-    return new FileReferenceSet(arg).getAllReferences();
+    String text = arg.getText();
+    if (text.startsWith("'") || text.startsWith("\"")) {
+      return new FileReferenceSet(text.substring(1), arg, 1, null, true).getAllReferences();
+    }
+    else {
+      return new FileReferenceSet(arg).getAllReferences();
+    }
   }
 }

@@ -30,10 +30,8 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.install.StudioSdkInstallListenerFactory;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.intellij.idea.Main;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -109,7 +107,7 @@ public class PatchInstallingRestarter {
           String relativePath = FileOpUtils.makeRelative(androidSdkPath, installDir, myFileOp);
           // Use the old mechanism to get the version, since it's actually part of the package itself. Thus we can tell if the patch
           // has already been applied.
-          Revision rev = AndroidCommonUtils.parsePackageRevision(androidSdkPath.getPath(), relativePath);
+          Revision rev = AndroidBuildCommonUtils.parsePackageRevision(androidSdkPath.getPath(), relativePath);
           if (rev != null && rev.equals(pendingPackage.getVersion())) {
             // We need to make sure the listeners are fired, so create an installer that does nothing and invoke it.
             InstallerFactory dummyFactory = new DummyInstallerFactory();

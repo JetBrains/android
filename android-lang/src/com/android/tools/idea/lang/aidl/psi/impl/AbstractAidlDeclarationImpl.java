@@ -15,12 +15,24 @@
  */
 package com.android.tools.idea.lang.aidl.psi.impl;
 
-import com.android.tools.idea.lang.aidl.psi.*;
+import com.android.tools.idea.lang.aidl.psi.AidlDeclaration;
+import com.android.tools.idea.lang.aidl.psi.AidlFile;
+import com.android.tools.idea.lang.aidl.psi.AidlInterfaceDeclaration;
+import com.android.tools.idea.lang.aidl.psi.AidlMethodDeclaration;
+import com.android.tools.idea.lang.aidl.psi.AidlParcelableDeclaration;
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiNameIdentifierOwner;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.IncorrectOperationException;
+import icons.AndroidIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,27 +45,45 @@ public abstract class AbstractAidlDeclarationImpl extends AidlPsiCompositeElemen
   @NotNull
   @Override
   public String getName() {
-    final AidlDeclarationName name = getDeclarationName();
-    return name.getText();
+    return getDeclarationName().getText();
   }
 
   @NotNull
   @Override
   public String getQualifiedName() {
-    AidlFile file = getContainingFile();
-    String prefix = file.getPackageName();
-    AidlDeclaration containedInterface = getContainedInterface();
-    if (containedInterface != null) {
-      prefix = containedInterface.getQualifiedName();
-    }
-    if (prefix.isEmpty()) {
-      return getName();
+    String prefix = "";
+    if (this instanceof AidlMethodDeclaration) {
+      prefix = ((AidlInterfaceDeclaration)this.getParent()).getQualifiedName();
     }
     else {
-      return prefix + "." + getName();
+      prefix = getContainingFile().getPackageName();
     }
+    return prefix.isEmpty() ? getName() : prefix + "." + getName();
   }
 
+  @Nullable
+  @Override
+  public PsiNameIdentifierOwner getGeneratedPsiElement() {
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
+    Module module = ModuleUtilCore.findModuleForPsiElement(this);
+    if (module == null) {
+      return null;
+    }
+    GlobalSearchScope moduleScope = GlobalSearchScope.moduleScope(module);
+    if (this instanceof AidlInterfaceDeclaration || this instanceof AidlParcelableDeclaration) {
+      return facade.findClass(getQualifiedName(), moduleScope);
+    }
+    else if (this instanceof AidlMethodDeclaration) {
+      AidlDeclaration containedClass = (AidlInterfaceDeclaration)(this.getParent());
+      PsiClass psiClass = facade.findClass(containedClass.getQualifiedName(), moduleScope);
+      if (psiClass != null) {
+        // AIDL doesn't support method overloading, so the generated method can be found using only interface name and method name.
+        PsiMethod[] methods = psiClass.findMethodsByName(getDeclarationName().getName(), false);
+        return methods.length == 0 ? null : methods[0];
+      }
+    }
+    return null;
+  }
 
   @Override
   public PsiElement setName(@NonNls @NotNull String newName) throws IncorrectOperationException {
@@ -81,26 +111,26 @@ public abstract class AbstractAidlDeclarationImpl extends AidlPsiCompositeElemen
     return getDeclarationName();
   }
 
-  @Nullable
-  @Override
-  public PsiNameIdentifierOwner getGeneratedPsiElement() {
-    // TODO
-    return null;
-  }
-
-  @Nullable
-  public AidlInterfaceDeclaration getContainedInterface() {
-    if (this instanceof AidlMethodDeclaration) {
-      return (AidlInterfaceDeclaration)getParent();
-    } else {
-      return null;
-    }
-  }
-
-
   @Override
   public ItemPresentation getPresentation() {
-    // TODO
-    return null;
+    return new ItemPresentation() {
+      @NotNull
+      @Override
+      public String getPresentableText() {
+        return getName();
+      }
+
+      @Nullable
+      @Override
+      public String getLocationString() {
+        return null;
+      }
+
+      @NotNull
+      @Override
+      public Icon getIcon(boolean unused) {
+        return AndroidIcons.Android;
+      }
+    };
   }
 }

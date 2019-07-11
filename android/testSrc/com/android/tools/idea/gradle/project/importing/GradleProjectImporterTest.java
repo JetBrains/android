@@ -78,7 +78,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
     new IdeComponents(project).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
 
-    myProjectImporter = new GradleProjectImporter(sdkSync, mySyncInvoker, myProjectSetup, projectFolderFactory);
+    myProjectImporter = new GradleProjectImporter(sdkSync, myProjectSetup, projectFolderFactory);
   }
 
   public void testImportProjectWithNonNullProject() throws Exception {

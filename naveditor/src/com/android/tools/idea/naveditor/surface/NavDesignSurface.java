@@ -72,6 +72,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -237,7 +238,9 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  public void forceUserRequestedRefresh() {
+  public CompletableFuture<Void> forceUserRequestedRefresh() {
+    // Ignored for nav editor
+    return CompletableFuture.completedFuture(null);
   }
 
   @NotNull
@@ -248,7 +251,7 @@ public class NavDesignSurface extends DesignSurface {
 
   @NotNull
   @Override
-  public Rectangle getRenderableBoundsOfSceneView(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
+  public Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
     Rectangle viewRect = myScrollPane.getViewport().getViewRect();
     if (rectangle == null) {
       rectangle = new Rectangle();
@@ -289,7 +292,7 @@ public class NavDesignSurface extends DesignSurface {
       // If it didn't work, it's probably because the nav library isn't included. Prompt for it to be added.
       else if (requestAddDependency(facet)) {
         ListenableFuture<?> syncResult = ProjectSystemUtil.getSyncManager(getProject())
-          .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
+          .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
         // When sync is done, try to create the schema again.
         Futures.addCallback(syncResult, new FutureCallback<Object>() {
           @Override
@@ -588,7 +591,7 @@ public class NavDesignSurface extends DesignSurface {
       metricsEventType = ACTIVATE_LAYOUT;
     }
     if (id != null) {
-      Configuration configuration = getConfiguration();
+      Configuration configuration = Iterables.getOnlyElement(getConfigurations(), null);
       ResourceResolver resolver = configuration != null ? configuration.getResourceResolver() : null;
       ResourceValue value = resolver != null ? resolver.findResValue(id, false) : null;
       String fileName = value != null ? value.getValue() : null;

@@ -114,6 +114,7 @@ iml_module(
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
     ],
 )
 
@@ -256,7 +257,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -331,7 +331,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.java8.CompileWithJava8Test"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",  # fails 0 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -348,7 +347,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateDefaultActivityTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",  # fails 0 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -363,7 +361,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.GenerateApkWithReleaseVariantTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",  # b/110178024
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -378,7 +375,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.ModifyMinSdkAndSyncTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",  # fails 1 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -393,7 +389,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewAppModuleWithDefaultsTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -408,7 +403,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewLibraryModuleWithDefaultsTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -423,7 +417,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddNewBuildTypeTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
         "qa_unreliable",  # b/128547019
     ],
@@ -439,7 +432,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.RunOnEmulatorTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",  # fails 2 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -456,7 +448,6 @@ java_test(
         "-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.AddKotlinTest",
     ],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -478,7 +469,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.SideConstraintHandlingTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",  # b/110178024
         "qa_unreliable",  # bug: b/78469702
     ],
@@ -499,7 +489,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BaselineConstraintHandlingTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
         "qa_unreliable",  # b/122275283
     ],
@@ -520,7 +509,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
         "qa_unreliable",  # b/113117406
     ],
@@ -541,7 +529,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsExecutionTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
         "qa_unreliable",  # b/128711988
     ],
@@ -558,7 +545,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertFromWebpToPngTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -576,7 +562,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.CreateNewFlavorsTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
         "qa_unreliable",  # b/128547019
     ],
@@ -593,7 +578,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.LaunchApkViewerTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -611,7 +595,6 @@ java_test(
         "-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateBasicKotlinProjectTest",
     ],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",  # fails 1 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -629,7 +612,6 @@ java_test(
         "-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.AddRemoveCppDependencyTest",
     ],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -644,7 +626,6 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp1Test"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",  # fails 1 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -659,7 +640,6 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp2Test"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",  # fails 1 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -674,7 +654,6 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp3Test"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",  # fails 0 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -689,7 +668,6 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateNewMobileProjectTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
         "qa_unreliable",  #b/116752977
     ],
@@ -707,7 +685,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateCppKotlinProjectTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -722,7 +699,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.BuildCppKotlinTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -737,7 +713,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.AbiSplitApksTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
         "qa_unreliable",  # b/119685470
     ],
@@ -753,7 +728,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.X86AbiSplitApksTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
         "qa_unreliable",  # b/119685470
     ],
@@ -772,7 +746,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no-remote",
         "requires-fakeroot",
-        "no_psq",
         "qa_sanity",
         "qa_sanity_emu",  # Run with emulators - needs home directory, similar to emulator tests
         "requires_emulator",  # Run together with emulators
@@ -793,7 +766,6 @@ java_test(
         "cpu:3",
         "no-remote",
         "no_mac",
-        "no_psq",
         "no_windows",
         "qa_sanity",
         "qa_unreliable",  # b/76023451
@@ -814,7 +786,6 @@ java_test(
         "cpu:100",
         "no-remote",
         "no_mac",
-        "no_psq",
         "no_windows",
         "qa_sanity",
         "qa_sanity_emu",  # Run together with emulators because the test needs to run alone
@@ -860,7 +831,6 @@ java_test(
         "slow",
         "no-remote",
         "requires-fakeroot",
-        "no_psq",
         "qa_sanity",
         "qa_sanity_emu",
         "requires_emulator",
@@ -878,7 +848,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.CreateNavGraphTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_sanity",
         "qa_unreliable",
     ],
@@ -905,7 +874,6 @@ java_test(
         "cpu:100",
         "no-remote",
         "no_mac",
-        "no_psq",
         "no_windows",
         "qa_sanity",
         "qa_sanity_emu",
@@ -940,7 +908,6 @@ java_test(
         "cpu:100",
         "no-remote",
         "no_mac",
-        "no_psq",
         "no_windows",
         "qa_sanity",  # b/128932526
         "qa_sanity_emu",  # b/128932526
@@ -972,7 +939,6 @@ java_test(
         "cpu:100",
         "no-remote",
         "no_mac",
-        "no_psq",
         "no_windows",
         "qa_sanity",
         "qa_sanity_emu",
@@ -1024,7 +990,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.lint.LintTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",  # b/110178024
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1039,7 +1004,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.UnusedResourceEvaluationTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/116794726
     ],
@@ -1057,7 +1021,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1072,7 +1035,6 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.JavaLibsDepTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/117238132
     ],
@@ -1088,7 +1050,6 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AndroidLibsDepTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/117238132
     ],
@@ -1105,7 +1066,6 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.JavaDepTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/117238132
     ],
@@ -1122,7 +1082,6 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AndroidDepTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/111889561
     ],
@@ -1138,7 +1097,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.IdePermissionTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1155,7 +1113,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.PrivateResourceTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/111889561
     ],
@@ -1173,7 +1130,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ChangeLibModSettingsTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/111889561
     ],
@@ -1189,7 +1145,6 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NameWithSpaceTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/111889561
     ],
@@ -1213,7 +1168,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.LayoutPreviewRenderTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "no-remote",
     ],
@@ -1235,7 +1189,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ThemeEditorTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/115685973
     ],
@@ -1256,7 +1209,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ConstraintLayoutResizeHandleTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/115685973
     ],
@@ -1277,7 +1229,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ConstraintLayoutAnchorExemptionTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/116793860
     ],
@@ -1298,7 +1249,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ClearConstraintTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/116801839
     ],
@@ -1319,7 +1269,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateBaselineConnectionTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1339,7 +1288,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.LayoutEditorTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1359,7 +1307,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.AndroidVectorDrawableToolTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/115539594
     ],
@@ -1380,7 +1327,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ImageAssetGradleTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/115567466
     ],
@@ -1402,7 +1348,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ImageAssetErrorCheckTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1417,7 +1362,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.CLionIntegrationTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1432,7 +1376,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.ShortcutNavigationTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/115567466
     ],
@@ -1451,7 +1394,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsEditingTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/111997969
         "no-remote",
@@ -1468,7 +1410,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertFrom9PatchTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1485,7 +1426,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.LintCheckWithKotlinTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1500,7 +1440,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.NoGradleSyncForProjectReimportTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1515,8 +1454,71 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ApkViewerTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "BuildAndRunCMakeProjectTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/debugger/BasicCmakeAppForUI/**",
+    ]) + [
+        "//prebuilts/studio/sdk:platforms/android-24",
+    ] + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.BuildAndRunCMakeProjectTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_psq",
+        "no_windows",
+        "qa_fast",
+        "qa_fast_emu",
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "JavaDebuggerTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/debugger/BasicCmakeAppForUI/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.JavaDebuggerTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_psq",
+        "no_windows",
+        "qa_fast",
+        "qa_fast_emu",
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1547,7 +1549,6 @@ java_test(
         "-Daspects.agent.baseline=$(location //tools/adt/idea/android-uitests:aspects_baseline)",
     ],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1560,7 +1561,6 @@ java_test(
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateLoginActivityTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/117238132
     ],
@@ -1574,7 +1574,6 @@ java_test(
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateSettingsActivityTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/115679328
     ],
@@ -1595,7 +1594,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.translations.AddLocaleTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/115679328
     ],
@@ -1611,7 +1609,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.SurroundWithShortcutTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1626,7 +1623,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ForeachLiveTemplateTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1641,7 +1637,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ForiLiveTemplateTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1656,7 +1651,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ToastLiveTemplateTest"],
     tags = COMMON_TAGS + [
-        "no_psq",
         "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",

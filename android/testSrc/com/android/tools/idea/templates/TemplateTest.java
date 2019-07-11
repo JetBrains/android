@@ -721,19 +721,19 @@ public class TemplateTest extends AndroidGradleTestCase {
   @TemplateCheck
   public void testNewListFragment() throws Exception {
     myApiSensitiveTemplate = true;
-    checkCreateTemplate("other", "ListFragment");
+    checkCreateTemplate("fragments", "ListFragment");
   }
 
   @TemplateCheck
   public void testNewListFragmentWithKotlin() throws Exception {
     myApiSensitiveTemplate = true;
-    checkCreateTemplate("other", "ListFragment", false, withKotlin);
+    checkCreateTemplate("fragments", "ListFragment", false, withKotlin);
   }
 
   @TemplateCheck
   public void testNewModalBottomSheet() throws Exception {
     myApiSensitiveTemplate = true;
-    checkCreateTemplate("other", "ModalBottomSheet");
+    checkCreateTemplate("fragments", "ModalBottomSheet");
   }
 
   @TemplateCheck
@@ -745,25 +745,61 @@ public class TemplateTest extends AndroidGradleTestCase {
   @TemplateCheck
   public void testNewBlankFragment() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "BlankFragment");
+    checkCreateTemplate("fragments", "BlankFragment");
   }
 
   @TemplateCheck
   public void testNewBlankFragmentWithKotlin() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "BlankFragment", false, withKotlin);
+    checkCreateTemplate("fragments", "BlankFragment", false, withKotlin);
+  }
+
+  @TemplateCheck
+  public void testNewSettingsFragmentWithAndroidX() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "SettingsFragment", true, withAndroidx);
+  }
+
+  @TemplateCheck
+  public void testNewSettingsFragmentWithAndroidXAndKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "SettingsFragment", false, withAndroidxAndKotlin);
   }
 
   @TemplateCheck
   public void testNewViewModelFragment() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "ViewModelFragment");
+    checkCreateTemplate("fragments", "ViewModelFragment");
   }
 
   @TemplateCheck
   public void testNewViewModelFragmentWithKotlin() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "ViewModelFragment", false, withKotlin);
+    checkCreateTemplate("fragments", "ViewModelFragment", false, withKotlin);
+  }
+
+  @TemplateCheck
+  public void testNewScrollFragment() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "ScrollFragment");
+  }
+
+  @TemplateCheck
+  public void testNewScrollFragmentWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "ScrollFragment", false, withKotlin);
+  }
+
+  @TemplateCheck
+  public void testNewFullscreenFragment() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "FullscreenFragment");
+  }
+
+  @TemplateCheck
+  public void testNewFullscreenFragmentWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "FullscreenFragment", false, withKotlin);
   }
 
   @TemplateCheck
@@ -928,7 +964,6 @@ public class TemplateTest extends AndroidGradleTestCase {
       projectMap.put(ATTR_CPP_SUPPORT, true);
       templateMap.put(ATTR_CPP_SUPPORT, true);
       projectMap.put(ATTR_CPP_FLAGS, "");
-      templateMap.put("useFragment", true);
     });
     stopwatch.stop();
     System.out.println("Checked " + templateFile.getName() + " with cpp and fragments successfully in " + stopwatch.toString());

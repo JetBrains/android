@@ -77,6 +77,7 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
     if (SystemInfo.isMac && UIUtil.isRetina()) {
       scale *= 2;
     }
+    // TODO(b/136258816): Update metrics to log multiple configurations
     Configuration configuration = surface.getConfiguration();
     if (configuration != null) {
       State deviceState = configuration.getDeviceState();

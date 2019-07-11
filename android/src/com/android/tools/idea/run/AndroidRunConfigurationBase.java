@@ -378,7 +378,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     final Project project = module.getProject();
     if (AndroidProjectInfo.getInstance(project).requiredAndroidModelMissing()) {
-      Logger.getInstance(AndroidRunConfigurationBase.class).warn("Can't get application ID: Android module missing");
       return null;
     }
 
@@ -390,18 +389,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (facet.isDisposed()) {
       Logger.getInstance(AndroidRunConfigurationBase.class).warn("Can't get application ID: Facet already disposed");
       return null;
-    }
-
-    if (!facet.getConfiguration().isAppProject() && facet.getConfiguration().getProjectType() != PROJECT_TYPE_TEST) {
-      if (facet.getConfiguration().isLibraryProject() || facet.getConfiguration().getProjectType() == PROJECT_TYPE_FEATURE) {
-        Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
-        if (!result.getFirst()) {
-          Logger.getInstance(AndroidRunConfigurationBase.class).info("Application ID: " + result.getSecond());
-        }
-      }
-      else {
-        Logger.getInstance(AndroidRunConfigurationBase.class).info("Application ID: Unknown APK type");
-      }
     }
 
     return getApplicationIdProvider(facet);
