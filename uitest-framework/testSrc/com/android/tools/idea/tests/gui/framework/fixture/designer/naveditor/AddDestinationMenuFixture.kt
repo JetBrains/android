@@ -18,6 +18,8 @@ import com.android.tools.idea.naveditor.editor.DESTINATION_MENU_MAIN_PANEL_NAME
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureTemplateParametersWizardFixture
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewFragmentWizardFixture
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.findMenuDialog
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -27,6 +29,7 @@ import com.intellij.util.ui.AsyncProcessIcon
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
 import org.fest.swing.finder.WindowFinder
+import org.fest.swing.fixture.DialogFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
 import javax.swing.JDialog
@@ -62,11 +65,15 @@ class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddD
   fun clickCreateBlank(): ConfigureTemplateParametersWizardFixture {
     ActionButtonFixture(robot, menu.blankDestinationButton).click()
 
-    val dialog = WindowFinder.findDialog(object : GenericTypeMatcher<JDialog>(JDialog::class.java) {
-      override fun isMatching(dialog: JDialog) = dialog.title == "New Android Component" && dialog.isShowing
-    }).withTimeout(500).using(robot)
+    val dialog = findMenuDialog(robot, "New Android Component")
+    return ConfigureTemplateParametersWizardFixture(robot, dialog)
+  }
 
-    return ConfigureTemplateParametersWizardFixture(robot, dialog.target() as JDialog)
+  fun clickCreateNewFragment(): NewFragmentWizardFixture {
+    ActionButtonFixture(robot, menu.blankDestinationButton).click()
+
+    val dialog = findMenuDialog(robot, "New Android Fragment")
+    return NewFragmentWizardFixture(robot, dialog)
   }
 
   fun isBalloonVisible() = menu.isBalloonVisible()
