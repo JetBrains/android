@@ -97,7 +97,7 @@ public final class NewProjectModuleModel extends WizardModel {
 
     initMainModule();
 
-    Map<String, Object> projectTemplateValues = myProjectModel.getTemplateValues();
+    Map<String, Object> projectTemplateValues = myProjectModel.templateValues;
     addModuleToProject(myNewModuleModel, myFormFactor.get(), myProjectModel, projectTemplateValues);
 
     if (hasCompanionApp) {
@@ -140,7 +140,7 @@ public final class NewProjectModuleModel extends WizardModel {
       moduleName = SdkConstants.APP_PREFIX;
     }
 
-    String projectLocation = myProjectModel.projectLocation().get();
+    String projectLocation = myProjectModel.projectLocation.get();
 
     myNewModuleModel.getModuleName().set(moduleName);
     myNewModuleModel.getTemplate().set(createDefaultTemplateAt(projectLocation, moduleName));
@@ -149,7 +149,7 @@ public final class NewProjectModuleModel extends WizardModel {
   @NotNull
   private RenderTemplateModel createMainRenderModel() {
     RenderTemplateModel newRenderTemplateModel;
-    if (myProjectModel.enableCppSupport().get()) {
+    if (myProjectModel.enableCppSupport.get()) {
       newRenderTemplateModel = createCompanionRenderModel(myNewModuleModel);
     }
     else if (myExtraRenderTemplateModel.getTemplateHandle() == null) {
@@ -174,7 +174,7 @@ public final class NewProjectModuleModel extends WizardModel {
     // Note: The companion Module is always a Mobile app
     File moduleTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_MODULE);
     String moduleName = getModuleName(FormFactor.MOBILE);
-    NamedModuleTemplate namedModuleTemplate = createDefaultTemplateAt(projectModel.projectLocation().get(), moduleName);
+    NamedModuleTemplate namedModuleTemplate = createDefaultTemplateAt(projectModel.projectLocation.get(), moduleName);
     NewModuleModel companionModuleModel = new NewModuleModel(projectModel, moduleTemplateFile, namedModuleTemplate);
     companionModuleModel.getModuleName().set(moduleName);
 
