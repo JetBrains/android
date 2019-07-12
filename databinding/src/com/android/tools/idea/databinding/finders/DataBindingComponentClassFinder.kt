@@ -16,14 +16,14 @@
 package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.databinding.DataBindingProjectComponent
+import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
-import com.google.common.collect.Iterables
-import com.google.common.collect.Lists
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -41,9 +41,8 @@ class DataBindingComponentClassFinder(project: Project) : PsiElementFinder() {
   init {
     classes = CachedValuesManager.getManager(project).createCachedValue(
       {
-        val classes = component.getDataBindingEnabledFacets()
-          .filter { facet -> !facet.configuration.isLibraryProject }
-          .map { facet -> LightDataBindingComponentClass(PsiManager.getInstance(project), facet) as PsiClass }
+        val classes: List<PsiClass> = component.getDataBindingEnabledFacets()
+          .mapNotNull(DataBindingClassFactory::getOrCreateDataBindingComponentClassFor)
 
         CachedValueProvider.Result.create(classes, component, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT)
       }, false)
@@ -58,6 +57,6 @@ class DataBindingComponentClassFinder(project: Project) : PsiElementFinder() {
   }
 
   private fun check(psiClass: PsiClass?, qualifiedName: String, scope: GlobalSearchScope): Boolean {
-    return psiClass != null && psiClass.project == scope.project && qualifiedName == psiClass.qualifiedName
+    return psiClass != null && qualifiedName == psiClass.qualifiedName && PsiSearchScopeUtil.isInScope(scope, psiClass)
   }
 }
