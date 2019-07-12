@@ -38,7 +38,6 @@ import java.awt.image.BufferedImage
 fun getFormFactorsImage(component: JComponent, requireEmulator: Boolean): Icon? {
   val filteredFormFactors = FormFactor.values().filter {
     (it !== FormFactor.AUTOMOTIVE || StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) &&
-    (it !== FormFactor.CAR || !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) &&
     (it.hasEmulator() || !requireEmulator)
   }
 
