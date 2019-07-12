@@ -216,8 +216,6 @@ public class LibJavaUnitTest {
     @Test
     public void prodRClass() {
         int id = R.string.app_name;
-        //noinspection ConstantConditions
-        assertTrue(id > 0);
     }
 
     @Test
