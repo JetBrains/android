@@ -16,172 +16,107 @@
 package com.android.tools.idea.npw.model
 
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
-import com.android.tools.idea.npw.platform.Language.JAVA
-import com.android.tools.idea.npw.platform.Language.KOTLIN
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT
-import org.jetbrains.android.util.AndroidBundle.message
-
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.repository.io.FileOpUtils
-import com.android.sdklib.IAndroidTarget
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.npw.platform.Language
+import com.android.tools.idea.npw.platform.Language.JAVA
+import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils
 import com.android.tools.idea.npw.project.DomainToPackageExpression
 import com.android.tools.idea.observable.AbstractProperty
-import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
-import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
-import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.Template
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.WizardConstants
 import com.android.tools.idea.wizard.model.WizardModel
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.Maps
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.ProjectJdkTable
-import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
+import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.android.util.AndroidUtils
 import java.io.File
 import java.io.IOException
-import java.util.HashSet
 import java.util.Locale
 import java.util.Optional
 import java.util.regex.Pattern
-import org.jetbrains.android.sdk.AndroidSdkData
-import org.jetbrains.android.util.AndroidUtils
+
+private val logger: Logger get() = logger<NewProjectModel>()
 
 class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()) : WizardModel() {
-  private val myApplicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
-  private val myCompanyDomain = StringValueProperty(getInitialDomain(true))
-  private val myPackageName = StringValueProperty()
-  private val myProjectLocation = StringValueProperty()
-  private val myEnableCppSupport = BoolValueProperty()
-  private val myCppFlags = StringValueProperty()
-  private val myProject = OptionalValueProperty<Project>()
-  private val myTemplateValues = Maps.newHashMap<String, Any>()
+  @JvmField val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
+  @JvmField val companyDomain = StringValueProperty(getInitialDomain(true))
+  @JvmField val packageName = StringValueProperty()
+  @JvmField val projectLocation = StringValueProperty()
+  @JvmField val enableCppSupport = BoolValueProperty()
+  @JvmField val cppFlags = StringValueProperty()
+  @JvmField val project = OptionalValueProperty<Project>()
+  @JvmField val templateValues = hashMapOf<String, Any>()
+  @JvmField val language = OptionalValueProperty<Language>()
   /**
    * When the project is created, it contains the list of new Module that should also be created.
    */
   // TODO: is not yet clear what the project needs from the modules. At the moment gets the module hash table, but different modules may
   // have the same key/values... and some of these key values should actually be the same... for example, if one module needs a gradle plugin
   // version, shouldn't all the modules use the same version?
-  val newModuleModels: Set<NewModuleModel> = HashSet()
-  val multiTemplateRenderer: MultiTemplateRenderer
-  private val myLanguage = OptionalValueProperty<Language>()
-
-  /**
-   * Returns whether AndroidX is available considering the installed API levels. If anything >= 28 is available, then
-   * we make AndroidX available.
-   */
-  val isAndroidxAvailable: Boolean
-    get() {
-      val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk() ?: return false
-
-      for (target in sdkData.targets) {
-        if (target.version.apiLevel >= 28) {
-          return true
-        }
-      }
-      return false
-    }
-
-  val templateValues: Map<String, Any>
-    get() = myTemplateValues
+  val newModuleModels = hashSetOf<NewModuleModel>()
+  val multiTemplateRenderer = MultiTemplateRenderer(null, this.projectSyncInvoker)
 
   init {
-    multiTemplateRenderer = MultiTemplateRenderer(null, this.projectSyncInvoker)
-    // Save entered company domain
-    myCompanyDomain.addListener {
-      val domain = myCompanyDomain.get()
+    companyDomain.addListener {
+      val domain = companyDomain.get()
       if (AndroidUtils.isValidAndroidPackageName(domain)) {
         PropertiesComponent.getInstance().setValue(PROPERTIES_DOMAIN_KEY, domain)
       }
     }
 
-    // Save entered android package
-    myPackageName.addListener {
-      var androidPackage = myPackageName.get()
-      val lastDotIdx = androidPackage.lastIndexOf('.')
-      if (lastDotIdx >= 0) {
-        androidPackage = androidPackage.substring(0, lastDotIdx)
-      }
+    packageName.addListener {
+      val androidPackage = packageName.get().substringBeforeLast('.')
       if (AndroidUtils.isValidAndroidPackageName(androidPackage)) {
         PropertiesComponent.getInstance().setValue(PROPERTIES_ANDROID_PACKAGE_KEY, androidPackage)
       }
     }
 
-    myApplicationName.addConstraint(AbstractProperty.Constraint<String> { it.trim() } )
+    applicationName.addConstraint(AbstractProperty.Constraint<String> { it.trim() } )
 
-    myEnableCppSupport.set(initialCppSupport)
-    myLanguage.set(calculateInitialLanguage(PropertiesComponent.getInstance()))
-  }
-
-  fun packageName(): StringProperty {
-    return myPackageName
-  }
-
-  fun applicationName(): StringProperty {
-    return myApplicationName
-  }
-
-  fun companyDomain(): StringProperty {
-    return myCompanyDomain
-  }
-
-  fun projectLocation(): StringProperty {
-    return myProjectLocation
-  }
-
-  fun enableCppSupport(): BoolProperty {
-    return myEnableCppSupport
-  }
-
-  fun cppFlags(): StringProperty {
-    return myCppFlags
-  }
-
-  fun language(): OptionalValueProperty<Language> {
-    return myLanguage
-  }
-
-  fun project(): OptionalProperty<Project> {
-    return myProject
+    enableCppSupport.set(initialCppSupport)
+    language.set(calculateInitialLanguage(PropertiesComponent.getInstance()))
   }
 
   private fun saveWizardState() {
     // Set the property value
     val props = PropertiesComponent.getInstance()
-    props.setValue(PROPERTIES_CPP_SUPPORT_KEY, myEnableCppSupport.get())
-    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, myLanguage.value.toString())
+    props.setValue(PROPERTIES_CPP_SUPPORT_KEY, enableCppSupport.get())
+    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, language.value.toString())
     props.setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true)
   }
 
   override fun handleFinished() {
-    val projectLocation = projectLocation().get()
-    val projectName = applicationName().get()
+    val projectLocation = projectLocation.get()
+    val projectName = applicationName.get()
 
     val couldEnsureLocationExists = WriteCommandAction.runWriteCommandAction<Boolean>(null) {
       // We generally assume that the path has passed a fair amount of pre-validation checks
@@ -207,9 +142,8 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
       false
     }
     if (couldEnsureLocationExists) {
-      val project = ProjectManager.getInstance().createProject(projectName, projectLocation)!!
-      project().value = project
-      multiTemplateRenderer.setProject(project)
+      project.value = ProjectManager.getInstance().createProject(projectName, projectLocation)!!
+      multiTemplateRenderer.setProject(project.value)
     }
     else {
       val msg = "Could not ensure the target project location exists and is accessible:\n\n%1\$s\n\nPlease try to specify another path."
@@ -220,10 +154,9 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
   }
 
   private inner class ProjectTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
-
     @WorkerThread
     override fun doDryRun(): Boolean {
-      if (project().valueOrNull == null) {
+      if (project.valueOrNull == null) {
         return false
       }
 
@@ -236,7 +169,7 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
       performCreateProject(false)
 
       try {
-        val projectRoot = VfsUtilCore.virtualToIoFile(project().value.baseDir)
+        val projectRoot = VfsUtilCore.virtualToIoFile(project.value.baseDir)
         AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot)
       }
       catch (e: IOException) {
@@ -252,22 +185,22 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
     }
 
     private fun performCreateProject(dryRun: Boolean) {
-      val project = project().value
+      val project = project.value
 
       // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
-      myTemplateValues[ATTR_CPP_SUPPORT] = myEnableCppSupport.get()
-      myTemplateValues[ATTR_CPP_FLAGS] = myCppFlags.get()
-      myTemplateValues[ATTR_TOP_OUT] = project.basePath
-      myTemplateValues[ATTR_KOTLIN_SUPPORT] = myLanguage.value === KOTLIN
+      templateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
+      templateValues[ATTR_CPP_FLAGS] = cppFlags.get()
+      templateValues[ATTR_TOP_OUT] = project.basePath ?: ""
+      templateValues[ATTR_KOTLIN_SUPPORT] = language.value === KOTLIN
 
-      val params = Maps.newHashMap(myTemplateValues)
+      val params = templateValues.toMutableMap()
       for (newModuleModel in newModuleModels) {
         params.putAll(newModuleModel.templateValues)
 
         // Set global parameters
         val renderTemplateValues = newModuleModel.renderTemplateModel.value.templateValues
-        renderTemplateValues.putAll(myTemplateValues)
-        newModuleModel.templateValues.putAll(myTemplateValues)
+        renderTemplateValues.putAll(templateValues)
+        newModuleModel.templateValues.putAll(templateValues)
       }
 
       val projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME)
@@ -286,7 +219,7 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
         return
       }
 
-      val rootLocation = File(projectLocation().get())
+      val rootLocation = File(projectLocation.get())
       val wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation)
       try {
         val gradleDistFile = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION)
@@ -317,7 +250,7 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
           }
         }
 
-        val request = GradleProjectImporter.Request(project().value)
+        val request = GradleProjectImporter.Request(project.value)
         request.isNewProject = true
         request.javaLanguageLevel = initialLanguageLevel
 
@@ -342,9 +275,6 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
     private const val EXAMPLE_DOMAIN = "example.com"
     private val DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]")
     private val MODULE_NAME_GROUP = Pattern.compile(".*:") // Anything before ":" belongs to the module parent name
-
-    private val logger: Logger
-      get() = Logger.getInstance(NewProjectModel::class.java)
 
     /**
      * Loads saved company domain, or generates a dummy one if no domain has been saved
@@ -422,11 +352,13 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
      */
     @JvmStatic
     fun nameToJavaPackage(name: String): String {
-      var res = name.replace('-', '_')
-      res = MODULE_NAME_GROUP.matcher(res).replaceAll("")
-      res = DISALLOWED_IN_DOMAIN.matcher(res).replaceAll("").toLowerCase(Locale.US)
+      val res = name.replace('-', '_').run {
+        MODULE_NAME_GROUP.matcher(this).replaceAll("").run {
+          DISALLOWED_IN_DOMAIN.matcher(this).replaceAll("").toLowerCase(Locale.US)
+        }
+      }
       if (res.isNotEmpty() && AndroidUtils.isReservedKeyword(res) != null) {
-        res = StringUtil.fixVariableNameDerivedFromPropertyName(res).toLowerCase(Locale.US)
+        return StringUtil.fixVariableNameDerivedFromPropertyName(res).toLowerCase(Locale.US)
       }
       return res
     }

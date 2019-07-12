@@ -176,7 +176,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     TemplateRenderer selectedTemplate = formFactorInfo.tabPanel.myGallery.getSelectedElement();
     assert selectedTemplate != null;
 
-    getModel().enableCppSupport().set(selectedTemplate.isCppTemplate());
+    getModel().enableCppSupport.set(selectedTemplate.isCppTemplate());
     myNewProjectModuleModel.formFactor().set(formFactorInfo.formFactor);
     myNewProjectModuleModel.moduleTemplateFile().setNullableValue(formFactorInfo.templateFile);
     myNewProjectModuleModel.renderTemplateHandle().setNullableValue(selectedTemplate.getTemplate());
