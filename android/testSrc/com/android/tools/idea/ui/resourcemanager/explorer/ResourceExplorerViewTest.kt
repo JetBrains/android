@@ -52,6 +52,8 @@ import javax.swing.JTabbedPane
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
+private const val WAIT_TIMEOUT = 3000
+
 class ResourceExplorerViewTest {
 
   @get:Rule
@@ -78,7 +80,7 @@ class ResourceExplorerViewTest {
 
     viewModel.filterOptions.searchString = "png"
     val list = UIUtil.findComponentOfType(view, AssetListView::class.java)!!
-    val waitForElementToBeFiltered = object : WaitFor(1000) {
+    val waitForElementToBeFiltered = object : WaitFor(WAIT_TIMEOUT) {
       public override fun condition() = list.model.size == 1
     }
     assertThat(waitForElementToBeFiltered.isConditionRealized).isTrue()
@@ -102,16 +104,18 @@ class ResourceExplorerViewTest {
     val tabbedPane = UIUtil.findComponentOfType(view, JTabbedPane::class.java)
     assertNotNull(tabbedPane, "TabbedPane should not be null")
     runInEdtAndWait {
+      // Change to Color resources tab.
       tabbedPane.model.selectedIndex = tabbedPane.indexOfTab(ResourceType.COLOR.displayName)
     }
 
-    // No color resources in current module.
-    assertThat(UIUtil.findComponentOfType(view, AssetListView::class.java)!!.model.size).isEqualTo(0)
+    // Resource changed triggered, wait for the (empty) list to be available again.
+    waitAndAssertListView(view) { it?.model?.size == 0 }
+
     // This test assumes at least one resource in "res/values/colors.xml" includes the word "color".
     viewModel.filterOptions.searchString = "color"
 
     // Wait while other modules are searched and link labels displayed.
-    val waitForLinkLabelToBeCreated = object : WaitFor(1000) {
+    val waitForLinkLabelToBeCreated = object : WaitFor(WAIT_TIMEOUT) {
       public override fun condition() = UIUtil.findComponentOfType(view, LinkLabel::class.java) != null
     }
     assertThat(waitForLinkLabelToBeCreated.isConditionRealized).isEqualTo(true)
@@ -195,10 +199,7 @@ class ResourceExplorerViewTest {
                                     withSummaryView = withSummaryView)
     Disposer.register(disposable, view)
 
-    val waitForAssetListToBeCreated = object : WaitFor(1000) {
-      public override fun condition() = UIUtil.findComponentOfType(view, AssetListView::class.java) != null
-    }
-    assertThat(waitForAssetListToBeCreated.isConditionRealized).isEqualTo(true)
+    waitAndAssertListView(view) { list -> list != null }
     return view
   }
 
@@ -220,4 +221,11 @@ class ResourceExplorerViewTest {
         component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, clickCount, false))
     }
   }
+}
+
+private fun waitAndAssertListView(view: ResourceExplorerView, condition: (list: AssetListView?) -> Boolean) {
+  val waitForAssetListView = object : WaitFor(WAIT_TIMEOUT) {
+    public override fun condition() = condition(UIUtil.findComponentOfType(view, AssetListView::class.java))
+  }
+  assertThat(waitForAssetListView.isConditionRealized).isTrue()
 }
