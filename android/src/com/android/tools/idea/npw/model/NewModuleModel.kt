@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.AbstractProperty
@@ -68,6 +69,7 @@ class NewModuleModel : WizardModel {
   val language: OptionalValueProperty<Language>
   private val createInExistingProject: Boolean
   val template: ObjectProperty<NamedModuleTemplate>
+  val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty()
 
   init { // Default init constructor
     moduleName.addConstraint(AbstractProperty.Constraint(String::trim))
@@ -157,12 +159,14 @@ class NewModuleModel : WizardModel {
       val injector = TemplateValueInjector(templateValues)
       injector.setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
 
+      if (androidSdkInfo.isPresent.get()) {
+        injector.setBuildVersion(androidSdkInfo.value, project)
+      }
       if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
         injector.setLanguage(language.value)
       }
 
       renderTemplateModel.valueOrNull?.let {
-        TemplateValueInjector(it.templateValues).setBuildVersion(it.androidSdkInfo.value, project)
         templateValues.putAll(it.templateValues) // TODO - Wrong copy direction - Remove next CL's
         it.templateValues.putAll(templateValues)
       }

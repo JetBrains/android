@@ -128,7 +128,7 @@ abstract class ChooseGalleryItemStep(moduleModel: NewModuleModel,
   private fun validateTemplate() {
     val template = renderModel.templateHandle
     val templateData = template?.metadata
-    val androidSdkInfo = renderModel.androidSdkInfo.valueOrNull
+    val androidSdkInfo = model.androidSdkInfo.valueOrNull
     val facet = renderModel.androidFacet
 
     // Start by assuming API levels are great enough for the Template
