@@ -69,7 +69,7 @@ class SqliteFileTypeDetectorTest : PlatformTestCase() {
 
   fun testSqliteFileDetectionEmptyDatabase() {
     // Prepare
-    val file = mySqliteUtil.createEmptyTempSqliteDatabase()
+    val file = mySqliteUtil.createTestSqliteDatabase()
     val detector = SqliteFileTypeDetector()
     // Note: 10 bytes is smaller than the Sqlite header
     val byteSequence = mySqliteUtil.createByteSequence(file, 10)

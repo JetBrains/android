@@ -15,29 +15,29 @@
  */
 package com.android.tools.idea.sqlite.model
 
+import com.android.tools.idea.sqlite.SqliteService
+import com.intellij.openapi.Disposable
 import java.sql.JDBCType
 
 /**
- * Abstraction over the schema of a single Sqlite database.
- *
- * @see [com.android.tools.idea.sqlite.SqliteService.readSchema].
+ * Representation of a database instance.
  */
-interface SqliteSchema {
+data class SqliteDatabase(
+  val name: String,
+  val sqliteService: SqliteService
+) : Disposable {
 
-  /**
-   * The list of tables in the database
-   */
-  val tables: List<SqliteTable>
-
-  companion object {
-    /**
-     * An empty schema, used when the schema is not known yet.
-     */
-    val EMPTY: SqliteSchema = object : SqliteSchema {
-      override val tables: List<SqliteTable> = emptyList()
-    }
+  override fun dispose() {
+    sqliteService.closeDatabase().get()
   }
 }
+
+fun SqliteDatabase.getFormattedSqliteDatabaseName(): String {
+  return name.split("data/data/")[1].replace("databases/", "")
+}
+
+/** Representation of the Sqlite database schema */
+data class SqliteSchema(val tables: List<SqliteTable>)
 
 /** Representation of the Sqlite database table */
 data class SqliteTable(val name: String, val columns: List<SqliteColumn>)
@@ -45,8 +45,8 @@ data class SqliteTable(val name: String, val columns: List<SqliteColumn>)
 /** Representation of the Sqlite table row */
 data class SqliteRow(val values: List<SqliteColumnValue>)
 
-/** Representation of a Sqlite table column */
-data class SqliteColumn(val name: String, val type: JDBCType)
-
 /** Representation of a Sqlite table column value */
 data class SqliteColumnValue(val column: SqliteColumn, val value: Any?)
+
+/** Representation of a Sqlite table column */
+data class SqliteColumn(val name: String, val type: JDBCType)

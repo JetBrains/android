@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorTextField
@@ -40,9 +41,18 @@ class SqliteEvaluatorViewImpl(override val project: Project) : SqliteEvaluatorVi
     evaluatorPanel.root.add(tableView.component, BorderLayout.CENTER)
     evaluatorPanel.evaluateButton.addActionListener {
       listeners.forEach {
-        it.evaluateSqlActionInvoked(editorTextField.text)
+        it.evaluateSqlActionInvoked((evaluatorPanel.schemaComboBox.selectedItem as ComboBoxItem).database, editorTextField.text)
       }
     }
+  }
+
+  override fun addDatabase(database: SqliteDatabase, databaseName: String, index: Int) {
+    evaluatorPanel.schemaComboBox.insertItemAt(ComboBoxItem(database, databaseName), index)
+    if (evaluatorPanel.schemaComboBox.selectedIndex == -1) evaluatorPanel.schemaComboBox.selectedIndex = 0
+  }
+
+  override fun removeDatabase(index: Int) {
+    evaluatorPanel.schemaComboBox.removeItemAt(index)
   }
 
   override fun addListener(listener: SqliteEvaluatorViewListener) {
@@ -55,5 +65,9 @@ class SqliteEvaluatorViewImpl(override val project: Project) : SqliteEvaluatorVi
 
   override fun showSqliteStatement(sqliteStatement: String) {
     editorTextField.text = sqliteStatement
+  }
+
+  internal data class ComboBoxItem(val database: SqliteDatabase, val name: String) {
+    override fun toString() = name
   }
 }

@@ -25,6 +25,7 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.controllers.TabId
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.renderers.SchemaTreeCellRenderer
@@ -56,6 +57,7 @@ import javax.swing.JPanel
 import javax.swing.OverlayLayout
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreePath
 
 @UiThread
 class SqliteViewImpl(
@@ -89,6 +91,41 @@ class SqliteViewImpl(
 
     defaultUiPanel.label.font = AdtUiUtils.EMPTY_TOOL_WINDOW_FONT
     defaultUiPanel.label.foreground = UIUtil.getInactiveTextColor()
+
+    sqliteEditorPanel.openSqliteEvaluator.addActionListener { listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
+
+    tabs.apply {
+      isTabDraggingEnabled = true
+      setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(4, 10)) }
+      addTabMouseListener(TabMouseListener())
+    }
+
+    sqliteEditorPanel.tabsRoot.add(tabs)
+
+    setUpSqliteSchemaTree()
+  }
+
+  private fun setUpSqliteSchemaTree() {
+    // TODO(b/137731627) why do we have to do this manually? Check how is done in Device Explorer.
+    val treeKeyAdapter = object : KeyAdapter() {
+      override fun keyPressed(event: KeyEvent) {
+        if (event.keyCode == KeyEvent.VK_ENTER) {
+          fireAction(viewContext.schemaTree!!, event)
+        }
+      }
+    }
+
+    val treeDoubleClickListener = object : DoubleClickListener() {
+      override fun onDoubleClick(event: MouseEvent): Boolean {
+        fireAction(viewContext.schemaTree!!, event)
+        return true
+      }
+    }
+
+    viewContext.schemaTree?.let {
+      it.addKeyListener(treeKeyAdapter)
+      treeDoubleClickListener.installOn(it)
+    }
   }
 
   override fun addListener(listener: SqliteViewListener) {
@@ -100,29 +137,54 @@ class SqliteViewImpl(
   }
 
   override fun startLoading(text: String) {
+    // TODO(b/133320900) Should show proper loading UI.
+    //  This loading logic is not the best now that multiple databases can be opened.
+    //  This method is called each time a new database is opened.
     workBench.isVisible = true
     defaultUiPanel.rootPanel.isVisible = false
     workBench.setLoadingText(text)
   }
 
   override fun stopLoading() {
-    sqliteEditorPanel.openSqliteEvaluator.addActionListener { listeners.forEach{ it.openSqliteEvaluatorTabActionInvoked() } }
-
-    tabs.apply {
-      isTabDraggingEnabled = true
-      setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(4, 10)) }
-      addTabMouseListener(TabMouseListener())
-    }
-
-    sqliteEditorPanel.tabsRoot.add(tabs)
   }
 
-  override fun displaySchema(schema: SqliteSchema) {
-    viewContext.schema = schema
-    viewContext.schemaTree?.removeKeyListener(keyAdapter)
-    doubleClickListener.uninstall(viewContext.schemaTree)
+  override fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int) {
+    val tree = viewContext.schemaTree!!
+    val treeModel = tree.model as DefaultTreeModel
+    val root = treeModel.root as DefaultMutableTreeNode
 
-    setupSchemaTree()
+    val schemaNode = DefaultMutableTreeNode(database)
+    schema.tables.forEach { table ->
+      val tableNode = DefaultMutableTreeNode(table)
+      table.columns.forEach { column -> tableNode.add(DefaultMutableTreeNode(column)) }
+      schemaNode.add(tableNode)
+    }
+
+    treeModel.insertNodeInto(schemaNode, root, index)
+    tree.expandPath(TreePath(schemaNode.path))
+  }
+
+  override fun updateDatabase(database: SqliteDatabase, toRemove: List<SqliteTable>, toAdd: List<IndexedSqliteTable>) {
+    val treeModel = viewContext.schemaTree!!.model as DefaultTreeModel
+    val currentSchemaNode = findTreeNode(database)
+    currentSchemaNode.userObject = database
+
+    currentSchemaNode.children().toList().map { it as DefaultMutableTreeNode }.forEach {
+      if (toRemove.contains(it.userObject))
+        treeModel.removeNodeFromParent(it)
+    }
+
+    toAdd.forEach {
+      val newTableNode = DefaultMutableTreeNode(it.sqliteTable)
+      it.sqliteTable.columns.forEach { column -> newTableNode.add(DefaultMutableTreeNode(column)) }
+      treeModel.insertNodeInto(newTableNode, currentSchemaNode, it.index)
+    }
+  }
+
+  override fun removeDatabaseSchema(database: SqliteDatabase) {
+    val treeModel = viewContext.schemaTree!!.model as DefaultTreeModel
+    val databaseNode = findTreeNode(database)
+    treeModel.removeNodeFromParent(databaseNode)
   }
 
   override fun displayResultSet(tableId: TabId, tableName: String, component: JComponent) {
@@ -152,7 +214,7 @@ class SqliteViewImpl(
     val tabActionGroup = DefaultActionGroup()
     tabActionGroup.add(object : AnAction("Close tabs", "Click to close tab", AllIcons.Actions.Close) {
       override fun actionPerformed(e: AnActionEvent) {
-        listeners.forEach { it.closeTableActionInvoked(tableId) }
+        listeners.forEach { it.closeTabActionInvoked(tableId) }
       }
 
       override fun update(e: AnActionEvent) {
@@ -167,49 +229,29 @@ class SqliteViewImpl(
     return tab
   }
 
-  private fun setupSchemaTree() {
-    if (viewContext.schemaTree == null || viewContext.schema == null)
-      return
-
-    val tree = viewContext.schemaTree!!
-    val schema = viewContext.schema!!
-
-    tree.cellRenderer = SchemaTreeCellRenderer()
-    val root = DefaultMutableTreeNode("Tables")
-    schema.tables.forEach { table ->
-      val tableNode = DefaultMutableTreeNode(table)
-      table.columns.forEach { column -> tableNode.add(DefaultMutableTreeNode(column)) }
-      root.add(tableNode)
-    }
-    tree.model = DefaultTreeModel(root)
-    tree.toggleClickCount = 0
-
-    tree.addKeyListener(keyAdapter)
-    doubleClickListener.installOn(tree)
+  private fun findTreeNode(database: SqliteDatabase): DefaultMutableTreeNode {
+    val root = viewContext.schemaTree!!.model.root as DefaultMutableTreeNode
+    return root.children().asSequence()
+      .map { it as DefaultMutableTreeNode }
+      .first { it.userObject == database }
   }
 
   private fun fireAction(tree: Tree, e: InputEvent) {
-    val lastPathComponent = tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode
+    val lastPathComponent = tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode ?: return
 
-    val userObject = lastPathComponent?.userObject
-    if (userObject is SqliteTable) {
-      listeners.forEach { l -> l.tableNodeActionInvoked(userObject) }
+    val sqliteTable = lastPathComponent.userObject
+    if (sqliteTable is SqliteTable) {
+      val parentNode = lastPathComponent.parent as DefaultMutableTreeNode
+      val database = parentNode.userObject as SqliteDatabase
+      listeners.forEach { l -> l.tableNodeActionInvoked(database, sqliteTable) }
       e.consume()
-    }
-  }
-
-  private val keyAdapter = object : KeyAdapter() {
-    override fun keyPressed(event: KeyEvent) {
-      if (event.keyCode == KeyEvent.VK_ENTER) {
-        viewContext.schemaTree?.let { fireAction(it, event) }
+    } else {
+      val path = TreePath(lastPathComponent.path)
+      if (tree.isExpanded(path)) {
+        tree.collapsePath(path)
+      } else {
+        tree.expandPath(path)
       }
-    }
-  }
-
-  private val doubleClickListener = object : DoubleClickListener() {
-    override fun onDoubleClick(event: MouseEvent): Boolean {
-      viewContext.schemaTree?.let { fireAction(it, event) }
-      return true
     }
   }
 
@@ -227,9 +269,9 @@ class SqliteViewImpl(
     companion object {
       fun getDefinition(): ToolWindowDefinition<SqliteViewContext> {
         return ToolWindowDefinition(
-          "Schema",
+          "Open Databases",
           AllIcons.Nodes.DataTables,
-          "SCHEMA",
+          "OPEN_DATABASES",
           Side.LEFT,
           Split.TOP,
           AutoHide.DOCKED
@@ -238,6 +280,19 @@ class SqliteViewImpl(
     }
 
     private val schemaPanel = SqliteSchemaPanel()
+    private val tree = schemaPanel.tree
+
+    init {
+      setUpSchemaTree(tree)
+    }
+
+    private fun setUpSchemaTree(tree: Tree) {
+      tree.cellRenderer = SchemaTreeCellRenderer()
+      val root = DefaultMutableTreeNode("Schemas")
+
+      tree.model = DefaultTreeModel(root)
+      tree.toggleClickCount = 0
+    }
 
     override fun getComponent(): JComponent {
       return schemaPanel.component
@@ -255,7 +310,6 @@ class SqliteViewImpl(
   }
 
   class SqliteViewContext {
-    var schema: SqliteSchema? = null
     var schemaTree: Tree? = null
   }
 }

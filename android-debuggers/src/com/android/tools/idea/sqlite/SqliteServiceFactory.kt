@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.sqlite.jdbc.SqliteJdbcService
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.concurrent.Executor
@@ -26,14 +25,13 @@ interface SqliteServiceFactory {
   /**
    * Returns a [SqliteService] associated with the sqliteFile passed as argument.
    * @param sqliteFile The file containing the Sqlite database.
-   * @param parentDisposable The disposable parent of the service. The service will be disposed when its parent gets disposed.
    * @param executor An executor for long-running and/or IO-bound tasks, such as [PooledThreadExecutor].
    */
-  fun getSqliteService(sqliteFile: VirtualFile, parentDisposable: Disposable, executor: Executor): SqliteService
+  fun getSqliteService(sqliteFile: VirtualFile, executor: Executor): SqliteService
 }
 
 class SqliteServiceFactoryImpl : SqliteServiceFactory {
-  override fun getSqliteService(sqliteFile: VirtualFile, parentDisposable: Disposable, executor: Executor): SqliteService {
-    return SqliteJdbcService(sqliteFile, parentDisposable, executor)
+  override fun getSqliteService(sqliteFile: VirtualFile, executor: Executor): SqliteService {
+    return SqliteJdbcService(sqliteFile, executor)
   }
 }
