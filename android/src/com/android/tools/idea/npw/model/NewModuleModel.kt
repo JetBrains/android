@@ -40,7 +40,6 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 import java.util.ArrayList
-import java.util.HashMap
 
 class NewModuleModel : WizardModel {
   val isLibrary: BoolProperty = BoolValueProperty()
@@ -127,8 +126,6 @@ class NewModuleModel : WizardModel {
   }
 
   private inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
-    internal val myTemplateValues: MutableMap<String, Any> = HashMap()
-
     @WorkerThread
     override fun init() {
       // By the time we run handleFinished(), we must have a Project
@@ -136,10 +133,8 @@ class NewModuleModel : WizardModel {
         log.error("NewModuleModel did not collect expected information and will not complete. Please report this error.")
       }
 
-      TemplateValueInjector(this@NewModuleModel.templateValues)
+      TemplateValueInjector(templateValues)
         .setProjectDefaults(project.value, applicationName.get())
-
-      myTemplateValues.putAll(this@NewModuleModel.templateValues)
     }
 
     @WorkerThread
@@ -148,23 +143,24 @@ class NewModuleModel : WizardModel {
         return false // If here, the user opted to skip creating any module at all, or is just adding a new Activity
       }
 
-      myTemplateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary.get()
+      templateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary.get()
 
       val project = project.value
 
+      val injector = TemplateValueInjector(templateValues)
+      if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
+        injector.setLanguage(language.value)
+      }
+
       renderTemplateModel.valueOrNull?.let {
-        val injector = TemplateValueInjector(it.templateValues)
+        TemplateValueInjector(it.templateValues)
           .setBuildVersion(it.androidSdkInfo.value, project)
           .setModuleRoots(it.template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
-
-        if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
-          injector.setLanguage(language.value)
-        }
-        myTemplateValues.putAll(it.templateValues)
+          templateValues.putAll(it.templateValues)
       }
 
       // Returns false if there was a render conflict and the user chose to cancel creating the template
-      return renderModule(true, myTemplateValues, project, moduleName.get())
+      return renderModule(true, templateValues, project, moduleName.get())
     }
 
     @WorkerThread
@@ -172,7 +168,7 @@ class NewModuleModel : WizardModel {
       val project = project.value
 
       val success = WriteCommandAction.writeCommandAction(project).withName("New Module").compute<Boolean, Exception> {
-        renderModule(false, myTemplateValues, project, moduleName.get())
+        renderModule(false, templateValues, project, moduleName.get())
       }
 
       if (!success) {
