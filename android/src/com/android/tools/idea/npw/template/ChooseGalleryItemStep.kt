@@ -51,19 +51,20 @@ import javax.swing.JComponent
  *
  * Should we have something more specific than a ASGallery, that renders "Gallery items"?
  */
-abstract class ChooseGalleryItemStep(moduleModel: NewModuleModel,
-                            private val renderModel: RenderTemplateModel,
-                            formFactor: FormFactor,
-                            private val moduleTemplates: List<NamedModuleTemplate>,
-                            private val messageKeys: WizardGalleryItemsStepMessageKeys,
-                            private val emptyItemLabel: String)
-  : SkippableWizardStep<NewModuleModel>(moduleModel, message(messageKeys.addMessage, formFactor.id), formFactor.icon) {
+abstract class ChooseGalleryItemStep(
+  moduleModel: NewModuleModel,
+  private val renderModel: RenderTemplateModel,
+  formFactor: FormFactor,
+  private val moduleTemplates: List<NamedModuleTemplate>,
+  private val messageKeys: WizardGalleryItemsStepMessageKeys,
+  private val emptyItemLabel: String
+) : SkippableWizardStep<NewModuleModel>(moduleModel, message(messageKeys.addMessage, formFactor.id), formFactor.icon) {
 
   abstract val templateRenders: List<TemplateRenderer>
   private val itemGallery = WizardGallery(title, { t: TemplateRenderer? -> t!!.icon }, { t: TemplateRenderer? -> t!!.label })
   private val validatorPanel = ValidatorPanel(this, JBScrollPane(itemGallery)).also {
-      FormScalingUtil.scaleComponentTree(this.javaClass, it)
-    }
+    FormScalingUtil.scaleComponentTree(this.javaClass, it)
+  }
 
   private val invalidParameterMessage = StringValueProperty()
   private val listeners = ListenerManager()
@@ -71,13 +72,14 @@ abstract class ChooseGalleryItemStep(moduleModel: NewModuleModel,
   protected val isNewModule: Boolean
     get() = renderModel.module == null
 
-  constructor(moduleModel: NewModuleModel,
-              renderModel: RenderTemplateModel,
-              formFactor: FormFactor,
-              targetDirectory: VirtualFile,
-              messageKeys: WizardGalleryItemsStepMessageKeys,
-              emptyItemLabel: String)
-    : this(moduleModel, renderModel, formFactor,
+  constructor(
+    moduleModel: NewModuleModel,
+    renderModel: RenderTemplateModel,
+    formFactor: FormFactor,
+    targetDirectory: VirtualFile,
+    messageKeys: WizardGalleryItemsStepMessageKeys,
+    emptyItemLabel: String
+  ) : this(moduleModel, renderModel, formFactor,
            AndroidPackageUtils.getModuleTemplates(renderModel.androidFacet!!, targetDirectory),
            messageKeys, emptyItemLabel)
 
@@ -203,12 +205,11 @@ fun validateTemplate(template: TemplateMetadata?,
   }
   else ""
 
-interface WizardGalleryItemsStepMessageKeys {
-
-  val addMessage: String
-  val stepTitle: String
-  val itemNotFound: String
-  val invalidMinSdk: String
-  val invalidMinBuild: String
+data class WizardGalleryItemsStepMessageKeys(
+  val addMessage: String,
+  val stepTitle: String,
+  val itemNotFound: String,
+  val invalidMinSdk: String,
+  val invalidMinBuild: String,
   val invalidAndroidX: String
-}
+)
