@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview
 
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 
 abstract class AbstractDependencyNode<T : PsBaseDependency> : AbstractPsModelNode<T> {
 
@@ -34,23 +33,5 @@ abstract class AbstractDependencyNode<T : PsBaseDependency> : AbstractPsModelNod
     models = dependencies
     updateNameAndIcon()
   }
-
-  companion object {
-    fun createResolvedNode(parent: AbstractPsNode,
-                           dependency: PsBaseDependency): AbstractDependencyNode<*>? =
-      when (dependency) {
-        is PsResolvedLibraryDependency -> createResolvedLibraryDependencyNode(parent, dependency, forceGroupId = false)
-        is PsResolvedModuleDependency -> ModuleDependencyNode(parent, dependency)
-        is PsResolvedJarDependency -> JarDependencyNode(parent, listOf(dependency))
-        else -> null
-      }
-
-    fun getDependencyParsedModels(model: PsBaseDependency): List<DependencyModel> =
-      when (model) {
-        is PsResolvedDependency -> model.getParsedModels()
-        is PsDeclaredDependency -> listOf(model.parsedModel)
-        is PsDeclaredJarDependency -> listOf(model.parsedModel)
-        else -> listOf()
-      }
-  }
 }
+
