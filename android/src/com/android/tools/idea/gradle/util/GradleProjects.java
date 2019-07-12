@@ -120,15 +120,8 @@ public final class GradleProjects {
 
   @Nullable
   public static File findModuleRootFolderPath(@NotNull Module module) {
-    if (!isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) {
-      return null;
-    }
-    String linkedProjectPath = ExternalSystemModulePropertyManager.getInstance(module).getLinkedProjectPath();
-    if (linkedProjectPath == null) {
-      return null;
-    }
-
-    return new File(linkedProjectPath);
+    File moduleFilePath = toSystemDependentPath(module.getModuleFilePath());
+    return moduleFilePath.getParentFile();
   }
 
   /**
