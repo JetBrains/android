@@ -37,10 +37,7 @@ class NewWearProjectTest {
   fun testBuildBlankWearActivityWithoutCompanion() {
     createWearProject("Blank Wear Activity", Language.JAVA, false)
 
-    guiTest.ideFrame().editor
-      .open("app/build.gradle")
-      .currentFileContents.apply {
-
+    guiTest.getProjectFileText("app/build.gradle").apply {
       assertThat(this).contains("compileOnly 'com.google.android.wearable")
       assertThat(this).contains("implementation 'androidx.wear:wear:")
 
@@ -48,10 +45,7 @@ class NewWearProjectTest {
       assertThat(this).doesNotContain("com.android.support:wear:")
     }
 
-    guiTest.ideFrame().editor
-      .open("app/src/main/AndroidManifest.xml")
-      .currentFileContents.apply {
-
+    guiTest.getProjectFileText("app/src/main/AndroidManifest.xml").apply {
       assertThat(this).contains("<uses-feature android:name=\"android.hardware.type.watch\"")
     }
 
@@ -62,19 +56,13 @@ class NewWearProjectTest {
   fun testBuildBlankWearActivityWithCompanion() {
     createWearProject("Blank Wear Activity", Language.KOTLIN, true)
 
-    guiTest.ideFrame().editor
-      .open("mobile/build.gradle")
-      .currentFileContents.apply {
-
+    guiTest.getProjectFileText("mobile/build.gradle").apply {
       assertThat(this).contains("wearApp project")
       assertThat(this).contains("implementation 'com.google.android.gms:play-services-wearable")
       assertThat(this).doesNotContain("+") // All dependencies should be resolved
     }
 
-    guiTest.ideFrame().editor
-      .open("wear/src/main/AndroidManifest.xml")
-      .currentFileContents.apply {
-
+    guiTest.getProjectFileText("wear/src/main/AndroidManifest.xml").apply {
       assertThat(this).contains("<uses-feature android:name=\"android.hardware.type.watch\"")
     }
 
