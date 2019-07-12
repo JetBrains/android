@@ -254,7 +254,7 @@ public abstract class IconGenerator implements Disposable {
   @NotNull
   private static File getBaseDirectory(@NotNull AndroidModuleTemplate template, @NotNull IconCategory category) {
     File dir;
-    if (category == IconCategory.WEB) {
+    if (category == IconCategory.PLAY_STORE) {
       dir = template.getManifestDirectory();
       if (dir != null) {
         return dir;
@@ -723,6 +723,50 @@ public abstract class IconGenerator implements Disposable {
   @Nullable
   public static File getResDirectory(@NotNull AndroidModuleTemplate template) {
     return Iterables.getLast(template.getResDirectories(), null);
+  }
+
+  /**
+   * Loads a built-in image file given a {@link Shape}, a {@link Density} and a file name.
+   * <p>
+   * Pass {@link Density#NODPI} to get the image corresponding to the Play Store preview image size.
+   */
+  @Nullable
+  private static BufferedImage loadImage(@NotNull GraphicGeneratorContext context, @NotNull Shape shape, @NotNull Density density,
+                                         @NotNull String fileName) {
+    String densityValue = density == Density.NODPI ? "playstore" : density.getResourceValue();
+    String name = String.format("/images/launcher_stencil/%s/%s/%s.png", shape.id, densityValue, fileName);
+    return context.loadImageResource(name);
+  }
+
+  /**
+   * Loads a built-in mask image file given a {@link Shape} and a {@link Density}.
+   * <p>
+   * Pass {@link Density#NODPI} to get the image corresponding to the Play Store preview image size.
+   */
+  @Nullable
+  protected static BufferedImage loadMaskImage(@NotNull GraphicGeneratorContext context, @NotNull Shape shape, @NotNull Density density) {
+    return loadImage(context, shape, density, "mask");
+  }
+
+  /**
+   * Loads a built-in background image file given a {@link Shape} and a {@link Density}.
+   * <p>
+   * Pass {@link Density#NODPI} to get the image corresponding to the Play Store image size.
+   */
+  @Nullable
+  protected static BufferedImage loadBackImage(@NotNull GraphicGeneratorContext context, @NotNull Shape shape, @NotNull Density density) {
+    return loadImage(context, shape, density, "back");
+  }
+
+  /**
+   * Loads a built-in style image file given a {@link Shape} and a {@link Density}.
+   * <p>
+   * Pass {@link Density#NODPI} to get the image corresponding to the Play Store preview image size.
+   */
+  @Nullable
+  protected static BufferedImage loadStyleImage(@NotNull GraphicGeneratorContext context, @NotNull Shape shape, @NotNull Density density,
+                                                @NotNull Style style) {
+    return loadImage(context, shape, density, style.id);
   }
 
   /**
