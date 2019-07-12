@@ -446,6 +446,10 @@ public final class GuiTests {
     findAndClickButton(container, "Refactor");
   }
 
+  public static void findAndClickTerminateButton(@NotNull ContainerFixture<? extends Container> container) {
+    findAndClickButton(container, "Terminate");
+  }
+
   public static void findAndClickCancelButton(@NotNull ContainerFixture<? extends Container> container) {
     findAndClickButton(container, "Cancel");
   }
