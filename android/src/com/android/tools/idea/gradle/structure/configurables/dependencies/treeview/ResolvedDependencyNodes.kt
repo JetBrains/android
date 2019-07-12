@@ -58,7 +58,7 @@ abstract class AbstractResolvedDependencyNode<T : PsBaseDependency> : AbstractPs
   companion object {
     fun createResolvedNode(parent: AbstractPsNode, dependency: PsBaseDependency): AbstractResolvedDependencyNode<*>? =
       when (dependency) {
-        is PsResolvedLibraryDependency -> createResolvedLibraryDependencyNode(parent, dependency)
+        is PsResolvedLibraryDependency -> ResolvedLibraryDependencyNode(parent, dependency)
         is PsResolvedModuleDependency -> ResolvedModuleDependencyNode(parent, dependency)
         is PsResolvedJarDependency -> ResolvedJarDependencyNode(parent, listOf(dependency))
         else -> null
@@ -81,7 +81,7 @@ class ResolvedModuleDependencyNode(
   override fun getChildren(): Array<SimpleNode> = myChildren.toTypedArray()
 }
 
-abstract class ResolvedLibraryDependencyNode(
+class ResolvedLibraryDependencyNode(
   parent: AbstractPsNode,
   val dependency: PsResolvedLibraryDependency
 ) : AbstractResolvedDependencyNode<PsLibraryDependency>(parent, listOf(dependency)) {
@@ -91,8 +91,6 @@ abstract class ResolvedLibraryDependencyNode(
   init {
     myName = getText(parent, dependency, parent.uiSettings)
   }
-
-  protected abstract fun createChildren(): List<AbstractResolvedDependencyNode<*>>
 
   override fun getChildren(): Array<SimpleNode> = cachedChildren ?: createChildren().toTypedArray<SimpleNode>().also { cachedChildren = it }
 
@@ -105,6 +103,14 @@ abstract class ResolvedLibraryDependencyNode(
       presentation.addText(" (${spec.group})", SimpleTextAttributes.GRAY_ATTRIBUTES)
     }
   }
+
+  private fun createChildren(): List<AbstractResolvedDependencyNode<*>> = dependency
+    .getTransitiveDependencies()
+    .sortedWith(PsDependencyComparator(this.uiSettings))
+    .map { transitiveLibrary ->
+      @Suppress("UNCHECKED_CAST")
+      (ResolvedLibraryDependencyNode(this, transitiveLibrary as PsResolvedLibraryDependency))
+    }
 }
 
 class ResolvedJarDependencyNode(
@@ -121,26 +127,6 @@ class ResolvedJarDependencyNode(
     if (!file.parentFile?.path.isNullOrEmpty()) {
       presentation.addText(" (${file.parentFile?.path})", SimpleTextAttributes.GRAY_ATTRIBUTES)
     }
-  }
-}
-
-fun <T> createResolvedLibraryDependencyNode(
-  parent: AbstractPsNode,
-  dependency: T
-): ResolvedLibraryDependencyNode
-  where T : PsResolvedLibraryDependency,
-        T : PsLibraryDependency,
-        T : PsResolvedDependency,
-        T : PsBaseDependency {
-
-  return object : ResolvedLibraryDependencyNode(parent, dependency) {
-    override fun createChildren(): List<AbstractResolvedDependencyNode<*>> = dependency
-      .getTransitiveDependencies()
-      .sortedWith(PsDependencyComparator(this.uiSettings))
-      .map { transitiveLibrary ->
-        @Suppress("UNCHECKED_CAST")
-        (createResolvedLibraryDependencyNode(this, transitiveLibrary as T))
-      }
   }
 }
 
