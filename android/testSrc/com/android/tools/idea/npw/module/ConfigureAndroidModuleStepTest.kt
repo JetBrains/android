@@ -124,11 +124,11 @@ class ConfigureAndroidModuleStepTest : AndroidGradleTestCase() {
     myInvokeStrategy.updateAllSteps()
 
     val androidTarget_P = createMockAndroidVersion(VersionCodes.P)
-    configureAndroidModuleStep.renderModel.androidSdkInfo.value = androidTarget_P
+    newModuleModel.androidSdkInfo.value = androidTarget_P
     assertThat(configureAndroidModuleStep.canGoForward().get()).isTrue()
 
     val androidTarget_Q = createMockAndroidVersion(VersionCodes.Q)
-    configureAndroidModuleStep.renderModel.androidSdkInfo.value = androidTarget_Q
+    newModuleModel.androidSdkInfo.value = androidTarget_Q
     assertThat(configureAndroidModuleStep.canGoForward().get()).isFalse()
   }
 
