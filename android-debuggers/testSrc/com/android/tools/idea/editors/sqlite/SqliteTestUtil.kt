@@ -43,8 +43,8 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     }
   }
 
-  fun createTempSqliteDatabase(): VirtualFile = runWriteAction {
-    createEmptyTempSqliteDatabase().also { file ->
+  fun createTempSqliteDatabase(name: String = "sqlite-database"): VirtualFile = runWriteAction {
+    createEmptyTempSqliteDatabase(name).also { file ->
       // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
       openSqliteDatabase(file).use(::fillTestDatabase)
 
@@ -53,8 +53,8 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     }
   }
 
-  fun createTestSqliteDatabase(): VirtualFile = runWriteAction {
-    createEmptyTempSqliteDatabase().also { file ->
+  fun createTestSqliteDatabase(name: String = "sqlite-database"): VirtualFile = runWriteAction {
+    createEmptyTempSqliteDatabase(name).also { file ->
       // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
       openSqliteDatabase(file).use(::fillTestDatabase)
 
@@ -63,8 +63,8 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     }
   }
 
-  fun createEmptyTempSqliteDatabase(): VirtualFile = runReadAction {
-    tempDirTestFixture.createFile("sqlite-database").also { file ->
+  fun createEmptyTempSqliteDatabase(name: String): VirtualFile = runReadAction {
+    tempDirTestFixture.createFile(name).also { file ->
 
       // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
       openSqliteDatabase(file).use { connection ->

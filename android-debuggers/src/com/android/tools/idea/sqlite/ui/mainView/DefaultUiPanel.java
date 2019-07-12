@@ -19,6 +19,14 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class DefaultUiPanel {
-  public JPanel rootPanel;
-  public JLabel label;
+  private JPanel rootPanel;
+  private JLabel label;
+
+  public JPanel getRootPanel() {
+    return rootPanel;
+  }
+
+  public JLabel getLabel() {
+    return label;
+  }
 }
