@@ -365,7 +365,7 @@ class SessionsViewTest {
     assertThat(sessionsPanel.componentCount).isEqualTo(1)
     assertThat((sessionsPanel.getComponent(0) as SessionItemView).artifact.session).isEqualTo(session1)
 
-    val session = mySessionsManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
+    val session = mySessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
     mySessionsManager.update()
     mySessionsManager.setSession(session)
     assertThat(sessionsPanel.componentCount).isEqualTo(2)

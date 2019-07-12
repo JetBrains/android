@@ -109,11 +109,11 @@ public class CpuProfiler extends StudioProfiler {
       // and before the parsing happens.
       long endTimestampNs = startTimestampNs + TimeUnit.MINUTES.toNanos(1);
 
-      Common.Session importedSession = sessionsManager.createImportedSession(file.getName(),
-                                                                             Common.SessionMetaData.SessionType.CPU_CAPTURE,
-                                                                             startTimestampNs,
-                                                                             endTimestampNs,
-                                                                             startTimestampEpochMs);
+      Common.Session importedSession = sessionsManager.createImportedSessionLegacy(file.getName(),
+                                                                                   Common.SessionMetaData.SessionType.CPU_CAPTURE,
+                                                                                   startTimestampNs,
+                                                                                   endTimestampNs,
+                                                                                   startTimestampEpochMs);
       // Associate the trace file with the session so we can retrieve it later.
       mySessionTraceFiles.put(importedSession.getSessionId(), file);
       // Select the imported session
