@@ -50,8 +50,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.platform.templates.github.ZipUtil;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateModelException;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -728,13 +726,9 @@ public class TemplateManager {
       templates.addAll(getTemplateList(formFactor, category, excluded));
     }
 
-    // Special case for Android Wear and Android Auto: These tend not to be activities; allow
-    // you to create a module with for example just a watch face
+    // Special case for Android Wear: These tend not to be activities; allow you to create a module with for example just a watch face
     if (formFactor == FormFactor.WEAR) {
       templates.addAll(getTemplateList(formFactor, "Wear", excluded));
-    }
-    if (formFactor == FormFactor.CAR) {
-      templates.addAll(getTemplateList(formFactor, "Android Auto", excluded));
     }
 
     Collections.sort(templates, (o1, o2) -> {
