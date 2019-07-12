@@ -18,11 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
-import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -36,19 +32,6 @@ import static org.easymock.EasyMock.*;
 public class GradleProjectsTest extends IdeaTestCase {
   public void testIsGradleProjectWithRegularProject() {
     assertFalse(AndroidProjectInfo.getInstance(myProject).requiresAndroidModel());
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-      // Setup the project and the module as a Gradle project system so that their roots could be determined.
-      ExternalSystemModulePropertyManager
-        .getInstance(myModule)
-        .setExternalOptions(
-          GradleUtil.GRADLE_SYSTEM_ID,
-          new ModuleData(":", GradleUtil.GRADLE_SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProject.getBaseDir().getName(),
-                         myProject.getBasePath(), myProject.getBasePath()),
-          new ProjectData(GradleUtil.GRADLE_SYSTEM_ID, myProject.getName(), myProject.getBasePath(), myProject.getBasePath()));
   }
 
   public void testIsGradleProject() {
