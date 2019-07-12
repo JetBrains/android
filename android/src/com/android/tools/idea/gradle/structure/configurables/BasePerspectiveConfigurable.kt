@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.android.tools.idea.structure.dialog.logUsagePsdAction
@@ -305,7 +306,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
           context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_ADD)
           var synced = false
           val chooseModuleTypeStep = // TODO(b/134652202)
-              ChooseModuleTypeStep.createWithDefaultGallery(context.project.ideProject, null) { synced = true }
+              ChooseModuleTypeStep.createWithDefaultGallery(context.project.ideProject, null, ProjectSyncInvoker { synced = true })
           context.applyRunAndReparse {
             StudioWizardDialogBuilder(chooseModuleTypeStep, AndroidBundle.message("android.wizard.module.new.module.title"))
                 .setUxStyle(StudioWizardDialogBuilder.UxStyle.INSTANT_APP)
