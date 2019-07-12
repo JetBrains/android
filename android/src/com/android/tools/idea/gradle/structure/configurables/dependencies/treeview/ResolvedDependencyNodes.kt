@@ -133,17 +133,14 @@ fun <T> createResolvedLibraryDependencyNode(
         T : PsResolvedDependency,
         T : PsBaseDependency {
 
-  fun setUpChildren(parent: AbstractPsNode, dependency: T): List<ResolvedLibraryDependencyNode> =
-    dependency
+  return object : ResolvedLibraryDependencyNode(parent, dependency) {
+    override fun createChildren(): List<AbstractResolvedDependencyNode<*>> = dependency
       .getTransitiveDependencies()
-      .sortedWith(PsDependencyComparator(parent.uiSettings))
+      .sortedWith(PsDependencyComparator(this.uiSettings))
       .map { transitiveLibrary ->
         @Suppress("UNCHECKED_CAST")
-        (createResolvedLibraryDependencyNode(parent, transitiveLibrary as T))
+        (createResolvedLibraryDependencyNode(this, transitiveLibrary as T))
       }
-
-  return object : ResolvedLibraryDependencyNode(parent, dependency) {
-    override fun createChildren(): List<AbstractResolvedDependencyNode<*>> = setUpChildren(this, dependency)
   }
 }
 
