@@ -16,10 +16,28 @@
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
 public class SqliteEvaluatorPanel {
-  public JPanel root;
-  public JButton evaluateButton;
-  public JPanel controlsContainer;
+  private JPanel myRoot;
+  private JButton myEvaluateButton;
+  private JPanel myControlsContainer;
+  private JComboBox<SqliteEvaluatorViewImpl.ComboBoxItem> mySchemaComboBox;
+
+  public JPanel getRoot() {
+    return myRoot;
+  }
+
+  public JButton getEvaluateButton() {
+    return myEvaluateButton;
+  }
+
+  public JPanel getControlsContainer() {
+    return myControlsContainer;
+  }
+
+  public JComboBox<SqliteEvaluatorViewImpl.ComboBoxItem> getSchemaComboBox() {
+    return mySchemaComboBox;
+  }
 }

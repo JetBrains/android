@@ -21,6 +21,7 @@ import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.mocks.MockSqliteEvaluatorView
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewListener
 import com.google.common.util.concurrent.Futures
@@ -39,13 +40,15 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
   private lateinit var sqliteService: SqliteService
   private lateinit var edtExecutor: FutureCallbackExecutor
   private lateinit var sqliteEvaluatorController: SqliteEvaluatorController
+  private lateinit var sqliteDatabase: SqliteDatabase
 
   override fun setUp() {
     super.setUp()
     sqliteEvaluatorView = spy(MockSqliteEvaluatorView::class.java)
     sqliteService = mock(SqliteService::class.java)
     edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
-    sqliteEvaluatorController = SqliteEvaluatorController(testRootDisposable, sqliteEvaluatorView, sqliteService, edtExecutor)
+    sqliteEvaluatorController = SqliteEvaluatorController(testRootDisposable, sqliteEvaluatorView, edtExecutor)
+    sqliteDatabase = SqliteDatabase("path", sqliteService)
   }
 
   fun testSetUp() {
@@ -64,7 +67,7 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorController.evaluateSqlStatement(sqlStatement)
+    sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, sqlStatement)
 
     // Assert
     verify(sqliteService).executeQuery(sqlStatement)
@@ -79,7 +82,7 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorController.evaluateSqlStatement(sqlStatement)
+    sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, sqlStatement)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -142,7 +145,7 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorController.evaluateSqlStatement(action)
+    sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, action)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -158,7 +161,7 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorController.evaluateSqlStatement(action)
+    sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, action)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
