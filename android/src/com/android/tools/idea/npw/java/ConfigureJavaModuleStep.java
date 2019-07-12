@@ -45,7 +45,6 @@ import java.util.Collection;
 import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-
 public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleModel> {
   @NotNull private final StudioWizardStepPanel myRootPanel;
   @NotNull private ValidatorPanel myValidatorPanel;
