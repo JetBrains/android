@@ -49,7 +49,6 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
@@ -125,43 +124,44 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myBindings.bindTwoWay(new TextProperty(myAppName), myProjectModel.applicationName());
+    myBindings.bindTwoWay(new TextProperty(myAppName), myProjectModel.applicationName);
 
     // TODO: http://b/76205038 - The new UI no longer ask the user for the company domain. We should stop using it, and save the package
     // instead. Keep in mind that we need to remove the last segment, that is specific to the application name.
     StringProperty companyDomain = new StringValueProperty(NewProjectModel.getInitialDomain(false));
     String basePackage = new DomainToPackageExpression(companyDomain, new StringValueProperty("")).get();
 
-    Expression<String> computedPackageName = myProjectModel.applicationName()
+    Expression<String> computedPackageName = myProjectModel.applicationName
                                                            .transform(appName -> format("%s.%s", basePackage, nameToJavaPackage(appName)));
     TextProperty packageNameText = new TextProperty(myPackageName);
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
-    myBindings.bind(myProjectModel.packageName(), packageNameText);
+    myBindings.bind(myProjectModel.packageName, packageNameText);
+
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
-    Expression<String> computedLocation = myProjectModel.applicationName().transform(ConfigureAndroidProjectStep::findProjectLocation);
+    Expression<String> computedLocation = myProjectModel.applicationName.transform(ConfigureAndroidProjectStep::findProjectLocation);
     TextProperty locationText = new TextProperty(myProjectLocation.getTextField());
     BoolProperty isLocationSynced = new BoolValueProperty(true);
     myBindings.bind(locationText, computedLocation, isLocationSynced);
-    myBindings.bind(myProjectModel.projectLocation(), locationText);
+    myBindings.bind(myProjectModel.projectLocation, locationText);
     myListeners.listen(locationText, value -> isLocationSynced.set(value.equals(computedLocation.get())));
 
     OptionalProperty<VersionItem> androidSdkInfo = getModel().androidSdkInfo();
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
-    myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.language());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.language);
 
 
-    myValidatorPanel.registerValidator(myProjectModel.applicationName(), new ProjectNameValidator());
+    myValidatorPanel.registerValidator(myProjectModel.applicationName, new ProjectNameValidator());
 
-    Expression<File> locationFile = myProjectModel.projectLocation().transform(File::new);
+    Expression<File> locationFile = myProjectModel.projectLocation.transform(File::new);
     myValidatorPanel.registerValidator(locationFile, PathValidator.createDefault("project location"));
 
-    myValidatorPanel.registerValidator(myProjectModel.packageName(),
+    myValidatorPanel.registerValidator(myProjectModel.packageName,
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
-    myValidatorPanel.registerValidator(myProjectModel.language(), value ->
+    myValidatorPanel.registerValidator(myProjectModel.language, value ->
       value.isPresent() ? OK : new Validator.Result(ERROR, message("android.wizard.validate.select.language")));
 
     myValidatorPanel.registerValidator(androidSdkInfo, value ->
@@ -169,7 +169,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
 
-    myListeners.listenAll(getModel().formFactor(), myProjectModel.enableCppSupport()).withAndFire(() -> {
+    myListeners.listenAll(getModel().formFactor(), myProjectModel.enableCppSupport).withAndFire(() -> {
       FormFactor formFactor = getModel().formFactor().get();
 
       myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.MOBILE);
@@ -243,7 +243,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   }
 
   private void setTemplateThumbnail(@Nullable TemplateHandle templateHandle) {
-    boolean isCppTemplate = myProjectModel.enableCppSupport().get();
+    boolean isCppTemplate = myProjectModel.enableCppSupport.get();
     TemplateIcon icon = ActivityGallery.getTemplateIcon(templateHandle, isCppTemplate);
     if (icon != null) {
       icon.cropBlankWidth();

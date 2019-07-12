@@ -97,14 +97,14 @@ class NewModuleModel : WizardModel {
 
   constructor(projectModel: NewProjectModel, templateFile: File, template: NamedModuleTemplate) {
     this.template = ObjectValueProperty(template)
-    project = projectModel.project()
+    project = projectModel.project
     this.moduleParent = null
-    projectPackageName = projectModel.packageName()
+    projectPackageName = projectModel.packageName
     projectSyncInvoker = projectModel.projectSyncInvoker
     createInExistingProject = false
-    enableCppSupport = projectModel.enableCppSupport()
-    applicationName = projectModel.applicationName()
-    projectLocation = projectModel.projectLocation()
+    enableCppSupport = projectModel.enableCppSupport
+    applicationName = projectModel.applicationName
+    projectLocation = projectModel.projectLocation
     this.templateFile.value = templateFile
     multiTemplateRenderer = projectModel.multiTemplateRenderer
     multiTemplateRenderer.incrementRenders()
