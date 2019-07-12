@@ -20,8 +20,9 @@ import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
 import com.intellij.ui.treeStructure.SimpleNode
 
-abstract class AbstractPsResettableNode<K, N: SimpleNode, M : PsModel> protected constructor(uiSettings: PsUISettings)
-  : AbstractPsModelNode<M>(uiSettings) {
+abstract class AbstractPsResettableNode<K, N : SimpleNode, M : PsModel> : AbstractPsModelNode<M> {
+  protected constructor(uiSettings: PsUISettings) : super(uiSettings)
+  protected constructor(parent: AbstractPsNode, uiSettings: PsUISettings) : super(parent, uiSettings)
 
   private var myChildren: Array<SimpleNode>? = null
 

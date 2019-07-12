@@ -194,7 +194,7 @@ fun createNodesForResolvedDependencies(
   return children
 }
 
-internal fun getText(parent: AbstractPsNode, dependency: PsLibraryDependency, forceGroupId: Boolean, uiSettings: PsUISettings): String {
+private fun getText(parent: AbstractPsNode, dependency: PsLibraryDependency, forceGroupId: Boolean, uiSettings: PsUISettings): String {
   val resolvedSpec = dependency.spec
   // TODO(b/74948244): Display POM dependency promotions correctly.
   if (dependency is PsResolvedLibraryDependency &&

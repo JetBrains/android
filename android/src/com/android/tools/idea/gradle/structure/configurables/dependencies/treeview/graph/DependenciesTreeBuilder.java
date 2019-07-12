@@ -16,12 +16,9 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph;
 
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractPsNodeTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.LibraryDependencyNode;
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeBuilder;
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
-import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.util.ActionCallback;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +29,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
-public class DependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
+public class DependenciesTreeBuilder extends AbstractBaseTreeBuilder {
   public DependenciesTreeBuilder(@NotNull JTree tree,
                                  @NotNull DefaultTreeModel treeModel,
                                  @NotNull DependenciesTreeStructure treeStructure) {
@@ -66,7 +63,7 @@ public class DependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
       if (!(userObject instanceof AbstractDependencyNode)) {
         continue;
       }
-      AbstractDependencyNode<PsBaseDependency> node = (AbstractDependencyNode)userObject;
+      AbstractDependencyNode<?, PsBaseDependency> node = (AbstractDependencyNode)userObject;
       for (PsBaseDependency model : node.getModels()) {
         // Checking for reference equality since declared dependencies are always reloaded.
         if (dependency == model) {
