@@ -31,7 +31,7 @@ import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.npw.ThemeHelper
-import com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain
+import com.android.tools.idea.npw.model.NewProjectModel.Companion.getInitialDomain
 import com.android.tools.idea.npw.model.getKotlinVersion
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
