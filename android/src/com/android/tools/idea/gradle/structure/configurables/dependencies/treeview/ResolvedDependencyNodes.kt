@@ -58,7 +58,7 @@ abstract class AbstractResolvedDependencyNode<T : PsBaseDependency> : AbstractPs
   companion object {
     fun createResolvedNode(parent: AbstractPsNode, dependency: PsBaseDependency): AbstractResolvedDependencyNode<*>? =
       when (dependency) {
-        is PsResolvedLibraryDependency -> createResolvedLibraryDependencyNode(parent, dependency, forceGroupId = false)
+        is PsResolvedLibraryDependency -> createResolvedLibraryDependencyNode(parent, dependency)
         is PsResolvedModuleDependency -> ResolvedModuleDependencyNode(parent, dependency)
         is PsResolvedJarDependency -> ResolvedJarDependencyNode(parent, listOf(dependency))
         else -> null
@@ -127,8 +127,7 @@ class ResolvedJarDependencyNode(
 
 fun <T> createResolvedLibraryDependencyNode(
   parent: AbstractPsNode,
-  dependency: T,
-  forceGroupId: Boolean
+  dependency: T
 ): ResolvedLibraryDependencyNode
   where T : PsResolvedLibraryDependency,
         T : PsLibraryDependency,
@@ -141,10 +140,10 @@ fun <T> createResolvedLibraryDependencyNode(
       .sortedWith(PsDependencyComparator(parent.uiSettings))
       .map { transitiveLibrary ->
         @Suppress("UNCHECKED_CAST")
-        (createResolvedLibraryDependencyNode(parent, transitiveLibrary as T, forceGroupId))
+        (createResolvedLibraryDependencyNode(parent, transitiveLibrary as T))
       }
 
-  val name = getText(parent, dependency, forceGroupId, parent.uiSettings)
+  val name = getText(parent, dependency, false, parent.uiSettings)
   return object : ResolvedLibraryDependencyNode(parent, dependency, name) {
     override fun createChildren(): List<AbstractResolvedDependencyNode<*>> = setUpChildren(this, dependency)
   }
