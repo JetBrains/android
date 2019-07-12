@@ -55,6 +55,7 @@ iml_module(
     test_coverage = True,
     test_data = [
         "//tools/idea:platform-build-info",
+        "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
