@@ -15,24 +15,18 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview
 
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode.Companion.getDependencyParsedModels
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
-import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.testResolve
-import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.notNullValue
 import org.junit.Assert.assertThat
-import org.junit.Assume.assumeThat
 
 
 class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
@@ -52,7 +46,7 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
   override fun tearDown() {
     super.tearDown()
 
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = savedSingleVariantSyncSetting;
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = savedSingleVariantSyncSetting
   }
 
   private fun reparse() {
