@@ -994,6 +994,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.CMakeListsTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
+        "qa_unreliable",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
