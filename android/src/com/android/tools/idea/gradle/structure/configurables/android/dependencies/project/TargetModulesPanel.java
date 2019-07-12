@@ -120,7 +120,7 @@ class TargetModulesPanel extends ToolWindowPanel {
     }
   }
 
-  void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsBaseDependency>> dependencyNodes) {
+  void displayTargetModules(@NotNull List<AbstractDependencyNode<?, ? extends PsBaseDependency>> dependencyNodes) {
     myTreeBuilder.displayTargetModules(dependencyNodes);
   }
 

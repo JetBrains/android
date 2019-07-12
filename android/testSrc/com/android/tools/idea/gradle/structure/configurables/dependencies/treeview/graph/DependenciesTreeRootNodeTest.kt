@@ -72,7 +72,7 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
           com.android.support:localbroadcastmanager:28.0.0
           com.android.support:print:28.0.0
           com.android.support:slidingpanelayout:28.0.0
-          support-annotations:→28.0.0
+          com.android.support:support-annotations:28.0.0
           com.android.support:support-compat:28.0.0
           com.android.support:support-core-ui:28.0.0
           com.android.support:support-core-utils:28.0.0

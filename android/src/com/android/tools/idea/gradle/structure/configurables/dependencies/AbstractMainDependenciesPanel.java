@@ -17,12 +17,9 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractMainPanel;
-import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public abstract class AbstractMainDependenciesPanel extends AbstractMainPanel {
 

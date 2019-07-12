@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview
 
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractPsNodeTreeBuilder
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeBuilder
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import javax.swing.JTree
 import javax.swing.tree.DefaultTreeModel
@@ -26,11 +26,11 @@ class TargetModulesTreeBuilder(
   tree: JTree,
   treeModel: DefaultTreeModel,
   uiSettings: PsUISettings
-) : AbstractPsNodeTreeBuilder(tree, treeModel, TargetModulesTreeStructure(uiSettings)) {
+) : AbstractBaseTreeBuilder(tree, treeModel, TargetModulesTreeStructure(uiSettings)) {
 
   override fun isSmartExpand(): Boolean = false
 
-  fun displayTargetModules(dependencyNodes: List<AbstractDependencyNode<out PsBaseDependency>>) {
+  fun displayTargetModules(dependencyNodes: List<AbstractDependencyNode<*, out PsBaseDependency>>) {
     val treeStructure = treeStructure
     if (treeStructure is TargetModulesTreeStructure) {
       treeStructure.displayTargetModules(dependencyNodes.map { it.models })
