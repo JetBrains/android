@@ -25,7 +25,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 
 class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
-
   fun testSortSingleModuleEntries() {
     assertThat(sort("Phone & Tablet Module")).containsExactly("Phone & Tablet Module").inOrder()
   }
