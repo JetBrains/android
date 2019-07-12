@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module;
 
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate;
 import static java.util.stream.Collectors.toMap;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -100,7 +101,7 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
     List<ModelWizardStep> allSteps = Lists.newArrayList();
     myModuleDescriptionToStepMap = new HashMap<>();
     for (ModuleGalleryEntry moduleGalleryEntry : myModuleGalleryEntryList) {
-      NewModuleModel model = new NewModuleModel(myProject, myModuleParent, myProjectSyncInvoker);
+      NewModuleModel model = new NewModuleModel(myProject, myModuleParent, myProjectSyncInvoker, createDummyTemplate());
       if (moduleGalleryEntry instanceof ModuleTemplateGalleryEntry) {
         ModuleTemplateGalleryEntry templateEntry =  (ModuleTemplateGalleryEntry) moduleGalleryEntry;
         model.isLibrary().set(templateEntry.isLibrary());

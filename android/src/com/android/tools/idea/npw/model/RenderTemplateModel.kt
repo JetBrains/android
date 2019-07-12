@@ -220,11 +220,11 @@ class RenderTemplateModel private constructor(
                           shouldOpenFiles)
 
     @JvmStatic
-    fun fromModuleModel(moduleModel: NewModuleModel, templateHandle: TemplateHandle?, template: NamedModuleTemplate, commandName: String) =
+    fun fromModuleModel(moduleModel: NewModuleModel, templateHandle: TemplateHandle?, commandName: String) =
       RenderTemplateModel(moduleModel.project,
                           null,
                           templateHandle,
-                          ObjectValueProperty(template),
+                          moduleModel.template,
                           moduleModel.projectLocation,
                           moduleModel.moduleName,
                           moduleModel.packageName,

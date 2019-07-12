@@ -24,10 +24,13 @@ import com.android.tools.idea.observable.BatchInvoker.INVOKE_IMMEDIATELY_STRATEG
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
+import com.android.tools.idea.observable.core.ObjectProperty
+import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateUtils
@@ -64,6 +67,7 @@ class NewModuleModel : WizardModel {
   val enableCppSupport: BoolProperty
   val language: OptionalValueProperty<Language>
   private val createInExistingProject: Boolean
+  val template: ObjectProperty<NamedModuleTemplate>
 
   init { // Default init constructor
     moduleName.addConstraint(AbstractProperty.Constraint(String::trim))
@@ -72,10 +76,12 @@ class NewModuleModel : WizardModel {
 
   constructor(project: Project,
               moduleParent: String?,
-              projectSyncInvoker: ProjectSyncInvoker) {
+              projectSyncInvoker: ProjectSyncInvoker,
+              template: NamedModuleTemplate) {
     this.project = OptionalValueProperty(project)
     this.moduleParent = moduleParent
     this.projectSyncInvoker = projectSyncInvoker
+    this.template = ObjectValueProperty(template)
     projectPackageName = packageName
     createInExistingProject = true
     enableCppSupport = BoolValueProperty()
@@ -87,7 +93,8 @@ class NewModuleModel : WizardModel {
     multiTemplateRenderer = MultiTemplateRenderer(project, projectSyncInvoker)
   }
 
-  constructor(projectModel: NewProjectModel, templateFile: File) {
+  constructor(projectModel: NewProjectModel, templateFile: File, template: NamedModuleTemplate) {
+    this.template = ObjectValueProperty(template)
     project = projectModel.project()
     this.moduleParent = null
     projectPackageName = projectModel.packageName()
@@ -148,15 +155,16 @@ class NewModuleModel : WizardModel {
       val project = project.value
 
       val injector = TemplateValueInjector(templateValues)
+      injector.setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
+
       if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
         injector.setLanguage(language.value)
       }
 
       renderTemplateModel.valueOrNull?.let {
-        TemplateValueInjector(it.templateValues)
-          .setBuildVersion(it.androidSdkInfo.value, project)
-          .setModuleRoots(it.template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
-          templateValues.putAll(it.templateValues)
+        TemplateValueInjector(it.templateValues).setBuildVersion(it.androidSdkInfo.value, project)
+        templateValues.putAll(it.templateValues) // TODO - Wrong copy direction - Remove next CL's
+        it.templateValues.putAll(templateValues)
       }
 
       // Returns false if there was a render conflict and the user chose to cancel creating the template
