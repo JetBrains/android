@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph
 
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.JarDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ModuleDependencyNode
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.createGroupOrLibraryDependencyNode
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.JarDependencyNode
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.LibraryDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredJarDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredModuleDependency
@@ -45,7 +46,7 @@ data class JarLibraryKey(val path: String) : DependencyKey()
 class DependenciesTreeRootNode(
   model: PsProject,
   uiSettings: PsUISettings
-) : AbstractPsResettableNode<DependencyKey, AbstractDependencyNode<*>, PsProject>(uiSettings) {
+) : AbstractPsResettableNode<DependencyKey, AbstractDependencyNode<*, PsBaseDependency>, PsProject>(uiSettings) {
 
   override val models: List<PsProject> = listOf(model)
 
@@ -66,22 +67,23 @@ class DependenciesTreeRootNode(
       .toSet()
   }
 
-  override fun create(key: DependencyKey): AbstractDependencyNode<*> = when (key) {
-    is LibraryKey -> {
-      val dependencies = collector.libraryDependenciesBySpec[key.library]!!
-      createGroupOrLibraryDependencyNode(this@DependenciesTreeRootNode, key.library, dependencies)
-    }
-    is ModuleKey -> {
-      val dependencies = collector.moduleDependenciesByGradlePath[key.modulePath].orEmpty()
-      ModuleDependencyNode(this@DependenciesTreeRootNode, dependencies)
-    }
-    is JarLibraryKey -> {
-      val dependencies = collector.jarDependenciesByPath[key.path].orEmpty()
-      JarDependencyNode(this@DependenciesTreeRootNode, dependencies.toList())
-    }
-  }
 
-  override fun update(key: DependencyKey, node: AbstractDependencyNode<*>) = Unit
+  override fun create(key: DependencyKey): AbstractDependencyNode<*, PsBaseDependency> =
+    @Suppress("UNCHECKED_CAST") // Create/update types always match.
+    (when (key) {
+      is LibraryKey -> LibraryDependencyNode(this@DependenciesTreeRootNode)
+      is ModuleKey -> ModuleDependencyNode(this@DependenciesTreeRootNode)
+      is JarLibraryKey -> JarDependencyNode(this@DependenciesTreeRootNode)
+    } as AbstractDependencyNode<*, PsBaseDependency>)
+
+  override fun update(key: DependencyKey, node: AbstractDependencyNode<*, PsBaseDependency>) =
+    node.init(
+      when (key) {
+        is LibraryKey -> collector.libraryDependenciesBySpec[key.library]!!
+        is ModuleKey -> collector.moduleDependenciesByGradlePath[key.modulePath].orEmpty()
+        is JarLibraryKey -> collector.jarDependenciesByPath[key.path].orEmpty()
+      }
+    )
 
   private fun collectDependencies(module: PsModule, collector: DependencyCollector) {
     module.dependencies.forEachLibraryDependency { collector.add(it) }
