@@ -83,14 +83,13 @@ class ResolvedModuleDependencyNode(
 
 abstract class ResolvedLibraryDependencyNode(
   parent: AbstractPsNode,
-  val dependency: PsResolvedLibraryDependency,
-  name: String
+  val dependency: PsResolvedLibraryDependency
 ) : AbstractResolvedDependencyNode<PsLibraryDependency>(parent, listOf(dependency)) {
 
   private var cachedChildren: Array<SimpleNode>? = null
 
   init {
-    myName = name
+    myName = getText(parent, dependency, false, parent.uiSettings)
   }
 
   protected abstract fun createChildren(): List<AbstractResolvedDependencyNode<*>>
@@ -143,8 +142,7 @@ fun <T> createResolvedLibraryDependencyNode(
         (createResolvedLibraryDependencyNode(parent, transitiveLibrary as T))
       }
 
-  val name = getText(parent, dependency, false, parent.uiSettings)
-  return object : ResolvedLibraryDependencyNode(parent, dependency, name) {
+  return object : ResolvedLibraryDependencyNode(parent, dependency) {
     override fun createChildren(): List<AbstractResolvedDependencyNode<*>> = setUpChildren(this, dependency)
   }
 }
