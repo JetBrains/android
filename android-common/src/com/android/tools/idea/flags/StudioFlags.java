@@ -81,11 +81,6 @@ public final class StudioFlags {
     "Let the user keep templates in the .android folder such that they are kept after a Studio install/upgrade",
     true);
 
-  public static final Flag<Boolean> NPW_TEMPLATES_AUTOMOTIVE = Flag.create(
-    NPW, "templates.automotive", "Include 'Automotive' templates in wizards",
-    "Show 'Automotive' templates in 'New Project', 'New Module' and 'New component' wizards. Also present 'Automotive' devices in AVD.",
-    true);
-
   public static final Flag<Boolean> NPW_FIRST_RUN_SHOW = Flag.create(
     NPW, "first.run.wizard.show", "Show Welcome Wizard always",
     "Show the Welcome Wizard when Studio starts",
