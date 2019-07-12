@@ -72,16 +72,12 @@ class AddDynamicFeatureTest {
 
     createDefaultDynamicModule(ideFrame)
 
-    ideFrame.editor
-      .open("dynamicfeature/src/main/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("dynamicfeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""dist:onDemand="true"""")
       assertThat(this).contains("""<dist:fusing dist:include="true" />""")
     }
 
-    ideFrame.editor
-      .open("app/src/main/res/values/strings.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
       assertThat(this).contains("""<string name="title_dynamicfeature">Module Title</string>""")
     }
   }
@@ -114,24 +110,18 @@ class AddDynamicFeatureTest {
     val ideFrame = guiTest.importSimpleApplication()
     createInstantDynamicModule(ideFrame)
 
-    ideFrame.editor
-      .open("dynamicfeature/src/main/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("dynamicfeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""dist:onDemand="false"""")
       assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
       assertThat(this).contains("""<dist:fusing dist:include="false" />""")
       assertThat(this).contains("""dist:instant="true"""")
     }
 
-    ideFrame.editor
-      .open("app/src/main/res/values/strings.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
       assertThat(this).contains("""<string name="title_dynamicfeature">Module Title</string>""")
     }
 
-    ideFrame.editor
-      .open("app/src/main/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""dist:instant="true"""")
       assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
     }
@@ -147,17 +137,13 @@ class AddDynamicFeatureTest {
 
     createInstantDynamicModuleWithFusing(ideFrame)
 
-    ideFrame.editor
-      .open("dynamicfeature/src/main/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("dynamicfeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""dist:instant="true"""")
       assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
       assertThat(this).contains("""<dist:fusing dist:include="true" />""")
     }
 
-    ideFrame.editor
-      .open("app/src/main/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""dist:instant="true"""")
       assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
     }
@@ -175,17 +161,13 @@ class AddDynamicFeatureTest {
     writeDistModuleToBaseManifest(false)
     createInstantDynamicModuleWithFusing(ideFrame)
 
-    ideFrame.editor
-      .open("dynamicfeature/src/main/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("dynamicfeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""dist:instant="true"""")
       assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
       assertThat(this).contains("""<dist:fusing dist:include="true" />""")
     }
 
-    ideFrame.editor
-      .open("app/src/main/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""dist:instant="true"""")
       assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
       assertThat(this).doesNotContain("""dist:instant="false""")
@@ -234,16 +216,12 @@ class AddDynamicFeatureTest {
       .selectAndroidPane()
       .clickPath("MyDynamicFeature")
 
-    ideFrame.editor
-      .open("MyDynamicFeature/src/main/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""dist:onDemand="false"""")
       assertThat(this).contains("""<dist:fusing dist:include="false" />""")
     }
 
-    ideFrame.editor
-      .open("app/src/main/res/values/strings.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
       assertThat(this).contains("""<string name="title_mydynamicfeature">My Dynamic Feature Title</string>""")
     }
   }
@@ -275,9 +253,7 @@ class AddDynamicFeatureTest {
       .selectAndroidPane()
       .clickPath("MyDynamicFeature")
 
-    ideFrame.editor
-      .open("MyDynamicFeature/src/main/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
       assertThat(this).contains("""<dist:install-time />""")
       assertThat(this).doesNotContain("""<dist:on-demand />""")
@@ -285,9 +261,7 @@ class AddDynamicFeatureTest {
       assertThat(this).contains("""<dist:fusing dist:include="false" />""")
     }
 
-    ideFrame.editor
-      .open("app/src/main/res/values/strings.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
       assertThat(this).contains("""<string name="title_mydynamicfeature">My Dynamic Feature Title</string>""")
     }
   }
@@ -319,9 +293,7 @@ class AddDynamicFeatureTest {
       .selectAndroidPane()
       .clickPath("MyDynamicFeature")
 
-    ideFrame.editor
-      .open("MyDynamicFeature/src/main/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
       assertThat(this).doesNotContain("""<dist:install-time />""")
       assertThat(this).contains("""<dist:on-demand />""")
@@ -329,9 +301,7 @@ class AddDynamicFeatureTest {
       assertThat(this).contains("""<dist:fusing dist:include="false" />""")
     }
 
-    ideFrame.editor
-      .open("app/src/main/res/values/strings.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
       assertThat(this).contains("""<string name="title_mydynamicfeature">My Dynamic Feature Title</string>""")
     }
   }
@@ -363,9 +333,7 @@ class AddDynamicFeatureTest {
       .selectAndroidPane()
       .clickPath("MyDynamicFeature")
 
-    ideFrame.editor
-      .open("MyDynamicFeature/src/main/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
       assertThat(this).contains("""<dist:install-time>""")
       assertThat(this).contains("""<dist:conditions>""")
@@ -376,9 +344,7 @@ class AddDynamicFeatureTest {
       assertThat(this).contains("""<dist:fusing dist:include="false" />""")
     }
 
-    ideFrame.editor
-      .open("app/src/main/res/values/strings.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
       assertThat(this).contains("""<string name="title_mydynamicfeature">My Dynamic Feature Title</string>""")
     }
   }
@@ -416,9 +382,7 @@ class AddDynamicFeatureTest {
       .selectAndroidPane()
       .clickPath("MyDynamicFeature")
 
-    ideFrame.editor
-      .open("MyDynamicFeature/src/main/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
 
       val expected = """|<manifest xmlns:android="http://schemas.android.com/apk/res/android"
                         |    xmlns:dist="http://schemas.android.com/apk/distribution"
@@ -450,9 +414,7 @@ class AddDynamicFeatureTest {
       assertEquals(expected, this)
     }
 
-    ideFrame.editor
-      .open("app/src/main/res/values/strings.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
       assertThat(this).contains("""<string name="title_mydynamicfeature">My Dynamic Feature Title</string>""")
     }
   }
@@ -487,15 +449,11 @@ class AddDynamicFeatureTest {
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
 
-    ideFrame.editor
-      .open("app/src/main/res/values/strings.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
       assertThat(this).contains("title_activity_login")
     }
 
-    ideFrame.editor
-      .open("dynamicfeature/src/main/res/values/strings.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("dynamicfeature/src/main/res/values/strings.xml").run {
       assertThat(this).contains("prompt_email")
       assertThat(this).contains("prompt_password")
       assertThat(this).contains("invalid_password")
@@ -526,9 +484,7 @@ class AddDynamicFeatureTest {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
     val ideFrame = guiTest.importSimpleApplication()
 
-    ideFrame.editor
-      .open("app/build.gradle")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("implementation 'com.android.support:appcompat-v7:")
       assertThat(this).contains("implementation 'com.android.support.constraint:constraint-layout:")
     }
@@ -539,15 +495,11 @@ class AddDynamicFeatureTest {
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
 
-    ideFrame.editor
-      .open("dynamicfeature/build.gradle")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("dynamicfeature/build.gradle").run {
       assertThat(this).doesNotContain("play-services-maps")
     }
 
-    ideFrame.editor
-      .open("app/build.gradle")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("api 'com.google.android.gms:play-services-maps")
       assertThat(this).contains("api 'com.android.support:appcompat-v7:")  // "implementation" re-written as "api"
       assertThat(this).contains("api 'com.android.support.constraint:constraint-layout:")
