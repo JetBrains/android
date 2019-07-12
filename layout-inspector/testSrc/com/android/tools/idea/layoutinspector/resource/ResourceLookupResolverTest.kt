@@ -17,6 +17,9 @@ package com.android.tools.idea.layoutinspector.resource
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_BACKGROUND
+import com.android.SdkConstants.ATTR_BACKGROUND_TINT
+import com.android.SdkConstants.ATTR_DRAWABLE_LEFT
+import com.android.SdkConstants.ATTR_DRAWABLE_RIGHT
 import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -56,9 +59,16 @@ class ResourceLookupResolverTest {
     projectRule.fixture.testDataPath = getTestDataPath()
     projectRule.fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.copyFileToProject("res/color/app_text_color.xml")
+    projectRule.fixture.copyFileToProject("res/drawable/background_choice.xml")
+    projectRule.fixture.copyFileToProject("res/drawable/battery.xml")
+    projectRule.fixture.copyFileToProject("res/drawable/dsl1.xml")
+    projectRule.fixture.copyFileToProject("res/drawable/dsl2.xml")
+    projectRule.fixture.copyFileToProject("res/drawable/dsl3.xml")
+    projectRule.fixture.copyFileToProject("res/drawable/vd.xml")
     projectRule.fixture.copyFileToProject("res/layout/demo.xml")
     projectRule.fixture.copyFileToProject("res/layout-w800dp/demo.xml")
     projectRule.fixture.copyFileToProject("res/values/colors.xml")
+    projectRule.fixture.copyFileToProject("res/values/drawables.xml")
     projectRule.fixture.copyFileToProject("res/values-land/colors.xml")
     projectRule.fixture.copyFileToProject("res/values/strings.xml")
     projectRule.fixture.copyFileToProject("res/values/styles.xml")
@@ -92,7 +102,7 @@ class ResourceLookupResolverTest {
     val data = Data()
     val resolver = createResourceLookupResolver(data.theme)
     val locations = resolver.findFileLocations(data.textColor, data.demo, 10)
-    checkLocation(locations[0], "demo.xml:15", "android:textColor=\"@color/textRedIndirect\"")
+    checkLocation(locations[0], "demo.xml:18", "framework:textColor=\"@color/textRedIndirect\"")
     checkLocation(locations[1], "colors.xml:6", "<color name=\"textRedIndirect\">@color/textRed</color>")
     checkLocation(locations[2], "colors.xml:5", "<color name=\"textRed\">#F32133</color>")
     assertThat(locations.size).isEqualTo(3)
@@ -114,15 +124,15 @@ class ResourceLookupResolverTest {
   }
 
   @Test
-  fun testBackgroundFromLayoutWithThemeReference() {
+  fun testBackgroundTintFromLayoutWithThemeReference() {
     val data = Data()
     val resolver = createResourceLookupResolver(data.theme)
-    val locations = resolver.findFileLocations(data.background, data.demo, 10)
-    checkLocation(locations[0], "demo.xml:13", "android:background=\"?android:attr/colorBackgroundFloating\"")
+    val locations = resolver.findFileLocations(data.backgroundTint, data.demo, 10)
+    checkLocation(locations[0], "demo.xml:16", "framework:backgroundTint=\"?android:attr/colorBackgroundFloating\"")
     checkLocation(locations[1], "styles.xml:4", "<item name=\"android:colorBackgroundFloating\">@color/yellowBackground</item>")
     checkLocation(locations[2], "colors.xml:3", "<color name=\"yellowBackground\">#CCCC23</color>")
     assertThat(locations.size).isEqualTo(3)
-    assertThat(resolver.findAttributeValue(data.background, data.demo)).isEqualTo("#CCCC23")
+    assertThat(resolver.findAttributeValue(data.backgroundTint, data.demo)).isEqualTo("#CCCC23")
   }
 
   @Test
@@ -186,7 +196,41 @@ class ResourceLookupResolverTest {
     assertThat(resolver.findAttributeValue(data.textColor, data.textStyleMaterial)).isEqualTo("#DD000000")
   }
 
-  // TODO: Add tests for drawables
+  @Test
+  fun testDrawableFromLayoutWithVectorDrawable() {
+    val data = Data()
+    val resolver = createResourceLookupResolver(data.theme)
+    val locations = resolver.findFileLocations(data.background, data.demo, 10)
+    checkLocation(locations[0], "demo.xml:13", "framework:background=\"@drawable/battery\"")
+    assertThat(locations.size).isEqualTo(1)
+    assertThat(resolver.findAttributeValue(data.background, data.demo)).isEqualTo("@drawable/battery")
+  }
+
+  @Test
+  fun testDrawableFromLayoutWithVectorDrawableWithIndirection() {
+    val data = Data()
+    val resolver = createResourceLookupResolver(data.theme)
+    val locations = resolver.findFileLocations(data.drawableLeft, data.demo, 10)
+    checkLocation(locations[0], "demo.xml:14", "framework:drawableLeft=\"@drawable/background_choice\"")
+    checkLocation(locations[1], "background_choice.xml:4", "<item android:drawable=\"@drawable/vd\"/>")
+    assertThat(locations.size).isEqualTo(2)
+    assertThat(resolver.findAttributeValue(data.drawableLeft, data.demo)).isEqualTo("@drawable/vd")
+  }
+
+  @Test
+  fun testAndroidDrawableFromLayoutWithTripleIndirection() {
+    val data = Data()
+    val resolver = createResourceLookupResolver(data.theme)
+    val locations = resolver.findFileLocations(data.drawableRight, data.demo, 10)
+    checkLocation(locations[0], "demo.xml:15", "framework:drawableRight=\"@drawable/my_image\"")
+    checkLocation(locations[1], "drawables.xml:3", "<item name=\"my_image\" type=\"drawable\">@drawable/old_image</item>")
+    checkLocation(locations[2], "drawables.xml:4", "<item name=\"old_image\" type=\"drawable\">@drawable/dsl1</item>")
+    checkLocation(locations[3], "dsl1.xml:4", "<item android:drawable=\"@drawable/dsl2\"/>")
+    checkLocation(locations[4], "dsl2.xml:4", "<item android:drawable=\"@drawable/dsl3\"/>")
+    checkLocation(locations[5], "dsl3.xml:4", "<item android_framework:drawable=\"@android_framework:drawable/arrow_up_float\"/>")
+    assertThat(locations.size).isEqualTo(6)
+    assertThat(resolver.findAttributeValue(data.drawableRight, data.demo)).isEqualTo("@framework:drawable/arrow_up_float")
+  }
 
   private fun checkLocation(location: SourceLocation, source: String, xml: String) {
     assertThat(location.source).isEqualTo(source)
@@ -210,6 +254,13 @@ class ResourceLookupResolverTest {
     val model = InspectorPropertiesModel()
     val title = ViewNode(1, "TextView", demo, 30, 60, 300, 100, titleId, "Hello Folks")
     val textColor = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "", true, demo, title, model)
-    val background = InspectorPropertyItem(ANDROID_URI, ATTR_BACKGROUND, ATTR_BACKGROUND, Type.COLOR, "", true, demo, title, model)
+    val background = InspectorPropertyItem(
+      ANDROID_URI, ATTR_BACKGROUND, ATTR_BACKGROUND, Type.DRAWABLE, "", true, demo, title, model)
+    val backgroundTint = InspectorPropertyItem(
+      ANDROID_URI, ATTR_BACKGROUND_TINT, ATTR_BACKGROUND_TINT, Type.DRAWABLE, "", true, demo, title, model)
+    val drawableLeft = InspectorPropertyItem(
+      ANDROID_URI, ATTR_DRAWABLE_LEFT, ATTR_DRAWABLE_LEFT, Type.DRAWABLE, "", true, demo, title, model)
+    val drawableRight = InspectorPropertyItem(
+      ANDROID_URI, ATTR_DRAWABLE_RIGHT, ATTR_DRAWABLE_RIGHT, Type.DRAWABLE, "", true, demo, title, model)
   }
 }
