@@ -47,7 +47,6 @@ public final class NewProjectModuleModel extends WizardModel {
   @NotNull private final NewProjectModel myProjectModel;
   @NotNull private final NewModuleModel myNewModuleModel;
   @NotNull private final RenderTemplateModel myExtraRenderTemplateModel;
-  @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final ObjectProperty<FormFactor> myFormFactor = new ObjectValueProperty<>(FormFactor.MOBILE);
   @NotNull private final OptionalProperty<TemplateHandle> myRenderTemplateHandle = new OptionalValueProperty<>();
 
@@ -62,7 +61,7 @@ public final class NewProjectModuleModel extends WizardModel {
 
   @NotNull
   public OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo() {
-    return myAndroidSdkInfo;
+    return myNewModuleModel.getAndroidSdkInfo();
   }
 
   @NotNull
@@ -106,7 +105,7 @@ public final class NewProjectModuleModel extends WizardModel {
       RenderTemplateModel companionRenderModel = createCompanionRenderModel(companionModuleModel);
       addModuleToProject(companionModuleModel, FormFactor.MOBILE, myProjectModel, projectTemplateValues);
 
-      companionRenderModel.getAndroidSdkInfo().setValue(androidSdkInfo().getValue());
+      companionModuleModel.getAndroidSdkInfo().setValue(androidSdkInfo().getValue());
       companionModuleModel.setRenderTemplateModel(companionRenderModel);
 
       companionModuleModel.handleFinished();
@@ -160,7 +159,6 @@ public final class NewProjectModuleModel extends WizardModel {
     else { // Extra Render is visible. Use it.
       newRenderTemplateModel = myExtraRenderTemplateModel;
     }
-    newRenderTemplateModel.getAndroidSdkInfo().setValue(androidSdkInfo().getValue());
     return newRenderTemplateModel;
   }
 
