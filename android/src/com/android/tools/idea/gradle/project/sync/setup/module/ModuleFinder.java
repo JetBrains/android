@@ -147,17 +147,6 @@ public class ModuleFinder {
   }
 
   /**
-   * @return {@code true} if the given module comes from composite build.
-   */
-  public boolean isCompositeBuild(@NotNull Module module) {
-    File moduleFolder = findModuleRootFolderPath(module);
-    if (moduleFolder != null) {
-      return myIncludedProjectFolderByModuleFolder.containsKey(toCanonicalPath(moduleFolder.getPath()));
-    }
-    return false;
-  }
-
-  /**
    * This method finds the path of root project for a given module. For modules from composite build, this returns the path to the root of
    * included build.
    *
