@@ -1833,15 +1833,13 @@ public class TemplateTest extends AndroidGradleTestCase {
     String activityFormFactorName = activityMetadata.getFormFactor();
     if (activityFormFactorName != null) {
       FormFactor activityFormFactor = FormFactor.get(activityFormFactorName);
-      if (activityFormFactor != FormFactor.CAR) {
-        TemplateManager manager = TemplateManager.getInstance();
-        List<File> applicationTemplates = manager.getTemplatesInCategory(CATEGORY_APPLICATION);
-        for (File formFactorTemplateFile : applicationTemplates) {
-          TemplateMetadata metadata = manager.getTemplateMetadata(formFactorTemplateFile);
-          if (metadata != null && metadata.getFormFactor() != null && FormFactor.get(metadata.getFormFactor()) == activityFormFactor) {
-            moduleTemplate = Template.createFromPath(formFactorTemplateFile);
-            break;
-          }
+      TemplateManager manager = TemplateManager.getInstance();
+      List<File> applicationTemplates = manager.getTemplatesInCategory(CATEGORY_APPLICATION);
+      for (File formFactorTemplateFile : applicationTemplates) {
+        TemplateMetadata metadata = manager.getTemplateMetadata(formFactorTemplateFile);
+        if (metadata != null && metadata.getFormFactor() != null && FormFactor.get(metadata.getFormFactor()) == activityFormFactor) {
+          moduleTemplate = Template.createFromPath(formFactorTemplateFile);
+          break;
         }
       }
     }

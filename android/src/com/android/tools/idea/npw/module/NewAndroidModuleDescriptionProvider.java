@@ -54,10 +54,7 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
 
       int minSdk = metadata.getMinSdk();
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
-      if (formFactor == FormFactor.CAR) {
-        // Auto is not a standalone module (but rather a modification to a mobile module)
-      }
-      else if (formFactor == FormFactor.AUTOMOTIVE && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
+      if (formFactor == FormFactor.AUTOMOTIVE && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
         // If automotive templates are not enabled, then we just ignore this form factor.
       }
       else if (formFactor.equals(FormFactor.MOBILE)) {
