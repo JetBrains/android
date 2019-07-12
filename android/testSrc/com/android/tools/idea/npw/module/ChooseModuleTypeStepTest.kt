@@ -50,7 +50,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
                            NewBenchmarkModuleDescriptionProvider())
     val moduleDescriptions = providers.flatMap { it.getDescriptions(project) }
 
-    val sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).map { it.name }
+    val sortedEntries = sortModuleEntries(moduleDescriptions).map { it.name }
 
     val expectedEntries = listOf(
       "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant Dynamic Feature Module",
@@ -67,7 +67,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
       }
     }
 
-    val sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions)
+    val sortedEntries = sortModuleEntries(moduleDescriptions)
     assertEquals(entries.size, sortedEntries.size)
 
     return sortedEntries.map { it.name }
