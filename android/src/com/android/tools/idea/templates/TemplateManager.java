@@ -609,7 +609,7 @@ public class TemplateManager {
       facet, null, initialPackageSuggestion, moduleTemplates.get(0),
       commandName, projectSyncInvoker, true);
 
-    NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker);
+    NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker, moduleTemplates.get(0));
     ChooseGalleryItemStep chooseTypeStep;
     if (category.equals(CATEGORY_ACTIVITY)) {
       chooseTypeStep =
