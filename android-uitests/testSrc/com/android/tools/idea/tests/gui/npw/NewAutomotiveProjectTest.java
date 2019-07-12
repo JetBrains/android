@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import static com.android.tools.idea.flags.StudioFlags.NPW_TEMPLATES_AUTOMOTIVE;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.npw.FormFactor;
@@ -23,8 +22,6 @@ import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,16 +32,6 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class NewAutomotiveProjectTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @Before
-  public void before() {
-    NPW_TEMPLATES_AUTOMOTIVE.override(true);
-  }
-
-  @After
-  public void after() {
-    NPW_TEMPLATES_AUTOMOTIVE.clearOverride();
-  }
 
   @Test
   public void testBuildMediaService() {

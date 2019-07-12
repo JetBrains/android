@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.tools.idea.flags.StudioFlags.NPW_TEMPLATES_AUTOMOTIVE
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider
@@ -54,13 +53,12 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
 
     val sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).map { it.name }
 
-    val expectedEntries = filterExpectedEntries(
+    val expectedEntries = listOf(
       "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant Dynamic Feature Module",
       "Automotive Module", "Wear OS Module", "Android TV Module", "Android Things Module", "Import Gradle Project",
       "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library", "Benchmark Module")
 
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
-
   }
 
   private fun sort(vararg entries: String): List<String> {
@@ -75,7 +73,4 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
 
     return sortedEntries.map { it.name }
   }
-
-  private fun filterExpectedEntries(vararg expectedEntries: String): List<String> = expectedEntries
-    .filter { (NPW_TEMPLATES_AUTOMOTIVE.get() || it != "Automotive Module") }
 }
