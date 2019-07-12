@@ -18,14 +18,12 @@
 
 package com.android.tools.idea.npw.platform
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.intellij.util.ui.UIUtil
+import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.ImageIcon
 import javax.swing.JComponent
-
-import java.awt.image.BufferedImage
 
 /**
  * Create an image showing icons for each of the available form factors.
@@ -37,8 +35,7 @@ import java.awt.image.BufferedImage
  */
 fun getFormFactorsImage(component: JComponent, requireEmulator: Boolean): Icon? {
   val filteredFormFactors = FormFactor.values().filter {
-    (it !== FormFactor.AUTOMOTIVE || StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) &&
-    (it.hasEmulator() || !requireEmulator)
+    it.hasEmulator() || !requireEmulator
   }
 
   val width = filteredFormFactors.map { it.largeIcon.iconWidth }.sum()
