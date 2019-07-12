@@ -23,6 +23,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.containers.ContainerUtil
 import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
@@ -97,6 +98,6 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   }
 
   private fun firePropertiesGenerated() {
-    modelListeners.forEach { it.propertiesGenerated(this) }
+    modelListeners.forEach { ApplicationManager.getApplication().invokeLater { it.propertiesGenerated(this) } }
   }
 }

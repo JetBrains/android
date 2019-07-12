@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.ResolutionStackItem
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
@@ -66,14 +67,17 @@ class ResolutionElementEditor(val model: PropertyEditorModel, editor: JComponent
     val property = model.property as? InspectorPropertyItem
     val resourceLookup = property?.model?.layoutInspector?.layoutInspectorModel?.resourceLookup
     val locations = property?.let { resourceLookup?.findFileLocations(property) } ?: emptyList()
-    val hideLink = locations.isEmpty() || (property is PTableGroupItem && !model.isExpandedTableItem)
+    val classLocation = (property as? InspectorGroupPropertyItem)?.classLocation
+    val hideLink = (locations.isEmpty() && classLocation == null) || (property is PTableGroupItem && !model.isExpandedTableItem)
     linkPanel.isVisible = !hideLink
     isCustomHeight = !hideLink
     background = if (model.isUsedInRendererWithSelection) UIUtil.getTableBackground(true, true) else UIUtil.TRANSPARENT_COLOR
     if (!hideLink) {
       linkPanel.removeAll()
+      val isSelected = model.isUsedInRendererWithSelection
+      classLocation?.let { linkPanel.add(LinkLabel(it, isSelected, false)) }
       for (location in locations) {
-        linkPanel.add(LinkLabel(location, model.isUsedInRendererWithSelection, property is ResolutionStackItem))
+        linkPanel.add(LinkLabel(location, isSelected, property is ResolutionStackItem))
       }
     }
   }
@@ -92,7 +96,7 @@ class ResolutionElementEditor(val model: PropertyEditorModel, editor: JComponent
 
       addMouseListener(object : MouseAdapter() {
         override fun mousePressed(e: MouseEvent?) {
-          location.navigatable.navigate(true)
+          location.navigatable?.navigate(true)
         }
       })
     }

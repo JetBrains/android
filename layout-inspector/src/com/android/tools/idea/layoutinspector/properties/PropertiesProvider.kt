@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.res.colorToString
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.FlagValue
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
@@ -30,13 +31,15 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Resource
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
-import java.util.Locale
 import com.intellij.openapi.application.ApplicationManager
+import java.awt.Color
 
 private val INT32_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.INT32_VALUE_FIELD_NUMBER)
 private val INT64_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.INT64_VALUE_FIELD_NUMBER)
 private val DOUBLE_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.DOUBLE_VALUE_FIELD_NUMBER)
 private val FLOAT_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.FLOAT_VALUE_FIELD_NUMBER)
+
+private const val SOME_UNKNOWN_DRAWABLE_VALUE = "@drawable/?"
 
 class PropertiesProvider(private val model: InspectorPropertiesModel) {
   private val client: InspectorClient?
@@ -89,9 +92,11 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
           Type.DOUBLE -> fromDouble(property)?.toString()
           Type.FLOAT -> fromFloat(property)?.toString()
           Type.RESOURCE -> fromResource(property, layout)
+          Type.DRAWABLE -> SOME_UNKNOWN_DRAWABLE_VALUE  // We are unable to get the value from the agent. Use a placeholder.
           Type.COLOR -> fromColor(property)
           else -> ""
         }
+        // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
         add(InspectorPropertyItem(ANDROID_URI, name, name, property.type, value, isDeclared, source, view, model))
       }
       ApplicationManager.getApplication().runReadAction { generateItemsForResolutionStack() }
@@ -119,14 +124,33 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
         val map = property.resolutionStackList
           .mapNotNull { stringTable[it] }
           .associateWith { resourceLookup?.findAttributeValue(item, it) }
-          .filter { (ref, value) -> value != null || ref == item.view.layout }
+          .filterValues { it != null }
           .toMutableMap()
         val firstRef = map.keys.firstOrNull()
         if (firstRef != null && firstRef == item.source) {
           map.remove(firstRef)
         }
-        if (map.isNotEmpty() || item.source != null) {
-          add(InspectorGroupPropertyItem(ANDROID_URI, name, property.type, item.value, item.isDeclared, item.source, view, model, map))
+        val value: String? = when (property.type) {
+          // Attempt to find the drawable value from source code, since it is impossible to get from the agent.
+          Type.DRAWABLE -> item.source?.let { resourceLookup?.findAttributeValue(item, it) } ?: item.value
+          else -> item.value
+        }
+        val className: String? = when (property.type) {
+          Type.DRAWABLE -> classNameFromDrawable(property)
+          else -> null  // TODO offer information from other object types
+        }
+        val classLocation = className?.let { resourceLookup?.resolveClassNameAsSourceLocation(it) }
+        if (map.isNotEmpty() || item.source != null || className != null || value != item.value) {
+          add(InspectorGroupPropertyItem(ANDROID_URI,
+                                         name,
+                                         property.type,
+                                         value,
+                                         classLocation,
+                                         item.isDeclared,
+                                         item.source,
+                                         view,
+                                         model,
+                                         map))
         }
       }
     }
@@ -180,7 +204,11 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
 
     private fun fromColor(property: Property): String? {
       val intValue = fromInt32(property) ?: return null
-      return "#${Integer.toHexString(intValue).toUpperCase(Locale.US)}"
+      return colorToString(Color(intValue))
+    }
+
+    private fun classNameFromDrawable(property: Property): String? {
+      return stringTable[property.int32Value]
     }
 
     private fun add(item: InspectorPropertyItem) {

@@ -17,17 +17,13 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.res.RESOURCE_ICON_SIZE
-import com.android.tools.idea.res.parseColor
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.ActionIconButton
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.utils.HashCodes
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.util.ui.ColorIcon
-import com.intellij.util.ui.JBUI
-import java.awt.Color
 import javax.swing.Icon
 
 /**
@@ -75,25 +71,27 @@ open class InspectorPropertyItem(
 
   override val helpSupport = object : HelpSupport {
     override fun browse() {
-      val (_, location) = model.layoutInspector?.layoutInspectorModel?.resourceLookup?.findFileLocations(this@InspectorPropertyItem, 1)
-                          ?: return
-      location.navigatable.navigate(true)
+      val (_, location) = resourceLookup?.findFileLocations(this@InspectorPropertyItem, 1) ?: return
+      location.navigatable?.navigate(true)
     }
   }
+
+  val resourceLookup: ResourceLookup?
+    get() = model.layoutInspector?.layoutInspectorModel?.resourceLookup
 
   override val colorButton = createColorButton()
 
-  private fun createColorButton(): ActionIconButton? {
-    if (type != Type.COLOR || value.isNullOrEmpty()) {
-      return null
+  private fun createColorButton(): ActionIconButton? =
+    when (type) {
+      Type.COLOR,
+      Type.DRAWABLE -> value?.let { ColorActionIconButton(this) }
+      else -> null
     }
-    val color = parseColor(value) ?: return null
-    return ColorActionIconButton(color)
-  }
 
-  private class ColorActionIconButton(color: Color): ActionIconButton {
+  private class ColorActionIconButton(private val property: InspectorPropertyItem): ActionIconButton {
     override val actionButtonFocusable = false
     override val action: AnAction? = null
-    override val actionIcon: Icon = JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false))
+    override val actionIcon: Icon?
+      get() = property.resourceLookup?.resolveAsIcon(property)
   }
 }
