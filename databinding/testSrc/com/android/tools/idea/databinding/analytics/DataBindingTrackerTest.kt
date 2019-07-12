@@ -24,6 +24,7 @@ import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.updatePrimaryManifest
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_LAMBDA
@@ -61,9 +62,16 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
+    projectRule.fixture.addFileToProject("AndroidManifest.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
+        <application />
+      </manifest>
+    """.trimIndent())
     projectRule.fixture.copyDirectoryToProject(TestDataPaths.PROJECT_FOR_TRACKING, "src")
-    val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(mode)
+
+    val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)!!
+    ModuleDataBinding.getInstance(androidFacet).setMode(mode)
   }
 
   @Test
