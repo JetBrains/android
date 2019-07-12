@@ -18,12 +18,11 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_DEBUG
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.rendering.AssetData
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetIconProvider
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
-import com.android.tools.idea.ui.resourcemanager.rendering.ColorIconProvider
 import com.android.tools.idea.ui.resourcemanager.rendering.DefaultIconProvider
 import com.android.tools.idea.ui.resourcemanager.widget.IssueLevel
-import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
@@ -35,10 +34,6 @@ import javax.swing.ListCellRenderer
 
 val EMPTY_ICON = createIcon(if (RESOURCE_DEBUG) JBColor.GREEN else Color(0, 0, 0, 0))
 val ERROR_ICON = if (RESOURCE_DEBUG) createIcon(JBColor.RED) else EMPTY_ICON
-
-private const val VERSION = "version"
-
-private fun String.pluralize(size: Int) = this + (if (size > 1) "s" else "")
 
 fun createIcon(color: Color?): BufferedImage = UIUtil.createImage(
   80, 80, BufferedImage.TYPE_INT_ARGB
@@ -84,7 +79,7 @@ class DesignAssetCellRenderer(
     assetView.withChessboard = iconProvider.supportsTransparency
     assetView.selected = isSelected
     assetView.focused = cellHasFocus
-    with(getAssetData(value, iconProvider)) {
+    with(assetPreviewManager.getAssetSetData(value)) {
       assetView.title = title
       assetView.subtitle = subtitle
       assetView.metadata = metadata
@@ -97,30 +92,7 @@ class DesignAssetCellRenderer(
   }
 }
 
-/**
- * Data class to store the information to display in [com.android.tools.idea.ui.resourcemanager.widget.AssetView]
- */
-private data class AssetData(
-  var title: String,
-  var subtitle: String,
-  var metadata: String
-)
-
-private fun getAssetData(assetSet: ResourceAssetSet,
-                         iconProvider: AssetIconProvider): AssetData {
-  val title = assetSet.name
-  val subtitle = if (iconProvider is ColorIconProvider) {
-    val colors = iconProvider.colors
-    if (colors.size == 1) "#${ColorUtil.toHex(colors.first())}" else "Multiple colors"
-  }
-  else {
-    assetSet.getHighestDensityAsset().type.displayName
-  }
-  val metadata = assetSet.versionCountString()
-  return AssetData(title, subtitle, metadata)
-}
-
-private fun ResourceAssetSet.versionCountString(): String {
-  val size = assets.size
-  return "$size $VERSION".pluralize(size)
+private fun AssetPreviewManager.getAssetSetData(assetSet: ResourceAssetSet): AssetData {
+  val asset = assetSet.getHighestDensityAsset()
+  return getDataProvider(asset.type).getAssetSetData(assetSet)
 }

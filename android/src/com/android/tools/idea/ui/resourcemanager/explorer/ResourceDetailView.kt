@@ -187,9 +187,11 @@ class ResourceDetailView(
    */
   private fun createAssetCard(asset: DesignAsset) = SingleAssetCard().apply {
     viewWidth = ASSET_CARD_WIDTH
-    title = asset.qualifiers.joinToString("-") { it.folderSegment }.takeIf { it.isNotBlank() } ?: "default"
-    subtitle = asset.file.name
-    metadata = asset.getDisplayableFileSize()
+    viewModel.assetPreviewManager.getDataProvider(asset.type).getAssetData(asset).let { assetData ->
+      title = assetData.title
+      subtitle = assetData.subtitle
+      metadata = assetData.metadata
+    }
     val previewManager = viewModel.assetPreviewManager
     val previewProvider = previewManager.getPreviewProvider(asset.type)
     withChessboard = previewProvider.supportsTransparency

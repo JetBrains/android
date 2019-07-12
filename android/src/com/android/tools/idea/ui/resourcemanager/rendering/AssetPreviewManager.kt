@@ -36,6 +36,11 @@ interface AssetPreviewManager {
    * Returns an [AssetIconProvider] capable of rendering [DesignAsset] of type [resourceType].
    */
   fun getPreviewProvider(resourceType: ResourceType): AssetIconProvider
+
+  /**
+   * Returns an [AssetDataProvider] for basic [DesignAsset] data to be displayed.
+   */
+  fun getDataProvider(resourceType: ResourceType): AssetDataProvider
 }
 
 /**
@@ -54,13 +59,22 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) :
     FontIconProvider(facet)
   }
 
+  private val colorDataProvider by lazy {
+    ColorAssetDataProvider(facet.module.project, resourceResolver)
+  }
+  private val valueDataProvider by lazy {
+    ValueAssetDataProvider(resourceResolver)
+  }
+  private val defaultDataProvider by lazy {
+    DefaultAssetDataProvider()
+  }
+
   private var resourceResolver = createResourceResolver(facet)
 
   /**
    * Returns an [AssetIconProvider] for [ResourceType.COLOR], [ResourceType.DRAWABLE], [ResourceType.LAYOUT]
    */
   override fun getPreviewProvider(resourceType: ResourceType): AssetIconProvider =
-    // TODO Use a more flexible approach to also support String and dimens.
     when (resourceType) {
       ResourceType.COLOR -> colorPreviewProvider
       ResourceType.DRAWABLE,
@@ -68,6 +82,19 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) :
       ResourceType.LAYOUT -> drawablePreviewProvider
       ResourceType.FONT -> fontPreviewProvider
       else -> DefaultIconProvider.INSTANCE
+    }
+
+  /**
+   * Returns an [AssetDataProvider] for some specific [ResourceType]s, their difference will mostly depend if it makes sense for the
+   * resource to have an Icon preview, those that don't will have their resolved value in the [AssetData].
+   */
+  override fun getDataProvider(resourceType: ResourceType): AssetDataProvider =
+    when(resourceType) {
+      ResourceType.COLOR -> colorDataProvider
+      ResourceType.DIMEN,
+      ResourceType.BOOL,
+      ResourceType.STRING -> valueDataProvider
+      else -> defaultDataProvider
     }
 }
 
