@@ -293,10 +293,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
       val asmInfo = ClassDescriber.collectDescriptionSet(classReader, baseClassInfo)
       val psiInfo = ClassDescriber.collectDescriptionSet(psiClass)
 
-      // TODO(b/134532947): BR completion doesn't include user fields (temporarily) to avoid a deadlock, skip check for now
-      if (className != "com.android.example.appwithdatabinding.BR") {
-        assertWithMessage(className).that(asmInfo).isEqualTo(psiInfo)
-      }
+      assertWithMessage(className).that(asmInfo).isEqualTo(psiInfo)
     }
     assertWithMessage("Failed to find expected generated data binding classes; did the compiler change?")
       .that(generatedClasses).containsExactly(
