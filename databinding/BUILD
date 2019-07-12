@@ -51,6 +51,7 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea:intellij.java.analysis.impl[module]",
         "//tools/idea/.idea/libraries:NanoXML",
+        "//tools/idea/.idea/libraries:jcip",
     ],
 )
 

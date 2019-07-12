@@ -20,13 +20,17 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.databinding.finders.DataBindingScopeEnlarger;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameterList;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
@@ -208,14 +212,22 @@ public class AndroidDataBindingTest {
   @Test
   @RunsInEdt
   public void testDataBindingComponentContainingFileIsNotNull() {
-    PsiClass aClass;
+    // Random class in the current module; we just need something so we can resolve it, triggering
+    // a data binding scope-enlargement behind the scenes
+    copyClass(DUMMY_CLASS_QNAME);
+    PsiClass aClass = getFixture().findClass(DUMMY_CLASS_QNAME);
+    assertNotNull(aClass);
+    GlobalSearchScope moduleScope = aClass.getResolveScope();
+
+    JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(myProjectRule.getProject());
+    PsiClass foundClass;
     if (myDataBindingMode == DataBindingMode.SUPPORT) {
-      aClass = getFixture().findClass("android.databinding.DataBindingComponent");
+      foundClass = javaPsiFacade.findClass("android.databinding.DataBindingComponent", moduleScope);
     }
     else {
-      aClass = getFixture().findClass("androidx.databinding.DataBindingComponent");
+      foundClass = javaPsiFacade.findClass("androidx.databinding.DataBindingComponent", moduleScope);
     }
-    assertNotNull(aClass);
-    assertNotNull(aClass.getContainingFile());
+    assertNotNull(foundClass);
+    assertNotNull(foundClass.getContainingFile());
   }
 }

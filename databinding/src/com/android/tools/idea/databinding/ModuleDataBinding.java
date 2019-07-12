@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory;
+import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass;
 import com.android.tools.idea.databinding.psiclass.LightBrClass;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.Facet;
@@ -24,12 +25,16 @@ import com.intellij.facet.FacetManagerAdapter;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.util.messages.MessageBusConnection;
+import net.jcip.annotations.NotThreadSafe;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@NotThreadSafe
 public class ModuleDataBinding {
   @Nullable private LightBrClass myLightBrClass;
+  @Nullable private LightDataBindingComponentClass myLightDataBindingComponentClass;
+
   @NotNull
   private DataBindingMode myDataBindingMode = DataBindingMode.NONE;
   private Module myModule;
@@ -87,9 +92,13 @@ public class ModuleDataBinding {
   }
 
   /**
-   * Set by {@linkplain DataBindingCodeGenService} the first time we need it.
+   * Each data binding module has exactly one BR class generated for it.
    *
-   * @param lightBrClass
+   * An external caller should ensure that the current module gets associated with an in-memory
+   * light version of the BR class.
+   *
+   * See also: <a href="https://developer.android.com/topic/libraries/data-binding/observability#observable_objects">official docs</a>
+   *
    * @see DataBindingClassFactory#getOrCreateBrClassFor(AndroidFacet)
    */
   public void setLightBrClass(@NotNull LightBrClass lightBrClass) {
@@ -97,7 +106,7 @@ public class ModuleDataBinding {
   }
 
   /**
-   * Returns the light BR class for this facet if it is aready set.
+   * Returns the light BR class for this facet if it is already set.
    *
    * @return The BR class for this facet, if exists
    * @see DataBindingClassFactory#getOrCreateBrClassFor(AndroidFacet)
@@ -106,4 +115,28 @@ public class ModuleDataBinding {
   public LightBrClass getLightBrClass() {
     return myLightBrClass;
   }
+
+  /**
+   * Each data binding <i>app</i> module has exactly one DataBindingComponent class generated for
+   * it.
+   *
+   * An external caller should ensure that the current module, if it's an application module, gets
+   * associated with an in-memory light version of a DataBindingComponent.
+   *
+   * See also: <a href="https://developer.android.com/reference/android/databinding/DataBindingComponent">official docs</a>
+   */
+  public void setLightDataBindingComponentClass(@NotNull LightDataBindingComponentClass lightBindingComponentClass) {
+    myLightDataBindingComponentClass = lightBindingComponentClass;
+  }
+
+  /**
+   * Returns the light DataBindingComponent class for this module if it is already set.
+   *
+   * @see DataBindingClassFactory#getOrCreateDataBindingComponentClassFor(AndroidFacet)
+   */
+  @Nullable
+  public LightDataBindingComponentClass getLightDataBindingComponentClass() {
+    return myLightDataBindingComponentClass;
+  }
+
 }
