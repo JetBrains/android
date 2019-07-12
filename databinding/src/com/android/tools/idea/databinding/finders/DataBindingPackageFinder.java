@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * Therefore, this finder is registered with a reduced priority, so it will only suggest packages
  * that were not previously suggested, while data binding class finders are added with a higher
- * priority. See {@link BindingClassFinder}, {@link BindingComponentClassFinder} and
+ * priority. See {@link BindingClassFinder}, {@link DataBindingComponentClassFinder} and
  * {@link BrClassFinder} for the class-focused finders.
  *
  * See also: https://issuetracker.google.com/37120280
