@@ -89,7 +89,7 @@ abstract class ResolvedLibraryDependencyNode(
   private var cachedChildren: Array<SimpleNode>? = null
 
   init {
-    myName = getText(parent, dependency, false, parent.uiSettings)
+    myName = getText(parent, dependency, parent.uiSettings)
   }
 
   protected abstract fun createChildren(): List<AbstractResolvedDependencyNode<*>>
@@ -191,7 +191,7 @@ fun createNodesForResolvedDependencies(
   return children
 }
 
-private fun getText(parent: AbstractPsNode, dependency: PsLibraryDependency, forceGroupId: Boolean, uiSettings: PsUISettings): String {
+private fun getText(parent: AbstractPsNode, dependency: PsLibraryDependency, uiSettings: PsUISettings): String {
   val resolvedSpec = dependency.spec
   // TODO(b/74948244): Display POM dependency promotions correctly.
   if (dependency is PsResolvedLibraryDependency &&
@@ -208,7 +208,7 @@ private fun getText(parent: AbstractPsNode, dependency: PsLibraryDependency, for
     val version = declaredSpecs + "→" + resolvedSpec.version
     return getTextForSpec(resolvedSpec.name, version, resolvedSpec.group, uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID)
   }
-  return resolvedSpec.getDisplayText(forceGroupId || uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID, true)
+  return resolvedSpec.getDisplayText(uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID, true)
 }
 
 private fun getTextForSpec(name: String, version: String, group: String?, showGroupId: Boolean): String =
