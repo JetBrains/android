@@ -24,7 +24,6 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.util.FormScalingUtil;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
 import com.android.tools.idea.npw.model.NewProjectModel;
@@ -216,10 +215,6 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
         continue;
       }
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
-      if (formFactor == FormFactor.AUTOMOTIVE && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
-        // Only show Automotive if it is enabled
-        continue;
-      }
       FormFactorInfo prevFormFactorInfo = formFactorInfoMap.get(formFactor);
       int templateMinSdk = metadata.getMinSdk();
 
