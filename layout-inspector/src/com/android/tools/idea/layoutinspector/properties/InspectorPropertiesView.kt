@@ -37,6 +37,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
   private val controlTypeProvider = object : ControlTypeProvider<InspectorPropertyItem> {
     override fun invoke(property: InspectorPropertyItem): ControlType =
       when (property.type) {
+        Type.DRAWABLE,
         Type.COLOR -> ControlType.COLOR_EDITOR
         else -> ControlType.TEXT_EDITOR
       }

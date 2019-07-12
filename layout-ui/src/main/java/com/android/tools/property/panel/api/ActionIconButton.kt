@@ -37,7 +37,7 @@ interface ActionIconButton {
   /**
    * Return the icon indicating the nature of this action button.
    */
-  val actionIcon: Icon
+  val actionIcon: Icon?
 
   /**
    * Return the action to be performed when the user activates the action button.
