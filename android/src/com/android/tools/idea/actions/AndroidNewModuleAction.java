@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+import static com.android.tools.idea.npw.module.ChooseModuleTypeStepKt.createWithDefaultGallery;
 import static com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder.UxStyle.INSTANT_APP;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -64,7 +65,7 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
       }
 
       ChooseModuleTypeStep chooseModuleTypeStep =
-        ChooseModuleTypeStep.createWithDefaultGallery(project, getModulePath(e), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
+        createWithDefaultGallery(project, getModulePath(e), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
       ModelWizard wizard = new ModelWizard.Builder().addStep(chooseModuleTypeStep).build();
 
       new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).setUxStyle(INSTANT_APP).build().show();
