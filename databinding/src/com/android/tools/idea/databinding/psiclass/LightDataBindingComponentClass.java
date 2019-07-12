@@ -68,13 +68,13 @@ import org.jetbrains.annotations.Nullable;
  *
  * See also: https://developer.android.com/reference/android/databinding/DataBindingComponent
  */
-public class LightBindingComponentClass extends AndroidLightClassBase implements ModificationTracker {
+public class LightDataBindingComponentClass extends AndroidLightClassBase implements ModificationTracker {
   private final AndroidFacet myFacet;
   private final CachedValue<PsiMethod[]> myMethodCache;
   private final AtomicNotNullLazyValue<PsiFile> myContainingFile;
   private final DataBindingMode myMode;
 
-  public LightBindingComponentClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
+  public LightDataBindingComponentClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC));
     myMode = ModuleDataBinding.getInstance(facet).getDataBindingMode();
     myFacet = facet;
