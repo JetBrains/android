@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding
+package com.android.tools.idea.databinding.cache
 
-import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider
-import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider
+import com.android.tools.idea.databinding.DataBindingProjectComponent
+import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.project.Project
@@ -38,12 +38,8 @@ import org.jetbrains.android.facet.AndroidFacet
  * Cache for classes generated from data binding layout xml files.
  *
  * See also: [LightBindingClass]
- *
- * TODO(b/129543644): This class cannot change its name or package location until we remove
- *  hardcoded references to it from the Kotlin plugin.
- *  Move back to: cache.LayoutBindingShortNamesCache
  */
-class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
+class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
   private val component = project.getComponent(DataBindingProjectComponent::class.java)
   private val lightBindingCache: CachedValue<Map<String, List<LightBindingClass>>>
   private val methodsByNameCache: CachedValue<Map<String, List<PsiMethod>>>
