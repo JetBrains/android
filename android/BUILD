@@ -121,7 +121,7 @@ iml_module(
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/android/lib:instantapps-api-1.5",
-        "//tools/idea/.idea/libraries:batik",
+        "//tools/idea/.idea/libraries:batik-transcoder",
         "//tools/idea/.idea/libraries:xml-apis-ext",
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/idea/.idea/libraries:aapt-proto",
