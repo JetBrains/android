@@ -16,9 +16,9 @@
 package com.android.tools.adtui.stdui
 
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent
 import javax.swing.AbstractAction
@@ -41,7 +41,7 @@ fun JComponent.registerKeyAction(action: AnAction, keyStroke: KeyStroke, name: S
     override fun actionPerformed(event: ActionEvent) {
       val dataContext = DataManager.getInstance().getDataContext(this@registerKeyAction)
       val inputEvent = event.source as? InputEvent
-      action.actionPerformed(AnActionEvent.createFromAnAction(action, inputEvent, ToolWindowContentUi.POPUP_PLACE, dataContext))
+      action.actionPerformed(AnActionEvent.createFromAnAction(action, inputEvent, ActionPlaces.TOOLWINDOW_POPUP, dataContext))
     }
   })
 }
