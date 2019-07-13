@@ -43,7 +43,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/common:studio.android.sdktools.common[module]",
-        "//tools/idea/platform/util:intellij.platform.util[module]",
+        "//tools/idea/platform/util:intellij.platform.util.ui[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/idea/platform/core-impl:intellij.platform.core.impl[module]",
