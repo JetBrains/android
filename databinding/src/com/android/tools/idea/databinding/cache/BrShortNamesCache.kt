@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding
+package com.android.tools.idea.databinding.cache
 
+import com.android.tools.idea.databinding.DataBindingProjectComponent
+import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -35,10 +38,6 @@ private val BR_CLASS_NAME_LIST = arrayOf(DataBindingUtil.BR)
  * Cache that stores the BR instances associated with each module.
  *
  * See [LightBrClass]
- *
- * TODO(b/129543644): This class cannot change its name or package location until we remove
- *  hardcoded references to it from the Kotlin plugin.
- *  Move back to: finders.BrShortNamesCache
  */
 class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
   private val component = project.getComponent(DataBindingProjectComponent::class.java)

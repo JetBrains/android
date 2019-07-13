@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding;
+package com.android.tools.idea.databinding.cache;
 
 import com.android.SdkConstants;
 import com.android.support.AndroidxName;
+import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.databinding.finders.DataBindingComponentClassFinder;
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass;
 import com.intellij.openapi.project.Project;
@@ -36,10 +37,6 @@ import org.jetbrains.annotations.NotNull;
  * Cache that stores the DataBindingComponent instances associated with each module.
  *
  * See {@link LightDataBindingComponentClass}
- *
- * TODO(b/129543644): This class cannot change its name or package location until we remove
- *  hardcoded references to it from the Kotlin plugin.
- *  Move back to: cache.BindingComponentShortNamesCache
  */
 final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   private final DataBindingProjectComponent myComponent;
