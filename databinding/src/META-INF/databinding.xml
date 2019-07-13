@@ -15,9 +15,9 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <java.shortNamesCache implementation="com.android.tools.idea.databinding.BrShortNamesCache"/>
-    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingShortNamesCache"/>
-    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingComponentShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.BrShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.LayoutBindingShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.DataBindingComponentShortNamesCache"/>
     <resolveScopeEnlarger implementation="com.android.tools.idea.databinding.finders.BindingScopeEnlarger" />
     <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BrClassFinder" id="dataBinding.BrClassFinder" order="first, before java"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
