@@ -17,7 +17,6 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.openapi.wm.impl.StripeButtonUI;
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
@@ -388,7 +387,7 @@ class AttachedToolWindow<T> implements Disposable {
     DefaultActionGroup group = new DefaultActionGroup();
     addGearPopupActions(group);
 
-    ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, group);
+    ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, group);
     popupMenu.getComponent().show(component, x, y);
   }
 

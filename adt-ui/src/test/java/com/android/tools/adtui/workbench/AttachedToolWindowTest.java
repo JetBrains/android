@@ -23,7 +23,6 @@ import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.InternalDecorator;
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.SearchTextField;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
@@ -641,7 +640,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     fireMouseClicked(button, event1);
 
     ArgumentCaptor<ActionGroup> menuCaptor = ArgumentCaptor.forClass(ActionGroup.class);
-    verify(myActionManager).createActionPopupMenu(eq(ToolWindowContentUi.POPUP_PLACE), menuCaptor.capture());
+    verify(myActionManager).createActionPopupMenu(eq(ActionPlaces.TOOLWINDOW_POPUP), menuCaptor.capture());
     return (DefaultActionGroup)menuCaptor.getValue();
   }
 
@@ -690,7 +689,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     button.click();
 
     ArgumentCaptor<ActionGroup> menuCaptor = ArgumentCaptor.forClass(ActionGroup.class);
-    verify(myActionManager).createActionPopupMenu(eq(ToolWindowContentUi.POPUP_PLACE), menuCaptor.capture());
+    verify(myActionManager).createActionPopupMenu(eq(ActionPlaces.TOOLWINDOW_POPUP), menuCaptor.capture());
     return (DefaultActionGroup)menuCaptor.getValue();
   }
 

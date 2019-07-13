@@ -42,7 +42,6 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
@@ -216,7 +215,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
 
       private void showPopupMenu(@NotNull MouseEvent event) {
         myItemList.setSelectedIndex(myItemList.locationToIndex(event.getPoint()));
-        ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, myActionGroup);
+        ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, myActionGroup);
         popupMenu.getComponent().show(myItemList, event.getX(), event.getY());
       }
     };
@@ -247,7 +246,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   private void keyboardActionPerformed(@NotNull ActionEvent event, @NotNull AnAction action) {
     DataContext dataContext = DataManager.getInstance().getDataContext(this);
     InputEvent inputEvent = event.getSource() instanceof InputEvent ? (InputEvent)event.getSource() : null;
-    action.actionPerformed(AnActionEvent.createFromAnAction(action, inputEvent, ToolWindowContentUi.POPUP_PLACE, dataContext));
+    action.actionPerformed(AnActionEvent.createFromAnAction(action, inputEvent, ActionPlaces.TOOLWINDOW_POPUP, dataContext));
   }
 
   @NotNull

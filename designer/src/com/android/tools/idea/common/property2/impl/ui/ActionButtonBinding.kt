@@ -22,7 +22,6 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
 import java.awt.event.FocusEvent
@@ -78,7 +77,7 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
   private fun buttonPressed(mouseEvent: MouseEvent) {
     val action = button?.action ?: return
     if (action is ActionGroup) {
-      val popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, action)
+      val popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, action)
       popupMenu.component.show(this, mouseEvent.x, mouseEvent.y)
     }
     else {
