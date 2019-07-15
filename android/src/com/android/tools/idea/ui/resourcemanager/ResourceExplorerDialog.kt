@@ -29,7 +29,7 @@ import javax.swing.BorderFactory
 class ResourceExplorerDialog(facet: AndroidFacet, forTypes: Set<ResourceType>) : ResourcePickerDialog(facet.module.project) {
 
   @TestOnly // TODO: consider getting this in a better way.
-  val resourceExplorerPanel = ResourceExplorer.createResourcePicker(facet, forTypes, this::updatePickedResourceName)
+  val resourceExplorerPanel = ResourceExplorer.createResourcePicker(facet, forTypes, this::updateSelectedResource, this::doSelectResource)
 
   private var pickedResourceName: String? = null
 
@@ -50,8 +50,12 @@ class ResourceExplorerDialog(facet: AndroidFacet, forTypes: Set<ResourceType>) :
   override val resourceName: String?
     get() = pickedResourceName
 
-  private fun updatePickedResourceName(resource: ResourceItem) {
+  private fun updateSelectedResource(resource: ResourceItem) {
     pickedResourceName = resource.referenceToSelf.resourceUrl.toString()
+  }
+
+  private fun doSelectResource(resource: ResourceItem) {
+    updateSelectedResource(resource)
     doOKAction()
   }
 }

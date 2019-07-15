@@ -85,8 +85,7 @@ import javax.swing.JScrollPane
 import javax.swing.JSeparator
 import javax.swing.JTabbedPane
 import javax.swing.LayoutFocusTraversalPolicy
-import javax.swing.event.ListSelectionEvent
-import javax.swing.event.ListSelectionListener
+import javax.swing.ListSelectionModel
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -132,7 +131,9 @@ class ResourceExplorerView(
   private val resourcesBrowserViewModel: ResourceExplorerViewModel,
   private val resourceImportDragTarget: ResourceImportDragTarget,
   withMultiModuleSearch: Boolean = true,
-  withSummaryView: Boolean = false
+  withSummaryView: Boolean = false,
+  private val withDetailView: Boolean = true, // TODO: Refactor detailView to follow a closer pattern with summaryView
+  private val multiSelection: Boolean = true
 ) : JPanel(BorderLayout()), Disposable, DataProvider {
 
   private var updatePending = false
@@ -286,15 +287,17 @@ class ResourceExplorerView(
    * Replace the content of the view with a [ResourceDetailView] for the provided [designAssetSet].
    */
   private fun doSelectAssetAction(designAssetSet: ResourceAssetSet) {
-    if (designAssetSet.assets.size == 1) {
+    if (designAssetSet.assets.isNotEmpty()) {
       val asset = designAssetSet.assets.first()
+      if (designAssetSet.assets.size > 1 && withDetailView) {
+        showDetailView(designAssetSet)
+        return
+      }
       if (!(asset is DesignAsset)) return // TODO: Show some sort of ui feedback. E.g: A warning icon on resource + error dialog.
       ResourceManagerTracking.logAssetOpened(asset.type)
       resourcesBrowserViewModel.doSelectAssetAction(asset)
       return
     }
-    // TODO: Should not show the DetailsView for ResourcePicker.
-    showDetailView(designAssetSet)
   }
 
   private fun showDetailView(designAssetSet: ResourceAssetSet) {
@@ -576,12 +579,13 @@ class ResourceExplorerView(
       addMouseListener(popupHandler)
       addMouseListener(mouseClickListener)
       addKeyListener(keyListener)
-      this.addListSelectionListener(object: ListSelectionListener {
-        override fun valueChanged(e: ListSelectionEvent?) {
-          // TODO: Call listeners in ResourceExplorerView
-          updateSummaryPreview()
+      selectionMode = if (multiSelection) ListSelectionModel.MULTIPLE_INTERVAL_SELECTION else ListSelectionModel.SINGLE_SELECTION
+      this.addListSelectionListener {
+        listeners.forEach { listener ->
+          listener.onDesignAssetSetSelected(sectionList.selectedValue as? ResourceAssetSet)
         }
-      })
+        updateSummaryPreview()
+      }
       thumbnailWidth = this@ResourceExplorerView.previewSize
       isGridMode = this@ResourceExplorerView.gridMode
     })
