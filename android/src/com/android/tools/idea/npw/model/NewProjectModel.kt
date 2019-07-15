@@ -183,11 +183,9 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
       templateValues[ATTR_KOTLIN_SUPPORT] = language.value === KOTLIN
 
       TemplateValueInjector(templateValues).setProjectDefaults(project)
-      
+
       val params = templateValues.toMutableMap()
       for (newModuleModel in newModuleModels) {
-        params.putAll(newModuleModel.templateValues)
-
         // Set global parameters
         val renderTemplateValues = newModuleModel.renderTemplateModel.value.templateValues
         renderTemplateValues.putAll(templateValues)
