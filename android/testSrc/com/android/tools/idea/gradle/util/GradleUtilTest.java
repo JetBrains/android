@@ -21,7 +21,6 @@ import static com.google.common.io.Files.createTempDir;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -250,6 +249,20 @@ public class GradleUtilTest {
 
     // Verify the result. Repeated dependency1 object should be added only once.
     assertThat(dependencies).containsExactlyElementsIn(Arrays.asList(dependency1, dependency2));
+  }
+
+  @Test
+  public void isDirectChild() {
+    assertTrue(GradleUtil.isDirectChild(":app", ":"));
+    assertTrue(GradleUtil.isDirectChild(":libs:lib1", ":libs"));
+    assertTrue(GradleUtil.isDirectChild(":libs:java:lib2", ":libs:java"));
+
+    assertFalse(GradleUtil.isDirectChild(":libs:lib1", ":"));
+    assertFalse(GradleUtil.isDirectChild(":libs", ":app"));
+    assertFalse(GradleUtil.isDirectChild(":libs:lib1", ":app"));
+    assertFalse(GradleUtil.isDirectChild(":libs:java:lib2", ":libs"));
+    assertFalse(GradleUtil.isDirectChild(":libs:android:lib3", ":libs:java"));
+    assertFalse(GradleUtil.isDirectChild(":app", ":app"));
   }
 
   @Test

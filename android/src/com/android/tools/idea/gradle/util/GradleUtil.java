@@ -537,6 +537,16 @@ public final class GradleUtil {
   }
 
   /**
+   * Checks if module with childPath is a direct child of module with parentPath,
+   * meaning that childPath should have exactly one extra path segment in the end.
+   */
+  public static boolean isDirectChild(String childPath, String parentPath) {
+    List<String> childSegments = getPathSegments(childPath);
+    return childSegments.subList(0, childSegments.size() - 1).equals(getPathSegments(parentPath));
+  }
+
+
+  /**
    * Returns gradle paths for parent modules of the given path.<br/>
    * For example:
    * <ul>

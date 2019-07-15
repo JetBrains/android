@@ -14,6 +14,7 @@
 package com.android.tools.idea.gradle.structure.configurables.suggestions
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
@@ -28,9 +29,10 @@ import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import java.awt.BorderLayout
 
 class AndroidModuleSuggestionsConfigurable(
-    context: PsContext,
-    module: PsModule
-) : AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, module) {
+  context: PsContext,
+  perspectiveConfigurable: BasePerspectiveConfigurable,
+  module: PsModule
+) : AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, perspectiveConfigurable, module) {
   override fun getId() = "android.psd.suggestions." + displayName
 
   override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context) {
