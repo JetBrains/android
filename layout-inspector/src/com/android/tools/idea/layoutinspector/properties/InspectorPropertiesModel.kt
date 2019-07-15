@@ -39,6 +39,9 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   private val modelListeners: MutableList<PropertiesModelListener<InspectorPropertyItem>> = ContainerUtil.createConcurrentList()
   private val provider = PropertiesProvider(this)
 
+  var structuralUpdates = 0
+    private set
+
   override var properties: PropertiesTable<InspectorPropertyItem> = PropertiesTable.emptyTable()
     private set
 
@@ -82,6 +85,9 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
 
   @Suppress("UNUSED_PARAMETER")
   private fun handleModelChange(oldView: ViewNode?, newView: ViewNode?, structuralChange: Boolean) {
+    if (structuralChange) {
+      structuralUpdates++
+    }
     val selection = layoutInspector?.layoutInspectorModel?.selection
     if (selection != null && client?.isConnected == true) {
       provider.requestProperties(selection)
