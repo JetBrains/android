@@ -40,9 +40,6 @@
     <component>
       <implementation-class>org.jetbrains.android.AndroidPlugin</implementation-class>
     </component>
-    <component>
-      <implementation-class>com.android.tools.idea.apk.viewer.ApkFileSystem</implementation-class>
-    </component>
   </application-components>
   <project-components>
     <component>
@@ -726,6 +723,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.logcat.output.LogcatOutputSettings" />
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
+    <virtualFileSystem key="apk" implementationClass="com.android.tools.idea.apk.viewer.ApkFileSystem"/>
     <generatedSourcesFilter implementation="com.android.tools.idea.gradle.roots.AndroidGeneratedSourcesFilter"/>
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
     <codeInsight.unresolvedReferenceQuickFixProvider
