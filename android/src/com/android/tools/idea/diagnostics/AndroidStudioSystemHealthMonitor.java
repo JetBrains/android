@@ -462,7 +462,7 @@ public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
 
     application.getMessageBus().connect(application).subscribe(IdePerformanceListener.TOPIC, new IdePerformanceListener() {
       @Override
-      public void uiFreezeFinished(long durationMs) {
+      public void uiFreezeFinished(long durationMs, @Nullable File reportDir) {
         // track how long the IDE was frozen
         UsageTracker.log(AndroidStudioEvent.newBuilder()
             .setKind(EventKind.STUDIO_PERFORMANCE_STATS)
