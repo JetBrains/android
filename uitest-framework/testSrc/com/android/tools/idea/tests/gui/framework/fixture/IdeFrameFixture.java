@@ -21,12 +21,12 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.ui.GuiTestingService.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
 import static java.awt.event.InputEvent.CTRL_MASK;
 import static java.awt.event.InputEvent.META_MASK;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.fail;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -202,7 +202,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     Wait.seconds(10)
       .expecting("Listeners to be notified of build-finished event")
-      .until(()-> resultRef.get() != null);
+      .until(() -> resultRef.get() != null);
     return resultRef.get();
   }
 
@@ -307,15 +307,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     invokeMenuPath("Build", "Make Project");
   }
 
-  /** Selects the item at {@code menuPath} and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}. */
+  /**
+   * Selects the item at {@code menuPath} and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
+   */
   public <T> T openFromMenu(Function<IdeFrameFixture, T> fixtureFunction, @NotNull String... menuPath) {
     getMenuFixture().invokeMenuPath(menuPath);
     return fixtureFunction.apply(this);
   }
 
   /**
-   *  Selects the item at {@code menuPath} in a contextual menu
-   *  and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
+   * Selects the item at {@code menuPath} in a contextual menu
+   * and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
    */
   public <T> T openFromContextualMenu(Function<IdeFrameFixture, T> fixtureFunction, @NotNull String... menuPath) {
     getMenuFixture().invokeContextualMenuPath(menuPath);
@@ -393,21 +395,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * Returns the virtual file corresponding to the given path. The path must be relative to the project root directory
    * (the top-level directory containing all source files associated with the project).
    *
-   * @param relativePath a file path relative to the project root directory
+   * @param relativePath  a file path relative to the project root directory
    * @param requireExists if true, this method asserts that the given path corresponds to an existing file
    * @return the virtual file corresponding to the given path, or null if requireExists is false and the file does not exist
    */
   @Nullable
   @Contract("_, true -> !null")
   public VirtualFile findFileByRelativePath(@NotNull String relativePath, boolean requireExists) {
-    //noinspection Contract
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
 
     VirtualFile projectRootDir = getProject().getBaseDir();
     projectRootDir.refresh(false, true);
     VirtualFile file = projectRootDir.findFileByRelativePath(relativePath);
     if (requireExists) {
-      //noinspection Contract
       assertNotNull("Unable to find file with relative path '" + relativePath + "'", file);
     }
     return file;
@@ -462,7 +462,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   public boolean isGradleSyncNotNeeded() {
-    return GradleSyncState.getInstance(getProject()).isSyncNeeded() == ThreeState.NO? true: false;
+    return GradleSyncState.getInstance(getProject()).isSyncNeeded() == ThreeState.NO;
   }
 
   @NotNull
@@ -544,19 +544,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     });
   }
 
-  @NotNull
-  private ActionButtonFixture findActionButtonWithRefresh(@NotNull String actionId) {
-    return findActionButtonWithRefresh(actionId, true);
-  }
   /**
    * Finds the button while jittering the mouse over the IDE frame.
-   *
+   * <p>
    * Due to IJ refresh policy (will only refresh if it detects mouse movement over its window),
    * the cursor needs to be intermittently moved before the ActionButton moves into the location
    * place and update to its final state.
    */
   @NotNull
-  private ActionButtonFixture findActionButtonWithRefresh(@NotNull String actionId, boolean enabled) {
+  private ActionButtonFixture findActionButtonWithRefresh(@NotNull String actionId) {
     Ref<ActionButtonFixture> fixtureRef = new Ref<>();
     Wait.seconds(30)
       .expecting("button to enable")
@@ -575,7 +571,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
                 AnAction action = button.getAction();
                 Presentation presentation = action.getTemplatePresentation();
                 return presentation.isEnabledAndVisible() &&
-                       button.isEnabled() == enabled &&
+                       button.isEnabled() &&
                        button.isShowing() &&
                        button.isVisible();
               }
@@ -590,18 +586,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  private ActionButtonFixture findActionButtonByActionId(String actionId) {
-    return ActionButtonFixture.findByActionId(actionId, robot(), target());
-  }
-
-  @NotNull
   private ActionButtonFixture findActionButtonByActionId(String actionId, long secondsToWait) {
     return ActionButtonFixture.findByActionId(actionId, robot(), target(), secondsToWait);
-  }
-
-  @NotNull
-  private ActionButtonFixture findActionButtonByText(@NotNull String text) {
-    return ActionButtonFixture.findByText(text, robot(), target());
   }
 
   @NotNull
@@ -748,9 +734,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Module module = getModule(moduleName);
     VirtualFile buildFile = getGradleBuildFile(module);
     Ref<GradleBuildModel> buildModelRef = new Ref<>();
-    ReadAction.run(() -> {
-      buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject()));
-    });
+    ReadAction.run(() -> buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject())));
     return new GradleBuildModelFixture(buildModelRef.get());
   }
 
@@ -839,7 +823,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture closeResourceManager() {
-    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager"))).deselect();
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager")))
+      .deselect();
     return this;
   }
 }
