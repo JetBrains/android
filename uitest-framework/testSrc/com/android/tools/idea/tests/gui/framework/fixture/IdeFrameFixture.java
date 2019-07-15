@@ -763,7 +763,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public void selectApp(@NotNull String appName) {
     ActionButtonFixture runButton = findRunApplicationButton();
     Container actionToolbarContainer = GuiQuery.getNonNull(() -> runButton.target().getParent());
-    ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBoxByTooltip(robot(), actionToolbarContainer, "Open edit Run/Debug configurations dialog");
+
+    ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBoxByTooltip(
+      robot(),
+      actionToolbarContainer,
+      "Open 'Edit Run/Debug configurations' dialog");
+
     comboBoxActionFixture.selectItem(appName);
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
     Wait.seconds(1).expecting("ComboBox to be selected").until(() -> appName.equals(comboBoxActionFixture.getSelectedItemText()));
