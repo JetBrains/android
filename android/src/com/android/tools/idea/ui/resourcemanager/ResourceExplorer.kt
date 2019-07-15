@@ -34,7 +34,7 @@ import javax.swing.JPanel
 import kotlin.properties.Delegates
 
 // TODO: Support receiving a list of ResourceType to display.
-internal val SUPPORTED_RESOURCES get() =
+internal val MANAGER_SUPPORTED_RESOURCES get() =
   if (StudioFlags.RESOURCE_EXPLORER_PICKER.get()) {
     arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR,
             ResourceType.LAYOUT, ResourceType.MIPMAP,
@@ -97,9 +97,12 @@ class ResourceExplorer private constructor(
      */
     fun createResourcePicker(
       facet: AndroidFacet,
+      types: Set<ResourceType>,
       doSelectResourceCallback: (resourceItem: ResourceItem) -> Unit): ResourceExplorer {
       val importersProvider = ImportersProvider()
-      val resourceExplorerViewModel = ResourceExplorerViewModel.createResPickerViewModel(facet, doSelectResourceCallback)
+      val resourceExplorerViewModel = ResourceExplorerViewModel.createResPickerViewModel(facet,
+                                                                                         types.toTypedArray(),
+                                                                                         doSelectResourceCallback)
       val toolbarViewModel = ResourceExplorerToolbarViewModel(
         facet,
         importersProvider,
