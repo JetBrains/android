@@ -42,8 +42,9 @@ public class TestNewProjectWizardState {
 
     // ------------------ MODULE STATE ---------------
     new TemplateValueInjector(myModuleState.getParameters())
-      .setProjectDefaults(null, APPLICATION_NAME);
+      .setProjectDefaults(null);
 
+    myModuleState.put(ATTR_APP_TITLE, APPLICATION_NAME);
     myModuleState.put(ATTR_HAS_APPLICATION_THEME, true);
     myModuleState.put(ATTR_IS_LAUNCHER, true);
     myModuleState.put(ATTR_IS_NEW_PROJECT, true);

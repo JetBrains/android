@@ -33,6 +33,7 @@ import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.Template
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.RenderingContext
@@ -143,7 +144,8 @@ class NewModuleModel : WizardModel {
       }
 
       TemplateValueInjector(templateValues)
-        .setProjectDefaults(project.value, applicationName.get())
+        .setProjectDefaults(project.value)
+      templateValues[ATTR_APP_TITLE] = applicationName.get()
     }
 
     @WorkerThread
