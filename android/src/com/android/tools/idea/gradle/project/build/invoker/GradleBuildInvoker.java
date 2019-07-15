@@ -104,6 +104,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.gradle.tooling.BuildAction;
@@ -492,9 +494,20 @@ public class GradleBuildInvoker {
 
         @Override
         public void onEnd(@NotNull ExternalSystemTaskId id) {
-          myReader.close();
-          if (myBuildFailed) {
-            BuildOutputParserWrapperKt.sendBuildFailureMetrics(buildOutputParsersWrappers, myProject);
+          CompletableFuture future = myReader.closeAndGetFuture().whenComplete((unit, throwable) -> {
+            if (myBuildFailed) {
+              BuildOutputParserWrapperKt.sendBuildFailureMetrics(buildOutputParsersWrappers, myProject);
+            }
+          });
+
+          // wait for completion when testing
+          if (ApplicationManager.getApplication().isUnitTestMode()) {
+            try {
+              future.get();
+            }
+            catch (InterruptedException | ExecutionException e) {
+              throw new RuntimeException(e);
+            }
           }
         }
 
