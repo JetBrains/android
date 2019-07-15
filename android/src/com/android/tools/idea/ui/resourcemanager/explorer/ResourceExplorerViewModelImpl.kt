@@ -30,7 +30,6 @@ import com.android.tools.idea.resources.base.BasicArrayResourceItem
 import com.android.tools.idea.resources.base.BasicFileResourceItem
 import com.android.tools.idea.resources.base.BasicPluralsResourceItem
 import com.android.tools.idea.ui.resourcemanager.ImageCache
-import com.android.tools.idea.ui.resourcemanager.SUPPORTED_RESOURCES
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
@@ -66,10 +65,12 @@ private const val UNRESOLVED_VALUE = "Could not resolve"
  *
  * @param filterInitialParams Sets the initial values for the filter options.
  * @param selectAssetAction Optional callback for asset selection, default behavior opens the asset's file.
+ * @param supportedResourceTypes Resources to be displayed, each index should represent each resource type in the tabbed pane.
  */
 class ResourceExplorerViewModelImpl(
   facet: AndroidFacet,
   filterInitialParams: FilterOptionsParams,
+  private val supportedResourceTypes: Array<ResourceType>,
   selectAssetAction: ((asset: Asset) -> Unit)? = null
 ) : Disposable, ResourceExplorerViewModel {
   /**
@@ -116,7 +117,7 @@ class ResourceExplorerViewModelImpl(
       }
     }
 
-  override val resourceTypes: Array<ResourceType> get() = SUPPORTED_RESOURCES
+  override val resourceTypes: Array<ResourceType> get() = supportedResourceTypes
 
   override val selectedTabName: String get() = resourceTypes[resourceTypeIndex].displayName
 

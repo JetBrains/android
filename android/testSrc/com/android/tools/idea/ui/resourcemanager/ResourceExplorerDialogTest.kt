@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
+import com.android.resources.ResourceType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.explorer.AssetListView
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
@@ -67,7 +68,8 @@ class ResourceExplorerDialogTest {
   private fun createResourcePickerDialog(): ResourceExplorerDialog {
     var explorerDialog: ResourceExplorerDialog? = null
     runInEdtAndWait {
-      explorerDialog = ResourceExplorerDialog(AndroidFacet.getInstance(projectRule.module)!!)
+      explorerDialog = ResourceExplorerDialog(AndroidFacet.getInstance(projectRule.module)!!,
+                                              setOf(ResourceType.DRAWABLE))
     }
     assertThat(explorerDialog).isNotNull()
     explorerDialog?.let { view ->
