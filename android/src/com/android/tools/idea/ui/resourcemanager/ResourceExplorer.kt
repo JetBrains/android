@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerViewModel
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -98,6 +99,7 @@ class ResourceExplorer private constructor(
     fun createResourcePicker(
       facet: AndroidFacet,
       types: Set<ResourceType>,
+      updateResourceCallback: (resourceItem: ResourceItem) -> Unit,
       doSelectResourceCallback: (resourceItem: ResourceItem) -> Unit): ResourceExplorer {
       val importersProvider = ImportersProvider()
       val resourceExplorerViewModel = ResourceExplorerViewModel.createResPickerViewModel(facet,
@@ -110,7 +112,16 @@ class ResourceExplorer private constructor(
       val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
       val toolbar = ResourceExplorerToolbar.create(toolbarViewModel, moduleComboEnabled = false)
       val resourceExplorerView = ResourceExplorerView(
-        resourceExplorerViewModel, resourceImportDragTarget, withSummaryView = true, withMultiModuleSearch = false)
+        resourceExplorerViewModel, resourceImportDragTarget, withMultiModuleSearch = false, withSummaryView = true, withDetailView = false,
+        multiSelection = false)
+      resourceExplorerView.addSelectionListener(object: ResourceExplorerView.SelectionListener{
+        override fun onDesignAssetSetSelected(resourceAssetSet: ResourceAssetSet?) {
+          resourceAssetSet?.assets?.firstOrNull()?.let {
+            updateResourceCallback(it.resourceItem)
+          }
+        }
+      })
+
       val explorer = ResourceExplorer(
         facet,
         resourceExplorerViewModel,
