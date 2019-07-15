@@ -84,7 +84,9 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     val panel = VariableHeightPanel(editor)
     panel.border = createBorder(column, depth, editor, gridLineColor)
     val result = Pair(model, panel)
-    componentCache[key] = result
+    if (!panel.isCustomHeight) {
+      componentCache[key] = result
+    }
     return result
   }
 
