@@ -22,9 +22,7 @@ import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
-import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
@@ -38,59 +36,43 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTO
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
 import com.android.tools.idea.wizard.model.WizardModel
-import com.google.common.collect.Maps
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 import java.util.Locale
 
-class NewProjectModuleModel(private val myProjectModel: NewProjectModel) : WizardModel() {
-  private val myNewModuleModel: NewModuleModel
-  val extraRenderTemplateModel: RenderTemplateModel
-  private val myFormFactor = ObjectValueProperty(FormFactor.MOBILE)
-  private val myRenderTemplateHandle = OptionalValueProperty<TemplateHandle>()
+private val log: Logger get() = logger<NewProjectModuleModel>()
 
-  private val myHasCompanionApp = BoolValueProperty()
-
-  init {
-    myNewModuleModel = NewModuleModel(myProjectModel, File(""), createDummyTemplate())
-    extraRenderTemplateModel = RenderTemplateModel.fromModuleModel(myNewModuleModel, null, message("android.wizard.config.activity.title"))
-  }
+class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardModel() {
+  private val newModuleModel: NewModuleModel = NewModuleModel(projectModel, File(""), createDummyTemplate())
+  @JvmField val extraRenderTemplateModel: RenderTemplateModel = RenderTemplateModel.fromModuleModel(newModuleModel, null, message("android.wizard.config.activity.title"))
+  @JvmField val formFactor = ObjectValueProperty(FormFactor.MOBILE)
+  @JvmField val renderTemplateHandle = OptionalValueProperty<TemplateHandle>()
+  @JvmField val hasCompanionApp = BoolValueProperty()
 
   fun androidSdkInfo(): OptionalProperty<AndroidVersionsInfo.VersionItem> {
-    return myNewModuleModel.androidSdkInfo
+    return newModuleModel.androidSdkInfo
   }
 
   fun moduleTemplateFile(): OptionalProperty<File> {
-    return myNewModuleModel.templateFile
-  }
-
-  fun renderTemplateHandle(): OptionalProperty<TemplateHandle> {
-    return myRenderTemplateHandle
-  }
-
-  fun hasCompanionApp(): BoolProperty {
-    return myHasCompanionApp
-  }
-
-  fun formFactor(): ObjectProperty<FormFactor> {
-    return myFormFactor
+    return newModuleModel.templateFile
   }
 
   override fun handleFinished() {
-    myProjectModel.newModuleModels.clear()
+    projectModel.newModuleModels.clear()
 
-    val hasCompanionApp = myHasCompanionApp.get()
+    val hasCompanionApp = hasCompanionApp.get()
 
     initMainModule()
 
-    val projectTemplateValues = myProjectModel.templateValues
-    addModuleToProject(myNewModuleModel, myFormFactor.get(), myProjectModel, projectTemplateValues)
+    val projectTemplateValues = projectModel.templateValues
+    addModuleToProject(newModuleModel, formFactor.get(), projectModel, projectTemplateValues)
 
     if (hasCompanionApp) {
-      val companionModuleModel = createCompanionModuleModel(myProjectModel)
+      val companionModuleModel = createCompanionModuleModel(projectModel)
       val companionRenderModel = createCompanionRenderModel(companionModuleModel)
-      addModuleToProject(companionModuleModel, FormFactor.MOBILE, myProjectModel, projectTemplateValues)
+      addModuleToProject(companionModuleModel, FormFactor.MOBILE, projectModel, projectTemplateValues)
 
       companionModuleModel.androidSdkInfo.value = androidSdkInfo().value
       companionModuleModel.setRenderTemplateModel(companionRenderModel)
@@ -100,14 +82,14 @@ class NewProjectModuleModel(private val myProjectModel: NewProjectModel) : Wizar
     }
 
     val newRenderTemplateModel = createMainRenderModel()
-    myNewModuleModel.setRenderTemplateModel(newRenderTemplateModel)
+    newModuleModel.setRenderTemplateModel(newRenderTemplateModel)
 
     val hasActivity = newRenderTemplateModel.templateHandle != null
     if (hasActivity && newRenderTemplateModel != extraRenderTemplateModel) { // Extra render is driven by the Wizard itself
       addRenderDefaultTemplateValues(newRenderTemplateModel)
     }
 
-    myNewModuleModel.handleFinished()
+    newModuleModel.handleFinished()
     if (newRenderTemplateModel != extraRenderTemplateModel) { // Extra render is driven by the Wizard itself
       if (hasActivity) {
         newRenderTemplateModel.handleFinished()
@@ -119,31 +101,27 @@ class NewProjectModuleModel(private val myProjectModel: NewProjectModel) : Wizar
   }
 
   private fun initMainModule() {
-    val moduleName: String
-    if (myHasCompanionApp.get()) {
-      moduleName = getModuleName(myFormFactor.get())
-    }
-    else {
-      moduleName = SdkConstants.APP_PREFIX
-    }
+    val moduleName: String = if (hasCompanionApp.get())
+      getModuleName(formFactor.get())
+    else
+      SdkConstants.APP_PREFIX
 
-    val projectLocation = myProjectModel.projectLocation.get()
+    val projectLocation = projectModel.projectLocation.get()
 
-    myNewModuleModel.moduleName.set(moduleName)
-    myNewModuleModel.template.set(createDefaultTemplateAt(projectLocation, moduleName))
+    newModuleModel.moduleName.set(moduleName)
+    newModuleModel.template.set(createDefaultTemplateAt(projectLocation, moduleName))
   }
 
   private fun createMainRenderModel(): RenderTemplateModel {
     val newRenderTemplateModel: RenderTemplateModel
-    if (myProjectModel.enableCppSupport.get()) {
-      newRenderTemplateModel = createCompanionRenderModel(myNewModuleModel)
-    }
-    else if (extraRenderTemplateModel.templateHandle == null) {
-      newRenderTemplateModel = RenderTemplateModel.fromModuleModel(myNewModuleModel, null, "")
-      newRenderTemplateModel.templateHandle = renderTemplateHandle().valueOrNull
-    }
-    else { // Extra Render is visible. Use it.
-      newRenderTemplateModel = extraRenderTemplateModel
+    when {
+      projectModel.enableCppSupport.get() -> newRenderTemplateModel = createCompanionRenderModel(newModuleModel)
+      extraRenderTemplateModel.templateHandle == null -> {
+        newRenderTemplateModel = RenderTemplateModel.fromModuleModel(newModuleModel, null, "")
+        newRenderTemplateModel.templateHandle = renderTemplateHandle.valueOrNull
+      }
+      else -> // Extra Render is visible. Use it.
+        newRenderTemplateModel = extraRenderTemplateModel
     }
     return newRenderTemplateModel
   }
@@ -181,34 +159,25 @@ private fun createCompanionRenderModel(moduleModel: NewModuleModel): RenderTempl
   return companionRenderModel
 }
 
-private fun getModuleName(formFactor: FormFactor): String {
-  var formFactor = formFactor
-  if (formFactor.baseFormFactor != null) {
-    // Form factors like Android Auto build upon another form factor
-    formFactor = formFactor.baseFormFactor!!
-  }
-  return formFactor.id.replace("\\s".toRegex(), "_").toLowerCase(Locale.US)
-}
+private fun getModuleName(formFactor: FormFactor): String =
+  // Form factors like Android Auto build upon another form factor
+  (formFactor.baseFormFactor ?: formFactor).id.replace("\\s".toRegex(), "_").toLowerCase(Locale.US)
 
 private fun addRenderDefaultTemplateValues(renderTemplateModel: RenderTemplateModel) {
   val templateValues = renderTemplateModel.templateValues
   val templateMetadata = renderTemplateModel.templateHandle!!.metadata
-  val userValues = Maps.newHashMap<Parameter, Any>()
-  val additionalValues = Maps.newHashMap<String, Any>()
+  val userValues = hashMapOf<Parameter, Any>()
+  val additionalValues = hashMapOf<String, Any>()
 
   val packageName = renderTemplateModel.packageName.get()
   TemplateValueInjector(additionalValues).addTemplateAdditionalValues(packageName, renderTemplateModel.template)
   additionalValues[ATTR_PACKAGE_NAME] = renderTemplateModel.packageName.get()
 
   try {
-    val renderParameters = templateMetadata.parameters
-    val parameterValues = ParameterValueResolver.resolve(renderParameters, userValues, additionalValues)
+    val parameterValues = ParameterValueResolver.resolve(templateMetadata.parameters, userValues, additionalValues)
     parameterValues.forEach { (parameter, value) -> templateValues[parameter.id!!] = value }
   }
   catch (e: CircularParameterDependencyException) {
     log.error("Circular dependency between parameters in template %1\$s", e, templateMetadata.title!!)
   }
 }
-
-private val log: Logger
-  get() = Logger.getInstance(NewProjectModuleModel::class.java)

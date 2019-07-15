@@ -97,7 +97,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     myNewProjectModuleModel = new NewProjectModuleModel(getModel());
-    RenderTemplateModel renderModel = myNewProjectModuleModel.getExtraRenderTemplateModel();
+    RenderTemplateModel renderModel = myNewProjectModuleModel.extraRenderTemplateModel;
 
     return newArrayList(new ConfigureAndroidProjectStep(myNewProjectModuleModel, getModel()),
                         new ConfigureCppSupportStep(getModel()),
@@ -177,12 +177,12 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     assert selectedTemplate != null;
 
     getModel().enableCppSupport.set(selectedTemplate.isCppTemplate());
-    myNewProjectModuleModel.formFactor().set(formFactorInfo.formFactor);
+    myNewProjectModuleModel.formFactor.set(formFactorInfo.formFactor);
     myNewProjectModuleModel.moduleTemplateFile().setNullableValue(formFactorInfo.templateFile);
-    myNewProjectModuleModel.renderTemplateHandle().setNullableValue(selectedTemplate.getTemplate());
+    myNewProjectModuleModel.renderTemplateHandle.setNullableValue(selectedTemplate.getTemplate());
 
     TemplateHandle extraStepTemplateHandle = formFactorInfo.formFactor == FormFactor.THINGS ? selectedTemplate.getTemplate() : null;
-    myNewProjectModuleModel.getExtraRenderTemplateModel().setTemplateHandle(extraStepTemplateHandle);
+    myNewProjectModuleModel.extraRenderTemplateModel.setTemplateHandle(extraStepTemplateHandle);
   }
 
   @NotNull
