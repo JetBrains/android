@@ -43,12 +43,13 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
       }
   }
 
-  private val editorProvider = ResolutionStackEditorProvider(enumSupportProvider, controlTypeProvider)
+  private val declaredEditorProvider = ResolutionStackEditorProvider(model, enumSupportProvider, controlTypeProvider)
+  private val allEditorProvider = ResolutionStackEditorProvider(model, enumSupportProvider, controlTypeProvider)
 
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
     val tab = addTab("")
-    tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.isDeclared }, model, controlTypeProvider, editorProvider))
-    tab.builders.add(InspectorTableBuilder("All Attributes", { true }, model, controlTypeProvider, editorProvider))
+    tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.isDeclared }, model, controlTypeProvider, declaredEditorProvider))
+    tab.builders.add(InspectorTableBuilder("All Attributes", { true }, model, controlTypeProvider, allEditorProvider))
   }
 }

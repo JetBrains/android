@@ -359,8 +359,6 @@ class NelePropertyItemTest {
       override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
         propertiesGenerated = true
       }
-      override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
-      }
     })
 
     property.value = LINEAR_LAYOUT
