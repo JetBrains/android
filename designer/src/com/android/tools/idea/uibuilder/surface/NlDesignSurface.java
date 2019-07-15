@@ -69,7 +69,6 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Update;
@@ -97,6 +96,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private boolean isPreview = false;
     private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
+    private boolean showModelName = false;
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -123,9 +123,18 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * Enables {@link NlDesignSurface} displaying of the model names when present.
+     */
+    @NotNull
+    public Builder showModelNames() {
+      showModelName = true;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
-      return new NlDesignSurface(myProject, myParentDisposable, isPreview, sceneManagerProvider);
+      return new NlDesignSurface(myProject, myParentDisposable, isPreview, showModelName, sceneManagerProvider);
     }
   }
 
@@ -133,7 +142,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @SwingCoordinate private int myScreenX = DEFAULT_SCREEN_OFFSET_X;
   @SwingCoordinate private int myScreenY = DEFAULT_SCREEN_OFFSET_Y;
   private boolean myIsCanvasResizing = false;
-  private boolean myIsShowModelNames = false;
+  private boolean showModelNames = false;
   private boolean myStackVertically;
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
@@ -152,11 +161,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
+                          boolean showModelNames,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider) {
     super(project, new SelectionModel(), parentDisposable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     this.isInPreview = isInPreview;
+    this.showModelNames = showModelNames;
     mySceneManagerProvider = sceneManagerProvider;
   }
 
@@ -215,18 +226,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   public boolean isShowModelNames() {
-    boolean displayModelNameFlag = StudioFlags.NELE_DISPLAY_MODEL_NAME.get();
-    if (!displayModelNameFlag) {
-      Logger.getInstance(getClass()).info("Displaying model name is not enabled.");
-    }
-    return displayModelNameFlag && myIsShowModelNames;
-  }
-
-  /**
-   * Set to display the model names on the top of SceneViews or not.
-   */
-  public void setShowModelNames(boolean displayed) {
-    myIsShowModelNames = displayed;
+    return StudioFlags.NELE_DISPLAY_MODEL_NAME.get() && showModelNames;
   }
 
   @NotNull
