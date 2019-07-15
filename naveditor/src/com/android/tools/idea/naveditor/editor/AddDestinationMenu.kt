@@ -188,7 +188,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     searchField.textEditor.emptyText.text = "Search existing destinations"
     result.add(searchField)
 
-    val action: AnAction = object : AnAction("Create new destination   ") {
+    val action: AnAction = object : AnAction("Create new destination") {
       override fun actionPerformed(e: AnActionEvent) {
         createNewDestination(e)
       }
