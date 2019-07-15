@@ -146,11 +146,12 @@ class DetailedPreview : JPanel(null) {
 }
 
 private fun DefaultTableModel.setTableData(dataMap: Map<String, String>, firstColumnName: String = "", secondColumnName: String = "") {
+  val hasHeader = firstColumnName.isNotBlank() || secondColumnName.isNotBlank()
   this.setDataVector(
     dataMap
       .map { (key, value) ->
         Vector<String>(2).apply {
-          addElement("$key:")
+          addElement("$key${if(hasHeader) "" else ":"}")
           addElement(value)
         }
       }.toCollection(Vector<Vector<String>>(dataMap.size)), Vector<String>(listOf(firstColumnName, secondColumnName)))

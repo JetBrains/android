@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.rendering.DefaultIconProvider
 import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
+import com.android.tools.idea.ui.resourcemanager.widget.LinkLabelSearchView
 import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWrapper
 import com.android.tools.idea.ui.resourcemanager.widget.Section
 import com.android.tools.idea.ui.resourcemanager.widget.SectionList
@@ -53,14 +54,11 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.ui.speedSearch.NameFilteringListModel
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
@@ -80,7 +78,6 @@ import java.util.function.BiConsumer
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JScrollPane
@@ -133,6 +130,7 @@ private const val DELAY_BEFORE_LOADING_STATE = 100L // ms
 class ResourceExplorerView(
   private val resourcesBrowserViewModel: ResourceExplorerViewModel,
   private val resourceImportDragTarget: ResourceImportDragTarget,
+  withMultiModuleSearch: Boolean = true,
   withSummaryView: Boolean = false
 ) : JPanel(BorderLayout()), Disposable, DataProvider {
 
@@ -158,7 +156,7 @@ class ResourceExplorerView(
     val backgroundColor = if (newValue) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
     centerPanel.background = backgroundColor
     sectionList.background = backgroundColor
-    searchMorePanel.background = backgroundColor
+    moduleSearchView?.backgroundColor = backgroundColor
     sectionList.getLists().forEach {
       (it as AssetListView).isGridMode = newValue
     }
@@ -199,30 +197,19 @@ class ResourceExplorerView(
     maximumSize = Dimension(Integer.MAX_VALUE, JBUI.scale(10))
   }
 
-  private val searchMorePanel = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    isOpaque = true
-    background = if (gridMode) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
-    alignmentX = CENTER_ALIGNMENT
-  }
-
-  private val searchMoreScrollPane = JBScrollPane(searchMorePanel).apply {
-    border = JBUI.Borders.empty()
-    isVisible = false
-    alignmentX = CENTER_ALIGNMENT
-    minimumSize = Dimension(JBUI.scale(10), JBUI.scale(110))
-    preferredSize = Dimension(JBUI.scale(400), JBUI.scale(210))
-    maximumSize = Dimension(Integer.MAX_VALUE, JBUI.scale(210))
-    horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-    verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-  }
+  /** A view to hold clickable labels to change modules when filtering resources. */
+  private val moduleSearchView = if (withMultiModuleSearch) LinkLabelSearchView().apply {
+    backgroundColor = if (gridMode) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
+  } else null
 
   private val centerPanel = JPanel().apply {
     layout = BoxLayout(this@apply, BoxLayout.Y_AXIS)
     background = if (gridMode) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
     add(sectionList)
-    add(contentSeparator)
-    add(searchMoreScrollPane)
+    if (moduleSearchView != null) {
+      add(contentSeparator)
+      add(moduleSearchView)
+    }
   }
 
   private val footerPanel = JPanel(BorderLayout()).apply {
@@ -421,6 +408,7 @@ class ResourceExplorerView(
   }
 
   private fun populateSearchLinkLabels() {
+    if (moduleSearchView == null) return
     searchFuture?.let { future ->
       if (!future.isDone()) {
         // Only one 'future' for getOtherModulesResourceLists may run at a time.
@@ -428,8 +416,7 @@ class ResourceExplorerView(
       }
     }
 
-    searchMorePanel.removeAll()
-    searchMoreScrollPane.isVisible = false
+    moduleSearchView.clear()
     contentSeparator.isVisible = false
 
     val filter = resourcesBrowserViewModel.speedSearch.filter
@@ -449,6 +436,7 @@ class ResourceExplorerView(
    * @param filter Received filter string, since the filter in SpeedSearch might change at runtime while this is running.
    */
   private fun displaySearchLinkLabels(resourceSections: List<ResourceSection>, filter: String) {
+    if (moduleSearchView == null) return // TODO: Log?
     val search = resourcesBrowserViewModel.speedSearch
     // TODO: Get the facet when the module is being set in ResourceExplorerViewModel by passing the module name instead of the actual facet.
     // I.e: This class should not be fetching module objects.
@@ -461,29 +449,17 @@ class ResourceExplorerView(
       val resourcesCount = filteringModel.size
       if (resourcesCount > 0) {
         modulesInProject.first { it.name == section.libraryName }.androidFacet?.let { facetToChange ->
-          searchMorePanel.add(createSearchLinkLabel(resourcesCount, facetToChange))
+          // Create [LinkLabel]s that when clicking them, changes the working module to the module in the given [AndroidFacet].
+          moduleSearchView.addLabel(
+            "${resourcesCount} resource${if (resourcesCount > 1) "s" else ""} found in '${facetToChange.module.name}'") {
+            resourcesBrowserViewModel.facet = facetToChange
+          }
         }
       }
     }
-    (searchMorePanel.componentCount > 0).also { hasComponents ->
-      searchMoreScrollPane.isVisible = hasComponents
-      contentSeparator.isVisible = hasComponents
-    }
+    contentSeparator.isVisible = moduleSearchView.isVisible
     centerPanel.validate()
     centerPanel.repaint()
-  }
-
-  /** Create [LinkLabel]s that when clicking them, changes the working module to the module in the given [AndroidFacet]. */
-  private fun createSearchLinkLabel(resourcesCount: Int, changeToFacet: AndroidFacet): JLabel {
-    return LinkLabel.create(
-      "${resourcesCount} resource${if (resourcesCount > 1) "s" else ""} found in '${changeToFacet.module.name}'") {
-      resourcesBrowserViewModel.facet = changeToFacet
-    }.apply {
-      alignmentX = CENTER_ALIGNMENT
-      alignmentY = TOP_ALIGNMENT
-      border = JBUI.Borders.empty(8, 5)
-      isOpaque = false
-    }
   }
 
   private fun populateResourcesLists() {
