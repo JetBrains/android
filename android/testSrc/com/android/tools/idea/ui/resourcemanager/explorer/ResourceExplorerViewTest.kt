@@ -191,7 +191,8 @@ class ResourceExplorerViewTest {
                                     ResourceImportDragTarget(
                                       projectRule.module.androidFacet!!,
                                       ImportersProvider()),
-                                    withSummaryView)
+                                    withMultiModuleSearch = true,
+                                    withSummaryView = withSummaryView)
     Disposer.register(disposable, view)
 
     val waitForAssetListToBeCreated = object : WaitFor(1000) {
