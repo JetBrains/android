@@ -271,9 +271,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
    * [com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION],
    * [com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_VERSION], etc.
    */
-  fun setProjectDefaults(project: Project?, moduleTitle: String): TemplateValueInjector {
-    myTemplateValues[ATTR_APP_TITLE] = moduleTitle
-
+  fun setProjectDefaults(project: Project?): TemplateValueInjector {
     // For now, our definition of low memory is running in a 32-bit JVM. In this case, we have to be careful about the amount of memory we
     // request for the Gradle build.
     myTemplateValues[ATTR_IS_LOW_MEMORY] = SystemInfo.is32Bit
@@ -281,7 +279,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     addGradleVersions(project)
     addKotlinVersion()
 
-    // TODO: This seems project stuff
     if (project != null) {
       myTemplateValues[ATTR_TOP_OUT] = project.basePath!!
     }
