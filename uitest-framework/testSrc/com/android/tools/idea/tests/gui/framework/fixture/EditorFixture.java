@@ -482,18 +482,22 @@ public class EditorFixture {
 
     selectEditorTab(tab);
 
-    waitForFileOpen.expecting("file '" + file.getPath() + "' to be opened and loaded").until(() -> {
-      if (!file.equals(getCurrentFile())) {
-        return false;
-      }
+    waitForFileOpen
+      .expecting("file '" + file.getPath() + "' to be opened and loaded")
+      .until(
+        () -> GuiQuery.get(() -> {
+          if (!file.equals(getCurrentFile())) {
+            return false;
+          }
 
-      FileEditor fileEditor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditor(file);
-      JComponent editorComponent = fileEditor.getComponent();
-      if (editorComponent instanceof JBLoadingPanel) {
-        return !((JBLoadingPanel)editorComponent).isLoading();
-      }
-      return true;
-    });
+          FileEditor fileEditor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditor(file);
+          JComponent editorComponent = fileEditor.getComponent();
+          if (editorComponent instanceof JBLoadingPanel) {
+            return !((JBLoadingPanel)editorComponent).isLoading();
+          }
+          return true;
+        })
+      );
 
     Editor editor = GuiQuery.get(() -> FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor());
     if (editor == null) {
