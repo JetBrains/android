@@ -23,7 +23,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.navigation.Place
 import javax.swing.SwingConstants
 
-class JavaModuleUnsupportedConfigurable(
+class ModuleUnsupportedConfigurable(
   context: PsContext,
   module: PsModule,
   val message: String = "Nothing to show. Please select an Android module."
