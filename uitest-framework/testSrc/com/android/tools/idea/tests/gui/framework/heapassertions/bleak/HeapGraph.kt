@@ -37,6 +37,8 @@ import kotlin.system.measureTimeMillis
 // to memory consumption exponential in the iteration count, for no useful purpose)
 interface DoNotTrace
 
+typealias Node = HeapGraph.Node
+
 /** [HeapGraph] represents a slightly-abstracted snapshot of the Java object reference graph.
  * Each node corresponds to a single object, and edges represent references, either real, or
  * abstracted. [Expander]s are responsible for defining the nature of this abstraction.
@@ -63,6 +65,8 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
     var incomingEdge: Edge? = if (isRootNode) Edge(this, this, expander.RootLoopbackLabel()) else null
     val children: List<Node>
       get() = edges.map { it.end }
+    val childObjects: List<Any>
+      get() = edges.map { it.end.obj }
     val degree: Int
       get() = edges.size
     var mark = 0
@@ -262,6 +266,14 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
       }
     }
     println("New graph has ${newGraph.leakRoots.size} potential leak roots")
+  }
+
+  fun getLeaks(prevGraph: HeapGraph): List<LeakInfo> {
+    return leakRoots.map { root ->
+      (prevGraph.getNodeForPath(root.getPath()) ?: prevGraph.leakRoots.find { it.obj === root.obj })?.let { prevRoot ->
+        LeakInfo(this, root, prevRoot)
+      }
+    }.filterNotNull()
   }
 
   fun List<Node>.anyReachableFrom(roots: List<Node>): Boolean {
