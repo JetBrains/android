@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.AbstractCounterDisplayConfigurable
-import com.android.tools.idea.gradle.structure.configurables.JavaModuleUnsupportedConfigurable
+import com.android.tools.idea.gradle.structure.configurables.ModuleUnsupportedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
@@ -53,7 +53,7 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
       when (module) {
         is PsAndroidModule -> createConfigurable(module)
         is PsAllModulesFakeModule -> createConfigurable(module)
-        else -> JavaModuleUnsupportedConfigurable(context, module)
+        else -> ModuleUnsupportedConfigurable(context, module)
       }
 
   override fun getDisplayName(): String = "Suggestions"
