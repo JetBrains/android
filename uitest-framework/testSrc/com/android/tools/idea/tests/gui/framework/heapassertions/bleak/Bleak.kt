@@ -17,8 +17,6 @@
 
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
-import java.util.IdentityHashMap
-
 /**
  * BLeak checks for memory leaks by repeatedly running a test that returns to its original state, taking
  * and analyzing memory snapshots between each run. It looks for paths from GC roots through the heap that
@@ -41,7 +39,7 @@ import java.util.IdentityHashMap
  */
 
 // Whitelist for known issues: don't report leak roots for which this method returns true
-private fun Signature.isWhitelisted(): Boolean =
+fun Signature.isWhitelisted(): Boolean =
   anyTypeContains("com.intellij.testGuiFramework") ||
   entry(2) == "com.android.layoutlib.bridge.impl.DelegateManager#sJavaReferences" ||
   anyTypeContains("org.fest.swing") ||
@@ -74,25 +72,18 @@ fun runWithBleak(scenario: Runnable) {
   runWithBleak { scenario.run() }
 }
 
-private val USE_INCREMENTAL_PROPAGATION = System.getProperty("bleak.incremental.propagation") == "true"
-
-private fun mostCommonClassesOf(objects: Collection<Any?>, maxResults: Int): List<Pair<Class<*>, Int>> {
-  val classCounts = mutableMapOf<Class<*>, Int>()
-  objects.forEach { if (it != null) classCounts.merge(it.javaClass, 1) { currentCount, _ -> currentCount + 1 } }
-  return classCounts.toList().sortedByDescending { it.second }.take(maxResults)
-}
-
-private fun StringBuilder.appendRetainedObjectSummary(g: HeapGraph, nodes: Set<HeapGraph.Node>) {
-  val retainedNodes = g.dominatedNodes(nodes)
-  appendln("${retainedNodes.size} (${retainedNodes.fold(0) { acc, node -> acc + node.getApproximateSize() }} bytes)")
-  mostCommonClassesOf(retainedNodes.map{it.obj}, 50).forEach {
-    appendln("    ${it.second} ${it.first.name}")
+fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
+  val errorMessage = findLeaks(runs, scenario).filterNot { it.whitelisted }.joinToString(separator = "\n------------------------------\n")
+  if (errorMessage.isNotEmpty()) {
+    throw MemoryLeakDetectedError(mangleSunReflect(errorMessage))
   }
 }
 
-fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
+private val USE_INCREMENTAL_PROPAGATION = System.getProperty("bleak.incremental.propagation") == "true"
+
+fun findLeaks(runs: Int = 3, scenario: () -> Unit): List<LeakInfo> {
   scenario()  // warm up
-  if (System.getProperty("enable.bleak") != "true") return  // if BLeak isn't enabled, the test will run normally.
+  if (System.getProperty("enable.bleak") != "true") return listOf() // if BLeak isn't enabled, the test will run normally.
 
   var g1 = HeapGraph { isRootNode || obj.javaClass.isArray }.expandWholeGraph()
   scenario()
@@ -114,59 +105,7 @@ fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
   val finalGraph = HeapGraph().expandWholeGraph()
   g2.propagateGrowing(finalGraph)
 
-  println("Found ${finalGraph.leakRoots.size} leak roots")
-  val errorMessage = buildString {
-    for (leakRoot in finalGraph.leakRoots.filterNot { it.getPath().signature().isWhitelisted() }) {
-      appendln(leakRoot.getPath().verboseSignature().joinToString(separator = "\n"))
-      val prevLeakRoot = g2.getNodeForPath(leakRoot.getPath()) ?: g2.leakRoots.find { it.obj === leakRoot.obj }
-      if (prevLeakRoot != null) {
-        val prevChildrenObjects = IdentityHashMap<Any, Any>(prevLeakRoot.degree)
-        val newChildrenObjects = IdentityHashMap<Any, Any>(leakRoot.degree)
-        prevChildrenObjects.putAll(prevLeakRoot.children.map { it.obj to it.obj })  // use map as a set
-        newChildrenObjects.putAll(leakRoot.children.map { it.obj to it.obj })  // use map as a set
-        val addedChildren = leakRoot.children.filterNot { prevChildrenObjects.containsKey(it.obj) }
-
-        // print information about the newly added objects
-        appendln(" ${leakRoot.degree} children (+${leakRoot.degree - prevLeakRoot.degree}) [${newChildrenObjects.size} distinct (+${newChildrenObjects.size- prevChildrenObjects.size})]. New children: ${addedChildren.size}")
-        addedChildren.take(20).forEach {
-          try {
-            appendln("    Added object: ${it.type.name}: ${it.obj.toString().take(80)}")
-          }
-          catch (e: NullPointerException) {
-            appendln("    Added object: ${it.type.name} [NPE in toString]")
-          }
-        }
-        // if many objects are added, print summary information about their most common classes
-        if (addedChildren.size > 20) {
-          appendln("    ...")
-          appendln("  Most common classes of added objects: ")
-          mostCommonClassesOf(addedChildren.map{it.obj}, 5).forEach {
-            appendln("    ${it.second} ${it.first.name}")
-          }
-        }
-
-        // print information about objects retained by the added children:
-        append("\nRetained by new children: ")
-        appendRetainedObjectSummary(finalGraph, addedChildren.toSet())
-
-        // print information about objects retained by all of the children. Sometimes severity is considerably underestimated by
-        // just looking at the children added in the last iteration, since often the same heavy data structures (Projects, etc.) are held
-        // by all of the leaked objects (and so are not retained by the last-iteration children alone, but are retained by all of the children
-        // in aggregate). However, this may also overestimate the severity, since there can be many other objects in the array unrelated to the
-        // actual leak in question.
-        append("\nRetained by all children: ")
-        appendRetainedObjectSummary(finalGraph, leakRoot.children.toSet())
-
-      }
-      else {
-        appendln("Warning: path and object have both changed between penultimate and final snapshots for this root")
-      }
-      appendln("--------------------------------")
-    }
-  }
-  if (errorMessage.isNotEmpty()) {
-    throw MemoryLeakDetectedError(mangleSunReflect(errorMessage))
-  }
+  return finalGraph.getLeaks(g2)
 }
 
 // Ant filters out lines in exception messages that contain 'sun.reflect', among other things. I have so far been unable
