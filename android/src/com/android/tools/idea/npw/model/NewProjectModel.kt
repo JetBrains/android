@@ -71,7 +71,7 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
   @JvmField val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
   @JvmField val packageName = StringValueProperty()
   @JvmField val projectLocation = StringValueProperty()
-  @JvmField val enableCppSupport = BoolValueProperty()
+  @JvmField val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))
   @JvmField val cppFlags = StringValueProperty()
   @JvmField val project = OptionalValueProperty<Project>()
   @JvmField val templateValues = hashMapOf<String, Any>()
@@ -79,9 +79,6 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
   /**
    * When the project is created, it contains the list of new Module that should also be created.
    */
-  // TODO: is not yet clear what the project needs from the modules. At the moment gets the module hash table, but different modules may
-  // have the same key/values... and some of these key values should actually be the same... for example, if one module needs a gradle plugin
-  // version, shouldn't all the modules use the same version?
   val newModuleModels = hashSetOf<NewModuleModel>()
   val multiTemplateRenderer = MultiTemplateRenderer(null, this.projectSyncInvoker)
 
@@ -95,7 +92,6 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
 
     applicationName.addConstraint(AbstractProperty.Constraint<String> { it.trim() } )
 
-    enableCppSupport.set(initialCppSupport)
     language.set(calculateInitialLanguage(PropertiesComponent.getInstance()))
   }
 
@@ -290,12 +286,6 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
         val companyDomain = StringValueProperty(getInitialDomain())
         return DomainToPackageExpression(companyDomain, StringValueProperty("")).get()
       }
-
-    /**
-     * Loads saved value for Cpp support.
-     */
-    private val initialCppSupport: Boolean
-      get() = PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY)
 
     /**
      * Calculates the initial values for the language and updates the [PropertiesComponent]
