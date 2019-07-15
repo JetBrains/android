@@ -25,10 +25,11 @@ import javax.swing.SwingConstants
 
 class ModuleUnsupportedConfigurable(
   context: PsContext,
+  perspectiveConfigurable: BasePerspectiveConfigurable,
   module: PsModule,
   val message: String = "Nothing to show. Please select an Android module."
 ) :
-  AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, module) {
+  AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, perspectiveConfigurable, module) {
 
   override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context) {
     init {
