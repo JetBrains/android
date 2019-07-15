@@ -23,14 +23,14 @@ import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.JavaProjectTestCase
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import java.io.File
 
-class BuildOutputParsersIntegrationTest: IdeaTestCase() {
+class BuildOutputParsersIntegrationTest: JavaProjectTestCase() {
   private val myTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, "testId")
 
   private lateinit var myBuildInvoker: GradleBuildInvoker
@@ -138,10 +138,7 @@ class BuildOutputParsersIntegrationTest: IdeaTestCase() {
     assertThat(myTracker.usages).hasSize(1)
 
     val messages = myTracker.usages.first().studioEvent.buildOutputWindowStats.buildErrorMessagesList
-    assertThat(messages).isNotNull()
-/* b/137373620
     assertThat(messages).hasSize(4)
-b/137373620 */
 
     messages.forEach {
       checkSentMetricsData(it, BuildErrorMessage.ErrorType.AAPT, BuildErrorMessage.FileType.PROJECT_FILE,
