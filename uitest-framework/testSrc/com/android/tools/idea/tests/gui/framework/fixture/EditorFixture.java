@@ -78,7 +78,7 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.ui.tabs.impl.JBEditorTabs;
-import com.intellij.ui.tabs.impl.TabLabel;
+import com.intellij.ui.tabs.newImpl.TabLabel;
 import java.awt.Component;
 import java.awt.Point;
 import java.io.IOException;
