@@ -6,6 +6,18 @@ iml_module(
     srcs = ["src"],
     iml_files = ["android-layout-inspector.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
+        "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/java/manifest:intellij.java.manifest",
+        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
+        "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
+        "//tools/idea:intellij.java.ui.tests",
+        "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
+        "//tools/idea/java/plugin:intellij.java.plugin",
+        "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
@@ -13,6 +25,7 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
@@ -60,6 +73,18 @@ iml_module(
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
     ],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
+        "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/java/manifest:intellij.java.manifest",
+        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
+        "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
+        "//tools/idea:intellij.java.ui.tests",
+        "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
+        "//tools/idea/java/plugin:intellij.java.plugin",
+        "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+    ],
     test_srcs = ["testSrc"],
     test_tags = ["slow"],
     visibility = ["//visibility:public"],
@@ -69,6 +94,7 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
