@@ -27,6 +27,7 @@ import com.android.tools.idea.npw.platform.Language.JAVA
 import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils
 import com.android.tools.idea.npw.project.DomainToPackageExpression
+import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
@@ -193,6 +194,8 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
       templateValues[ATTR_TOP_OUT] = project.basePath ?: ""
       templateValues[ATTR_KOTLIN_SUPPORT] = language.value === KOTLIN
 
+      TemplateValueInjector(templateValues).setProjectDefaults(project)
+      
       val params = templateValues.toMutableMap()
       for (newModuleModel in newModuleModels) {
         params.putAll(newModuleModel.templateValues)
