@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.apk.ImportApkAction.LAST_IMPORTED_LOCATION;
@@ -120,7 +121,8 @@ public class ImportApkActionTest extends JavaProjectTestCase {
     @Override
     public boolean importFileAsProject(@NotNull VirtualFile file) {
       importedApkFile = file;
-      myRecentProjectsManager.setLastProjectCreationLocation(""); // Change it to verify the original value is restored.
+      // Change it to verify the original value is restored.
+      myRecentProjectsManager.setLastProjectCreationLocation((Path)null);
       return true;
     }
   }
