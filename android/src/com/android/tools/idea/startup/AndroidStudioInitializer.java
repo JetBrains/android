@@ -86,11 +86,9 @@ public class AndroidStudioInitializer implements Runnable {
     setUpMakeActions();
     disableGroovyLanguageInjection();
 
-/* b/137332550
     if (StudioFlags.CUSTOM_JAVA_NEW_CLASS_DIALOG.get()) {
       replaceNewClassDialog();
     }
-b/137332550 */
 
     setupAnalytics();
     disableIdeaJUnitConfigurations();
@@ -238,8 +236,7 @@ b/137332550 */
 
     // Update the text for the file creation templates.
     FileTemplateManager fileTemplateManager = FileTemplateManager.getDefaultInstance();
-    fileTemplateManager.getTemplate("Singleton").setText(fileTemplateManager.getJ2eeTemplate("Singleton").getText());
-    for (String templateName : new String[]{"Class", "Interface", "Enum", "AnnotationType"}) {
+    for (String templateName : new String[]{"Singleton", "Class", "Interface", "Enum", "AnnotationType"}) {
       FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
       template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
     }
