@@ -28,7 +28,10 @@ import com.android.ide.common.rendering.api.Result.Status;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.sdk.LoadStatus;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.extensions.PluginId;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
@@ -85,6 +88,10 @@ public class LayoutLibrary implements Disposable {
         mClassLoader = classLoader;
     }
 
+    public static boolean isNative() {
+        IdeaPluginDescriptor nativePlugin = PluginManager.getPlugin(PluginId.findId("com.android.layoutlib.native"));
+        return nativePlugin != null && nativePlugin.isEnabled();
+    }
 
     // ------ Layout Lib API proxy
 
