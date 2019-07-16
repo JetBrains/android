@@ -20,27 +20,32 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiReferenceList;
+import com.intellij.psi.PsiStatement;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class JavaMigrationClassGenerator {
   private static final String SUPER_CLASS_NAME = "androidx.room.migration.Migration";
   private static final String MIGRATION_CLASS_NAME_TEMPLATE = "Migration_%d_%d";
-  private static final String MIGRATION_METHOD_TEMPLATE = "@Override\n" +
-                                                          "public void migrate(androidx.sqlite.db.SupportSQLiteDatabase database) {\n%s}\n";
-  private static final String DATABASE_UPDATE_STATEMENT_TEMPLATE = "\tdatabase.execSQL(\"%s\");";
+  private static final String MIGRATION_METHOD_NAME = "migrate";
+  private static final String MIGRATION_METHOD_PARAMETER_NAME = "database";
+  private static final String MIGRATION_METHOD_PARAMETER_TYPE = "androidx.sqlite.db.SupportSQLiteDatabase";
+  private static final String MIGRATION_METHOD_PARAMETER_ANNOTATION = "androidx.annotation.NonNull";
+  private static final String MIGRATION_METHOD_RETURN_TYPE = "void";
+  private static final String MIGRATION_METHOD_ANNOTATION = "Override";
+  private static final String DATABASE_UPDATE_STATEMENT_TEMPLATE = "database.execSQL(\"%s\");";
   private static final String CONSTRUCTOR_PARAMETER1 = "startVersion";
   private static final String CONSTRUCTOR_PARAMETER2 = "endVersion";
   private static final String CONSTRUCTOR_PARAMETERS_TYPE = "int";
@@ -88,16 +93,42 @@ public class JavaMigrationClassGenerator {
   private static void addMigrationMethod(@NotNull PsiClass migrationClass,
                                          @NotNull Project project,
                                          @NotNull DatabaseUpdate databaseUpdate) {
-
     PsiElementFactory elementFactory = JavaPsiFacade.getInstance(project).getElementFactory();
+    PsiType returnType = elementFactory.createPrimitiveType(MIGRATION_METHOD_RETURN_TYPE);
+    PsiMethod migrationMethod = elementFactory.createMethod(MIGRATION_METHOD_NAME, returnType);
+
+    migrationMethod.getModifierList().addAnnotation(MIGRATION_METHOD_ANNOTATION);
+
+    PsiType parameterType = elementFactory.createTypeByFQClassName(MIGRATION_METHOD_PARAMETER_TYPE, GlobalSearchScope.allScope(project));
+    PsiParameter parameter = elementFactory.createParameter(MIGRATION_METHOD_PARAMETER_NAME, parameterType);
+
+    if (parameter.getModifierList() != null &&
+        JavaPsiFacade.getInstance(project).findClass(MIGRATION_METHOD_PARAMETER_ANNOTATION, GlobalSearchScope.allScope(project)) != null) {
+      parameter.getModifierList().addAnnotation(MIGRATION_METHOD_PARAMETER_ANNOTATION);
+    }
+    migrationMethod.getParameterList().add(parameter);
+
     List<String> sqlUpdateStatements = SqlStatementsGenerator.getUpdateStatements(databaseUpdate);
-    String methodText = String.format(MIGRATION_METHOD_TEMPLATE,
-                                      sqlUpdateStatements.stream()
-                                        .map(statement -> String.format(DATABASE_UPDATE_STATEMENT_TEMPLATE, trimStatement(statement)))
-                                        .collect(Collectors.joining("\n")));
-    PsiMethod migrationMethod = elementFactory.createMethodFromText(methodText, null);
+    for (String sqlStatement : sqlUpdateStatements) {
+      addMigrationStatement(migrationMethod, project, sqlStatement);
+    }
 
     migrationClass.add(migrationMethod);
+  }
+
+  private static void addMigrationStatement(@NotNull PsiMethod migrationMethod,
+                                            @NotNull Project project,
+                                            @NotNull String sqlStatement) {
+    PsiElementFactory elementFactory = JavaPsiFacade.getInstance(project).getElementFactory();
+    PsiStatement migrationStatement =
+      elementFactory.createStatementFromText(trimStatement(String.format(DATABASE_UPDATE_STATEMENT_TEMPLATE, sqlStatement)), null);
+
+    PsiCodeBlock methodBody = migrationMethod.getBody();
+    if (methodBody == null) {
+      return;
+    }
+
+    methodBody.addAfter(migrationStatement, methodBody.getLastBodyElement());
   }
 
   private static void addMigrationConstructor(@NotNull PsiClass migrationClass,
