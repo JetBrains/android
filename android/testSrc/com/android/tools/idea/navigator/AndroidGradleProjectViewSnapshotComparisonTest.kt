@@ -46,9 +46,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
 
   fun testSimpleApplication() {
     val text = importSyncAndDumpProject(TestProjectPaths.SIMPLE_APPLICATION)
-/* b/137372852
     assertIsEqualToSnapshot(text)
-b/137372852 */
   }
 
   fun testNestedProjects() {
