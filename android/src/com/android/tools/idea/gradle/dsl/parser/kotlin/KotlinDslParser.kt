@@ -17,32 +17,32 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference
+import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
+import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement
+import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.getBlockElement
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.psi.PsiElement
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
-import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
-import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement
-import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
 import com.google.common.collect.Lists
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.text.StringUtil.unquoteString
+import com.intellij.psi.PsiElement
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -59,16 +59,19 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtScriptInitializer
 import org.jetbrains.kotlin.psi.KtStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtVisitor
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
-import org.jetbrains.kotlin.resolve.constants.evaluate.parseNumericLiteral
 import org.jetbrains.kotlin.resolve.constants.evaluate.parseBoolean
+import org.jetbrains.kotlin.resolve.constants.evaluate.parseNumericLiteral
 
 /**
  * Parser for .gradle.kt files. This method produces a [GradleDslElement] tree.
@@ -257,6 +260,33 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     propertyElement.setElementType(REGULAR)
 
     parent.setParsedElement(propertyElement)
+  }
+
+  override fun visitProperty(expression: KtProperty, parent: GradlePropertiesDslElement) {
+    val identifier = expression.nameIdentifier ?: return
+    // handling delegated KtProperties ( val foo by ... ) to support Gradle extra properties.
+    //
+    // TODO(xof): implement support for local variables ( val foo = ... )
+    val delegate = expression.delegate ?: return
+    val callExpression = delegate.expression as? KtCallExpression ?: return
+
+    val referenceExpression = callExpression.referenceExpression() ?: return
+    // TODO(xof): it's more complicated than this, of course; kotlinscript can express gradle properties on other
+    //  projects' extra blocks, using "val foo by rootProject.extra(42)".  The Kotlinscript Psi tree is the wrong way round
+    //  for us to detect it easily: (rootProject dot (extra [42])) rather than ((rootProject dot extra) [42]) so more work
+    //  is needed here.
+    if (referenceExpression.text != "extra") return
+    val arguments = callExpression.valueArgumentList?.arguments ?: return
+    if (arguments.size != 1) return
+    val initializer = arguments[0].getArgumentExpression() ?: return
+
+    // If we've got this far, we have an extra property declaration/initialization of the form "val foo by extra(bar)".
+
+    val ext = getBlockElement(listOf("ext"), parent, null) ?: return
+    val name = GradleNameElement.from(identifier) // TODO(xof): error checking: empty/qualified/etc
+    val propertyElement = createExpressionElement(ext, expression, name, initializer) ?: return
+    propertyElement.elementType = REGULAR
+    ext.setParsedElement(propertyElement)
   }
 
   private fun getCallExpression(
