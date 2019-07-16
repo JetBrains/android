@@ -16,19 +16,19 @@
 package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.DragAndDropList
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.ui.HideablePanel
-import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.DragAndDropList
-import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.CpuProfiler
+import com.android.tools.profilers.FakeFeatureTracker
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.StudioProfilers
