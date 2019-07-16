@@ -192,7 +192,13 @@ public class DexFileViewer implements ApkFileEditorComponent {
   @NotNull
   private ActionGroup createPopupActionGroup(@NotNull Tree tree) {
     final DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new ShowDisassemblyAction(tree));
+    group.add(new ShowDisassemblyAction(tree, () -> {
+      if (myDeobfuscateNames && myProguardMappings != null) {
+        return myProguardMappings.map;
+      } else {
+        return null;
+      }
+    }));
     group.add(new ShowReferencesAction(tree, this));
     group.add(new GenerateProguardKeepRuleAction(tree));
     return group;
