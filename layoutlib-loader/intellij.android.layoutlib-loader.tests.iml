@@ -12,7 +12,15 @@
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="ASM" level="project" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

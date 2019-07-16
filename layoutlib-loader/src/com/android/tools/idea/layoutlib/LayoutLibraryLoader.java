@@ -17,14 +17,12 @@
 package com.android.tools.idea.layoutlib;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.io.BufferingFileWrapper;
 import com.android.utils.ILogger;
-import com.android.utils.SdkUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -32,14 +30,9 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
-import com.intellij.util.lang.UrlClassLoader;
-import java.net.MalformedURLException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
 import java.util.Map;
 
 /**
@@ -50,15 +43,13 @@ public class LayoutLibraryLoader {
 
   private static final Map<IAndroidTarget, LayoutLibrary> ourLibraryCache =
     ContainerUtil.createWeakKeySoftValueMap();
-  private static ClassLoader ourNativeClassLoader;
 
   private LayoutLibraryLoader() {
   }
 
   @Nullable
-  private static LayoutLibrary loadImpl(@NotNull IAndroidTarget target,
-                                        @NotNull Map<String, Map<String, Integer>> enumMap,
-                                        boolean loadNative) throws RenderingException {
+  private static LayoutLibrary loadImpl(@NotNull IAndroidTarget target, @NotNull Map<String, Map<String, Integer>> enumMap)
+    throws RenderingException {
     final String fontFolderPath = FileUtil.toSystemIndependentName((target.getPath(IAndroidTarget.FONTS)));
     final VirtualFile fontFolder = LocalFileSystem.getInstance().findFileByPath(fontFolderPath);
     if (fontFolder == null || !fontFolder.isDirectory()) {
@@ -90,44 +81,12 @@ public class LayoutLibraryLoader {
     final Map<String, String> buildPropMap = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(buildProp), logger);
     final LayoutLog layoutLog = new LayoutLogWrapper(LOG);
 
-    if (loadNative) {
-      try {
-        String dataPath = FileUtil.toSystemIndependentName(target.getPath(IAndroidTarget.DATA));
-        if (ourNativeClassLoader == null) {
-          URL nativeLayoutlibUrl = SdkUtils.fileToUrl(new File(dataPath + "layoutlib_native.jar"));
-          ourNativeClassLoader =
-            UrlClassLoader.build().urls(nativeLayoutlibUrl).parent(new LayoutlibNativeClassLoader(nativeLayoutlibUrl)).get();
-        }
-        ClassLoader classLoader = new LayoutlibClassLoader(ourNativeClassLoader);
-
-        // Load the bridge from native layoutlib
-        Class<?> clazz = classLoader.loadClass("com.android.layoutlib.bridge.Bridge");
-        if (clazz != null) {
-          Constructor<?> constructor = clazz.getConstructor();
-          if (constructor != null) {
-            Object bridgeObject = constructor.newInstance();
-            if (bridgeObject instanceof Bridge) {
-              Bridge bridge = (Bridge)bridgeObject;
-              library = LayoutLibrary.load(bridge, classLoader);
-              if (library.init(buildPropMap, new File(fontFolder.getPath()), getNativeLibraryPath(dataPath),
-                               dataPath + "icu/", enumMap, layoutLog)) {
-                return library;
-              }
-              else {
-                LOG.warn("Loading the native layoutlib failed, using the default one instead");
-              }
-            }
-          }
-        }
-      }
-      catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException | MalformedURLException e) {
-        LOG.warn("Exception when loading the native layoutlib", e);
-      }
-    }
+    String dataPath = FileUtil.toSystemIndependentName(target.getPath(IAndroidTarget.DATA));
 
     // We instantiate the local Bridge implementation and pass it to the LayoutLibrary instance
-    library = LayoutLibrary.load(new com.android.layoutlib.bridge.Bridge(), new LayoutlibClassLoader(LayoutLibraryLoader.class.getClassLoader()));
-    if (library.init(buildPropMap, new File(fontFolder.getPath()), null, null, enumMap, layoutLog)) {
+    library =
+      LayoutLibrary.load(new com.android.layoutlib.bridge.Bridge(), new LayoutlibClassLoader(LayoutLibraryLoader.class.getClassLoader()));
+    if (library.init(buildPropMap, new File(fontFolder.getPath()), getNativeLibraryPath(dataPath), dataPath + "icu/", enumMap, layoutLog)) {
       return library;
     }
     return null;
@@ -147,18 +106,15 @@ public class LayoutLibraryLoader {
   }
 
   /**
-   * Loads the standard version or the native version of layoutlib depending on the value of loadNative.
-   * If loading the native version, this will dynamically load the layoutlib jar and all its associated
-   * native libraries.
+   * Loads and initializes layoutlib.
    * Returns null if it fails to initialize layoutlib.
    */
   @Nullable
-  public static synchronized LayoutLibrary load(@NotNull IAndroidTarget target,
-                                                @NotNull Map<String, Map<String, Integer>> enumMap,
-                                                boolean loadNative) throws RenderingException {
+  public static synchronized LayoutLibrary load(@NotNull IAndroidTarget target, @NotNull Map<String, Map<String, Integer>> enumMap)
+    throws RenderingException {
     LayoutLibrary library = ourLibraryCache.get(target);
     if (library == null || library.isDisposed()) {
-      library = loadImpl(target, enumMap, loadNative);
+      library = loadImpl(target, enumMap);
 
       if (library != null) {
         ourLibraryCache.put(target, library);
