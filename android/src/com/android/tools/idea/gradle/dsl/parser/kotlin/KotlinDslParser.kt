@@ -448,6 +448,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // Ex: Delete::class.
       is KtClassLiteralExpression -> GradleDslLiteral(
         parentElement, psiElement, propertyName, propertyExpression.receiverExpression as  PsiElement, true)
+      // Ex: extra["COMPILE_SDK_VERSION"]
+      is KtArrayAccessExpression -> GradleDslLiteral(
+        parentElement, psiElement, propertyName, propertyExpression, true)
       else -> {
         // The expression is not supported.
         parentElement.notification(NotificationTypeReference.INCOMPLETE_PARSING).addUnknownElement(propertyExpression)
