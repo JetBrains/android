@@ -25,6 +25,7 @@ import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
+import com.android.tools.idea.ui.resourcemanager.widget.LinkLabelSearchView
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -112,17 +113,23 @@ class ResourceExplorerViewTest {
     waitAndAssertListView(view) { it?.model?.size == 0 }
 
     // This test assumes at least one resource in "res/values/colors.xml" includes the word "color".
-    viewModel.filterOptions.searchString = "color"
-
-    // Wait while other modules are searched and link labels displayed.
-    val waitForLinkLabelToBeCreated = object : WaitFor(WAIT_TIMEOUT) {
-      public override fun condition() = UIUtil.findComponentOfType(view, LinkLabel::class.java) != null
+    runInEdtAndWait {
+      // Speed search changes should happen on the event dispatch thread.
+      viewModel.filterOptions.searchString = "color"
     }
-    assertThat(waitForLinkLabelToBeCreated.isConditionRealized).isEqualTo(true)
-    val module2LinkLabel = UIUtil.findComponentOfType(view, LinkLabel::class.java)
 
-    assertNotNull(module2LinkLabel)
-    assertThat(module2LinkLabel.text).contains(module2Name)
+    // Wait while other modules are searched and the link label is displayed.
+    val waitForModuleLinkLabel = object : WaitFor(WAIT_TIMEOUT) {
+      public override fun condition(): Boolean {
+        val searchView = UIUtil.findComponentOfType(view, LinkLabelSearchView::class.java)
+        searchView?.let {
+          val moduleLabel =  UIUtil.findComponentOfType(searchView.viewport.view as JComponent, LinkLabel::class.java)
+          return moduleLabel != null && moduleLabel.text.contains(module2Name)
+        }
+        return false
+      }
+    }
+    assertThat(waitForModuleLinkLabel.isConditionRealized).isTrue()
   }
 
   private fun createViewModel(module: Module): ResourceExplorerViewModel {
