@@ -125,15 +125,24 @@ interface ResourceExplorerViewModel {
   companion object {
     fun createResManagerViewModel(facet: AndroidFacet): ResourceExplorerViewModel
       = ResourceExplorerViewModelImpl(facet,
-                                      FilterOptionsParams(moduleDependenciesInitialValue = false, librariesInitialValue = false),
+                                      null,
+                                      FilterOptionsParams(moduleDependenciesInitialValue = false,
+                                                          librariesInitialValue = false,
+                                                          androidResourcesInitialValue = false,
+                                                          themeAttributesInitialValue = false),
                                       MANAGER_SUPPORTED_RESOURCES)
 
 
     fun createResPickerViewModel(facet: AndroidFacet,
                                  supportedResourceTypes: Array<ResourceType>,
+                                 currentFile: VirtualFile?,
                                  doSelectAssetCallback: (resource: ResourceItem) -> Unit): ResourceExplorerViewModel
       = ResourceExplorerViewModelImpl(facet,
-                                      FilterOptionsParams(moduleDependenciesInitialValue = true, librariesInitialValue = false),
+                                      currentFile,
+                                      FilterOptionsParams(moduleDependenciesInitialValue = true,
+                                                          librariesInitialValue = false,
+                                                          androidResourcesInitialValue = true,
+                                                          themeAttributesInitialValue = true),
                                       supportedResourceTypes) {
       // Callback should not have ResourceExplorerAsset dependency, so we return ResourceItem.
       asset -> doSelectAssetCallback.invoke(asset.resourceItem)

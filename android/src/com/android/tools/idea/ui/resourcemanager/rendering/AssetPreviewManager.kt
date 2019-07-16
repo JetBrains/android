@@ -22,6 +22,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 
@@ -47,7 +48,7 @@ interface AssetPreviewManager {
  * Default implementation of [AssetPreviewManager]. The supported [ResourceType] are [ResourceType.DRAWABLE],
  * [ResourceType.LAYOUT], [ResourceType.COLOR] and [ResourceType.MIPMAP]
  */
-class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) : AssetPreviewManager {
+class AssetPreviewManagerImpl(val facet: AndroidFacet, currentFile: VirtualFile?, imageCache: ImageCache) : AssetPreviewManager {
 
   private val colorPreviewProvider by lazy {
     ColorIconProvider(facet.module.project, resourceResolver)
@@ -69,7 +70,8 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) :
     DefaultAssetDataProvider()
   }
 
-  private var resourceResolver = createResourceResolver(facet)
+  // TODO: Optionally, receive a resource resolver.
+  private var resourceResolver = createResourceResolver(facet, currentFile = currentFile)
 
   /**
    * Returns an [AssetIconProvider] for [ResourceType.COLOR], [ResourceType.DRAWABLE], [ResourceType.LAYOUT]
@@ -102,8 +104,11 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) :
     }
 }
 
-private fun createResourceResolver(androidFacet: AndroidFacet): ResourceResolver {
+private fun createResourceResolver(androidFacet: AndroidFacet, currentFile: VirtualFile?): ResourceResolver {
   val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
+  currentFile?.let {
+    return configurationManager.getConfiguration(currentFile).resourceResolver
+  }
   val manifest = MergedManifestManager.getSnapshot(androidFacet)
   val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
   val target = configurationManager.highestApiTarget?.let { StudioEmbeddedRenderTarget.getCompatibilityTarget(it) }
