@@ -15,12 +15,16 @@
  */
 package com.android.tools.profilers;
 
-import javax.swing.*;
-import java.awt.*;
+import com.android.tools.adtui.model.DragAndDropListModel;
+import com.android.tools.adtui.model.DragAndDropModelListElement;
+import java.awt.Component;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DragSource;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.TransferHandler;
 
 /**
  * Transfer Handler class for managing drag and drop events.

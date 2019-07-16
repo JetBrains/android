@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.adtui;
 
+import com.android.tools.adtui.model.DragAndDropListModel;
+import com.android.tools.adtui.model.DragAndDropModelListElement;
+import java.awt.GraphicsEnvironment;
+import javax.swing.DropMode;
+import javax.swing.JList;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * This class is required for controls that want to implement drag and drop using the {@link DragAndDropListModel}.
@@ -30,7 +32,6 @@ public class DragAndDropList<T extends DragAndDropModelListElement> extends JLis
 
   public DragAndDropList(@NotNull DragAndDropListModel<T> dataModel) {
     super(dataModel);
-    setTransferHandler(new ProfilerStageTransferHandler());
     setDropMode(DropMode.INSERT);
     // Need to not hardcode this as our test will throw an exception if we set this true in test.
     setDragEnabled(!GraphicsEnvironment.isHeadless());
