@@ -1,0 +1,2 @@
+original.package.OriginalName -> Test:
+    1:1:java.lang.Integer originalGet():0 -> get
