@@ -22,8 +22,10 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.util.IncorrectOperationException
+import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 import java.math.BigDecimal
@@ -68,6 +70,29 @@ internal fun createLiteral(context : GradleDslElement, value : Any) : PsiElement
 }
 
 internal fun findInjections(
-  context : GradleDslSimpleExpression, psiElement: PsiElement, includeResolved : Boolean) : MutableList<GradleReferenceInjection> {
-  return mutableListOf()
+  context: GradleDslSimpleExpression, psiElement: PsiElement, includeResolved: Boolean): MutableList<GradleReferenceInjection> {
+  val noInjections = mutableListOf<GradleReferenceInjection>()
+  when (psiElement) {
+    // extra["PROPERTY_NAME"]
+    is KtArrayAccessExpression -> {
+      val arrayExpression = psiElement.arrayExpression ?: return noInjections
+      val name = arrayExpression.text
+      if (name == "extra") {
+        val indices = psiElement.indexExpressions
+        if (indices.size == 1) {
+          val index = indices[0]
+          if (index is KtStringTemplateExpression && !index.hasInterpolation()) {
+            val entries = index.entries
+            val entry = entries[0]
+            val text = entry.text
+            // TODO(xof): unquoting
+            val element = context.resolveReference(text, true)
+            return mutableListOf(GradleReferenceInjection(context, element, entry, text))
+          }
+        }
+      }
+      return noInjections
+    }
+    else -> return noInjections
+  }
 }
