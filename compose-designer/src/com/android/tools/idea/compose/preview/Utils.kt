@@ -79,7 +79,7 @@ internal fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration 
  * Returns all the `@Composable` methods in the [vFile] that are also tagged with `@Preview`.
  */
 internal fun findPreviewMethods(project: Project, vFile: VirtualFile): Set<PreviewElement> {
-  val uFile: UFile = PsiManager.getInstance(project).findFile(vFile)?.toUElement() as? UFile ?: return emptySet<PreviewElement>()
+  val uFile: UFile = PsiManager.getInstance(project).findFile(vFile)?.toUElement() as? UFile ?: return emptySet()
 
   return findPreviewMethods(uFile)
 }
@@ -100,7 +100,7 @@ internal fun findPreviewMethods(uFile: UFile): Set<PreviewElement> {
     private fun visitPreviewAnnotation(previewAnnotation: UAnnotation) {
       val uMethod = previewAnnotation.uastParent as UMethod
 
-      if (!uMethod.parameterList.isEmpty) {
+      if (uMethod.uastParameters.isNotEmpty()) {
         error("Preview methods must not have any parameters")
       }
 
