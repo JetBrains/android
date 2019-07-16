@@ -38,7 +38,7 @@ com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.folding.ResourceFoldingBuilder.getAppResources
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.naveditor.scene.ThumbnailManager.<init>
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.naveditor.structure.HostPanel.<init>
-com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.res.ModuleRClass$MainResources.getResourceRepository
+com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.res.ModuleRClass$ModuleResourcesSource.getResourceRepository
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.res.ResourceNotificationManager.getCurrentVersion
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.res.ResourceNotificationManager$ModuleEventObserver.<init>
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.res.ResourceNotificationManager$ModuleEventObserver.notifyListeners
