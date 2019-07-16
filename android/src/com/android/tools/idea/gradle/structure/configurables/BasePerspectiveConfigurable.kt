@@ -53,6 +53,7 @@ import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
+import com.intellij.util.ui.tree.TreeUtil
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
 import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
@@ -212,6 +213,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
     currentModuleSelectorStyle = null
     super<MasterDetailsComponent>.reset()
+    TreeUtil.expandAll(myTree)
   }
 
   override fun initTree() {
