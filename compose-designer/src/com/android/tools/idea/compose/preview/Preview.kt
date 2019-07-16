@@ -135,6 +135,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
   private val surface = NlDesignSurface.builder(project, this)
     .setIsPreview(true)
+    .showModelNames()
     .setSceneManagerProvider {
       surface, model -> NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
         enableTransparentRendering()
