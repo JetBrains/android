@@ -118,10 +118,10 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/naveditor:intellij.android.naveditor[module, test]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//prebuilts/studio/layoutlib:data/layoutlib[test]",
     ],
 )
 
