@@ -170,6 +170,10 @@ private class PreviewEditor(private val psiFile: PsiFile,
     refreshPreview()
 
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
+      override fun buildStarted(context: BuildContext) {
+        EditorNotifications.getInstance(project).updateNotifications(virtualFile)
+      }
+
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {
         EditorNotifications.getInstance(project).updateNotifications(virtualFile)
         refreshPreview()
@@ -302,6 +306,9 @@ class OutdatedPreviewNotificationProvider : EditorNotifications.Provider<EditorN
 
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
     if (fileEditor !is ComposeTextEditorWithPreview) return null
+
+    // Do not show the notification while the build is in progress
+    if (GradleBuildState.getInstance(project).isBuildInProgress) return null
 
     val isModified = FileDocumentManager.getInstance().isFileModified(file)
     if (!isModified) {
