@@ -59,9 +59,9 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
+        "//prebuilts/studio/layoutlib:data/layoutlib",
     ],
 )
 
@@ -160,7 +160,7 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
+        "//prebuilts/studio/layoutlib:data/layoutlib[test]",
     ],
 )
