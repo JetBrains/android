@@ -22,6 +22,7 @@ import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomShortcut
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.editor.SmartAutoRefresher
@@ -236,7 +237,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) : Toolba
     ZoomShortcut.ZOOM_OUT.registerForAction(ZoomOutAction, mySurface, this),
     ZoomLabelAction,
     ZoomShortcut.ZOOM_IN.registerForAction(ZoomInAction, mySurface, this),
-    ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction, mySurface, this)
+    ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction, mySurface, this),
+    IssueNotificationAction(surface)
   ))
 }
 
