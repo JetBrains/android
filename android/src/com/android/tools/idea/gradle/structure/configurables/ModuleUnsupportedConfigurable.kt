@@ -40,5 +40,5 @@ class ModuleUnsupportedConfigurable(
     override fun dispose() = Unit
   }
 
-  override fun getId(): String = "android.psd.unsupported_java_module." + module.name
+  override fun getId(): String = "android.psd.unsupported_module." + module.name
 }
