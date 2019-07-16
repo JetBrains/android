@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.apk.analyzer.dex.DexDisassembler;
 import com.android.tools.apk.analyzer.dex.DexFiles;
 import com.android.tools.apk.analyzer.dex.tree.DexClassNode;
 import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
 import com.android.tools.apk.analyzer.dex.tree.DexMethodNode;
-import com.google.common.util.concurrent.*;
+import com.android.tools.proguard.ProguardMap;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Supplier;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.debugger.impl.DebuggerUtilsEx;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -35,23 +41,24 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.EdtExecutorService;
+import java.io.IOException;
+import java.nio.file.Path;
+
+import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.util.ReferenceUtil;
-
-import javax.swing.tree.TreePath;
-import java.io.IOException;
-import java.nio.file.Path;
 
 public class ShowDisassemblyAction extends AnAction implements DumbAware {
-  private final Tree myTree;
+  @NotNull private final Tree myTree;
+  @NotNull private final Supplier<ProguardMap> myProguardMapSupplier;
 
-  public ShowDisassemblyAction(@NotNull Tree tree) {
+  public ShowDisassemblyAction(@NotNull Tree tree, @NotNull Supplier<ProguardMap> proguardMapSupplier) {
     super("Show Bytecode", "Show Bytecode", AllIcons.Toolwindows.Documentation);
     myTree = tree;
+    myProguardMapSupplier = proguardMapSupplier;
   }
 
   @Override
@@ -112,7 +119,7 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
 
         String byteCode;
         try {
-          byteCode = getByteCode(dexBackedDexFile, node);
+          byteCode = getByteCode(dexBackedDexFile, node, myProguardMapSupplier.get());
         } catch (Exception ex) {
           Messages.showErrorDialog(project, "Unable to get byte code: " + ex.getMessage(), "View Dex Bytecode");
           return;
@@ -142,17 +149,17 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
 
   @VisibleForTesting
   @NotNull
-  static String getByteCode(@NotNull DexBackedDexFile dex, @NotNull DexElementNode node) {
+  static String getByteCode(@NotNull DexBackedDexFile dex, @NotNull DexElementNode node, @Nullable ProguardMap proguardMap) {
     if (node instanceof DexMethodNode) {
-      return getByteCodeForMethod(dex, (DexMethodNode)node);
+      return getByteCodeForMethod(dex, (DexMethodNode)node, proguardMap);
     } else if (node instanceof DexClassNode) {
-      return getByteCodeForClass(dex, (DexClassNode)node);
+      return getByteCodeForClass(dex, (DexClassNode)node, proguardMap);
     }
     throw new RuntimeException("Disassembly only available for methods and classes defined in this dex file");
   }
 
   @NotNull
-  private static String getByteCodeForMethod(@NotNull DexBackedDexFile dex, @NotNull DexMethodNode node) {
+  private static String getByteCodeForMethod(@NotNull DexBackedDexFile dex, @NotNull DexMethodNode node, @Nullable ProguardMap map) {
     MethodReference desc = node.getReference();
     if (desc == null) {
       throw new RuntimeException("Unable to identify method descriptor for " + node.getName());
@@ -161,8 +168,8 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
     try {
       DexClassNode parent = (DexClassNode) node.getParent();
       assert parent != null : "Method node must have a parent class";
-      return new DexDisassembler(dex).disassembleMethod(DebuggerUtilsEx.signatureToName(parent.getReference().getType()),
-                                                        ReferenceUtil.getMethodDescriptor(desc));
+      return new DexDisassembler(dex, map).disassembleMethod(DebuggerUtilsEx.signatureToName(parent.getReference().getType()),
+                                                        desc);
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -170,14 +177,14 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
   }
 
   @NotNull
-  private static String getByteCodeForClass(@NotNull DexBackedDexFile dex, @NotNull DexClassNode node) {
+  private static String getByteCodeForClass(@NotNull DexBackedDexFile dex, @NotNull DexClassNode node, @Nullable ProguardMap map) {
     String fqcn = DebuggerUtilsEx.signatureToName(node.getReference().getType());
     if (fqcn == null) {
       throw new RuntimeException("Unable to get the fully qualified class name for " + node);
     }
 
     try {
-      return new DexDisassembler(dex).disassembleClass(fqcn);
+      return new DexDisassembler(dex, map).disassembleClass(fqcn);
     }
     catch (IOException e) {
       throw new RuntimeException(e);
