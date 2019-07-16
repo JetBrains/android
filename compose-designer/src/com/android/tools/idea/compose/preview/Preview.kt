@@ -90,7 +90,7 @@ import javax.swing.JPanel
 const val PREVIEW_ANNOTATION = "com.android.tools.preview.Preview"
 
 /** View included in the runtime library that will wrap the @Composable element so it gets rendered by layoutlib */
-public const val COMPOSE_VIEW_ADAPTER = "com.android.tools.preview.ComposeViewAdapter"
+const val COMPOSE_VIEW_ADAPTER = "com.android.tools.preview.ComposeViewAdapter"
 
 /** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
 const val COMPOSABLE_NAME_ATTR = "tools:composableName"
@@ -233,7 +233,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
       .whenComplete { _, ex ->
         workbench.hideLoading()
         if (ex != null) {
-          Logger.getInstance(PreviewEditor::class.java).warn(ex);
+          Logger.getInstance(PreviewEditor::class.java).warn(ex)
         }
       }
 
@@ -313,7 +313,7 @@ class OutdatedPreviewNotificationProvider : EditorNotifications.Provider<EditorN
     val isModified = FileDocumentManager.getInstance().isFileModified(file)
     if (!isModified) {
       // The file was saved, check the compilation time
-      val modificationStamp = file.timeStamp ?: return null
+      val modificationStamp = file.timeStamp
       val lastBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).lastBuildTimestamp ?: -1
       if (lastBuildTimestamp >= modificationStamp) return null
     }
