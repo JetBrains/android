@@ -15,11 +15,10 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.DragAndDropListModel;
+import com.android.tools.adtui.model.DragAndDropModelListElement;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
@@ -30,8 +29,9 @@ import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
-import com.android.tools.profilers.DragAndDropListModel;
-import com.android.tools.profilers.DragAndDropModelListElement;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
