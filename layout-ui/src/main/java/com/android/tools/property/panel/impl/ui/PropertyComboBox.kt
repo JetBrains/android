@@ -139,6 +139,18 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     if (model.isPopupVisible != isPopupVisible) {
       isPopupVisible = model.isPopupVisible
     }
+    if (!model.editable) {
+      selectedIndex = findIndexWithValue(model.value)
+    }
+  }
+
+  private fun findIndexWithValue(value: String): Int {
+    for (index in 0 until model.size) {
+      if (model.getElementAt(index)?.value == value) {
+        return index
+      }
+    }
+    return -1
   }
 
   override fun setForeground(color: Color?) {
