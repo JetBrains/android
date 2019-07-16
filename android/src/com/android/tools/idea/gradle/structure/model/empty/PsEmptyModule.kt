@@ -22,7 +22,9 @@ import com.android.tools.idea.gradle.structure.model.PsModelDescriptor
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsModuleType
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.intellij.icons.AllIcons
 import java.io.File
+import javax.swing.Icon
 
 class PsEmptyModule(
   parent: PsProject,
@@ -33,6 +35,7 @@ class PsEmptyModule(
   override val dependencies = object: PsDependencyCollectionBase<PsModule, Nothing, Nothing, Nothing>(this) {}
   override val projectType: PsModuleType = PsModuleType.UNKNOWN
   override val rootDir: File? = null
+  override val icon: Icon? = AllIcons.Nodes.Module
 
   fun init(
     name: String,
