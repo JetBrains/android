@@ -22,10 +22,14 @@ import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.ID_PREFIX
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
+import com.android.resources.ResourceType
+import com.android.resources.ResourceVisibility
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.model.parentSequence
 import com.android.tools.idea.naveditor.model.visibleDestinations
+import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.getResourceItems
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
@@ -34,6 +38,11 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.util.ClassUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
 import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 
@@ -48,11 +57,22 @@ class NavEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
 
     val component = components[0]
 
-    val values = when {
-      property.name == ATTR_DESTINATION && property.namespace == AUTO_URI -> getDestinations(component)
-      property.name == ATTR_START_DESTINATION && property.namespace == AUTO_URI -> getStartDestinations(component)
-      property.name == ATTR_GRAPH && property.namespace == AUTO_URI -> getGraphs(component)
-      property.name == ATTR_NAME && property.namespace == ANDROID_URI -> getClasses(component)
+    val values = when (property.namespace) {
+      AUTO_URI -> {
+        when (property.name) {
+          ATTR_DESTINATION,
+          ATTR_POP_UP_TO -> getDestinations(component)
+          ATTR_START_DESTINATION -> getStartDestinations(component)
+          ATTR_GRAPH -> getGraphs(component)
+          else -> return null
+        }
+      }
+      ANDROID_URI -> {
+        when (property.name) {
+          ATTR_NAME -> getClasses(component)
+          else -> return null
+        }
+      }
       else -> return null
     }
 
