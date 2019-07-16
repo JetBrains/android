@@ -25,7 +25,9 @@ class FilterOptions internal constructor(
   private val isShowResourcesChanged: () -> Unit = {},
   private val searchStringChanged: (String) -> Unit = {},
   moduleDependenciesInitialValue: Boolean,
-  librariesInitialValue: Boolean) {
+  librariesInitialValue: Boolean,
+  val showAndroidResources: Boolean,
+  val showThemeAttributes: Boolean) {
 
   /**
    * If true, the resources from the dependent modules will be shown.
@@ -52,16 +54,23 @@ class FilterOptions internal constructor(
       = FilterOptions(isShowResourcesChanged,
                       searchStringChanged,
                       initialParams.moduleDependenciesInitialValue,
-                      initialParams.librariesInitialValue)
+                      initialParams.librariesInitialValue,
+                      initialParams.androidResourcesInitialValue,
+                      initialParams.themeAttributesInitialValue)
 
     /** Instantiate [FilterOptions] with no callback implementation and with all values initialized as false. */
     @TestOnly
-    fun createDefault() = FilterOptions(moduleDependenciesInitialValue = false, librariesInitialValue = false)
+    fun createDefault() = FilterOptions(moduleDependenciesInitialValue = false,
+                                        librariesInitialValue = false,
+                                        showAndroidResources = false,
+                                        showThemeAttributes = false)
   }
 }
 
 /** Params to define the initial state of [FilterOptions]. */
 data class FilterOptionsParams(
   val moduleDependenciesInitialValue: Boolean,
-  val librariesInitialValue: Boolean
+  val librariesInitialValue: Boolean,
+  val androidResourcesInitialValue: Boolean,
+  val themeAttributesInitialValue: Boolean
 )

@@ -56,7 +56,7 @@ class SketchImporter : ResourceImporter {
     else {
       val view = SketchImporterView()
       val imageCache = ImageCache()
-      val assetPreviewManager = AssetPreviewManagerImpl(facet, imageCache)
+      val assetPreviewManager = AssetPreviewManagerImpl(facet, null, imageCache)
       view.presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), facet, assetPreviewManager)
       showImportDialog(view)
       Disposer.dispose(imageCache)
