@@ -130,10 +130,6 @@ public class GradleProjectImporter {
     silenceUnlinkedGradleProjectNotificationIfNecessary(newProject);
 
     myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel);
-
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      newProject.save();
-    }
   }
 
   @NotNull
