@@ -68,6 +68,8 @@ class DrawableIconProvider(
   override var supportsTransparency: Boolean = true
   val project = facet.module.project
 
+  // TODO(b/138947166): Some ResourceType.ATTR DesignAssets are not properly previewed, the renderer seems to lack the appropriate context.
+
   private fun getDrawableImage(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?>? {
     val resolveValue = resourceResolver.resolveValue(designAsset) ?: return null
     val file = resourceResolver.resolveDrawable(resolveValue, project)

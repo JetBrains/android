@@ -102,11 +102,13 @@ class ResourceExplorer private constructor(
     fun createResourcePicker(
       facet: AndroidFacet,
       types: Set<ResourceType>,
+      currentFile: VirtualFile?,
       updateResourceCallback: (resourceItem: ResourceItem) -> Unit,
       doSelectResourceCallback: (resourceItem: ResourceItem) -> Unit): ResourceExplorer {
       val importersProvider = ImportersProvider()
       val resourceExplorerViewModel = ResourceExplorerViewModel.createResPickerViewModel(facet,
                                                                                          types.toTypedArray(),
+                                                                                         currentFile,
                                                                                          doSelectResourceCallback)
       val toolbarViewModel = ResourceExplorerToolbarViewModel(
         facet,

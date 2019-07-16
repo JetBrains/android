@@ -109,7 +109,8 @@ class ResourceExplorerDialogTest {
     var explorerDialog: ResourceExplorerDialog? = null
     runInEdtAndWait {
       explorerDialog = ResourceExplorerDialog(AndroidFacet.getInstance(projectRule.module)!!,
-                                              setOf(ResourceType.DRAWABLE))
+                                              setOf(ResourceType.DRAWABLE),
+                                              null)
     }
     assertThat(explorerDialog).isNotNull()
     explorerDialog?.let { view ->
