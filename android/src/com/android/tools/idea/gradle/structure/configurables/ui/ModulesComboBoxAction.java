@@ -43,8 +43,9 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
-    presentation.setIcon(ANDROID_MODULE);
-    presentation.setText(myBasePerspective.getSelectedModuleName());
+    PsModule selectedModule = myBasePerspective.getSelectedModule();
+    presentation.setIcon(selectedModule != null ? selectedModule.getIcon() : ANDROID_MODULE);
+    presentation.setText(selectedModule != null ? selectedModule.getName() : null);
   }
 
   @Override
