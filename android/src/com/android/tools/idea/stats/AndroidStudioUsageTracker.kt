@@ -198,9 +198,7 @@ object AndroidStudioUsageTracker {
         })
 
         AnalyticsSettings.lastSentimentQuestionDate = now
-        if (result != UserSentiment.SatisfactionLevel.UNKNOWN_SATISFACTION_LEVEL) {
-          AnalyticsSettings.lastSentimentAnswerDate = now
-        }
+        AnalyticsSettings.lastSentimentAnswerDate = now
         AnalyticsSettings.saveSettings()
       })
     }
