@@ -208,7 +208,6 @@ abstract class BasePerspectiveConfigurable protected constructor(
     else {
       super<MasterDetailsComponent>.disposeUIResources()
     }
-    myTree.showsRootHandles = false
     loadTree()
 
     currentModuleSelectorStyle = null
