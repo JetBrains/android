@@ -56,8 +56,11 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
     for (PsModule module : myBasePerspective.getExtraModules()) {
       group.add(new ModuleAction(module));
     }
+    group.addSeparator();
 
-    myContext.getProject().forEachModule(module -> group.add(new ModuleAction(module)));
+    myContext.getProject().getModules().stream()
+      .filter(PsModule::isDeclared)
+      .forEach(module -> group.add(new ModuleAction(module)));
     return group;
   }
 
@@ -65,13 +68,24 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
     @NotNull private final String myModuleName;
 
     ModuleAction(@NotNull PsModule module) {
-      super(module.getName(), "", module.getIcon());
+      super(fullPath(module), "", module.getIcon());
       myModuleName = module.getName();
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
       myBasePerspective.selectModule(myModuleName);
+    }
+  }
+
+  @NotNull
+  private static String fullPath(@NotNull PsModule module) {
+    String gradlePath = module.getGradlePath();
+    if (gradlePath == null) {
+      return module.getName();
+    }
+    else {
+      return gradlePath.substring(1);
     }
   }
 }
