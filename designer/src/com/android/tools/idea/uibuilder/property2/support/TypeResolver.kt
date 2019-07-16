@@ -157,7 +157,12 @@ object TypeResolver {
       SdkConstants.ATTR_OUT_ANIMATION,
       SdkConstants.ATTR_SHOW_MOTION_SPEC,
       SdkConstants.ATTR_HIDE_MOTION_SPEC,
-      SdkConstants.ATTR_LAYOUT_ANIMATION -> NelePropertyType.ANIM
+
+      SdkConstants.ATTR_LAYOUT_ANIMATION,
+      NavigationSchema.ATTR_ENTER_ANIM,
+      NavigationSchema.ATTR_EXIT_ANIM,
+      NavigationSchema.ATTR_POP_ENTER_ANIM,
+      NavigationSchema.ATTR_POP_EXIT_ANIM -> NelePropertyType.ANIM
 
       SdkConstants.ATTR_STATE_LIST_ANIMATOR -> NelePropertyType.ANIMATOR
 
@@ -230,10 +235,14 @@ object TypeResolver {
       SdkConstants.ATTR_LISTFOOTER,
       SdkConstants.ATTR_LISTHEADER,
       SdkConstants.ATTR_LISTITEM -> NelePropertyType.LAYOUT
+
       SdkConstants.ATTR_GRAPH,
       SdkConstants.ATTR_NAV_GRAPH -> NelePropertyType.NAVIGATION
+
       NavigationSchema.ATTR_DESTINATION,
-      SdkConstants.ATTR_START_DESTINATION -> NelePropertyType.DESTINATION
+      SdkConstants.ATTR_START_DESTINATION,
+      NavigationSchema.ATTR_POP_UP_TO -> NelePropertyType.DESTINATION
+
       SdkConstants.ATTR_NAME -> NelePropertyType.CLASS_NAME
 
       else -> null
