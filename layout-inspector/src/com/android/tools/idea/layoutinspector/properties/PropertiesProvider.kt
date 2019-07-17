@@ -39,7 +39,12 @@ private val INT64_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(
 private val DOUBLE_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.DOUBLE_VALUE_FIELD_NUMBER)
 private val FLOAT_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.FLOAT_VALUE_FIELD_NUMBER)
 
+private const val SOME_UNKNOWN_ANIM_VALUE = "@anim/?"
+private const val SOME_UNKNOWN_ANIMATOR_VALUE = "@animator/?"
 private const val SOME_UNKNOWN_DRAWABLE_VALUE = "@drawable/?"
+private const val SOME_UNKNOWN_INTERPOLATOR_VALUE = "@interpolator/?"
+private const val ANIMATION_PACKAGE = "android.view.animation"
+private const val FRAMEWORK_INTERPOLATOR_PREFIX = "@android:interpolator"
 
 class PropertiesProvider(private val model: InspectorPropertiesModel) {
   private val client: InspectorClient?
@@ -92,8 +97,13 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
           Type.DOUBLE -> fromDouble(property)?.toString()
           Type.FLOAT -> fromFloat(property)?.toString()
           Type.RESOURCE -> fromResource(property, layout)
-          Type.DRAWABLE -> SOME_UNKNOWN_DRAWABLE_VALUE  // We are unable to get the value from the agent. Use a placeholder.
           Type.COLOR -> fromColor(property)
+
+          // We are unable to get the value from the agent. Use a placeholder.
+          Type.DRAWABLE -> SOME_UNKNOWN_DRAWABLE_VALUE
+          Type.ANIM -> SOME_UNKNOWN_ANIM_VALUE
+          Type.ANIMATOR -> SOME_UNKNOWN_ANIMATOR_VALUE
+          Type.INTERPOLATOR -> SOME_UNKNOWN_INTERPOLATOR_VALUE
           else -> ""
         }
         // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
@@ -130,14 +140,20 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
         if (firstRef != null && firstRef == item.source) {
           map.remove(firstRef)
         }
+        val className: String? = when (property.type) {
+          Type.ANIM,
+          Type.ANIMATOR,
+          Type.INTERPOLATOR,
+          Type.DRAWABLE -> stringTable[property.int32Value]
+          else -> null  // TODO offer information from other object types
+        }
         val value: String? = when (property.type) {
           // Attempt to find the drawable value from source code, since it is impossible to get from the agent.
+          Type.ANIM,
+          Type.ANIMATOR,
           Type.DRAWABLE -> item.source?.let { resourceLookup?.findAttributeValue(item, it) } ?: item.value
+          Type.INTERPOLATOR  -> item.source?.let { resourceLookup?.findAttributeValue(item, it) } ?: valueFromInterpolatorClass(className)
           else -> item.value
-        }
-        val className: String? = when (property.type) {
-          Type.DRAWABLE -> classNameFromDrawable(property)
-          else -> null  // TODO offer information from other object types
         }
         val classLocation = className?.let { resourceLookup?.resolveClassNameAsSourceLocation(it) }
         if (map.isNotEmpty() || item.source != null || className != null || value != item.value) {
@@ -207,12 +223,32 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
       return colorToString(Color(intValue))
     }
 
-    private fun classNameFromDrawable(property: Property): String? {
-      return stringTable[property.int32Value]
-    }
-
     private fun add(item: InspectorPropertyItem) {
       table.put(item.namespace, item.name, item)
     }
+
+    /**
+     * Map an interpolator className into the resource id for the interpolator.
+     *
+     * Some interpolator implementations do not have any variants. We can map such an
+     * interpolator to a resource value even if we don't have access to the source.
+     *
+     * Note: the following interpolator classes have variants:
+     *  - AccelerateInterpolator
+     *  - DecelerateInterpolator
+     *  - PathInterpolator
+     * and are represented by more than 1 resource id depending on the variant.
+     */
+    private fun valueFromInterpolatorClass(className: String?): String =
+      when (className) {
+        "$ANIMATION_PACKAGE.AccelerateDecelerateInterpolator" -> "$FRAMEWORK_INTERPOLATOR_PREFIX/accelerate_decelerate"
+        "$ANIMATION_PACKAGE.AnticipateInterpolator" -> "$FRAMEWORK_INTERPOLATOR_PREFIX/anticipate"
+        "$ANIMATION_PACKAGE.AnticipateOvershootInterpolator" -> "$FRAMEWORK_INTERPOLATOR_PREFIX/anticipate_overshoot"
+        "$ANIMATION_PACKAGE.BounceInterpolator" -> "$FRAMEWORK_INTERPOLATOR_PREFIX/bounce"
+        "$ANIMATION_PACKAGE.CycleInterpolator" -> "$FRAMEWORK_INTERPOLATOR_PREFIX/cycle"
+        "$ANIMATION_PACKAGE.LinearInterpolator" -> "$FRAMEWORK_INTERPOLATOR_PREFIX/linear"
+        "$ANIMATION_PACKAGE.OvershootInterpolator" -> "$FRAMEWORK_INTERPOLATOR_PREFIX/overshoot"
+        else -> SOME_UNKNOWN_INTERPOLATOR_VALUE
+      }
   }
 }
