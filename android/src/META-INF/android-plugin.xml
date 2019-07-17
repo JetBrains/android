@@ -132,6 +132,9 @@
     </action>
 
     <!-- Instant Run Actions, also see androidstudio.xml for Studio specific action registrations -->
+    <action id="Android.InstantRun" class="com.android.tools.idea.startup.InstantRunAction">
+      <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run"/>
+    </action>
     <action id="Android.RestartActivity" class="com.android.tools.idea.fd.actions.RestartActivityAction">
       <add-to-group group-id="DebugMainMenu" anchor="before" relative-to-action="StepOver"/>
     </action>
@@ -309,7 +312,6 @@
          so we need to set order to prevent overriding other position managers as well -->
     <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.debugger.InstantRunPositionManagerFactory" order="first"/>
     <debuggerExtension implementation="com.android.tools.idea.fd.debugger.InstantRunDebuggerExtension"/>
-    <applicationInitializedListener implementation="com.android.tools.idea.startup.InstantRunActionsInitializer"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
