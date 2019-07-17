@@ -63,7 +63,7 @@ class UserSentimentPanel(private var myProject: Project?,
     return UserSentimentPanel(myProject, positive)
   }
 
-  override fun getPresentation(type: StatusBarWidget.PlatformType): StatusBarWidget.WidgetPresentation? {
+  override fun getPresentation(): StatusBarWidget.WidgetPresentation? {
     return this
   }
 
