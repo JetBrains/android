@@ -609,7 +609,7 @@ public final class ConstraintComponentUtilities {
     return component;
   }
 
-  public static void clearAttributes(NlComponent component) {
+  public static void clearAttributes(@NotNull NlComponent component) {
     ComponentModification modification = new ComponentModification(component, "Cleared all constraints");
     clearAllAttributes(component, modification);
     modification.commit();

@@ -326,18 +326,6 @@ public class Scene implements SelectionListener, Disposable {
   /////////////////////////////////////////////////////////////////////////////
 
   /**
-   * Clear all constraints on a scene
-   */
-  public void clearAllConstraints() {
-    if (myRoot != null) {
-      Stream.of(myRoot)
-        .flatMap(c -> c.getChildren().stream())
-        .forEach(c -> c.clearAttributes());
-    }
-    select(Collections.emptyList());
-  }
-
-  /**
    * Add the given SceneComponent to the Scene
    *
    * @param component component to add
