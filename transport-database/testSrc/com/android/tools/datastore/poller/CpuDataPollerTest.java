@@ -44,7 +44,7 @@ import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
-import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
+//import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
@@ -315,26 +315,6 @@ public class CpuDataPollerTest extends DataStorePollerTest {
       .build();
     StreamObserver<GetThreadsResponse> observer = mock(StreamObserver.class);
     myCpuService.getThreads(request, observer);
-    validateResponse(observer, expectedResponse);
-  }
-
-  @Test
-  public void testGetTraceInfo() {
-    SaveTraceInfoRequest saveRequest = SaveTraceInfoRequest
-      .newBuilder()
-      .setSession(SESSION)
-      .setTraceInfo(CpuTraceInfo.newBuilder().setFromTimestamp(BASE_TIME_NS).setToTimestamp(BASE_TIME_NS).setTraceId(TRACE_ID))
-      .build();
-    myCpuService.saveTraceInfo(saveRequest, mock(StreamObserver.class));
-
-    GetTraceInfoRequest request = GetTraceInfoRequest
-      .newBuilder().setSession(SESSION).setFromTimestamp(BASE_TIME_NS).setToTimestamp(Long.MAX_VALUE).build();
-    GetTraceInfoResponse expectedResponse = GetTraceInfoResponse
-      .newBuilder().addTraceInfo(
-        CpuTraceInfo.newBuilder().setFromTimestamp(BASE_TIME_NS).setToTimestamp(BASE_TIME_NS).setTraceId(TRACE_ID))
-      .build();
-    StreamObserver<GetTraceInfoResponse> observer = mock(StreamObserver.class);
-    myCpuService.getTraceInfo(request, observer);
     validateResponse(observer, expectedResponse);
   }
 

@@ -1378,6 +1378,28 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void importTraceShouldSetCorrectTraceInfo() {
+    StudioProfilers profilers = myStage.getStudioProfilers();
+    myServices.enableImportTrace(true);
+
+    File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+    CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
+    assertThat(stage.getTraceDurations().getSeries().getSeries()).isEmpty();
+
+    // Trace will be parsed upon stage enter, which sets the correct trace info.
+    stage.enter();
+
+    CpuCapture capture = stage.getCapture();
+    assertThat(capture).isNotNull();
+
+    List<SeriesData<CpuTraceInfo>> traceInfos = stage.getTraceDurations().getSeries().getSeries();
+    assertThat(traceInfos).hasSize(1);
+    assertThat(traceInfos.get(0).value.getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
+    assertThat(traceInfos.get(0).value.getRange().getMin()).isEqualTo(capture.getRange().getMin());
+    assertThat(traceInfos.get(0).value.getRange().getMax()).isEqualTo(capture.getRange().getMax());
+  }
+
+  @Test
   public void corruptedTraceInImportTraceModeShowsABalloon() {
     StudioProfilers profilers = myStage.getStudioProfilers();
     myServices.enableImportTrace(true);
