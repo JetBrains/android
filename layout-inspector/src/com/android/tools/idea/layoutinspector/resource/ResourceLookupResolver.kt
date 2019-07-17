@@ -33,6 +33,8 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.resources.FolderTypeRelationship
+import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.AndroidPsiUtils
@@ -66,6 +68,7 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidResourceUtil
 import javax.swing.Icon
 
 /**
@@ -336,7 +339,11 @@ class ResourceLookupResolver(
 
   private fun convertSimpleValueToXmlTag(value: ResourceValue): XmlTag? {
     val item = convertToResourceItem(value) ?: return null
-    return LocalResourceRepository.getItemTag(project, item)
+    if (FolderTypeRelationship.getRelatedFolders(item.type).contains(ResourceFolderType.VALUES)) {
+      return LocalResourceRepository.getItemTag(project, item)
+    }
+    val xmlFile = AndroidResourceUtil.getItemPsiFile(project, item) as? XmlFile
+    return xmlFile?.rootTag
   }
 
   private fun convertStyleItemValueToXmlTag(style: StyleResourceValue, item: StyleItemResourceValue): XmlTag? {
