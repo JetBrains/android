@@ -47,7 +47,6 @@ import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.proto.Cpu.TraceInitiationType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
-import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerAspect;
@@ -68,6 +67,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -196,6 +196,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   @Nullable
   private File myImportedTrace;
+
+  /**
+   * The trace info associated with the imported trace info. This is only generated and used in import mode.
+   */
+  @Nullable
+  private Cpu.CpuTraceInfo myImportedTraceInfo;
 
   /**
    * Keep track of the {@link Common.Session} that contains this stage, otherwise tasks that happen in background (e.g. parsing a trace) can
@@ -660,6 +666,15 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         timeline.reset((long)(captureRangeNs.getMin()), (long)(captureRangeNs.getMax() + expandAmountNs));
         timeline.setIsPaused(true);
 
+        myImportedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+          .setTraceId(CpuCaptureParser.IMPORTED_TRACE_ID)
+          .setFromTimestamp((long)captureRangeNs.getMin())
+          .setToTimestamp((long)captureRangeNs.getMax())
+          .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                              .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+                                                .setTraceType(parsedCapture.getType())))
+          .build();
+
         setCaptureState(CaptureState.IDLE);
         setAndSelectCapture(parsedCapture);
         // We need to expand the end of the data range. Giving us the padding on the right side to show the view. If we don't do this
@@ -673,10 +688,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         timeline.getViewRange().set(parsedCapture.getRange().getMin() - expandAmountUs,
                                     parsedCapture.getRange().getMax() + expandAmountUs);
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
-        // Save trace info if not already saved
-        if (!myTraceIdsIterator.contains(CpuCaptureParser.IMPORTED_TRACE_ID)) {
-          saveImportedTrace(parsedCapture);
-        }
+
         // Track import trace success
         getStudioProfilers().getIdeServices().getFeatureTracker().trackImportTrace(parsedCapture.getType(), true);
       }
@@ -698,26 +710,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       parsingCallback.accept(parsedCapture);
       return parsedCapture;
     }, getStudioProfilers().getIdeServices().getMainExecutor());
-  }
-
-  private void saveImportedTrace(@NotNull CpuCapture capture) {
-    long captureFrom = TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin());
-    long captureTo = TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax());
-
-    Cpu.CpuTraceInfo traceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setTraceId(CpuCaptureParser.IMPORTED_TRACE_ID)
-      .setFromTimestamp(captureFrom)
-      .setToTimestamp(captureTo)
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                            .setTraceType(capture.getType())))
-      .build();
-
-    SaveTraceInfoRequest request = SaveTraceInfoRequest.newBuilder()
-      .setSession(mySession)
-      .setTraceInfo(traceInfo)
-      .build();
-    getCpuClient().saveTraceInfo(request);
   }
 
   @NotNull
@@ -818,7 +810,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       // TODO (b/132268755): Request / Get Trace file if cached for CpuCaptureStage. Consider if we need to change how this is triggered.
       // Not implemented due to not yet parsing / loading traces in the CpuCaptureStage.
       goToCaptureStage(traceId);
-    } else {
+    }
+    else {
       CompletableFuture<CpuCapture> future = getCaptureFuture(traceId);
       if (future == null) {
         setCaptureState(myInProgressTraceInfo.equals(Cpu.CpuTraceInfo.getDefaultInstance()) ? CaptureState.IDLE : CaptureState.CAPTURING);
@@ -1114,11 +1107,17 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   class CpuTraceDataSeries implements DataSeries<CpuTraceInfo> {
     @Override
     public List<SeriesData<CpuTraceInfo>> getDataForRange(Range range) {
-      List<Cpu.CpuTraceInfo> traceInfo =
-        CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range,
-                                          getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
+      List<Cpu.CpuTraceInfo> traceInfos;
+      if (myIsImportTraceMode) {
+        // The imported trace info may not be immediately available.
+        traceInfos = myImportedTraceInfo == null ? Collections.emptyList() : Collections.singletonList(myImportedTraceInfo);
+      }
+      else {
+        traceInfos = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range,
+                                                       getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
+      }
       List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
-      for (Cpu.CpuTraceInfo protoTraceInfo : traceInfo) {
+      for (Cpu.CpuTraceInfo protoTraceInfo : traceInfos) {
         CpuTraceInfo info = new CpuTraceInfo(protoTraceInfo);
         seriesData.add(new SeriesData<>((long)info.getRange().getMin(), info));
       }
