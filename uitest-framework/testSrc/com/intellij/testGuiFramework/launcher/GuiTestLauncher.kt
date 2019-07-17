@@ -96,7 +96,7 @@ object GuiTestLauncher {
     }
     val activeStackTracesLog = AspectsAgentLogUtil.getAspectsActiveStackTracesLog()?.absolutePath
     if (activeStackTracesLog != null) {
-      processBuilder.environment()["ASPECTS_BASELINE_HITS"] = activeStackTracesLog
+      processBuilder.environment()["ASPECTS_ACTIVE_BASELINE_STACKTRACES"] = activeStackTracesLog
     }
   }
 
