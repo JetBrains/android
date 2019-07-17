@@ -59,6 +59,7 @@ class TypeResolverTest {
     assertThat(TypeResolver.resolveType(ATTR_LAYOUT, null)).isEqualTo(NelePropertyType.LAYOUT)
     assertThat(TypeResolver.resolveType(ATTR_SHOW_IN, null)).isEqualTo(NelePropertyType.LAYOUT)
     assertThat(TypeResolver.resolveType(ATTR_ELEVATION, null)).isEqualTo(NelePropertyType.DIMENSION)
+    assertThat(TypeResolver.resolveType(ATTR_STATE_LIST_ANIMATOR, null)).isEqualTo(NelePropertyType.ANIMATOR)
   }
 
   @Test

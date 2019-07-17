@@ -68,6 +68,7 @@ object AndroidAttributeFact {
       "endIconTintMode" -> return NelePropertyType.ENUM
       "ensureMinTouchTargetSize" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "errorTextColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "extendMotionSpec" -> return NelePropertyType.ANIMATOR
       "fabAlignmentMode" -> return NelePropertyType.ENUM
       "fabAnimationMode" -> return NelePropertyType.ENUM
       "fabCradleMargin" -> return NelePropertyType.DIMENSION
@@ -103,6 +104,7 @@ object AndroidAttributeFact {
       "lineSpacing" -> return NelePropertyType.DIMENSION
       "shapeAppearance" -> return NelePropertyType.STYLE
       "shapeAppearanceOverlay" -> return NelePropertyType.STYLE
+      "shrinkMotionSpec" -> return NelePropertyType.ANIMATOR
       "singleSelection" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "startIconContentDescription" -> return NelePropertyType.STRING
       "startIconDrawable" -> return NelePropertyType.DRAWABLE
@@ -138,6 +140,7 @@ object AndroidAttributeFact {
       "tabUnboundedRipple" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "textEndPadding" -> return NelePropertyType.DIMENSION
       "textStartPadding" -> return NelePropertyType.DIMENSION
+      "useMaterialThemeColors" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "expanded" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "liftOnScroll" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "insetForeground" -> return NelePropertyType.DRAWABLE
@@ -367,7 +370,7 @@ object AndroidAttributeFact {
       "scrollIndicators" -> return NelePropertyType.FLAGS
       "showDividers" -> return NelePropertyType.FLAGS
       "spinnerMode" -> return NelePropertyType.ENUM
-      "stateListAnimator" -> return NelePropertyType.ANIM
+      "stateListAnimator" -> return NelePropertyType.ANIMATOR
       "stretchMode" -> return NelePropertyType.ENUM
       "subtitleTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
       "suggestionRowLayout" -> return NelePropertyType.LAYOUT
