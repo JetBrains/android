@@ -157,7 +157,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (!segments.isEmpty()) {
       String alias = null;
       int maxMatchedSegments = 0;
-      for (PsiDataBindingResourceItem psiImport : bindingLayoutInfo.getItems(DataBindingResourceType.IMPORT).values()) {
+      for (PsiDataBindingResourceItem psiImport : bindingLayoutInfo.getPsi().getItems(DataBindingResourceType.IMPORT).values()) {
         String importedType = psiImport.getTypeDeclaration();
         int matchedSegments = getNumberOfMatchedSegments(importedType, segments);
         if (matchedSegments > maxMatchedSegments) {

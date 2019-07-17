@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.binding.BindingLayoutGroup;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.google.common.base.Stopwatch;
@@ -38,11 +39,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
@@ -86,7 +85,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   private final ResourceTable myCachedMaps = new ResourceTable();
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private Map<String, BindingLayoutInfo> myDataBindingResourceFiles = new HashMap<>();
+  private Set<BindingLayoutGroup> myDataBindingResourceFiles = new HashSet<>();
 
   @GuardedBy("ITEM_MAP_LOCK")
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
@@ -243,20 +242,21 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @Override
   @NotNull
-  public Map<String, BindingLayoutInfo> getDataBindingResourceFiles() {
+  public Set<BindingLayoutGroup> getDataBindingResourceFiles() {
     synchronized (ITEM_MAP_LOCK) {
       long modificationCount = getModificationCount();
       if (myDataBindingResourceFilesModificationCount == modificationCount) {
         return myDataBindingResourceFiles;
       }
-      Map<String, BindingLayoutInfo> selected = new HashMap<>();
+
+      Set<BindingLayoutGroup> groups = new HashSet<>();
       for (LocalResourceRepository child : myLocalResources) {
-        Map<String, BindingLayoutInfo> childFiles = child.getDataBindingResourceFiles();
-        if (childFiles != null) {
-          selected.putAll(childFiles);
+        Set<BindingLayoutGroup> childGroups = child.getDataBindingResourceFiles();
+        if (childGroups != null) {
+          groups.addAll(childGroups);
         }
       }
-      myDataBindingResourceFiles = Collections.unmodifiableMap(selected);
+      myDataBindingResourceFiles = Collections.unmodifiableSet(groups);
       myDataBindingResourceFilesModificationCount = modificationCount;
       return myDataBindingResourceFiles;
     }
