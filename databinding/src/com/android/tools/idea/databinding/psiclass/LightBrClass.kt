@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
-import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.BrUtil
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.ModuleDataBinding
@@ -82,8 +81,9 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
           val moduleResources = ResourceRepositoryManager.getInstance(facet).existingModuleResources ?: return defaultValue()
           val dataBindingResourceFiles = moduleResources.dataBindingResourceFiles ?: return defaultValue()
 
-          val variableNamesSet = dataBindingResourceFiles.values
-            .flatMap { info -> info.getItems(DataBindingResourceType.VARIABLE).values }
+          val variableNamesSet = dataBindingResourceFiles
+            .flatMap { group -> group.layouts }
+            .flatMap { layout -> layout.xml.variables }
             .map { item -> item.name }
             .toMutableSet()
           collectVariableNamesFromUserBindables()?.let { bindables -> variableNamesSet.addAll(bindables) }
