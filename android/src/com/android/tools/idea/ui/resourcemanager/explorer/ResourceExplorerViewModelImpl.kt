@@ -30,12 +30,14 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.idea.actions.OpenStringResourceEditorAction
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.project.getLastSyncTimestamp
 import com.android.tools.idea.editors.theme.ResolutionUtils
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.resources.aar.AarResourceRepository
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
@@ -48,6 +50,7 @@ import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerIm
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableConfigurations
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableValue
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
@@ -64,6 +67,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import java.util.function.Supplier
 import kotlin.math.pow
 import kotlin.properties.Delegates
@@ -157,9 +161,28 @@ class ResourceExplorerViewModelImpl(
         else -> emptyList()
       }
 
+  private val resetPreviewsOnNextSuccessfulSync = Runnable {
+    facet.module.project.runWhenSmartAndSyncedOnEdt(this, Consumer { result ->
+      if (result.isSuccessful) {
+        listViewImageCache.clear()
+        // TODO(b/138947166): Have assetPreviewManager reset its resourceResolver since this won't solve those kind of errors.
+      }
+    })
+  }
+
+
   init {
     subscribeListener(facet)
     Disposer.register(this, listViewImageCache)
+    val project = facet.module.project
+    if (project.getLastSyncTimestamp() < 0L) {
+      // No existing successful sync, since there's a fair chance of having rendering errors, wait for next successful sync and reset cache,
+      // then re-render all assets.
+      ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(
+        onCacheClean = resetPreviewsOnNextSuccessfulSync,
+        onSourceGenerationError = Runnable { /* Do nothing */ }
+      )
+    }
   }
 
   override var assetPreviewManager: AssetPreviewManager = AssetPreviewManagerImpl(facet, currentFile, listViewImageCache)

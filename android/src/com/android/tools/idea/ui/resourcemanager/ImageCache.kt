@@ -88,6 +88,10 @@ class ImageCache(cacheExpirationTime: Long = 5,
     return image.getWidth(null) * image.getHeight(null) * Integer.BYTES
   }
 
+  fun clear() {
+    objectToImage.invalidateAll()
+  }
+
   /**
    * Return the value identified by [key] in the cache if it exists, otherwise returns the [placeholder] image
    * and gets the image from the [CompletableFuture] returned by [computationFutureProvider].
@@ -99,7 +103,6 @@ class ImageCache(cacheExpirationTime: Long = 5,
    *
    * Once the image is cached, [onImageCached] is invoked on [executor] (or the EDT if none is provided)
    */
-
   fun computeAndGet(@Async.Schedule key: DesignAsset,
                     placeholder: Image,
                     forceComputation: Boolean,
@@ -107,7 +110,6 @@ class ImageCache(cacheExpirationTime: Long = 5,
                     executor: Executor = EdtExecutorService.getInstance(),
                     computationFutureProvider: (() -> CompletableFuture<out Image?>))
     : Image {
-
     val cachedImage = objectToImage.getIfPresent(key)
     if ((cachedImage == null || forceComputation) && !pendingFutures.containsKey(key)) {
       val executeImmediately = cachedImage == null // If we don't have any image, no need to wait.
