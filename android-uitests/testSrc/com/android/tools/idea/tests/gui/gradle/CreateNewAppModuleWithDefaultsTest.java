@@ -58,7 +58,7 @@ public class CreateNewAppModuleWithDefaultsTest {
            .clickNextToStep("Phone & Tablet Module")
            .setModuleName("application_module")
            .clickNextToStep("Add an Activity to Mobile")
-           .chooseActivity("Add No Activity")
+           .chooseActivity("No Activity")
            .clickFinish()
            .waitForGradleProjectSyncToFinish(Wait.seconds(30));
     assertAbout(file()).that(guiTest.getProjectPath("application_module")).isDirectory();
