@@ -18,9 +18,10 @@ package com.android.tools.idea.databinding.finders;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
-import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.binding.BindingLayoutGroup;
+import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
@@ -81,13 +82,15 @@ public class DataBindingPackageFinder extends PsiElementFinder {
             @Override
             protected Set<String> doCompute() {
               LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(getFacet());
-              Map<String, BindingLayoutInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
-              if (dataBindingResourceFiles == null) {
+              Set<BindingLayoutGroup> groups = moduleResources.getDataBindingResourceFiles();
+              if (groups == null) {
                 return Collections.emptySet();
               }
               Set<String> result = Sets.newHashSet();
-              for (BindingLayoutInfo info : dataBindingResourceFiles.values()) {
-                result.add(info.getPackageName());
+              for (BindingLayoutGroup group : groups) {
+                for (BindingLayoutInfo layout : group.getLayouts()) {
+                  result.add(layout.getPackageName());
+                }
               }
               return result;
             }

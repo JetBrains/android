@@ -16,15 +16,19 @@
 package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory;
-import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass;
+import com.android.tools.idea.databinding.psiclass.LightBindingClass;
 import com.android.tools.idea.databinding.psiclass.LightBrClass;
+import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.res.binding.BindingLayoutGroup;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetManagerAdapter;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.util.messages.MessageBusConnection;
+import java.util.List;
+import java.util.WeakHashMap;
 import net.jcip.annotations.NotThreadSafe;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +36,31 @@ import org.jetbrains.annotations.Nullable;
 
 @NotThreadSafe
 public class ModuleDataBinding {
+  /**
+   * A (weak) cache of all generated light binding classes.
+   *
+   * A binding module should generate one or more binding classes per bindable layout, and we cache
+   * everything here. Such a bindable layout should have a {@link BindingLayoutGroup} associated
+   * with it, with the assumption that its own lifetime is tied to the lifetime of the layout
+   * itself. For example, if the user deletes a layout file, its binding group should also be
+   * released, so in turn these cached binding classes would be collected as well.
+   *
+   * See also: {@link #setLightBindingClasses(BindingLayoutGroup, List)}
+   */
+  private WeakHashMap<BindingLayoutGroup, List<LightBindingClass>> myLightBindingClasses = new WeakHashMap<>();
+
+  /**
+   * The singleton light BR class associated with this module.
+   *
+   * See also: {@link #setLightBrClass(LightBrClass)}
+   */
   @Nullable private LightBrClass myLightBrClass;
+
+  /**
+   * The singleton light DataBindingComponent associated with this module.
+   *
+   * See also: {@link #setLightDataBindingComponentClass(LightDataBindingComponentClass)}
+   */
   @Nullable private LightDataBindingComponentClass myLightDataBindingComponentClass;
 
   @NotNull
@@ -89,6 +117,26 @@ public class ModuleDataBinding {
    */
   public boolean isEnabled() {
     return myDataBindingMode != DataBindingMode.NONE;
+  }
+
+  /**
+   * Caches all light classes generated for layout bindings across the current module.
+   *
+   * This is backed by a weak map, so when the current {@code group} object goes out of scope, the
+   * associated light binding classes will eventually get released.
+   *
+   * @see DataBindingClassFactory#getOrCreateBindingClassesFor(BindingLayoutGroup)
+   */
+  public void setLightBindingClasses(@NotNull BindingLayoutGroup group, @NotNull List<LightBindingClass> lightBindingClasses) {
+    myLightBindingClasses.put(group, lightBindingClasses);
+  }
+
+  /**
+   * Fetches binding classes previously cached by {@link #setLightBindingClasses(BindingLayoutGroup, List)}
+   */
+  @Nullable
+  public List<LightBindingClass> getLightBindingClasses(@NotNull BindingLayoutGroup group) {
+    return myLightBindingClasses.get(group);
   }
 
   /**
