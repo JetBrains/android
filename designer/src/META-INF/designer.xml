@@ -46,6 +46,11 @@
     <applicationService serviceImplementation="com.android.tools.idea.common.model.NlDependencyManager"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.CustomViewEditorProvider" />
+    <editorNotificationProvider implementation="com.android.tools.idea.uibuilder.editor.OutdatedCustomViewNotificationProvider" />
+  </extensions>
+
   <application-components>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.util.JavaDocViewer</implementation-class>
