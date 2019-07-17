@@ -66,6 +66,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.ComponentProvider;
@@ -146,6 +147,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -480,13 +482,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   /**
-   * Let the ViewGroupHandler handle clearing attributes on a given component
-   *
-   * @param component
+   * {@inheritDoc}
    */
   @Override
-  public void clearAttributes(@NotNull NlComponent component) {
-    ConstraintComponentUtilities.clearAttributes(component);
+  public void clearAttributes(@NotNull List<NlComponent> components) {
+    // Wrapper by WriteCommandAction so it creates only one undo stack.
+    NlWriteCommandActionUtil.run(components, "Cleared all constraints", () -> {
+      components.forEach(it -> ConstraintComponentUtilities.clearAttributes(it));
+    });
   }
 
   /**
@@ -550,7 +553,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @InputEventMask int modifiers) {
       getAnalyticsManager(editor).trackClearAllConstraints();
 
-      editor.getScene().clearAllConstraints();
+      ViewGroupHandler constraintHandler = (ViewGroupHandler) handler;
+      constraintHandler.clearAttributes(component.getChildren());
+      // Clear selection.
+      editor.getScene().select(Collections.emptyList());
       ensureLayersAreShown(editor, 1000);
     }
   }
@@ -562,9 +568,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      for (NlComponent child : selectedChildren) {
-        ConstraintComponentUtilities.clearAttributes(child);
-      }
+      ViewGroupHandler constraintHandler = (ViewGroupHandler) handler;
+      constraintHandler.clearAttributes(selectedChildren);
       ensureLayersAreShown(editor, 1000);
     }
 
