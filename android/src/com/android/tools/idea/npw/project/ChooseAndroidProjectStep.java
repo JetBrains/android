@@ -271,7 +271,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     List<TemplateHandle> templateHandles = getFilteredTemplateHandles(formFactor);
 
     List<TemplateRenderer> templateRenderers = Lists.newArrayListWithExpectedSize(templateHandles.size() + 2);
-    templateRenderers.add(new TemplateRenderer(null, false)); // "Add No Activity" entry
+    templateRenderers.add(new TemplateRenderer(null, false)); // "No Activity" entry
     for (TemplateHandle templateHandle : templateHandles) {
       templateRenderers.add(new TemplateRenderer(templateHandle, false));
     }
@@ -296,7 +296,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
       }
     }
 
-    // Default template not found. Instead, return the index to the first valid template renderer (e.g. skip "Add No Activity", etc.)
+    // Default template not found. Instead, return the index to the first valid template renderer (e.g. skip "No Activity", etc.)
     for (int i = 0; i < templateRenderers.length; i++) {
       if (templateRenderers[i].getTemplate() != null) {
         return i;

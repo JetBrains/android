@@ -34,7 +34,7 @@ public class CreateNewProjectWithNoActivityTest {
   public void activityTemplate() throws IOException {
     guiTest.welcomeFrame().createNewProject()
       .getChooseAndroidProjectStep()
-      .chooseActivity("Add No Activity")
+      .chooseActivity("No Activity")
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
