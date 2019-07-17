@@ -235,7 +235,6 @@ public class Configuration implements Disposable, ModificationTracker {
    * @return a new configuration
    */
   @NotNull
-  @VisibleForTesting
   public static Configuration create(@NotNull ConfigurationManager manager,
                                      @Nullable VirtualFile file,
                                      @NotNull FolderConfiguration editedConfig) {
