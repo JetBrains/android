@@ -157,8 +157,9 @@ object TypeResolver {
       SdkConstants.ATTR_OUT_ANIMATION,
       SdkConstants.ATTR_SHOW_MOTION_SPEC,
       SdkConstants.ATTR_HIDE_MOTION_SPEC,
-      SdkConstants.ATTR_LAYOUT_ANIMATION,
-      SdkConstants.ATTR_STATE_LIST_ANIMATOR -> NelePropertyType.ANIM
+      SdkConstants.ATTR_LAYOUT_ANIMATION -> NelePropertyType.ANIM
+
+      SdkConstants.ATTR_STATE_LIST_ANIMATOR -> NelePropertyType.ANIMATOR
 
       SdkConstants.ATTR_AM_PM_BACKGROUND_COLOR,
       SdkConstants.ATTR_AM_PM_TEXT_COLOR,
@@ -257,6 +258,8 @@ object TypeResolver {
         if (thirdLast == "text" && secondLast == "select") return NelePropertyType.DRAWABLE
       "layout" ->
         return NelePropertyType.LAYOUT
+      "spec" ->
+        if (secondLast == "motion") return NelePropertyType.ANIMATOR
       "style" ->
         return NelePropertyType.STYLE
       else -> {
