@@ -81,6 +81,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
+import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -106,6 +107,7 @@ import com.intellij.openapi.externalSystem.model.project.ExternalModuleBuildClas
 import com.intellij.openapi.externalSystem.model.project.ExternalProjectBuildClasspathPojo;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.settings.AbstractExternalSystemLocalSettings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -731,12 +733,10 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     ExternalSystemTaskId taskId = mock(ExternalSystemTaskId.class);
     when(taskId.findProject()).thenReturn(project);
 
-/* b/137231583
     // Verify that the task "help" can be found and executed.
     assertTrue(new AndroidGradleTaskManager().executeTasks(taskId, singletonList("help"), project.getBasePath(), null, null,
                                                            new ExternalSystemTaskNotificationListenerAdapter() {
                                                            }));
-b/137231583 */
   }
 
   public void testNDKModelRefreshedWithModifiedCMakeLists() throws Exception {
