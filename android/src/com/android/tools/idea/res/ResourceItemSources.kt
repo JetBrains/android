@@ -18,7 +18,7 @@ package com.android.tools.idea.res
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.res.binding.DefaultBindingLayoutInfo
+import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.resources.base.Base128InputStream
 import com.android.tools.idea.resources.base.Base128OutputStream
 import com.android.tools.idea.resources.base.BasicResourceItem
@@ -74,7 +74,11 @@ class PsiResourceFile constructor(
     _items.remove(item.key, item)
   }
 
-  var dataBindingLayoutInfo: DefaultBindingLayoutInfo? = null
+  /**
+   * If a resource file represents a layout file that should generate an associated binding
+   * class, this field will be set.
+   */
+  var bindingLayoutInfo: BindingLayoutInfo? = null
   val name = _psiFile.name
   val psiFile get() = _psiFile
 

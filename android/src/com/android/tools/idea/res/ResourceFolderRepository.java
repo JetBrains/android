@@ -65,11 +65,10 @@ import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceVisibility;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.res.binding.BindingLayoutGroup;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
-import com.android.tools.idea.res.binding.DefaultBindingLayoutInfo;
-import com.android.tools.idea.res.binding.MergedBindingLayoutInfo;
+import com.android.tools.idea.res.binding.BindingLayoutPsi;
 import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
 import com.android.tools.idea.resources.base.Base128InputStream;
 import com.android.tools.idea.resources.base.BasicFileResourceItem;
@@ -213,8 +212,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @NotNull private final Map<VirtualFile, ResourceItemSource<? extends ResourceItem>> mySources = new HashMap<>();
   @NotNull private final PsiManager myPsiManager;
-  // qualified name -> BindingLayoutInfo
-  @NotNull private Map<String, BindingLayoutInfo> myDataBindingResourceFiles = new HashMap<>();
+  @NotNull private Set<BindingLayoutGroup> myDataBindingResourceFiles = new HashSet<>();
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
   @NotNull private final Object SCAN_LOCK = new Object();
   @Nullable private Set<PsiFile> myPendingScans;
@@ -404,53 +402,69 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (item instanceof PsiResourceItem) {
         PsiResourceFile source = ((PsiResourceItem)item).getSourceFile();
         if (source != null) {
-          return source.getDataBindingLayoutInfo();
+          return source.getBindingLayoutInfo();
         }
       }
     }
     return null;
   }
 
+  /**
+   * Given a list of existing groups and a list of (one or more) layouts (representing the same
+   * layout but possibly multiple configurations), returns a {@link BindingLayoutGroup} that owns
+   * those layouts. If an existing group is found, it will be updated; or otherwise, a new group
+   * will be created on demand.
+   */
+  @NotNull
+  private static BindingLayoutGroup createOrUpdateGroup(@NotNull Set<BindingLayoutGroup> existingGroups,
+                                                        @NotNull List<BindingLayoutInfo> layouts,
+                                                        Long modificationCount) {
+    BindingLayoutGroup group = null;
+    BindingLayoutInfo mainLayout = layouts.get(0);
+    for (BindingLayoutGroup existingGroup : existingGroups) {
+      if (existingGroup.getMainLayout() == mainLayout) {
+        group = existingGroup;
+        break;
+      }
+    }
+
+    if (group == null) {
+      group = new BindingLayoutGroup(layouts);
+    }
+    else {
+      group.updateLayouts(layouts, modificationCount);
+    }
+    return group;
+  }
+
   @Override
   @NotNull
-  public Map<String, BindingLayoutInfo> getDataBindingResourceFiles() {
+  public Set<BindingLayoutGroup> getDataBindingResourceFiles() {
     long modificationCount = getModificationCount();
     if (myDataBindingResourceFilesModificationCount == modificationCount) {
       return myDataBindingResourceFiles;
     }
     myDataBindingResourceFilesModificationCount = modificationCount;
-    Map<String, List<DefaultBindingLayoutInfo>> infoFilesByConfiguration = mySources.values().stream()
-      .map(resourceFile -> resourceFile instanceof PsiResourceFile ? (((PsiResourceFile)resourceFile).getDataBindingLayoutInfo()) : null)
-      .filter(Objects::nonNull)
-      .collect(Collectors.groupingBy(DefaultBindingLayoutInfo::getFileName));
 
-    Map<String, BindingLayoutInfo> selected = infoFilesByConfiguration.entrySet().stream().flatMap(entry -> {
-      if (entry.getValue().size() == 1) {
-        DefaultBindingLayoutInfo info = entry.getValue().get(0);
-        info.setMergedInfo(null);
-        return entry.getValue().stream();
-      } else {
-        MergedBindingLayoutInfo mergedDataBindingLayoutInfo = new MergedBindingLayoutInfo(entry.getValue());
-        entry.getValue().forEach(info -> info.setMergedInfo(mergedDataBindingLayoutInfo));
-        ArrayList<BindingLayoutInfo> list = new ArrayList<>(1 + entry.getValue().size());
-        list.add(mergedDataBindingLayoutInfo);
-        list.addAll(entry.getValue());
-        return list.stream();
-      }
-    }).collect(Collectors.toMap(
-      BindingLayoutInfo::getQualifiedName,
-      (BindingLayoutInfo kls) -> kls
-    ));
-    myDataBindingResourceFiles = Collections.unmodifiableMap(selected);
+    // Group all related layouts together, e.g. "layout/fragment_demo.xml" and "layout-land/fragment_demo.xml"
+    Set<BindingLayoutGroup> groups = mySources.values().stream()
+      .map(resourceFile -> resourceFile instanceof PsiResourceFile ? (((PsiResourceFile)resourceFile).getBindingLayoutInfo()) : null)
+      .filter(Objects::nonNull)
+      .collect(Collectors.groupingBy(info -> info.getXml().getFileName()))
+      .values().stream()
+      .map(layouts -> createOrUpdateGroup(myDataBindingResourceFiles, layouts, modificationCount))
+      .collect(Collectors.toSet());
+
+    myDataBindingResourceFiles = Collections.unmodifiableSet(groups);
     return myDataBindingResourceFiles;
   }
 
   private static void scanDataBindingDataTag(@NotNull PsiResourceFile resourceFile, @Nullable XmlTag dataTag, long modificationCount) {
-    DefaultBindingLayoutInfo info = resourceFile.getDataBindingLayoutInfo();
+    BindingLayoutInfo info = resourceFile.getBindingLayoutInfo();
     assert info != null;
     List<PsiDataBindingResourceItem> items = new ArrayList<>();
     if (dataTag == null) {
-      info.replaceItems(items, modificationCount);
+      info.replaceDataItems(items, modificationCount);
       return;
     }
     Set<String> usedNames = new HashSet<>();
@@ -490,7 +504,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     }
 
-    info.replaceItems(items, modificationCount);
+    info.replaceDataItems(items, modificationCount);
   }
 
   private boolean isBindingLayoutFile(@NotNull PsiResourceFile resourceFile) {
@@ -522,35 +536,20 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     }
 
-    String className;
-    String classPackage;
-    boolean hasClassNameAttr;
-    String modulePackage = MergedManifestManager.getSnapshot(myFacet).getPackage();
-    if (StringUtil.isEmpty(classAttrValue)) {
-      className = DataBindingUtil.convertToJavaClassName(resourceFile.getName()) + "Binding";
-      classPackage = modulePackage + ".databinding";
-      hasClassNameAttr = false;
-    } else {
-      hasClassNameAttr = true;
-      int firstDotIndex = classAttrValue.indexOf('.');
+    BindingLayoutInfo info = resourceFile.getBindingLayoutInfo();
+    if (info == null) {
+      PsiDirectory folder = resourceFile.getPsiFile().getParent();
+      // If we're here, we have a LAYOUT folder type, so folder is always non-null. See also: isBindingLayoutFile.
+      assert folder != null;
+      String folderName = folder.getName();
+      String fileName = resourceFile.getPsiFile().getName();
+      String modulePackage = MergedManifestManager.getSnapshot(myFacet).getPackage();
 
-      if (firstDotIndex < 0) {
-        classPackage = modulePackage + ".databinding";
-        className = classAttrValue;
-      } else {
-        int lastDotIndex = classAttrValue.lastIndexOf('.');
-        if (firstDotIndex == 0) {
-          classPackage = modulePackage + classAttrValue.substring(0, lastDotIndex);
-        } else {
-          classPackage = classAttrValue.substring(0, lastDotIndex);
-        }
-        className = classAttrValue.substring(lastDotIndex + 1);
-      }
-    }
-    if (resourceFile.getDataBindingLayoutInfo() == null) {
-      resourceFile.setDataBindingLayoutInfo(new DefaultBindingLayoutInfo(myFacet, resourceFile, className, classPackage, hasClassNameAttr));
+      info = new BindingLayoutInfo(modulePackage, folderName, fileName, classAttrValue);
+      info.setPsi(new BindingLayoutPsi(myFacet, resourceFile));
+      resourceFile.setBindingLayoutInfo(info);
     } else {
-      resourceFile.getDataBindingLayoutInfo().update(className, classPackage, hasClassNameAttr, modificationCount);
+      info.updateClassData(classAttrValue, modificationCount);
     }
     scanDataBindingDataTag(resourceFile, dataTag, modificationCount);
   }
