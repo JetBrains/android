@@ -482,8 +482,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
-    assertEquals("prop1", propertyModel.getValue(STRING_TYPE))
-    assertEquals("prop1", propertyModel.getRawValue(STRING_TYPE))
+    assertEquals(extraName("prop1"), propertyModel.getValue(STRING_TYPE))
+    assertEquals(extraName("prop1"), propertyModel.getRawValue(STRING_TYPE))
     assertEquals(REFERENCE, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
 
@@ -625,8 +625,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     assertEquals(REFERENCE, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
-    assertEquals("prop1", propertyModel.getRawValue(STRING_TYPE))
-    assertEquals("prop1", propertyModel.getValue(STRING_TYPE))
+    assertEquals(extraName("prop1"), propertyModel.getRawValue(STRING_TYPE))
+    assertEquals(extraName("prop1"), propertyModel.getValue(STRING_TYPE))
 
     assertSize(1, propertyModel.dependencies)
     val dep = propertyModel.dependencies[0]
@@ -649,8 +649,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val propertyModel = extModel.findProperty("prop2")
     assertEquals(REFERENCE, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
-    assertEquals("prop1", propertyModel.getRawValue(STRING_TYPE))
-    assertEquals("prop1", propertyModel.getValue(STRING_TYPE))
+    assertEquals(extraName("prop1"), propertyModel.getRawValue(STRING_TYPE))
+    assertEquals(extraName("prop1"), propertyModel.getValue(STRING_TYPE))
 
     assertSize(1, propertyModel.dependencies)
     val dep = propertyModel.dependencies[0]
@@ -678,7 +678,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
-    assertEquals("\${prop1} world!", propertyModel.getRawValue(STRING_TYPE))
+    assertEquals("\${${extraName("prop1")}} world!", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("hello world!", propertyModel.getValue(STRING_TYPE))
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
@@ -3305,8 +3305,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     assertThat(refValue, instanceOf(ReferenceTo::class.java))
     val referenceTo = value as ReferenceTo
     val refReferenceTo = refValue as ReferenceTo
-    assertThat(referenceTo.text, equalTo("hello"))
-    assertThat(refReferenceTo.text, equalTo("hello"))
+    assertThat(referenceTo.text, equalTo(extraName("hello")))
+    assertThat(refReferenceTo.text, equalTo(extraName("hello")))
   }
 
   @Test

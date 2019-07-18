@@ -361,9 +361,9 @@ public class ExtModelTest extends GradleFileModelTestCase {
     ExtModel extModel = buildModel.ext();
 
     verifyPropertyModel(extModel.findProperty("THIRD").resolve(), INTEGER_TYPE, 123, INTEGER, REGULAR, 1);
-    verifyPropertyModel(extModel.findProperty("THIRD"), STRING_TYPE, "SECOND", REFERENCE, REGULAR, 1);
+    verifyPropertyModel(extModel.findProperty("THIRD"), STRING_TYPE, extraName("SECOND"), REFERENCE, REGULAR, 1);
     verifyPropertyModel(extModel.findProperty("SECOND").resolve(), INTEGER_TYPE, 123, INTEGER, REGULAR, 1);
-    verifyPropertyModel(extModel.findProperty("SECOND"), STRING_TYPE, "FIRST", REFERENCE, REGULAR, 1);
+    verifyPropertyModel(extModel.findProperty("SECOND"), STRING_TYPE, extraName("FIRST"), REFERENCE, REGULAR, 1);
     verifyPropertyModel(extModel.findProperty("FIRST").resolve(), INTEGER_TYPE, 123, INTEGER, REGULAR, 0);
     verifyPropertyModel(extModel.findProperty("FIRST"), INTEGER_TYPE, 123, INTEGER, REGULAR, 0);
   }
