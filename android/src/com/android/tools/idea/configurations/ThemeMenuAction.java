@@ -41,7 +41,7 @@ public class ThemeMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public ThemeMenuAction(@NotNull ConfigurationHolder renderContext) {
-    super("", "Theme for Preview", StudioIcons.LayoutEditor.Toolbar.THEME_BUTTON);
+    super(null, "Theme for Preview", StudioIcons.LayoutEditor.Toolbar.THEME_BUTTON);
     myRenderContext = renderContext;
   }
 
@@ -97,12 +97,6 @@ public class ThemeMenuAction extends DropDownAction {
       }
     }
     return theme;
-  }
-
-  @Override
-  protected boolean hasDropDownArrow() {
-    // Calculating themes can be expensive and we know that there is always more than one so always display the dropdown arrow
-    return true;
   }
 
   @Override

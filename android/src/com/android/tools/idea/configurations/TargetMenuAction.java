@@ -43,7 +43,7 @@ public class TargetMenuAction extends DropDownAction {
    * @param useCompatibilityTarget when true, this menu action will set a CompatibilityRenderTarget as instead of a real IAndroidTarget
    */
   public TargetMenuAction(ConfigurationHolder renderContext, boolean useCompatibilityTarget) {
-    super("", "API Version for Preview", StudioIcons.LayoutEditor.Toolbar.ANDROID_API);
+    super(null, "API Version for Preview", StudioIcons.LayoutEditor.Toolbar.ANDROID_API);
     myRenderContext = renderContext;
     myUseCompatibilityTarget = useCompatibilityTarget;
     Presentation presentation = getTemplatePresentation();
@@ -78,6 +78,11 @@ public class TargetMenuAction extends DropDownAction {
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
     }
+  }
+
+  @Override
+  public boolean displayTextInToolbar() {
+    return true;
   }
 
   /**
@@ -148,12 +153,6 @@ public class TargetMenuAction extends DropDownAction {
       boolean select = current != null && target.getVersion().equals(current.getVersion());
       group.add(new SetTargetAction(myRenderContext, title, target, select));
     }
-  }
-
-  @Override
-  protected boolean hasDropDownArrow() {
-    // This menu always has at least two options, "Automatically pick" and the actual API level
-    return true;
   }
 
   @Override
