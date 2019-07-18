@@ -23,8 +23,11 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
+import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtSimpleNameStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
@@ -70,8 +73,13 @@ internal fun createLiteral(context : GradleDslElement, value : Any) : PsiElement
 }
 
 internal fun findInjections(
-  context: GradleDslSimpleExpression, psiElement: PsiElement, includeResolved: Boolean): MutableList<GradleReferenceInjection> {
+  context: GradleDslSimpleExpression,
+  psiElement: PsiElement,
+  includeResolved: Boolean,
+  injectionElement: PsiElement? = null
+): MutableList<GradleReferenceInjection> {
   val noInjections = mutableListOf<GradleReferenceInjection>()
+  val injectionPsiElement = injectionElement ?: psiElement
   when (psiElement) {
     // extra["PROPERTY_NAME"]
     is KtArrayAccessExpression -> {
@@ -87,11 +95,26 @@ internal fun findInjections(
             val text = entry.text
             // TODO(xof): unquoting
             val element = context.resolveReference(text, true)
-            return mutableListOf(GradleReferenceInjection(context, element, entry, text))
+            return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
           }
         }
       }
       return noInjections
+    }
+    // "foo bar", "foo $bar", "foo ${extra["PROPERTY_NAME"]}"
+    is KtStringTemplateExpression -> {
+      if (!psiElement.hasInterpolation()) return noInjections
+      return psiElement.entries
+        .flatMap { entry -> when(entry) {
+          // any constant portion of a KtStringTemplateExpression
+          is KtLiteralStringTemplateEntry -> noInjections
+          // TODO(xof): implement variable lookup (e.g. $bar)
+          is KtSimpleNameStringTemplateEntry -> noInjections
+          // long-form interpolation ${...} -- compute injections for the contained expression
+          is KtBlockStringTemplateEntry -> entry.expression?.let { findInjections(context, it, includeResolved, entry) } ?: noInjections
+          else -> noInjections
+        }}
+        .toMutableList()
     }
     else -> return noInjections
   }
