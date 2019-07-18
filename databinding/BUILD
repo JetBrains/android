@@ -128,5 +128,7 @@ iml_module(
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module, test]",
         "//tools/vendor/intellij/cidr:intellij.c[module, test]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
     ],
 )
