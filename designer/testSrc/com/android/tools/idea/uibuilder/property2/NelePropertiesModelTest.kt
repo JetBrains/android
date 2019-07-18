@@ -166,7 +166,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.find(TEXT_VIEW)!!
-    val view = nlModel.surface.currentSceneView!!
+    val view = nlModel.surface.focusedSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
     val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE,
                                     null, "", "", model, null, listOf(textView))
@@ -185,7 +185,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.find(TEXT_VIEW)!!
-    val view = nlModel.surface.currentSceneView!!
+    val view = nlModel.surface.focusedSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
     val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", "", model, null, listOf(textView))
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")

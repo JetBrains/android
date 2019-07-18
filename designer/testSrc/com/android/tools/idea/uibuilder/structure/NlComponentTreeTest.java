@@ -358,7 +358,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                    "        <Button>  [selected]\n");
   }
 
-
   public void testDropOnChain() {
     myModel = createModelWithConstraintLayout();
     mySurface.setModel(myModel);

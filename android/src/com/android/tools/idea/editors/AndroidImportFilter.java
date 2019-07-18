@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.editors;
 
+import com.android.annotations.concurrency.AnyThread;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.intellij.codeInsight.ImportFilter;
 import com.intellij.psi.PsiFile;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +30,7 @@ import static com.android.SdkConstants.CLASS_R_PREFIX;
 public class AndroidImportFilter extends ImportFilter {
   /** Never import android.R, or inner classes of application R or android.R classes */
   @Override
+  @AnyThread
   public boolean shouldUseFullyQualifiedName(@NotNull PsiFile targetFile, @NotNull String classQualifiedName) {
     if (classQualifiedName.equals(CLASS_R) || classQualifiedName.startsWith(CLASS_R_PREFIX)
         // Data binding: prevent local, generated BR class references during sync or builds (when they
@@ -60,7 +62,7 @@ public class AndroidImportFilter extends ImportFilter {
     AndroidFacet facet = AndroidFacet.getInstance(targetFile);
     if (facet != null) {
       // We need the manifest package here, not the Gradle effective package (which can vary by flavor and build type)
-      return MergedManifestManager.getSnapshot(facet).getPackage();
+      return AndroidManifestUtils.getPackageName(facet);
     }
 
     return null;

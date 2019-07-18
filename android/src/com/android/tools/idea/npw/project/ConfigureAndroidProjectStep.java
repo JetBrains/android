@@ -28,7 +28,6 @@ import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
@@ -96,10 +95,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JTextField myAppName;
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
-  private JCheckBox myInstantAppCheck;
   private JCheckBox myWearCheck;
   private JCheckBox myTvCheck;
-  private JCheckBox myOfflineRepoCheck;
   private JLabel myTemplateIconTitle;
   private JLabel myTemplateIconDetail;
   private JPanel myFormFactorSdkControlsPanel;
@@ -153,7 +150,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     OptionalProperty<VersionItem> androidSdkInfo = getModel().androidSdkInfo();
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
-    myBindings.bindTwoWay(getModel().dynamicInstantApp(), new SelectedProperty(myInstantAppCheck));
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.language());
 
 
@@ -175,13 +171,10 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myListeners.listenAll(getModel().formFactor(), myProjectModel.enableCppSupport()).withAndFire(() -> {
       FormFactor formFactor = getModel().formFactor().get();
-      boolean isCppTemplate = myProjectModel.enableCppSupport().get();
 
-      myInstantAppCheck.setVisible(formFactor == FormFactor.MOBILE && !isCppTemplate);
       myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.MOBILE);
       myWearCheck.setVisible(formFactor == FormFactor.WEAR);
       myTvCheck.setVisible(formFactor == FormFactor.TV);
-      myOfflineRepoCheck.setVisible(StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get());
     });
   }
 
@@ -203,8 +196,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       getModel().formFactor().get() == FormFactor.CAR || // Auto is not a standalone module (but rather a modification to a mobile module)
       getModel().formFactor().get() == FormFactor.AUTOMOTIVE // Automotive projects include a mobile module for Android Auto by default
     );
-
-    myProjectModel.useOfflineRepo().set(myOfflineRepoCheck.isVisible() && myOfflineRepoCheck.isSelected());
 
     myInstallRequests.clear();
     myInstallLicenseRequests.clear();

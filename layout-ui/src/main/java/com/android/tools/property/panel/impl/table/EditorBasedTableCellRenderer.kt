@@ -25,7 +25,9 @@ import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableCellRenderer
 import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -63,6 +65,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     val (model, editor) = componentCache[key] ?: createEditor(key, property, column, depth, table.gridLineColor)
     model.property = property
     model.isUsedInRendererWithSelection = isSelected && hasFocus
+    model.isExpandedTableItem = (item as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
     return editor
   }
 
@@ -77,12 +80,9 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
                            depth: Int,
                            gridLineColor: Color): Pair<PropertyEditorModel, JComponent> {
     val (model, editor) = editorProvider.createEditor(property, asTableCellEditor = true)
-    val panel = JPanel(BorderLayout())
-    panel.add(editor, BorderLayout.CENTER)
-    panel.border = createBorder(column, depth, editor, gridLineColor)
-    panel.background = UIUtil.TRANSPARENT_COLOR
     editor.font = UIUtil.getLabelFont(fontSize)
-
+    val panel = VariableHeightPanel(editor)
+    panel.border = createBorder(column, depth, editor, gridLineColor)
     val result = Pair(model, panel)
     componentCache[key] = result
     return result
@@ -102,6 +102,17 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
       is PropertyComboBox -> editor.editor.margin.left
       else -> editor.insets.left
     }
+
+  private class VariableHeightPanel(private val editor: JComponent): JPanel(BorderLayout()), PTableVariableHeightCellEditor {
+
+    init {
+      add(editor, BorderLayout.CENTER)
+      background = UIUtil.TRANSPARENT_COLOR
+    }
+
+    override val isCustomHeight: Boolean
+      get() = editor is PTableVariableHeightCellEditor && editor.isCustomHeight
+  }
 
   private data class ControlKey(val type: ControlType, val hasBrowseButton: Boolean)
 }

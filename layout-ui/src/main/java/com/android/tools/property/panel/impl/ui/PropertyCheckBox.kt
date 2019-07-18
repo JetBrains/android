@@ -69,6 +69,7 @@ private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorMod
     stateChangeFromModel = true
     try {
       state = toStateValue(propertyModel.value)
+      isFocusable = !propertyModel.readOnly
     }
     finally {
       stateChangeFromModel = false

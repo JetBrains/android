@@ -52,6 +52,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
   override fun updateFromModel() {
     super.updateFromModel()
     isVisible = editorModel.visible
+    isFocusable = !editorModel.readOnly
     foreground = editorModel.displayedForeground(UIUtil.getLabelForeground())
     background = editorModel.displayedBackground(secondaryPanelBackground)
     if (editorModel.focusRequest && !isFocusOwner) {

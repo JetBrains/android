@@ -2,47 +2,36 @@ package org.jetbrains.android.augment;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceRepositoryRClass;
-import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiType;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.resourceManagers.LocalResourceManager;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Implementation of {@link InnerRClassBase} back by a resource repository.
  */
 public class ResourceRepositoryInnerRClass extends InnerRClassBase {
-  @NotNull private final AndroidFacet myFacet;
   @NotNull private final ResourceRepositoryRClass.ResourcesSource mySource;
 
-  public ResourceRepositoryInnerRClass(@NotNull AndroidFacet facet,
-                                       @NotNull ResourceType resourceType,
+  public ResourceRepositoryInnerRClass(@NotNull ResourceType resourceType,
                                        @NotNull ResourceRepositoryRClass.ResourcesSource source,
                                        @NotNull PsiClass parentClass) {
     super(parentClass, resourceType);
-    myFacet = facet;
     mySource = source;
   }
 
   @NotNull
-  static PsiField[] buildLocalResourceFields(@NotNull AndroidFacet facet,
-                                             @NotNull ResourceType resourceType,
+  static PsiField[] buildLocalResourceFields(@NotNull ResourceType resourceType,
                                              @NotNull ResourceRepositoryRClass.ResourcesSource resourcesSource,
                                              @NotNull PsiClass context) {
-    Module circularDepLibWithSamePackage = AndroidCompileUtil.findCircularDependencyOnLibraryWithSamePackage(facet);
-    AndroidLightField.FieldModifier modifier = !facet.getConfiguration().isLibraryProject() && circularDepLibWithSamePackage == null ?
-                                               AndroidLightField.FieldModifier.FINAL :
-                                               AndroidLightField.FieldModifier.NON_FINAL;
+    AndroidLightField.FieldModifier modifier = resourcesSource.getFieldModifier();
 
-    LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     return InnerRClassBase.buildResourceFields(resourcesSource.getResourceRepository(),
                                                resourcesSource.getResourceNamespace(),
                                                modifier,
-                                               (type, name) -> resourceManager.isResourcePublic(type.getName(), name),
+                                               resourcesSource::isPublic,
                                                resourceType,
                                                context);
   }
@@ -50,7 +39,7 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
   @NotNull
   @Override
   protected PsiField[] doGetFields() {
-    return buildLocalResourceFields(myFacet, myResourceType, mySource, this);
+    return buildLocalResourceFields(myResourceType, mySource, this);
   }
 
   /**
@@ -67,7 +56,7 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
   public PsiField findFieldByName(String name, boolean checkBases) {
     // bail if this is a scenario we don't fully support
     if (myResourceType == ResourceType.STYLEABLE // styleables require further modification of the name to handle sub attributes
-        || !myFacet.getConfiguration().isLibraryProject()) { // app projects use final ids, which requires assigning ids to all fields
+        || mySource.getFieldModifier() == AndroidLightField.FieldModifier.FINAL) { // app projects use final ids, which requires assigning ids to all fields
       return super.findFieldByName(name, checkBases);
     }
 

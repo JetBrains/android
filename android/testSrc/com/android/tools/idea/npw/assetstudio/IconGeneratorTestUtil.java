@@ -104,7 +104,7 @@ public final class IconGeneratorTestUtil {
       PathString folder = relativePath.getParent();
       actualFolders.add(folder == null ? "" : folder.getFileName());
 
-      Path goldenBase = generatedIcon.getCategory() == IconCategory.WEB ? goldenRoot : goldenRoot.resolve("res");
+      Path goldenBase = generatedIcon.getCategory() == IconCategory.PLAY_STORE ? goldenRoot : goldenRoot.resolve("res");
       File goldenFile = goldenBase.resolve(relativePath.getNativePath()).toFile();
       try (InputStream is = new BufferedInputStream(new FileInputStream(goldenFile))) {
         if (generatedIcon instanceof GeneratedImageIcon) {

@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.databinding.psiclass;
 
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods for creating / finding data-binding related classes.
@@ -45,10 +47,14 @@ public final class DataBindingClassFactory {
   /**
    * Package private class used by BR class finder and BR short names cache to create a BR file on demand.
    *
+   * We may not be able to obtain enough information from the given facet to create a corresponding
+   * LightBRClass at this time (i.e. because we couldn't determine the class's fully-qualified name).
+   * In such cases, this method will return null.
+   *
    * @param facet The facet for which the BR file is necessary.
-   * @return The LightBRClass that belongs to the given AndroidFacet
+   * @return The LightBRClass that belongs to the given AndroidFacet, or null if it wasn't cached and couldn't be created at this time.
    */
-  @NotNull
+  @Nullable
   public static LightBrClass getOrCreateBrClassFor(@NotNull AndroidFacet facet) {
     ModuleDataBinding dataBinding = ModuleDataBinding.getInstance(facet);
 
@@ -58,7 +64,11 @@ public final class DataBindingClassFactory {
       synchronized (facet) {
         existing = dataBinding.getLightBrClass();
         if (existing == null) {
-          existing = new LightBrClass(PsiManager.getInstance(facet.getModule().getProject()), facet);
+          String qualifiedName = DataBindingUtil.getBrQualifiedName(facet);
+          if (qualifiedName == null) {
+            return null;
+          }
+          existing = new LightBrClass(PsiManager.getInstance(facet.getModule().getProject()), facet, qualifiedName);
           dataBinding.setLightBrClass(existing);
         }
       }

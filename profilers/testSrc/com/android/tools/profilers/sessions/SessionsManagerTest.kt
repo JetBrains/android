@@ -22,6 +22,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.profilers.FakeIdeProfilerServices
@@ -363,10 +364,26 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     val liveAllocationsInfoTimestamp = 40L
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
+    val legacyAllocationsInfo = AllocationsInfo.newBuilder()
+      .setStartTime(legacyAllocationsInfoTimestamp).setEndTime(legacyAllocationsInfoTimestamp + 1).setLegacy(true).build()
+    val liveAllocationsInfo = AllocationsInfo.newBuilder().setStartTime(liveAllocationsInfoTimestamp).build()
     if (useUnifiedEvents) {
       val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(session1Timestamp, session1Timestamp, heapDumpInfo)
       myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session1.pid).build())
       myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session2.pid).build())
+
+      myTransportService.addEventToStream(
+        device.deviceId,
+        ProfilersTestData.generateMemoryAllocationInfoData(legacyAllocationsInfoTimestamp, session1.pid, legacyAllocationsInfo).build())
+      myTransportService.addEventToStream(
+        device.deviceId,
+        ProfilersTestData.generateMemoryAllocationInfoData(liveAllocationsInfoTimestamp, session1.pid, liveAllocationsInfo).build())
+      myTransportService.addEventToStream(
+        device.deviceId,
+        ProfilersTestData.generateMemoryAllocationInfoData(legacyAllocationsInfoTimestamp, session2.pid, legacyAllocationsInfo).build())
+      myTransportService.addEventToStream(
+        device.deviceId,
+        ProfilersTestData.generateMemoryAllocationInfoData(liveAllocationsInfoTimestamp, session2.pid, liveAllocationsInfo).build())
 
       val cpuTrace = Common.Event.newBuilder()
         .setGroupId(session1Timestamp + cpuTraceTimestamp)
@@ -381,13 +398,9 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     else {
       myCpuService.addTraceInfo(cpuTraceInfo)
       myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+      myMemoryService.setMemoryData(
+        MemoryProfiler.MemoryData.newBuilder().addAllAllocationsInfo(Arrays.asList(legacyAllocationsInfo, liveAllocationsInfo)).build())
     }
-    val allocationInfos = MemoryProfiler.MemoryData.newBuilder()
-      .addAllocationsInfo(MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(legacyAllocationsInfoTimestamp).setEndTime(
-        legacyAllocationsInfoTimestamp + 1).setLegacy(true).build())
-      .addAllocationsInfo(MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(liveAllocationsInfoTimestamp).build())
-      .build()
-    myMemoryService.setMemoryData(allocationInfos)
     myManager.update()
 
     // The Hprof and CPU capture artifacts are now included and sorted in ascending order

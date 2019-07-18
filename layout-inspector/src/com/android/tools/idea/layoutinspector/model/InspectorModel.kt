@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.intellij.openapi.project.Project
 import kotlin.properties.Delegates
 
 class InspectorModel(val project: Project, initialRoot: ViewNode) {
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
   val modificationListeners = mutableListOf<(ViewNode?, ViewNode?, Boolean) -> Unit>()
+  val resourceLookup = ResourceLookup(project)
 
   var selection: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
     if (new != old) {

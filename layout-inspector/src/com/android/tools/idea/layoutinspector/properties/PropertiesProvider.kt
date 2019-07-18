@@ -31,6 +31,7 @@ import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import java.util.Locale
+import com.intellij.openapi.application.ApplicationManager
 
 private val INT32_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.INT32_VALUE_FIELD_NUMBER)
 private val INT64_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.INT64_VALUE_FIELD_NUMBER)
@@ -66,6 +67,7 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
     private val stringTable = StringTable(properties.stringList)
     private val layout = stringTable[properties.layout]
     private val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
+    private val resourceLookup = model.layoutInspector?.layoutInspectorModel?.resourceLookup
 
     fun generate(): Table<String, String, InspectorPropertyItem> {
       for (property in properties.propertyList) {
@@ -90,9 +92,43 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
           Type.COLOR -> fromColor(property)
           else -> ""
         }
-        add(InspectorPropertyItem(ANDROID_URI, name, property.type, value, isDeclared, source, view, model))
+        add(InspectorPropertyItem(ANDROID_URI, name, name, property.type, value, isDeclared, source, view, model))
       }
+      ApplicationManager.getApplication().runReadAction { generateItemsForResolutionStack() }
       return table
+    }
+
+    /**
+     * Generate items for displaying the resolution stack.
+     *
+     * Each property may include a resolution stack i.e. places and values in e.g. styles
+     * that are overridden by other attribute or style assignments.
+     *
+     * In the inspector properties table we have chosen to show these as independent values
+     * in collapsible sections for each property. The resolution stack is received as a list
+     * of resource references that may (or may not) set the value of the current attribute.
+     * The code below will lookup the value (from PSI source files) of each possible resource
+     * reference. If any values were found the original property item is replaced with a group
+     * item with children consisting of the available resource references where a value was
+     * found.
+     */
+    private fun generateItemsForResolutionStack() {
+      for (property in properties.propertyList) {
+        val name = stringTable[property.name]
+        val item = table[ANDROID_URI, name]
+        val map = property.resolutionStackList
+          .mapNotNull { stringTable[it] }
+          .associateWith { resourceLookup?.findAttributeValue(item, it) }
+          .filter { (ref, value) -> value != null || ref == item.view.layout }
+          .toMutableMap()
+        val firstRef = map.keys.firstOrNull()
+        if (firstRef != null && firstRef == item.source) {
+          map.remove(firstRef)
+        }
+        if (map.isNotEmpty() || item.source != null) {
+          add(InspectorGroupPropertyItem(ANDROID_URI, name, property.type, item.value, item.isDeclared, item.source, view, model, map))
+        }
+      }
     }
 
     private fun fromResource(property: Property, layout: ResourceReference?): String {

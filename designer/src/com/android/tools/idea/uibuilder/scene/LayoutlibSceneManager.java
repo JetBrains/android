@@ -499,7 +499,9 @@ public class LayoutlibSceneManager extends SceneManager {
     @Override
     public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
       updateTargets();
-      getScene().needsRebuildList();
+      Scene scene = getScene();
+      scene.needsRebuildList();
+      scene.repaint();
     }
   }
 
@@ -534,6 +536,10 @@ public class LayoutlibSceneManager extends SceneManager {
     });
 
     return callback;
+  }
+
+  private CompletableFuture<Void> requestRender(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    return requestRender(trigger, false);
   }
 
   private class ConfigurationChangeListener implements ConfigurationListener {
@@ -793,6 +799,7 @@ public class LayoutlibSceneManager extends SceneManager {
     if (project.isDisposed()) {
       return CompletableFuture.completedFuture(false);
     }
+
     ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(project);
 
     // Some types of files must be saved to disk first, because layoutlib doesn't

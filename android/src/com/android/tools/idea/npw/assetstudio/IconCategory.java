@@ -26,7 +26,7 @@ public enum IconCategory {
   // Various image.
   LEGACY,
   ROUND_API_25,
-  WEB,
+  PLAY_STORE,
 
   // Adaptive icons previews.
   ADAPTIVE_FULL_BLEED,

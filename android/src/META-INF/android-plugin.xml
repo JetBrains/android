@@ -39,10 +39,6 @@
   <application-components>
     <component>
       <implementation-class>org.jetbrains.android.AndroidPlugin</implementation-class>
-      <interface-class>org.jetbrains.android.AndroidPlugin</interface-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.apk.viewer.ApkFileSystem</implementation-class>
     </component>
   </application-components>
   <project-components>
@@ -312,12 +308,12 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before java" />
+    <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
     <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner" id="android"
                        order="first, before gradle"/>
     <debugger.positionManagerFactory implementation="com.android.tools.idea.debug.AndroidPositionManagerFactory"/>
-    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity" order="last"/>
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
     <applicationService serviceImplementation="com.android.tools.idea.res.FrameworkResourceRepositoryManager"/>
@@ -375,8 +371,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledPatchCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.DeploymentApplicationService" />
     <applicationService serviceImplementation="com.android.tools.idea.templates.RepositoryUrlManager"/>
-    <applicationService serviceInterface="org.jetbrains.android.uipreview.AndroidEditorSettings"
-                        serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
+    <applicationService serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureTypeService"/>
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 
@@ -387,8 +382,7 @@
 
     <applicationConfigurable groupId="tools" id="device.file.explorer"
                              provider="com.android.tools.idea.explorer.options.DeviceFileExplorerConfigurableProvider"/>
-    <applicationService serviceInterface="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"
-                        serviceImplementation="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"/>
 
     <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
                              provider="com.android.tools.idea.uibuilder.options.NlOptionsConfigurableProvider"/>
@@ -397,11 +391,9 @@
     <applicationService serviceImplementation="com.android.tools.idea.deploy.DeploymentConfiguration"/>
     <projectConfigurable instance="com.android.tools.idea.flags.ExperimentalSettingsConfigurable"
                          id ="experimental" displayName="Experimental" groupId="root" groupWeight="-999"/>
-    <applicationService serviceInterface="com.android.tools.idea.gradle.project.GradleExperimentalSettings"
-                        serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.StudioSettingsController"/>
-    <projectService serviceInterface="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"
-                    serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
 
     <applicationService serviceInterface="com.intellij.openapi.help.HelpManager"
                         serviceImplementation="com.android.tools.idea.help.StudioHelpManagerImpl"
@@ -585,7 +577,6 @@
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidKtsSupportNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.structure.editors.AndroidProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildTreeViewConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.run.DevicePickerStateService" />
@@ -593,23 +584,16 @@
     <projectService serviceImplementation="com.android.tools.idea.run.DeploymentService" />
 
     <projectService serviceImplementation="com.android.tools.idea.run.profiler.CpuProfilerConfigsState" />
-    <projectService serviceInterface="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"
-                    serviceImplementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"/>
-    <projectService serviceInterface="com.android.tools.idea.logcat.AndroidLogcatPreferences"
-                    serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatPreferences"/>
-    <projectService serviceInterface="com.android.tools.idea.logcat.PersistentAndroidLogFilters"
-                    serviceImplementation="com.android.tools.idea.logcat.PersistentAndroidLogFilters"/>
-    <projectService serviceInterface="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"
-                    serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
-    <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
-                    serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"/>
+    <projectService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatPreferences"/>
+    <projectService serviceImplementation="com.android.tools.idea.logcat.PersistentAndroidLogFilters"/>
+    <projectService serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage"/>
 
     <referencesSearch implementation="org.jetbrains.android.AndroidReferenceSearchExecutor"/>
-    <projectService serviceInterface="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"
-                    serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
-    <projectService serviceInterface="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"
-                    serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
+    <projectService serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
+    <projectService serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
     <projectService serviceInterface="com.intellij.openapi.roots.ui.configuration.ProjectSettingsService"
                     serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectSettingsService"
                     overrides="true"/>
@@ -739,6 +723,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.logcat.output.LogcatOutputSettings" />
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
+    <virtualFileSystem key="apk" implementationClass="com.android.tools.idea.apk.viewer.ApkFileSystem"/>
     <generatedSourcesFilter implementation="com.android.tools.idea.gradle.roots.AndroidGeneratedSourcesFilter"/>
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
     <codeInsight.unresolvedReferenceQuickFixProvider

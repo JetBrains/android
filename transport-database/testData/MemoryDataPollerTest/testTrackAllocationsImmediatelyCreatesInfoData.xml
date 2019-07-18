@@ -108,7 +108,9 @@ enabled: true
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/TrackAllocations" Class="class com.android.tools.profiler.proto.MemoryProfiler$TrackAllocationsResponse">
-        <Message>status: SUCCESS
+        <Message>status {
+  status: SUCCESS
+}
 info {
   start_time: 86401000000000
   end_time: 9223372036854775807
@@ -117,7 +119,9 @@ info {
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$TrackAllocationsResponse</clazz>
         <functionCalled>profiler.proto.MemoryService/TrackAllocations</functionCalled>
-        <message>status: SUCCESS
+        <message>status {
+  status: SUCCESS
+}
 info {
   start_time: 86401000000000
   end_time: 9223372036854775807

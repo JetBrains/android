@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqliteExplorer
 
 import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.sqlite.SqliteServiceFactoryImpl
 import com.android.tools.idea.sqlite.controllers.SqliteController
 import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactoryImpl
@@ -34,22 +35,44 @@ import javax.swing.JComponent
  * Intellij Project Service that holds the reference to the [SqliteController]
  * and is the entry point for opening a Sqlite database in the Sqlite Explorer tool window.
  */
-class SqliteExplorerProjectService(
-  private val project: Project,
-  private val toolWindowManager: ToolWindowManager
-) {
+interface SqliteExplorerProjectService {
   companion object {
     @JvmStatic fun getInstance(project: Project): SqliteExplorerProjectService {
       return ServiceManager.getService(project, SqliteExplorerProjectService::class.java)
     }
   }
 
-  private val controller: SqliteController
+  /**
+   * [JComponent] that contains the view of the Sqlite Explorer.
+   */
+  val sqliteInspectorComponent: JComponent
 
   /**
-   * Returns the [JComponent] that contains the view of the Sqlite Explorer
+   * Opens the database contained in the file passed as argument in the Sqlite Inspector.
    */
-  val component get() = controller.sqliteView.component
+  @AnyThread
+  fun openSqliteDatabase(file: VirtualFile)
+
+  /**
+   * Returns true if the Sqlite Inspector has an open database, false otherwise.
+   */
+  @UiThread
+  fun hasOpenDatabase(): Boolean
+
+  /**
+   * Runs the query passed as argument in the Sqlite Inspector.
+   */
+  @UiThread
+  fun runQuery(query: String)
+}
+
+class SqliteExplorerProjectServiceImpl(
+  private val project: Project,
+  private val toolWindowManager: ToolWindowManager
+) : SqliteExplorerProjectService {
+  private val controller: SqliteController
+
+  override val sqliteInspectorComponent get() = controller.sqliteView.component
 
   init {
     val sqliteView: SqliteView = invokeAndWaitIfNeeded { SqliteViewImpl(project, project) }
@@ -66,7 +89,15 @@ class SqliteExplorerProjectService(
   }
 
   @AnyThread
-  fun openSqliteDatabase(file: VirtualFile) {
+  override fun openSqliteDatabase(file: VirtualFile) {
     toolWindowManager.getToolWindow(SqliteExplorerToolWindowFactory.TOOL_WINDOW_ID).show { controller.openSqliteDatabase(file) }
+  }
+
+  @UiThread
+  override fun hasOpenDatabase() = controller.hasOpenDatabase()
+
+  @UiThread
+  override fun runQuery(query: String) {
+    controller.runSqlStatement(query)
   }
 }

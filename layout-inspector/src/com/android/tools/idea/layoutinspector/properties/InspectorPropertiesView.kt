@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
-import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.PropertiesView
@@ -43,7 +42,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
       }
   }
 
-  private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
+  private val editorProvider = ResolutionStackEditorProvider(enumSupportProvider, controlTypeProvider)
 
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")

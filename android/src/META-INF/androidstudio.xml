@@ -15,7 +15,7 @@
  * limitations under the License.
  *
   -->
-<idea-plugin url="https://www.jetbrains.com/idea">
+<idea-plugin>
   <application-components>
     <component>
       <implementation-class>com.android.tools.idea.stats.LowMemoryReporter</implementation-class>
@@ -121,14 +121,6 @@
             class="com.android.tools.idea.apk.ImportApkAction" text="Profile or Debug APK...">
       <add-to-group group-id="FileOpenGroup" relative-to-action="OpenFile" anchor="after"/>
     </action>
-
-    <group id="Internal.HeapAnalysis" text="Android Studio Heap Analysis" popup="true" internal="true">
-      <action class="com.android.tools.idea.diagnostics.hprof.action.InternalUserInvokedFullAnalysisAction" id="UserInvokedFullAnalysis"
-              text="Create And Immediately Analyze Heap Dump" internal="true"/>
-      <action class="com.android.tools.idea.diagnostics.hprof.action.InternalNonuserInvokedHeapDumpSnapshotAction" id="SilentHeapDumpSnapshot"
-              text="Create And Schedule Heap Dump Analysis (Non-user invoked)" internal="true"/>
-      <add-to-group group-id="Internal"/>
-    </group>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">

@@ -28,8 +28,9 @@ import java.awt.image.BufferedImage;
 public class BitmapRenderer extends CompoundReferenceRenderer implements FullValueEvaluatorProvider {
   private static final String BITMAP_FQCN = "android.graphics.Bitmap";
 
-  public BitmapRenderer(NodeRendererSettings rendererSettings) {
-    super(rendererSettings, "Bitmap", null, null);
+  BitmapRenderer() {
+    super(NodeRendererSettings.getInstance(), "Bitmap", null, null);
+
     setClassName(BITMAP_FQCN);
     setEnabled(true);
   }

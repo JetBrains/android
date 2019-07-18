@@ -112,9 +112,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   private static final String BACKGROUND_COLOR_PROPERTY = "backgroundColor";
   private static final String GENERATE_LEGACY_ICON_PROPERTY = "generateLegacyIcon";
   private static final String GENERATE_ROUND_ICON_PROPERTY = "generateRoundIcon";
-  private static final String GENERATE_WEB_ICON_PROPERTY = "generateWebIcon";
+  private static final String GENERATE_PLAY_STORE_ICON_PROPERTY = "generatePlayStoreIcon";
   private static final String LEGACY_ICON_SHAPE_PROPERTY = "legacyIconShape";
-  private static final String WEB_ICON_SHAPE_PROPERTY = "webIconShape";
   private static final String SHOW_GRID_PROPERTY = "showGrid";
   private static final String SHOW_SAFE_ZONE_PROPERTY = "showSafeZone";
   private static final String PREVIEW_DENSITY_PROPERTY = "previewDensity";
@@ -237,19 +236,13 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myLegacyIconShapePanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
-  private JPanel myGenerateWebIconRowPanel;
+  private JPanel myGeneratePlayStoreIconRowPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
-  private JBLabel myGenerateWebIconLabel;
+  private JBLabel myGeneratePlayStoreIconLabel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
-  private JPanel myGenerateWebIconRadioButtonsPanel;
-  private JRadioButton myGenerateWebIconYesRadioButton;
+  private JPanel myGeneratePlayStoreIconRadioButtonsPanel;
+  private JRadioButton myGeneratePlayStoreIconYesRadioButton;
   private JRadioButton myBackgroundTrimNoRadioButton;
-  private JBLabel myWebIconShapeLabel;
-  private JComboBox<Shape> myWebIconShapeComboBox;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
-  private JPanel myWebIconShapePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
-  private JPanel myWebIconShapePanelRow;
 
   // @formatter:off
   private final Map<Shape, String> myShapeNames = ImmutableMap.of(
@@ -292,9 +285,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   private IntProperty myBackgroundResizePercent;
   private BoolProperty myGenerateLegacyIcon;
   private BoolProperty myGenerateRoundIcon;
-  private BoolProperty myGenerateWebIcon;
+  private BoolProperty myGeneratePlayStoreIcon;
   private AbstractProperty<Shape> myLegacyIconShape;
-  private AbstractProperty<Shape> myWebIconShape;
 
   /**
    * Initializes a panel which can generate Android launcher icons. The supported types passed in
@@ -332,19 +324,6 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     });
     myLegacyIconShapeComboBox.setModel(legacyShapesModel);
     myLegacyIconShapeComboBox.setSelectedItem(Shape.SQUARE);
-
-    DefaultComboBoxModel<Shape> webShapesModel = new DefaultComboBoxModel<>();
-    for (Shape shape : myShapeNames.keySet()) {
-      webShapesModel.addElement(shape);
-    }
-    myWebIconShapeComboBox.setRenderer(new ListCellRendererWrapper<Shape>() {
-      @Override
-      public void customize(JList list, Shape shape, int index, boolean selected, boolean hasFocus) {
-        setText(myShapeNames.get(shape));
-      }
-    });
-    myWebIconShapeComboBox.setModel(webShapesModel);
-    myWebIconShapeComboBox.setSelectedItem(Shape.SQUARE);
 
     myForegroundScrollPane.getVerticalScrollBar().setUnitIncrement(10);
     myForegroundScrollPane.setBorder(JBUI.Borders.empty());
@@ -405,7 +384,6 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myBackgroundColorLabel.setLabelFor(myBackgroundColorPanel);
     myGenerateRoundIconLabel.setLabelFor(myGenerateRoundIconRadioButtonsPanel);
     myLegacyIconShapeLabel.setLabelFor(myLegacyIconShapeComboBox);
-    myWebIconShapeLabel.setLabelFor(myWebIconShapeComboBox);
 
     myForegroundAssetType = new SelectedRadioButtonProperty<>(DEFAULT_FOREGROUND_ASSET_TYPE, ForegroundAssetType.values(),
                                                               myForegroundImageRadioButton, myForegroundClipartRadioButton,
@@ -447,9 +425,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     state.set(BACKGROUND_COLOR_PROPERTY, myBackgroundColor.get(), LauncherIconGenerator.DEFAULT_BACKGROUND_COLOR);
     state.set(GENERATE_LEGACY_ICON_PROPERTY, myGenerateLegacyIcon.get(), true);
     state.set(GENERATE_ROUND_ICON_PROPERTY, myGenerateRoundIcon.get(), true);
-    state.set(GENERATE_WEB_ICON_PROPERTY, myGenerateWebIcon.get(), true);
+    state.set(GENERATE_PLAY_STORE_ICON_PROPERTY, myGeneratePlayStoreIcon.get(), true);
     state.set(LEGACY_ICON_SHAPE_PROPERTY, myLegacyIconShape.get(), DEFAULT_ICON_SHAPE);
-    state.set(WEB_ICON_SHAPE_PROPERTY, myWebIconShape.get(), DEFAULT_ICON_SHAPE);
     state.set(SHOW_GRID_PROPERTY, myShowGrid.get(), false);
     state.set(SHOW_SAFE_ZONE_PROPERTY, myShowSafeZone.get(), true);
     state.set(PREVIEW_DENSITY_PROPERTY, myPreviewDensity.get(), DEFAULT_PREVIEW_DENSITY);
@@ -476,9 +453,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myBackgroundColor.set(state.get(BACKGROUND_COLOR_PROPERTY, LauncherIconGenerator.DEFAULT_BACKGROUND_COLOR));
     myGenerateLegacyIcon.set(state.get(GENERATE_LEGACY_ICON_PROPERTY, true));
     myGenerateRoundIcon.set(state.get(GENERATE_ROUND_ICON_PROPERTY, true));
-    myGenerateWebIcon.set(state.get(GENERATE_WEB_ICON_PROPERTY, true));
+    myGeneratePlayStoreIcon.set(state.get(GENERATE_PLAY_STORE_ICON_PROPERTY, true));
     myLegacyIconShape.set(state.get(LEGACY_ICON_SHAPE_PROPERTY, DEFAULT_ICON_SHAPE));
-    myWebIconShape.set(state.get(WEB_ICON_SHAPE_PROPERTY, DEFAULT_ICON_SHAPE));
     myShowGrid.set(state.get(SHOW_GRID_PROPERTY, false));
     myShowSafeZone.set(state.get(SHOW_SAFE_ZONE_PROPERTY, true));
     myPreviewDensity.set(state.get(PREVIEW_DENSITY_PROPERTY, DEFAULT_PREVIEW_DENSITY));
@@ -516,10 +492,9 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myBackgroundColor = ObjectProperty.wrap(new ColorProperty(myBackgroundColorPanel));
     myGenerateLegacyIcon = new SelectedProperty(myGenerateLegacyIconYesRadioButton);
     myGenerateRoundIcon = new SelectedProperty(myGenerateRoundIconYesRadioButton);
-    myGenerateWebIcon = new SelectedProperty(myGenerateWebIconYesRadioButton);
+    myGeneratePlayStoreIcon = new SelectedProperty(myGeneratePlayStoreIconYesRadioButton);
 
     myLegacyIconShape = ObjectProperty.wrap(new SelectedItemProperty<>(myLegacyIconShapeComboBox));
-    myWebIconShape = ObjectProperty.wrap(new SelectedItemProperty<>(myWebIconShapeComboBox));
 
     updateBindingsAndUiForActiveIconType();
 
@@ -551,8 +526,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
         .listenAll(myForegroundTrimmed, myForegroundResizePercent, myForegroundColor,
                    myBackgroundTrimmed, myBackgroundResizePercent, myBackgroundColor,
                    myGenerateLegacyIcon, myLegacyIconShape,
-                   myGenerateRoundIcon,
-                   myGenerateWebIcon, myWebIconShape)
+                   myGenerateRoundIcon, myGeneratePlayStoreIcon)
         .with(onAssetModified);
 
     BoolValueProperty foregroundIsResizable = new BoolValueProperty();
@@ -639,7 +613,6 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     }
 
     layoutPropertiesBuilder.put(new EnabledProperty(myLegacyIconShapeComboBox), new SelectedProperty(myGenerateLegacyIconYesRadioButton));
-    layoutPropertiesBuilder.put(new EnabledProperty(myWebIconShapeComboBox), new SelectedProperty(myGenerateWebIconYesRadioButton));
 
     ImmutableMap<BoolProperty, ObservableValue<Boolean>> layoutProperties = layoutPropertiesBuilder.build();
     for (Map.Entry<BoolProperty, ObservableValue<Boolean>> entry : layoutProperties.entrySet()) {
@@ -741,9 +714,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myGeneralBindings.bindTwoWay(myBackgroundColor, myIconGenerator.backgroundColor());
     myGeneralBindings.bindTwoWay(myGenerateLegacyIcon, myIconGenerator.generateLegacyIcon());
     myGeneralBindings.bindTwoWay(myGenerateRoundIcon, myIconGenerator.generateRoundIcon());
-    myGeneralBindings.bindTwoWay(myGenerateWebIcon, myIconGenerator.generateWebIcon());
+    myGeneralBindings.bindTwoWay(myGeneratePlayStoreIcon, myIconGenerator.generatePlayStoreIcon());
     myGeneralBindings.bindTwoWay(myLegacyIconShape, myIconGenerator.legacyIconShape());
-    myGeneralBindings.bindTwoWay(myWebIconShape, myIconGenerator.webIconShape());
     myGeneralBindings.bindTwoWay(myShowGrid, myIconGenerator.showGrid());
     myGeneralBindings.bindTwoWay(myShowSafeZone, myIconGenerator.showSafeZone());
     myGeneralBindings.bindTwoWay(myPreviewDensity, myIconGenerator.previewDensity());

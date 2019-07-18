@@ -35,9 +35,9 @@ data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val n
 
 class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
-  internal var xOff = 0.0
+  var xOff = 0.0
   @VisibleForTesting
-  internal var yOff = 0.0
+  var yOff = 0.0
 
   private var rootDimension: Dimension = Dimension()
   private var maxDepth: Int = 0
@@ -49,7 +49,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootDimension.height.toFloat()).toInt()
 
   @VisibleForTesting
-  internal var hitRects = listOf<ViewDrawInfo>()
+  var hitRects = listOf<ViewDrawInfo>()
 
   init {
     refresh()

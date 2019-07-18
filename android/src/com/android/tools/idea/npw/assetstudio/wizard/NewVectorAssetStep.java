@@ -41,6 +41,7 @@ import com.android.tools.idea.observable.core.IntProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
@@ -259,10 +260,10 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myListeners.listenAndFire(myActiveAsset, () -> {
       myActiveAssetBindings.releaseAll();
 
-      ObjectProperty<File> fileProperty = myActiveAsset.get().path();
+      OptionalValueProperty<File> fileProperty = myActiveAsset.get().path();
       myActiveAssetBindings.bind(myOutputName, Expression.create(() -> {
-        File file = fileProperty.get();
-        if (!file.exists() || file.isDirectory()) {
+        File file = fileProperty.getValueOrNull();
+        if (file == null || !file.exists() || file.isDirectory()) {
           return DEFAULT_OUTPUT_NAME;
         }
 
@@ -367,8 +368,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     state.set(OUTPUT_NAME_PROPERTY, myOutputName.get(), DEFAULT_OUTPUT_NAME);
     state.set(ASSET_SOURCE_TYPE_PROPERTY, myAssetSourceType.get(), DEFAULT_ASSET_SOURCE_TYPE);
     state.setChild(CLIPART_ASSET_PROPERTY, myClipartAssetButton.getState());
-    File file = myFileBrowser.getAsset().path().get();
-    state.set(SOURCE_FILE_PROPERTY, file.getPath(), getProjectPath());
+    File file = myFileBrowser.getAsset().path().getValueOrNull();
+    state.set(SOURCE_FILE_PROPERTY, file == null ? getProjectPath() : file.getPath(), getProjectPath());
     state.set(COLOR_PROPERTY, myColor.get(), DEFAULT_COLOR);
     state.set(OPACITY_PERCENT_PROPERTY, myOpacityPercent.get(), 100);
     state.set(AUTO_MIRRORED_PROPERTY, myAutoMirrored.get(), false);
@@ -384,7 +385,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         myAssetSourceType.set(state.get(ASSET_SOURCE_TYPE_PROPERTY, DEFAULT_ASSET_SOURCE_TYPE));
         PersistentStateUtil.load(myClipartAssetButton, state.getChild(CLIPART_ASSET_PROPERTY));
         String path = state.get(SOURCE_FILE_PROPERTY, getProjectPath());
-        myFileBrowser.getAsset().path().set(new File(path));
+        myFileBrowser.getAsset().path().setValue(new File(path));
         myColor.set(state.get(COLOR_PROPERTY, DEFAULT_COLOR));
         myOpacityPercent.set(state.get(OPACITY_PERCENT_PROPERTY, 100));
         myAutoMirrored.set(state.get(AUTO_MIRRORED_PROPERTY, false));
@@ -455,11 +456,11 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
     private SwingWorker createWorker(int previewWidth) {
       return new SwingWorker() {
-        VectorAsset.Preview myPreview;
-        VectorAsset myAsset = myActiveAsset.get();
-        File myAssetFile = myAsset.path().get();
-        VectorAsset.VectorDrawableInfo myVectorDrawableInfo = myAsset.getVectorDrawableInfo().get();
-        VdOverrideInfo myOverrideInfo = myAsset.createOverrideInfo();
+        @Nullable VectorAsset.Preview myPreview;
+        @NotNull VectorAsset myAsset = myActiveAsset.get();
+        @Nullable File myAssetFile = myAsset.path().getValueOrNull();
+        @NotNull VectorAsset.VectorDrawableInfo myVectorDrawableInfo = myAsset.getVectorDrawableInfo().get();
+        @NotNull VdOverrideInfo myOverrideInfo = myAsset.createOverrideInfo();
 
         @WorkerThread
         @Override
@@ -469,7 +470,10 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
             myPreview = VectorAsset.generatePreview(myVectorDrawableInfo, previewWidth, myOverrideInfo);
           } catch (Throwable t) {
             Logger.getInstance(getClass()).error(t);
-            myPreview = new VectorAsset.Preview("Internal error generating preview for " + myAssetFile.getName());
+            String message = myAssetFile == null ?
+                "Internal error generating preview" :
+                "Internal error generating preview for " + myAssetFile.getName();
+            myPreview = new VectorAsset.Preview(message);
           }
           return null;
         }

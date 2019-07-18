@@ -45,7 +45,7 @@ public class SelectParentAction extends AnAction {
       enabled = false;
     }
     else {
-      SceneView screenView = mySurface.getCurrentSceneView();
+      SceneView screenView = mySurface.getFocusedSceneView();
       if (screenView != null) {
         List<NlComponent> selection = screenView.getSelectionModel().getSelection();
         enabled = selection.size() == 1 && !selection.get(0).isRoot();
@@ -59,7 +59,7 @@ public class SelectParentAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getFocusedSceneView();
     if (screenView != null) {
       SelectionModel selectionModel = screenView.getSelectionModel();
       List<NlComponent> selection = selectionModel.getSelection();

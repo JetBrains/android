@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.surface;
 
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
 import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 
@@ -208,14 +207,14 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
-    assertNotNull(mySurface.getCurrentSceneView());
+    assertNotNull(mySurface.getFocusedSceneView());
     assertNull(mySurface.getSceneManager().getSecondarySceneView());
 
     mySurface.setScreenMode(SceneMode.BOTH, false);
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
 
-    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getFocusedSceneView();
     SceneView blueprintView = mySurface.getSceneManager().getSecondarySceneView();
     assertNotNull(screenView);
     assertNotNull(blueprintView);
@@ -457,7 +456,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     double origScale = mySurface.getScale();
     assertEquals(origScale, mySurface.getMinScale());
 
-    SceneView view = mySurface.getCurrentSceneView();
+    SceneView view = mySurface.getFocusedSceneView();
     JViewport viewport = mySurface.getScrollPane().getViewport();
     assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
 
@@ -511,7 +510,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     double origScale = mySurface.getScale();
     assertEquals(origScale, mySurface.getMinScale());
 
-    SceneView view = mySurface.getCurrentSceneView();
+    SceneView view = mySurface.getFocusedSceneView();
     JViewport viewport = mySurface.getScrollPane().getViewport();
     assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
 

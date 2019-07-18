@@ -95,7 +95,7 @@ public final class VectorIconButton extends JButton
         InputStream iconStream = selectedIcon.getURL().openStream();
         FileOutputStream outputStream = new FileOutputStream(iconFile);
         FileUtil.copy(iconStream, outputStream);
-        myXmlAsset.path().set(iconFile);
+        myXmlAsset.path().setValue(iconFile);
         // Our icons are always square, so although parse() expects width, we can pass in height.
         VectorAsset.Preview result = myXmlAsset.generatePreview(h);
 

@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.updatePrimaryManifest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
@@ -428,8 +429,8 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     }
 
     fun testInvalidManifest() {
-      runWriteCommandAction(project) {
-        myFacet.manifest!!.`package`!!.value = "."
+      updatePrimaryManifest(myFacet) {
+        `package`.value = "."
       }
 
       val activity = myFixture.addFileToProject(
@@ -454,9 +455,8 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       // The R class is not reachable from Java, but we should not crash trying to create an invalid package name.
       myFixture.checkHighlighting()
 
-
-      runWriteCommandAction(project) {
-        myFacet.manifest!!.`package`!!.value = "p1.p2"
+      updatePrimaryManifest(myFacet) {
+        `package`.value = "p1.p2"
       }
 
       // The first call to checkHighlighting removes error markers from the Document, so this makes sure there are no errors.
@@ -590,7 +590,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.checkHighlighting()
-      assertThat(resolveReferenceUnderCaret()).isInstanceOf(NamespacedAarRClass::class.java)
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(SmallAarRClass::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("R", "BuildConfig")
     }
@@ -723,7 +723,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.checkHighlighting()
-      assertThat(resolveReferenceUnderCaret()).isInstanceOf(NonNamespacedAarRClass::class.java)
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(TransitiveAarRClass::class.java)
     }
 
     fun testResourceNames_string() {

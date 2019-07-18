@@ -44,6 +44,6 @@ public abstract class AndroidInspectionTestCase extends LightInspectionTestCase 
     // Ensure that the MergedManifestManager has picked up the new manifest. Otherwise,
     // since we're using a shared project from a light project fixture, we might end up
     // with a stale merged manifest from another test case.
-    Futures.getUnchecked(MergedManifestManager.getMergedManifest(myModule));
+    Futures.getUnchecked(MergedManifestManager.getMergedManifest(myFixture.getModule()));
   }
 }

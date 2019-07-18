@@ -311,7 +311,7 @@ public class PalettePanelTest extends LayoutTestCase {
       JList<Palette.Item> list = myPanel.getItemList();
       TransferHandler handler = list.getTransferHandler();
       assertFalse(imitateDragAndDrop(handler, list));
-      verify(statusBar).notifyProgressByBalloon(eq(MessageType.WARNING), eq("Dragging from the Palette is not available while indices are updating."), isNull(), isNull());
+      verify(statusBar).notifyProgressByBalloon(eq(MessageType.WARNING), eq("Dragging from the Palette is not available while indices are updating."));
     }
     finally {
       DumbServiceImpl.getInstance(getProject()).setDumb(false);

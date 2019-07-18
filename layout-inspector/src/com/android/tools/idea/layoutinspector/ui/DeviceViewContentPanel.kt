@@ -40,7 +40,7 @@ private const val MARGIN = 50
 class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings: DeviceViewSettings) : JPanel() {
 
   private val inspectorModel = layoutInspector.layoutInspectorModel
-  internal var model = DeviceViewPanelModel(inspectorModel)
+  var model = DeviceViewPanelModel(inspectorModel)
 
   private val HQ_RENDERING_HINTS = mapOf(
     RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,

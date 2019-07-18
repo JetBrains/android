@@ -86,7 +86,7 @@ public class SdksCleanupStepTest extends IdeaTestCase {
       Module module = getModule();
       setUpModuleAsAndroid(module, mySdk);
 
-      SdksCleanupStep cleanupStep = new SdksCleanupStep(AndroidSdks.getInstance());
+      SdksCleanupStep cleanupStep = new SdksCleanupStep();
       Set<Sdk> fixedSdks = new HashSet<>();
       Set<Sdk> invalidSdks = new HashSet<>();
       cleanupStep.cleanUpSdk(module, fixedSdks, invalidSdks);

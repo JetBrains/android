@@ -81,11 +81,6 @@ public final class StudioFlags {
     "Let the user keep templates in the .android folder such that they are kept after a Studio install/upgrade",
     true);
 
-  public static final Flag<Boolean> NPW_OFFLINE_REPO_CHECKBOX = Flag.create(
-    NPW, "offline.repo.checkbox", "Use offline repo shipped with Android Studio",
-    "Checkbox mark adds a path to shipped offline repo to local.properties and references it in build.gradle's dependencies",
-    false);
-
   public static final Flag<Boolean> NPW_TEMPLATES_AUTOMOTIVE = Flag.create(
     NPW, "templates.automotive", "Include 'Automotive' templates in wizards",
     "Show 'Automotive' templates in 'New Project', 'New Module' and 'New component' wizards. Also present 'Automotive' devices in AVD.",
@@ -285,6 +280,11 @@ public final class StudioFlags {
     NELE, "split.layout.editor", "Enable design editors and XML side-by-side view.",
     "Enable this flag to display the design editors side-by-side with their text representation.",
     false);
+
+  public static final Flag<Boolean> NELE_RESOURCE_POPUP_PICKER = Flag.create(
+    NELE, "show.resource.popup.picker", "Enable popup  resource picker in layout editor.",
+    "Show the popup picker for resource picking or attribute customization in layout editor.",
+    true);
 
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
@@ -679,5 +679,13 @@ public final class StudioFlags {
     "If enabled, a notification will be shown",true);
   //endregion
 
-  private StudioFlags() {}
+  //region Compose
+  private static final FlagGroup COMPOSE = new FlagGroup(FLAGS, "compose", "Compose");
+  public static final Flag<Boolean> COMPOSE_PREVIEW = Flag.create(
+    COMPOSE, "compose.preview.enabled", "Enable the Compose preview",
+    "If enabled, a visual preview will be available for Compose.",
+    false);
+  //endregion
+
+  private StudioFlags() { }
 }

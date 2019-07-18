@@ -29,7 +29,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
@@ -114,6 +113,11 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
         override fun syncEnded(result: SyncResult) = ensureSubscribed()
       })
     }
+  }
+
+  companion object {
+    @JvmStatic
+    fun ensureSubscribed(project: Project) = project.getComponent(SubscriptionComponent::class.java).ensureSubscribed()
   }
 }
 

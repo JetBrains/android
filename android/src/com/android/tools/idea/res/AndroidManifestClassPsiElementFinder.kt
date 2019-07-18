@@ -30,7 +30,9 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.util.containers.isNullOrEmpty
 import org.jetbrains.android.augment.ManifestClass
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils
+import org.jetbrains.android.dom.manifest.getCustomPermissionGroups
+import org.jetbrains.android.dom.manifest.getCustomPermissions
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 
@@ -109,11 +111,11 @@ class AndroidManifestClassPsiElementFinder(
 
   private fun findAndroidFacetsWithPackageName(packageName: String): List<AndroidFacet> {
     // TODO(b/110188226): cache this and figure out how to invalidate that cache.
-    return projectFacetManager.getFacets(AndroidFacet.ID).filter { AndroidManifestUtils.getPackageName(it) == packageName }
+    return projectFacetManager.getFacets(AndroidFacet.ID).filter { getPackageName(it) == packageName }
   }
 
   private fun AndroidFacet.hasManifestClass(): Boolean {
-    return !AndroidManifestUtils.getCustomPermissions(this).isNullOrEmpty() ||
-           !AndroidManifestUtils.getCustomPermissionGroups(this).isNullOrEmpty()
+    return !getCustomPermissions(this).isNullOrEmpty() ||
+           !getCustomPermissionGroups(this).isNullOrEmpty()
   }
 }
