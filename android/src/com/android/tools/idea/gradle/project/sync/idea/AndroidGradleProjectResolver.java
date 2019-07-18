@@ -57,9 +57,11 @@ import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.java.model.GradlePluginModel;
+import com.android.model.sources.SourcesAndJavadocArtifacts;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -208,7 +210,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     final String rootName = gradleModule.getProject().getName();
     final boolean isRootModule = StringUtil.isEmpty(gradlePath) || ":".equals(gradlePath);
     moduleGroup = isRootModule
-                  ? new String[]{ moduleName }
+                  ? new String[]{moduleName}
                   : (rootName + gradlePath).split(":");
     return moduleGroup;
   }
@@ -288,6 +290,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
   }
 
+  private void populateSourcesAndJavadocModel(@NotNull IdeaModule gradleModule) {
+    Project project = myProjectFinder.findProject(resolverCtx);
+    SourcesAndJavadocArtifacts artifacts = resolverCtx.getExtraProject(gradleModule, SourcesAndJavadocArtifacts.class);
+    if (artifacts != null && project != null) {
+      LibraryFilePaths.getInstance(project).populate(artifacts);
+    }
+  }
+
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
     if (!isAndroidGradleProject()) {
@@ -295,6 +305,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       return;
     }
 
+    populateSourcesAndJavadocModel(gradleModule);
     ImportedModule importedModule = new ImportedModule(gradleModule);
     ideModule.createChild(IMPORTED_MODULE, importedModule);
 
@@ -397,14 +408,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       Collection<SyncIssue> issues = ImmutableList.of();
       if (projectSyncIssues != null) {
         issues = projectSyncIssues.getSyncIssues();
-      } else if (androidProject != null) {
+      }
+      else if (androidProject != null) {
         issues = androidProject.getSyncIssues();
       }
 
       // This is a Java lib module.
       createJavaProject(gradleModule, ideModule, issues, androidProjectWithoutVariants);
       // Populate ContentRootDataNode for buildSrc module. This DataNode is required to setup classpath buildscript.
-      if(BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName())){
+      if (BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName())) {
         nextResolver.populateModuleContentRoots(gradleModule, ideModule);
       }
     }
@@ -680,6 +692,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     SelectedVariants selectedVariants = null;
     boolean isSingleVariantSync = false;
     boolean shouldGenerateSources = false;
+    Collection<String> cachedSourcesAndJavadoc = null;
 
     if (project != null) {
       isSingleVariantSync = shouldOnlySyncSingleVariant(project);
@@ -688,12 +701,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         SelectedVariantCollector variantCollector = new SelectedVariantCollector(project);
         selectedVariants = variantCollector.collectSelectedVariants();
       }
+      cachedSourcesAndJavadoc = LibraryFilePaths.getInstance(project).retrieveCachedLibs();
     }
 
     SyncActionOptions options = new SyncActionOptions();
     options.setSingleVariantSyncEnabled(isSingleVariantSync);
     options.setShouldGenerateSources(shouldGenerateSources);
     options.setSelectedVariants(selectedVariants);
+    options.setCachedSourcesAndJavadoc(cachedSourcesAndJavadoc);
     return new AndroidExtraModelProvider(options);
   }
 

@@ -23,6 +23,7 @@ import com.android.builder.model.level2.GlobalLibraryMap
 import com.android.java.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
+import com.android.tools.idea.gradle.project.sync.idea.getSourcesAndJavadocArtifacts
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
@@ -59,11 +60,11 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
    * We do this by going through each module and query Gradle for the following models:
    *   1. Query for the AndroidProject for the module
    *   2. Query for the NativeAndroidProject (only if we also obtain an Android project)
-   *   3. Query for the GlobalLibraryMap for the module (we ALWAYS do this reguardless of the other two models)
+   *   3. Query for the GlobalLibraryMap for the module (we ALWAYS do this regardless of the other two models)
    *   4. (Single Variant Sync only) Work out which variant for which models we need to request, and request them.
    *      See IdeaSelectedVariantChooser for more details.
    *
-   * If single variant sync is enabled then [findParameterizedAndroidModel] will use Gradles parameterized model builder API
+   * If single variant sync is enabled then [findParameterizedAndroidModel] will use Gradle parameterized model builder API
    * in order to stop Gradle from building the variant.
    * All of the requested models are registered back to the external project system via the
    * [ProjectImportExtraModelProvider.BuildModelConsumer] callback.
@@ -86,6 +87,23 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       }
     }
 
+    if (syncActionOptions.isSingleVariantSyncEnabled) {
+      // This section is for Single Variant Sync specific models if we have reached here we should have already requested AndroidProjects
+      // without any Variant information. Now we need to request that Variant information for the variants that we are interested in.
+      // e.g the ones that should be selected by the IDE.
+
+      val selectedVariants = syncActionOptions.selectedVariants
+                             ?: throw IllegalStateException("Single variant sync requested, but SelectedVariants were null!")
+      chooseSelectedVariants(controller, androidModules, selectedVariants, syncActionOptions.shouldGenerateSources())
+      androidModules.forEach { module ->
+        // Variants can be empty if single-variant sync is enabled but not supported for current module.
+        if (module.variantGroup.variants.isNotEmpty()) {
+          consumer.consume(module.ideaModule, module.variantGroup, VariantGroup::class.java)
+        }
+      }
+    }
+
+    // GlobalLibraryMap must be requested after Variant models since it is built during dependency resolution.
     if (androidModules.isNotEmpty()) {
       val module = androidModules[0].ideaModule
       controller.findModel(module.gradleProject, GlobalLibraryMap::class.java)?.also { globalLibraryMap ->
@@ -93,21 +111,8 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       }
     }
 
-    if (!syncActionOptions.isSingleVariantSyncEnabled) return
-
-    // This section is for Single Variant Sync specific models if we have reached here we should have already requested AndroidProjects
-    // without any Variant information. Now we need to request that Variant information for the variants that we are interested in.
-    // e.g the ones that should be selected by the IDE.
-
-    val selectedVariants = syncActionOptions.selectedVariants
-                           ?: throw IllegalStateException("Single variant sync requested, but SelectedVariants were null!")
-    chooseSelectedVariants(controller, androidModules, selectedVariants, syncActionOptions.shouldGenerateSources())
-    androidModules.forEach { module ->
-      // Variants can be empty if single-variant sync is enabled but not supported for current module.
-      if (module.variantGroup.variants.isNotEmpty()) {
-        consumer.consume(module.ideaModule, module.variantGroup, VariantGroup::class.java)
-      }
-    }
+    // SourcesAndJavadocArtifacts must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
+    getSourcesAndJavadocArtifacts(controller, androidModules, syncActionOptions.cachedSourcesAndJavadoc, consumer)
   }
 
   private fun populateProjectSyncIssues(
