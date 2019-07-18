@@ -505,7 +505,6 @@ public class GradleSyncTest {
     IdeFrameFixture ideFrame = guiTest.openProject(projectDir);
     ideFrame.waitForGradleProjectSyncToFinish();
     ideFrame.closeProject();
-
     // Second time, open the project expecting no sync.
     ideFrame = guiTest.openProject(projectDir);
     ideFrame.waitForGradleProjectSyncToFinish();
