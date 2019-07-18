@@ -35,11 +35,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
@@ -69,8 +64,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private HeapDumpInfo myExplicitHeapDumpInfo = null;
   private MemoryData myMemoryData = null;
   private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
-  private LegacyAllocationEventsResponse.Builder myAllocationEventsBuilder = LegacyAllocationEventsResponse.newBuilder();
-  private LegacyAllocationContextsResponse.Builder myAllocationContextBuilder = LegacyAllocationContextsResponse.newBuilder();
   private int myTrackAllocationCount;
   private Common.Session mySession;
   private int mySamplingRate = 1;
@@ -127,8 +120,9 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   public void importLegacyAllocations(ImportLegacyAllocationsRequest request,
                                       StreamObserver<ImportLegacyAllocationsResponse> response) {
     myExplicitAllocationsInfo = request.getInfo();
-    myAllocationEventsBuilder = request.getAllocations().toBuilder();
-    myAllocationContextBuilder.addAllClasses(request.getClassesList()).addAllStacks(request.getStacksList());
+    if (myTransportService != null) {
+      myTransportService.addFile(Long.toString(request.getInfo().getStartTime()), request.getData());
+    }
     myMemoryData = MemoryData.newBuilder().addAllocationsInfo(request.getInfo()).build();
     response.onNext(ImportLegacyAllocationsResponse.newBuilder().setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build());
     response.onCompleted();
@@ -145,20 +139,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   public void getJvmtiData(MemoryRequest request, StreamObserver<MemoryData> responseObserver) {
     responseObserver
       .onNext(myMemoryData != null ? myMemoryData : MemoryData.newBuilder().setEndTimestamp(request.getStartTime() + 1).build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getLegacyAllocationEvents(LegacyAllocationEventsRequest request,
-                                        StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
-    responseObserver.onNext(myAllocationEventsBuilder.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                          StreamObserver<MemoryProfiler.LegacyAllocationContextsResponse> responseObserver) {
-    responseObserver.onNext(myAllocationContextBuilder.build());
     responseObserver.onCompleted();
   }
 
@@ -267,26 +247,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   public FakeMemoryService addExplicitHeapDumpInfo(@NotNull HeapDumpInfo info) {
     myHeapDumpInfoBuilder.addInfos(info);
-    return this;
-  }
-
-  public FakeMemoryService setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status status,
-                                                       @NotNull List<LegacyAllocationEvent> events) {
-    myAllocationEventsBuilder.setStatus(status);
-    myAllocationEventsBuilder.addAllEvents(events);
-    return this;
-  }
-
-  public FakeMemoryService addExplicitAllocationClass(int id, String name) {
-    myAllocationContextBuilder.addClasses(AllocatedClass.newBuilder().setClassId(id).setClassName(name).build());
-    return this;
-  }
-
-  public FakeMemoryService addExplicitAllocationStack(String klass, String method, int line, int stackId) {
-    myAllocationContextBuilder.addStacks(AllocationStack.newBuilder().setStackId(stackId).setFullStack(
-      AllocationStack.StackFrameWrapper.newBuilder().addFrames(
-        AllocationStack.StackFrame.newBuilder().setClassName(klass).setMethodName(method).setLineNumber(line).build()
-      )));
     return this;
   }
 

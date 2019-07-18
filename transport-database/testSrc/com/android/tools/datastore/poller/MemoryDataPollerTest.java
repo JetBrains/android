@@ -29,21 +29,12 @@ import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.Memory.AllocatedClass;
-import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.TrackStatus;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
@@ -355,14 +346,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     StreamObserver<MemoryData> observer = mock(StreamObserver.class);
     myMemoryService.getData(request, observer);
     validateResponse(observer, expected);
-
-    LegacyAllocationEventsRequest eventsRequest = LegacyAllocationEventsRequest
-      .newBuilder().setSession(TEST_SESSION).setStartTime(IN_PROGRESS_LEGACY_ALLOCATION_INFO.getStartTime()).build();
-    LegacyAllocationEventsResponse eventsExpected = LegacyAllocationEventsResponse
-      .newBuilder().setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN).build();
-    StreamObserver<LegacyAllocationEventsResponse> eventsObserver = mock(StreamObserver.class);
-    myMemoryService.getLegacyAllocationEvents(eventsRequest, eventsObserver);
-    validateResponse(eventsObserver, eventsExpected);
   }
 
   @Test
@@ -378,59 +361,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     StreamObserver<MemoryData> observer = mock(StreamObserver.class);
     myMemoryService.getData(request, observer);
     validateResponse(observer, expected);
-  }
-
-  @Test
-  public void testGetLegacyAllocationEventsOnLiveAllocation() {
-    myFakeMemoryService.addAllocationInfo(FINISHED_LIVE_ALLOCATION_INFO);
-    getPollTicker().run();
-
-    LegacyAllocationEventsRequest request = LegacyAllocationEventsRequest
-      .newBuilder().setSession(TEST_SESSION).setStartTime(FINISHED_LIVE_ALLOCATION_INFO.getStartTime()).build();
-    LegacyAllocationEventsResponse expected = LegacyAllocationEventsResponse
-      .newBuilder().setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN).build();
-    StreamObserver<LegacyAllocationEventsResponse> observer = mock(StreamObserver.class);
-    myMemoryService.getLegacyAllocationEvents(request, observer);
-    validateResponse(observer, expected);
-  }
-
-  @Test
-  public void testImportLegacyAllocationRecords() {
-    LegacyAllocationEventsResponse allocations = LegacyAllocationEventsResponse.newBuilder()
-      .setStatus(LegacyAllocationEventsResponse.Status.SUCCESS)
-      .addEvents(LegacyAllocationEvent.newBuilder().setSize(1).setThreadId(2).setClassId(3).setStackId(4).build())
-      .addEvents(LegacyAllocationEvent.newBuilder().setSize(5).setThreadId(6).setClassId(7).setStackId(8).build())
-      .build();
-    MemoryProfiler.LegacyAllocationContextsResponse contexts = MemoryProfiler.LegacyAllocationContextsResponse.newBuilder()
-      .addAllClasses(Arrays.asList(AllocatedClass.newBuilder().setClassId(1).build(), AllocatedClass.newBuilder().setClassId(2).build()))
-      .addAllStacks(Arrays.asList(AllocationStack.newBuilder().setStackId(3).build(), AllocationStack.newBuilder().setStackId(4).build()))
-      .build();
-
-    AllocationsInfo info = AllocationsInfo.newBuilder().setLegacy(true).setStartTime(1).setEndTime(2).setSuccess(true).build();
-    ImportLegacyAllocationsRequest request = ImportLegacyAllocationsRequest.newBuilder()
-      .setSession(TEST_SESSION)
-      .setInfo(info)
-      .setAllocations(allocations)
-      .addAllClasses(contexts.getClassesList())
-      .addAllStacks(contexts.getStacksList())
-      .build();
-    ImportLegacyAllocationsResponse expected = ImportLegacyAllocationsResponse.newBuilder()
-      .setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build();
-    StreamObserver<ImportLegacyAllocationsResponse> importObserver = mock(StreamObserver.class);
-    myMemoryService.importLegacyAllocations(request, importObserver);
-    validateResponse(importObserver, expected);
-
-    StreamObserver<LegacyAllocationEventsResponse> eventObserver = mock(StreamObserver.class);
-    myMemoryService.getLegacyAllocationEvents(
-      LegacyAllocationEventsRequest.newBuilder().setSession(TEST_SESSION).setStartTime(info.getStartTime()).build(), eventObserver);
-    validateResponse(eventObserver, allocations);
-
-    StreamObserver<MemoryProfiler.LegacyAllocationContextsResponse> contextObserver = mock(StreamObserver.class);
-    myMemoryService.getLegacyAllocationContexts(
-      LegacyAllocationContextsRequest.newBuilder()
-        .setSession(TEST_SESSION).addAllClassIds(Arrays.asList(1, 2)).addAllStackIds(Arrays.asList(3, 4))
-        .build(), contextObserver);
-    validateResponse(contextObserver, contexts);
   }
 
   private static long delayTimeFromBase(int numSec) {
@@ -497,20 +427,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
         response.setInfo(myAllocationsInfo);
       }
       responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getLegacyAllocationEvents(LegacyAllocationEventsRequest request,
-                                          StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
-      responseObserver.onNext(LegacyAllocationEventsResponse.getDefaultInstance());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                            StreamObserver<MemoryProfiler.LegacyAllocationContextsResponse> responseObserver) {
-      responseObserver.onNext(MemoryProfiler.LegacyAllocationContextsResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
 

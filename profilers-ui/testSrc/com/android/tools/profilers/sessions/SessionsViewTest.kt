@@ -712,8 +712,6 @@ class SessionsViewTest {
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(allocationItem.artifact.session).isEqualTo(session)
 
-    myMemoryService.setExplicitAllocationEvents(MemoryProfiler.LegacyAllocationEventsResponse.Status.SUCCESS, emptyList())
-
     // Makes sure we're in monitor stage.
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java)
     // Selecting on the HprofSessionArtifact should open Memory profiler and select the capture.
