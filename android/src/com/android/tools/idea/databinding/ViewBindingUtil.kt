@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.databinding
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
@@ -27,4 +28,6 @@ fun Project.getViewBindingClassName() : String {
   else "android.viewbinding.ViewBinding"
 }
 
-fun AndroidFacet.isViewBindingEnabled() = AndroidModuleModel.get(this)?.androidProject?.viewBindingOptions?.isEnabled ?: false
+fun AndroidFacet.isViewBindingEnabled() =
+  StudioFlags.VIEW_BINDING_ENABLED.get() &&
+  AndroidModuleModel.get(this)?.androidProject?.viewBindingOptions?.isEnabled ?: false

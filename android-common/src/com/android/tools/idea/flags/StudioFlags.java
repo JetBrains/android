@@ -687,5 +687,13 @@ public final class StudioFlags {
     false);
   //endregion
 
+  //region Binding
+  private static final FlagGroup BINDING = new FlagGroup(FLAGS, "binding", "Data/View Binding");
+  public static final Flag<Boolean> VIEW_BINDING_ENABLED = Flag.create(
+    BINDING, "view.binding.enabled", "Enable View Binding",
+    "Enables view binding integration. Additionally, enabling the compiler may require updating Gradle settings as well",
+    false);
+  //endregion
+
   private StudioFlags() { }
 }
