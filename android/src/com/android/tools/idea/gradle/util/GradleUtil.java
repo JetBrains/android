@@ -115,6 +115,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -533,6 +534,27 @@ public final class GradleUtil {
   public static String getDefaultPhysicalPathFromGradlePath(@NotNull String gradlePath) {
     List<String> segments = getPathSegments(gradlePath);
     return join(toStringArray(segments));
+  }
+
+  /**
+   * Returns gradle paths for parent modules of the given path.<br/>
+   * For example:
+   * <ul>
+   * <li>":foo:bar:buz:lib" -> [":foo", ":foo:bar", ":foo:bar:buz"]</li>
+   * </ul>
+   */
+  @NotNull
+  public static List<String> getParentModulesPaths(@NotNull String gradlePath) {
+    int parentPathEnd = gradlePath.lastIndexOf(GRADLE_PATH_SEPARATOR);
+    if (parentPathEnd <= 0) {
+      return new ArrayList<>();
+    }
+    else {
+      String parentPath = gradlePath.substring(0, parentPathEnd);
+      List<String> result = getParentModulesPaths(parentPath);
+      result.add(parentPath);
+      return result;
+    }
   }
 
   /**
@@ -1033,7 +1055,12 @@ public final class GradleUtil {
     return projectBuildFilesTypes(project).contains(DOT_KTS);
   }
 
-  public static boolean isKtsFile(@NotNull VirtualFile file) {
+  public static boolean isKtsFile(@Nullable VirtualFile file) {
+    // We deal with the null case in this method for the callers convenience.
+    if (file == null) {
+      return false;
+    }
+
     HashSet<String> result = new HashSet<>();
     addBuildFileType(result, file);
     return result.contains(DOT_KTS);

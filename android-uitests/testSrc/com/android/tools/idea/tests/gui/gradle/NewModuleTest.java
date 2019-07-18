@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.LINE_END;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -85,6 +86,7 @@ public class NewModuleTest {
       .getEditor()
       .open("app/build.gradle")
       .moveBetween("dependencies {", "")
+      .invokeAction(LINE_END)
       .enterText("\ncompile project(':localJarLib')")
       .getIdeFrame()
       .requestProjectSync()
@@ -92,6 +94,7 @@ public class NewModuleTest {
       .getEditor()
       .open("app/src/main/java/google/simpleapplication/MyActivity.java")
       .moveBetween("setContentView(R.layout.activity_my);", "")
+      .invokeAction(LINE_END)
       .enterText("\nnew com.example.android.multiproject.person.Person(\"Me\");\n")
       .waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }

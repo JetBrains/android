@@ -534,9 +534,6 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       place.putPath(CATEGORY_NAME, configurable.displayName)
     }
 
-    @JvmStatic
-    fun isNewPsdEnabled(): Boolean = StudioFlags.NEW_PSD_ENABLED.get() && GradleExperimentalSettings.getInstance().USE_NEW_PSD;
-
     private fun createPlaceFor(configurable: Configurable): Place = Place().putPath(CATEGORY_NAME, configurable.displayName)
   }
 }

@@ -17,38 +17,40 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.observable.BindingsManager;
-import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.openapi.util.text.StringUtil;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A text field with a browse button which wraps a {@link VectorAsset}, which allows the user
  * to specify a path to an SVG or PSD file.
  */
 public final class VectorAssetBrowser extends TextFieldWithBrowseButton implements AssetComponent<VectorAsset>, Disposable {
-  private final VectorAsset myAsset = new VectorAsset();
-  private final BindingsManager myBindings = new BindingsManager();
+  @NotNull private final VectorAsset myAsset = new VectorAsset();
+  @NotNull private final BindingsManager myBindings = new BindingsManager();
 
-  private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
+  @NotNull private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
 
   public VectorAssetBrowser() {
-    addBrowseFolderListener(null, null, null, createMultiFileDescriptor("svg", "psd"));
+    addBrowseFolderListener(null, null, null, createFileDescriptor("svg", "psd"));
 
-    StringProperty absolutePath = new TextProperty(getTextField());
-    myBindings.bind(absolutePath, myAsset.path().transform(File::getAbsolutePath));
-    myBindings.bind(myAsset.path(), absolutePath.transform(File::new));
+    TextProperty imagePathText = new TextProperty(getTextField());
+    myBindings.bind(imagePathText, myAsset.path().transform(file -> file.map(File::getAbsolutePath).orElse("")));
+    myBindings.bind(myAsset.path(),
+                    imagePathText.transform(s -> StringUtil.isEmptyOrSpaces(s) ? Optional.empty() : Optional.of(new File(s.trim()))));
 
     myAsset.path().addListener(() -> {
       ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
@@ -75,8 +77,8 @@ public final class VectorAssetBrowser extends TextFieldWithBrowseButton implemen
     myAssetListeners.clear();
   }
 
-  private static FileChooserDescriptor createMultiFileDescriptor(@NotNull String... extensions) {
-    return new FileChooserDescriptor(true, false, false, false, false, false).withFileFilter(
+  private static FileChooserDescriptor createFileDescriptor(@NotNull String... extensions) {
+    return FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withFileFilter(
         file -> Arrays.stream(extensions).anyMatch(e -> Comparing.equal(file.getExtension(), e, SystemInfo.isFileSystemCaseSensitive)));
   }
 }

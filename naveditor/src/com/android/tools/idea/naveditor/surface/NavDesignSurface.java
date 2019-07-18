@@ -221,7 +221,7 @@ public class NavDesignSurface extends DesignSurface {
         if (scene != null) {
           SceneComponent sceneComponent = scene.getSceneComponent(selection);
           if (sceneComponent != null) {
-            Point2D.Float p2d = NavActionHelperKt.getAnyPoint(sceneComponent, SceneContext.get(getCurrentSceneView()));
+            Point2D.Float p2d = NavActionHelperKt.getAnyPoint(sceneComponent, SceneContext.get(getFocusedSceneView()));
             if (p2d != null) {
               return new Point((int)p2d.x, (int)p2d.y);
             }
@@ -491,7 +491,7 @@ public class NavDesignSurface extends DesignSurface {
   @NotNull
   @Override
   public Dimension getContentSize(@Nullable Dimension dimension) {
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
     if (view == null) {
       Dimension dim = dimension == null ? new Dimension() : dimension;
       dim.setSize(0, 0);
@@ -509,7 +509,7 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   @NotNull
   protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
     if (view == null) {
       return new Dimension(0, 0);
     }
@@ -672,7 +672,7 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   public void scrollToCenter(@NotNull List<NlComponent> list) {
     Scene scene = getScene();
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
     if (list.isEmpty() || scene == null || view == null) {
       return;
     }

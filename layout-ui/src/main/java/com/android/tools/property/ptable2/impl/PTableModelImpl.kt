@@ -75,9 +75,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   }
 
   fun isGroupItem(item: PTableItem): Boolean {
-    // This allows an implementation to mutate an item from/to an item that is considered a group.
-    // It is currently used in fabricated new items where the state is unknown up front.
-    return item is PTableGroupItem && item.children.isNotEmpty()
+    return item is PTableGroupItem
   }
 
   fun isExpanded(item: PTableGroupItem): Boolean {

@@ -20,13 +20,13 @@ import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.dependsOnAndroidx
 import com.android.tools.idea.util.dependsOnOldSupportLib
 import com.intellij.openapi.module.Module
+import com.intellij.util.io.DigestUtil
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.StringWriter
-import java.security.MessageDigest
 
 private fun hash(content: String): ByteArray =
-  MessageDigest.getInstance("SHA-1").digest(content.toByteArray(Charsets.UTF_8))
+  DigestUtil.sha1().digest(content.toByteArray(Charsets.UTF_8))
 
 internal enum class TemplateTag {
   /** This template only supports the old version of the androidx */

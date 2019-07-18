@@ -27,6 +27,18 @@ iml_module(
     iml_files = ["intellij.android.core.iml"],
     javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
     lint_baseline = "lint_baseline.xml",
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
+        "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/java/manifest:intellij.java.manifest",
+        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
+        "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
+        "//tools/idea:intellij.java.ui.tests",
+        "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
+        "//tools/idea/java/plugin:intellij.java.plugin",
+        "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = ["//tools/adt/idea/build-common:intellij.android.buildCommon"],
@@ -34,6 +46,7 @@ iml_module(
     runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
@@ -121,7 +134,7 @@ iml_module(
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/android/lib:instantapps-api-1.5",
-        "//tools/idea/.idea/libraries:batik",
+        "//tools/idea/.idea/libraries:batik-transcoder",
         "//tools/idea/.idea/libraries:xml-apis-ext",
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/idea/.idea/libraries:aapt-proto",
@@ -192,6 +205,18 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
+        "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/java/manifest:intellij.java.manifest",
+        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
+        "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
+        "//tools/idea:intellij.java.ui.tests",
+        "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
+        "//tools/idea/java/plugin:intellij.java.plugin",
+        "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+    ],
     test_shard_count = 50,
     test_srcs = ["testSrc"],
     test_tags = [
@@ -207,6 +232,7 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/databinding:intellij.android.databinding",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",

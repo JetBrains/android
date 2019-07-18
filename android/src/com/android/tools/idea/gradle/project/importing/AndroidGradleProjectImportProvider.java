@@ -37,8 +37,9 @@ import java.util.List;
  */
 public class AndroidGradleProjectImportProvider extends ProjectImportProvider {
 
-  protected AndroidGradleProjectImportProvider(AndroidGradleImportBuilder builder) {
-    super(builder);
+  @Override
+  protected ProjectImportBuilder doGetBuilder() {
+    return ProjectImportBuilder.EXTENSIONS_POINT_NAME.findExtensionOrFail(AndroidGradleImportBuilder.class);
   }
 
   public static class AndroidGradleImportBuilder extends ProjectImportBuilder<String> {

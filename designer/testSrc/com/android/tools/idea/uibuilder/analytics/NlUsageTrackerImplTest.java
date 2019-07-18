@@ -427,7 +427,7 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
   }
 
   public void testAllGroupsOnPaletteAreRecognized() throws Exception {
-    Palette palette = getPalette();
+    Palette palette = getPalette(getProject());
     palette.accept(new Palette.Visitor() {
       @Override
       public void visit(@NotNull Palette.Item item) {
@@ -512,8 +512,7 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     assertThat(getStyleValue(DISCRETE_SEEK_BAR_XML)).isEqualTo("@style/Widget.AppCompat.SeekBar.Discrete");
   }
 
-  private static Palette getPalette() throws Exception {
-    Project project = mock(Project.class);
+  private static Palette getPalette(@NotNull Project project) throws Exception {
     try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(LayoutFileType.INSTANCE.getPaletteFileName()))) {
       return Palette.parse(reader, new ViewHandlerManager(project));
     }

@@ -25,6 +25,7 @@ import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.property.NavPropertyPanelDefinition
+import com.android.tools.idea.naveditor.property2.NavPropertiesPanelDefinition
 import com.android.tools.idea.naveditor.structure.StructurePanel
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.project.Project
@@ -43,15 +44,15 @@ open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file,
   override fun createEditorPanel() =
     DesignerEditorPanel(this, myProject, myFile, WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this),
                         { NavDesignSurface(myProject, it, this) })
-    { toolWindowDefinitions(it) }
+    { listOf(propertyPanelDefinition(it), StructurePanel.StructurePanelDefinition()) }
 
-  private fun toolWindowDefinitions(facet: AndroidFacet): List<ToolWindowDefinition<DesignSurface>> {
-    if (StudioFlags.NAV_NEW_PROPERTY_PANEL.get()) {
-      // TODO: Add new property panel
+  private fun propertyPanelDefinition(facet: AndroidFacet): ToolWindowDefinition<DesignSurface> {
+    return if (StudioFlags.NAV_NEW_PROPERTY_PANEL.get()) {
+      NavPropertiesPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED)
     }
-
-    return listOf(NavPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED),
-                  StructurePanel.StructurePanelDefinition())
+    else {
+      NavPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED)
+    }
   }
 
   override fun getName() = "Design"

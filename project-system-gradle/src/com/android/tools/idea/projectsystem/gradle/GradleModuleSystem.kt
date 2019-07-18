@@ -45,8 +45,13 @@ import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValue
+import com.intellij.util.text.nullize
+import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
+import org.jetbrains.android.dom.manifest.packageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
@@ -67,6 +72,8 @@ import java.util.Collections
  * For now always look at the transitive closure of dependencies.
  */
 const val CHECK_DIRECT_GRADLE_DEPENDENCIES = false
+
+private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
 
 class GradleModuleSystem(
   override val module: Module,
@@ -359,6 +366,14 @@ class GradleModuleSystem(
 
     override fun toString() = "$groupId:$artifactId"
     fun isSameAs(coordinate: GradleCoordinate) = groupId == coordinate.groupId && artifactId == coordinate.artifactId
+  }
+
+  override fun getPackageName(): String? {
+    val facet = AndroidFacet.getInstance(module)!!
+    val cachedValue = facet.cachedValueFromPrimaryManifest {
+      packageName.nullize(true)
+    }
+    return facet.putUserDataIfAbsent(PACKAGE_NAME, cachedValue).value
   }
 
   override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {

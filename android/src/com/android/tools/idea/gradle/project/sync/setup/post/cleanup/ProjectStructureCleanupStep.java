@@ -36,12 +36,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getNativeAndroidProj
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 
 public class ProjectStructureCleanupStep extends ProjectCleanupStep {
-  @NotNull private final AndroidSdks myAndroidSdks;
-
-  @SuppressWarnings("unused") // Instantiated by IDEA
-  public ProjectStructureCleanupStep(@NotNull AndroidSdks androidSdks) {
-    myAndroidSdks = androidSdks;
-  }
 
   @Override
   public void cleanUpProject(@NotNull Project project,
@@ -49,12 +43,13 @@ public class ProjectStructureCleanupStep extends ProjectCleanupStep {
                              @Nullable ProgressIndicator indicator) {
     Set<Sdk> androidSdks = new HashSet<>();
 
+    final AndroidSdks androidSdkManager = AndroidSdks.getInstance();
     for (Module module : ideModifiableModelsProvider.getModules()) {
       ModifiableRootModel rootModel = ideModifiableModelsProvider.getModifiableRootModel(module);
 
       Sdk sdk = rootModel.getSdk();
       if (sdk != null) {
-        if (myAndroidSdks.isAndroidSdk(sdk)) {
+        if (androidSdkManager.isAndroidSdk(sdk)) {
           androidSdks.add(sdk);
         }
         continue;
@@ -74,7 +69,7 @@ public class ProjectStructureCleanupStep extends ProjectCleanupStep {
       @Override
       public void execute() {
         for (Sdk sdk : androidSdks) {
-          myAndroidSdks.refreshLibrariesIn(sdk);
+          androidSdkManager.refreshLibrariesIn(sdk);
         }
       }
     });

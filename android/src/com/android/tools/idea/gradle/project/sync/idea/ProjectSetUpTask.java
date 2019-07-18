@@ -76,7 +76,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
         if (importedProject) {
           open(myProject);
         }
-        CommandProcessor.getInstance().runUndoTransparentAction(() -> myProject.save());
       }
 
       if (importedProject) {

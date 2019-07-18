@@ -39,7 +39,7 @@ class SqliteEvaluatorController(
 ) : Disposable {
 
   private var currentQueryResultSetController: ResultSetController? = null
-  private val sqliteEvaluatorViewListener = SqliteEvaluatorViewListenerImpl()
+  private val sqliteEvaluatorViewListener: SqliteEvaluatorViewListener = SqliteEvaluatorViewListenerImpl()
 
   init {
     Disposer.register(parentDisposable, this)
@@ -53,52 +53,57 @@ class SqliteEvaluatorController(
     view.removeListener(sqliteEvaluatorViewListener)
   }
 
-  private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorViewListener {
-    override fun evaluateSqlActionInvoked(sqlInstruction: String) {
-      // TODO after introducing the SQL parser this bit should become a bit nicer (?)
-      when {
-        sqlInstruction.startsWith("CREATE", ignoreCase = true) or
-          sqlInstruction.startsWith("DROP", ignoreCase = true) or
-          sqlInstruction.startsWith("ALTER", ignoreCase = true) or
-          sqlInstruction.startsWith("INSERT", ignoreCase = true) or
-          sqlInstruction.startsWith("UPDATE", ignoreCase = true) or
-          sqlInstruction.startsWith("DELETE", ignoreCase = true) -> executeUpdate(sqlInstruction)
-        else -> executeQuery(sqlInstruction) {
-          view.tableView.reportError("Error executing sqlQueryCommand", it)
-        }
+  fun evaluateSqlStatement(sqlStatement: String) {
+    view.showSqliteStatement(sqlStatement)
+
+    // TODO(b/137259344) after introducing the SQL parser this bit should become a bit nicer
+    when {
+      sqlStatement.startsWith("CREATE", ignoreCase = true) or
+        sqlStatement.startsWith("DROP", ignoreCase = true) or
+        sqlStatement.startsWith("ALTER", ignoreCase = true) or
+        sqlStatement.startsWith("INSERT", ignoreCase = true) or
+        sqlStatement.startsWith("UPDATE", ignoreCase = true) or
+        sqlStatement.startsWith("DELETE", ignoreCase = true) -> executeUpdate(sqlStatement)
+      else -> executeQuery(sqlStatement) {
+        view.tableView.reportError("Error executing sqlQueryCommand", it)
       }
     }
+  }
 
-    private fun executeUpdate(sqlUpdateCommand: String) {
-      edtExecutor.addCallback(service.executeUpdate(sqlUpdateCommand), object : FutureCallback<Int> {
-        override fun onSuccess(result: Int?) {
-          // TODO do we want to update the UI of the dialog?
-          view.tableView.resetView()
-        }
+  private fun executeUpdate(sqlUpdateCommand: String) {
+    edtExecutor.addCallback(service.executeUpdate(sqlUpdateCommand), object : FutureCallback<Int> {
+      override fun onSuccess(result: Int?) {
+        view.tableView.resetView()
+      }
 
-        override fun onFailure(t: Throwable) {
-          view.tableView.reportError("Error executing update", t)
-        }
-      })
-    }
+      override fun onFailure(t: Throwable) {
+        view.tableView.reportError("Error executing update", t)
+      }
+    })
+  }
 
-    private fun executeQuery(sqlQueryCommand: String, doOnFailure: (Throwable) -> Unit) {
-      edtExecutor.addCallback(service.executeQuery(sqlQueryCommand), object : FutureCallback<SqliteResultSet> {
-        override fun onSuccess(sqliteResultSet: SqliteResultSet?) {
-          if(sqliteResultSet == null) return
+  private fun executeQuery(sqlQueryCommand: String, doOnFailure: (Throwable) -> Unit) {
+    edtExecutor.addCallback(service.executeQuery(sqlQueryCommand), object : FutureCallback<SqliteResultSet> {
+      override fun onSuccess(sqliteResultSet: SqliteResultSet?) {
+        if(sqliteResultSet == null) return
 
-          currentQueryResultSetController = ResultSetController(
-            this@SqliteEvaluatorController,
-            view.tableView, null, sqliteResultSet,
-            edtExecutor
-          ).also { it.setUp() }
-          currentQueryResultSetController
-        }
+        currentQueryResultSetController = ResultSetController(
+          this@SqliteEvaluatorController,
+          view.tableView, null, sqliteResultSet,
+          edtExecutor
+        ).also { it.setUp() }
+        currentQueryResultSetController
+      }
 
-        override fun onFailure(t: Throwable) {
-          doOnFailure(t)
-        }
-      })
+      override fun onFailure(t: Throwable) {
+        doOnFailure(t)
+      }
+    })
+  }
+
+  private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorViewListener {
+    override fun evaluateSqlActionInvoked(sqlStatement: String) {
+      evaluateSqlStatement(sqlStatement)
     }
   }
 }

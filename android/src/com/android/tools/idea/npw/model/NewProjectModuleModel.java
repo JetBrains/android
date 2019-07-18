@@ -52,18 +52,12 @@ public final class NewProjectModuleModel extends WizardModel {
   @NotNull private final OptionalProperty<TemplateHandle> myRenderTemplateHandle = new OptionalValueProperty<>();
 
   @NotNull private final BoolProperty myHasCompanionApp = new BoolValueProperty();
-  @NotNull private final BoolProperty myDynamicInstantApp = new BoolValueProperty();
 
   public NewProjectModuleModel(@NotNull NewProjectModel projectModel) {
     myProjectModel = projectModel;
     myNewModuleModel = new NewModuleModel(myProjectModel, new File(""));
     myExtraRenderTemplateModel =
       RenderTemplateModel.fromModuleModel(myNewModuleModel, null, createDummyTemplate(), message("android.wizard.config.activity.title"));
-  }
-
-  @NotNull
-  public BoolProperty dynamicInstantApp() {
-    return myDynamicInstantApp;
   }
 
   @NotNull
@@ -127,8 +121,6 @@ public final class NewProjectModuleModel extends WizardModel {
     if (hasActivity && newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
       addRenderDefaultTemplateValues(newRenderTemplateModel);
     }
-
-    projectTemplateValues.put(ATTR_IS_DYNAMIC_INSTANT_APP, myDynamicInstantApp.get());
 
     myNewModuleModel.handleFinished();
     if (newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself

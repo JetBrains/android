@@ -61,8 +61,8 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileEditor.SplitEditorToolbar;
 import com.intellij.openapi.fileEditor.TextEditor;
-import com.intellij.openapi.fileEditor.TextEditorWithPreview;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
@@ -77,8 +77,8 @@ import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.tabs.TabInfo;
-import com.intellij.ui.tabs.impl.JBEditorTabs;
-import com.intellij.ui.tabs.impl.TabLabel;
+import com.intellij.ui.tabs.newImpl.JBEditorTabs;
+import com.intellij.ui.tabs.newImpl.TabLabel;
 import java.awt.Component;
 import java.awt.Point;
 import java.io.IOException;
@@ -410,11 +410,11 @@ public class EditorFixture {
     }
     // The concept of tabs can be mapped to the split editor toolbar, where there are three actions to change the editor to (in this order):
     // 1) text-only, 2) split view, 3) preview(design)-only. We try to find this toolbar and select the corresponding action.
-    TextEditorWithPreview.SplitEditorToolbar toolbar = robot.finder().find(
+    SplitEditorToolbar toolbar = robot.finder().find(
       editor.getComponent(),
-      new GenericTypeMatcher<TextEditorWithPreview.SplitEditorToolbar>(TextEditorWithPreview.SplitEditorToolbar.class) {
+      new GenericTypeMatcher<SplitEditorToolbar>(SplitEditorToolbar.class) {
         @Override
-        protected boolean isMatching(@NotNull TextEditorWithPreview.SplitEditorToolbar component) {
+        protected boolean isMatching(@NotNull SplitEditorToolbar component) {
           return true;
         }
       }
@@ -482,18 +482,22 @@ public class EditorFixture {
 
     selectEditorTab(tab);
 
-    waitForFileOpen.expecting("file '" + file.getPath() + "' to be opened and loaded").until(() -> {
-      if (!file.equals(getCurrentFile())) {
-        return false;
-      }
+    waitForFileOpen
+      .expecting("file '" + file.getPath() + "' to be opened and loaded")
+      .until(
+        () -> GuiQuery.get(() -> {
+          if (!file.equals(getCurrentFile())) {
+            return false;
+          }
 
-      FileEditor fileEditor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditor(file);
-      JComponent editorComponent = fileEditor.getComponent();
-      if (editorComponent instanceof JBLoadingPanel) {
-        return !((JBLoadingPanel)editorComponent).isLoading();
-      }
-      return true;
-    });
+          FileEditor fileEditor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditor(file);
+          JComponent editorComponent = fileEditor.getComponent();
+          if (editorComponent instanceof JBLoadingPanel) {
+            return !((JBLoadingPanel)editorComponent).isLoading();
+          }
+          return true;
+        })
+      );
 
     Editor editor = GuiQuery.get(() -> FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor());
     if (editor == null) {
@@ -892,6 +896,7 @@ public class EditorFixture {
     BACK_SPACE("EditorBackSpace"),
     COMPLETE_CURRENT_STATEMENT("EditorCompleteStatement"),
     DELETE_LINE("EditorDeleteLine"),
+    LINE_END("EditorLineEnd"),
     DOWN("EditorDown"),
     ESCAPE("EditorEscape"),
     GOTO_DECLARATION("GotoDeclaration"),

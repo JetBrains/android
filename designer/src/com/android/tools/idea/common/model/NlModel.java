@@ -129,7 +129,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                @NotNull VirtualFile file,
                                @NotNull ConfigurationManager configurationManager,
                                @NotNull Consumer<NlComponent> componentRegistrar) {
-    return new NlModel(parent, modelDisplayName, facet, file, configurationManager.getConfiguration(file), componentRegistrar);
+    return create(parent, modelDisplayName, facet, file, configurationManager.getConfiguration(file), componentRegistrar);
   }
 
   @Slow
@@ -140,6 +140,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                @NotNull VirtualFile file,
                                @NotNull Consumer<NlComponent> componentRegistrar) {
     return create(parent, modelDisplayName, facet, file, ConfigurationManager.getOrCreateInstance(facet), componentRegistrar);
+  }
+
+  @Slow
+  @NotNull
+  public static NlModel create(@Nullable Disposable parent,
+                               @Nullable String modelDisplayName,
+                               @NotNull AndroidFacet facet,
+                               @NotNull VirtualFile file,
+                               @NotNull Configuration configuration,
+                               @NotNull Consumer<NlComponent> componentRegistrar) {
+    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar);
   }
 
   @VisibleForTesting

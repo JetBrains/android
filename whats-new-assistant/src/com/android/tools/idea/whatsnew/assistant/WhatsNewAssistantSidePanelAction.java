@@ -23,15 +23,27 @@ import com.google.wireless.android.sdk.stats.WhatsNewAssistantEvent;
 import com.intellij.ide.actions.WhatsNewAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
+import java.util.HashMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction {
+  @NotNull
   private static WhatsNewAction action = new WhatsNewAction();
+
+  @NotNull
+  private final Map<Project, WhatsNewToolWindowListener> myProjectToListenerMap;
+
+  public WhatsNewAssistantSidePanelAction() {
+    myProjectToListenerMap = new HashMap<>();
+  }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
@@ -55,37 +67,97 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
       return;
     }
 
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
-                       .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
-                       .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder().setType(
-                         WhatsNewAssistantEvent.WhatsNewAssistantEventType.OPEN)));
     assert event.getProject() != null;
-    super.openWindow(WhatsNewAssistantBundleCreator.BUNDLE_ID, event.getProject());
+    openWindow(WhatsNewAssistantBundleCreator.BUNDLE_ID, event.getProject());
 
-    if (event.getProject() != null) {
-      addToolWindowListener(event.getProject());
-    }
+    // Only register a new listener if there isn't already one, to avoid multiple OPEN/CLOSE events
+    myProjectToListenerMap.computeIfAbsent(event.getProject(), this::newWhatsNewToolWindowListener);
   }
 
-  private void addToolWindowListener(@NotNull Project project) {
-    ToolWindowManagerListener listener = new ToolWindowManagerListener() {
-      @Override
-      public void toolWindowRegistered(@NotNull String id) {
-      }
+  @NotNull
+  private WhatsNewToolWindowListener newWhatsNewToolWindowListener(@NotNull Project project) {
+    WhatsNewToolWindowListener listener = new WhatsNewToolWindowListener(project, myProjectToListenerMap);
+    project.getMessageBus().connect(project).subscribe(ToolWindowManagerListener.TOPIC, listener);
+    return listener;
+  }
 
-      @Override
-      public void stateChanged() {
-        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(OpenAssistSidePanelAction.TOOL_WINDOW_TITLE);
-        if (window != null && !window.isVisible()) {
-          ToolWindowManagerEx.getInstanceEx(project).removeToolWindowManagerListener(this);
-          UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                                           .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
-                                                           .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder().setType(
-                                                             WhatsNewAssistantEvent.WhatsNewAssistantEventType.CLOSED)));
+  private static class WhatsNewToolWindowListener implements ToolWindowManagerListener {
+    @NotNull private Project myProject;
+    @NotNull Map<Project, WhatsNewToolWindowListener> myProjectToListenerMap;
+    private boolean isOpen;
 
+    private WhatsNewToolWindowListener(@NotNull Project project,
+                                       @NotNull Map<Project, WhatsNewToolWindowListener> projectToListenerMap) {
+      myProject = project;
+      myProjectToListenerMap = projectToListenerMap;
+      isOpen = false;
+
+      // Need an additional listener for project close, because the below invokeLater isn't fired in time before closing
+      project.getMessageBus().connect(project).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+        @Override
+        public void projectClosed(@NotNull Project project) {
+          if (!project.equals(myProject)) {
+            return;
+          }
+          if (isOpen) {
+            fireClosedEvent();
+            isOpen = false;
+          }
+          myProjectToListenerMap.remove(project);
         }
-      }
-    };
-    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(listener);
+      });
+    }
+
+    @Override
+    public void toolWindowRegistered(@NotNull String id) {
+    }
+
+    @Override
+    public void toolWindowUnregistered(@NotNull String id, @NotNull ToolWindow toolWindow) {
+      myProjectToListenerMap.remove(myProject);
+    }
+
+    /**
+     * Fire WNA OPEN/CLOSE metrics and update the actual state after a state change is received.
+     * The logic is wrapped in invokeLater because dragging and dropping the StripeButton temporarily
+     * hides and then shows the window. Otherwise, the handler would think the window was closed,
+     * even though it was only dragged.
+     */
+    @Override
+    public void stateChanged() {
+      ApplicationManager.getApplication().invokeLater(() -> {
+        if (myProject.isDisposed()) {
+          myProjectToListenerMap.remove(myProject);
+          return;
+        }
+
+        ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(OpenAssistSidePanelAction.TOOL_WINDOW_TITLE);
+        if (window == null) {
+          return;
+        }
+        if (isOpen && !window.isVisible()) {
+          fireClosedEvent();
+          isOpen = false;
+        }
+        else if (!isOpen && window.isVisible()){
+          fireOpenEvent();
+          isOpen = true;
+        }
+      });
+    }
+
+    private static void fireOpenEvent() {
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
+                         .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder()
+                                                      .setType(WhatsNewAssistantEvent.WhatsNewAssistantEventType.OPEN)));
+    }
+
+    private static void fireClosedEvent() {
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
+                         .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder()
+                                                      .setType(WhatsNewAssistantEvent.WhatsNewAssistantEventType.CLOSED)));
+    }
   }
 }

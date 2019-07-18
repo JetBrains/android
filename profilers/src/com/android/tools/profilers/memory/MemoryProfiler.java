@@ -19,8 +19,11 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.transport.poller.TransportEventListener;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
@@ -29,9 +32,11 @@ import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRe
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
@@ -44,7 +49,6 @@ import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
@@ -61,7 +65,10 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MemoryProfiler extends StudioProfiler {
 
@@ -110,8 +117,7 @@ public class MemoryProfiler extends StudioProfiler {
         .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder().setSessionId(session.getSessionId()).build());
       // Only stops live tracking if one is available.
       if (response.getData().getLiveAllocationEnabled() && isUsingLiveAllocation(myProfilers, session)) {
-        myProfilers.getClient().getMemoryClient()
-          .trackAllocations(TrackAllocationsRequest.newBuilder().setSession(session).setEnabled(false).build());
+        trackAllocations(myProfilers, session, false, null);
       }
     }
     catch (StatusRuntimeException e) {
@@ -131,9 +137,7 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
-    Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
-      .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder().setSessionId(session.getSessionId()).build());
-    if (!response.getData().getLiveAllocationEnabled()) {
+    if (!myProfilers.getSessionsManager().getSelectedSessionMetaData().getLiveAllocationEnabled()) {
       // Early return if live allocation is not enabled for the session.
       return;
     }
@@ -148,16 +152,11 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
-    TimeResponse timeResponse = myProfilers.getClient().getTransportClient()
-      .getCurrentTime(TimeRequest.newBuilder().setStreamId(session.getStreamId()).build());
-    long timeNs = timeResponse.getTimestampNs();
     try {
       // Attempts to stop an existing tracking session first.
       // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
-      myProfilers.getClient().getMemoryClient().trackAllocations(TrackAllocationsRequest.newBuilder().setRequestTime(timeNs)
-                                                                   .setSession(session).setEnabled(false).build());
-      myProfilers.getClient().getMemoryClient().trackAllocations(TrackAllocationsRequest.newBuilder().setRequestTime(timeNs)
-                                                                   .setSession(session).setEnabled(true).build());
+      trackAllocations(myProfilers, session, false, null);
+      trackAllocations(myProfilers, session, true, null);
     }
     catch (StatusRuntimeException e) {
       getLogger().info(e);
@@ -390,6 +389,87 @@ public class MemoryProfiler extends StudioProfiler {
           .build());
 
       return response.getInfosList();
+    }
+  }
+
+  public static List<AllocationsInfo> getAllocationInfosForSession(@NotNull ProfilerClient client,
+                                                                   @NotNull Common.Session session,
+                                                                   @NotNull Range rangeUs,
+                                                                   @NotNull IdeProfilerServices profilerService) {
+
+    if (profilerService.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
+        .setStreamId(session.getStreamId())
+        .setPid(session.getPid())
+        .setKind(Common.Event.Kind.MEMORY_ALLOC_TRACKING)
+        .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
+        .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
+        .build();
+      Transport.GetEventGroupsResponse response = client.getTransportClient().getEventGroups(request);
+
+      List<AllocationsInfo> infos = new ArrayList<>();
+      for (Transport.EventGroup group : response.getGroupsList()) {
+        // We only need the last event to get the most recent HeapDumpInfo
+        Common.Event lastEvent = group.getEvents(group.getEventsCount() - 1);
+        infos.add(lastEvent.getMemoryAllocTracking().getInfo());
+      }
+      return infos;
+    }
+    else {
+      MemoryRequest dataRequest = MemoryRequest.newBuilder()
+        .setSession(session)
+        .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
+        .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
+        .build();
+      return client.getMemoryClient().getData(dataRequest).getAllocationsInfoList();
+    }
+  }
+
+  public static void trackAllocations(@NotNull StudioProfilers profilers,
+                                      @NotNull Common.Session session,
+                                      boolean enable,
+                                      @Nullable Consumer<Memory.TrackStatus> responseHandler) {
+    TimeResponse timeResponse = profilers.getClient().getTransportClient()
+      .getCurrentTime(TimeRequest.newBuilder().setStreamId(session.getStreamId()).build());
+    long timeNs = timeResponse.getTimestampNs();
+
+    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Commands.Command.Builder trackCommand = Commands.Command.newBuilder()
+        .setStreamId(session.getStreamId())
+        .setPid(session.getPid());
+      if (enable) {
+        trackCommand
+          .setType(Commands.Command.CommandType.START_ALLOC_TRACKING)
+          .setStartAllocTracking(Memory.StartAllocTracking.newBuilder().setRequestTime(timeNs));
+      }
+      else {
+        trackCommand
+          .setType(Commands.Command.CommandType.STOP_ALLOC_TRACKING)
+          .setStopAllocTracking(Memory.StopAllocTracking.newBuilder().setRequestTime(timeNs));
+      }
+      Transport.ExecuteResponse response = profilers.getClient().getTransportClient().execute(
+        Transport.ExecuteRequest.newBuilder().setCommand(trackCommand).build());
+      if (responseHandler != null) {
+        TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS,
+                                                                           profilers.getIdeServices().getMainExecutor(),
+                                                                           event -> event.getCommandId() == response.getCommandId(),
+                                                                           () -> session.getStreamId(),
+                                                                           () -> session.getPid(),
+                                                                           event -> {
+                                                                             responseHandler.accept(
+                                                                               event.getMemoryAllocTrackingStatus().getStatus());
+                                                                             // unregisters the listener.
+                                                                             return true;
+                                                                           });
+        profilers.getTransportPoller().registerListener(statusListener);
+      }
+    }
+    else {
+      TrackAllocationsResponse response = profilers.getClient().getMemoryClient().trackAllocations(
+        TrackAllocationsRequest.newBuilder().setSession(session).setRequestTime(timeNs).setEnabled(enable).build());
+      if (responseHandler != null) {
+        responseHandler.accept(response.getStatus());
+      }
     }
   }
 }

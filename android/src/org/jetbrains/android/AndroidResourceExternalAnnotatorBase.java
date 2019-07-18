@@ -23,6 +23,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.diagnostic.Logger;
@@ -103,7 +104,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
         // Inline color
         assert (element.getColor() != null);
         Color color = element.getColor();
-        gutterIconRenderer = new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, true);
+        gutterIconRenderer = new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, true, configuration);
       }
       if (gutterIconRenderer != null) {
         rendererMap.put(element.getPsiElement(), gutterIconRenderer);
@@ -120,7 +121,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
                                                                 @NotNull Configuration configuration) {
     ResourceType type = reference.getResourceType();
     if (type == ResourceType.COLOR) {
-      return getColorGutterIconRenderer(resolver, reference, facet, element);
+      return getColorGutterIconRenderer(resolver, reference, facet, element, configuration);
     }
     else {
       assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
@@ -152,13 +153,19 @@ public abstract class AndroidResourceExternalAnnotatorBase
   private static GutterIconRenderer getColorGutterIconRenderer(@NotNull ResourceResolver resourceResolver,
                                                                @NotNull ResourceReference reference,
                                                                @NotNull AndroidFacet facet,
-                                                               @NotNull PsiElement element) {
+                                                               @NotNull PsiElement element,
+                                                               @NotNull Configuration configuration) {
     ResourceValue colorValue = resourceResolver.getResolvedResource(reference);
     Color color = ResourceHelper.resolveColor(resourceResolver, colorValue, facet.getModule().getProject());
     if (color == null) {
       return null;
     }
-    return new AndroidAnnotatorUtil.ColorRenderer(element, color, false);
+    // This adds the gutter icon for color reference in xml, java, and kotlin files.
+    // For xml files, we want to open raw color and color resource picker.
+    // For java and kotlin files, we should open color resource picker only and set R.color.[resource_name] to the field.
+    // TODO: Open color resource picker for java and kotlin files.
+    boolean isClickable = AndroidAnnotatorUtil.getFileType(element) == XmlFileType.INSTANCE;
+    return new AndroidAnnotatorUtil.ColorRenderer(element, color, isClickable, configuration);
   }
 
   @Override

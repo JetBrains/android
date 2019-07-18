@@ -33,7 +33,9 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.util.containers.isNullOrEmpty
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils
+import org.jetbrains.android.dom.manifest.getCustomPermissionGroups
+import org.jetbrains.android.dom.manifest.getCustomPermissions
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil.getFieldNameByResourceName
 
@@ -47,7 +49,7 @@ class ManifestClass(
   psiManager: PsiManager
 ) : AndroidClassWithOnlyInnerClassesBase(
   SdkConstants.FN_MANIFEST_BASE,
-  AndroidManifestUtils.getPackageName(facet),
+  getPackageName(facet),
   psiManager,
   listOf(PsiModifier.PUBLIC, PsiModifier.FINAL)
 ) {
@@ -56,16 +58,16 @@ class ManifestClass(
     setModuleInfo(facet.module, false)
   }
 
-  override fun getQualifiedName(): String? = AndroidManifestUtils.getPackageName(facet)?.let { it + "." + SdkConstants.FN_MANIFEST_BASE }
+  override fun getQualifiedName(): String? = getPackageName(facet)?.let { it + "." + SdkConstants.FN_MANIFEST_BASE }
 
   override fun doGetInnerClasses(): Array<PsiClass> {
     val classes = mutableListOf<PsiClass>()
 
-    if (!AndroidManifestUtils.getCustomPermissions(facet).isNullOrEmpty()) {
+    if (!getCustomPermissions(facet).isNullOrEmpty()) {
       classes += PermissionClass(facet, this)
     }
 
-    if (!AndroidManifestUtils.getCustomPermissionGroups(facet).isNullOrEmpty()) {
+    if (!getCustomPermissionGroups(facet).isNullOrEmpty()) {
       classes += PermissionGroupClass(facet, this)
     }
 
@@ -132,7 +134,7 @@ internal class PermissionClass(
   private val facet: AndroidFacet,
   parentClass: PsiClass
 ) : ManifestInnerClass(facet, "permission", parentClass) {
-  override fun getNamesFromManifest(): Collection<String> = AndroidManifestUtils.getCustomPermissions(facet) ?: emptySet()
+  override fun getNamesFromManifest(): Collection<String> = getCustomPermissions(facet) ?: emptySet()
 }
 
 
@@ -143,5 +145,5 @@ internal class PermissionGroupClass(
   private val facet: AndroidFacet,
   parentClass: PsiClass
 ) : ManifestInnerClass(facet, "permission_group", parentClass) {
-  override fun getNamesFromManifest(): Collection<String> = AndroidManifestUtils.getCustomPermissionGroups(facet) ?: emptySet()
+  override fun getNamesFromManifest(): Collection<String> = getCustomPermissionGroups(facet) ?: emptySet()
 }

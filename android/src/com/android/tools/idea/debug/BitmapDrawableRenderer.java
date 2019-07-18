@@ -17,7 +17,6 @@ package com.android.tools.idea.debug;
 
 import com.intellij.debugger.engine.FullValueEvaluatorProvider;
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
-import com.intellij.debugger.settings.NodeRendererSettings;
 import com.intellij.debugger.ui.impl.watch.ValueDescriptorImpl;
 import com.intellij.debugger.ui.tree.render.CompoundReferenceRenderer;
 import com.intellij.xdebugger.frame.XFullValueEvaluator;
@@ -28,8 +27,8 @@ import java.awt.image.BufferedImage;
 public class BitmapDrawableRenderer extends CompoundReferenceRenderer implements FullValueEvaluatorProvider {
   public static final String BITMAP_DRAWABLE_FQCN = "android.graphics.drawable.BitmapDrawable";
 
-  public BitmapDrawableRenderer(NodeRendererSettings rendererSettings) {
-    super(rendererSettings, "BitmapDrawable", null, null);
+  public BitmapDrawableRenderer() {
+    super("BitmapDrawable", null, null);
     setClassName(BITMAP_DRAWABLE_FQCN);
     setEnabled(true);
   }

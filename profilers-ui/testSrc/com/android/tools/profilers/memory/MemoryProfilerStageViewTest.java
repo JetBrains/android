@@ -33,10 +33,12 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
+import com.android.tools.profiler.proto.Memory.TrackStatus;
+import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.Transport;
@@ -205,6 +207,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     final int startTime = 1;
     final int endTime = 5;
     long deltaUs = TimeUnit.SECONDS.toMicros(endTime - startTime);
+    long startTimeNs = TimeUnit.SECONDS.toNanos(startTime);
+    long endTimeNs = TimeUnit.SECONDS.toNanos(endTime);
 
     assertThat(myStage.isTrackingAllocations()).isFalse();
 
@@ -212,9 +216,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myTimer.setCurrentTimeNs(TimeUnit.SECONDS.toNanos(startTime));
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
 
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
-                                         TimeUnit.SECONDS.toNanos(Long.MAX_VALUE), true);
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStartTime(startTimeNs).setStatus(Status.SUCCESS).build());
+    myService.setExplicitAllocationsInfo(startTimeNs, TimeUnit.SECONDS.toNanos(Long.MAX_VALUE), true);
 
     myStage.trackAllocations(true);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText())
@@ -233,9 +236,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(stageView.getCaptureElapsedTimeLabel().getText())
       .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(deltaUs));
 
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
-                                         TimeUnit.SECONDS.toNanos(endTime), true);
+    myService.setExplicitAllocationsInfo(startTimeNs, endTimeNs, true);
     myStage.trackAllocations(false);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
   }
@@ -428,8 +429,10 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   public void testGcDurationAttachment() {
     // Set up test data from range 0us-10us. Note that the proto timestamps are in nanoseconds.
     MemoryData data = MemoryData.newBuilder()
-      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0).setJavaAllocationCount(0))
-      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000).setJavaAllocationCount(100))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0)
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(0)))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000)
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(100)))
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(1000).setEndTime(2000))
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(6000).setEndTime(7000))
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(8000).setEndTime(9000))
@@ -493,8 +496,10 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   public void testAllocationSamplingRateAttachment() {
     // Set up test data from range 0us-10us. Note that the proto timestamps are in nanoseconds.
     MemoryData data = MemoryData.newBuilder()
-      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0).setJavaAllocationCount(0))
-      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000).setJavaAllocationCount(100))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0)
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(0)))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000)
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(100)))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(1000)
                                     .setSamplingRate(MemoryAllocSamplingData.newBuilder()

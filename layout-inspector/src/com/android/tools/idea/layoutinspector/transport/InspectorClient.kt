@@ -88,6 +88,6 @@ interface InspectorClient {
     }
 
     @VisibleForTesting
-    internal var currentInstance: InspectorClient? = null
+    var currentInstance: InspectorClient? = null
   }
 }

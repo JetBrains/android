@@ -21,6 +21,7 @@ import com.android.utils.HtmlBuilder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBHtmlEditorKit;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -316,7 +317,7 @@ public class IssueView extends JPanel {
 
     public StyleSheet createStyleSheet() {
       StyleSheet style = new StyleSheet();
-      style.addStyleSheet(UIUtil.JBHtmlEditorKit.createStyleSheet());
+      style.addStyleSheet(JBHtmlEditorKit.createStyleSheet());
       style.addRule("body { font-family: Sans-Serif; }");
       style.addRule("code { font-size: 100%; font-family: monospace; }"); // small by Swing's default
       style.addRule("small { font-size: small; }"); // x-small by Swing's default

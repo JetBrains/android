@@ -134,7 +134,7 @@ object AndroidStudioUsageTracker {
   }
 
   private fun reportEnabledPlugins() {
-    val plugins = PluginManagerCore.getLoadedPlugins(null)
+    val plugins = PluginManagerCore.getLoadedPlugins()
     val pluginInfoProto = IdePluginInfo.newBuilder()
 
     for (plugin in plugins) {
@@ -198,9 +198,7 @@ object AndroidStudioUsageTracker {
         })
 
         AnalyticsSettings.lastSentimentQuestionDate = now
-        if (result != UserSentiment.SatisfactionLevel.UNKNOWN_SATISFACTION_LEVEL) {
-          AnalyticsSettings.lastSentimentAnswerDate = now
-        }
+        AnalyticsSettings.lastSentimentAnswerDate = now
         AnalyticsSettings.saveSettings()
       })
     }

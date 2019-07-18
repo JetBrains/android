@@ -36,7 +36,6 @@ import static icons.StudioIcons.Common.INFO_INLINE;
 
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectStructureConfigurable;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -168,8 +167,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
         }
       }
     };
-
-    installValidationListener(mySdkLocationTextField.getTextField());
 
     addHistoryUpdater("mySdkLocationTextField", mySdkLocationTextField.getTextField(), historyUpdater);
     addHistoryUpdater("myJdkLocationComboBox", myJdkLocationComboBox.getComboBox(), historyUpdater);
@@ -475,17 +472,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       assert validJdkLocation != null;
       myUserSelectedJdkHomePath = validJdkLocation.getPath();
       setJdkLocationComboBox(validJdkLocation);
-    }
-  }
-
-  private void installValidationListener(@NotNull JTextField textField) {
-    if (myHost instanceof AndroidProjectStructureConfigurable) {
-      textField.getDocument().addDocumentListener(new DocumentAdapter() {
-        @Override
-        protected void textChanged(@NotNull DocumentEvent e) {
-          ((AndroidProjectStructureConfigurable)myHost).requestValidation();
-        }
-      });
     }
   }
 

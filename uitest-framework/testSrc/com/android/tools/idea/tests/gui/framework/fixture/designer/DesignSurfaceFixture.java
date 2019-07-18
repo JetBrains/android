@@ -78,7 +78,7 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
    */
   @NotNull
   public List<NlComponent> getSelection() {
-    SceneView view = target().getCurrentSceneView();
+    SceneView view = target().getFocusedSceneView();
     return view == null ? Collections.emptyList() : view.getSelectionModel().getSelection();
   }
 
@@ -90,7 +90,7 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
    * Clicks in the design surface on the point that corresponds to {@link AndroidCoordinate} (x, y)
    */
   public void doubleClick(@AndroidCoordinate int x, @AndroidCoordinate int y) {
-    SceneView view = target().getCurrentSceneView();
+    SceneView view = target().getFocusedSceneView();
     Point point = new Point(Coordinates.getSwingX(view, x), Coordinates.getSwingY(view, y));
     robot().click(target(), point, MouseButton.LEFT_BUTTON, 2);
   }
@@ -104,7 +104,7 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
    */
   @NotNull
   public List<NlComponentFixture> getAllComponents() {
-    SceneView sceneView = target().getCurrentSceneView();
+    SceneView sceneView = target().getFocusedSceneView();
     if (sceneView == null) {
       return Collections.emptyList();
     }

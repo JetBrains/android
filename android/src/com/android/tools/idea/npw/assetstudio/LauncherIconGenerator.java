@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.assetstudio;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangleAroundCenter;
+import static java.lang.Math.max;
 
 import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.PathString;
@@ -37,7 +38,7 @@ import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.ExceptionUtilRt;
+import com.intellij.util.ExceptionUtil;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -71,15 +72,16 @@ public class LauncherIconGenerator extends IconGenerator {
   private static final Rectangle IMAGE_SIZE_SAFE_ZONE_DP = new Rectangle(0, 0, 66, 66);
   private static final Rectangle IMAGE_SIZE_VIEWPORT_DP = new Rectangle(0, 0, 72, 72);
   private static final Rectangle IMAGE_SIZE_LEGACY_DP = new Rectangle(0, 0, 48, 48);
-  private static final Rectangle IMAGE_SIZE_VIEW_PORT_WEB_PX = new Rectangle(0, 0, 512, 512);
-  private static final Rectangle IMAGE_SIZE_FULL_BLEED_WEB_PX = new Rectangle(0, 0, 768, 768);
+  private static final Rectangle IMAGE_SIZE_VIEWPORT_PLAY_STORE_PX = new Rectangle(0, 0, 512, 512);
+  private static final Rectangle IMAGE_SIZE_FULL_BLEED_PLAY_STORE_PX = new Rectangle(0, 0, 768, 768);
+  private static final Rectangle IMAGE_SIZE_VIEWPORT_PREVIEW_PLAY_STORE_PX = new Rectangle(0, 0, 528, 529);
+  private static final Rectangle IMAGE_SIZE_TARGET_PLAY_STORE_PX = new Rectangle(8, 4, 528, 529);
 
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(DEFAULT_BACKGROUND_COLOR);
   private final BoolProperty myGenerateLegacyIcon = new BoolValueProperty(true);
   private final BoolProperty myGenerateRoundIcon = new BoolValueProperty(true);
-  private final BoolProperty myGenerateWebIcon = new BoolValueProperty(true);
+  private final BoolProperty myGeneratePlayStoreIcon = new BoolValueProperty(true);
   private final ObjectProperty<Shape> myLegacyIconShape = new ObjectValueProperty<>(Shape.SQUARE);
-  private final ObjectProperty<Shape> myWebIconShape = new ObjectValueProperty<>(Shape.SQUARE);
   private final BoolProperty myShowGrid = new BoolValueProperty();
   private final BoolProperty myShowSafeZone = new BoolValueProperty(true);
   private final ObjectValueProperty<Density> myPreviewDensity = new ObjectValueProperty<>(Density.XHIGH);
@@ -114,7 +116,7 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   /**
-   * If {@code true}, generate the "Round" icon (API 25)
+   * If {@code true}, generate the "Round" icon (API 25).
    */
   @NotNull
   public BoolProperty generateRoundIcon() {
@@ -122,11 +124,11 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   /**
-   * If {@code true}, generate the "Web" icon for PlayStore
+   * If {@code true}, generate the Play Store icon.
    */
   @NotNull
-  public BoolProperty generateWebIcon() {
-    return myGenerateWebIcon;
+  public BoolProperty generatePlayStoreIcon() {
+    return myGeneratePlayStoreIcon;
   }
 
   /**
@@ -135,14 +137,6 @@ public class LauncherIconGenerator extends IconGenerator {
   @NotNull
   public ObjectProperty<Shape> legacyIconShape() {
     return myLegacyIconShape;
-  }
-
-  /**
-   * A shape which will be used as the "Web" icon's backdrop.
-   */
-  @NotNull
-  public ObjectProperty<Shape> webIconShape() {
-    return myWebIconShape;
   }
 
   @NotNull
@@ -219,9 +213,8 @@ public class LauncherIconGenerator extends IconGenerator {
     options.backgroundLayerName = myBackgroundLayerName.get();
     options.generateLegacyIcon = myGenerateLegacyIcon.get();
     options.legacyIconShape = myLegacyIconShape.get();
-    options.webIconShape = myWebIconShape.get();
     options.generateRoundIcon = myGenerateRoundIcon.get();
-    options.generateWebIcon = myGenerateWebIcon.get();
+    options.generatePlayStoreIcon = myGeneratePlayStoreIcon.get();
     return options;
   }
 
@@ -260,19 +253,19 @@ public class LauncherIconGenerator extends IconGenerator {
       createOutputIconsForSingleDensityTasks(context, name, localOptions, density, tasks);
     }
 
-    if (options.generateWebIcon) {
+    if (options.generatePlayStoreIcon) {
       tasks.add(() -> {
         LauncherIconOptions localOptions = options.clone();
         localOptions.showGrid = false;
         localOptions.showSafeZone = false;
-        localOptions.generateWebIcon = true;
+        localOptions.generatePlayStoreIcon = true;
         localOptions.generateOutputIcons = true;
         localOptions.generatePreviewIcons = false;
-        localOptions.legacyIconShape = localOptions.webIconShape;
+        localOptions.legacyIconShape = Shape.NONE;
         AnnotatedImage image = generateLegacyImage(context, localOptions);
         return new GeneratedImageIcon(name,
                                       new PathString(getIconPath(localOptions, name)),
-                                      IconCategory.WEB,
+                                      IconCategory.PLAY_STORE,
                                       Density.NODPI,
                                       image);
       });
@@ -286,7 +279,7 @@ public class LauncherIconGenerator extends IconGenerator {
     if (options.foregroundImage != null && options.foregroundImage.isRasterImage()) {
       tasks.add(() -> {
         LauncherIconOptions foregroundOptions = options.clone();
-        foregroundOptions.generateWebIcon = false;
+        foregroundOptions.generatePlayStoreIcon = false;
         foregroundOptions.generatePreviewIcons = false;
         foregroundOptions.generateOutputIcons = true;
         AnnotatedImage foregroundImage = generateIconForegroundLayer(context, foregroundOptions);
@@ -302,7 +295,7 @@ public class LauncherIconGenerator extends IconGenerator {
     if (options.backgroundImage != null && options.backgroundImage.isRasterImage()) {
       tasks.add(() -> {
         LauncherIconOptions backgroundOptions = options.clone();
-        backgroundOptions.generateWebIcon = false;
+        backgroundOptions.generatePlayStoreIcon = false;
         backgroundOptions.generatePreviewIcons = false;
         backgroundOptions.generateOutputIcons = true;
         AnnotatedImage backgroundImage = generateIconBackgroundLayer(context, backgroundOptions);
@@ -318,7 +311,7 @@ public class LauncherIconGenerator extends IconGenerator {
       tasks.add(() -> {
         LauncherIconOptions legacyOptions = options.clone();
         legacyOptions.previewShape = PreviewShape.LEGACY;
-        legacyOptions.generateWebIcon = false;
+        legacyOptions.generatePlayStoreIcon = false;
         legacyOptions.generatePreviewIcons = false;
         legacyOptions.generateOutputIcons = true;
         AnnotatedImage legacy = generateLegacyImage(context, legacyOptions);
@@ -334,7 +327,7 @@ public class LauncherIconGenerator extends IconGenerator {
       tasks.add(() -> {
         LauncherIconOptions legacyOptions = options.clone();
         legacyOptions.previewShape = PreviewShape.LEGACY_ROUND;
-        legacyOptions.generateWebIcon = false;
+        legacyOptions.generatePlayStoreIcon = false;
         legacyOptions.generatePreviewIcons = false;
         legacyOptions.generateOutputIcons = true;
         legacyOptions.legacyIconShape = Shape.CIRCLE;
@@ -356,7 +349,7 @@ public class LauncherIconGenerator extends IconGenerator {
     {
       LauncherIconOptions iconOptions = options.clone();
       iconOptions.density = Density.ANYDPI;
-      iconOptions.generateWebIcon = false;
+      iconOptions.generatePlayStoreIcon = false;
       iconOptions.iconFolderKind = IconFolderKind.MIPMAP;
       iconOptions.apiVersion = 26; // Temporary until http://b/62316340 is fixed.
 
@@ -382,7 +375,7 @@ public class LauncherIconGenerator extends IconGenerator {
       TransformedImageAsset image = options.foregroundImage;
       tasks.add(() -> {
         LauncherIconOptions iconOptions = options.clone();
-        iconOptions.generateWebIcon = false;
+        iconOptions.generatePlayStoreIcon = false;
         iconOptions.density = Density.ANYDPI;
         iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
 
@@ -408,7 +401,7 @@ public class LauncherIconGenerator extends IconGenerator {
       TransformedImageAsset image = options.backgroundImage;
       tasks.add(() -> {
         LauncherIconOptions iconOptions = options.clone();
-        iconOptions.generateWebIcon = false;
+        iconOptions.generatePlayStoreIcon = false;
         iconOptions.density = Density.ANYDPI;
         iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
 
@@ -431,7 +424,7 @@ public class LauncherIconGenerator extends IconGenerator {
       // Generate background color value.
       tasks.add(() -> {
         LauncherIconOptions iconOptions = options.clone();
-        iconOptions.generateWebIcon = false;
+        iconOptions.generatePlayStoreIcon = false;
         iconOptions.density = Density.ANYDPI;
         iconOptions.iconFolderKind = IconFolderKind.VALUES;
 
@@ -480,8 +473,8 @@ public class LauncherIconGenerator extends IconGenerator {
     if (options.generateRoundIcon) {
       previewShapes.add(PreviewShape.LEGACY_ROUND);
     }
-    if (options.generateWebIcon) {
-      previewShapes.add(PreviewShape.WEB);
+    if (options.generatePlayStoreIcon) {
+      previewShapes.add(PreviewShape.PLAY_STORE);
     }
 
     for (PreviewShape previewShape : previewShapes) {
@@ -491,7 +484,7 @@ public class LauncherIconGenerator extends IconGenerator {
         localOptions.previewShape = previewShape;
         localOptions.generateLegacyIcon = (previewShape == PreviewShape.LEGACY);
         localOptions.generateRoundIcon = (previewShape == PreviewShape.LEGACY_ROUND);
-        localOptions.generateWebIcon = (previewShape == PreviewShape.WEB);
+        localOptions.generatePlayStoreIcon = (previewShape == PreviewShape.PLAY_STORE);
 
         AnnotatedImage image;
         try {
@@ -516,7 +509,7 @@ public class LauncherIconGenerator extends IconGenerator {
                                   @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
     LauncherIconOptions launcherIconOptions = (LauncherIconOptions) options;
     LauncherIconOptions localOptions = launcherIconOptions.clone();
-    localOptions.generateWebIcon = false;
+    localOptions.generatePlayStoreIcon = false;
 
     Collection<GeneratedIcon> icons = generateIcons(context, options, name);
     icons.stream()
@@ -533,7 +526,7 @@ public class LauncherIconGenerator extends IconGenerator {
               LauncherIconOptions iconOptions = localOptions.clone();
               iconOptions.density = icon.getDensity();
               iconOptions.iconFolderKind = IconFolderKind.MIPMAP;
-              iconOptions.generateWebIcon = (icon.getCategory() == IconCategory.WEB);
+              iconOptions.generatePlayStoreIcon = (icon.getCategory() == IconCategory.PLAY_STORE);
               imageMap.put(icon.getOutputPath().toString(), new AnnotatedImage(icon.getImage(), icon.getErrorMessage()));
             });
   }
@@ -559,12 +552,12 @@ public class LauncherIconGenerator extends IconGenerator {
 
       case LEGACY:
         options.generatePreviewIcons = true;
-        options.generateWebIcon = false;
+        options.generatePlayStoreIcon = false;
         return generateLegacyImage(context, options);
 
       case LEGACY_ROUND:
         options.generatePreviewIcons = true;
-        options.generateWebIcon = false;
+        options.generatePlayStoreIcon = false;
         options.legacyIconShape = Shape.CIRCLE;
         return generateLegacyImage(context, options);
 
@@ -575,16 +568,16 @@ public class LauncherIconGenerator extends IconGenerator {
         return new AnnotatedImage(scaledPreviewImage(annotatedImage.getImage(), 0.8f), annotatedImage.getErrorMessage());
       }
 
-      case WEB: {
+      case PLAY_STORE: {
         options.generatePreviewIcons = true;
-        options.generateWebIcon = true;
-        options.legacyIconShape = options.webIconShape;
+        options.generatePlayStoreIcon = true;
+        options.legacyIconShape = Shape.SQUARE;
         AnnotatedImage annotatedImage = generateLegacyImage(context, options);
         BufferedImage image = AssetUtil.trimmedImage(annotatedImage.getImage());
         // For preview, scale image down so that it does not display relatively
         // too big compared to the other preview icons.
         double scale = getMdpiScaleFactor(options.previewDensity);
-        return new AnnotatedImage(scaledPreviewImage(image, 0.25 * scale), annotatedImage.getErrorMessage());
+        return new AnnotatedImage(scaledPreviewImage(image, 0.22 * scale), annotatedImage.getErrorMessage());
       }
 
       case NONE:
@@ -604,10 +597,10 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   /**
-   * Generates an raster image for either a "Legacy", "Round" or "Web" icon. The created
+   * Generates an raster image for either a "Legacy", "Round" or Play Store icon. The created
    * image consists of both background and foreground layer images merge together, then a shape
    * (e.g. circle, square) mask is applied, and finally the image is scaled to the appropriate
-   * size (48x48 legacy or 512x512px web).
+   * size (48x48 legacy or 512x512px Play Store).
    */
   @NotNull
   private static AnnotatedImage generateLegacyImage(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
@@ -617,13 +610,15 @@ public class LauncherIconGenerator extends IconGenerator {
     // The "Legacy" icon rectangle (48x48dp) scaled according to density.
     Rectangle legacyRect = getLegacyRectangle(options);
 
-    // The "Web" density does not exist in the "Density" enum. Various "Legacy" icon APIs use
-    // "null" as a placeholder for "Web".
-    Density legacyOrWebDensity = options.generateWebIcon ? Density.NODPI : options.density;
+    // The Play Store density does not exist in the "Density" enum. Various icon APIs use
+    // Density.NODPI as a placeholder for Play Store.
+    Density legacyOrPlayStoreDensity = options.generatePlayStoreIcon ? Density.NODPI : options.density;
 
     // The sub-rectangle of the 48x48dp "Legacy" icon that corresponds to the "Legacy" icon
     // shape, scaled according to the density.
-    Rectangle legacyShapeRect = LauncherLegacyIconGenerator.getTargetRect(options.legacyIconShape, legacyOrWebDensity);
+    Rectangle legacyShapeRect = options.generatePlayStoreIcon ?
+                                IMAGE_SIZE_TARGET_PLAY_STORE_PX :
+                                LauncherLegacyIconGenerator.getTargetRect(options.legacyIconShape, legacyOrPlayStoreDensity);
 
     // Generate full bleed and viewport images.
     Layers layers = generateIconLayers(context, options);
@@ -636,7 +631,7 @@ public class LauncherIconGenerator extends IconGenerator {
     // Viewport rectangle (72x72dp) to Legacy shape (sub-rectangle of 48x48dp) as the
     // scaling factor, because the Viewport rectangle is the visible part of Adaptive icons,
     // whereas the "Full Bleed" icon is never entirely visible.
-    float viewportScale = getRectangleInsideScale(viewportRect, legacyShapeRect);
+    double viewportScale = getRectangleInsideScale(viewportRect, legacyShapeRect);
     BufferedImage scaledFullBleed =
         options.generatePreviewIcons ? scaledPreviewImage(fullBleed, viewportScale) : scaledImage(fullBleed, viewportScale);
 
@@ -645,9 +640,9 @@ public class LauncherIconGenerator extends IconGenerator {
     BufferedImage shapeImageFore = null;
     BufferedImage shapeImageMask = null;
     if (options.legacyIconShape != Shape.NONE) {
-      shapeImageBack = LauncherLegacyIconGenerator.loadBackImage(context, options.legacyIconShape, legacyOrWebDensity);
-      shapeImageFore = LauncherLegacyIconGenerator.loadStyleImage(context, options.legacyIconShape, legacyOrWebDensity, Style.SIMPLE);
-      shapeImageMask = LauncherLegacyIconGenerator.loadMaskImage(context, options.legacyIconShape, legacyOrWebDensity);
+      shapeImageBack = loadBackImage(context, options.legacyIconShape, legacyOrPlayStoreDensity);
+      shapeImageFore = loadStyleImage(context, options.legacyIconShape, legacyOrPlayStoreDensity, Style.SIMPLE);
+      shapeImageMask = loadMaskImage(context, options.legacyIconShape, legacyOrPlayStoreDensity);
     }
 
     // Generate legacy image by merging shadow, mask and (scaled) adaptive icon
@@ -680,17 +675,17 @@ public class LauncherIconGenerator extends IconGenerator {
    * height is equal to the width or height of {@code destination} rectangle, while remaining
    * contained within {@code destination}.
    */
-  public static float getRectangleInsideScale(@NotNull Rectangle source, @NotNull Rectangle destination) {
-    float scaleWidth = (float) destination.width / (float) source.width;
-    float scaleHeight = (float) destination.height / (float) source.height;
+  public static double getRectangleInsideScale(@NotNull Rectangle source, @NotNull Rectangle destination) {
+    double scaleWidth = destination.getWidth() / source.getWidth();
+    double scaleHeight = destination.getHeight() / source.getHeight();
     return Math.min(scaleWidth, scaleHeight);
   }
 
   /** Scale an image given a scale factor. */
   @NotNull
-  private static BufferedImage scaledImage(@NotNull BufferedImage image, float scale) {
-    int width = Math.round(image.getWidth() * scale);
-    int height = Math.round(image.getHeight() * scale);
+  private static BufferedImage scaledImage(@NotNull BufferedImage image, double scale) {
+    int width = roundToInt(image.getWidth() * scale);
+    int height = roundToInt(image.getHeight() * scale);
     return AssetUtil.scaledImage(image, width, height);
   }
 
@@ -700,8 +695,8 @@ public class LauncherIconGenerator extends IconGenerator {
    */
   @NotNull
   private static BufferedImage scaledPreviewImage(@NotNull BufferedImage image, double scale) {
-    int width = (int)Math.round(image.getWidth() * scale);
-    int height = (int)Math.round(image.getHeight() * scale);
+    int width = roundToInt(image.getWidth() * scale);
+    int height = roundToInt(image.getHeight() * scale);
     return scaledPreviewImage(image, width, height);
   }
 
@@ -726,8 +721,8 @@ public class LauncherIconGenerator extends IconGenerator {
 
   /** Generate a preview image with a Shape mask applied (e.g. Square, Squircle). */
   @NotNull
-  private static AnnotatedImage generateViewportPreviewImage(@NotNull GraphicGeneratorContext context,
-                                                            @NotNull LauncherIconOptions options) {
+  private static AnnotatedImage generateViewportPreviewImage(
+      @NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
     Layers layers = generateIconLayers(context, options);
     AnnotatedImage mergedImage = mergeLayers(layers);
     BufferedImage image = mergedImage.getImage();
@@ -767,8 +762,8 @@ public class LauncherIconGenerator extends IconGenerator {
   private static AnnotatedImage mergeLayers(@NotNull Layers layers, @Nullable Color fillColor) {
     BufferedImage backgroundImage = layers.background.getImage();
     BufferedImage foregroundImage = layers.foreground.getImage();
-    int width = Math.max(backgroundImage.getWidth(), foregroundImage.getWidth());
-    int height = Math.max(backgroundImage.getHeight(), foregroundImage.getHeight());
+    int width = max(backgroundImage.getWidth(), foregroundImage.getWidth());
+    int height = max(backgroundImage.getHeight(), foregroundImage.getHeight());
 
     BufferedImage outImage = AssetUtil.newArgbBufferedImage(width, height);
     Graphics2D gOut = (Graphics2D) outImage.getGraphics();
@@ -820,7 +815,7 @@ public class LauncherIconGenerator extends IconGenerator {
       return null;
     }
 
-    if (options.generateWebIcon) {
+    if (options.generatePlayStoreIcon) {
       String resourceName = String.format("/images/adaptive_icons_masks/adaptive_%s-%s.png", maskName, Density.XXXHIGH.getResourceValue());
 
       BufferedImage mask = context.loadImageResource(resourceName);
@@ -828,7 +823,7 @@ public class LauncherIconGenerator extends IconGenerator {
         return null;
       }
       Rectangle maskRect = new Rectangle(0, 0, mask.getWidth(), mask.getHeight());
-      float scale = getRectangleInsideScale(maskRect, getViewportRectangle(options));
+      double scale = getRectangleInsideScale(maskRect, getViewportRectangle(options));
       return options.generatePreviewIcons ? scaledPreviewImage(mask, scale) : scaledImage(mask, scale);
     } else {
       String resourceName = String.format("/images/adaptive_icons_masks/adaptive_%s-%s.png", maskName, options.density.getResourceValue());
@@ -839,24 +834,24 @@ public class LauncherIconGenerator extends IconGenerator {
 
   @NotNull
   private static Rectangle getFullBleedRectangle(@NotNull LauncherIconOptions options) {
-    if (options.generateWebIcon) {
-      return IMAGE_SIZE_FULL_BLEED_WEB_PX;
+    if (options.generatePlayStoreIcon) {
+      return IMAGE_SIZE_FULL_BLEED_PLAY_STORE_PX;
     }
     return scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, getMdpiScaleFactor(options.density));
   }
 
   @NotNull
   private static Rectangle getViewportRectangle(@NotNull LauncherIconOptions options) {
-    if (options.generateWebIcon) {
-      return IMAGE_SIZE_VIEW_PORT_WEB_PX;
+    if (options.generatePlayStoreIcon) {
+      return IMAGE_SIZE_VIEWPORT_PLAY_STORE_PX;
     }
     return scaleRectangle(IMAGE_SIZE_VIEWPORT_DP, getMdpiScaleFactor(options.density));
   }
 
   @NotNull
   private static Rectangle getLegacyRectangle(@NotNull LauncherIconOptions options) {
-    if (options.generateWebIcon) {
-      return IMAGE_SIZE_VIEW_PORT_WEB_PX;
+    if (options.generatePlayStoreIcon) {
+      return options.generatePreviewIcons ? IMAGE_SIZE_VIEWPORT_PREVIEW_PLAY_STORE_PX : IMAGE_SIZE_VIEWPORT_PLAY_STORE_PX;
     }
     return scaleRectangle(IMAGE_SIZE_LEGACY_DP, getMdpiScaleFactor(options.density));
   }
@@ -980,7 +975,7 @@ public class LauncherIconGenerator extends IconGenerator {
       }
     }
     catch (ExecutionException e) {
-      ExceptionUtilRt.rethrow(e.getCause());
+      ExceptionUtil.rethrow(e.getCause());
     }
     catch (InterruptedException ignore) {
     }
@@ -992,9 +987,9 @@ public class LauncherIconGenerator extends IconGenerator {
   private static BufferedImage generateIconLayer(@NotNull GraphicGeneratorContext context, @NotNull BufferedImage sourceImage,
                                                  @NotNull Rectangle imageRect, double scaleFactor, boolean useFillColor, int fillColor,
                                                  boolean forPreview) {
-    if (forPreview && Math.max(sourceImage.getWidth(), sourceImage.getHeight()) > IMAGE_SIZE_FULL_BLEED_WEB_PX.getWidth() * 1.2) {
+    if (forPreview && max(sourceImage.getWidth(), sourceImage.getHeight()) > IMAGE_SIZE_FULL_BLEED_PLAY_STORE_PX.getWidth() * 1.2) {
       // The source image is pretty large. Scale it down in preview mode to make generation of subsequent images faster.
-      sourceImage = generateIconLayer(context, sourceImage, IMAGE_SIZE_FULL_BLEED_WEB_PX, 1, false, 0);
+      sourceImage = generateIconLayer(context, sourceImage, IMAGE_SIZE_FULL_BLEED_PLAY_STORE_PX, 1, false, 0);
     }
 
     return generateIconLayer(context, sourceImage, imageRect, scaleFactor, useFillColor, fillColor);
@@ -1070,7 +1065,7 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   private static void drawGrid(@NotNull LauncherIconOptions launcherIconOptions, @NotNull Graphics2D gOut) {
-    if (launcherIconOptions.generateWebIcon) {
+    if (launcherIconOptions.generatePlayStoreIcon) {
       return;
     }
 
@@ -1211,8 +1206,8 @@ public class LauncherIconGenerator extends IconGenerator {
   @Override
   @NotNull
   protected String getIconPath(@NotNull Options options, @NotNull String iconName) {
-    if (((LauncherIconOptions) options).generateWebIcon) {
-      return iconName + "-web.png"; // Store at the root of the project.
+    if (((LauncherIconOptions) options).generatePlayStoreIcon) {
+      return iconName + "-playstore.png"; // Store at the root of the project.
     }
 
     return super.getIconPath(options, iconName);
@@ -1260,13 +1255,13 @@ public class LauncherIconGenerator extends IconGenerator {
     public boolean generateRoundIcon = true;
 
     /**
-     * Whether a web graphic should be generated (will ignore normal density setting). The
-     * {@link #generateRasterImage(GraphicGeneratorContext, Options)} method will use this to decide
-     * whether to generate a normal density icon or a high res web image. The {@link
-     * IconGenerator#generateRasterImage(String, Map, GraphicGeneratorContext, Options, String)} method
-     * will use this flag to determine whether it should include a web graphic in its iteration.
+     * Whether a Play Store graphic should be generated (will ignore normal density setting).
+     * The {@link #generateRasterImage(GraphicGeneratorContext, Options)} method uses this to decide
+     * whether to generate a normal density icon or a high res Play Store image.
+     * The {@link IconGenerator#generateRasterImage(String, Map, GraphicGeneratorContext, Options, String)}
+     * method uses this flag to determine whether it should include a Play Store graphic in its iteration.
      */
-    public boolean generateWebIcon;
+    public boolean generatePlayStoreIcon;
 
     /** If set, generate a preview image. */
     public PreviewShape previewShape = PreviewShape.NONE;
@@ -1276,9 +1271,6 @@ public class LauncherIconGenerator extends IconGenerator {
 
     /** The shape to use for the "Legacy" icon. */
     public Shape legacyIconShape = Shape.SQUARE;
-
-    /** The shape to use for the "Web" icon. */
-    public Shape webIconShape = Shape.SQUARE;
 
     /** Whether to draw the keyline shapes. */
     public boolean showGrid;
@@ -1307,7 +1299,7 @@ public class LauncherIconGenerator extends IconGenerator {
     FULL_BLEED("full-bleed-layers", "Full Bleed Layers"),
     LEGACY("legacy", "Legacy Icon"),
     LEGACY_ROUND("legacy-round", "Round Icon"),
-    WEB("web", "Google Play Store");
+    PLAY_STORE("play-store", "Google Play Store");
 
     /** Id, used when shape is converted to a string */
     public final String id;

@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.deploy;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
@@ -30,25 +31,24 @@ import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.deployable.DeviceBinder;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
-import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.ui.RunContentManager;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import org.fest.swing.edt.GuiActionRunner;
-import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -80,22 +80,21 @@ public class DeploymentTest {
   }
 
   @Rule public final GuiTestRule myGuiTest = new GuiTestRule();
-  private final FakeDevice myDevice = new FakeDeviceLibrary().build(FakeDeviceLibrary.DeviceId.API_26);
-  private final FakeDeviceHandler myHandler = new FakeDeviceHandler(myDevice);
+  private final FakeDeviceHandler myHandler = new FakeDeviceHandler();
   private FakeAdbServer myAdbServer;
   private AndroidDebugBridge myBridge;
   private Project myProject;
 
   @Before
   public void before() throws Exception {
+    DeployerTestUtils.prepareStudioInstaller();
+
     // Build the server and configure it to use the default ADB command handlers.
     myAdbServer = new FakeAdbServer.Builder()
       .installDefaultCommandHandlers()
       .addDeviceHandler(myHandler)
       .addDeviceHandler(new JdwpCommandHandler())
       .build();
-
-    myDevice.connectTo(myAdbServer);
 
     // Start server execution.
     myAdbServer.start();
@@ -106,7 +105,7 @@ public class DeploymentTest {
     // Start ADB with fake server and its port.
     AndroidDebugBridge.enableFakeAdbServerMode(myAdbServer.getPort());
 
-    myProject = myGuiTest.openProject(PROJECT_NAME);
+    myProject = myGuiTest.openProject(PROJECT_NAME).getProject();
 
     // Get the bridge synchronously, since we're in test mode.
     myBridge = AdbService.getInstance().getDebugBridge(AndroidSdkUtils.getAdb(myProject)).get();
@@ -130,60 +129,88 @@ public class DeploymentTest {
 
     AdbService.getInstance().dispose();
     AndroidDebugBridge.disableFakeAdbServerMode();
+
+    DeployerTestUtils.removeStudioInstaller();
   }
 
   @Test
-  public void runOnDevice() throws Exception {
-    myDevice.setShellBridge(DeployerTestUtils.getShell());
+  public void runOnDevices() throws Exception {
     setActiveApk(myProject, APK.BASE);
+    connectDevices();
 
-    ActionManager manager = ActionManager.getInstance();
-    DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
+    IdeFrameFixture ideFrameFixture = myGuiTest.ideFrame();
+    List<DeviceState> deviceStates = myAdbServer.getDeviceListCopy().get();
+    List<DeviceBinder> deviceBinders = new ArrayList<>(deviceStates.size());
+    DeviceSelectorFixture deviceSelector = new DeviceSelectorFixture(myGuiTest.robot(), myProject);
+    for (DeviceState state : deviceStates) {
+      deviceBinders.add(new DeviceBinder(state));
+      deviceSelector.waitForDeviceWithKey(state.getDeviceId());
+    }
+
+    for (DeviceBinder deviceBinder : deviceBinders) {
+      deviceSelector.selectDeviceWithKey(deviceBinder.getIDevice().getSerialNumber());
+      IDevice iDevice = deviceBinder.getIDevice();
+
+      // Run the app and wait for it to be picked up by the AndroidProcessHandler.
+      ideFrameFixture.findRunApplicationButton().click();
+      waitForClient(iDevice);
+
+      // Stop the app and wait for the AndroidProcessHandler termination.
+      ideFrameFixture.findStopButton().click();
+      awaitTermination(iDevice);
+
+      myAdbServer.disconnectDevice(deviceBinder.getState().getDeviceId());
+    }
+  }
+
+  private void connectDevices() throws Exception {
+    for (FakeDeviceLibrary.DeviceId id : FakeDeviceLibrary.DeviceId.values()) {
+      FakeDevice device = new FakeDeviceLibrary().build(id);
+      device.setShellBridge(DeployerTestUtils.getShell());
+      myHandler.connect(device, myAdbServer);
+    }
 
     Wait.seconds(WAIT_TIME)
       .expecting("device to show up in ddmlib")
       .until(() -> {
         try {
-          return !myAdbServer.getDeviceListCopy().get().isEmpty();
+          return myAdbServer.getDeviceListCopy().get().size() == FakeDeviceLibrary.DeviceId.values().length;
         }
         catch (InterruptedException | ExecutionException e) {
           return false;
         }
       });
+  }
 
-    List<DeviceState> deviceStates = myAdbServer.getDeviceListCopy().get();
-    for (DeviceState deviceState : deviceStates) {
-      DeviceBinder deviceBinder = new DeviceBinder(deviceState);
+  private void waitForClient(@NotNull IDevice iDevice) {
+    Wait.seconds(WAIT_TIME)
+      .expecting("launched client to appear")
+      .until(() -> Arrays.stream(iDevice.getClients()).anyMatch(
+        c ->
+          PACKAGE_NAME.equals(c.getClientData().getClientDescription()) ||
+          PACKAGE_NAME.equals(c.getClientData().getPackageName())));
+    Wait.seconds(WAIT_TIME)
+      .expecting("launched client to appear")
+      .until(() -> RunContentManager.getInstance(myProject).getAllDescriptors().stream()
+        .filter(descriptor -> descriptor.getProcessHandler() instanceof AndroidProcessHandler)
+        .map(descriptor -> (AndroidProcessHandler)descriptor.getProcessHandler())
+        .filter(handler -> handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY).getExecutor() ==
+                           DefaultRunExecutor.getRunExecutorInstance())
+        .filter(handler -> handler.isAssociated(iDevice))
+        .anyMatch(handler -> handler.getClient(iDevice) != null)
+      );
+  }
 
-      Wait.seconds(WAIT_TIME)
-        .expecting("device to show up in combo box")
-        .until(() -> GuiActionRunner.execute(new GuiQuery<Boolean>() {
-          @Nullable
-          @Override
-          protected Boolean executeInEDT() {
-            return action.setSelectedDevice(myProject, deviceBinder.getIDevice().getSerialNumber());
-          }
-        }));
-
-      // Run the find and click all in EDT, since there is a potential race condition between finding
-      // the button and clicking it.
-      myGuiTest.ideFrame().findRunApplicationButton().click();
-
-      Wait.seconds(WAIT_TIME)
-        .expecting("launched client to appear")
-        .until(() -> deviceBinder.getIDevice().getClient(PACKAGE_NAME) != null);
-      Wait.seconds(WAIT_TIME)
-        .expecting("launched client to appear")
-        .until(() ->
-                 RunContentManager.getInstance(myProject).getAllDescriptors().stream()
-                   .filter(descriptor -> descriptor.getProcessHandler() instanceof AndroidProcessHandler)
-                   .map(descriptor -> (AndroidProcessHandler)descriptor.getProcessHandler())
-                   .filter(handler -> handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY).getExecutor() ==
-                                      DefaultRunExecutor.getRunExecutorInstance())
-                   .anyMatch(handler -> handler.getClient(deviceBinder.getIDevice()) != null)
-        );
-      myAdbServer.disconnectDevice(deviceBinder.getState().getDeviceId());
-    }
+  private void awaitTermination(@NotNull IDevice iDevice) {
+    Wait.seconds(WAIT_TIME)
+      .expecting("launched app to stop")
+      .until(() -> RunContentManager.getInstance(myProject).getAllDescriptors().stream()
+        .filter(descriptor -> descriptor.getProcessHandler() instanceof AndroidProcessHandler)
+        .map(descriptor -> (AndroidProcessHandler)descriptor.getProcessHandler())
+        .filter(handler -> handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY).getExecutor() ==
+                           DefaultRunExecutor.getRunExecutorInstance())
+        .filter(handler -> handler.isAssociated(iDevice))
+        .allMatch(handler -> handler.isProcessTerminated()));
   }
 
   private void setActiveApk(@NotNull Project project, @NotNull APK apk) throws IOException {

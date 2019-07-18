@@ -36,7 +36,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.AllocatedClass;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;

@@ -67,6 +67,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.light.LightElement;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -532,11 +533,13 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
   @NotNull
   @Override
-  public Collection<PsiReference> findReferences(@NotNull PsiElement element, boolean searchInCommentsAndStrings) {
+  public Collection<PsiReference> findReferences(@NotNull PsiElement element,
+                                                 @NotNull SearchScope searchScope,
+                                                 boolean searchInCommentsAndStrings) {
     if (element instanceof ResourceFieldElementWrapper) {
       element = ((ResourceFieldElementWrapper)element).getWrappedElement();
     }
-    return super.findReferences(element, searchInCommentsAndStrings);
+    return super.findReferences(element, searchScope, searchInCommentsAndStrings);
   }
 
   @Override

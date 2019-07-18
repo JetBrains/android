@@ -188,6 +188,7 @@ public class ImportSummary {
       char c = path.charAt(i);
       if (isRiskyPathChar(c)) {
         myHasRiskyPathChars = true;
+        break;
       }
     }
   }

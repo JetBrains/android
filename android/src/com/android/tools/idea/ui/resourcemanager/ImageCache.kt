@@ -42,6 +42,7 @@ private val MAXIMUM_CACHE_WEIGHT_BYTES = (200 * 1024.0.pow(2)).toLong() // 200 M
  */
 class ImageCache(cacheExpirationTime: Long = 5,
                  timeUnit: TimeUnit = TimeUnit.MINUTES,
+                 maximumCapacity: Long = MAXIMUM_CACHE_WEIGHT_BYTES,
                  mergingUpdateQueue: MergingUpdateQueue? = null
 ) : Disposable {
 
@@ -77,7 +78,7 @@ class ImageCache(cacheExpirationTime: Long = 5,
     .expireAfterAccess(cacheExpirationTime, timeUnit)
     .softValues()
     .weigher<DesignAsset, Image> { _, image -> imageWeigher(image) }
-    .maximumWeight(MAXIMUM_CACHE_WEIGHT_BYTES)
+    .maximumWeight(maximumCapacity)
     .build<DesignAsset, Image>()
 
   private fun imageWeigher(image: Image): Int {
