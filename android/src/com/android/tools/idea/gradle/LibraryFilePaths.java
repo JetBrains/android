@@ -15,34 +15,90 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.model.sources.SourcesAndJavadocArtifact;
+import com.android.model.sources.SourcesAndJavadocArtifacts;
+import com.intellij.openapi.project.Project;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.components.ServiceManager;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static com.android.tools.idea.gradle.project.sync.idea.SourcesAndJavadocCollectorKt.idToString;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.NAME_PREFIX;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 public class LibraryFilePaths {
+  // Key: libraryId, Value: ExtraArtifactsPaths for the library.
+  @NotNull private final Map<String, ArtifactPaths> myPathsMap = new HashMap<>();
+
+  private static class ArtifactPaths {
+    @Nullable final File myJavaDoc;
+    @Nullable final File mySources;
+
+    private ArtifactPaths(@Nullable File javadoc, @Nullable File sources) {
+      myJavaDoc = javadoc;
+      mySources = sources;
+    }
+  }
+
+  public void populate(@NotNull SourcesAndJavadocArtifacts artifacts) {
+    for (SourcesAndJavadocArtifact artifact : artifacts.getArtifacts()) {
+      myPathsMap.computeIfAbsent(idToString(artifact.getId()),
+                                 k -> new ArtifactPaths(artifact.getJavadoc(), artifact.getSources()));
+    }
+  }
+
+  public Collection<String> retrieveCachedLibs() {
+    return new HashSet<>(myPathsMap.keySet());
+  }
+
   @NotNull
-  public static LibraryFilePaths getInstance() {
-    return ServiceManager.getService(LibraryFilePaths.class);
+  public static LibraryFilePaths getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, LibraryFilePaths.class);
   }
 
   @Nullable
-  public File findSourceJarPath(@NotNull File libraryPath) {
+  public File findSourceJarPath(@NotNull String libraryName, @NotNull File libraryPath) {
+    String libraryId = getLibraryId(libraryName);
+    if (myPathsMap.containsKey(libraryId)) {
+      return myPathsMap.get(libraryId).mySources;
+    }
     return findArtifactFilePathInRepository(libraryPath, "-sources.jar", true);
   }
 
+  /**
+   * libraryName is in the format of "Gradle: junit:junit:4.12@jar", the internal map uses the core part
+   * "junit:junit:4.12" as key, this method extracts the map key from libraryName.
+   */
+  @NotNull
+  static String getLibraryId(@NotNull String libraryName) {
+    if (libraryName.startsWith(NAME_PREFIX)) {
+      libraryName = libraryName.substring(NAME_PREFIX.length());
+    }
+    if (libraryName.contains("@")) {
+      libraryName = libraryName.substring(0, libraryName.indexOf('@'));
+    }
+    return libraryName.trim();
+  }
+
   @Nullable
-  public File findJavadocJarPath(@NotNull File libraryPath) {
+  public File findJavadocJarPath(@NotNull String libraryName, @NotNull File libraryPath) {
+    String libraryId = getLibraryId(libraryName);
+    if (myPathsMap.containsKey(libraryId)) {
+      return myPathsMap.get(libraryId).myJavaDoc;
+    }
     return findArtifactFilePathInRepository(libraryPath, "-javadoc.jar", true);
   }
 
   @Nullable
-  public File findPomPathForLibrary(@NotNull File libraryPath) {
+  public static File findPomPathForLibrary(@NotNull File libraryPath) {
     return findArtifactFilePathInRepository(libraryPath, ".pom", false);
   }
 

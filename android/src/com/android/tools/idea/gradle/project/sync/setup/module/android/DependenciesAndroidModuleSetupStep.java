@@ -15,9 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
+import static com.android.SdkConstants.FD_JARS;
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.TEST;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
@@ -39,28 +53,17 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
-import kotlin.io.FilesKt;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import kotlin.io.FilesKt;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
-
-import static com.android.SdkConstants.FD_JARS;
-import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.DependencyScope.TEST;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
   private static final String GRADLE_LOCAL_LIBRARY_PREFIX = "Gradle: __local_aars__:";
@@ -69,7 +72,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
   @NotNull private final AndroidModuleDependenciesSetup myDependenciesSetup;
 
   public DependenciesAndroidModuleSetupStep() {
-    this(DependenciesExtractor.getInstance(), new AndroidModuleDependenciesSetup(LibraryFilePaths.getInstance()));
+    this(DependenciesExtractor.getInstance(), new AndroidModuleDependenciesSetup());
   }
 
   @VisibleForTesting
