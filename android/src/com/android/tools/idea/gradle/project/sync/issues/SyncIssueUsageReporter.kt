@@ -205,6 +205,7 @@ fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
       SyncIssue.TYPE_AMBIGUOUS_BUILD_TYPE_DEFAULT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AMBIGUOUS_BUILD_TYPE_DEFAULT
       SyncIssue.TYPE_AMBIGUOUS_PRODUCT_FLAVOR_DEFAULT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AMBIGUOUS_PRODUCT_FLAVOR_DEFAULT
       SyncIssue.TYPE_COMPILE_SDK_VERSION_NOT_SET -> AndroidStudioEvent.GradleSyncIssueType.TYPE_COMPILE_SDK_VERSION_NOT_SET
+      SyncIssue.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED
       else -> null.also { LOG.warn("Unknown sync issue type: $this") }
     }
 
