@@ -68,6 +68,8 @@ iml_module(
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
+        "//tools/idea/java/plugin:intellij.java.plugin",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
