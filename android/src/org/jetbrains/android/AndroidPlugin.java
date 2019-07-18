@@ -11,7 +11,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -30,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class AndroidPlugin implements BaseComponent {
   private static final String GROUP_ANDROID_TOOLS = "AndroidToolsGroup";
-  private static final String GROUP_TOOLS = "ToolsMenu";
 
   @Override
   public void initComponent() {
@@ -56,16 +54,6 @@ public class AndroidPlugin implements BaseComponent {
    * Reduces prominence of the Android related UI elements to keep low profile.
    */
   private static void initializeForNonStudio() {
-    // Move the Android-related actions from the Tools menu into the Android submenu.
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction group = actionManager.getAction(GROUP_ANDROID_TOOLS);
-    if (group instanceof ActionGroup) {
-      ((ActionGroup)group).setPopup(true);
-    }
-
-    // Move the Android submenu to the end of the Tools menu.
-    moveAction(GROUP_ANDROID_TOOLS, GROUP_TOOLS, GROUP_TOOLS, new Constraints(Anchor.LAST, null));
-
     // Move the "Sync Project with Gradle Files" from the File menu to Tools > Android.
     moveAction("Android.SyncProject", IdeActions.GROUP_FILE, GROUP_ANDROID_TOOLS, new Constraints(Anchor.FIRST, null));
     // Move the "Sync Project with Gradle Files" toolbar button to a less prominent place.
