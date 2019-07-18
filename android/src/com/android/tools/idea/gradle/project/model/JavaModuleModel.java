@@ -20,7 +20,6 @@ import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.gradle.model.IdeSyncIssue;
-import com.android.ide.common.gradle.model.ModelCache;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
@@ -89,7 +88,7 @@ public class JavaModuleModel implements ModuleModel {
     myContentRoots = contentRoots;
     myJavaModuleDependencies = javaModuleDependencies;
     myJarLibraryDependencies = jarLibraryDependencies;
-    mySyncIssues = syncIssues.stream().map(issue -> new IdeSyncIssue(issue, new ModelCache())).collect(Collectors.toList());
+    mySyncIssues = syncIssues.stream().map(issue -> new IdeSyncIssue(issue)).collect(Collectors.toList());
     myArtifactsByConfiguration = artifactsByConfiguration;
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
