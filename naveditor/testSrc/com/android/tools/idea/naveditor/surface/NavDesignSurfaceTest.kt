@@ -317,7 +317,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     `when`(scrollPane.viewport).thenReturn(viewport)
     `when`(viewport.extentSize).thenReturn(Dimension(1000, 1000))
     val view = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.currentSceneView).thenReturn(view)
+    `when`<SceneView>(surface.focusedSceneView).thenReturn(view)
     `when`(surface.scrollDurationMs).thenReturn(1)
     val scheduleRef = AtomicReference<Future<*>>()
     `when`(surface.scheduleRef).thenReturn(scheduleRef)
@@ -371,7 +371,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val scene = surface.scene!!
     scene.layout(0, SceneContext.get())
     val sceneView = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.currentSceneView).thenReturn(sceneView)
+    `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
     `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(sceneView)
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))

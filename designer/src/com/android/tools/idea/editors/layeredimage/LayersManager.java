@@ -24,7 +24,6 @@ import com.intellij.designer.LightToolWindow;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
@@ -35,8 +34,8 @@ import org.jetbrains.annotations.Nullable;
 public class LayersManager extends NlAbstractWindowManager {
   private LayersPanel myLayersPanel;
 
-  public LayersManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
-    super(project, fileEditorManager);
+  public LayersManager(@NotNull Project project) {
+    super(project);
   }
 
   @NotNull
@@ -109,7 +108,7 @@ public class LayersManager extends NlAbstractWindowManager {
     }
     return new LightToolWindow(layersPanel, "Image Layers", AllIcons.Toolwindows.ToolWindowPalette,
                                layersPanel, layersPanel, contentSplitter, anchor, this,
-                               myProject, propertiesComponent, getVisibilityKeyName(designer), 200, null);
+                               myProject, getVisibilityKeyName(designer), 200, null);
   }
 
   @NotNull

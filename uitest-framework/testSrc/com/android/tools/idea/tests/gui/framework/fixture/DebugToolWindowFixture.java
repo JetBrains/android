@@ -20,7 +20,6 @@ import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.tabs.JBTabs;
-import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.tabs.TabInfo;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.exception.ComponentLookupException;

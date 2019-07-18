@@ -69,7 +69,6 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Update;
@@ -97,6 +96,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private boolean isPreview = false;
     private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
+    private boolean showModelName = false;
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -123,9 +123,18 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * Enables {@link NlDesignSurface} displaying of the model names when present.
+     */
+    @NotNull
+    public Builder showModelNames() {
+      showModelName = true;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
-      return new NlDesignSurface(myProject, myParentDisposable, isPreview, sceneManagerProvider);
+      return new NlDesignSurface(myProject, myParentDisposable, isPreview, showModelName, sceneManagerProvider);
     }
   }
 
@@ -133,7 +142,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @SwingCoordinate private int myScreenX = DEFAULT_SCREEN_OFFSET_X;
   @SwingCoordinate private int myScreenY = DEFAULT_SCREEN_OFFSET_Y;
   private boolean myIsCanvasResizing = false;
-  private boolean myIsShowModelNames = false;
+  private boolean showModelNames = false;
   private boolean myStackVertically;
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
@@ -152,11 +161,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
+                          boolean showModelNames,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider) {
     super(project, new SelectionModel(), parentDisposable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     this.isInPreview = isInPreview;
+    this.showModelNames = showModelNames;
     mySceneManagerProvider = sceneManagerProvider;
   }
 
@@ -215,18 +226,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   public boolean isShowModelNames() {
-    boolean displayModelNameFlag = StudioFlags.NELE_DISPLAY_MODEL_NAME.get();
-    if (!displayModelNameFlag) {
-      Logger.getInstance(getClass()).info("Displaying model name is not enabled.");
-    }
-    return displayModelNameFlag && myIsShowModelNames;
-  }
-
-  /**
-   * Set to display the model names on the top of SceneViews or not.
-   */
-  public void setShowModelNames(boolean displayed) {
-    myIsShowModelNames = displayed;
+    return StudioFlags.NELE_DISPLAY_MODEL_NAME.get() && showModelNames;
   }
 
   @NotNull
@@ -289,14 +289,15 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   @Nullable
   public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    LayoutlibSceneManager manager = getSceneManager();
-    SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
-    SceneView secondarySceneView = manager != null ? manager.getSecondarySceneView() : null;
-
-    if (secondarySceneView != null && x >= secondarySceneView.getX() && y >= secondarySceneView.getY()) {
-      return secondarySceneView;
+    SceneView view = getHoverSceneView(x, y);
+    if (view == null) {
+      // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView when there is no hovered SceneView.
+      SceneManager manager = getSceneManager();
+      if (manager != null) {
+        view = manager.getSceneView();
+      }
     }
-    return primarySceneView;
+    return view;
   }
 
   @NotNull
@@ -401,20 +402,27 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Nullable
   @Override
   public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    LayoutlibSceneManager manager = getSceneManager();
-    SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
-    SceneView secondarySceneView = manager != null ? manager.getSecondarySceneView() : null;
-    if (secondarySceneView != null
-        && x >= secondarySceneView.getX() && x <= secondarySceneView.getX() + secondarySceneView.getSize().width
-        && y >= secondarySceneView.getY() && y <= secondarySceneView.getY() + secondarySceneView.getSize().height) {
-      return secondarySceneView;
-    }
-    if (primarySceneView != null
-        && x >= primarySceneView.getX() && x <= primarySceneView.getX() + primarySceneView.getSize().width
-        && y >= primarySceneView.getY() && y <= primarySceneView.getY() + primarySceneView.getSize().height) {
-      return primarySceneView;
+    List<SceneView> sceneViews = getSceneViews();
+    for (SceneView view : sceneViews) {
+      if (view.getX() <= x && x <= (view.getX() + view.getSize().width) && view.getY() <= y && y <= (view.getY() + view.getSize().height)) {
+        return view;
+      }
     }
     return null;
+  }
+
+  @NotNull
+  private ImmutableList<SceneView> getSceneViews() {
+    ImmutableList.Builder<SceneView> builder = new ImmutableList.Builder<>();
+    for (SceneManager manager : myModelToSceneManagers.values()) {
+      SceneView view = manager.getSceneView();
+      builder.add(view);
+      SceneView secondarySceneView = ((LayoutlibSceneManager) manager).getSecondarySceneView();
+      if (secondarySceneView != null) {
+        builder.add(secondarySceneView);
+      }
+    }
+    return builder.build();
   }
 
   @Override
@@ -665,6 +673,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (isPreviewSurface()) {
+      // Highlight the clicked widget but keep focus in DesignSurface.
+      // TODO: Remove this after when b/136174865 is implemented, which removes the preview mode.
       onClickPreview(x, y, false);
     }
   }
@@ -672,6 +682,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public void onDoubleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (isPreviewSurface()) {
+      // Navigate the caret to the clicked widget and focus on text editor.
+      // TODO: Remove this after when b/136174865 is implemented, which removes the preview mode.
       onClickPreview(x, y, true);
     }
     else {
@@ -841,11 +853,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   private void modelRendered() {
-    if (getCurrentSceneView() != null) {
-      updateErrorDisplay();
-      repaint();
-      layoutContent();
-    }
+    updateErrorDisplay();
+    repaint();
+    layoutContent();
   }
 
   @Override
@@ -861,7 +871,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   protected boolean useSmallProgressIcon() {
-    if (getCurrentSceneView() == null) {
+    if (getFocusedSceneView() == null) {
       return false;
     }
 
@@ -889,7 +899,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public void scrollToCenter(@NotNull List<NlComponent> list) {
     Scene scene = getScene();
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
     if (list.isEmpty() || scene == null || view == null) {
       return;
     }

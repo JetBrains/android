@@ -16,6 +16,7 @@
 package com.android.tools.property.ptable2.impl
 
 import com.android.tools.property.ptable2.*
+import com.intellij.openapi.diagnostic.Logger
 import java.awt.Component
 import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
@@ -38,6 +39,10 @@ class PTableCellRendererWrapper: TableCellRenderer {
     val pTable = table as PTableImpl
     val model = pTable.model
     val item = value as PTableItem
-    return renderer.getEditorComponent(pTable, item, PTableColumn.fromColumn(column), model.depth(item), isSelected, hasFocus)
+    val component = renderer.getEditorComponent(pTable, item, PTableColumn.fromColumn(column), model.depth(item), isSelected, hasFocus)
+    if (pTable.isPaintingTable && component is PTableVariableHeightCellEditor && component.isCustomHeight) {
+      table.setRowHeight(row, component.preferredSize.height)
+    }
+    return component
   }
 }

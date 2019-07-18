@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.ui.IssuesViewerPanel
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.intellij.ui.table.TableView
@@ -26,6 +27,8 @@ import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.fixture.JTableFixture
+import org.fest.swing.fixture.JTreeFixture
+import org.fest.swing.timing.Wait
 import java.awt.Component
 import java.awt.Container
 import java.awt.Point
@@ -35,9 +38,11 @@ import java.awt.event.KeyEvent
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JEditorPane
+import javax.swing.JTree
 import javax.swing.text.AttributeSet
 import javax.swing.text.ElementIterator
 import javax.swing.text.html.HTML
+import javax.swing.tree.DefaultMutableTreeNode
 
 // The EditorComboBoxFixture and EditorComboBoxDriver are to manage the mismatch between EditorComboBox, which we use in
 // declared dependency configuration management, and the test infrastructure in fest-swing.  It's not clear to me whether
@@ -110,6 +115,36 @@ class DependenciesFixture(
   fun findDependenciesTable(): JTableFixture =
     JTableFixture(robot(), robot().finder().findByType<TableView<*>>(container))
 
+  class DependenciesTreeFixture(
+    val robot: Robot,
+    val tree: JTree
+  ) : JTreeFixture(robot, tree) {
+    fun waitForTreeEntry(text: String) {
+      Wait.seconds(5)
+        .expecting("a tree entry '$text'")
+        .until { treeContains(text) }
+      waitForIdle()
+    }
+
+    private fun treeContains(text: String): Boolean {
+      return GuiQuery.get {
+        val root = tree.model.root as DefaultMutableTreeNode
+        root.children().asSequence().forEach {
+          if (it is DefaultMutableTreeNode) {
+            when (val userObject = it.userObject) {
+              is AbstractDependencyNode<*, *> -> if (text == userObject.name) return@get true
+              is String -> if (text == userObject) return@get true
+              else -> Unit
+            }
+          }
+        }
+        return@get false
+      } ?: false
+    }
+  }
+
+  fun findDependenciesTree() = DependenciesTreeFixture(robot(), robot().finder().findByName("dependenciesTree", JTree::class.java))
+
   fun findConfigurationCombo(): JComboBoxFixture =
     EditorComboBoxFixture(robot(), robot().finder().findByName(container, "configuration", JComboBox::class.java, true))
 
@@ -127,49 +162,63 @@ class DependenciesFixture(
     return AddModuleDependencyDialogFixture.find(robot(), "Add Module Dependency")
   }
 
-  fun clickQuickFixHyperlink(text: String) {
-    var done = false
-    robot().finder().findAll { it is IssuesViewerPanel }
-      .forEach { panel ->
-        if (!done) {
-          val editorPane = GuiActionRunner.execute(object : GuiQuery<JEditorPane>() {
-            override fun executeInEDT(): JEditorPane? {
-              return (panel as IssuesViewerPanel).issuesView
-            }
-          }) ?: return@forEach
-          val point = GuiActionRunner.execute(object : GuiQuery<Point>() {
-            override fun executeInEDT(): Point? {
-              val iterator = ElementIterator(editorPane.document.defaultRootElement)
-              var e = iterator.current()
-              while (e != null) {
-                val a = e.attributes.getAttribute(HTML.Tag.A)
-                if (a is AttributeSet) {
-                  val startOffset = e.startOffset
-                  val endOffset = e.endOffset
-                  val eText = e.document.getText(startOffset, endOffset - startOffset)
-                  if (eText == text) {
-                    val startRectangle = editorPane.modelToView(startOffset)
-                    val endRectangle = editorPane.modelToView(endOffset - 1)
-                    val x = when {
-                      startRectangle.y == endRectangle.y -> (startRectangle.x + endRectangle.x + endRectangle.width) / 2
-                      else -> (startRectangle.x + editorPane.width - editorPane.margin.right) / 2
-                    }
-                    val y = (startRectangle.y + startRectangle.height / 2)
-                    editorPane.scrollRectToVisible(startRectangle)
-                    return Point(x, y)
-                  }
-                }
-                e = iterator.next()
-              }
-              return null
-            }
-          })
-          if (point != null) {
-            robot.click(editorPane, point)
-            done = true
-          }
+  private fun findQuickFixHyperlink(panels: List<IssuesViewerPanel>, text: String): Pair<JEditorPane, Point>? {
+    fun findIssuesView(panel: IssuesViewerPanel): JEditorPane? {
+      return GuiActionRunner.execute(object : GuiQuery<JEditorPane>() {
+        override fun executeInEDT(): JEditorPane? {
+          return panel.issuesView
         }
+      })
+    }
+
+    fun findAndScrollToHyperlinkText(editorPane: JEditorPane, text: String): Point? {
+      return GuiActionRunner.execute(object : GuiQuery<Point>() {
+        override fun executeInEDT(): Point? {
+          val iterator = ElementIterator(editorPane.document.defaultRootElement)
+          var e = iterator.current()
+          while (e != null) {
+            val a = e.attributes.getAttribute(HTML.Tag.A)
+            if (a is AttributeSet) {
+              val startOffset = e.startOffset
+              val endOffset = e.endOffset
+              val eText = e.document.getText(startOffset, endOffset - startOffset)
+              if (eText == text) {
+                val startRectangle = editorPane.modelToView(startOffset)
+                val endRectangle = editorPane.modelToView(endOffset - 1)
+                val x = when {
+                  startRectangle.y == endRectangle.y -> (startRectangle.x + endRectangle.x + endRectangle.width) / 2
+                  else -> (startRectangle.x + editorPane.width - editorPane.margin.right) / 2
+                }
+                val y = (startRectangle.y + startRectangle.height / 2)
+                editorPane.scrollRectToVisible(startRectangle)
+                return Point(x, y)
+              }
+            }
+            e = iterator.next()
+          }
+          return null
+        }
+      })
+    }
+
+    panels.forEach { panel ->
+      val editorPane = findIssuesView(panel) ?: return@forEach
+      val point = findAndScrollToHyperlinkText(editorPane, text)
+      if (point != null) {
+        return editorPane to point
       }
-    assert(done) { "failed to find hyperlink with text '$text'" }
+    }
+    return null
+  }
+
+  fun clickQuickFixHyperlink(text: String) {
+    var paneAndPoint: Pair<JEditorPane, Point>? = null
+    val panels = robot().finder().findAll { it is IssuesViewerPanel }.map { it as IssuesViewerPanel }
+    Wait.seconds(5)
+      .expecting("Quickfix hyperlink '$text'")
+      .until { paneAndPoint = findQuickFixHyperlink(panels, text); paneAndPoint != null }
+    val editorPane = paneAndPoint!!.first
+    val point = paneAndPoint!!.second
+    robot.click(editorPane, point)
   }
 }

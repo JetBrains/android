@@ -23,11 +23,12 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import java.awt.Color
+import java.awt.Container
+import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.AdjustmentEvent
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
-import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Box
@@ -74,6 +75,8 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
    * Returns the list of [Section] name
    */
   val sectionsComponent = sectionList
+
+  private val multiLisLayoutManager = VerticalFlowLayout(true, false)
 
   private val focusListener = object : FocusAdapter() {
 
@@ -192,7 +195,7 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
     allInnerLists: MutableList<JList<*>>,
     selectionListener: ListSelectionListener
   ): JComponent {
-    return JPanel(VerticalFlowLayout()).apply {
+    return JPanel(multiLisLayoutManager).apply{
       background = this@SectionList.background
       for (section in model.sections) {
         sectionToComponent[section] = section.header
@@ -262,6 +265,22 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
   fun scrollToSelection() {
     val (listIndex, itemIndex) = selectedIndex ?: return
     ScrollingUtil.ensureIndexIsVisible(allInnerLists[listIndex], itemIndex, 1)
+  }
+
+  override fun doLayout() {
+    viewport.view?.takeIf { it is Container }?.let { content ->
+      val contentHeight = multiLisLayoutManager.preferredLayoutSize(content as Container).height
+      val scrollPrefSize = preferredSize
+      if (scrollPrefSize == null || contentHeight != scrollPrefSize.height || contentHeight != maximumSize.height) {
+        // Have scroll pane fit to the height of its contents.
+        preferredSize = Dimension(scrollPrefSize.width, contentHeight)
+        maximumSize = Dimension(Int.MAX_VALUE, contentHeight)
+        // Trigger a layout in the parent for the new dimensions.
+        parent?.revalidate()
+        return
+      }
+    }
+    super.doLayout()
   }
 }
 

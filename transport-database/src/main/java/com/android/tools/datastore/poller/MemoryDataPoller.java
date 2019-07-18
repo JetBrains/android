@@ -17,8 +17,8 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.MemoryStatsTable;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
@@ -66,8 +66,7 @@ public class MemoryDataPoller extends PollRunner {
     if (myPendingAllocationSample != null && myPendingAllocationSample.getLegacy()) {
       myMemoryStatsTable.insertOrReplaceAllocationsInfo(
         mySession,
-        myPendingAllocationSample.toBuilder().setEndTime(myPendingAllocationSample.getStartTime() + 1)
-          .setStatus(AllocationsInfo.Status.FAILURE_UNKNOWN).build());
+        myPendingAllocationSample.toBuilder().setEndTime(myPendingAllocationSample.getStartTime() + 1).setSuccess(false).build());
     }
     myPendingAllocationSample = null;
 

@@ -24,7 +24,6 @@ import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA_
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.intellij.openapi.project.Project;
@@ -41,7 +40,7 @@ public class GradleBuildFile extends GradleDslFile {
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    if (APPLY_BLOCK_NAME.equals(element.getFullName()) && element instanceof GradleDslExpressionMap) {
+    if (APPLY_BLOCK_NAME.equals(element.getFullName())) {
       ApplyDslElement applyDslElement = getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
       if (applyDslElement == null) {
         applyDslElement = new ApplyDslElement(this);

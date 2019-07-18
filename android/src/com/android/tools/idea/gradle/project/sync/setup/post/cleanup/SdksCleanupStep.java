@@ -63,6 +63,10 @@ import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENT
 public class SdksCleanupStep extends ProjectCleanupStep {
   @NotNull private final AndroidSdks myAndroidSdks;
 
+  public SdksCleanupStep() {
+    myAndroidSdks = AndroidSdks.getInstance();
+  }
+
   public SdksCleanupStep(@NotNull AndroidSdks androidSdks) {
     myAndroidSdks = androidSdks;
   }

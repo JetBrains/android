@@ -195,8 +195,6 @@ class LibKotlinUnitTest {
     @Test
     fun prodRClass() {
         val id = R.string.app_name
-
-        assertTrue(id > 0)
     }
 
     @Test

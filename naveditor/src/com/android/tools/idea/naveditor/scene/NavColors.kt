@@ -39,7 +39,7 @@ object NavColors {
     "UIDesigner.Activity.borderColor", JBColor(0xa7a7a7, 0x2d2f31))
   // Note that this must match the highlight color of ActionButtonWithText
   val LIST_MOUSEOVER = JBColor.namedColor(
-    "UIDesigner.List.selectionBackground", JBColor(Gray.xDB, Color(0x55595c)))
+    "UIDesigner.List.selectionBackground", JBColor(Gray.xDB, Color(0x36393a)))
   val PLACEHOLDER_BORDER = JBColor.namedColor(
     "UIDesigner.Placeholder.borderColor", JBColor(0xcccccc, 0x3f4244))
   val PLACEHOLDER_TEXT = JBColor.namedColor(

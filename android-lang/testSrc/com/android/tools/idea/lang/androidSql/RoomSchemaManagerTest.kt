@@ -30,22 +30,33 @@ import com.android.tools.idea.lang.androidSql.room.RoomTable.Type.VIEW
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.project.impl.ProjectImpl
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.PsiTestUtil
+import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 
-class RoomSchemaManagerTest : RoomLightTestCase() {
+class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
+
+  override fun setUp() {
+    super.setUp()
+    createStubRoomClasses(myFixture)
+  }
+
   private fun getSchema(element: PsiElement): RoomSchema {
     val module = ModuleUtil.findModuleForPsiElement(element)!!
-    return RoomSchemaManager.getInstance(module)!!.getSchema(element.containingFile)!!
+    val schema = RoomSchemaManager.getInstance(module).getSchema(element.containingFile)
+    return schema!!
   }
 
   fun testDifferentSchemasForTestAndNotTestScope() {
     myFixture.addRoomEntity("MainSourcesEntity")
     val mainSourceFile = myFixture.addFileToProject("MainSourcesFile.java", "")
 
+    // Below we're adding a new source root, make sure we're not modifying a reusable light project.
+    assertThat((project as? ProjectImpl)?.isLight ?: false).named("project is light").isFalse()
     val testSrc = myFixture.tempDirFixture.findOrCreateDir("testDir")
-    PsiTestUtil.addSourceRoot(myModule, testSrc, true);
+    PsiTestUtil.addSourceRoot(myFixture.module, testSrc, true)
     val testFile = myFixture.addFileToProject("${testSrc.name}/TestFile.java", "")
 
     myFixture.addFileToProject(
@@ -392,7 +403,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
 
     val psiClass = myFixture.addClass("class SomeClass {}")
     val module = ModuleUtil.findModuleForPsiElement(psiClass)!!
-    assertThat(RoomSchemaManager.getInstance(module)!!.getSchema(psiClass.containingFile)).isNull()
+    assertThat(RoomSchemaManager.getInstance(module).getSchema(psiClass.containingFile)).isNull()
   }
 
   fun testColumns() {
@@ -572,7 +583,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         }
     """.trimIndent())
 
-    val element = myFixture.elementAtCaret;
+    val element = myFixture.elementAtCaret
 
     assertThat(getSchema(element).tables.iterator().next().columns.find{it.name =="override_name"}).isNotNull()
   }

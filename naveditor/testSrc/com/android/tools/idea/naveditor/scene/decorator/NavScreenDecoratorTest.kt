@@ -60,7 +60,7 @@ class NavScreenDecoratorTest : NavTestCase() {
     sceneComponent3.setPosition(500, 1500)
     sceneComponent3.setSize(1000, 2000)
 
-    val sceneView = model.surface.currentSceneView!!
+    val sceneView = model.surface.focusedSceneView!!
     val displayList = DisplayList()
 
     decorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), sceneComponent1)
@@ -88,7 +88,7 @@ class NavScreenDecoratorTest : NavTestCase() {
     sceneComponent.setPosition(50, 150)
     sceneComponent.setSize(100, 200)
 
-    val sceneView = model.surface.currentSceneView!!
+    val sceneView = model.surface.focusedSceneView!!
     val displayList = DisplayList()
 
     val origThumbnailManager = ThumbnailManager.getInstance(myFacet)

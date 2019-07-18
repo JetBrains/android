@@ -24,7 +24,9 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiReferenceList;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -39,6 +41,10 @@ public class JavaMigrationClassGenerator {
   private static final String MIGRATION_METHOD_TEMPLATE = "@Override\n" +
                                                           "public void migrate(androidx.sqlite.db.SupportSQLiteDatabase database) {\n%s}\n";
   private static final String DATABASE_UPDATE_STATEMENT_TEMPLATE = "\tdatabase.execSQL(\"%s\");";
+  private static final String CONSTRUCTOR_PARAMETER1 = "startVersion";
+  private static final String CONSTRUCTOR_PARAMETER2 = "endVersion";
+  private static final String CONSTRUCTOR_PARAMETERS_TYPE = "int";
+  private static final String SUPER_CONSTRUCTOR_CALL = "super(startVersion, endVersion);";
 
   /**
    * Generates a Migration class which produces the update from a database schema to another
@@ -56,6 +62,7 @@ public class JavaMigrationClassGenerator {
                                               databaseUpdate.getCurrentVersion());
     PsiClass migrationClass = JavaDirectoryService.getInstance().createClass(targetDirectory, migrationClassName);
     addSuperClass(migrationClass, project);
+    addMigrationConstructor(migrationClass, project);
     addMigrationMethod(migrationClass, project, databaseUpdate);
     JavaCodeStyleManager.getInstance(project).shortenClassReferences(migrationClass);
     CodeStyleManager.getInstance(project).reformat(migrationClass);
@@ -91,6 +98,29 @@ public class JavaMigrationClassGenerator {
     PsiMethod migrationMethod = elementFactory.createMethodFromText(methodText, null);
 
     migrationClass.add(migrationMethod);
+  }
+
+  private static void addMigrationConstructor(@NotNull PsiClass migrationClass,
+                                              @NotNull Project project) {
+    PsiElementFactory elementFactory = JavaPsiFacade.getInstance(project).getElementFactory();
+    PsiMethod migrationConstructor = elementFactory.createConstructor();
+    PsiType parametersType = elementFactory.createPrimitiveType(CONSTRUCTOR_PARAMETERS_TYPE);
+    if (parametersType == null) {
+      return;
+    }
+
+    PsiParameter startVersionParameter = elementFactory.createParameter(CONSTRUCTOR_PARAMETER1, parametersType);
+    PsiParameter endVersionParameter = elementFactory.createParameter(CONSTRUCTOR_PARAMETER2, parametersType);
+
+    migrationConstructor.getParameterList().add(startVersionParameter);
+    migrationConstructor.getParameterList().add(endVersionParameter);
+
+    if (migrationConstructor.getBody() == null) {
+      return;
+    }
+    migrationConstructor.getBody().add(elementFactory.createStatementFromText(SUPER_CONSTRUCTOR_CALL, null));
+
+    migrationClass.add(migrationConstructor);
   }
 
   private static String trimStatement(String statement) {

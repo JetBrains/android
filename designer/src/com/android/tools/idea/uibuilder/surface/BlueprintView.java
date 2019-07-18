@@ -42,7 +42,7 @@ public class BlueprintView extends ScreenView {
     if (myShowBorder) {
       builder.add(new BorderLayer(this));
     }
-    if (StudioFlags.NELE_DISPLAY_MODEL_NAME.get() && getSurface().isShowModelNames()) {
+    if (getSurface().isShowModelNames()) {
       builder.add(new ModelNameLayer(this));
     }
     builder.add(new MockupLayer(this));

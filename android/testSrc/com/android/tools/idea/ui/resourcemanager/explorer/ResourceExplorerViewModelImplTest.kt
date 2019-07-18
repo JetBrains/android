@@ -19,6 +19,7 @@ import com.android.resources.ResourceType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
+import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getPNGFile
 import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
@@ -85,6 +86,28 @@ class ResourceExplorerViewModelImplTest {
     ImageDiffUtil.assertImageSimilar(getPNGFile(), image, 0.05)
   }
 
+  @RunsInEdt
+  @Test
+  fun getOtherModulesResources() {
+    Truth.assertThat(ResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResources).isEmpty()
+    val module2Name = "app2"
+
+    addAndroidModule(module2Name, projectRule.project) { resourceDir ->
+      FileUtil.copy(File(getTestDataDirectory() + "/res/values/colors.xml"),
+                    resourceDir.resolve("values/colors.xml"))
+    }
+
+    // Use initial module in ViewModel
+    val viewModel = createViewModel(projectRule.module)
+    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
+
+    val resourceSections = viewModel.getOtherModulesResourceLists().get()
+    // Other modules resource lists should return resources from modules other than the current one.
+    Truth.assertThat(resourceSections).hasSize(1)
+    Truth.assertThat(resourceSections.first().libraryName).isEqualTo(module2Name)
+    Truth.assertThat(resourceSections.first().assetSets).isNotEmpty()
+  }
+
   @Test
   fun getLibrariesResources() {
     addAarDependency(projectRule.module,
@@ -95,7 +118,7 @@ class ResourceExplorerViewModelImplTest {
     Truth.assertThat(ResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResources).isEmpty()
     viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
     viewModel.filterOptions.isShowLibraries = true
-    val colorSection = viewModel.getResourcesLists().get()
+    val colorSection = viewModel.getCurrentModuleResourceLists().get()
     Truth.assertThat(colorSection).hasSize(2)
     Truth.assertThat(colorSection[0].assetSets).isEmpty()
     Truth.assertThat(colorSection[1].assetSets).isNotEmpty()
@@ -103,7 +126,7 @@ class ResourceExplorerViewModelImplTest {
     Truth.assertThat(colorSection[1].assetSets[0].assets[0].type).isEqualTo(ResourceType.COLOR)
 
     viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.DRAWABLE)
-    val drawableSection = viewModel.getResourcesLists().get()
+    val drawableSection = viewModel.getCurrentModuleResourceLists().get()
     Truth.assertThat(drawableSection).hasSize(2)
     Truth.assertThat(drawableSection[0].assetSets).isEmpty()
     Truth.assertThat(drawableSection[1].assetSets).isNotEmpty()
@@ -117,7 +140,7 @@ class ResourceExplorerViewModelImplTest {
     val viewModel = createViewModel(projectRule.module)
 
     viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
-    val values = viewModel.getResourcesLists().get()[0].assetSets
+    val values = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
     Truth.assertThat(values).isNotNull()
     Truth.assertThat(values.flatMap { it.assets }
                        .map { it.resourceItem.resourceValue?.value })
@@ -130,7 +153,7 @@ class ResourceExplorerViewModelImplTest {
     val viewModel = createViewModel(projectRule.module)
     val resourceChangedLatch = CountDownLatch(1)
     viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.DRAWABLE)
-    val values = viewModel.getResourcesLists().get()[0].assetSets
+    val values = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
     Truth.assertThat(values).isNotNull()
     Truth.assertThat(values
                        .flatMap { it.assets }
@@ -149,7 +172,7 @@ class ResourceExplorerViewModelImplTest {
     runInEdtAndGet { RenameDialog(projectRule.project, psiFile, null, null).performRename("new_name.xml") }
     Truth.assertWithMessage("resourceChangedCallback was called").that(resourceChangedLatch.await(1, TimeUnit.SECONDS)).isTrue()
 
-    val newValues = viewModel.getResourcesLists().get()[0].assetSets
+    val newValues = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
     Truth.assertThat(newValues
                        .flatMap { it.assets }
                        .mapNotNull { it.resourceItem.resourceValue?.value }

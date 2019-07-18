@@ -84,12 +84,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     assertEquals(Type.NONE, type);
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     // Since Project Structure notification isn't really a sync notification, we will show it here if the flag is enabled.
-    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
-      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
-    }
-    else {
-      assertNull(panel);
-    }
+    assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
   }
 
   public void testNotificationPanelTypeWithSyncInProgress() {
@@ -115,12 +110,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     assertEquals(Type.NONE, type);
 
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
-    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
-      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
-    }
-    else {
-      assertNull(panel);
-    }
+    assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
 
     // The reshow timeout should always be too large comparing to the potential time difference between statements below,
     // e.g. dozens of days.

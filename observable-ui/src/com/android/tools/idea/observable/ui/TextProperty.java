@@ -23,6 +23,7 @@ import com.intellij.ui.EditorTextField;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.AbstractButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -34,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class TextProperty extends StringProperty implements DocumentListener, PropertyChangeListener,
                                                                   com.intellij.openapi.editor.event.DocumentListener {
-  @NotNull private final Object myComponent;
+  @NotNull private final JComponent myComponent;
 
   public TextProperty(@NotNull JTextComponent textComponent) {
     myComponent = textComponent;

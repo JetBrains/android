@@ -23,7 +23,7 @@ import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.google.common.util.concurrent.Futures;
-import com.intellij.util.ExceptionUtilRt;
+import com.intellij.util.ExceptionUtil;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -131,7 +131,7 @@ public final class TransformedImageAsset {
           return future.get();
         }
         catch (ExecutionException e) {
-          ExceptionUtilRt.rethrow(e.getCause());
+          ExceptionUtil.rethrow(e.getCause());
         }
         catch (InterruptedException ignore) {
         }

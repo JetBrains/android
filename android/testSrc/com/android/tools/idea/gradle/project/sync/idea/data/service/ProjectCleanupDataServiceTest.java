@@ -49,7 +49,7 @@ public class ProjectCleanupDataServiceTest extends IdeaTestCase {
     myDataNodes = new ArrayList<>();
     myDataNodes.add(new DataNode<>(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance(), null));
 
-    myDataService = new ProjectCleanupDataService(myIdeInfo, myProjectCleanup);
+    myDataService = new ProjectCleanupDataService(myProjectCleanup);
   }
 
   public void testGetTargetDataKey() {

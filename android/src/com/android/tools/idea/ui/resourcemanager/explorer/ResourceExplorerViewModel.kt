@@ -21,8 +21,10 @@ import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
 import com.intellij.ui.speedSearch.SpeedSearch
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
@@ -39,6 +41,11 @@ interface ResourceExplorerViewModel {
   var resourceChangedCallback: (() -> Unit)?
 
   /**
+   * Callback called when the [AndroidFacet] is changed.
+   */
+  var facetUpdaterCallback: ((facet: AndroidFacet) -> Unit)?
+
+  /**
    * The index in [resourceTypes] of the resource type being used. Changing the value
    * of this field should change the resources being shown.
    */
@@ -53,6 +60,8 @@ interface ResourceExplorerViewModel {
 
   val assetPreviewManager: AssetPreviewManager
 
+  val summaryPreviewManager: AssetPreviewManager
+
   var facet: AndroidFacet
 
   val speedSearch: SpeedSearch
@@ -63,12 +72,33 @@ interface ResourceExplorerViewModel {
    * Returns a list of [ResourceSection] with one section per namespace, the first section being the
    * one containing the resource of the current module.
    */
-  fun getResourcesLists(): CompletableFuture<List<ResourceSection>>
+  fun getCurrentModuleResourceLists(): CompletableFuture<List<ResourceSection>>
+
+  /**
+   * Similar to [getCurrentModuleResourceLists], but fetches resources for all other modules excluding the ones being displayed.
+   */
+  fun getOtherModulesResourceLists(): CompletableFuture<List<ResourceSection>>
 
   /**
    * Delegate method to handle calls to [com.intellij.openapi.actionSystem.DataProvider.getData].
    */
   fun getData(dataId: String?, selectedAssets: List<Asset>): Any?
+
+  /**
+   * Returns a map of some specific resource details, typically: name, reference, type, configuration, value.
+   */
+  fun getResourceSummaryMap(resourceAssetSet: ResourceAssetSet): Map<String, String>
+
+  /**
+   * Returns a map for resource configurations, used to map each defined configuration with the resolved value of the resource and some
+   * extra details about the resolved value.
+   *
+   * Eg:
+   * > anydpi-v26 &emsp; | &emsp; Adaptive icon - ic_launcher.xml
+   *
+   * > hdpi &emsp;&emsp;&emsp;&emsp;&nbsp; | &emsp; Mip Map File - ic_launcher.png
+   */
+  fun getResourceConfigurationMap(resourceAssetSet: ResourceAssetSet): Map<String, String>
 
   /**
    * Action when selecting an [asset] (double click or select + ENTER key).

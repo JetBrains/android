@@ -54,7 +54,7 @@ class XmlErrorOutputParser : BuildOutputParser {
       if (file != null && file.isFile) {
         messageConsumer.accept(
           FileMessageEventImpl(
-            reader.buildId,
+            reader.parentEventId,
             MessageEvent.Kind.ERROR,
             XML_PARSING_GROUP + MESSAGE_GROUP_ERROR_SUFFIX,
             message,
@@ -66,7 +66,7 @@ class XmlErrorOutputParser : BuildOutputParser {
       else {
         messageConsumer.accept(
           MessageEventImpl(
-            reader.buildId,
+            reader.parentEventId,
             MessageEvent.Kind.ERROR,
             XML_PARSING_GROUP + MESSAGE_GROUP_ERROR_SUFFIX,
             message,

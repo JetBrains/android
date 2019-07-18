@@ -15,14 +15,12 @@
  */
 package org.jetbrains.android
 
-import com.android.tools.idea.res.colorToString
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlTagValue
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.Color
 
 class AndroidAnnotatorUtilTest {
 
@@ -33,10 +31,10 @@ class AndroidAnnotatorUtilTest {
     Mockito.`when`(tag.value).thenReturn(tagValue)
     val task = AndroidAnnotatorUtil.ColorRenderer.createSetColorTask(tag)
 
-    val color = Color.BLUE
-    task.consume(color)
+    val colorString= "#0000FF"
+    task.consume(colorString)
 
-    Mockito.verify(tagValue).text = colorToString(color)
+    Mockito.verify(tagValue).text = colorString
   }
 
   @Test
@@ -46,9 +44,9 @@ class AndroidAnnotatorUtilTest {
     Mockito.`when`(attributeValue.parent).thenReturn(xmlAttribute)
     val task = AndroidAnnotatorUtil.ColorRenderer.createSetColorTask(attributeValue)
 
-    val color = Color.BLUE
-    task.consume(color)
+    val colorString = "#0000FF"
+    task.consume(colorString)
 
-    Mockito.verify(xmlAttribute).setValue(colorToString(color))
+    Mockito.verify(xmlAttribute).setValue(colorString)
   }
 }

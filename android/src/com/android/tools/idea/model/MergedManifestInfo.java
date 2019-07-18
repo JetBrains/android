@@ -88,8 +88,7 @@ final class MergedManifestInfo {
    * find or parse the primary manifest, then myDomDocument will be null.
    */
   @Nullable private final Document myDomDocument;
-  @Nullable private final ImmutableList<VirtualFile> myFiles;
-  @NotNull private final TObjectLongHashMap<VirtualFile> myLastModifiedMap;
+  @NotNull private final ModificationStamps myModificationStamps;
   private final long mySyncTimestamp;
   @Nullable private final ImmutableList<MergingReport.Record> myLoggingRecords;
   @Nullable private final Actions myActions;
@@ -116,25 +115,72 @@ final class MergedManifestInfo {
     }
   }
 
+  /** A record of the VFS and PSI modification stamps of a set of files at a given point in time. */
+  private static class ModificationStamps {
+    @NotNull private final ImmutableList<VirtualFile> files;
+    /**
+     * A mapping from PsiFile (or VirtualFile if the corresponding PsiFile is unavailable) to its modification stamp at this point in time.
+     */
+    @NotNull private final TObjectLongHashMap<Object> modificationStamps;
+
+    private ModificationStamps(@NotNull ImmutableList<VirtualFile> files, @NotNull TObjectLongHashMap<Object> modificationStamps) {
+      this.files = files;
+      this.modificationStamps = modificationStamps;
+    }
+
+    @NotNull
+    public static ModificationStamps forFiles(@NotNull Project project, @NotNull List<VirtualFile> files) {
+      ImmutableList.Builder<VirtualFile> fileListBuilder = ImmutableList.builder();
+      TObjectLongHashMap<Object> modificationStamps = new TObjectLongHashMap<>();
+      PsiManager psiManager = PsiManager.getInstance(project);
+      for (VirtualFile file : files) {
+        fileListBuilder.add(file);
+        try {
+          PsiFile psiFile = psiManager.findFile(file);
+          if (psiFile == null) {
+            // TODO(b/137394236): When does this happen? Should we just ignore these files?
+            modificationStamps.put(file, file.getModificationStamp());
+          } else {
+            modificationStamps.put(psiFile, psiFile.getModificationStamp());
+          }
+          // TODO(b/137394236): We should probably allow this exception to propagate up the call
+          //  stack, since the result should no longer be needed.
+        } catch (ProcessCanceledException ignore) {}
+      }
+      return new ModificationStamps(fileListBuilder.build(), modificationStamps);
+    }
+
+    @NotNull
+    public ImmutableList<VirtualFile> getFiles() {
+      return files;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (!(other instanceof ModificationStamps)) {
+        return false;
+      }
+      return modificationStamps.equals(((ModificationStamps)other).modificationStamps);
+    }
+
+    @Override
+    public int hashCode() {
+      return modificationStamps.hashCode();
+    }
+  }
+
   private MergedManifestInfo(@NotNull AndroidFacet facet,
                              @Nullable Document domDocument,
-                             @NotNull TObjectLongHashMap<VirtualFile> lastModifiedMap,
+                             @NotNull ModificationStamps modificationStamps,
                              long syncTimestamp,
                              @Nullable ImmutableList<MergingReport.Record> loggingRecords,
                              @Nullable Actions actions) {
     myFacet = facet;
     myDomDocument = domDocument;
-    myLastModifiedMap = lastModifiedMap;
+    myModificationStamps = modificationStamps;
     mySyncTimestamp = syncTimestamp;
     myLoggingRecords = loggingRecords;
     myActions = actions;
-
-    ImmutableList.Builder<VirtualFile> files = ImmutableList.builder();
-    lastModifiedMap.forEachKey(file -> {
-      files.add(file);
-      return true;
-    });
-    myFiles = files.build();
   }
 
   /**
@@ -147,7 +193,7 @@ final class MergedManifestInfo {
     long syncTimestamp = SyncTimestampUtil.getLastSyncTimestamp(project);
 
     MergedManifestContributors contributors = MergedManifestContributors.determineFor(facet);
-    TObjectLongHashMap<VirtualFile> lastModified = getFileModificationStamps(project, contributors.allFiles);
+    ModificationStamps modificationStamps = ModificationStamps.forFiles(project, contributors.allFiles);
 
     Document document = null;
     ImmutableList<MergingReport.Record> loggingRecords = null;
@@ -171,7 +217,7 @@ final class MergedManifestInfo {
       }
     }
 
-    return new MergedManifestInfo(facet, document, lastModified, syncTimestamp, loggingRecords, actions);
+    return new MergedManifestInfo(facet, document, modificationStamps, syncTimestamp, loggingRecords, actions);
   }
 
   @Slow
@@ -233,26 +279,7 @@ final class MergedManifestInfo {
     }
     // TODO(b/128854237): We should use something backed with an iterator here so that we can early
     //  return without computing all the files we might care about first.
-    return myLastModifiedMap.equals(getFileModificationStamps(myFacet.getModule().getProject(), manifests.allFiles));
-  }
-
-  @NotNull
-  private static TObjectLongHashMap<VirtualFile> getFileModificationStamps(@NotNull Project project, @NotNull Iterable<VirtualFile> files) {
-    TObjectLongHashMap<VirtualFile> modificationStamps = new TObjectLongHashMap<>();
-    for (VirtualFile file : files) {
-      modificationStamps.put(file, getFileModificationStamp(project, file));
-    }
-    return modificationStamps;
-  }
-
-  private static long getFileModificationStamp(@NotNull Project project, @NotNull VirtualFile file) {
-    try {
-      PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-      return psiFile == null ? file.getModificationStamp() : psiFile.getModificationStamp();
-    }
-    catch (ProcessCanceledException ignore) {
-      return 0L;
-    }
+    return myModificationStamps.equals(ModificationStamps.forFiles(myFacet.getModule().getProject(), manifests.allFiles));
   }
 
   /**
@@ -266,7 +293,7 @@ final class MergedManifestInfo {
 
   @Nullable
   public ImmutableList<VirtualFile> getFiles() {
-    return myFiles;
+    return myModificationStamps.getFiles();
   }
 
   @NotNull

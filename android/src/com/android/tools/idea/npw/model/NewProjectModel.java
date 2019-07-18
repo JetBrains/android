@@ -21,17 +21,13 @@ import static com.android.tools.idea.npw.platform.Language.KOTLIN;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_OFFLINE_REPO_PATH;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_USE_OFFLINE_REPO;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -45,7 +41,6 @@ import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -61,7 +56,6 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
@@ -76,8 +70,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -106,7 +98,6 @@ public class NewProjectModel extends WizardModel {
   private final ProjectSyncInvoker myProjectSyncInvoker;
   private final MultiTemplateRenderer myMultiTemplateRenderer;
   private final OptionalValueProperty<Language> myLanguage = new OptionalValueProperty<>();
-  private final BoolProperty myUseOfflineRepo = new BoolValueProperty();
 
   private static Logger getLogger() {
     return Logger.getInstance(NewProjectModel.class);
@@ -174,11 +165,6 @@ public class NewProjectModel extends WizardModel {
 
   public OptionalValueProperty<Language> language() {
     return myLanguage;
-  }
-
-  @NotNull
-  public BoolProperty useOfflineRepo() {
-    return myUseOfflineRepo;
   }
 
   /**
@@ -404,15 +390,6 @@ public class NewProjectModel extends WizardModel {
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
       myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myLanguage.getValue() == KOTLIN);
 
-      if (StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get()) {
-        String offlineReposString = getOfflineReposString();
-
-        myTemplateValues.put(ATTR_OFFLINE_REPO_PATH, offlineReposString);
-        if (myUseOfflineRepo.get()) {
-          myTemplateValues.put(ATTR_USE_OFFLINE_REPO, true);
-        }
-      }
-
       Map<String, Object> params = Maps.newHashMap(myTemplateValues);
       for (NewModuleModel newModuleModel : getNewModuleModels()) {
         params.putAll(newModuleModel.getTemplateValues());
@@ -484,11 +461,5 @@ public class NewProjectModel extends WizardModel {
         getLogger().error(e);
       }
     }
-  }
-
-  private static String getOfflineReposString() {
-    return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths().stream()
-                                    .map(f -> FilenameUtils.normalize(f.toString()))
-                                    .collect(Collectors.joining(","));
   }
 }

@@ -480,52 +480,17 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return super.getErrorMessage(s, context);
   }
 
-  /**
-   * Data class that contains all required information to show on-completion documentation.
-   */
-  public static class DocumentationHolder {
-    /**
-     * Value being completed
-     */
-    private final @NotNull String myValue;
-
-    /**
-     * Documentation associated with that value
-     */
-    private final @NotNull String myDocumentation;
-
-    public DocumentationHolder(@NotNull String value, @NotNull String documentation) {
-      myValue = value;
-      myDocumentation = documentation;
-    }
-
-    public @NotNull String getValue() {
-      return myValue;
-    }
-
-    public @NotNull String getDocumentation() {
-      return myDocumentation;
-    }
-  }
-
   @Nullable
   @Override
   public LookupElement createLookupElement(ResourceValue resourceValue) {
     String value = resourceValue.toString();
 
     boolean deprecated = false;
-    String doc = null;
     if (myAttributeDefinition != null) {
-      doc = myAttributeDefinition.getValueDescription(value);
       deprecated = myAttributeDefinition.isValueDeprecated(value);
     }
 
-    LookupElementBuilder builder;
-    if (doc == null) {
-      builder = LookupElementBuilder.create(value);
-    } else {
-      builder = LookupElementBuilder.create(new DocumentationHolder(value, doc.trim()), value);
-    }
+    LookupElementBuilder builder = LookupElementBuilder.create(value);
 
     builder = builder.withCaseSensitivity(true).withStrikeoutness(deprecated);
     String resourceName = resourceValue.getResourceName();
@@ -747,6 +712,13 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   @Override
   public String getDocumentation(@NotNull String value) {
+    if (myAttributeDefinition != null) {
+      // Custom documentation for enums and flags of attr resources.
+      String description = myAttributeDefinition.getValueDescription(value);
+      if (description != null) {
+        return description;
+      }
+    }
     return myAdditionalConverter instanceof AttributeValueDocumentationProvider
            ? ((AttributeValueDocumentationProvider)myAdditionalConverter).getDocumentation(value)
            : null;

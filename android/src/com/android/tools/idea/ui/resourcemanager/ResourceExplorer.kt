@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager
 
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbar
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbarViewModel
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
@@ -33,8 +34,16 @@ import javax.swing.JPanel
 import kotlin.properties.Delegates
 
 // TODO: Support receiving a list of ResourceType to display.
-internal val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR,
-                                           ResourceType.LAYOUT, ResourceType.MIPMAP)
+internal val SUPPORTED_RESOURCES get() =
+  if (StudioFlags.RESOURCE_EXPLORER_PICKER.get()) {
+    arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR,
+            ResourceType.LAYOUT, ResourceType.MIPMAP,
+            ResourceType.STRING, ResourceType.FONT)
+  } else {
+    arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR,
+            ResourceType.LAYOUT, ResourceType.MIPMAP)
+  }
+
 internal val RESOURCE_DEBUG = System.getProperty("res.manag.debug", "false")?.toBoolean() ?: false
 
 /**
@@ -53,6 +62,7 @@ class ResourceExplorer private constructor(
 
   init {
     toolbarViewModel.facetUpdaterCallback = {newValue -> this.facet = newValue}
+    resourceExplorerViewModel.facetUpdaterCallback = {newValue -> this.facet = newValue}
   }
 
   companion object {
@@ -70,7 +80,7 @@ class ResourceExplorer private constructor(
         importersProvider,
         resourceExplorerViewModel.filterOptions)
       val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
-      val toolbar = ResourceExplorerToolbar(toolbarViewModel)
+      val toolbar = ResourceExplorerToolbar.create(toolbarViewModel, moduleComboEnabled = true)
       val resourceExplorerView = ResourceExplorerView(
         resourceExplorerViewModel, resourceImportDragTarget)
       return ResourceExplorer(
@@ -95,9 +105,9 @@ class ResourceExplorer private constructor(
         importersProvider,
         resourceExplorerViewModel.filterOptions)
       val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
-      val toolbar = ResourceExplorerToolbar(toolbarViewModel)
+      val toolbar = ResourceExplorerToolbar.create(toolbarViewModel, moduleComboEnabled = false)
       val resourceExplorerView = ResourceExplorerView(
-        resourceExplorerViewModel, resourceImportDragTarget)
+        resourceExplorerViewModel, resourceImportDragTarget, withSummaryView = true, withMultiModuleSearch = false)
       val explorer = ResourceExplorer(
         facet,
         resourceExplorerViewModel,

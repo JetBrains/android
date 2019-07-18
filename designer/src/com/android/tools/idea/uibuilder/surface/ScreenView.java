@@ -17,11 +17,15 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.collect.ImmutableList;
+import java.awt.Dimension;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
 
@@ -36,9 +40,41 @@ public class ScreenView extends ScreenViewBase {
    */
   protected final boolean myShowBorder;
 
-  public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
+  private final boolean useImageSize;
+
+  /**
+   * Creates a new {@link ScreenView}.
+   * @param surface The {@link NlDesignSurface}.
+   * @param manager The {@link LayoutlibSceneManager}.
+   * @param useImageSize If true, the ScreenView will be sized as the render image result instead of using the device
+   *                     configuration.
+   */
+  public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager, boolean useImageSize) {
     super(surface, manager);
     myShowBorder = !getSurface().isPreviewSurface() || surface.getLayoutType() == LayoutFileType.INSTANCE;
+    this.useImageSize = useImageSize;
+  }
+
+  public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
+    this(surface, manager, false);
+  }
+
+  @NotNull
+  @Override
+  public Dimension getPreferredSize(@Nullable Dimension dimension) {
+    if (useImageSize) {
+      RenderResult result = getSceneManager().getRenderResult();
+      if (result != null && result.hasImage()) {
+        if (dimension == null) {
+          dimension = new Dimension();
+        }
+        ImagePool.Image image = result.getRenderedImage();
+        dimension.setSize(image.getWidth(), image.getHeight());
+
+        return dimension;
+      }
+    }
+    return super.getPreferredSize(dimension);
   }
 
   @NotNull
@@ -49,7 +85,7 @@ public class ScreenView extends ScreenViewBase {
     if (myShowBorder) {
       builder.add(new BorderLayer(this));
     }
-    if (StudioFlags.NELE_DISPLAY_MODEL_NAME.get() && getSurface().isShowModelNames()) {
+    if (getSurface().isShowModelNames()) {
       builder.add(new ModelNameLayer(this));
     }
     builder.add(new ScreenViewLayer(this));

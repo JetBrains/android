@@ -64,15 +64,12 @@ class AndroidResourcesShortNamesCache(private val project: Project) : OnlyClasse
 /**
  * [PsiShortNamesCache] that provides names of known light Manifest classes.
  */
-class AndroidManifestShortNamesCache(
-  private val facetManager: ProjectFacetManager,
-  private val finder: AndroidManifestClassPsiElementFinder
-) : OnlyClassesShortNamesCache(SdkConstants.FN_MANIFEST_BASE) {
-
+class AndroidManifestShortNamesCache(private val project: Project) : OnlyClassesShortNamesCache(SdkConstants.FN_MANIFEST_BASE) {
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
     if (name != SdkConstants.FN_MANIFEST_BASE) return PsiClass.EMPTY_ARRAY
 
-    return facetManager.getFacets(AndroidFacet.ID)
+    val finder = AndroidManifestClassPsiElementFinder.getInstance(project)
+    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
       .mapNotNull { finder.getManifestClassForFacet(it) }
       .toTypedArray()
   }

@@ -49,7 +49,7 @@ public class AndroidGradlePluginOutputParserTest {
   public void testParseWarningFromOutput() {
     String line = "WARNING: Configuration 'compile' is obsolete and has been replaced with 'implementation'.";
     String expected = "Configuration 'compile' is obsolete and has been replaced with 'implementation'.";
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
 
     ArgumentCaptor<MessageEvent> messageCaptor = ArgumentCaptor.forClass(MessageEvent.class);
     assertTrue(myParser.parse(line, myReader, myConsumer));
@@ -65,7 +65,7 @@ public class AndroidGradlePluginOutputParserTest {
   @Test
   public void testParseJavacWithSource() {
     String line = "MyClass.java:38: warning: [serial] serializable class MyClass has no definition of serialVersionUID";
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
     assertFalse(myParser.parse(line, myReader, myConsumer));
   }
 
@@ -75,28 +75,28 @@ public class AndroidGradlePluginOutputParserTest {
   @Test
   public void testParseJavacWithoutSource() {
     String line = "warning: [serial] serializable class MyClass has no definition of serialVersionUID";
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
     assertTrue(myParser.parse(line, myReader, myConsumer));
   }
 
   @Test
   public void testParseAGPResourceWarning() {
     String line = "warning: string 'snowball' has no default translation.\n";
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
     assertTrue(myParser.parse(line, myReader, myConsumer));
   }
 
   @Test
   public void testParseAGPError() {
     String line = "ERROR: Something went wrong!\n";
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
     assertTrue(myParser.parse(line, myReader, myConsumer));
   }
 
   @Test
   public void testParseJavaError() {
     String line = "MyClass.java:23 error: Something went REALLY wrong!\n";
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
     assertFalse(myParser.parse(line, myReader, myConsumer));
   }
 }

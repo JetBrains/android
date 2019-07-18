@@ -31,6 +31,5 @@ class PropertyAppRule : ApplicationRule() {
     super.before()
     testApplication.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock())
     testApplication.registerServiceInstance(ActionManager::class.java, mock(ActionManager::class.java))
-    testApplication.registerService(UISettings::class.java, UISettings())
   }
 }

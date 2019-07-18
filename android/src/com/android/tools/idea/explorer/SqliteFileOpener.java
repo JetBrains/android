@@ -21,7 +21,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 
 /**
- * Extension that opens a Sqlite file using the [SqliteExplorerProjectService].
+ * Extension that opens a Sqlite file using [SqliteExplorerProjectService].
  */
 public class SqliteFileOpener implements FileOpener {
   @Override

@@ -21,7 +21,6 @@ import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_IS_INSTANT_MODULE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_INSTANT_APP;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
@@ -33,7 +32,6 @@ import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
@@ -138,7 +136,6 @@ public class Template {
   static final int RELATIVE_FILES_FORMAT = 5;
 
   private static final int MAX_WARNINGS = 10;
-  private static final String GOOGLE_GLASS_PATH_19 = "/addon-google_gdk-google-19/";
 
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.Template");
 
@@ -220,7 +217,7 @@ public class Template {
   private static void convertToInt(@NotNull String key, @NotNull Map<String, Object> args) {
     Object value = args.get(key);
     if (value instanceof String) {
-      Integer result;
+      int result;
       try {
         result = Integer.parseInt((String)value);
       }
@@ -258,11 +255,6 @@ public class Template {
                                          .setIncludeKotlinSupport(kotlinSupport instanceof Boolean ? (Boolean)kotlinSupport : false)
                                          .setKotlinSupportVersion(kotlinVersion instanceof String ? (String)kotlinVersion : "unknown"));
       UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
-
-      if (title.equals("Android Project") && Boolean.TRUE.equals(paramMap.get(ATTR_IS_DYNAMIC_INSTANT_APP))) {
-        aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_BUNDLE_PROJECT);
-        UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
-      }
 
       if (Boolean.TRUE.equals(paramMap.get(ATTR_DYNAMIC_IS_INSTANT_MODULE))) {
         aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE);
@@ -405,12 +397,6 @@ public class Template {
       }
       if (!context.showWarnings()) {
         LOG.warn("WARNING: " + context.getWarnings());
-        return true;
-      }
-      if (!context.getProject().isInitialized() && myTemplateRoot.getPath().contains(GOOGLE_GLASS_PATH_19)) {
-        // TODO: Fix the Google Glass templates to NOT issue warnings here.
-        // For now: Ignore project creations for Google glass templates since
-        // there are files that are overwritten during project creation by the Glass activity templates.
         return true;
       }
       AtomicBoolean result = new AtomicBoolean();

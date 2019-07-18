@@ -21,12 +21,12 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.ui.GuiTestingService.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
 import static java.awt.event.InputEvent.CTRL_MASK;
 import static java.awt.event.InputEvent.META_MASK;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.fail;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -52,6 +52,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindo
 import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
+import com.intellij.execution.ExecutionBundle;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -201,7 +202,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     Wait.seconds(10)
       .expecting("Listeners to be notified of build-finished event")
-      .until(()-> resultRef.get() != null);
+      .until(() -> resultRef.get() != null);
     return resultRef.get();
   }
 
@@ -222,12 +223,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    */
   @NotNull
   public ActionButtonFixture findDebugApplicationButton() {
-    return findActionButtonByActionId("Debug");
+    return findActionButtonWithRefresh("Debug");
   }
 
   @NotNull
   public ActionButtonFixture findRunApplicationButton() {
     return findActionButtonWithRefresh("Run");
+  }
+
+  @NotNull
+  public ActionButtonFixture findStopButton() {
+    return findActionButtonWithRefresh(ExecutionBundle.message("run.configuration.stop.action.name"));
   }
 
   @NotNull
@@ -266,6 +272,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public IdeFrameFixture stopAll() {
+    invokeMenuPath("Run", "Stop...");
+    robot().pressAndReleaseKey(KeyEvent.VK_F2, CTRL_MASK); // Stop All (Ctrl + F2)
+    return this;
+  }
+
+  @NotNull
   public IdeFrameFixture stepOver() {
     return invokeMenuPath("Run", "Step Over");
   }
@@ -294,15 +307,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     invokeMenuPath("Build", "Make Project");
   }
 
-  /** Selects the item at {@code menuPath} and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}. */
+  /**
+   * Selects the item at {@code menuPath} and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
+   */
   public <T> T openFromMenu(Function<IdeFrameFixture, T> fixtureFunction, @NotNull String... menuPath) {
     getMenuFixture().invokeMenuPath(menuPath);
     return fixtureFunction.apply(this);
   }
 
   /**
-   *  Selects the item at {@code menuPath} in a contextual menu
-   *  and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
+   * Selects the item at {@code menuPath} in a contextual menu
+   * and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
    */
   public <T> T openFromContextualMenu(Function<IdeFrameFixture, T> fixtureFunction, @NotNull String... menuPath) {
     getMenuFixture().invokeContextualMenuPath(menuPath);
@@ -380,21 +395,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * Returns the virtual file corresponding to the given path. The path must be relative to the project root directory
    * (the top-level directory containing all source files associated with the project).
    *
-   * @param relativePath a file path relative to the project root directory
+   * @param relativePath  a file path relative to the project root directory
    * @param requireExists if true, this method asserts that the given path corresponds to an existing file
    * @return the virtual file corresponding to the given path, or null if requireExists is false and the file does not exist
    */
   @Nullable
   @Contract("_, true -> !null")
   public VirtualFile findFileByRelativePath(@NotNull String relativePath, boolean requireExists) {
-    //noinspection Contract
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
 
     VirtualFile projectRootDir = getProject().getBaseDir();
     projectRootDir.refresh(false, true);
     VirtualFile file = projectRootDir.findFileByRelativePath(relativePath);
     if (requireExists) {
-      //noinspection Contract
       assertNotNull("Unable to find file with relative path '" + relativePath + "'", file);
     }
     return file;
@@ -449,7 +462,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   public boolean isGradleSyncNotNeeded() {
-    return GradleSyncState.getInstance(getProject()).isSyncNeeded() == ThreeState.NO? true: false;
+    return GradleSyncState.getInstance(getProject()).isSyncNeeded() == ThreeState.NO;
   }
 
   @NotNull
@@ -505,13 +518,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   /**
    * IJ doesn't always refresh the state of the toolbar buttons. This forces it to refresh.
    */
-  public static void updateToolbars() {
+  @NotNull
+  public IdeFrameFixture updateToolbars() {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() {
         ActionToolbarImpl.updateAllToolbarsImmediately();
       }
     });
+    return this;
   }
 
   /**
@@ -531,7 +546,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   /**
    * Finds the button while jittering the mouse over the IDE frame.
-   *
+   * <p>
    * Due to IJ refresh policy (will only refresh if it detects mouse movement over its window),
    * the cursor needs to be intermittently moved before the ActionButton moves into the location
    * place and update to its final state.
@@ -543,10 +558,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       .expecting("button to enable")
       .until(() -> {
         updateToolbars();
+        // Actions can somehow get replaced, so we need to re-get the action when we attempt to check its state.
         ActionButtonFixture fixture = locateActionButtonByActionId(actionId);
         fixtureRef.set(fixture);
         if (hasValidWindowAncestor(fixture.target())) {
-          robot().jitter(target()); // Jitter somewhere in the window.
           return execute(new GuiQuery<Boolean>() {
             @Nullable
             @Override
@@ -555,8 +570,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
                 ActionButton button = fixture.target();
                 AnAction action = button.getAction();
                 Presentation presentation = action.getTemplatePresentation();
-                return presentation.isEnabled() &&
-                       presentation.isVisible() &&
+                return presentation.isEnabledAndVisible() &&
                        button.isEnabled() &&
                        button.isShowing() &&
                        button.isVisible();
@@ -572,18 +586,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  private ActionButtonFixture findActionButtonByActionId(String actionId) {
-    return ActionButtonFixture.findByActionId(actionId, robot(), target());
-  }
-
-  @NotNull
   private ActionButtonFixture findActionButtonByActionId(String actionId, long secondsToWait) {
     return ActionButtonFixture.findByActionId(actionId, robot(), target(), secondsToWait);
-  }
-
-  @NotNull
-  private ActionButtonFixture findActionButtonByText(@NotNull String text) {
-    return ActionButtonFixture.findByText(text, robot(), target());
   }
 
   @NotNull
@@ -730,9 +734,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Module module = getModule(moduleName);
     VirtualFile buildFile = getGradleBuildFile(module);
     Ref<GradleBuildModel> buildModelRef = new Ref<>();
-    ReadAction.run(() -> {
-      buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject()));
-    });
+    ReadAction.run(() -> buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject())));
     return new GradleBuildModelFixture(buildModelRef.get());
   }
 
@@ -745,7 +747,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public void selectApp(@NotNull String appName) {
     ActionButtonFixture runButton = findRunApplicationButton();
     Container actionToolbarContainer = GuiQuery.getNonNull(() -> runButton.target().getParent());
-    ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBoxByTooltip(robot(), actionToolbarContainer, "Open edit Run/Debug configurations dialog");
+
+    ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBoxByTooltip(
+      robot(),
+      actionToolbarContainer,
+      "Open 'Edit Run/Debug configurations' dialog");
+
     comboBoxActionFixture.selectItem(appName);
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
     Wait.seconds(1).expecting("ComboBox to be selected").until(() -> appName.equals(comboBoxActionFixture.getSelectedItemText()));
@@ -816,7 +823,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture closeResourceManager() {
-    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager"))).deselect();
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager")))
+      .deselect();
     return this;
   }
 }

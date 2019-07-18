@@ -28,7 +28,7 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
   fun testAttributeWithoutDefaultValue() {
     val components = createComponents(component(TEXT_VIEW))
     val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
-    val defaultProvider = NeleDefaultPropertyProvider(property.model.surface!!.currentSceneView!!.sceneManager)
+    val defaultProvider = NeleDefaultPropertyProvider(property.model.surface!!.focusedSceneView!!.sceneManager)
     val value = defaultProvider.provideDefaultValue(property)
     assertThat(value).isNull()
   }

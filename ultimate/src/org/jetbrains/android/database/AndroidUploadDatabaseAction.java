@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.database;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -12,6 +13,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.io.DigestUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -126,7 +127,7 @@ public class AndroidUploadDatabaseAction extends AnAction {
   private static String getLocalFileMd5Hash(@NotNull File file) {
     try {
       final byte[] buffer = new byte[1024];
-      final MessageDigest md5 = MessageDigest.getInstance("MD5");
+      final MessageDigest md5 = DigestUtil.md5();
       final InputStream fis = new BufferedInputStream(new FileInputStream(file));
       try {
         int read;
@@ -146,10 +147,6 @@ public class AndroidUploadDatabaseAction extends AnAction {
       return builder.toString();
     }
     catch (IOException e) {
-      LOG.error(e);
-      return null;
-    }
-    catch (NoSuchAlgorithmException e) {
       LOG.error(e);
       return null;
     }

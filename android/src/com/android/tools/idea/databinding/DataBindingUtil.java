@@ -353,21 +353,24 @@ public final class DataBindingUtil {
    * Returns the qualified name for the BR file for the given Facet.
    *
    * @param facet The {@link AndroidFacet} to check.
-   * @return The qualified name for the BR class of the given Android Facet.
+   * @return The qualified name for the BR class of the given Android Facet, or null if it could not be determined.
    */
-  @NotNull
+  @Nullable
   public static String getBrQualifiedName(@NotNull AndroidFacet facet) {
-    return getGeneratedPackageName(facet) + "." + BR;
+    String packageName = getGeneratedPackageName(facet);
+    return packageName == null ? null : packageName + "." + BR;
   }
 
   /**
    * Returns the package name that will be use to generate R file or BR file.
    *
    * @param facet The {@link AndroidFacet} to check.
-   * @return The package name that can be used to generate R and BR classes.
+   * @return The package name that can be used to generate R and BR classes, or null if it could not be determined.
    */
   @Nullable
   public static String getGeneratedPackageName(@NotNull AndroidFacet facet) {
+    // TODO(132629996): Replace this with AndroidManifestUtils.getPackage(facet) once it has been updated
+    //  to use the merged manifest. The deprecated API used here has the potential to block the EDT.
     return MergedManifestManager.getSnapshot(facet).getPackage();
   }
 

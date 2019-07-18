@@ -183,7 +183,7 @@ public class ActionHandleTarget extends BaseTarget {
       return;
     }
 
-    SceneView view = myComponent.getScene().getDesignSurface().getCurrentSceneView();
+    SceneView view = myComponent.getScene().getDesignSurface().getFocusedSceneView();
 
     if (view == null) {
       return;

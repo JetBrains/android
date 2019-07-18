@@ -176,7 +176,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   public void updateActions() {
-    SceneView view = mySurface.getCurrentSceneView();
+    SceneView view = mySurface.getFocusedSceneView();
     if (view != null) {
       SelectionModel selectionModel = view.getSelectionModel();
       List<NlComponent> selection = selectionModel.getSelection();
@@ -195,7 +195,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   private void updateActions(@NotNull List<NlComponent> newSelection) {
-    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getFocusedSceneView();
     if (screenView == null) {
       return;
     }

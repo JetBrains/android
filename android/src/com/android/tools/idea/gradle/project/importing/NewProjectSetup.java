@@ -40,6 +40,7 @@ import static com.android.tools.idea.gradle.util.GradleProjects.open;
 import static com.android.tools.idea.gradle.util.GradleUtil.BUILD_DIR_DEFAULT_NAME;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.util.ToolWindows.activateProjectView;
+import static com.intellij.openapi.application.TransactionGuard.submitTransaction;
 import static com.intellij.openapi.project.ProjectTypeService.setProjectType;
 import static com.intellij.openapi.util.io.FileUtil.join;
 
@@ -68,7 +69,7 @@ public class NewProjectSetup {
   }
 
   void prepareProjectForImport(@NotNull Project project, @Nullable LanguageLevel languageLevel) {
-    openProjectAndActivateProjectView(project);
+    submitTransaction(project, () -> openProjectAndActivateProjectView(project));
     CommandProcessor.getInstance().executeCommand(project, () -> ApplicationManager.getApplication().runWriteAction(() -> {
       Sdk jdk = IdeSdks.getInstance().getJdk();
       if (jdk != null) {

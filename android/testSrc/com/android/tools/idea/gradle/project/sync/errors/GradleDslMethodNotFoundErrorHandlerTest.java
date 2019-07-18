@@ -62,6 +62,7 @@ public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCa
     requestSyncAndGetExpectedFailure();
 
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+/* b/137231583
     assertNotNull(notificationUpdate);
 
     assertThat(notificationUpdate.getText()).contains("Gradle DSL method not found: 'incude()'");
@@ -79,6 +80,7 @@ public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCa
     assertEquals(0, openFileQuickFix.getLineNumber());
 
     assertEquals(DSL_METHOD_NOT_FOUND, myUsageReporter.getCollectedFailure());
+b/137231583 */
     assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 
@@ -93,6 +95,7 @@ public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCa
     requestSyncAndGetExpectedFailure();
 
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+/* b/137231583
     assertNotNull(notificationUpdate);
 
     assertThat(notificationUpdate.getText()).contains("Gradle DSL method not found: 'asdf()'");
@@ -106,6 +109,7 @@ public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCa
     assertThat(quickFixes.get(2)).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
 
     assertEquals(DSL_METHOD_NOT_FOUND, myUsageReporter.getCollectedFailure());
+b/137231583 */
     assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 }
