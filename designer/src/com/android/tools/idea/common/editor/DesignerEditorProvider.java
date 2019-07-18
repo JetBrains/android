@@ -80,6 +80,7 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
     }
     TextEditor textEditor = (TextEditor)TextEditorProvider.getInstance().createEditor(project, file);
     addCaretListener(textEditor, designEditor);
+    designEditor.getComponent().getSurface().setFileEditorDelegate(textEditor);
     return new SplitEditor(textEditor, designEditor, "Design", project);
   }
 
