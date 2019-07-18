@@ -16,11 +16,9 @@
 package com.android.tools.idea.profilers;
 
 import com.android.annotations.Nullable;
-import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.MemoryProfiler;
 
-import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 /**
  * An interface to perform allocation tracking using JDWP.
@@ -30,12 +28,5 @@ public interface LegacyAllocationTracker {
                            long endTime,
                            boolean enabled,
                            @Nullable Executor executor,
-                           @Nullable LegacyAllocationTrackingCallback allocationConsumer);
-
-  interface LegacyAllocationTrackingCallback {
-    void accept(byte[] data,
-                List<Memory.AllocatedClass> classes,
-                List<Memory.AllocationStack> stacks,
-                List<MemoryProfiler.LegacyAllocationEvent> events);
-  }
+                           @Nullable Consumer<byte[]> allocationConsumer);
 }

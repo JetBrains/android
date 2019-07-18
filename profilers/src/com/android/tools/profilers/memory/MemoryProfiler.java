@@ -28,7 +28,6 @@ import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
@@ -245,7 +244,7 @@ public class MemoryProfiler extends StudioProfiler {
     ImportLegacyAllocationsRequest request = ImportLegacyAllocationsRequest.newBuilder()
       .setSession(session)
       .setInfo(info)
-      .setAllocations(LegacyAllocationEventsResponse.newBuilder().setStatus(LegacyAllocationEventsResponse.Status.NOT_READY))
+      .setData(ByteString.copyFrom(bytes))
       .build();
     ImportLegacyAllocationsResponse response = myProfilers.getClient().getMemoryClient().importLegacyAllocations(request);
     // Select the new session
@@ -258,33 +257,6 @@ public class MemoryProfiler extends StudioProfiler {
     }
     myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
                                                                         SessionsManager.SessionCreationSource.MANUAL);
-
-    ExecutorService executorService = Executors.newSingleThreadExecutor();
-    executorService.submit(() -> {
-      try {
-        LegacyAllocationConverter converter = new LegacyAllocationConverter();
-        converter.parseDump(bytes);
-        LegacyAllocationEventsResponse allocations = LegacyAllocationEventsResponse.newBuilder()
-          .setStatus(LegacyAllocationEventsResponse.Status.SUCCESS)
-          .addAllEvents(converter.getAllocationEvents(info.getStartTime(), info.getEndTime()))
-          .build();
-        ImportLegacyAllocationsRequest updateRequest = request.toBuilder()
-          .setAllocations(allocations)
-          .addAllClasses(converter.getClassNames())
-          .addAllStacks(converter.getAllocationStacks())
-          .build();
-        myProfilers.getClient().getMemoryClient().importLegacyAllocations(updateRequest);
-      }
-      catch (Exception e) {
-        Logger.getInstance(getClass()).error("Importing Session Failed: cannot import allocation records...");
-
-        LegacyAllocationEventsResponse failedResponse = LegacyAllocationEventsResponse
-          .newBuilder().setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN).build();
-        ImportLegacyAllocationsRequest failedRequest = request.toBuilder().setAllocations(failedResponse).build();
-        myProfilers.getClient().getMemoryClient().importLegacyAllocations(failedRequest);
-      }
-    });
-    executorService.shutdown();
   }
 
   /**
