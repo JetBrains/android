@@ -342,6 +342,9 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
       if (e.isPopupTrigger()) {
         int index = myList.locationToIndex(e.getPoint());
         if (index != -1) {
+          if (ArrayUtil.indexOf(myList.getSelectedIndices(), index) == -1) {
+            myList.setSelectedIndex(index);
+          }
           NlComponent component = myList.getModel().getElementAt(index);
           myDesignSurface.getActionManager().showPopup(e, component);
           e.consume();
