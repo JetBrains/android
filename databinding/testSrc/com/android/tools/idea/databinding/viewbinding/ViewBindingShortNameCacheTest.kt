@@ -16,10 +16,12 @@
 package com.android.tools.idea.databinding.viewbinding
 
 import com.android.builder.model.ViewBindingOptions
+import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
 import com.android.ide.common.gradle.model.stubs.AndroidProjectStub
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.tools.idea.databinding.isViewBindingEnabled
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -43,6 +45,9 @@ class ViewBindingShortNameCacheTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
+  @get:Rule
+  val viewBindingFlagRule = RestoreFlagRule(StudioFlags.VIEW_BINDING_ENABLED)
+
   private val facet
     get() = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)!!
 
@@ -51,6 +56,8 @@ class ViewBindingShortNameCacheTest {
 
   @Before
   fun setUp() {
+    StudioFlags.VIEW_BINDING_ENABLED.override(true)
+
     val androidProject = object : AndroidProjectStub("1.0") {
       override fun getViewBindingOptions(): ViewBindingOptions {
         return ViewBindingOptionsStub(true)
