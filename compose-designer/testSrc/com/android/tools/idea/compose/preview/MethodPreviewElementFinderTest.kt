@@ -30,40 +30,7 @@ import org.jetbrains.uast.resolveToUElement
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.UastVisitor
 
-class MethodPreviewElementFinderTest : LightCodeInsightFixtureTestCase() {
-  override fun setUp() {
-    super.setUp()
-
-    @Language("kotlin")
-    val previewAnnotation = myFixture.addFileToProject("src/com/android/tools/preview/Preview.kt", """
-      package com.android.tools.preview
-
-      enum class Orientation {
-          DEFAULT,
-          PORTRAINT,
-          LANDSCAPE
-      }
-
-      data class Configuration(private val apiLevel: Int? = null,
-                               private val theme: String? = null,
-                               private val local: Locale? = null,
-                               private val orientation: Orientation = Orientation.DEFAULT)
-
-      fun Preview(name: String? = null,
-                  configuration: Configuration? = null,
-                  children: () -> Unit) {
-          children()
-      }
-    """.trimIndent())
-
-    @Language("kotlin")
-    val composeAnnotation = myFixture.addFileToProject("src/android/compose/Compose.kt", """
-      package androidx.compose
-
-      annotation class Compose()
-    """.trimIndent())
-  }
-
+class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() {
   fun testFindPreviewAnnotations() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
