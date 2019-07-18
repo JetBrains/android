@@ -29,7 +29,7 @@ class ColorResourceModelTest: AndroidTestCase() {
     val model = ColorResourceModel(configuration)
 
     run {
-      val resources = model.getResourceValues(ColorResourceModel.Category.PROJECT, "").toMutableList()
+      val resources = model.getResourceReference(ColorResourceModel.Category.PROJECT, "").toMutableList()
       resources.sortBy { it.resourceUrl.toString() }
 
       // The order of resources is not important. We sort them to make test consistence.
@@ -41,7 +41,7 @@ class ColorResourceModelTest: AndroidTestCase() {
 
     // Test filter
     run {
-      val resources = model.getResourceValues(ColorResourceModel.Category.PROJECT, "2").toMutableList()
+      val resources = model.getResourceReference(ColorResourceModel.Category.PROJECT, "2").toMutableList()
       resources.sortBy { it.resourceUrl.toString() }
       assertSize(1, resources)
       assertEquals("@color/color2", resources[0].resourceUrl.toString())
