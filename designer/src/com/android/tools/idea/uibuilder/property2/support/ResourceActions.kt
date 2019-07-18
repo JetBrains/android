@@ -16,13 +16,14 @@
 package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants
-import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.res.colorToString
+import com.android.tools.idea.res.resolveColor
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
 import com.android.tools.idea.ui.resourcechooser.ColorResourcePicker
 import com.android.tools.idea.ui.resourcechooser.ColorResourcePickerListener
@@ -40,7 +41,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.util.text.StringUtil
 import icons.StudioIcons
 import java.awt.Color
 import java.awt.Component
@@ -143,12 +143,24 @@ object ColorSelectionAction: AnAction("Select Color") {
 
   override fun actionPerformed(event: AnActionEvent) {
     val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
-    val currentColor = property.resolveValueAsColor(property.rawValue)
+
+    val resourceReference = property.resolveValueAsReference(property.rawValue)
+    val currentColor = if (resourceReference != null) {
+      property.resolver?.resolveColor(property.resolver?.getResolvedResource(resourceReference), property.project)
+    }
+    else {
+      property.resolveValueAsColor(property.rawValue)
+    }
     val restoreFocusTo = componentToRestoreFocusTo(event)
-    selectFromColorDialog(locationFromEvent(event), property, currentColor, restoreFocusTo)
+
+    selectFromColorDialog(locationFromEvent(event), property, currentColor, resourceReference, restoreFocusTo)
   }
 
-  private fun selectFromColorDialog(location: Point, property: NelePropertyItem, initialColor: Color?, restoreFocusTo: Component?) {
+  private fun selectFromColorDialog(location: Point,
+                                    property: NelePropertyItem,
+                                    initialColor: Color?,
+                                    resourceReference: ResourceReference?,
+                                    restoreFocusTo: Component?) {
     val dialog = LightCalloutPopup()
 
     val colorPicker = ColorPickerBuilder()
@@ -173,17 +185,17 @@ object ColorSelectionAction: AnAction("Select Color") {
     val configuration = property.model.surface?.configuration
     if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && configuration != null) {
       // Use tabbed panel instead.
-      val resourcePicker = ColorResourcePicker(configuration)
+      val resourcePicker = ColorResourcePicker(configuration, resourceReference)
       resourcePicker.addColorResourcePickerListener (object : ColorResourcePickerListener {
-        override fun colorResourcePicked(resourceValue: ResourceValue) {
+        override fun colorResourcePicked(resourceReference: ResourceReference) {
           // TODO: Use relative resource url instead.
-          property.value = resourceValue.resourceUrl.toString()
+          property.value = resourceReference.resourceUrl.toString()
         }
       })
       popupContent = HorizontalTabbedPanelBuilder()
         .addTab("Resources", resourcePicker)
         .addTab("Custom", colorPicker)
-        .setDefaultPage(1)
+        .setDefaultPage(if (resourceReference != null) 0 else 1)
         .build()
     }
     else {
