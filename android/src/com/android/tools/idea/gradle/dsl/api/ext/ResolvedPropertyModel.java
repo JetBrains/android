@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  * }
  *
  * While using a {@link ResolvedPropertyModel} for the applicationId property, {@link #getValueType()} will return STRING and
- * {@link #getValue(TypeReference)} called with STRING_TYPE will return "com.my.,application". This is in contrast to the standard
+ * {@link #getValue(TypeReference)} called with STRING_TYPE will return "com.my.application". This is in contrast to the standard
  * {@link GradlePropertyModel} which can be obtained using {@link #getUnresolvedModel()} where {@link #getValueType()}
  * and {@link #getValue(TypeReference)} will return REFERENCE and "appId" respectively.
  *
