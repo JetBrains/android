@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
+import com.android.tools.profiler.proto.Memory.AllocationEvent;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.memory.adapters.ClassDb.ClassEntry;
 import com.android.tools.profilers.stacktrace.ThreadId;
@@ -37,13 +37,13 @@ final class LegacyAllocationsInstanceObject implements InstanceObject {
     .put("double", ValueObject.ValueType.DOUBLE)
     .build();
 
-  @NotNull private final LegacyAllocationEvent myEvent;
+  @NotNull private final AllocationEvent.Allocation myEvent;
   @NotNull private final ClassEntry myAllocationClassEntry;
   @NotNull private final AllocationStack myCallStack;
   @NotNull private final ValueObject.ValueType myValueType;
   @NotNull private final ThreadId myThreadId;
 
-  public LegacyAllocationsInstanceObject(@NotNull LegacyAllocationEvent event,
+  public LegacyAllocationsInstanceObject(@NotNull AllocationEvent.Allocation event,
                                          @NotNull ClassEntry allocationClassEntry,
                                          @NotNull AllocationStack callStack) {
     myEvent = event;
@@ -95,7 +95,7 @@ final class LegacyAllocationsInstanceObject implements InstanceObject {
 
   @Override
   public int getShallowSize() {
-    return myEvent.getSize();
+    return (int)myEvent.getSize();
   }
 
   @Override

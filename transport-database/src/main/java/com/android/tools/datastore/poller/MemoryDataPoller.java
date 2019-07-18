@@ -19,19 +19,10 @@ import com.android.tools.datastore.database.MemoryStatsTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class MemoryDataPoller extends PollRunner {
@@ -85,7 +76,6 @@ public class MemoryDataPoller extends PollRunner {
     myMemoryStatsTable.insertAllocStats(mySession, response.getAllocStatsSamplesList());
     myMemoryStatsTable.insertGcStats(mySession, response.getGcStatsSamplesList());
 
-    List<AllocationsInfo> allocDumpsToFetch = new ArrayList<>();
     for (int i = 0; i < response.getAllocationsInfoCount(); i++) {
       if (myPendingAllocationSample != null) {
         assert i == 0;
@@ -97,7 +87,6 @@ public class MemoryDataPoller extends PollRunner {
         }
 
         myMemoryStatsTable.insertOrReplaceAllocationsInfo(mySession, info);
-        allocDumpsToFetch.add(info);
         myPendingAllocationSample = null;
       }
       else {
@@ -107,9 +96,6 @@ public class MemoryDataPoller extends PollRunner {
           // Note - there should be at most one unfinished allocation tracking info at a time. e.g. the final info from the response.
           assert i == response.getAllocationsInfoCount() - 1;
           myPendingAllocationSample = info;
-        }
-        else {
-          allocDumpsToFetch.add(info);
         }
       }
     }
@@ -136,46 +122,8 @@ public class MemoryDataPoller extends PollRunner {
       }
     }
 
-    // O+ allocation tracking fetches data continuously and does not go through the following code path - hence we filter out those samples.
-    fetchLegacyAllocData(allocDumpsToFetch.stream().filter(AllocationsInfo::getLegacy).collect(Collectors.toList()));
-
     if (response.getEndTimestamp() > myDataRequestStartTimestampNs) {
       myDataRequestStartTimestampNs = response.getEndTimestamp();
     }
-  }
-
-  private void fetchLegacyAllocData(@NotNull List<AllocationsInfo> dumpsToFetch) {
-    if (dumpsToFetch.isEmpty()) {
-      return;
-    }
-
-    Runnable query = () -> {
-      HashSet<Integer> classesToFetch = new HashSet<>();
-      HashSet<Integer> stacksToFetch = new HashSet<>();
-      HashMap<Long, LegacyAllocationEventsResponse> eventsToSave = new HashMap<>();
-      for (AllocationsInfo sample : dumpsToFetch) {
-        LegacyAllocationEventsResponse allocEventsResponse = myPollingService.getLegacyAllocationEvents(
-          LegacyAllocationEventsRequest.newBuilder().setSession(mySession).setStartTime(sample.getStartTime())
-            .setEndTime(sample.getEndTime())
-            .build());
-        eventsToSave.put(sample.getStartTime(), allocEventsResponse);
-
-        allocEventsResponse.getEventsList().forEach(event -> {
-          classesToFetch.add(event.getClassId());
-          stacksToFetch.add(event.getStackId());
-        });
-      }
-
-      // Note: the class/stack information are saved first to the table to avoid the events referencing yet-to-exist data
-      // in the tables.
-      LegacyAllocationContextsRequest contextRequest =
-        LegacyAllocationContextsRequest.newBuilder().setSession(mySession).setSession(mySession).addAllClassIds(classesToFetch)
-          .addAllStackIds(stacksToFetch).build();
-      LegacyAllocationContextsResponse contextsResponse = myPollingService.getLegacyAllocationContexts(contextRequest);
-      myMemoryStatsTable.insertLegacyAllocationContext(mySession, contextsResponse.getClassesList(), contextsResponse.getStacksList());
-      eventsToSave
-        .forEach((startTime, response) -> myMemoryStatsTable.updateLegacyAllocationEvents(mySession, startTime, response));
-    };
-    myFetchExecutor.accept(query);
   }
 }
