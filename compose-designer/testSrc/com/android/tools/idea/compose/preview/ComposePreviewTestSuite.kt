@@ -27,8 +27,6 @@ class ComposePreviewTestSuite : IdeaTestSuiteBase() {
 
     init {
       symlinkToIdeaHome("tools/idea/java")
-
-      setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository")
     }
   }
 }
