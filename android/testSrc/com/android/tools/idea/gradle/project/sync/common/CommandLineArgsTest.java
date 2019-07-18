@@ -26,14 +26,12 @@ import static com.android.builder.model.AndroidProject.PROPERTY_STUDIO_VERSION;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.testing.IdeComponents;
@@ -133,37 +131,12 @@ public class CommandLineArgsTest extends IdeaTestCase {
     assertThat(args).contains("-P" + PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL + "=true");
   }
 
-  public void testGetWithSkipSrcDownload() {
-    boolean originalDownloadFlag = GradleExperimentalSettings.getInstance().SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC;
-    try {
-      GradleExperimentalSettings.getInstance().SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC = true;
-      List<String> args = myArgs.get(getProject());
-      check(args);
-      assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD + "=true");
-    }
-    finally {
-      GradleExperimentalSettings.getInstance().SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC = originalDownloadFlag;
-    }
-  }
-
-  public void testGetWithoutSkipSrcDownload() {
-    boolean originalDownloadFlag = GradleExperimentalSettings.getInstance().SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC;
-    try {
-      GradleExperimentalSettings.getInstance().SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC = false;
-      List<String> args = myArgs.get(getProject());
-      check(args);
-      assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD + "=false");
-    }
-    finally {
-      GradleExperimentalSettings.getInstance().SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC = originalDownloadFlag;
-    }
-  }
-
   private static void check(@NotNull List<String> args) {
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_ADVANCED + "=true");
     assertThat(args).contains("-P" + PROPERTY_INVOKED_FROM_IDE + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_ADVANCED + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_VERSIONED + "=" + MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD);
+    assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD + "=true");
   }
 }
