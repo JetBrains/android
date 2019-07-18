@@ -36,6 +36,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_INSERT
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_INSERT_PLUGIN_ORDER_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_PLUGINS_UNSUPPORTED_SYNTAX;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS;
@@ -406,6 +407,13 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     List<PluginModel> plugins = buildModel.plugins();
     assertSize(2, plugins);
     verifyPlugins(ImmutableList.of("com.android.application", "kotlin-android"), plugins);
+  }
+
+  @Test
+  public void testOnlyParsePluginsWithCorrectSyntax() throws Exception {
+    writeToBuildFile(APPLY_PLUGIN_PLUGINS_UNSUPPORTED_SYNTAX);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
   }
 
   @SuppressWarnings("deprecation")

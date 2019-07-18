@@ -56,6 +56,7 @@ enum class TestFileName(val path: String) {
   APPLY_PLUGIN_APPLIED_PLUGIN_COMPATIBILITY("applyPlugin/appliedPluginCompatibility"),
   APPLY_PLUGIN_APPLY_PLUGINS_FROM_PLUGINS_BLOCK("applyPlugin/applyPluginsFromPluginsBlock"),
   APPLY_PLUGIN_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS("applyPlugin/pluginsBlockWithRepeatedPlugins"),
+  APPLY_PLUGIN_PLUGINS_UNSUPPORTED_SYNTAX("applyPlugin/pluginsWithUnsupportedSyntax"),
   APPLY_PLUGIN_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK("applyPlugin/pluginsFromApplyAndPluginsBlock"),
   GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_SINGLE_BLOCK("gradleBuildModelImpl/removeRepositoriesSingleBlock"),
   GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS("gradleBuildModelImpl/removeRepositoriesMultipleBlocks"),
