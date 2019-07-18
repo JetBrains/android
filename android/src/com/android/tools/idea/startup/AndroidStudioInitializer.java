@@ -200,7 +200,6 @@ public class AndroidStudioInitializer implements Runnable {
 
     // Update the text for the file creation templates.
     FileTemplateManager fileTemplateManager = FileTemplateManager.getDefaultInstance();
-    fileTemplateManager.getTemplate("Singleton").setText(fileTemplateManager.getJ2eeTemplate("Singleton").getText());
     for (String templateName : new String[]{"Class", "Interface", "Enum", "AnnotationType"}) {
       FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
       template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
