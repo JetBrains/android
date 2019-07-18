@@ -26,12 +26,15 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
 import java.awt.event.KeyEvent;
+import java.util.function.Predicate;
 import javax.swing.JButton;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Assert;
 
 public final class DeviceSelectorFixture {
   @NotNull
@@ -71,18 +74,40 @@ public final class DeviceSelectorFixture {
       return;
     }
 
-    Wait.seconds(1).expecting(deviceName).until(() -> anyDeviceNameMatches(deviceName));
+    Wait.seconds(30).expecting(deviceName).until(() -> anyDeviceNameMatches(device -> device.getName().equals(deviceName)));
     myComboBox.selectItem(deviceName);
   }
 
-  private boolean anyDeviceNameMatches(@NotNull String deviceName) {
+  public void waitForDeviceWithKey(@NotNull String key) {
+    Wait.seconds(30).expecting(key).until(() -> anyDeviceNameMatches(device -> device.getKey().equals(key)));
+  }
+
+  public void selectDeviceWithKey(@NotNull String key) {
+    Assert.assertTrue(StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get());
+
+    waitForDeviceWithKey(key);
+
+    ActionManager manager = ActionManager.getInstance();
+    DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
+    Wait.seconds(30)
+      .expecting(key)
+      .until(() -> GuiActionRunner.execute(new GuiQuery<Boolean>() {
+        @Nullable
+        @Override
+        protected Boolean executeInEDT() {
+          return action.setSelectedDevice(myProject, key);
+        }
+      }));
+    IdeFrameFixture.find(myRobot).updateToolbars();
+  }
+
+  private boolean anyDeviceNameMatches(@NotNull Predicate<Device> matcher) {
     return GuiQuery.get(() -> {
       myToolbar.updateActionsImmediately();
       ActionManager manager = ActionManager.getInstance();
 
       return ((DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox")).getDevices(myProject).stream()
-        .map(Device::getName)
-        .anyMatch(name -> name.equals(deviceName));
+        .anyMatch(matcher);
     });
   }
 

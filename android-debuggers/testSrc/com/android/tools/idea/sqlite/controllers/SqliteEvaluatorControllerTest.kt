@@ -58,32 +58,32 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
 
   fun testEvaluateSqlActionQuerySuccess() {
     // Prepare
-    val sqlInstruction = "SELECT"
-    `when`(sqliteService.executeQuery(sqlInstruction)).thenReturn(Futures.immediateFuture(any(SqliteResultSet::class.java)))
+    val sqlStatement = "SELECT"
+    `when`(sqliteService.executeQuery(sqlStatement)).thenReturn(Futures.immediateFuture(any(SqliteResultSet::class.java)))
 
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorView.listeners.single().evaluateSqlActionInvoked(sqlInstruction)
+    sqliteEvaluatorController.evaluateSqlStatement(sqlStatement)
 
     // Assert
-    verify(sqliteService).executeQuery(sqlInstruction)
+    verify(sqliteService).executeQuery(sqlStatement)
   }
 
   fun testEvaluateSqlActionQueryFailure() {
     // Prepare
-    val sqlInstruction = "SELECT"
+    val sqlStatement = "SELECT"
     val throwable = Throwable()
-    `when`(sqliteService.executeQuery(sqlInstruction)).thenReturn(Futures.immediateFailedFuture(throwable))
+    `when`(sqliteService.executeQuery(sqlStatement)).thenReturn(Futures.immediateFailedFuture(throwable))
 
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorView.listeners.single().evaluateSqlActionInvoked(sqlInstruction)
+    sqliteEvaluatorController.evaluateSqlStatement(sqlStatement)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(sqliteService).executeQuery(sqlInstruction)
+    verify(sqliteService).executeQuery(sqlStatement)
     verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing sqlQueryCommand"), refEq(throwable))
   }
 
@@ -142,7 +142,7 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorView.listeners.single().evaluateSqlActionInvoked(action)
+    sqliteEvaluatorController.evaluateSqlStatement(action)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -158,7 +158,7 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorView.listeners.single().evaluateSqlActionInvoked(action)
+    sqliteEvaluatorController.evaluateSqlStatement(action)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert

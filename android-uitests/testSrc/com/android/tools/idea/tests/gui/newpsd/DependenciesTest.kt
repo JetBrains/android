@@ -290,4 +290,35 @@ class DependenciesTest {
       clickCancel()
     }
   }
+
+  @Test
+  fun testFocusAfterUpdateQuickfix() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdDependency")
+
+    ide.openPsd().run {
+      // ensure that analyses are complete, so that quickfix hyperlinks will be available in the dependencies view
+      selectSuggestionsConfigurable().run {
+        waitAnalysesCompleted(Wait.seconds(5))
+      }
+      selectDependenciesConfigurable().run {
+        findModuleSelector().run {
+          selectModule("<All Modules>")
+        }
+        findDependenciesPanel().run {
+          findDependenciesTree().run {
+            // TODO(b/137730929): we need to wait for resolved dependencies to appear, because the subsequent clickPath() below
+            //  is not atomic: the test infrastructure scrolls (atomically), then clicks (atomically), but if resolved dependencies
+            //  appear between the two actions, the click will land on the wrong dependency.
+            waitForTreeEntry("com.android.support:support-annotations:28.0.0")
+            clickPath("com.example.jlib:lib3")
+            requireSelection("com.example.jlib:lib3")
+            clickQuickFixHyperlink("[Update]")
+            // clicking the hyperlink should not have changed the dependency focus
+            requireSelection("com.example.jlib:lib3")
+          }
+        }
+      }
+      clickCancel()
+    }
+  }
 }

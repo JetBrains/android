@@ -53,12 +53,16 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
+        "//tools/idea:intellij.java.ui.tests",
+        "//tools/idea/java/plugin:intellij.java.plugin",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
+        "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/platform/platform-main:intellij.platform.main",
         "//tools/idea/plugins/github:intellij.vcs.github",
-        "//tools/idea/platform/remote-servers/impl:intellij.platform.remoteServers.impl",
         "//tools/idea/colorSchemes:intellij.platform.colorSchemes",
         "//tools/idea/plugins/groovy/structuralsearch-groovy:intellij.groovy.structuralSearch",
         "//tools/adt/idea/android:intellij.android.core.tests",
@@ -68,6 +72,9 @@ iml_module(
         "//tools/idea/plugins/stats-collector:intellij.statsCollector",
         "//tools/idea/plugins/stream-debugger:intellij.java.debugger.streams",
         "//tools/idea/plugins/editorconfig:intellij.editorconfig",
+        "//tools/idea/plugins/changeReminder:intellij.vcs.changeReminder",
+        "//tools/idea/plugins/sh:intellij.sh",
+        "//tools/idea/plugins/gradle-maven:intellij.gradle.java.maven",
     ],
     test_srcs = ["testSrc"],
     test_tags = ["manual"],
@@ -316,7 +323,13 @@ java_test(
         "//tools/base/deploy/deployer:test_apks",
     ] + glob([
         "testData/simple/**",
-    ]),
+    ]) + select({
+        "//tools/base/bazel:windows": [],
+        "//conditions:default": [
+            "//tools/base/deploy/installer:test-installer",
+            "//tools/base/deploy/installer:bash_bridge",
+        ],
+    }),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.deploy.DeploymentTest"],
     tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -982,6 +995,22 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# sanity test
+java_test(
+    name = "CMakeListsTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/debugger/CMakeListsHelloJni/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.CMakeListsTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
+        "qa_unreliable",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # fast test
 java_test(
     name = "LintTest",
@@ -1466,9 +1495,7 @@ java_test(
     size = "enormous",
     data = COMMON_DATA + glob([
         "testData/debugger/BasicCmakeAppForUI/**",
-    ]) + [
-        "//prebuilts/studio/sdk:platforms/android-24",
-    ] + select({
+    ]) + select({
         ":has_emulator": [
             "@externsdk//:system-images",
             "@externsdk//:emulator",
@@ -1516,6 +1543,142 @@ java_test(
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "AutoDebuggerInNdkProjectTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/debugger/NdkHelloJni/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }) + [
+        "//prebuilts/tools:lldb",
+        "//prebuilts/python/linux-x86:linux-x86",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.AutoDebuggerInNdkProjectTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_windows",
+        "qa_fast",
+        "qa_fast_emu",
+        "qa_unreliable",
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "DualDebuggerInNdkProjectTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/debugger/NdkHelloJni/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }) + [
+        "//prebuilts/tools:lldb",
+        "//prebuilts/python/linux-x86:linux-x86",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.DualDebuggerInNdkProjectTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_windows",
+        "qa_fast",
+        "qa_fast_emu",
+        "qa_unreliable",
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "NativeDebuggerInNdkProjectTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/debugger/NdkHelloJni/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }) + [
+        "//prebuilts/tools:lldb",
+        "//prebuilts/python/linux-x86:linux-x86",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.NativeDebuggerInNdkProjectTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_windows",
+        "qa_fast",
+        "qa_fast_emu",
+        "qa_unreliable",
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "WatchpointTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/debugger/WatchpointTestAppForUI/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }) + [
+        "//prebuilts/tools:lldb",
+        "//prebuilts/python/linux-x86:linux-x86",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.WatchpointTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_windows",
+        "qa_fast",
+        "qa_fast_emu",
+        "qa_unreliable",
         "requires-fakeroot",
         "requires_emulator",
         "slow",

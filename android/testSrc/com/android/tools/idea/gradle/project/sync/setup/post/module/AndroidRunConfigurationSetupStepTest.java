@@ -19,6 +19,7 @@ import com.android.tools.idea.project.AndroidRunConfigurations;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
@@ -42,7 +43,13 @@ public class AndroidRunConfigurationSetupStepTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    mySetupStep = new AndroidRunConfigurationSetupStep(myRunConfigurations);
+    mySetupStep = new AndroidRunConfigurationSetupStep() {
+      @NotNull
+      @Override
+      protected AndroidRunConfigurations getConfigurations() {
+        return myRunConfigurations;
+      }
+    };
   }
 
   public void testSetUpModuleWithAndroidFacetAndAppProject() {

@@ -91,8 +91,6 @@ public class TemplateMetadata {
   public static final String ATTR_MODULE_SIMPLE_NAME = "projectSimpleName"; // Same as ATTR_MODULE_NAME but no spaces or other symbols
   public static final String ATTR_INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_IS_LOW_MEMORY = "isLowMemory";
-  public static final String ATTR_USE_OFFLINE_REPO = "useOfflineRepo";
-  public static final String ATTR_OFFLINE_REPO_PATH = "offlineRepoPath";
 
   public static final String ATTR_CPP_FLAGS = "cppFlags";
   public static final String ATTR_CPP_SUPPORT = "includeCppSupport";
@@ -109,7 +107,6 @@ public class TemplateMetadata {
   public static final String ATTR_DYNAMIC_FEATURE_FUSING = "dynamicFeatureFusing";
   public static final String ATTR_DYNAMIC_IS_INSTANT_MODULE = "isInstantModule";
 
-  public static final String ATTR_IS_DYNAMIC_INSTANT_APP = "isDynamicInstantApp";
   public static final String ATTR_COMPANY_DOMAIN = "companyDomain";
   public static final String ATTR_BASE_FEATURE_NAME = "baseFeatureName";
   public static final String ATTR_BASE_FEATURE_DIR = "baseFeatureDir";

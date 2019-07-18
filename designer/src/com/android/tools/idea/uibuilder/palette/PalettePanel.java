@@ -586,7 +586,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       if (roots.isEmpty()) {
         return false;
       }
-      SceneView sceneView = surface.getCurrentSceneView();
+      SceneView sceneView = surface.getFocusedSceneView();
       if (sceneView == null) {
         return false;
       }

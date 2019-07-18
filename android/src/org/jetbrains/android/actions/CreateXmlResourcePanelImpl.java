@@ -52,7 +52,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   private JTextField myNameField;
   private ModulesComboBox myModuleCombo;
   private JBLabel myModuleLabel;
-  private JTextField myValueField;
+  private JTextArea myValueField;
   private JBLabel myValueLabel;
   private JBLabel myNameLabel;
   private JComboBox myFileNameCombo;
@@ -225,7 +225,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   @Override
   public ValidationInfo doValidate() {
     String resourceName = getResourceName();
-    String resourceValue = getResourceValue();
+    String resourceValue = getValue();
     Module selectedModule = getModule();
     VirtualFile resourceDir = getResourceDirectory();
     List<String> directoryNames = getDirNames();
@@ -293,11 +293,6 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     return myNameField.getText().trim();
   }
 
-  @NotNull
-  public String getResourceValue() {
-    return myValueField.getText().trim();
-  }
-
   @Override
   @NotNull
   public ResourceType getType() {
@@ -319,7 +314,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   @Override
   @NotNull
   public String getValue() {
-    return myValueField.getText().trim();
+    return myValueField.getText();
   }
 
   @Nullable

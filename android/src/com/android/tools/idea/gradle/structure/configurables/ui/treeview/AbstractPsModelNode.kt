@@ -18,39 +18,26 @@ package com.android.tools.idea.gradle.structure.configurables.ui.treeview
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
+import javax.swing.Icon
 
-abstract class AbstractPsModelNode<T : PsModel> : AbstractPsNode {
+interface PsModelNode<T: PsModel> {
   val models: List<T>
   val firstModel: T get() = models.first()
+  fun nameOf(model: T): String = model.name
 
-  protected constructor(parent: AbstractPsNode, model: T, uiSettings: PsUISettings) : super(parent, uiSettings) {
-    models = listOf(model)
-    updateNameAndIcon()
+  fun buildName(): String = models.map { nameOf(it) }.distinct().joinToString(", ")
+  fun buildIcon(): Icon?  = models.firstOrNull()?.icon
+}
+
+abstract class AbstractPsModelNode<T : PsModel> : AbstractPsNode, PsModelNode<T> {
+
+  protected constructor(parent: AbstractPsNode, uiSettings: PsUISettings) : super(parent, uiSettings)
+  protected constructor(uiSettings: PsUISettings) : super(uiSettings)
+
+  protected fun updateNameAndIcon() {
+    myName = buildName()
+    icon = buildIcon()
   }
-
-  protected constructor(model: T, uiSettings: PsUISettings) : super(uiSettings) {
-    models = listOf(model)
-    updateNameAndIcon()
-  }
-
-  protected constructor(parent: AbstractPsNode, models: List<T>, uiSettings: PsUISettings) : super(parent, uiSettings) {
-    this.models = models
-    updateNameAndIcon()
-  }
-
-  protected constructor(models: List<T>, uiSettings: PsUISettings) : super(uiSettings) {
-    this.models = models
-    updateNameAndIcon()
-  }
-
-  private fun updateNameAndIcon() {
-    myName = models.map { nameOf(it) }.distinct().joinToString(", ")
-    icon = models.firstOrNull()?.icon
-  }
-
-  protected open fun nameOf(model: T): String = model.name
-
-  open fun matches(model: PsModel): Boolean = models.any { it == model }
 
   override fun doUpdate() {
     val presentation = templatePresentation

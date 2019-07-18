@@ -91,6 +91,6 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
   }
 
   fun getSceneManager(property: NelePropertyItem): SyncLayoutlibSceneManager {
-    return property.model.surface!!.currentSceneView!!.sceneManager as SyncLayoutlibSceneManager
+    return property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
   }
 }

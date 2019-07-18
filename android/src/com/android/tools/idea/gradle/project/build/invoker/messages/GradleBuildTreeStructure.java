@@ -99,13 +99,13 @@ public class GradleBuildTreeStructure extends ErrorViewStructure {
   }
 
   @Override
-  public void addMessage(@NotNull ErrorTreeElementKind kind,
-                         @NotNull String[] text,
-                         @Nullable VirtualFile underFileGroup,
-                         @Nullable VirtualFile file,
-                         int line,
-                         int column,
-                         @Nullable Object data) {
+  public ErrorTreeElement addMessage(@NotNull ErrorTreeElementKind kind,
+                                     @NotNull String[] text,
+                                     @Nullable VirtualFile underFileGroup,
+                                     @Nullable VirtualFile file,
+                                     int line,
+                                     int column,
+                                     @Nullable Object data) {
     if (underFileGroup != null || file != null) {
       if (file == null) line = column = -1;
 
@@ -115,24 +115,23 @@ public class GradleBuildTreeStructure extends ErrorViewStructure {
       VirtualFile group = underFileGroup != null ? underFileGroup : file;
       VirtualFile nav = file != null ? file : underFileGroup;
 
-      addNavigatableMessage(group.getPresentableUrl(), new OpenFileDescriptor(myProject, nav, line, column), kind, text, data,
-                            createExportPrefix(uiLine),
-                            createRendererPrefix(uiLine, uiColumn), group);
-      return;
+      return addNavigatableMessage(group.getPresentableUrl(), new OpenFileDescriptor(myProject, nav, line, column), kind, text, data,
+                                   createExportPrefix(uiLine),
+                                   createRendererPrefix(uiLine, uiColumn), group);
     }
 
-    addSimpleMessage(kind, text, data);
+    return addSimpleMessage(kind, text, data);
   }
 
   @Override
-  public void addNavigatableMessage(@Nullable String groupName,
-                                    @Nullable Navigatable navigatable,
-                                    @NotNull ErrorTreeElementKind kind,
-                                    @NotNull String[] message,
-                                    @Nullable Object data,
-                                    @NotNull String exportText,
-                                    @NotNull String rendererTextPrefix,
-                                    @Nullable VirtualFile file) {
+  public ErrorTreeElement addNavigatableMessage(@Nullable String groupName,
+                                                @Nullable Navigatable navigatable,
+                                                @NotNull ErrorTreeElementKind kind,
+                                                @NotNull String[] message,
+                                                @Nullable Object data,
+                                                @NotNull String exportText,
+                                                @NotNull String rendererTextPrefix,
+                                                @Nullable VirtualFile file) {
     if (groupName != null) {
       //noinspection ConstantConditions
       GroupingElement grouping = getGroupingElement(groupName, data, file);
@@ -143,18 +142,21 @@ public class GradleBuildTreeStructure extends ErrorViewStructure {
       myGroupNameToMessagesMap.put(groupName, e);
 
       myMessages.add(grouping);
-      return;
+      return e;
     }
     //noinspection ConstantConditions
 
-    myMessages.add(new NavigatableMessageElement(kind, null, message, navigatable, exportText, rendererTextPrefix));
+    final NavigatableMessageElement e = new NavigatableMessageElement(kind, null, message, navigatable, exportText, rendererTextPrefix);
+    myMessages.add(e);
+    return e;
   }
 
-  private void addSimpleMessage(@NotNull ErrorTreeElementKind kind, @NotNull String[] text, @Nullable Object data) {
+  private SimpleMessageElement addSimpleMessage(@NotNull ErrorTreeElementKind kind, @NotNull String[] text, @Nullable Object data) {
     //noinspection ConstantConditions
     SimpleMessageElement element = new SimpleMessageElement(kind, text, data);
     myMessagesByType.put(kind, element);
     myMessages.add(element);
+    return element;
   }
 
 }

@@ -91,7 +91,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
     if (surface == null) {
       return null;
     }
-    SceneView screenView = surface.getCurrentSceneView();
+    SceneView screenView = surface.getFocusedSceneView();
     if (screenView == null) {
       return null;
     }

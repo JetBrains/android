@@ -184,16 +184,16 @@ public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     // Reference to a color from a layout file
     HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@color/color1", XmlAttributeValue.class);
     checkHighlightInfoColor(highlightInfo, new Color(63, 81, 181));
-    // No click action for a color reference.
-    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNull();
+    // Click to open the color picker
+    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
   }
 
   public void testColorReferenceInXml2() {
     // Reference to a color from a layout file
     HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@color/color2", XmlAttributeValue.class);
     checkHighlightInfoColor(highlightInfo, new Color(0x303F9F));
-    // No click action for a color reference.
-    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNull();
+    // Click to open the color picker
+    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
   }
 
   public void testColorReferenceInXml3() {

@@ -114,8 +114,14 @@ class DrawableIconProvider(
       val scale = getScale(targetSize, Dimension(imageWidth, imageHeight))
       if (image != EMPTY_ICON && image != ERROR_ICON && shouldScale(scale)) {
         val bufferedImage = ImageUtil.toBufferedImage(image)
-        image = ImageUtils.lowQualityFastScale(bufferedImage, scale, scale)
-        fetchImage(assetToRender, refreshCallback, shouldBeRendered, targetSize, true)
+        if (scale < 1) {
+          // Prefer to scale down a high quality image.
+          image = ImageUtils.scale(bufferedImage, scale, scale)
+        } else {
+          // Return a low quality scaled version, then trigger a callback to request high quality version.
+          image = ImageUtils.lowQualityFastScale(bufferedImage, scale, scale)
+          fetchImage(assetToRender, refreshCallback, shouldBeRendered, targetSize, true)
+        }
       }
       imageIcon.image = image
     }

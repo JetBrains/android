@@ -94,8 +94,8 @@ internal class DeclaredDependenciesPanel(
         else -> {
           val selectedKeys = dependenciesTable.selection.map { it.toText() to it.joinedConfigurationNames }.toSet()
           dependenciesTableModel.reset()
-          dependenciesTable.selection =
-            dependenciesTableModel.items.filter { selectedKeys.contains(it.toText() to it.joinedConfigurationNames) }
+          val newSelection = dependenciesTableModel.items.filter { selectedKeys.contains(it.toText() to it.joinedConfigurationNames) }
+          if (newSelection != dependenciesTable.selection) dependenciesTable.selection = newSelection
         }
       }
     }

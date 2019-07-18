@@ -64,6 +64,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import io.grpc.StatusRuntimeException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -201,22 +202,27 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       .setTempPath(traceFilePath)
       .setUserOptions(traceOptions)
       .build();
-    if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
-      Commands.Command startCommand = Commands.Command.newBuilder()
-        .setStreamId(profilerDevice.getDeviceId())
-        .setType(Commands.Command.CommandType.START_CPU_TRACE)
-        .setStartCpuTrace(Cpu.StartCpuTrace.newBuilder().setConfiguration(configuration).build())
-        .build();
-      // TODO handle async error statuses.
-      client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
-                                            .setCommand(startCommand)
-                                            .build());
+    try {
+      if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
+        Commands.Command startCommand = Commands.Command.newBuilder()
+          .setStreamId(profilerDevice.getDeviceId())
+          .setType(Commands.Command.CommandType.START_CPU_TRACE)
+          .setStartCpuTrace(Cpu.StartCpuTrace.newBuilder().setConfiguration(configuration).build())
+          .build();
+        // TODO handle async error statuses.
+        client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
+                                              .setCommand(startCommand)
+                                              .build());
+      }
+      else {
+        CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest.newBuilder()
+          .setDeviceId(profilerDevice.getDeviceId())
+          .setConfiguration(configuration);
+        client.getCpuClient().startStartupProfiling(requestBuilder.build());
+      }
     }
-    else {
-      CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest.newBuilder()
-        .setDeviceId(profilerDevice.getDeviceId())
-        .setConfiguration(configuration);
-      client.getCpuClient().startStartupProfiling(requestBuilder.build());
+    catch (StatusRuntimeException exception) {
+      getLogger().error(exception);
     }
 
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
@@ -350,12 +356,17 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     @Override
     public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+      // Get the current device time so that the profiler knows to not profile existing processes that were spawned before that time.
+      // Otherwise, the profiler can start profiling for a brief moment, then the new process launches and the profiler switches
+      // immediately to the new process, leaving a short-lived session behind. We do this only if the user launches explicit with the
+      // profile option, as we need to not impact the run/debug workflow.
+      long currentDeviceTimeNs = isProfilerLaunch(myLaunchOptions) ? getCurrentDeviceTime(device) : Long.MIN_VALUE;
+
       // There are two scenarios here:
       // 1. If the profiler window is opened, we only profile the process that is launched and detected by the profilers after the current
       // device time. This is to avoid profiling the previous application instance in case it is still running.
       // 2. If the profiler window is closed, we cache the device+module info so the profilers can auto-start if the user opens the window
       // manually at a later time.
-      long currentDeviceTimeNs = getCurrentDeviceTime(device);
       ApplicationManager.getApplication().invokeLater(
         () -> {
           ToolWindow window = ToolWindowManagerEx.getInstanceEx(myProject).getToolWindow(AndroidProfilerToolWindowFactory.ID);
@@ -411,13 +422,9 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
      * Attempt to get the current time of the device.
      */
     private long getCurrentDeviceTime(@NotNull IDevice device) {
+      assert isProfilerLaunch(myLaunchOptions);
+
       long startTimeNs = Long.MIN_VALUE;
-
-      // If it's not a profile launch avoid initializing the service as it is an expensive call.
-      if (!isProfilerLaunch(myLaunchOptions) && !TransportService.isServiceInitialized()) {
-        return startTimeNs;
-      }
-
       TransportService transportService = TransportService.getInstance();
       if (transportService == null) {
         return startTimeNs;
@@ -428,24 +435,22 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       // Note: daemon should have started already from AndroidProfilerLaunchTaskContributor#getAmStartOptions already. This wait might be
       // redundant but harmless.
       long deviceId = -1;
-      if (isProfilerLaunch(myLaunchOptions)) {
-        try {
-          deviceId = waitForDaemon(device, client).getDeviceId();
-        }
-        catch (InterruptedException | TimeoutException e) {
-          getLogger().debug(e);
-        }
+      try {
+        deviceId = waitForDaemon(device, client).getDeviceId();
       }
-      else {
-        // If we are launching from Run/Debug, do not bother waiting for perfd start, but try to get the time anyway in case the profiler
-        // is already running.
-        deviceId = getProfilerDevice(device, client).getDeviceId();
+      catch (InterruptedException | TimeoutException e) {
+        getLogger().debug(e);
       }
 
-      TimeResponse timeResponse = client.getTransportClient().getCurrentTime(TimeRequest.newBuilder().setStreamId(deviceId).build());
-      if (!TimeResponse.getDefaultInstance().equals(timeResponse)) {
-        // Found a valid time response, sets that as the time for detecting when the process is next launched.
-        startTimeNs = timeResponse.getTimestampNs();
+      try {
+        TimeResponse timeResponse = client.getTransportClient().getCurrentTime(TimeRequest.newBuilder().setStreamId(deviceId).build());
+        if (!TimeResponse.getDefaultInstance().equals(timeResponse)) {
+          // Found a valid time response, sets that as the time for detecting when the process is next launched.
+          startTimeNs = timeResponse.getTimestampNs();
+        }
+      }
+      catch (StatusRuntimeException exception) {
+        getLogger().error(exception);
       }
 
       return startTimeNs;

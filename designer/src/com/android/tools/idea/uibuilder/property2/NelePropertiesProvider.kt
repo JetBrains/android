@@ -36,6 +36,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.lint.LintIdeClient
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.uibuilder.model.hasNlComponentInfo
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.property2.support.TypeResolver
 import com.google.common.collect.HashBasedTable
@@ -137,8 +138,11 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
         properties = HashBasedTable.create<String, String, NelePropertyItem>(EXPECTED_ROWS, descriptors.size)
 
         loadPropertiesFromDescriptors(tag, descriptors)
-        loadPropertiesFromStyleable(component)
-        loadPropertiesFromLayoutStyleable(component)
+
+        if (component.hasNlComponentInfo) {
+          loadPropertiesFromStyleable(component)
+          loadPropertiesFromLayoutStyleable(component)
+        }
 
         // Exception: Always prefer ATTR_SRC_COMPAT over ATTR_SRC:
         if (properties.contains(AUTO_URI, ATTR_SRC_COMPAT)) {

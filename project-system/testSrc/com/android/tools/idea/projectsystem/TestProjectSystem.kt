@@ -136,6 +136,8 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
       override fun getSampleDataDirectory(): PathString? = null
 
+      override fun getPackageName(): String? = null
+
       override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
         return module.getModuleWithDependenciesAndLibrariesScope(scopeType != ScopeType.MAIN)
       }

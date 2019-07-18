@@ -126,7 +126,7 @@ public class AndroidStudioInitializer implements Runnable {
       // and no metrics are ever sent.
       if (!application.isUnitTestMode() && !application.isHeadlessEnvironment() &&
         !Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
-        AppUIUtil.showConsentsAgreementIfNeed();
+        AppUIUtil.showConsentsAgreementIfNeed(getLog());
       }
     }
 
@@ -236,8 +236,7 @@ public class AndroidStudioInitializer implements Runnable {
 
     // Update the text for the file creation templates.
     FileTemplateManager fileTemplateManager = FileTemplateManager.getDefaultInstance();
-    fileTemplateManager.getTemplate("Singleton").setText(fileTemplateManager.getJ2eeTemplate("Singleton").getText());
-    for (String templateName : new String[]{"Class", "Interface", "Enum", "AnnotationType"}) {
+    for (String templateName : new String[]{"Singleton", "Class", "Interface", "Enum", "AnnotationType"}) {
       FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
       template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
     }

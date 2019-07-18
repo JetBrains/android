@@ -41,7 +41,9 @@ class BrClassFinder(project: Project) : PsiElementFinder() {
     classByPackageCache = CachedValuesManager.getManager(component.project).createCachedValue(
       {
         val classes = component.getDataBindingEnabledFacets()
-          .associate { facet -> DataBindingUtil.getBrQualifiedName(facet) to DataBindingClassFactory.getOrCreateBrClassFor(facet) }
+          .asSequence()
+          .mapNotNull(DataBindingClassFactory::getOrCreateBrClassFor)
+          .associateBy { it.qualifiedName }
 
         CachedValueProvider.Result.create<Map<String, PsiClass>>(classes, component)
       }, false)

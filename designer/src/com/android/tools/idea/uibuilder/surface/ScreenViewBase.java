@@ -54,7 +54,7 @@ abstract class ScreenViewBase extends SceneView {
 
   @Override
   public int getNameLabelHeight() {
-    if (StudioFlags.NELE_DISPLAY_MODEL_NAME.get() && getSurface().isShowModelNames()) {
+    if (getSurface().isShowModelNames()) {
       Graphics graphics = getSurface().getGraphics();
       if (graphics != null) {
         Font font = graphics.getFont();

@@ -22,6 +22,7 @@ import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ActionMenuViewHandler;
+import com.android.tools.idea.uibuilder.handlers.BuiltinViewHandlerProvider;
 import com.android.tools.idea.uibuilder.handlers.CustomViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.CustomViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -320,12 +321,12 @@ public class NlPaletteModel implements Disposable {
                                                 @Nullable String preferredProperty,
                                                 @NotNull List<String> properties,
                                                 @NotNull List<String> layoutProperties) {
-    ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
-    ViewHandler handler = manager.createBuiltInHandler(tagName);
+    ViewHandler handler = BuiltinViewHandlerProvider.INSTANCE.findHandler(tagName);
     if (handler != null) {
       return handler;
     }
 
+    ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
     handler = manager.getHandlerOrDefault(tagName);
 
     if (handler instanceof ConstraintHelperHandler) {

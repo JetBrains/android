@@ -30,12 +30,13 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
+import com.android.tools.profiler.proto.Memory.TrackStatus;
+import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.cpu.FakeCpuService;
@@ -81,13 +82,13 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.NOT_ENABLED);
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStatus(Status.NOT_ENABLED).build());
     myStage.trackAllocations(false);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStatus(Status.FAILURE_UNKNOWN).build());
     myStage.trackAllocations(false);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
@@ -102,8 +103,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Starting a tracking session
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStartTime(infoStart).setStatus(Status.SUCCESS).build());
+    myService.setExplicitAllocationsInfo(infoStart, Long.MAX_VALUE, true);
     myStage.trackAllocations(true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(true);
     assertThat(myStage.getSelectedCapture()).isEqualTo(null);
@@ -111,7 +112,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     // Attempting to start a in-progress session
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.IN_PROGRESS);
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStatus(Status.IN_PROGRESS).build());
     myStage.trackAllocations(true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(true);
     assertThat(myStage.getSelectedCapture()).isEqualTo(null);
@@ -119,9 +120,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     // Stops the tracking session.
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.COMPLETED,
-                                         infoStart, infoEnd, true);
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStartTime(infoStart).setStatus(Status.SUCCESS).build());
+    myService.setExplicitAllocationsInfo(infoStart, infoEnd, true);
     myStage.trackAllocations(false);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getSelectedCapture()).isEqualTo(null);
@@ -130,8 +130,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Prepares the AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
-      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setStatus(
-        AllocationsInfo.Status.COMPLETED).build()).build());
+      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).build()).build());
     myService.setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
 
     // The timeline has reset at this point so we need to advance the current time so data range is advanced during the next update.
@@ -160,13 +159,13 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myProfilers.getTimeline().isStreaming()).isFalse();
 
     // Stopping tracking should not cause streaming.
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.NOT_ENABLED);
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStatus(Status.NOT_ENABLED).build());
     myStage.trackAllocations(false);
     assertThat(myProfilers.getTimeline().isStreaming()).isFalse();
 
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStartTime(infoStart).setStatus(Status.SUCCESS).build());
+    myService.setExplicitAllocationsInfo(infoStart, Long.MAX_VALUE, true);
     myStage.trackAllocations(true);
     assertThat(myProfilers.getTimeline().isStreaming()).isTrue();
   }
@@ -178,12 +177,10 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
-    AllocationsInfo startInfo = AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(Long.MAX_VALUE).setLegacy(true).setStatus(
-      AllocationsInfo.Status.COMPLETED).build();
-    AllocationsInfo endInfo = AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setStatus(
-      AllocationsInfo.Status.COMPLETED).build();
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
+    AllocationsInfo startInfo = AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(Long.MAX_VALUE).setLegacy(true).build();
+    AllocationsInfo endInfo = AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).build();
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStartTime(infoStart).setStatus(Status.SUCCESS).build());
+    myService.setExplicitAllocationsInfo(infoStart, Long.MAX_VALUE, true);
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(startInfo).build());
     myStage.trackAllocations(true);
 
@@ -192,8 +189,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.enter();
     assertThat(myStage.isTrackingAllocations()).isTrue();
 
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.COMPLETED, infoStart, infoEnd, true);
+    myService.setExplicitAllocationsInfo(infoStart, infoEnd, true);
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(startInfo).addAllocationsInfo(endInfo).build());
     myStage.trackAllocations(false);
 
@@ -496,8 +492,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS)
       .addAllocStatsSamples(
-        MemoryData.AllocStatsSample.newBuilder().setTimestamp(FakeTimer.ONE_SECOND_IN_NS).setJavaAllocationCount(5).build()
-      ).build();
+        MemoryData.AllocStatsSample.newBuilder().setTimestamp(FakeTimer.ONE_SECOND_IN_NS)
+          .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(5)))
+      .build();
     myService.setMemoryData(memoryData);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
@@ -514,8 +511,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     memoryData = MemoryData.newBuilder()
       .setEndTimestamp(2 * FakeTimer.ONE_SECOND_IN_NS)
       .addAllocStatsSamples(
-        MemoryData.AllocStatsSample.newBuilder().setTimestamp(2 * FakeTimer.ONE_SECOND_IN_NS).setJavaAllocationCount(10).build()
-      ).build();
+        MemoryData.AllocStatsSample.newBuilder().setTimestamp(2 * FakeTimer.ONE_SECOND_IN_NS)
+          .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(10)))
+      .build();
     myService.setMemoryData(memoryData);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(legends.getLegends().stream().filter(legend -> legend == objectLegend).findFirst().get().getValue()).isNotNull();
@@ -569,8 +567,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     long time = TimeUnit.MICROSECONDS.toNanos(2);
     AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
-    MemoryData.AllocStatsSample allocStatsSample =
-      MemoryData.AllocStatsSample.newBuilder().setJavaAllocationCount(200).setJavaFreeCount(100).build();
+    MemoryData.AllocStatsSample allocStatsSample = MemoryData.AllocStatsSample.newBuilder()
+      .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(200).setJavaFreeCount(100))
+      .build();
     AllocationSamplingRateEvent trackingMode = AllocationSamplingRateEvent
       .newBuilder()
       .setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(
@@ -597,7 +596,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
         trackingMode.toBuilder().setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(
           MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()
         )))
-      .addAllocStatsSamples(allocStatsSample.toBuilder().setJavaAllocationCount(300))
+      .addAllocStatsSamples(allocStatsSample.toBuilder()
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(300).setJavaFreeCount(100)))
       .build();
     myService.setMemoryData(memoryData);
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("N/A");
@@ -655,11 +655,10 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Start+Stop a capture session (allocation tracking)
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStartTime(infoStart).setStatus(Status.SUCCESS).build());
+    myService.setExplicitAllocationsInfo(infoStart, Long.MAX_VALUE, true);
     myStage.trackAllocations(true);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.COMPLETED,
-                                         infoStart, infoEnd, true);
+    myService.setExplicitAllocationsInfo(infoStart, infoEnd, true);
     myStage.trackAllocations(false);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getSelectedCapture()).isEqualTo(null);
@@ -667,8 +666,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Prepares the AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
-      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setStatus(
-        AllocationsInfo.Status.COMPLETED).build()).build());
+      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true)).build());
     myService.setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
 
     // Advancing time (data range) - MemoryProfilerStage should not select the capture since the feature is disabled.
@@ -687,11 +685,10 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Start+Stop a capture session (allocation tracking)
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStartTime(infoStart).setStatus(Status.SUCCESS).build());
+    myService.setExplicitAllocationsInfo(infoStart, Long.MAX_VALUE, true);
     myStage.trackAllocations(true);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.COMPLETED,
-                                         infoStart, infoEnd, true);
+    myService.setExplicitAllocationsInfo(infoStart, infoEnd, true);
     myStage.trackAllocations(false);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getSelectedCapture()).isEqualTo(null);
@@ -699,8 +696,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Prepares an unfinished AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
-      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(Long.MAX_VALUE).setLegacy(true).setStatus(
-        AllocationsInfo.Status.COMPLETED).build()).build());
+      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(Long.MAX_VALUE).setLegacy(true)).build());
     myService.setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
 
     // Advancing time (data range) - stage should not select it yet since the tracking session has not finished
@@ -711,8 +707,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Prepares a finished AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
-      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setStatus(
-        AllocationsInfo.Status.COMPLETED).build()).build());
+      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true)).build());
 
     // Advancing time (data range) - stage should select it since the tracking session is now done.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -735,8 +730,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
     assertThat(myStage.hasUserUsedMemoryCapture()).isFalse();
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStartTime(infoStart).setStatus(Status.SUCCESS).build());
+    myService.setExplicitAllocationsInfo(infoStart, Long.MAX_VALUE, true);
     myStage.trackAllocations(true);
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
@@ -749,8 +744,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
-      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setStatus(
-        AllocationsInfo.Status.COMPLETED).build()).build());
+      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true)).build());
     myStage.getSelectionModel().set(5, 10);
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();

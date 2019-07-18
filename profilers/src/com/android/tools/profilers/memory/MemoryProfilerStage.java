@@ -44,8 +44,7 @@ import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
@@ -495,24 +494,16 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   /**
-   * @param enabled whether to enable or disable allocation tracking.
+   * @param enable whether to enable or disable allocation tracking.
    * @return the actual status, which may be different from the input
    */
-  public void trackAllocations(boolean enabled) {
-    // Allocation tracking can go through the legacy tracker which does not reach perfd, so we need to pass in the current device time.
-    TimeResponse timeResponse = getStudioProfilers().getClient().getTransportClient()
-      .getCurrentTime(TimeRequest.newBuilder().setStreamId(getStudioProfilers().getDevice().getDeviceId()).build());
-    long timeNs = timeResponse.getTimestampNs();
-
-    try {
-      TrackAllocationsResponse response = myClient.trackAllocations(
-        TrackAllocationsRequest.newBuilder().setRequestTime(timeNs).setSession(mySessionData).setEnabled(enabled).build());
-      AllocationsInfo info = response.getInfo();
-      switch (response.getStatus()) {
+  public void trackAllocations(boolean enable) {
+    MemoryProfiler.trackAllocations(getStudioProfilers(), mySessionData, enable, status -> {
+      switch (status.getStatus()) {
         case SUCCESS:
-          myTrackingAllocations = enabled;
-          myPendingCaptureStartTime = info.getStartTime();
-          myPendingLegacyAllocationStartTimeNs = enabled ? info.getStartTime() : INVALID_START_TIME;
+          myTrackingAllocations = enable;
+          myPendingCaptureStartTime = status.getStartTime();
+          myPendingLegacyAllocationStartTimeNs = enable ? status.getStartTime() : INVALID_START_TIME;
           break;
         case IN_PROGRESS:
           myTrackingAllocations = true;
@@ -527,16 +518,13 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
           break;
       }
       myAspect.changed(MemoryProfilerAspect.TRACKING_ENABLED);
-    }
-    catch (StatusRuntimeException e) {
-      getLogger().debug(e);
-    }
 
-    if (myTrackingAllocations) {
-      getStudioProfilers().getTimeline().setStreaming(true);
-      getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
-      myInstructionsEaseOutModel.setCurrentPercentage(1);
-    }
+      if (myTrackingAllocations) {
+        getStudioProfilers().getTimeline().setStreaming(true);
+        getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
+        myInstructionsEaseOutModel.setCurrentPercentage(1);
+      }
+    });
   }
 
   public boolean isTrackingAllocations() {

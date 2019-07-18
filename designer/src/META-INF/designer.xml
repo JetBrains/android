@@ -24,6 +24,13 @@
     </component>
   </project-components>
 
+  <!-- Extension points -->
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.handlers.viewHandlerProvider"
+                    area="IDEA_PROJECT"
+                    interface="com.android.tools.idea.uibuilder.handlers.ViewHandlerProvider" />
+  </extensionPoints>
+
   <!-- New layout editor -->
 
   <extensions defaultExtensionNs="com.intellij">

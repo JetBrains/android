@@ -27,7 +27,7 @@ import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.util.concurrent.Futures
-import com.intellij.concurrency.SameThreadExecutor
+import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
@@ -80,7 +80,7 @@ class SqliteControllerTest : PlatformTestCase() {
     edtExecutor = EdtExecutorService.getInstance()
     taskExecutor = SameThreadExecutor.INSTANCE
     sqliteController = SqliteController(
-      testRootDisposable, sqliteServiceFactory, viewFactory, sqliteView, edtExecutor, taskExecutor
+      project, sqliteServiceFactory, viewFactory, sqliteView, edtExecutor, taskExecutor
     )
     sqliteController.setUp()
 
@@ -176,6 +176,23 @@ class SqliteControllerTest : PlatformTestCase() {
       .reportErrorRelatedToService(eq(sqliteService), eq("Error opening Sqlite database"), refEq(throwable))
   }
 
+  fun testHasOpenDatabaseSuccess() {
+    // Prepare
+    `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
+
+    // Act
+    sqliteController.openSqliteDatabase(sqliteFile)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    assertTrue(sqliteController.hasOpenDatabase())
+  }
+
+  fun testHasOpenDatabaseFailure() {
+    // Assert
+    assertFalse(sqliteController.hasOpenDatabase())
+  }
+
   fun testDisplayResultSetIsCalledForTable() {
     // Prepare
     `when`(sqliteService.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema.EMPTY))
@@ -235,7 +252,7 @@ class SqliteControllerTest : PlatformTestCase() {
     sqliteView.viewListeners.single().closeTableActionInvoked(tabId!!)
 
     // Assert
-    verify(viewFactory).createEvaluatorView()
+    verify(viewFactory).createEvaluatorView(myProject)
     verify(sqliteView).closeTab(eq(tabId))
   }
 

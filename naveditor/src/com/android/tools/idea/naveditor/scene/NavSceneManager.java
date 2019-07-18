@@ -250,7 +250,7 @@ public class NavSceneManager extends SceneManager {
     root.setSize(rootBounds.width, rootBounds.height);
     surface.updateScrolledAreaSize();
 
-    SceneView view = surface.getCurrentSceneView();
+    SceneView view = surface.getFocusedSceneView();
     if (view != null) {
       @SwingCoordinate int deltaX = Coordinates.getSwingDimension(view, root.getDrawX() - (prevRootBounds == null ? 0 : prevRootBounds.x));
       @SwingCoordinate int deltaY = Coordinates.getSwingDimension(view, root.getDrawY() - (prevRootBounds == null ? 0 : prevRootBounds.y));

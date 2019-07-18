@@ -803,6 +803,18 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewGoogleMapsFragment() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "GoogleMapsFragment");
+  }
+
+  @TemplateCheck
+  public void testNewGoogleMapsFragmentWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "GoogleMapsFragment", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewService() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "Service");
@@ -1607,6 +1619,13 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static String getModifiedProjectName(@NotNull String projectName, @Nullable TestTemplateWizardState activityState) {
     if (SystemInfo.isWindows) {
       return "app";
+    }
+    // Bug 137161906
+    if (projectName.startsWith("BasicActivity") &&
+        activityState != null &&
+        activityState.hasAttr(ATTR_KOTLIN_SUPPORT) &&
+        activityState.getBoolean(ATTR_KOTLIN_SUPPORT)) {
+      return projectName;
     }
 
     String specialChars = "!@#$^&()_+=-.`~";

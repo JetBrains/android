@@ -18,7 +18,7 @@ iml_module(
     ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = ["//tools/idea/platform/util:intellij.platform.util[module]"],
+    deps = ["//tools/idea/platform/util:intellij.platform.util.ui[module]"],
 )
 
 filegroup(

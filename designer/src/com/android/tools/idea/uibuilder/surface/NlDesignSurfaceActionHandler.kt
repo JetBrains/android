@@ -42,7 +42,7 @@ class NlDesignSurfaceActionHandler @JvmOverloads constructor(
   override fun getFlavor(): DataFlavor = ItemTransferable.DESIGNER_FLAVOR
 
   override fun getPasteTarget(): NlComponent? {
-    val sceneView = mySurface.currentSceneView ?: return null
+    val sceneView = mySurface.focusedSceneView ?: return null
 
     val selection = mySurface.selectionModel.selection
     if (selection.size > 1) {
