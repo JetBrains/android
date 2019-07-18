@@ -61,11 +61,9 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtScriptInitializer
 import org.jetbrains.kotlin.psi.KtStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
-import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtVisitor
@@ -231,7 +229,8 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
       val name = GradleNameElement.from(expression.referenceExpression()!!)
       if (argumentsList != null) {
-        val callExpression = getCallExpression(parent, expression, name, argumentsList, referenceName, true)
+        val callExpression =
+          getCallExpression(parent, expression, name, argumentsList, referenceName, true) ?: return
         if (argumentsBlock != null) {
           callExpression.setParsedClosureElement(getClosureBlock(callExpression, argumentsBlock, name))
         }
@@ -296,7 +295,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     argumentsList : KtValueArgumentList,
     methodName : String,
     isFirstCall : Boolean
-  ) : GradleDslExpression {
+  ) : GradleDslExpression? {
     if (methodName == "mapOf") {
       return getExpressionMap(parentElement, argumentsList, name, argumentsList.arguments)
     }
@@ -307,16 +306,15 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // If the method has one argument, we should check if it's declared under a dependency block in order to resolve it to a dependency,
       // or to a plugin otherwise.
       if (argumentsList.arguments.size == 1) {
+        val nameExpression = argumentsList.arguments[0].getArgumentExpression() ?: return null
         if (parentElement.fullName == "plugins") {
-          // Get the plugin name from the argument.
-          // Since the argument in not null, getArgumentExpression() is non null, and hence using !! is safe.
-          val pluginName = "kotlin-${unquoteString(argumentsList.arguments[0].getArgumentExpression()!!.text)}"
+          val pluginName = "kotlin-${unquoteString(nameExpression.text)}"
           val literalExpression = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
           literalExpression.setValue(pluginName)
           return literalExpression
         }
         else {
-          val dependencyName = "org.jetbrains.kotlin:kotlin-${unquoteString(argumentsList.arguments[0].getArgumentExpression()!!.text)}"
+          val dependencyName = "org.jetbrains.kotlin:kotlin-${unquoteString(nameExpression.text)}"
           val dependencyLiteral = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
           dependencyLiteral.setValue(dependencyName)
           return dependencyLiteral
@@ -325,9 +323,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // If the method has two arguments then it should automatically resolve to a dependency.
       else if (argumentsList.arguments.size == 2) {
         // arguments are not null and each argument will have an non null argumentExpression as well, so using !! in this case is safe.
-        val moduleName = unquoteString(argumentsList.arguments[0].getArgumentExpression()!!.text)
-        val version = unquoteString(argumentsList.arguments[1].getArgumentExpression()!!.text)
-        val dependencyName = "org.jetbrains.kotlin:kotlin-${moduleName}:${version}"
+        val moduleName = argumentsList.arguments[0].getArgumentExpression() ?: return null
+        val version = argumentsList.arguments[1].getArgumentExpression() ?: return null
+        val dependencyName = "org.jetbrains.kotlin:kotlin-${unquoteString(moduleName.text)}:${unquoteString(version.text)}"
         val dependencyLiteral = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
         dependencyLiteral.setValue(dependencyName)
         return dependencyLiteral
@@ -398,6 +396,8 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     val expressionList = GradleDslExpressionList(parentElement, listPsiElement, propertyName, isLiteral)
     valueArguments.map {
       expression -> expression as KtValueArgument
+    }.filter {
+      arg -> arg.getArgumentExpression() != null
     }.mapNotNull {
       argumentExpression -> createExpressionElement(
       expressionList,
