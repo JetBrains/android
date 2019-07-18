@@ -515,8 +515,8 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val minSdkModel = buildModel.android().defaultConfig().minSdkVersion()
     val maxSdkModel = buildModel.android().defaultConfig().maxSdkVersion()
 
-    verifyPropertyModel(minSdkModel, STRING_TYPE, "minSdk", REFERENCE, REGULAR, 0, "minSdkVersion")
-    verifyPropertyModel(maxSdkModel, STRING_TYPE, "maxSdk", REFERENCE, REGULAR, 0, "maxSdkVersion")
+    verifyPropertyModel(minSdkModel, STRING_TYPE, extraName("minSdk"), REFERENCE, REGULAR, 0, "minSdkVersion")
+    verifyPropertyModel(maxSdkModel, STRING_TYPE, extraName("maxSdk"), REFERENCE, REGULAR, 0, "maxSdkVersion")
   }
 
   @Test
