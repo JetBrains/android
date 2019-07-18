@@ -44,7 +44,7 @@ class MockToolWindow : ToolWindow {
   override fun getType(): ToolWindowType = mock(ToolWindowType::class.java)
   override fun setType(type: ToolWindowType, runnable: Runnable?) {}
   override fun getIcon(): Icon = mock(Icon::class.java)
-  override fun setIcon(icon: Icon?) {}
+  override fun setIcon(icon: Icon) {}
   override fun getTitle() = ""
   override fun setTitle(title: String?) {}
   override fun getStripeTitle() = ""
