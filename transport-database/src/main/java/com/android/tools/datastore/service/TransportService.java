@@ -216,7 +216,9 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
     if (response == null && client != null) {
       response = client.getBytes(request);
-      myTable.insertBytes(streamId, request.getId(), response);
+      if (!response.getContents().isEmpty()) {
+        myTable.insertBytes(streamId, request.getId(), response);
+      }
     }
     else if (response == null) {
       response = BytesResponse.getDefaultInstance();

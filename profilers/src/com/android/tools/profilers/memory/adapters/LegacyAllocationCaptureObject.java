@@ -21,9 +21,10 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.memory.LegacyAllocationConverter;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
@@ -46,6 +47,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   @NotNull private final ClassDb myClassDb;
   @NotNull private final Common.Session mySession;
   @NotNull private final Memory.AllocationsInfo myInfo;
+  @NotNull private final LegacyAllocationConverter myAllocationConverter;
   private long myStartTimeNs;
   private long myEndTimeNs;
   private final FeatureTracker myFeatureTracker;
@@ -62,6 +64,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     myClassDb = new ClassDb();
     mySession = session;
     myInfo = info;
+    myAllocationConverter = new LegacyAllocationConverter();
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
     myFakeHeapSet = new HeapSet(this, DEFAULT_HEAP_NAME, DEFAULT_HEAP_ID);
@@ -110,16 +113,16 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
 
   @Override
   public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
-    MemoryProfiler.LegacyAllocationEventsResponse response;
+    Transport.BytesResponse response;
     while (true) {
-      response = myClient.getMemoryClient().getLegacyAllocationEvents(MemoryProfiler.LegacyAllocationEventsRequest.newBuilder()
-                                                                        .setSession(mySession)
-                                                                        .setStartTime(myStartTimeNs)
-                                                                        .setEndTime(myEndTimeNs).build());
-      if (response.getStatus() == MemoryProfiler.LegacyAllocationEventsResponse.Status.SUCCESS) {
+      response = myClient.getTransportClient().getBytes(Transport.BytesRequest.newBuilder()
+                                                          .setStreamId(mySession.getStreamId())
+                                                          .setId(Long.toString(myInfo.getStartTime()))
+                                                          .build());
+      if (!response.getContents().isEmpty()) {
         break;
       }
-      else if (response.getStatus() == MemoryProfiler.LegacyAllocationEventsResponse.Status.NOT_READY) {
+      else {
         try {
           Thread.sleep(50L);
         }
@@ -128,32 +131,22 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
           myIsLoadingError = true;
           return false;
         }
-        continue;
       }
-      myIsLoadingError = true;
-      return false;
     }
-
-    MemoryProfiler.LegacyAllocationContextsRequest contextRequest = MemoryProfiler.LegacyAllocationContextsRequest.newBuilder()
-      .setSession(mySession)
-      .addAllStackIds(response.getEventsList().stream().map(LegacyAllocationEvent::getStackId).collect(Collectors.toSet()))
-      .addAllClassIds(response.getEventsList().stream().map(LegacyAllocationEvent::getClassId).collect(Collectors.toSet()))
-      .build();
-    MemoryProfiler.LegacyAllocationContextsResponse contextsResponse = myClient.getMemoryClient().getLegacyAllocationContexts(contextRequest);
 
     // TODO remove this map, since we have built-in functionality in ClassDb now.
     Map<Integer, ClassDb.ClassEntry> classEntryMap = new HashMap<>();
     Map<Integer, Memory.AllocationStack> callStacks = new HashMap<>();
-    contextsResponse.getClassesList().forEach(
-      className -> classEntryMap.put(className.getClassId(), myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, className.getClassName())));
-    contextsResponse.getStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
+    myAllocationConverter.parseDump(response.getContents().toByteArray());
+    myAllocationConverter.getAllocationStacks().forEach(stack -> callStacks.putIfAbsent(stack.getStackId(), stack));
+    myAllocationConverter.getClassNames().forEach(
+      klass -> classEntryMap.put(klass.getClassId(), myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, klass.getClassName())));
 
-    // TODO make sure class IDs fall into a global pool
-    for (LegacyAllocationEvent event : response.getEventsList()) {
-      assert classEntryMap.containsKey(event.getClassId());
+    for (Memory.AllocationEvent.Allocation event : myAllocationConverter.getAllocationEvents()) {
+      assert classEntryMap.containsKey(event.getClassTag());
       assert callStacks.containsKey(event.getStackId());
       myFakeHeapSet.addDeltaInstanceObject(
-        new LegacyAllocationsInstanceObject(event, classEntryMap.get(event.getClassId()), callStacks.get(event.getStackId())));
+        new LegacyAllocationsInstanceObject(event, classEntryMap.get(event.getClassTag()), callStacks.get(event.getStackId())));
     }
     myIsDoneLoading = true;
 

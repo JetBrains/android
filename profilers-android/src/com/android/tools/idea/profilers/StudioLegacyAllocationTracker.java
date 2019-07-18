@@ -39,7 +39,6 @@ public class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
 
   private IDevice myDevice;
   private Client myClient;
-  private final LegacyAllocationConverter myConverter = new LegacyAllocationConverter();
   private boolean myOngoingTracking;
 
   public StudioLegacyAllocationTracker(@NotNull IDevice device, int processId) {
@@ -58,7 +57,7 @@ public class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
                                   long endTime,
                                   boolean enabled,
                                   @Nullable Executor executor,
-                                  @Nullable LegacyAllocationTrackingCallback allocationConsumer) {
+                                  @Nullable Consumer<byte[]> allocationConsumer) {
     if (myClient == null) {
       return false;
     }
@@ -74,15 +73,7 @@ public class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
       // TODO fix this so this method is reentrant/locks
       getAllocationTrackingDump(executor, data -> {
         assert allocationConsumer != null;
-        if (data == null) {
-          allocationConsumer.accept(null, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-        }
-        else {
-          myConverter.parseDump(data);
-          // timestamp of allocations is set to the end of allocation tracking
-          allocationConsumer.accept(
-            data, myConverter.getClassNames(), myConverter.getAllocationStacks(), myConverter.getAllocationEvents(startTime, endTime));
-        }
+        allocationConsumer.accept(data);
       });
     }
 
