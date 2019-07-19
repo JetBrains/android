@@ -43,7 +43,7 @@ public class NewModuleTest {
 
   @Test
   public void testNewModuleOldGradle() throws Exception {
-    String gradleFileContents = guiTest.importSimpleApplication()
+    guiTest.importSimpleApplication()
       // the oldest combination we support:
       .updateAndroidGradlePluginVersion("1.0.0")
       .updateGradleWrapperVersion("2.2.1")
@@ -62,10 +62,9 @@ public class NewModuleTest {
       .clickNextToStep("Android Library")
       .setModuleName("somelibrary")
       .clickFinish()
-      .waitForGradleProjectSyncToFail()
-      .getEditor()
-      .open("somelibrary/build.gradle")
-      .getCurrentFileContents();
+      .waitForGradleProjectSyncToFail();
+
+    String gradleFileContents = guiTest.getProjectFileText("somelibrary/build.gradle");
     assertThat(gradleFileContents).doesNotContain("testCompile");
     assertThat(gradleFileContents).doesNotContain("testImplementation");
     assertAbout(file()).that(guiTest.getProjectPath("somelibrary/src/main")).isDirectory();
@@ -117,17 +116,15 @@ public class NewModuleTest {
 
   @Test
   public void createNewAndroidLibraryWithDefaults() throws Exception {
-    String gradleFileContents = guiTest.importSimpleApplication()
+    guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
       .setModuleName("somelibrary")
       .clickFinish()
-      .waitForGradleProjectSyncToFinish()
-      .getEditor()
-      .open("somelibrary/build.gradle")
-      .getCurrentFileContents();
+      .waitForGradleProjectSyncToFinish();
 
+    String gradleFileContents = guiTest.getProjectFileText("somelibrary/build.gradle");
     assertThat(gradleFileContents).contains("apply plugin: 'com.android.library'");
     assertThat(gradleFileContents).contains("consumerProguardFiles");
   }
@@ -149,7 +146,7 @@ public class NewModuleTest {
   }
 
   @Test
-  public void addNewModuleToAndroidxProject() {
+  public void addNewModuleToAndroidxProject() throws IOException {
     WizardUtils.createNewProject(guiTest); // Default projects are created with androidx dependencies
     guiTest.ideFrame()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
@@ -157,22 +154,17 @@ public class NewModuleTest {
       .setModuleName("otherModule")
       .clickNext()
       .clickNext() // Default "Empty Activity"
-      .clickFinish();
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
 
-    String gradleProperties = guiTest.ideFrame().getEditor()
-      .open("gradle.properties")
-      .getCurrentFileContents();
-    assertThat(gradleProperties).contains("android.useAndroidX=true");
+    assertThat(guiTest.getProjectFileText("gradle.properties"))
+      .contains("android.useAndroidX=true");
 
-    String appBuildGradle = guiTest.ideFrame().getEditor()
-      .open("app/build.gradle")
-      .getCurrentFileContents();
-    assertThat(appBuildGradle).contains("androidx.appcompat:appcompat");
+    assertThat(guiTest.getProjectFileText("app/build.gradle"))
+      .contains("androidx.appcompat:appcompat");
 
-    String otherModuleBuildGradle = guiTest.ideFrame().getEditor()
-      .open("othermodule/build.gradle")
-      .getCurrentFileContents();
-    assertThat(otherModuleBuildGradle).contains("androidx.appcompat:appcompat");
+    assertThat(guiTest.getProjectFileText("othermodule/build.gradle"))
+      .contains("androidx.appcompat:appcompat");
   }
 
   @Test
