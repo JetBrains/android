@@ -29,8 +29,10 @@ import java.awt.Font;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +51,7 @@ public class IssuesViewer {
   private JPanel myMainPanel;
 
   private boolean myShowEmptyText;
+  @Nullable private Set<PsIssue> myLastDisplayedIssues = null;
 
   public IssuesViewer(@NotNull PsContext context, @NotNull DependencyViewIssuesRenderer renderer) {
     myContext = context;
@@ -56,7 +59,10 @@ public class IssuesViewer {
   }
 
   public void display(@NotNull Collection<PsIssue> issues, @Nullable PsPath scope) {
-    if (issues.isEmpty()) {
+    Set<PsIssue> newIssues = new LinkedHashSet<>(issues);
+    if (newIssues.equals(myLastDisplayedIssues)) return;
+    myLastDisplayedIssues = newIssues;
+    if (newIssues.isEmpty()) {
       if (myShowEmptyText) {
         myEmptyIssuesLabel.setVisible(true);
       }
@@ -71,7 +77,7 @@ public class IssuesViewer {
     }
 
     Map<PsIssue.Severity, List<PsIssue>> issuesBySeverity = Maps.newHashMap();
-    for (PsIssue issue : issues) {
+    for (PsIssue issue : newIssues) {
       PsIssue.Severity severity = issue.getSeverity();
       List<PsIssue> currentIssues = issuesBySeverity.get(severity);
       if (currentIssues == null) {
