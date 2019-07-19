@@ -32,12 +32,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_SINGLE_TOP
 
 class ActionInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    val components = properties.first?.components ?: return
-    if (components.size != 1) {
-      return
-    }
-
-    if (!components.first().isAction) {
+    if(properties.first?.components?.singleOrNull()?.isAction != true) {
       return
     }
 
