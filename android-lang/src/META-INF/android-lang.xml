@@ -78,6 +78,7 @@
     <lang.quoteHandler language="RoomSql" implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlQuoteHandler"/>
 
     <!--  Room support  -->
+    <useScopeEnlarger implementation="com.android.tools.idea.lang.androidSql.room.RoomUseScopeEnlarger"/>
     <moduleService serviceImplementation="com.android.tools.idea.lang.androidSql.room.RoomSchemaManager"/>
     <projectService serviceImplementation="com.android.tools.idea.lang.androidSql.room.RoomDependencyChecker"/>
     <referencesSearch implementation="com.android.tools.idea.lang.androidSql.room.RoomReferenceSearchExecutor"/>
