@@ -30,7 +30,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -55,10 +54,8 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
@@ -145,8 +142,6 @@ public final class GuiTests {
   }
 
   static void setIdeSettings() {
-    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
-
     // Clear HTTP proxy settings, in case a test changed them.
     HttpConfigurable ideSettings = HttpConfigurable.getInstance();
     ideSettings.USE_HTTP_PROXY = false;
