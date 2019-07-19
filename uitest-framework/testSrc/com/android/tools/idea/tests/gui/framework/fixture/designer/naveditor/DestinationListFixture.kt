@@ -39,7 +39,7 @@ class DestinationListFixture(robot: Robot, private val list: DestinationList) :
 
     @JvmStatic
     fun create(robot: Robot): DestinationListFixture {
-      val result = GuiTests.waitUntilFound(robot, Matchers.byType(DestinationList::class.java))
+    val result = GuiTests.waitUntilShowing(robot, Matchers.byName(DestinationList::class.java, "DestinationList"))
       return DestinationListFixture(robot, result)
     }
   }
