@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
@@ -267,29 +268,40 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
   override fun visitProperty(expression: KtProperty, parent: GradlePropertiesDslElement) {
     val identifier = expression.nameIdentifier ?: return
-    // handling delegated KtProperties ( val foo by ... ) to support Gradle extra properties.
-    //
-    // TODO(xof): implement support for local variables ( val foo = ... )
-    val delegate = expression.delegate ?: return
-    val callExpression = delegate.expression as? KtCallExpression ?: return
+    val delegate = expression.delegate
+    if (delegate == null) {
+      // handling standard KtProperties ( val foo = ...) to support variables
+      val initializer = expression.initializer ?: return
 
-    val referenceExpression = callExpression.referenceExpression() ?: return
-    // TODO(xof): it's more complicated than this, of course; kotlinscript can express gradle properties on other
-    //  projects' extra blocks, using "val foo by rootProject.extra(42)".  The Kotlinscript Psi tree is the wrong way round
-    //  for us to detect it easily: (rootProject dot (extra [42])) rather than ((rootProject dot extra) [42]) so more work
-    //  is needed here.
-    if (referenceExpression.text != "extra") return
-    val arguments = callExpression.valueArgumentList?.arguments ?: return
-    if (arguments.size != 1) return
-    val initializer = arguments[0].getArgumentExpression() ?: return
+      // if we've got this far, we have a variable declaration/initialization of the form "val foo = bar"
 
-    // If we've got this far, we have an extra property declaration/initialization of the form "val foo by extra(bar)".
+      val name = GradleNameElement.from(identifier)
+      val propertyElement = createExpressionElement(parent, expression, name, initializer) ?: return
+      propertyElement.elementType = VARIABLE
+      parent.setParsedElement(propertyElement)
+    }
+    else {
+      // handling delegated KtProperties ( val foo by ... ) to support Gradle extra properties.
+      val callExpression = delegate.expression as? KtCallExpression ?: return
 
-    val ext = getBlockElement(listOf("ext"), parent, null) ?: return
-    val name = GradleNameElement.from(identifier) // TODO(xof): error checking: empty/qualified/etc
-    val propertyElement = createExpressionElement(ext, expression, name, initializer) ?: return
-    propertyElement.elementType = REGULAR
-    ext.setParsedElement(propertyElement)
+      val referenceExpression = callExpression.referenceExpression() ?: return
+      // TODO(xof): it's more complicated than this, of course; kotlinscript can express gradle properties on other
+      //  projects' extra blocks, using "val foo by rootProject.extra(42)".  The Kotlinscript Psi tree is the wrong way round
+      //  for us to detect it easily: (rootProject dot (extra [42])) rather than ((rootProject dot extra) [42]) so more work
+      //  is needed here.
+      if (referenceExpression.text != "extra") return
+      val arguments = callExpression.valueArgumentList?.arguments ?: return
+      if (arguments.size != 1) return
+      val initializer = arguments[0].getArgumentExpression() ?: return
+
+      // If we've got this far, we have an extra property declaration/initialization of the form "val foo by extra(bar)".
+
+      val ext = getBlockElement(listOf("ext"), parent, null) ?: return
+      val name = GradleNameElement.from(identifier) // TODO(xof): error checking: empty/qualified/etc
+      val propertyElement = createExpressionElement(ext, expression, name, initializer) ?: return
+      propertyElement.elementType = REGULAR
+      ext.setParsedElement(propertyElement)
+    }
   }
 
   private fun getCallExpression(
