@@ -33,7 +33,6 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Arrays.asList;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -84,19 +83,13 @@ public class IdeaGradleSync implements GradleSync {
     SystemProperties.getBooleanProperty("studio.sync.with.cached.model.only", false);
 
   @NotNull private final Project myProject;
-  @NotNull private final GradleProjectInfo myProjectInfo;
 
   @NotNull public static final Key<GradleSyncListener> LISTENER_KEY = new Key<>("GradleSyncListener");
   @NotNull public static final Key<Boolean> SOURCE_GENERATION_KEY = new Key<>("android.sourcegeneration.enabled");
   @NotNull public static final Key<Boolean> SINGLE_VARIANT_KEY = new Key<>("android.singlevariant.enabled");
 
   public IdeaGradleSync(@NotNull Project project) {
-    this(project, GradleProjectInfo.getInstance(project));
-  }
-
-  private IdeaGradleSync(@NotNull Project project, @NotNull GradleProjectInfo projectInfo) {
     myProject = project;
-    myProjectInfo = projectInfo;
   }
 
   @Override
@@ -289,5 +282,4 @@ public class IdeaGradleSync implements GradleSync {
     }
     return missingFileFound.get();
   }
-
 }
