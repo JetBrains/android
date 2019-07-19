@@ -41,6 +41,7 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtScript
 import org.jetbrains.kotlin.psi.KtScriptInitializer
@@ -140,6 +141,15 @@ internal fun findInjections(
   val noInjections = mutableListOf<GradleReferenceInjection>()
   val injectionPsiElement = injectionElement ?: psiElement
   when (psiElement) {
+    // foo
+    is KtNameReferenceExpression -> {
+      val text = psiElement.text
+      // TODO(xof): in Groovy, names are looked up both in the extra properties and in parent blocks.  In Kotlinscript,
+      //  the lookup in the two cases is different syntactically: extra["foo"] vs. foo, so we should distinguish that
+      //  in reference resolution / injection construction.
+      val element = context.resolveReference(text, true)
+      return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
+    }
     // extra["PROPERTY_NAME"]
     is KtArrayAccessExpression -> {
       val arrayExpression = psiElement.arrayExpression ?: return noInjections

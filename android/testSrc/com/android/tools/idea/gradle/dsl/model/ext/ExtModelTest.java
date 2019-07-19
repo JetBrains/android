@@ -144,7 +144,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = getGradleBuildModel().ext();
     verifyPropertyModel(extModel.findProperty("SDK_VERSION"), INTEGER_TYPE, 21, INTEGER, REGULAR, 0);
-    verifyPropertyModel(extModel.findProperty("COMPILE_SDK_VERSION"), STRING_TYPE, "SDK_VERSION", REFERENCE, REGULAR, 1);
+    verifyPropertyModel(extModel.findProperty("COMPILE_SDK_VERSION"), STRING_TYPE, extraName("SDK_VERSION"), REFERENCE, REGULAR, 1);
     verifyPropertyModel(extModel.findProperty("COMPILE_SDK_VERSION").resolve(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1);
 
     AndroidModel androidModel = buildModel.android();
