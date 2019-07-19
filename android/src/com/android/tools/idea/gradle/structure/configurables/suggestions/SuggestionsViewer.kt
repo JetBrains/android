@@ -34,10 +34,14 @@ class SuggestionsViewer(
 
   val panel: JPanel get() = myMainPanel
 
+  private var lastDisplayedIssues: Set<PsIssue>? = null
+
   fun display(issues: List<PsIssue>, scope: PsPath?) {
+    val newIssue = issues.toSet()
+    if (lastDisplayedIssues == newIssue) return
 
     fun render() {
-      val issuesBySeverity = issues.groupBy { it.severity }.toSortedMap(comparingInt { it.priority })
+      val issuesBySeverity = newIssue.groupBy { it.severity }.toSortedMap(comparingInt { it.priority })
       renderIssues(issuesBySeverity, scope)
       revalidateAndRepaint(panel)
     }
