@@ -13,13 +13,10 @@ iml_module(
         "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/idea:platform-build-info",
+        "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
-        "//tools/idea/images:intellij.platform.images",
-        "//tools/idea/xml/dom-impl:intellij.xml.dom.impl",
-        "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/plugins/groovy/jps-plugin:intellij.groovy.jps",
         "//tools/idea/plugins/ant/jps-plugin:intellij.ant.jps",
@@ -88,5 +85,7 @@ iml_module(
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/idea/uast/uast-common:intellij.platform.uast[module]",
+        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/idea/java/java-psi-impl:intellij.java.psi.impl[module]",
     ],
 )
