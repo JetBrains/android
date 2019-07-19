@@ -181,6 +181,51 @@ class ColumnReferencesTest : RoomLightTestCase() {
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.User", "id"))
   }
 
+  //TODO: remove/update after fixing b/138198019
+  fun testRename_privateField() {
+    myFixture.addClass(
+      """
+      package com.example;
+
+      import androidx.room.Entity;
+      import androidx.room.PrimaryKey;
+
+      @Entity
+      class User {
+        private int privateField;
+      }
+      """
+    )
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT private<caret>Field FROM User") List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    myFixture.renameElementAtCaret("field")
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT field FROM User") List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.User", "field"))
+  }
+
   fun testRename_fromSql() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int", "name" ofType "String")
 
@@ -198,7 +243,6 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     myFixture.renameElementAtCaret("user_id")
 
-/* b/137215285
     myFixture.checkResult("""
         package com.example;
 
@@ -212,7 +256,6 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.User", "user_id"))
-b/137215285 */
   }
 
   fun testRename_fromSql_quoted() {
@@ -233,7 +276,6 @@ b/137215285 */
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.Order", "count"))
     myFixture.renameElementAtCaret("amount")
 
-/* b/137215285
     myFixture.checkResult("""
         package com.example;
 
@@ -247,7 +289,6 @@ b/137215285 */
     """.trimIndent())
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.Order", "amount"))
-b/137215285 */
   }
 
   fun testRename_fromJava() {
@@ -302,7 +343,6 @@ b/137215285 */
     val newName = "order" // this is a SQL keyword.
     myFixture.renameElementAtCaret(newName)
 
-/* b/137215285
     myFixture.checkResult("""
         package com.example;
 
@@ -316,7 +356,6 @@ b/137215285 */
     """.trimIndent())
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.User", newName))
-b/137215285 */
   }
 
   fun testCodeCompletion_select() {
@@ -640,7 +679,7 @@ b/137215285 */
         }
     """.trimIndent())
 
-    val element = myFixture.elementAtCaret;
+    val element = myFixture.elementAtCaret
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -674,7 +713,7 @@ b/137215285 */
         }
     """.trimIndent())
 
-    val element = myFixture.elementAtCaret;
+    val element = myFixture.elementAtCaret
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -1471,7 +1510,7 @@ b/137215285 */
     """.trimIndent())
 
     // test will finish with StackOverFlow if there is infinite loop
-    myFixture.completeBasic();
+    myFixture.completeBasic()
   }
 
   fun testRecursiveWithClauseNoInfiniteLoopMutual() {
@@ -1490,7 +1529,7 @@ b/137215285 */
     """.trimIndent())
 
     // test will finish with StackOverFlow if there is infinite loop
-    myFixture.completeBasic();
+    myFixture.completeBasic()
   }
 
   fun testRecursiveWithClauseNoInfiniteLoopMutual2() {
@@ -1509,7 +1548,7 @@ b/137215285 */
     """.trimIndent())
 
     // test will finish with StackOverFlow if there is infinite loop
-    myFixture.completeBasic();
+    myFixture.completeBasic()
   }
 
   fun testColumnAlias() {
@@ -1827,7 +1866,7 @@ b/137215285 */
 
 
     myFixture.moveCaret("|rowId")
-    var element = myFixture.elementAtCaret
+    val element = myFixture.elementAtCaret
     myFixture.moveCaret("|myId")
     // use areElementsEquivalent instead of simple equalsTo cause we wrap realPsiElement into [NotRenamableElement]
     assertThat(PsiManager.getInstance(element.project).areElementsEquivalent(element, myFixture.elementAtCaret))
