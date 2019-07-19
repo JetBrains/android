@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFix
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -172,5 +173,30 @@ public class NewModuleTest {
       .open("othermodule/build.gradle")
       .getCurrentFileContents();
     assertThat(otherModuleBuildGradle).contains("androidx.appcompat:appcompat");
+  }
+
+  @Test
+  public void addNewBasicActivityModuleToNewProject() throws IOException {
+    WizardUtils.createNewProject(guiTest); // Default projects are created with androidx dependencies
+    guiTest.ideFrame()
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .clickNext() // Default Phone & Tablet Module
+      .setModuleName("otherModule")
+      .clickNext()
+      .chooseActivity("Basic Activity")
+      .clickNext() // Default "Empty Activity"
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
+
+    assertThat(guiTest.getProjectFileText("build.gradle"))
+      .contains("classpath 'androidx.navigation:navigation-safe-args-gradle-plugin:");
+
+    String otherModuleBuildGradleText = guiTest.getProjectFileText("othermodule/build.gradle");
+    assertThat(otherModuleBuildGradleText).contains("implementation 'androidx.navigation:navigation-fragment-ktx:");
+    assertThat(otherModuleBuildGradleText).contains("apply plugin: 'androidx.navigation.safeargs'");
+
+    String navGraphText = guiTest.getProjectFileText("othermodule/src/main/res/navigation/nav_graph.xml");
+    assertThat(navGraphText).contains("navigation xmlns:android=");
+    assertThat(navGraphText).contains("app:startDestination=\"@id/FirstFragment\"");
   }
 }
