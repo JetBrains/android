@@ -266,10 +266,18 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void getParentModulesPaths() {
-    assertEquals(Lists.newArrayList(":foo"), GradleUtil.getParentModulesPaths(":foo:buz"));
-    assertEquals(Lists.newArrayList(), GradleUtil.getParentModulesPaths(":foo"));
-    assertEquals(Lists.newArrayList(), GradleUtil.getParentModulesPaths(":"));
-    assertEquals(Lists.newArrayList(":foo", ":foo:bar", ":foo:bar:buz"), GradleUtil.getParentModulesPaths(":foo:bar:buz:lib"));
+  public void getAllParentModulesPaths() {
+    assertThat(GradleUtil.getAllParentModulesPaths(":foo:buz")).containsExactly(":foo");
+    assertThat(GradleUtil.getAllParentModulesPaths(":foo")).isEmpty();
+    assertThat(GradleUtil.getAllParentModulesPaths(":")).isEmpty();
+    assertThat(GradleUtil.getAllParentModulesPaths(":foo:bar:buz:lib")).containsExactly(":foo", ":foo:bar", ":foo:bar:buz");
+  }
+
+  @Test
+  public void getParentModulePath() {
+    assertEquals(":foo", GradleUtil.getParentModulePath(":foo:buz"));
+    assertEquals(":foo:bar", GradleUtil.getParentModulePath(":foo:bar:buz"));
+    assertEquals("", GradleUtil.getParentModulePath(":"));
+
   }
 }
