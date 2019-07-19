@@ -756,8 +756,6 @@ public class NavDesignSurface extends DesignSurface {
       myCurrentNavigation = match;
       getSelectionModel().setSelection((ImmutableList.of(myCurrentNavigation)));
     }
-
-    zoomToFit();
   }
 
   @NotNull
