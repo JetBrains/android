@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
+import java.util.List;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class IdeSettingsTest {
@@ -36,11 +33,6 @@ public class IdeSettingsTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private IdeSettingsDialogFixture mySettingsDialog;
-
-  @Before
-  public void skipSourceGenerationOnSync() {
-    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-  }
 
   @Test
   public void testSettingsRemovalForGradleProjects() throws IOException {

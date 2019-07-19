@@ -35,7 +35,6 @@ import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
 
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser;
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper;
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapperKt;
@@ -154,18 +153,12 @@ public class GradleBuildInvoker {
     }
     setProjectBuildMode(CLEAN);
     ListMultimap<Path, String> tasks = ArrayListMultimap.create();
-    File projectPath = getBaseDirPath(myProject);
     List<String> commandLineArgs = new ArrayList<>();
-    // Add source generation tasks only if source gen is enabled.
-    if (GradleProjectBuilder.getInstance(myProject).isSourceGenerationEnabled()) {
-      Module[] modules = ModuleManager.getInstance(myProject).getModules();
-      tasks.putAll(GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.NONE));
-      tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
-      commandLineArgs.add(createGenerateSourcesOnlyProperty());
-    }
-    else {
-      tasks.put(projectPath.toPath(), CLEAN_TASK_NAME);
-    }
+    // Add source generation tasks.
+    Module[] modules = ModuleManager.getInstance(myProject).getModules();
+    tasks.putAll(GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.NONE));
+    tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
+    commandLineArgs.add(createGenerateSourcesOnlyProperty());
     for (Path rootPath : tasks.keySet()) {
       executeTasks(rootPath.toFile(), tasks.get(rootPath), commandLineArgs);
     }
