@@ -637,7 +637,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     private val LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().separatorString
 
     private fun getBuildModel(buildFile: File, project: Project): GradleBuildModel? {
-      if (!project.isInitialized) {
+      if (!project.isInitialized || !buildFile.exists()) {
         return null
       }
       val virtualFile = findFileByIoFile(buildFile, true) ?: throw RuntimeException("Failed to find " + buildFile.path)
