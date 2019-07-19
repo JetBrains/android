@@ -18,11 +18,14 @@ package com.android.tools.idea.gradle.structure.configurables.ui;
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -85,7 +88,8 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
       return module.getName();
     }
     else {
-      return gradlePath.substring(1);
+      String parentPath = GradleUtil.getParentModulePath(gradlePath);
+      return UIUtil.toHtml(StringUtil.escapeXmlEntities(parentPath + ":") + "<b>" + StringUtil.escapeXmlEntities(module.getName()) + "</b>");
     }
   }
 }
