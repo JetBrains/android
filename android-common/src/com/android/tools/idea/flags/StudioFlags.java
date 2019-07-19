@@ -404,13 +404,6 @@ public final class StudioFlags {
     "When a project is loaded, automatically add a \"Gradle-aware Make\" task to each Run Configuration if the task is missing",
     true);
 
-  public static final Flag<Boolean> GRADLE_INVOCATIONS_INDEXING_AWARE = Flag.create(
-    GRADLE_IDE, "indexing.aware", "Execute gradle actions in indexing-aware mode",
-    "Make Gradle actions and IDE indexing mutually exclusive to allow better utilisation of machine resources.",
-    true);
-  public static final Flag<Boolean> NEW_SYNC_INFRA_ENABLED = Flag.create(
-    GRADLE_IDE, "new.sync", "Enable \"New Sync\" infrastructure",
-    "Turns on the new infrastructure for \"Gradle Sync\", resulting in faster Sync executions.", false);
   public static final Flag<Boolean> NEW_PSD_ENABLED = Flag.create(
     GRADLE_IDE, "new.psd", "Enable new \"Project Structure\" dialog",
     "Turns on the new \"Project Structure\" dialog.", true);
