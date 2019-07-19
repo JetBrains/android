@@ -133,12 +133,10 @@ public class NavNlEditorTest {
         .waitForContents();
 
       assertEquals(3, menuFixture.visibleItemCount());
-      ConfigureTemplateParametersWizardFixture fragmentWizardFixture = menuFixture.clickCreateNewFragment()
+      menuFixture.clickCreateNewFragment()
         .waitUntilStepErrorMessageIsGone()
         .chooseFragment("Fullscreen Fragment")
-        .clickNextFragment();
-
-      fragmentWizardFixture
+        .clickNextFragment()
         .waitUntilStepErrorMessageIsGone()
         .clickFinish();
 
