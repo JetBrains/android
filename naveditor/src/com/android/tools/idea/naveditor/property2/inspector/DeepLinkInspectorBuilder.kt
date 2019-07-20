@@ -16,6 +16,31 @@
 package com.android.tools.idea.naveditor.property2.inspector
 
 import com.android.SdkConstants.TAG_DEEP_LINK
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker
+import com.android.tools.idea.naveditor.property.inspector.AddDeeplinkDialog
 import com.android.tools.idea.naveditor.property2.ui.DeepLinkCellRenderer
+import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_DEEP_LINK
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.EDIT_DEEP_LINK
 
-class DeepLinkInspectorBuilder : ComponentListInspectorBuilder(TAG_DEEP_LINK, "Deep Links", DeepLinkCellRenderer())
+class DeepLinkInspectorBuilder : ComponentListInspectorBuilder(TAG_DEEP_LINK, "Deep Links", DeepLinkCellRenderer()) {
+  override fun onAdd(parent: NlComponent) {
+    invokeDialog(null, parent)
+  }
+
+  override fun onEdit(component: NlComponent) {
+    component.parent?.let { invokeDialog(component, it) }
+  }
+
+  private fun invokeDialog(component: NlComponent?, parent: NlComponent) {
+    val dialog = AddDeeplinkDialog(component, parent)
+
+    if (dialog.showAndGet()) {
+      dialog.save()
+      NavUsageTracker.getInstance(parent.model).createEvent(if (component == null) CREATE_DEEP_LINK else EDIT_DEEP_LINK)
+        .withSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).log()
+    }
+  }
+}
+
