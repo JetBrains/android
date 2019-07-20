@@ -73,16 +73,22 @@ import javax.swing.JList
  */
 @VisibleForTesting
 fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurface?, hadExisting: Boolean) {
-  if (actionDialog.showAndGet()) {
-    val action = actionDialog.writeUpdatedAction()
-    if (!hadExisting) {
-      surface?.selectionModel?.setSelection(listOf(action))
-    }
-    NavUsageTracker.getInstance(surface?.model).createEvent(if (hadExisting) EDIT_ACTION else CREATE_ACTION)
-      .withActionInfo(action)
-      .withSource(actionDialog.invocationSite)
-      .log()
+  val action = showAndUpdateFromDialog(actionDialog, surface?.model, hadExisting)
+  if (action != null && !hadExisting) {
+    surface?.selectionModel?.setSelection(listOf(action))
   }
+}
+
+fun showAndUpdateFromDialog(actionDialog: AddActionDialog, model: NlModel?, hadExisting: Boolean): NlComponent? {
+  if (!actionDialog.showAndGet()) return null
+
+  val action = actionDialog.writeUpdatedAction()
+  NavUsageTracker.getInstance(model).createEvent(if (hadExisting) EDIT_ACTION else CREATE_ACTION)
+    .withActionInfo(action)
+    .withSource(actionDialog.invocationSite)
+    .log()
+
+  return action
 }
 
 /**
