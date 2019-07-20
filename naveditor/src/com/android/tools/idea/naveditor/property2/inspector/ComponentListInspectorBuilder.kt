@@ -20,10 +20,18 @@ import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.property2.ui.ComponentList
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SortedListModel
+import com.intellij.ui.components.JBList
+import icons.StudioIcons
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 
 /**
  * Adds a ComponentList component to an [InspectorPanel] to display groups of subtags in a list format within an expandable title.
@@ -33,7 +41,9 @@ import com.intellij.ui.SortedListModel
  * [title]: the caption for the expandable title
  * [cellRenderer]: the cell renderer to be used for the list items
  */
-open class ComponentListInspectorBuilder(val tagName: String, val title: String, val cellRenderer: ColoredListCellRenderer<NlComponent>)
+abstract class ComponentListInspectorBuilder(val tagName: String,
+                                             val title: String,
+                                             private val cellRenderer: ColoredListCellRenderer<NlComponent>)
   : InspectorBuilder<NelePropertyItem> {
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     val component = properties.first?.components?.singleOrNull() ?: return
@@ -42,9 +52,60 @@ open class ComponentListInspectorBuilder(val tagName: String, val title: String,
     }
 
     val model = SortedListModel<NlComponent>(compareBy { it.id })
-    model.addAll(component.children.filter { it.tagName == tagName })
+    refresh(component, model)
 
-    val titleModel = inspector.addExpandableTitle(title, model.size > 0);
-    inspector.addComponent(ComponentList(model, cellRenderer), titleModel)
+    val componentList = ComponentList(model, cellRenderer)
+    val list = componentList.list
+
+    val addAction = AddAction(this, component, model)
+    val deleteAction = DeleteAction(this, component, model, list)
+
+    val titleModel = inspector.addExpandableTitle(title, model.size > 0, addAction, deleteAction)
+    addAction.model = titleModel
+    deleteAction.model = titleModel
+
+    list.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent) {
+        if (e.clickCount == 2 && list.selectedValuesList.size == 1) {
+          onEdit(list.selectedValue)
+          titleModel.refresh()
+        }
+      }
+    })
+
+    inspector.addComponent(componentList, titleModel)
+  }
+
+  protected abstract fun onAdd(parent: NlComponent)
+  protected abstract fun onEdit(component: NlComponent)
+
+  private fun refresh(component: NlComponent, model: SortedListModel<NlComponent>) {
+    model.clear()
+    model.addAll(component.children.filter { it.tagName == tagName })
+  }
+
+  private class AddAction(private val builder: ComponentListInspectorBuilder,
+                          private val component: NlComponent,
+                          private val listModel: SortedListModel<NlComponent>)
+    : AnAction(null, "Add Component", AllIcons.General.Add) {
+    var model: InspectorLineModel? = null
+    override fun actionPerformed(e: AnActionEvent) {
+      builder.onAdd(component)
+      builder.refresh(component, listModel)
+      model?.refresh()
+    }
+  }
+
+  private class DeleteAction(private val builder: ComponentListInspectorBuilder,
+                             private val component: NlComponent,
+                             private val listModel: SortedListModel<NlComponent>,
+                             private val list: JBList<NlComponent>)
+    : AnAction(null, "Delete Component", StudioIcons.Common.REMOVE) {
+    var model: InspectorLineModel? = null
+    override fun actionPerformed(e: AnActionEvent) {
+      component.model.delete(list.selectedValuesList)
+      builder.refresh(component, listModel)
+      model?.refresh()
+    }
   }
 }
