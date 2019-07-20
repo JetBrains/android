@@ -15,7 +15,32 @@
  */
 package com.android.tools.idea.naveditor.property2.inspector
 
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker
+import com.android.tools.idea.naveditor.property.inspector.AddArgumentDialog
 import com.android.tools.idea.naveditor.property2.ui.ArgumentCellRenderer
+import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_ARGUMENT
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.EDIT_ARGUMENT
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 
-class ArgumentInspectorBuilder : ComponentListInspectorBuilder(TAG_ARGUMENT, "Arguments", ArgumentCellRenderer())
+class ArgumentInspectorBuilder : ComponentListInspectorBuilder(TAG_ARGUMENT, "Arguments", ArgumentCellRenderer()) {
+  override fun onAdd(parent: NlComponent) {
+    invokeDialog(null, parent)
+  }
+
+  override fun onEdit(component: NlComponent) {
+    component.parent?.let { invokeDialog(component, it) }
+  }
+
+  private fun invokeDialog(component: NlComponent?, parent: NlComponent) {
+    val argumentDialog = AddArgumentDialog(component, parent)
+
+    if (argumentDialog.showAndGet()) {
+      argumentDialog.save()
+      NavUsageTracker.getInstance(parent.model).createEvent(if (component == null) CREATE_ARGUMENT else EDIT_ARGUMENT)
+        .withSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).log()
+    }
+  }
+}
+

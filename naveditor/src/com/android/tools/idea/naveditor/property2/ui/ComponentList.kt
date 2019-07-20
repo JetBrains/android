@@ -21,6 +21,8 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SortedListModel
 import com.intellij.ui.components.JBList
 import java.awt.BorderLayout
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 
@@ -39,6 +41,12 @@ class ComponentList(model: SortedListModel<NlComponent>, cellRenderer: ColoredLi
     list.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
     list.fixedCellWidth = 1
     list.cellRenderer = cellRenderer
+
+    list.addFocusListener(object : FocusAdapter() {
+      override fun focusLost(event: FocusEvent?) {
+        list.clearSelection()
+      }
+    })
 
     add(list, BorderLayout.CENTER)
   }
