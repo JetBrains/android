@@ -197,7 +197,7 @@ public class MemoryServiceProxy extends ServiceProxy {
       TLongObjectHashMap<AllocationsInfo> infos = myTrackingInfos.get(sessionId);
       TrackAllocationsResponse.Builder responseBuilder = TrackAllocationsResponse.newBuilder();
       LegacyAllocationTracker tracker = myLegacyTrackers.get(sessionId);
-      boolean success = tracker.trackAllocations(startTimeNs, startTimeNs, true, null, null);
+      boolean success = tracker.trackAllocations(true, null, null);
       if (success) {
         AllocationsInfo newInfo = AllocationsInfo.newBuilder()
           .setStartTime(startTimeNs)
@@ -229,7 +229,7 @@ public class MemoryServiceProxy extends ServiceProxy {
       LegacyAllocationTracker tracker = myLegacyTrackers.get(sessionId);
       TLongObjectHashMap<AllocationsInfo> infos = myTrackingInfos.get(sessionId);
       TrackAllocationsResponse.Builder responseBuilder = TrackAllocationsResponse.newBuilder();
-      boolean success = tracker.trackAllocations(lastInfo.getStartTime(), endtimeNs, false, myFetchExecutor,
+      boolean success = tracker.trackAllocations(false, myFetchExecutor,
                                                  bytes -> saveAllocationData(sessionId, lastInfo.getStartTime(), bytes));
       AllocationsInfo.Builder lastInfoBuilder = lastInfo.toBuilder();
       lastInfoBuilder.setEndTime(endtimeNs);

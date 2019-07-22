@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -46,6 +48,7 @@ public class TransportProxy {
   @NotNull private IDevice myDevice;
   @NotNull private ManagedChannel myTransportChannel;
   @NotNull private final TransportServiceProxy myProxyService;
+  @NotNull private final LinkedBlockingDeque<Common.Event> myProxyEventQueue = new LinkedBlockingDeque<>();
   // General file/byte cache used in the proxy layer.
   @NotNull private final Map<String, ByteString> myProxyBytesCache = Collections.synchronizedMap(new HashMap<>());
 
@@ -53,7 +56,12 @@ public class TransportProxy {
     myDevice = ddmlibDevice;
     myTransportChannel = transportChannel;
     myProxyServices = new LinkedList<>();
-    myProxyService = new TransportServiceProxy(ddmlibDevice, transportDevice, transportChannel, myProxyBytesCache);
+    myProxyService = new TransportServiceProxy(ddmlibDevice, transportDevice, transportChannel, myProxyEventQueue, myProxyBytesCache);
+  }
+
+  @NotNull
+  public BlockingDeque<Common.Event> getEventQueue() {
+    return myProxyEventQueue;
   }
 
   @NotNull

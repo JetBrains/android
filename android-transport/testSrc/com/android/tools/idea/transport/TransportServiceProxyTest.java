@@ -70,7 +70,8 @@ public class TransportServiceProxyTest {
     Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
     TransportServiceProxy proxy =
       new TransportServiceProxy(mockDevice, transportMockDevice,
-                                startNamedChannel("testBindServiceContainsAllMethods", new FakeTransportService()), new HashMap<>());
+                                startNamedChannel("testBindServiceContainsAllMethods", new FakeTransportService()),
+                                new LinkedBlockingDeque<>(), new HashMap<>());
 
     ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
     Collection<MethodDescriptor<?, ?>> allMethods = TransportServiceGrpc.getServiceDescriptor().getMethods();
@@ -117,7 +118,8 @@ public class TransportServiceProxyTest {
 
     TransportServiceProxy proxy =
       new TransportServiceProxy(mockDevice, transportMockDevice,
-                                startNamedChannel("testClientsWithNullDescriptionsNotCached", new FakeTransportService()), new HashMap<>());
+                                startNamedChannel("testClientsWithNullDescriptionsNotCached", new FakeTransportService()),
+                                new LinkedBlockingDeque<>(), new HashMap<>());
     Map<Client, Common.Process> cachedProcesses = proxy.getCachedProcesses();
     assertThat(cachedProcesses.size()).isEqualTo(1);
     Map.Entry<Client, Common.Process> cachedProcess = cachedProcesses.entrySet().iterator().next();
@@ -139,7 +141,7 @@ public class TransportServiceProxyTest {
     FakeTransportService thruService = new FakeTransportService();
     ManagedChannel thruChannel = startNamedChannel("testEventStreaming", thruService);
     TransportServiceProxy proxy =
-      new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel, new HashMap<>());
+      new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel, new LinkedBlockingDeque<>(), new HashMap<>());
     List<Common.Event> receivedEvents = new ArrayList<>();
     // We should expect six events: two process starts events, followed by event1 and event2, then process ends events.
     CountDownLatch latch = new CountDownLatch(1);
@@ -198,7 +200,7 @@ public class TransportServiceProxyTest {
     FakeTransportService thruService = new FakeTransportService();
     TransportServiceProxy proxy =
       new TransportServiceProxy(mockDevice, transportMockDevice,
-                                startNamedChannel("testProxyCommandHandlers", thruService), new HashMap<>());
+                                startNamedChannel("testProxyCommandHandlers", thruService), new LinkedBlockingDeque<>(), new HashMap<>());
 
     CountDownLatch latch = new CountDownLatch(1);
     proxy.registerCommandHandler(ECHO, cmd -> {
@@ -233,7 +235,7 @@ public class TransportServiceProxyTest {
     FakeTransportService thruService = new FakeTransportService();
     ManagedChannel thruChannel = startNamedChannel("testEventPreprocessors", thruService);
     TransportServiceProxy proxy =
-      new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel, new HashMap<>());
+      new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel, new LinkedBlockingDeque<>(), new HashMap<>());
 
     CountDownLatch latch = new CountDownLatch(1);
     List<Common.Event> receivedEvents = new ArrayList<>();
