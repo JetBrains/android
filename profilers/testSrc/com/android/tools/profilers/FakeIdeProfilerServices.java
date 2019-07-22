@@ -159,6 +159,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myIsCaptureStageEnabled = false;
 
   /**
+   * Whether profiler audits should be generated
+   */
+  private boolean isAuditsEnabled = true;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -308,6 +313,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isPerformanceMonitoringEnabled() {
         return false;
       }
+
+      @Override
+      public boolean isAuditsEnabled() { return isAuditsEnabled; }
 
       @Override
       public boolean isSessionImportEnabled() {
