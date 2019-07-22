@@ -24,9 +24,7 @@ import java.util.function.Consumer;
  * An interface to perform allocation tracking using JDWP.
  */
 public interface LegacyAllocationTracker {
-  boolean trackAllocations(long startTime,
-                           long endTime,
-                           boolean enabled,
+  boolean trackAllocations(boolean enabled,
                            @Nullable Executor executor,
                            @Nullable Consumer<byte[]> allocationConsumer);
 }
