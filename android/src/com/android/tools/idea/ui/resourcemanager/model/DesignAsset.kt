@@ -44,7 +44,7 @@ interface Asset {
     fun fromResourceItem(resourceItem: ResourceItem): Asset? = fromResourceItem(resourceItem, resourceItem.type)
 
     fun fromResourceItem(resourceItem: ResourceItem, resourceType: ResourceType): Asset? {
-      val file = resourceItem.getSourceAsVirtualFile() ?: return null // TODO: Return a BaseAsset here.
+      val file = resourceItem.getSourceAsVirtualFile() ?: return BaseAsset(resourceType, resourceItem.name, resourceItem)
       return DesignAsset(
         file = file,
         qualifiers = resourceItem.configuration.qualifiers.toList(),

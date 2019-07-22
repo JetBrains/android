@@ -32,16 +32,17 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.theme.ResolutionUtils
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
+import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
-import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableConfigurations
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableValue
 import com.android.tools.idea.util.androidFacet
@@ -234,6 +235,24 @@ class ResourceExplorerViewModelImpl(
       .toList()
   }
 
+  /** Returns [ResourceType.SAMPLE_DATA] resources that match the content type of the requested [type]. E.g: Images for Drawables. */
+  private fun getSampleDataResources(forFacet: AndroidFacet, type: ResourceType): ResourceSection {
+    val repoManager = ResourceRepositoryManager.getInstance(forFacet).appResources
+    val resources = repoManager.namespaces.flatMap { namespace ->
+      repoManager.getResources(namespace, ResourceType.SAMPLE_DATA) { sampleItem ->
+        if (sampleItem is SampleDataResourceItem) {
+          when (type) {
+            ResourceType.DRAWABLE -> sampleItem.contentType == SampleDataResourceItem.ContentType.IMAGE
+            ResourceType.STRING -> sampleItem.contentType != SampleDataResourceItem.ContentType.IMAGE
+            else -> false
+          }
+        }
+        else false
+      }
+    }
+    return createResourceSection(ResourceType.SAMPLE_DATA.displayName, resources)
+  }
+
   /**
    * Returns a [ResourceSection] of the Android Framework resources.
    */
@@ -280,6 +299,7 @@ class ResourceExplorerViewModelImpl(
       getResourceSections(facet,
                           showModuleDependencies = filterOptions.isShowModuleDependencies,
                           showLibraries = filterOptions.isShowLibraries,
+                          showSampleData = filterOptions.isShowSampleData,
                           showAndroidResources = filterOptions.showAndroidResources,
                           showThemeAttributes = filterOptions.showThemeAttributes)
     },
@@ -300,6 +320,7 @@ class ResourceExplorerViewModelImpl(
           getResourceSections(it,
                               showModuleDependencies = false,
                               showLibraries = false,
+                              showSampleData = false,
                               showAndroidResources = false,
                               showThemeAttributes = false)
         } ?: emptyList()
@@ -311,10 +332,15 @@ class ResourceExplorerViewModelImpl(
   private fun getResourceSections(forFacet: AndroidFacet,
                                   showModuleDependencies: Boolean,
                                   showLibraries: Boolean,
+                                  showSampleData: Boolean,
                                   showAndroidResources: Boolean,
                                   showThemeAttributes: Boolean): List<ResourceSection> {
     val resourceType = resourceTypes[resourceTypeIndex]
-    val resources = mutableListOf(getModuleResources(forFacet, resourceType))
+    val resources = mutableListOf<ResourceSection>()
+    if (showSampleData) {
+      resources.add(getSampleDataResources(forFacet, resourceType))
+    }
+    resources.add(getModuleResources(forFacet, resourceType))
     if (showModuleDependencies) {
       resources.addAll(getDependentModuleResources(forFacet, resourceType))
     }

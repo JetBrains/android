@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
 import com.android.tools.idea.ui.resourcemanager.widget.LinkLabelSearchView
 import com.android.tools.idea.util.androidFacet
@@ -157,8 +158,9 @@ class ResourceExplorerViewTest {
 
     // Dummy implementation of a ViewModel to record the opened file
     val viewModel = object : ResourceExplorerViewModel by createViewModel(projectRule.module) {
-      override val doSelectAssetAction: (asset: DesignAsset) -> Unit =  { asset ->
-        openedFile = FileUtil.getRelativePath(projectRule.fixture.tempDirPath, asset.file.path, '/').orEmpty()
+      override val doSelectAssetAction: (asset: Asset) -> Unit =  { asset ->
+        assertThat(asset).isInstanceOf(DesignAsset::class.java)
+        openedFile = FileUtil.getRelativePath(projectRule.fixture.tempDirPath, (asset as DesignAsset).file.path, '/').orEmpty()
       }
     }
 
