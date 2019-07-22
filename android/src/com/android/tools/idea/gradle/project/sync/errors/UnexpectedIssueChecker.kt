@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
-import com.intellij.ide.actions.ShowFilePathAction
+import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.application.invokeLater
@@ -71,7 +71,7 @@ class UnexpectedIssueChecker: GradleIssueChecker {
       val future = CompletableFuture<Any>()
       invokeLater {
         val logFile = File(PathManager.getLogPath(), IDEA_LOG_FILE_NAME)
-        ShowFilePathAction.openFile(logFile)
+        RevealFileAction.openFile(logFile)
         future.complete(null)
       }
       return future

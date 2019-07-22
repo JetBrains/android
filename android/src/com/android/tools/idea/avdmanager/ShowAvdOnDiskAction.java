@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.ide.actions.RevealFileAction;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -37,7 +37,7 @@ public class ShowAvdOnDiskAction extends AvdUiAction {
       return;
     }
     File dataFolder = new File(info.getDataFolderPath());
-    ShowFilePathAction.openDirectory(dataFolder);
+    RevealFileAction.openDirectory(dataFolder);
   }
 
   @Override
