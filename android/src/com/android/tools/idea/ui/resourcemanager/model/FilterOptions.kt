@@ -26,6 +26,7 @@ class FilterOptions internal constructor(
   private val searchStringChanged: (String) -> Unit = {},
   moduleDependenciesInitialValue: Boolean,
   librariesInitialValue: Boolean,
+  val isShowSampleData: Boolean,
   val showAndroidResources: Boolean,
   val showThemeAttributes: Boolean) {
 
@@ -53,15 +54,17 @@ class FilterOptions internal constructor(
                initialParams: FilterOptionsParams)
       = FilterOptions(isShowResourcesChanged,
                       searchStringChanged,
-                      initialParams.moduleDependenciesInitialValue,
-                      initialParams.librariesInitialValue,
-                      initialParams.androidResourcesInitialValue,
-                      initialParams.themeAttributesInitialValue)
+                      moduleDependenciesInitialValue =  initialParams.moduleDependenciesInitialValue,
+                      librariesInitialValue = initialParams.librariesInitialValue,
+                      isShowSampleData = initialParams.showSampleData,
+                      showAndroidResources = initialParams.androidResourcesInitialValue,
+                      showThemeAttributes = initialParams.themeAttributesInitialValue)
 
     /** Instantiate [FilterOptions] with no callback implementation and with all values initialized as false. */
     @TestOnly
     fun createDefault() = FilterOptions(moduleDependenciesInitialValue = false,
                                         librariesInitialValue = false,
+                                        isShowSampleData = false,
                                         showAndroidResources = false,
                                         showThemeAttributes = false)
   }
@@ -71,6 +74,7 @@ class FilterOptions internal constructor(
 data class FilterOptionsParams(
   val moduleDependenciesInitialValue: Boolean,
   val librariesInitialValue: Boolean,
+  val showSampleData: Boolean,
   val androidResourcesInitialValue: Boolean,
   val themeAttributesInitialValue: Boolean
 )
