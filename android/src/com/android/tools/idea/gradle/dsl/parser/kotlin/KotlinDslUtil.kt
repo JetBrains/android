@@ -177,9 +177,9 @@ internal fun findInjections(
         .flatMap { entry -> when(entry) {
           // any constant portion of a KtStringTemplateExpression
           is KtLiteralStringTemplateEntry -> noInjections
-          // TODO(xof): implement variable lookup (e.g. $bar)
-          is KtSimpleNameStringTemplateEntry -> noInjections
-          // long-form interpolation ${...} -- compute injections for the contained expression
+          // short-form interpolation $foo -- we know we have just a name, which we can resolve.
+          is KtSimpleNameStringTemplateEntry -> entry.expression?.let { findInjections(context, it, includeResolved, entry) } ?: noInjections
+          // long-form interpolation ${...} -- compute injections for the contained expression.
           is KtBlockStringTemplateEntry -> entry.expression?.let { findInjections(context, it, includeResolved, entry) } ?: noInjections
           else -> noInjections
         }}
