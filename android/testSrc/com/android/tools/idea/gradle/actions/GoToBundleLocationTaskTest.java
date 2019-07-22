@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.actions.GoToBundleLocationTask.OpenFolderNo
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.JavaProjectTestCase;
@@ -76,7 +76,7 @@ public class GoToBundleLocationTaskTest extends JavaProjectTestCase {
     Module module = getModule();
 
     myTask.execute(createBuildResult(null /* build successful - no errors */));
-    if (ShowFilePathAction.isSupported()) {
+    if (RevealFileAction.isSupported()) {
       String moduleName = module.getName();
       String message = getModuleNotificationMessage(moduleName);
       Map<String, File> bundlePathsPerModule = Collections.singletonMap(moduleName, myBundleFilePath);

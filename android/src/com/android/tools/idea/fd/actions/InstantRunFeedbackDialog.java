@@ -16,7 +16,7 @@
 package com.android.tools.idea.fd.actions;
 
 import com.android.tools.idea.fd.FlightRecorder;
-import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -61,7 +61,7 @@ public class InstantRunFeedbackDialog extends DialogWrapper {
         if (event.getButton() == MouseEvent.BUTTON1) {
           Path selectedValue = myFilesList.getSelectedValue();
           if (selectedValue != null) {
-            ShowFilePathAction.openFile(selectedValue.toFile());
+            RevealFileAction.openFile(selectedValue.toFile());
             return true;
           }
         }

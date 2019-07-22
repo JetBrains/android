@@ -17,7 +17,7 @@ package com.android.tools.idea.ddms.actions;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.CommonBundle;
-import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.openapi.fileTypes.NativeFileType;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -67,15 +67,15 @@ final class PullRecordingTask extends Task.Modal {
     String cancel = CommonBundle.getOkButtonText();
     Icon icon = Messages.getInformationIcon();
 
-    if (ShowFilePathAction.isSupported()) {
-      String no = "Show in " + ShowFilePathAction.getFileManagerName();
+    if (RevealFileAction.isSupported()) {
+      String no = "Show in " + RevealFileAction.getFileManagerName();
       int exitCode = Messages.showYesNoCancelDialog(myProject, message, ScreenRecorderAction.TITLE, "Open", no, cancel, icon);
 
       if (exitCode == Messages.YES) {
         openSavedFile();
       }
       else if (exitCode == Messages.NO) {
-        ShowFilePathAction.openFile(new File(myLocalPath));
+        RevealFileAction.openFile(new File(myLocalPath));
       }
     }
     else if (Messages.showOkCancelDialog(myProject, message, ScreenRecorderAction.TITLE, "Open File", cancel, icon) == Messages.OK) {

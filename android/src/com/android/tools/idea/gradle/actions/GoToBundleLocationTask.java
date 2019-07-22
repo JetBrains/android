@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
@@ -122,7 +122,7 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
 
   private void notifySuccess(@NotNull AndroidNotification notification,
                              @NotNull SortedMap<String, File> bundlePathsByModule) {
-    if (ShowFilePathAction.isSupported()) {
+    if (RevealFileAction.isSupported()) {
       StringBuilder buffer = new StringBuilder();
       buffer.append("App bundle(s) generated successfully:<br/>");
 
@@ -292,10 +292,10 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
 
     private static void showFileOrDirectory(@NotNull File file) {
       if (file.isFile()) {
-        ShowFilePathAction.openFile(file);
+        RevealFileAction.openFile(file);
       }
       else {
-        ShowFilePathAction.openDirectory(file.getParentFile());
+        RevealFileAction.openDirectory(file.getParentFile());
       }
     }
 
