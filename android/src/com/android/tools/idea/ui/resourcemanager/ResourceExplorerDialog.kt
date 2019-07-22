@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtUiUtils
@@ -29,12 +30,12 @@ import javax.swing.BorderFactory
 
 /** A [ResourceExplorer] used in a dialog for resource picking. */
 class ResourceExplorerDialog(
-  facet: AndroidFacet, forTypes: Set<ResourceType>, currentFile: VirtualFile?
+  facet: AndroidFacet, forTypes: Set<ResourceType>, showSampleData: Boolean, currentFile: VirtualFile?
 ): ResourcePickerDialog(facet.module.project) {
 
   @TestOnly // TODO: consider getting this in a better way.
   val resourceExplorerPanel = ResourceExplorer.createResourcePicker(
-    facet, forTypes, currentFile, this::updateSelectedResource, this::doSelectResource)
+    facet, forTypes, showSampleData, currentFile, this::updateSelectedResource, this::doSelectResource)
 
   private var pickedResourceName: String? = null
 
@@ -66,5 +67,12 @@ class ResourceExplorerDialog(
 }
 
 /** The resource reference in the form of @namespace:color/color_name or ?namespace:attr/attr_name. */
-private fun ResourceItem.getReferenceString(): String
-  = ResolutionUtils.getResourceUrlFromQualifiedName(referenceToSelf.qualifiedName, type.getName())
+private fun ResourceItem.getReferenceString(): String {
+  val resourceReference = referenceToSelf
+  var qualifiedName = resourceReference.qualifiedName
+  if (resourceReference.namespace == ResourceNamespace.TOOLS && qualifiedName.lastIndexOf(":") < 0) {
+    // TODO: Fix. This is a workaround, qualified name should already return this.
+    qualifiedName = resourceReference.namespace.toString() + ":" + qualifiedName
+  }
+  return ResolutionUtils.getResourceUrlFromQualifiedName(qualifiedName, type.getName())
+}

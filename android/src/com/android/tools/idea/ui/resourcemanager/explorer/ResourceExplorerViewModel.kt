@@ -108,7 +108,7 @@ interface ResourceExplorerViewModel {
   /**
    * Action when selecting an [asset] (double click or select + ENTER key).
    */
-  val doSelectAssetAction: (asset: DesignAsset) -> Unit
+  val doSelectAssetAction: (asset: Asset) -> Unit
 
   fun facetUpdated(newFacet: AndroidFacet, oldFacet: AndroidFacet)
 
@@ -128,6 +128,7 @@ interface ResourceExplorerViewModel {
                                       null,
                                       FilterOptionsParams(moduleDependenciesInitialValue = false,
                                                           librariesInitialValue = false,
+                                                          showSampleData = false,
                                                           androidResourcesInitialValue = false,
                                                           themeAttributesInitialValue = false),
                                       MANAGER_SUPPORTED_RESOURCES)
@@ -135,12 +136,14 @@ interface ResourceExplorerViewModel {
 
     fun createResPickerViewModel(facet: AndroidFacet,
                                  supportedResourceTypes: Array<ResourceType>,
+                                 showSampleData: Boolean,
                                  currentFile: VirtualFile?,
                                  doSelectAssetCallback: (resource: ResourceItem) -> Unit): ResourceExplorerViewModel
       = ResourceExplorerViewModelImpl(facet,
                                       currentFile,
                                       FilterOptionsParams(moduleDependenciesInitialValue = true,
                                                           librariesInitialValue = false,
+                                                          showSampleData = showSampleData,
                                                           androidResourcesInitialValue = true,
                                                           themeAttributesInitialValue = true),
                                       supportedResourceTypes) {
