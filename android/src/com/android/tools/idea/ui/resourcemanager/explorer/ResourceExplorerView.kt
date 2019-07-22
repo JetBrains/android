@@ -293,7 +293,6 @@ class ResourceExplorerView(
         showDetailView(designAssetSet)
         return
       }
-      if (!(asset is DesignAsset)) return // TODO: Show some sort of ui feedback. E.g: A warning icon on resource + error dialog.
       ResourceManagerTracking.logAssetOpened(asset.type)
       resourcesBrowserViewModel.doSelectAssetAction(asset)
       return
@@ -342,11 +341,17 @@ class ResourceExplorerView(
    */
   private fun updateSummaryPreviewIcon() {
     val assetSet = (sectionList.selectedValue as? ResourceAssetSet)?: return
-    val assetToPreview = assetSet.getHighestDensityAsset() as DesignAsset
+    val assetForPreview = assetSet.getHighestDensityAsset()
     summaryView?.let {
-      val previewProvider = resourcesBrowserViewModel.summaryPreviewManager.getPreviewProvider(assetToPreview.type)
-      summaryView.icon = if (!(previewProvider is DefaultIconProvider)) previewProvider.getIcon(
-        assetToPreview,
+      if (assetForPreview !is DesignAsset) {
+        // TODO: Figure out a way to render a BaseAssets, for things like Tools -> SampleData.
+        summaryView.icon = null
+        summaryView.repaint()
+        return
+      }
+      val previewProvider = resourcesBrowserViewModel.summaryPreviewManager.getPreviewProvider(assetForPreview.type)
+      summaryView.icon = if (previewProvider !is DefaultIconProvider) previewProvider.getIcon(
+        assetForPreview,
         JBUI.scale(DetailedPreview.PREVIEW_ICON_SIZE),
         JBUI.scale(DetailedPreview.PREVIEW_ICON_SIZE),
         refreshCallback = {
