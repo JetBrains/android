@@ -207,6 +207,11 @@ public final class StudioFlags {
     "Shows recording options and status of the ongoing recording in the method trace pane.",
     true
   );
+
+  public static final Flag<Boolean> PROFILER_AUDITS = Flag.create(
+    PROFILER, "audits", "Enable profiler audits",
+    "When enabled, profiler workflows such as capturing CPU atrace captures will generate audits",
+    false);
   //endregion
 
   //region Layout Editor

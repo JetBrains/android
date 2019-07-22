@@ -35,6 +35,7 @@ public interface FeatureConfig {
   boolean isMemorySnapshotEnabled();
   boolean isPerfettoEnabled();
   boolean isPerformanceMonitoringEnabled();
+  boolean isAuditsEnabled();
   boolean isSessionImportEnabled();
   boolean isSimpleperfHostEnabled();
   boolean isStartupCpuProfilingEnabled();
