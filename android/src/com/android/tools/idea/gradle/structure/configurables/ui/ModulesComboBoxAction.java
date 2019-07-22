@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
+import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
+
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
+import com.android.utils.HtmlBuilder;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ui.UIUtil;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
 public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @NotNull private final PsContext myContext;
@@ -89,7 +87,13 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
     }
     else {
       String parentPath = GradleUtil.getParentModulePath(gradlePath);
-      return UIUtil.toHtml(StringUtil.escapeXmlEntities(parentPath + ":") + "<b>" + StringUtil.escapeXmlEntities(module.getName()) + "</b>");
+      return new HtmlBuilder()
+        .openHtmlBody()
+        .add(parentPath)
+        .add(":")
+        .addBold(module.getName())
+        .closeHtmlBody()
+        .getHtml();
     }
   }
 }
