@@ -22,12 +22,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.android.annotations.Nullable;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.profilers.LegacyAllocationTracker;
+import com.android.tools.idea.profilers.FakeLegacyAllocationTracker;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.Common;
@@ -53,9 +52,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -67,30 +63,16 @@ public class MemoryServiceProxyTest {
   private static final Common.Session SESSION1 = Common.Session.newBuilder().setSessionId(1).setPid(1).build();
   private static final Common.Session SESSION2 = Common.Session.newBuilder().setSessionId(2).setPid(2).build();
 
-  /**
-   * Auxiliary static test data used for verifying legacy allocation tracking workflow
-   */
-  private static final byte[] RAW_DATA = new byte[]{'a'};
-
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryServiceProxyTest", myService);
   @NotNull private MemoryServiceProxy myProxy;
 
-  // Mockable tracker states
-  private CountDownLatch myParsingWaitLatch;
-  private CountDownLatch myParsingDoneLatch;
-  private boolean myAllocationTrackingState;
-  private boolean myReturnNullTrackingData;
   private IDevice myDevice;
   private Map<String, ByteString> myProxyBytesCache = new HashMap<>();
+  private FakeLegacyAllocationTracker myTracker = new FakeLegacyAllocationTracker();
 
   @Before
   public void setUp() {
-    myReturnNullTrackingData = false;
-    myAllocationTrackingState = false;
-    myParsingWaitLatch = new CountDownLatch(1);
-    myParsingDoneLatch = new CountDownLatch(1);
-
     myDevice = mock(IDevice.class);
     when(myDevice.getSerialNumber()).thenReturn("Serial");
     when(myDevice.getName()).thenReturn("Device");
@@ -99,7 +81,7 @@ public class MemoryServiceProxyTest {
     when(myDevice.isOnline()).thenReturn(true);
 
     ManagedChannel mockChannel = InProcessChannelBuilder.forName("MemoryServiceProxyTest").build();
-    myProxy = new MemoryServiceProxy(myDevice, mockChannel, Runnable::run, (device, process) -> getTracker(device, process),
+    myProxy = new MemoryServiceProxy(myDevice, mockChannel, Runnable::run, (device, process) -> myTracker,
                                      myProxyBytesCache);
 
     // Monitoring two processes simultaneously
@@ -184,7 +166,7 @@ public class MemoryServiceProxyTest {
     myProxy.trackAllocations(
       TrackAllocationsRequest.newBuilder().setSession(SESSION1).setEnabled(true).setRequestTime(time1).build(),
       observer1);
-    assertThat(myAllocationTrackingState).isTrue();
+    assertThat(myTracker.getTrackingState()).isTrue();
     verify(observer1, times(1)).onNext(expected1);
     verify(observer1, times(1)).onCompleted();
 
@@ -204,9 +186,10 @@ public class MemoryServiceProxyTest {
     verify(observer2, times(1)).onCompleted();
 
     // Mock completion of the parsing process and the resulting data.
-    myParsingWaitLatch.countDown();
-    myParsingDoneLatch.await();
-    assertThat(myProxyBytesCache.get(Integer.toString(time1))).isEqualTo(ByteString.copyFrom(RAW_DATA));
+    myTracker.getParsingWaitLatch().countDown();
+    myTracker.getParsingDoneLatch().await();
+    assertThat(myProxyBytesCache.get(Integer.toString(time1)))
+      .isEqualTo(ByteString.copyFrom(FakeLegacyAllocationTracker.Companion.getRAW_DATA()));
   }
 
   @Test
@@ -225,9 +208,9 @@ public class MemoryServiceProxyTest {
       mock(StreamObserver.class));
 
     // Mock completion of the parsing process and returning of null data;
-    myReturnNullTrackingData = true;
-    myParsingWaitLatch.countDown();
-    myParsingDoneLatch.await();
+    myTracker.setReturnNullTrackingData(true);
+    myTracker.getParsingWaitLatch().countDown();
+    myTracker.getParsingDoneLatch().await();
     assertThat(myProxyBytesCache.get(Integer.toString(time1))).isEqualTo(ByteString.EMPTY);
   }
 
@@ -262,32 +245,5 @@ public class MemoryServiceProxyTest {
     when(myDevice.getClients()).thenReturn(new Client[0]);
     myProxy.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(SESSION1).build(), mock(StreamObserver.class));
     verify(client, never()).executeGarbageCollector();
-  }
-
-  private LegacyAllocationTracker getTracker(IDevice device, int processId) {
-    return new LegacyAllocationTracker() {
-      @Override
-      public boolean trackAllocations(long startTime,
-                                      long endTime,
-                                      boolean enabled,
-                                      @Nullable Executor executor,
-                                      @Nullable Consumer<byte[]> allocationConsumer) {
-        myAllocationTrackingState = enabled;
-        if (!enabled) {
-          new Thread(() -> {
-            try {
-              myParsingWaitLatch.await();
-            }
-            catch (InterruptedException ignored) {
-            }
-
-            allocationConsumer.accept(myReturnNullTrackingData ? null : RAW_DATA);
-            myParsingDoneLatch.countDown();
-          }).start();
-        }
-
-        return true;
-      }
-    };
   }
 }
