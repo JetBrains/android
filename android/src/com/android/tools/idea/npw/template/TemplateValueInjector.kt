@@ -73,7 +73,6 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LOW_MEMORY
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_EAP_REPO
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_EAP_REPO_URL
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE
@@ -96,7 +95,6 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_TEST_DIR
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_TEST_OUT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT
-import com.android.tools.idea.templates.TemplateMetadata.KOTLIN_EAP_REPO_URL
 import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
 import com.google.common.collect.Iterables
 import com.intellij.openapi.application.ApplicationManager
@@ -342,16 +340,11 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   private fun addKotlinVersion() {
-    // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     val kotlinVersion = getKotlinVersion()
+    // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     myTemplateValues[ATTR_KOTLIN_VERSION] = kotlinVersion
-    if (isEAP(kotlinVersion)) {
-      myTemplateValues[ATTR_KOTLIN_EAP_REPO] = true
-      myTemplateValues[ATTR_KOTLIN_EAP_REPO_URL] = KOTLIN_EAP_REPO_URL
-    }
+    myTemplateValues[ATTR_KOTLIN_EAP_REPO] = setOf("rc", "eap", "-M").any { it in kotlinVersion }
   }
-
-  private fun isEAP(version: String): Boolean = listOf("rc", "eap", "-M").any { version.contains(it) }
 
   private fun addBuildToolVersion(project: Project?, buildToolRevision: Revision) {
     val gradlePluginVersion = determineGradlePluginVersion(project)
