@@ -24,6 +24,7 @@ import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.util.ui.JBUI
 import java.awt.AWTEvent
 import java.awt.Dimension
+import java.awt.Graphics
 import java.awt.Rectangle
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -99,6 +100,18 @@ class OverflowingTabbedPaneWrapper : JComponent() {
   }
 
   override fun getPreferredSize(): Dimension = tabbedPane.preferredSize
+
+  override fun updateUI() {
+    super.updateUI()
+    background = tabbedPane.background
+  }
+
+  override fun paintComponent(g: Graphics?) {
+    super.paintComponent(g)
+    if (g == null) return
+    g.color = background
+    g.fillRect(0, 0, width, height)
+  }
 }
 
 private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
