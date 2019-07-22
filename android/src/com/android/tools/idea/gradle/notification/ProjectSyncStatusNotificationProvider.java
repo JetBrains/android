@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -43,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
-import static com.intellij.ide.actions.ShowFilePathAction.openFile;
 import static com.intellij.util.ThreeState.YES;
 
 /**
@@ -222,9 +221,9 @@ public final class ProjectSyncStatusNotificationProvider extends EditorNotificat
         }
       });
 
-      createActionLabel("Show Log in " + ShowFilePathAction.getFileManagerName(), () -> {
+      createActionLabel("Show Log in " + RevealFileAction.getFileManagerName(), () -> {
         File logFile = new File(PathManager.getLogPath(), "idea.log");
-        openFile(logFile);
+        RevealFileAction.openFile(logFile);
       });
     }
   }

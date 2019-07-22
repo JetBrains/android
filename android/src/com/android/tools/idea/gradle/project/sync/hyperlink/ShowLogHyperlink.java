@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NonNls;
@@ -34,6 +34,6 @@ public class ShowLogHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     File logFile = new File(PathManager.getLogPath(), IDEA_LOG_FILE_NAME);
-    ShowFilePathAction.openFile(logFile);
+    RevealFileAction.openFile(logFile);
   }
 }

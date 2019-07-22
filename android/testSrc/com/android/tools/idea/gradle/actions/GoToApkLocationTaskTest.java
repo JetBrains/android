@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.actions.GoToApkLocationTask.OpenFolderNotif
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
@@ -77,7 +77,7 @@ public class GoToApkLocationTaskTest extends JavaProjectTestCase {
     Module module = getModule();
 
     myTask.execute(createBuildResult(null /* build successful - no errors */));
-    if (ShowFilePathAction.isSupported()) {
+    if (RevealFileAction.isSupported()) {
       String moduleName = module.getName();
       String message = getModuleNotificationMessage(moduleName, null);
       Map<String, File> apkPathsPerModule = Collections.singletonMap(moduleName, myApkPath);
@@ -101,7 +101,7 @@ public class GoToApkLocationTaskTest extends JavaProjectTestCase {
     myTask = new GoToApkLocationTask(getProject(), modulesToPaths, null, NOTIFICATION_TITLE);
 
     myTask.execute(createBuildResult(null /* build successful - no errors */));
-    if (ShowFilePathAction.isSupported()) {
+    if (RevealFileAction.isSupported()) {
       String moduleName = module.getName();
       String featureModuleName = featureModule.getName();
       Map<String, File> apkPathsPerModule = new HashMap<>();

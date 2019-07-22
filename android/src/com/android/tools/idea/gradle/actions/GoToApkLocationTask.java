@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
@@ -101,7 +101,7 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
 
       AndroidNotification notification = AndroidNotification.getInstance(myProject);
       if (result.isBuildSuccessful()) {
-        if (ShowFilePathAction.isSupported()) {
+        if (RevealFileAction.isSupported()) {
           StringBuilder buffer = new StringBuilder();
           buffer.append("APK(s) generated successfully:<br/>");
           int moduleCount = moduleNames.size();
@@ -274,7 +274,7 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
         if (apkPath.isFile()){
           apkPath = apkPath.getParentFile();
         }
-        ShowFilePathAction.openDirectory(apkPath);
+        RevealFileAction.openDirectory(apkPath);
       }
     }
 
