@@ -21,14 +21,17 @@ import com.android.tools.adtui.workbench.Split;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.icons.AllIcons;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class NavPropertyPanelDefinition extends ToolWindowDefinition<DesignSurface> {
+  private static final int DEFAULT_NAV_PANEL_SIDE_WIDTH = 275;
 
   public NavPropertyPanelDefinition(@NotNull AndroidFacet facet, @NotNull Side side, @NotNull Split split, @NotNull AutoHide autoHide) {
     // TODO: Get a different 13x13 tool window icon
     super("Attributes", AllIcons.Toolwindows.ToolWindowStructure, "PROPERTIES", side, split, autoHide,
+          JBUI.scale(DEFAULT_NAV_PANEL_SIDE_WIDTH), DEFAULT_BUTTON_SIZE,
           (disposable) -> new NavPropertiesManager(facet, null, disposable));
   }
 }
