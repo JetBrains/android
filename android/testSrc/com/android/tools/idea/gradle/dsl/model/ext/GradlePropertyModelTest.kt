@@ -937,7 +937,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     var expected = "987654321"
     val propertyModel = extModel.findProperty("prop9")
     assertEquals(expected, propertyModel.getValue(STRING_TYPE))
-    assertEquals("9\${prop8}", propertyModel.getRawValue(STRING_TYPE))
+    assertEquals("9\${${extraName("prop8")}}", propertyModel.getRawValue(STRING_TYPE))
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
 
@@ -947,7 +947,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val value = deps[0]
       expected = expected.drop(1)
       assertEquals(expected, value.getValue(STRING_TYPE))
-      assertEquals("${9 - i}\${prop${8 - i}}", value.getRawValue(STRING_TYPE))
+      assertEquals("${9 - i}\${${extraName("prop${8 - i}")}}", value.getRawValue(STRING_TYPE))
       assertEquals(STRING, propertyModel.valueType)
       assertEquals(REGULAR, propertyModel.propertyType)
       deps = deps[0].dependencies
@@ -981,7 +981,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val value = map["key1"]!!
       assertEquals(REFERENCE, value.valueType)
       assertEquals(DERIVED, value.propertyType)
-      assertEquals("prop1", value.getValue(STRING_TYPE))
+      assertEquals(extraName("prop1"), value.getValue(STRING_TYPE))
       assertEquals("key1", value.name)
       assertEquals("ext.prop4.key1", value.fullyQualifiedName)
 
@@ -1365,7 +1365,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_DEPENDENCY_BASIC_CYCLE)
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.ext().findProperty("prop1")
-    verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{prop1}", STRING, REGULAR, 0)
+    verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{${extraName("prop1")}}", STRING, REGULAR, 0)
   }
 
   @Test
@@ -1373,7 +1373,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_DEPENDENCY_BASIC_CYCLE_REFERENCE)
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.ext().findProperty("prop1")
-    verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 0)
+    verifyPropertyModel(propertyModel, STRING_TYPE, extraName("prop1"), REFERENCE, REGULAR, 0)
   }
 
   @Test
