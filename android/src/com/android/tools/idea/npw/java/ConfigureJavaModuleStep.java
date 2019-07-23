@@ -69,7 +69,7 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
     myBindings.bindTwoWay(new TextProperty(myClassName), model.className());
 
     Expression<String> computedPackageName =
-      new DomainToPackageExpression(new StringValueProperty(getInitialDomain(false)), model.libraryNameName());
+      new DomainToPackageExpression(new StringValueProperty(getInitialDomain()), model.libraryNameName());
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
 
     TextProperty packageNameText = new TextProperty(myPackageName);
