@@ -137,7 +137,7 @@ public class ConflictSetTest extends IdeaTestCase {
 
       File rootDirPath = getBaseDirPath(myProject);
       AndroidModuleModel model =
-        new AndroidModuleModel(myModule.getName(), rootDirPath, myAppModel, myAppDebugVariant.getName(), myDependenciesFactory);
+        AndroidModuleModel.create(myModule.getName(), rootDirPath, myAppModel, myAppDebugVariant.getName(), myDependenciesFactory);
       facet.getConfiguration().setModel(model);
       facetModel.addFacet(facet);
     }
@@ -153,9 +153,8 @@ public class ConflictSetTest extends IdeaTestCase {
       AndroidFacet androidFacet = createFacet(facetManager, PROJECT_TYPE_LIBRARY);
 
       File moduleFilePath = new File(myLibModule.getModuleFilePath());
-      AndroidModuleModel model =
-        new AndroidModuleModel(myModule.getName(), moduleFilePath.getParentFile(), myLibModel, myLibDebugVariant.getName(),
-                               myDependenciesFactory);
+      AndroidModuleModel model = AndroidModuleModel
+        .create(myModule.getName(), moduleFilePath.getParentFile(), myLibModel, myLibDebugVariant.getName(), myDependenciesFactory);
       androidFacet.getConfiguration().setModel(model);
 
       facetModel.addFacet(androidFacet);
