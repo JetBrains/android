@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
-import com.android.tools.profilers.ProfilerStageTransferHandler;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.intellij.util.ui.JBUI;
@@ -67,7 +66,6 @@ final class CpuThreadsView {
   public CpuThreadsView(@NotNull CpuProfilerStage stage) {
     myStage = stage;
     myThreads = new DragAndDropList<>(stage.getThreadStates());
-    myThreads.setTransferHandler(new ProfilerStageTransferHandler());
     myPanel = createHideablePanel();
     setupListeners();
     myThreads.setBorder(null);
