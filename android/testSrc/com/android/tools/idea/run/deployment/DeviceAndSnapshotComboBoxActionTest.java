@@ -32,6 +32,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -82,8 +83,9 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     myEvent = Mockito.mock(AnActionEvent.class);
 
-    Mockito.when(myEvent.getProject()).thenReturn(myProject);
     Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
+    Mockito.when(myEvent.getProject()).thenReturn(myProject);
+    Mockito.when(myEvent.getPlace()).thenReturn(ActionPlaces.MAIN_TOOLBAR);
   }
 
   @Before
@@ -569,6 +571,21 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     // Assert
     assertNull(myPresentation.getDescription());
     assertTrue(myPresentation.isEnabled());
+  }
+
+  @Test
+  public void updateEventPlaceEqualsMainMenu() {
+    // Arrange
+    AnAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> false, project -> myDevicesGetter, project -> null, myClock);
+    Mockito.when(myEvent.getPlace()).thenReturn(ActionPlaces.MAIN_MENU);
+
+    // Act
+    action.update(myEvent);
+
+    // Assert
+    assertTrue(myPresentation.isVisible());
+    assertNull(myPresentation.getIcon());
+    assertEquals("Select Device...", myPresentation.getText());
   }
 
   @Test
