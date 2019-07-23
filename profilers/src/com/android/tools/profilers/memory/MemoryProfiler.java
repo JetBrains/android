@@ -27,7 +27,6 @@ import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
@@ -233,27 +232,41 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
-    Common.Session session = sessionsManager
-      .createImportedSessionLegacy(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, sessionStartTimeNs, sessionEndTimeNs,
-                                   startTimestampEpochMs);
     AllocationsInfo info = AllocationsInfo.newBuilder()
       .setStartTime(sessionStartTimeNs)
       .setEndTime(sessionEndTimeNs)
       .setLegacy(true)
       .build();
-    ImportLegacyAllocationsRequest request = ImportLegacyAllocationsRequest.newBuilder()
-      .setSession(session)
-      .setInfo(info)
-      .setData(ByteString.copyFrom(bytes))
-      .build();
-    ImportLegacyAllocationsResponse response = myProfilers.getClient().getMemoryClient().importLegacyAllocations(request);
-    // Select the new session
-    if (response.getStatus() == ImportLegacyAllocationsResponse.Status.SUCCESS) {
-      sessionsManager.update();
-      sessionsManager.setSession(session);
+    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Common.Event heapDumpEvent = Common.Event.newBuilder()
+        .setKind(Common.Event.Kind.MEMORY_ALLOC_TRACKING)
+        .setGroupId(info.getStartTime())
+        .setTimestamp(info.getStartTime())
+        .setIsEnded(true)
+        .setMemoryAllocTracking(Memory.MemoryAllocTrackingData.newBuilder().setInfo(info))
+        .build();
+      sessionsManager.createImportedSession(file.getName(),
+                                            Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, sessionStartTimeNs,
+                                            sessionEndTimeNs,
+                                            startTimestampEpochMs,
+                                            ImmutableMap.of(Long.toString(sessionStartTimeNs), ByteString.copyFrom(bytes)),
+                                            heapDumpEvent);
     }
     else {
-      Logger.getInstance(getClass()).error("Importing Session Failed: cannot import allocation records...");
+      Common.Session session = sessionsManager
+        .createImportedSessionLegacy(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, sessionStartTimeNs,
+                                     sessionEndTimeNs,
+                                     startTimestampEpochMs);
+      ImportLegacyAllocationsRequest request = ImportLegacyAllocationsRequest.newBuilder()
+        .setSession(session)
+        .setInfo(info)
+        .setData(ByteString.copyFrom(bytes))
+        .build();
+      myProfilers.getClient().getMemoryClient().importLegacyAllocations(request);
+
+      // Select the new session
+      sessionsManager.update();
+      sessionsManager.setSession(session);
     }
     myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
                                                                         SessionsManager.SessionCreationSource.MANUAL);
