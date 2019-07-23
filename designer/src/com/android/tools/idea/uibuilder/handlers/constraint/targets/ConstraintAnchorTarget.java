@@ -35,6 +35,7 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneComponentHelperKt;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
@@ -46,6 +47,7 @@ import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.PopupMenuListenerAdapter;
@@ -244,7 +246,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     if (isHorizontalAnchor() && !constraintAnchorDest.isHorizontalAnchor()) {
       return false;
     }
-    if (constraintAnchorDest.isEdge()) {
+    if (constraintAnchorDest.isEdge() && !(dest instanceof GuidelineAnchorTarget)) {
       return myComponent.getParent() == constraintAnchorDest.myComponent;
     }
     else {
@@ -653,13 +655,8 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     super.mouseDrag(x, y, closestTargets);
 
-    ConstraintAnchorTarget targetAnchor = null;
-    for (Target target : closestTargets) {
-      if (target instanceof ConstraintAnchorTarget && target != this) {
-        targetAnchor = (ConstraintAnchorTarget)target;
-        break;
-      }
-    }
+    ConstraintAnchorTarget targetAnchor = getClosestConnectibleTarget(closestTargets);
+
     if (!myIsDragging) {
       myIsDragging = true;
       DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, true);
@@ -696,6 +693,23 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     myComponent.getScene().needsRebuildList();
   }
 
+  @Nullable
+  private ConstraintAnchorTarget getClosestConnectibleTarget(@NotNull List<Target> closestTargets) {
+    ConstraintAnchorTarget closest = null;
+    for (Target target : closestTargets) {
+      if (target == this || !(target instanceof ConstraintAnchorTarget)) {
+        continue;
+      }
+      ConstraintAnchorTarget anchorTarget = (ConstraintAnchorTarget) target;
+      if (isConnectible(anchorTarget)) {
+        if (closest == null || closest.getComponent().getDepth() < anchorTarget.getComponent().getDepth()) {
+          closest = anchorTarget;
+        }
+      }
+    }
+    return closest;
+  }
+
   /**
    * On mouseRelease, we can either disconnect the current anchor (if the mouse release is on ourselves)
    * or connect the anchor to a given target. Modifications are applied first in memory then committed
@@ -706,15 +720,12 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     super.mouseRelease(x, y, closestTargets);
 
     try {
-      ConstraintAnchorTarget closestTarget = null;
-      for (Target target : closestTargets) {
-        if (target instanceof ConstraintAnchorTarget && target != this) {
-          closestTarget = (ConstraintAnchorTarget)target;
-          break;
-        }
-      }
-      if (closestTarget == null && closestTargets.contains(this)) {
+      ConstraintAnchorTarget closestTarget;
+      if (myComponent.getScene().isCtrlMetaDown() && closestTargets.contains(this)) {
         closestTarget = this;
+      }
+      else {
+        closestTarget = getClosestConnectibleTarget(closestTargets);
       }
       if (closestTarget != null && !closestTarget.isConnected(this)) {
         NlComponent component = myComponent.getAuthoritativeNlComponent();
@@ -846,6 +857,64 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     super.mouseCancel();
     DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
     revertToPreviousState();
+  }
+
+  @Override
+  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+    if (!myIsEdge || this instanceof GuidelineAnchorTarget) {
+      // This anchor is not the edge of root ConstraintLayout. Consider as normal size.
+      super.addHit(transform, picker);
+      return;
+    }
+
+    // This anchor belongs to the root ConstraintLayout, the hittable area should be extended.
+    int x1 = 0;
+    int x2 = 0;
+    int y1 = 0;
+    int y2 = 0;
+
+    int centerX = transform.getSwingXDip(getCenterX());
+    int centerY = transform.getSwingYDip(getCenterY());
+    int componentWidth = transform.getSwingDimensionDip(myComponent.getDrawWidth());
+    int componentHeight = transform.getSwingDimensionDip(myComponent.getDrawHeight());
+
+    Rectangle renderableArea = transform.getRenderableBounds();
+
+    switch (myType) {
+      case LEFT:
+        // Extends the hittable area in the left side.
+        x1 = Math.min(centerX - ANCHOR_SIZE, (int) renderableArea.getX());
+        x2 = centerX + ANCHOR_SIZE;
+        y1 = centerY - componentHeight / 2;
+        y2 = centerY + componentHeight / 2;
+        break;
+      case RIGHT:
+        // Extends the hittable area in the right side.
+        x1 = centerX - ANCHOR_SIZE;
+        x2 = Math.max(centerX + ANCHOR_SIZE, (int) (renderableArea.getX() + renderableArea.getWidth()));
+        y1 = centerY - componentHeight / 2;
+        y2 = centerY + componentHeight / 2;
+        break;
+      case TOP:
+        // Extends the hittable area in the top side.
+        x1 = centerX - componentWidth / 2;
+        x2 = centerX + componentWidth / 2;
+        y1 = Math.min(centerY - ANCHOR_SIZE, (int) renderableArea.getY());
+        y2 = centerY + ANCHOR_SIZE;
+        break;
+      case BOTTOM:
+        // Extends the hittable area in the bottom side.
+        x1 = centerX - componentWidth / 2;
+        x2 = centerX + componentWidth / 2;
+        y1 = centerY - ANCHOR_SIZE;
+        y2 = Math.max(centerY + ANCHOR_SIZE, (int) (renderableArea.getY() + renderableArea.getHeight()));
+        break;
+      case BASELINE:
+        Logger.getInstance(getClass()).warn("The baseline anchor should be a edge anchor.");
+        break;
+    }
+
+    picker.addRect(this, 0, x1, y1, x2, y2);
   }
 
   /** Append to the existing tooltip a hint to delete constraints. */
