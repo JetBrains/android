@@ -1405,12 +1405,12 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "Value", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "abcValue", STRING, REGULAR, 1)
     }
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "Value", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "bcValue", STRING, REGULAR, 1)
     }
   }
 
