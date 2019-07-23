@@ -41,6 +41,11 @@ public class TransportProxy {
 
   public interface ProxyCommandHandler {
     Transport.ExecuteResponse execute(Commands.Command command);
+
+    // Returns true if the registered proxy command handler should handle the command, false if the proxy should delegate to the device.
+    default boolean shouldHandle(Commands.Command command) {
+      return true;
+    }
   }
 
   private Server myProxyServer;
