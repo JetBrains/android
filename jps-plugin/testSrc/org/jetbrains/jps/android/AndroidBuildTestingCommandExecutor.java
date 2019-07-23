@@ -6,17 +6,12 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtilRt;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,9 +22,9 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
   public static final String ENTRY_HEADER = "______ENTRY_";
 
   private volatile StringWriter myStringWriter = new StringWriter();
-  private final List<Pair<String, Pattern>> myPathPatterns = new ArrayList<Pair<String, Pattern>>();
+  private final List<Pair<String, Pattern>> myPathPatterns = new ArrayList<>();
 
-  private final Set<String> myCheckedJars = new HashSet<String>();
+  private final Set<String> myCheckedJars = new HashSet<>();
 
   public void addPathPrefix(@NotNull String id, @NotNull String prefix) {
     myPathPatterns.add(Pair.create(id, Pattern.compile("(" + FileUtil.toSystemIndependentName(prefix) + ").*")));
@@ -45,7 +40,7 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
 
   @NotNull
   @Override
-  public Process createProcess(@NotNull String[] args, @NotNull Map<? extends String, ? extends String> environment) {
+  public Process createProcess(@NotNull String[] args, @NotNull Map<String, String> environment) {
     startNewEntry();
     final String[] argsToLog = processArgs(args);
     logString(StringUtil.join(argsToLog, "\n"));
@@ -53,13 +48,13 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
     if (environment.size() > 0) {
       final StringBuilder envBuilder = new StringBuilder();
 
-      for (Map.Entry<? extends String, ? extends String> entry : environment.entrySet()) {
+      environment.forEach((k, v) -> {
         if (envBuilder.length() > 0) {
           envBuilder.append(", ");
         }
-        final String value = progessArg(entry.getValue());
-        envBuilder.append(entry.getKey()).append("=").append(value);
-      }
+        String value = progessArg(v);
+        envBuilder.append(k).append("=").append(value);
+      });
       logString("\nenv: " + envBuilder.toString());
     }
     logString("\n\n");
@@ -138,8 +133,7 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
   }
 
   @NotNull
-  protected abstract Process doCreateProcess(@NotNull String[] args, @NotNull Map<? extends String, ? extends String> environment)
-    throws Exception;
+  protected abstract Process doCreateProcess(@NotNull String[] args, @NotNull Map<String, String> environment) throws Exception;
 
   @NotNull
   public synchronized String getLog() {
@@ -159,7 +153,7 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
   public static String normalizeExpectedLog(@NotNull String expectedLog, @NotNull String actualLog) {
 
     final String[] actualEntries = actualLog.split(AndroidBuildTestingCommandExecutor.ENTRY_HEADER);
-    final List<String> actualEntryList = new ArrayList<String>();
+    final List<String> actualEntryList = new ArrayList<>();
 
     for (String entry : actualEntries) {
       final String s = entry.trim();
@@ -169,7 +163,7 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
       }
       actualEntryList.add(s);
     }
-    final Map<String, MyLogEntry> id2logEntry = new HashMap<String, MyLogEntry>();
+    final Map<String, MyLogEntry> id2logEntry = new HashMap<>();
     final String[] entries = expectedLog.split(AndroidBuildTestingCommandExecutor.ENTRY_HEADER);
 
     for (String entry : entries) {
@@ -190,11 +184,11 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
       final String content = s.substring(newLineIdx + 1).trim();
       id2logEntry.put(id, new MyLogEntry(content, depIds));
     }
-    final List<String> addedEntries = new ArrayList<String>();
-    final Set<String> addedEntriesSet = new HashSet<String>();
+    final List<String> addedEntries = new ArrayList<>();
+    final Set<String> addedEntriesSet = new HashSet<>();
 
     while (addedEntries.size() < id2logEntry.size()) {
-      final List<String> candidates = new ArrayList<String>();
+      final List<String> candidates = new ArrayList<>();
 
       for (Map.Entry<String, MyLogEntry> entry : id2logEntry.entrySet()) {
         final String id = entry.getKey();
