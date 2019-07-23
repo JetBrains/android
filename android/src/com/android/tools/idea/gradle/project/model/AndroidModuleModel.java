@@ -74,6 +74,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.serialization.PropertyMapping;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -133,29 +134,47 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return androidModel instanceof AndroidModuleModel ? (AndroidModuleModel)androidModel : null;
   }
 
+  public static AndroidModuleModel create(@NotNull String moduleName,
+                                          @NotNull File rootDirPath,
+                                          @NotNull AndroidProject androidProject,
+                                          @NotNull String selectedVariantName,
+                                          @NotNull IdeDependenciesFactory dependenciesFactory) {
+    return create(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null, null);
+  }
+
+  public static AndroidModuleModel create(@NotNull String moduleName,
+                                          @NotNull File rootDirPath,
+                                          @NotNull IdeAndroidProject androidProject,
+                                          @NotNull String variantName) {
+    return new AndroidModuleModel(moduleName, rootDirPath, androidProject, variantName);
+  }
+
   /**
    * @param moduleName          the name of the IDEA module, created from {@code delegate}.
    * @param rootDirPath         the root directory of the imported Android-Gradle project.
    * @param androidProject      imported Android-Gradle project.
-   * @param selectedVariantName the name of selected variant.
+   * @param variantName         the name of selected variant.
    * @param dependenciesFactory the factory instance to create {@link IdeDependencies}.
+   * @param variantsToAdd       list of variants to add that were requested but not present in the {@link AndroidProject}.
+   * @param syncIssues          Model containing all sync issues that were produced by Gradle.
    */
-  public AndroidModuleModel(@NotNull String moduleName,
-                            @NotNull File rootDirPath,
-                            @NotNull AndroidProject androidProject,
-                            @NotNull String selectedVariantName,
-                            @NotNull IdeDependenciesFactory dependenciesFactory) {
-    this(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null, null);
+  public static AndroidModuleModel create(@NotNull String moduleName,
+                                          @NotNull File rootDirPath,
+                                          @NotNull AndroidProject androidProject,
+                                          @NotNull String variantName,
+                                          @NotNull IdeDependenciesFactory dependenciesFactory,
+                                          @Nullable Collection<Variant> variantsToAdd,
+                                          @Nullable ProjectSyncIssues syncIssues) {
+    IdeAndroidProject ideAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
+    return new AndroidModuleModel(moduleName, rootDirPath, ideAndroidProject, variantName);
   }
 
-  public AndroidModuleModel(@NotNull String moduleName,
-                            @NotNull File rootDirPath,
-                            @NotNull AndroidProject androidProject,
-                            @NotNull String variantName,
-                            @NotNull IdeDependenciesFactory dependenciesFactory,
-                            @Nullable Collection<Variant> variantsToAdd,
-                            @Nullable ProjectSyncIssues syncIssues) {
-    myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
+  @PropertyMapping({"myModuleName", "myRootDirPath", "myAndroidProject", "mySelectedVariantName"})
+  private AndroidModuleModel(@NotNull String moduleName,
+                             @NotNull File rootDirPath,
+                             @NotNull IdeAndroidProject androidProject,
+                             @NotNull String variantName) {
+    myAndroidProject = androidProject;
 
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;

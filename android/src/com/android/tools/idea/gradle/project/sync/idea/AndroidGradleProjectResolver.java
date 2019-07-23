@@ -349,8 +349,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
       else {
         AndroidModuleModel model =
-          new AndroidModuleModel(moduleName, moduleRootDirPath, androidProject, selectedVariant.getName(), myDependenciesFactory,
-                                 (variantGroup == null) ? null : variantGroup.getVariants(), projectSyncIssues);
+          AndroidModuleModel.create(moduleName, moduleRootDirPath, androidProject, selectedVariant.getName(), myDependenciesFactory,
+                                    (variantGroup == null) ? null : variantGroup.getVariants(), projectSyncIssues);
         populateKaptKotlinGeneratedSourceDir(gradleModule, model);
         ideModule.createChild(ANDROID_MODEL, model);
       }

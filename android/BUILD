@@ -56,6 +56,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/java/openapi:intellij.java[module]",
+        "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer.annotations",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/java/execution/impl:intellij.java.execution.impl[module]",
         "//tools/idea/xml/dom-impl:intellij.xml.dom.impl[module]",

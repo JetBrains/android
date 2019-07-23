@@ -63,7 +63,7 @@ class ViewBindingShortNameCacheTest {
         return ViewBindingOptionsStub(true)
       }
     }
-    facet.configuration.model = AndroidModuleModel(
+    facet.configuration.model = AndroidModuleModel.create(
       androidProject.name,
       projectRule.project.baseDir.toIoFile(),
       androidProject,
