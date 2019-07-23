@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.scene.target.TargetHelper;
+import com.google.common.collect.ImmutableList;
 import java.awt.event.InputEvent;
 import java.util.function.Predicate;
 import org.intellij.lang.annotations.JdkConstants;
@@ -165,6 +166,11 @@ class SceneHitListener {
       hit = filteredTarget;
     }
     return hit;
+  }
+
+  @NotNull
+  public ImmutableList<Target> getHitTargets() {
+    return ImmutableList.copyOf(myHitTargets);
   }
 
   /**
