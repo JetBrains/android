@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 public class GradleExperimentalSettings implements PersistentStateComponent<GradleExperimentalSettings> {
   public boolean USE_L2_DEPENDENCIES_ON_SYNC = true;
   public boolean USE_SINGLE_VARIANT_SYNC = true;
-  public boolean SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC = false;
   public boolean USE_NEW_PSD = true;
 
   @NotNull

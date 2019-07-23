@@ -41,7 +41,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JPanel myPanel;
   private JCheckBox myUseL2DependenciesCheckBox;
   private JCheckBox myUseSingleVariantSyncCheckbox;
-  private JCheckBox mySkipSourcesAndJavadocDownload;
   private JSlider myLayoutEditorQualitySlider;
   private JCheckBox myNewPsdCheckbox;
   private TitledSeparator myNewPsdSeparator;
@@ -107,7 +106,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   public boolean isModified() {
     return (mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
             mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
-            mySettings.SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC != skipSourcesAndJavadocDownload() ||
             (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
             mySettings.USE_NEW_PSD != isUseNewPsd());
   }
@@ -120,7 +118,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   public void apply() throws ConfigurationException {
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
     mySettings.USE_SINGLE_VARIANT_SYNC = isUseSingleVariantSync();
-    mySettings.SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC = skipSourcesAndJavadocDownload();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
     mySettings.USE_NEW_PSD = isUseNewPsd();
@@ -138,10 +135,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   boolean isUseSingleVariantSync() {
     return myUseSingleVariantSyncCheckbox.isSelected();
-  }
-
-  boolean skipSourcesAndJavadocDownload() {
-    return mySkipSourcesAndJavadocDownload.isSelected();
   }
 
   @TestOnly
@@ -162,7 +155,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   public void reset() {
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
-    mySkipSourcesAndJavadocDownload.setSelected(mySettings.SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myNewPsdCheckbox.setSelected(mySettings.USE_NEW_PSD);
   }
