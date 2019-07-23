@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.DragAndDropListModel;
 import com.android.tools.adtui.model.DragAndDropModelListElement;
@@ -29,7 +29,7 @@ import javax.swing.TransferHandler;
 /**
  * Transfer Handler class for managing drag and drop events.
  */
-public final class ProfilerStageTransferHandler extends TransferHandler {
+public final class DragAndDropListTransferHandler extends TransferHandler {
   @Override
   protected Transferable createTransferable(JComponent c) {
     JList<DragAndDropModelListElement> source = (JList<DragAndDropModelListElement>)c;

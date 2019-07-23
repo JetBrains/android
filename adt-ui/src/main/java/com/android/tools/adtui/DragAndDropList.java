@@ -32,6 +32,7 @@ public class DragAndDropList<T extends DragAndDropModelListElement> extends JLis
 
   public DragAndDropList(@NotNull DragAndDropListModel<T> dataModel) {
     super(dataModel);
+    setTransferHandler(new DragAndDropListTransferHandler());
     setDropMode(DropMode.INSERT);
     // Need to not hardcode this as our test will throw an exception if we set this true in test.
     setDragEnabled(!GraphicsEnvironment.isHeadless());
