@@ -53,7 +53,6 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_EXISTS
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_NO_ACTION_BAR
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_POPUP_OVERLAY
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_DIR
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_RES_DIR
@@ -332,7 +331,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   fun addTemplateAdditionalValues(packageName: String, template: ObjectProperty<NamedModuleTemplate>): TemplateValueInjector {
     myTemplateValues[ATTR_PACKAGE_NAME] = packageName
     myTemplateValues[ATTR_SOURCE_PROVIDER_NAME] = template.get().name
-    myTemplateValues[ATTR_COMPANY_DOMAIN] = getInitialDomain(false)
+    myTemplateValues[ATTR_COMPANY_DOMAIN] = getInitialDomain()
     return this
   }
 

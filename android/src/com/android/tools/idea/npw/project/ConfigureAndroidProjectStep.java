@@ -128,7 +128,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     // TODO: http://b/76205038 - The new UI no longer ask the user for the company domain. We should stop using it, and save the package
     // instead. Keep in mind that we need to remove the last segment, that is specific to the application name.
-    StringProperty companyDomain = new StringValueProperty(NewProjectModel.getInitialDomain(false));
+    StringProperty companyDomain = new StringValueProperty(NewProjectModel.getInitialDomain());
     String basePackage = new DomainToPackageExpression(companyDomain, new StringValueProperty("")).get();
 
     Expression<String> computedPackageName = myProjectModel.applicationName

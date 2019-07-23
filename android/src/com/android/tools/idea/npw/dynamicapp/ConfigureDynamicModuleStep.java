@@ -166,7 +166,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
     myBindings.bindTwoWay(new TextProperty(myModuleName), modelName);
 
-    StringProperty companyDomain = new StringValueProperty(NewProjectModel.getInitialDomain(false));
+    StringProperty companyDomain = new StringValueProperty(NewProjectModel.getInitialDomain());
     String basePackage = new DomainToPackageExpression(companyDomain, new StringValueProperty("")).get();
 
     Expression<String> computedPackageName = modelName
