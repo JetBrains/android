@@ -64,7 +64,6 @@ import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
-import org.jetbrains.plugins.gradle.model.ExternalPlugin
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet
 import org.jetbrains.plugins.gradle.model.ExternalTask
@@ -303,9 +302,6 @@ fun setupTestProjectFromAndroidModel(
         override fun getBuildDir(): File = buildPath
         override fun getBuildFile(): File? = null
         override fun getTasks(): Map<String, ExternalTask> = mapOf()
-        override fun getPlugins(): Map<String, ExternalPlugin> = mapOf()
-        override fun getProperties(): Map<String, *> = mapOf<String, Nothing>()
-        override fun getProperty(name: String?): Any? = null
         override fun getSourceSets(): Map<String, ExternalSourceSet> = mapOf()
         override fun getArtifacts(): List<File> = listOf()
         override fun getArtifactsByConfiguration(): Map<String, MutableSet<File>> = mapOf()
