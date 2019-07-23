@@ -31,7 +31,7 @@ import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -379,7 +379,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
                 Project project = projectsStillOpen.iterator().next();
                 projectsStillOpen.clear();
                 throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " +
-                                         PlatformTestCase.getCreationPlace(project));
+                                         HeavyPlatformTestCase.getCreationPlace(project));
               }
             }
           }

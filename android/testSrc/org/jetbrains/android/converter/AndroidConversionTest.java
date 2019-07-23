@@ -7,7 +7,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileFilter;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.android.AndroidTestBase;
 
@@ -17,7 +17,7 @@ import java.io.IOException;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidConversionTest extends PlatformTestCase {
+public class AndroidConversionTest extends HeavyPlatformTestCase {
   public void testConvert() throws IOException {
     final String testDataPath = AndroidTestBase.getTestDataPath() + "/conversion/proguardOptions";
     final File testData = new File(testDataPath, "before");

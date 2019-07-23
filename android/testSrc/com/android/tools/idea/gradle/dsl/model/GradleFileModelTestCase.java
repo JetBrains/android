@@ -34,7 +34,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +62,7 @@ import static org.junit.runners.Parameterized.Parameters;
 
 @Ignore // Needs to be ignored so bazel doesn't try to run this class as a test and fail with "No tests found".
 @RunWith(Parameterized.class)
-public abstract class GradleFileModelTestCase extends PlatformTestCase {
+public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
   @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
 

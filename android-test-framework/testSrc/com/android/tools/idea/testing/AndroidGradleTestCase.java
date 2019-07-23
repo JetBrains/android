@@ -57,7 +57,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -89,7 +89,7 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static com.intellij.testFramework.PlatformTestCase.synchronizeTempDirVfs;
+import static com.intellij.testFramework.HeavyPlatformTestCase.synchronizeTempDirVfs;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
@@ -229,7 +229,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
+        HeavyPlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
       }
       myAndroidFacet = null;
       myModules = null;

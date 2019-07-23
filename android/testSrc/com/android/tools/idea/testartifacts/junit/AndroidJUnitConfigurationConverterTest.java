@@ -19,7 +19,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.conversion.ConversionProcessor;
 import com.intellij.conversion.RunManagerSettings;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link AndroidJUnitConfigurationConverter}.
  */
-public class AndroidJUnitConfigurationConverterTest extends PlatformTestCase {
+public class AndroidJUnitConfigurationConverterTest extends HeavyPlatformTestCase {
   private IdeInfo mockIdeInfo;
 
   @Override
