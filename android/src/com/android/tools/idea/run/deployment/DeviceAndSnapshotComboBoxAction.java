@@ -387,7 +387,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
       if (devices.isEmpty()) {
         presentation.setIcon(null);
-        presentation.setText("No devices");
+        presentation.setText("No Devices");
       }
       else {
         updateSelectedSnapshot(project);
