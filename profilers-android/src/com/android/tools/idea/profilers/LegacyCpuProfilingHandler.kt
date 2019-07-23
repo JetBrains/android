@@ -29,10 +29,10 @@ internal class LegacyCpuProfilingHandler(private val profilingRecords: Map<Int, 
       // Devices older than API 10 don't return profile results via JDWP. Instead they save the results on the
       // sdcard. We don't support this.
       val status = Cpu.TraceStopStatus.newBuilder()
-        .setStatus(Cpu.TraceStopStatus.Status.CANNOT_COPY_FILE)
+      .setStatus(Cpu.TraceStopStatus.Status.CANNOT_COPY_FILE)
         .setErrorMessage("Method profiling: Older devices (API level < 10) are not supported. Please use DDMS.")
         .build()
-      record.traceInfo!!.stopStatus= status
+      record.traceInfo!!.stopStatus = status
       record.stopLatch.countDown()
     }
   }
