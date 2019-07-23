@@ -34,15 +34,16 @@ import java.awt.BorderLayout
 import javax.swing.JPanel
 import kotlin.properties.Delegates
 
-// TODO: Support receiving a list of ResourceType to display.
 internal val MANAGER_SUPPORTED_RESOURCES get() =
   if (StudioFlags.RESOURCE_EXPLORER_PICKER.get()) {
-    arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR,
-            ResourceType.LAYOUT, ResourceType.MIPMAP,
-            ResourceType.STRING, ResourceType.FONT)
+    arrayOf(ResourceType.DRAWABLE,     ResourceType.COLOR,      ResourceType.LAYOUT,  ResourceType.MIPMAP,
+            ResourceType.STRING,       ResourceType.NAVIGATION, ResourceType.ANIM,    ResourceType.ANIMATOR,
+            ResourceType.INTERPOLATOR, ResourceType.TRANSITION, ResourceType.FONT,    ResourceType.MENU,
+            ResourceType.STYLE,        ResourceType.ARRAY,      ResourceType.BOOL,    ResourceType.DIMEN,
+            ResourceType.FRACTION,     ResourceType.INTEGER,    ResourceType.PLURALS, ResourceType.XML)
   } else {
     arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR,
-            ResourceType.LAYOUT, ResourceType.MIPMAP)
+            ResourceType.LAYOUT,   ResourceType.MIPMAP)
   }
 
 internal val RESOURCE_DEBUG = System.getProperty("res.manag.debug", "false")?.toBoolean() ?: false
