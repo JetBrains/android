@@ -603,7 +603,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertNull(action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
     assertNull(myPresentation.getIcon());
-    assertEquals("No devices", myPresentation.getText());
+    assertEquals("No Devices", myPresentation.getText());
   }
 
   @Test
