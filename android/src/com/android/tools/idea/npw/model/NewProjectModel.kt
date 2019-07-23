@@ -69,7 +69,7 @@ private val logger: Logger get() = logger<NewProjectModel>()
 
 class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()) : WizardModel() {
   @JvmField val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
-  @JvmField val companyDomain = StringValueProperty(getInitialDomain(true))
+  @JvmField val companyDomain = StringValueProperty(getInitialDomain())
   @JvmField val packageName = StringValueProperty()
   @JvmField val projectLocation = StringValueProperty()
   @JvmField val enableCppSupport = BoolValueProperty()
@@ -281,25 +281,14 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
 
     /**
      * Loads saved company domain, or generates a dummy one if no domain has been saved
-     *
-     * @param includeUserName This is used to implement legacy behaviour. When creating a new project the package name includes the user name
-     * (if available), but when creating a new Module, the user name is not used.
      */
     @JvmStatic
-    fun getInitialDomain(includeUserName: Boolean): String {
+    fun getInitialDomain(): String {
       val androidPackage = PropertiesComponent.getInstance().getValue(PROPERTIES_ANDROID_PACKAGE_KEY)
       if (androidPackage != null) {
         return DomainToPackageExpression(StringValueProperty(androidPackage), StringValueProperty("")).get()
       }
-
-      val domain = PropertiesComponent.getInstance().getValue(PROPERTIES_DOMAIN_KEY)
-      if (domain != null) {
-        return domain
-      }
-
-      // TODO: Figure out if this legacy behaviour, of including User Name, can be removed.
-      val userName = if (includeUserName) System.getProperty("user.name") else null
-      return if (userName == null) EXAMPLE_DOMAIN else nameToJavaPackage(userName) + '.'.toString() + EXAMPLE_DOMAIN
+      return PropertiesComponent.getInstance().getValue(PROPERTIES_DOMAIN_KEY) ?: EXAMPLE_DOMAIN
     }
 
     /**
@@ -307,7 +296,7 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
      */
     @JvmStatic
     fun getSuggestedProjectPackage(): String {
-        val companyDomain = StringValueProperty(getInitialDomain(false))
+        val companyDomain = StringValueProperty(getInitialDomain())
         return DomainToPackageExpression(companyDomain, StringValueProperty("")).get()
       }
 
