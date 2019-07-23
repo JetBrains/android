@@ -930,16 +930,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testAndroidAutoMediaService() throws Exception {
-    checkCreateTemplate("other", "AndroidAutoMediaService");
-  }
-
-  @TemplateCheck
-  public void testAndroidAutoMediaServiceWithKotlin() throws Exception {
-    checkCreateTemplate("other", "AndroidAutoMediaService", false, withKotlin);
-  }
-
-  @TemplateCheck
   public void testAutomotiveMediaService() throws Exception {
     checkCreateTemplate("other", "AutomotiveMediaService", false);
   }
@@ -950,13 +940,13 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testAndroidAutoMessagingService() throws Exception {
-    checkCreateTemplate("other", "AndroidAutoMessagingService");
+  public void testAutomotiveMessagingService() throws Exception {
+    checkCreateTemplate("other", "AutomotiveMessagingService");
   }
 
   @TemplateCheck
-  public void testAndroidAutoMessagingServiceWithKotlin() throws Exception {
-    checkCreateTemplate("other", "AndroidAutoMessagingService", false , withKotlin);
+  public void testAutomotiveMessagingServiceWithKotlin() throws Exception {
+    checkCreateTemplate("other", "AutomotiveMessagingService", false , withKotlin);
   }
 
   @TemplateCheck
