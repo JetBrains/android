@@ -22,12 +22,12 @@ import com.google.common.truth.Truth;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 
 import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 
-public class AdbServiceTest extends PlatformTestCase {
+public class AdbServiceTest extends HeavyPlatformTestCase {
   // tests that basic API for getting and terminating a debug bridge works
   public void testBasics() throws ExecutionException {
     if (SystemInfo.isWindows) {

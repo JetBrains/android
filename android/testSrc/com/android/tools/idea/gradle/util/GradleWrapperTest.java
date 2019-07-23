@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.Projects;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -36,7 +36,7 @@ import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
-public class GradleWrapperTest extends PlatformTestCase {
+public class GradleWrapperTest extends HeavyPlatformTestCase {
   public void testUpdateDistributionUrl() throws IOException {
     File projectPath = Projects.getBaseDirPath(getProject());
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);

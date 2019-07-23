@@ -16,14 +16,14 @@
 package com.android.tools.idea.testartifacts.scopes;
 
 import com.google.common.collect.ImmutableList;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 
 import java.io.File;
 
 import static com.intellij.openapi.util.io.FileUtil.createIfNotExists;
 import static com.intellij.openapi.util.io.FileUtil.getTempDirectory;
 
-public class FileRootSearchScopeTest extends PlatformTestCase {
+public class FileRootSearchScopeTest extends HeavyPlatformTestCase {
   public void testAcceptFileCreatedLater() {
     File root = new File(getTempDirectory(), "root");
     FileRootSearchScope searchScope = new FileRootSearchScope(getProject(), ImmutableList.of(root));
