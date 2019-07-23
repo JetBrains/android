@@ -69,7 +69,6 @@ private val logger: Logger get() = logger<NewProjectModel>()
 
 class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()) : WizardModel() {
   @JvmField val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
-  @JvmField val companyDomain = StringValueProperty(getInitialDomain())
   @JvmField val packageName = StringValueProperty()
   @JvmField val projectLocation = StringValueProperty()
   @JvmField val enableCppSupport = BoolValueProperty()
@@ -87,13 +86,6 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
   val multiTemplateRenderer = MultiTemplateRenderer(null, this.projectSyncInvoker)
 
   init {
-    companyDomain.addListener {
-      val domain = companyDomain.get()
-      if (AndroidUtils.isValidAndroidPackageName(domain)) {
-        PropertiesComponent.getInstance().setValue(PROPERTIES_DOMAIN_KEY, domain)
-      }
-    }
-
     packageName.addListener {
       val androidPackage = packageName.get().substringBeforeLast('.')
       if (AndroidUtils.isValidAndroidPackageName(androidPackage)) {
@@ -273,7 +265,6 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
     @VisibleForTesting const val PROPERTIES_NPW_LANGUAGE_KEY = "SAVED_ANDROID_NPW_LANGUAGE"
     @VisibleForTesting const val PROPERTIES_NPW_ASKED_LANGUAGE_KEY = "SAVED_ANDROID_NPW_ASKED_LANGUAGE"
 
-    private const val PROPERTIES_DOMAIN_KEY = "SAVED_COMPANY_DOMAIN"
     private const val PROPERTIES_CPP_SUPPORT_KEY = "SAVED_PROJECT_CPP_SUPPORT"
     private const val EXAMPLE_DOMAIN = "example.com"
     private val DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]")
@@ -288,7 +279,7 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
       if (androidPackage != null) {
         return DomainToPackageExpression(StringValueProperty(androidPackage), StringValueProperty("")).get()
       }
-      return PropertiesComponent.getInstance().getValue(PROPERTIES_DOMAIN_KEY) ?: EXAMPLE_DOMAIN
+      return EXAMPLE_DOMAIN
     }
 
     /**
