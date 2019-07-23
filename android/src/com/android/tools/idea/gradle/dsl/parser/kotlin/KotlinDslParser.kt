@@ -249,15 +249,31 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
   override fun visitBinaryExpression(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
     var parentBlock = parent
+    val name: GradleNameElement
     // Check the expression is valid.
     if (expression.operationToken != KtTokens.EQ) return
     val left = expression.left ?: return
     val right = expression.right ?: return
-    val name = GradleNameElement.from(left)
-    if (name.isEmpty) return
-    if (name.isQualified) {
-      val nestedElement = getBlockElement(name.qualifyingParts(), parent, null) ?: return
-      parentBlock = nestedElement
+    // TODO(xof): unify this with the similar expression-walking in KotlinDslUtil.findInjections
+    // TODO(xof): handle qualified extra blocks (e.g. rootProject.extra["property"] = init)
+    if (left is KtArrayAccessExpression &&
+        left.arrayExpression is KtNameReferenceExpression &&
+        (left.arrayExpression as KtNameReferenceExpression).text == "extra" &&
+        left.indexExpressions.size == 1 &&
+        left.indexExpressions[0] is KtStringTemplateExpression &&
+        !(left.indexExpressions[0] as KtStringTemplateExpression).hasInterpolation()) {
+      // we have something of the form extra["literalString"] = init
+      parentBlock = getBlockElement(listOf("ext"), parent, null) ?: return
+      name = GradleNameElement.create((left.indexExpressions[0] as KtStringTemplateExpression).entries[0].text)
+    }
+    else {
+      // all cases of assignment other than extra["literalString"] = init
+      name = GradleNameElement.from(left)
+      if (name.isEmpty) return
+      if (name.isQualified) {
+        val nestedElement = getBlockElement(name.qualifyingParts(), parent, null) ?: return
+        parentBlock = nestedElement
+      }
     }
     val propertyElement = createExpressionElement(parentBlock, expression, name, right) ?: return
     propertyElement.setUseAssignment(true)
