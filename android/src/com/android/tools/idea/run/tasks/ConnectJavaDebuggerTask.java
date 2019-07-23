@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
+
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
@@ -26,14 +28,20 @@ import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
 import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
 import com.android.tools.idea.logcat.output.LogcatOutputSettings;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.AndroidDebugState;
+import com.android.tools.idea.run.AndroidProcessText;
+import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler;
+import com.android.tools.idea.run.AndroidSessionInfo;
+import com.android.tools.idea.run.ApplicationLogListener;
+import com.android.tools.idea.run.LaunchInfo;
+import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
+import com.google.common.base.Preconditions;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RemoteConnection;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
@@ -48,14 +56,11 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import org.jetbrains.annotations.NotNull;
-
 import java.time.ZoneId;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
+import org.jetbrains.annotations.NotNull;
 
 public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
@@ -64,33 +69,6 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
                                  @NotNull Project project,
                                  boolean attachToRunningProcess) {
     super(applicationIds, debugger, project, attachToRunningProcess);
-  }
-
-
-  @NotNull
-  protected ProcessHandler createDebugProcessHandler(@NotNull ProcessHandlerLaunchStatus launchStatus) {
-    return new AndroidRemoteDebugProcessHandler(myProject);
-  }
-
-  @NotNull
-  protected RunContentDescriptor getDescriptor(@NotNull LaunchInfo currentLaunchInfo,
-                                               @NotNull ProcessHandlerLaunchStatus launchStatus) {
-    RunContentDescriptor descriptor = currentLaunchInfo.env.getContentToReuse();
-
-    // TODO: There could be a potential race: The descriptor is created on the EDT, but in the meanwhile, we spawn off
-    // a pooled thread to do all the launch tasks, which finally ends up in the connect debugger task. Is it possible that we
-    // reach here before the EDT gets around to creating the descriptor?
-    assert descriptor != null : "Expecting an existing descriptor that will be reused";
-
-    return descriptor;
-  }
-
-  @NotNull
-  protected ProcessHandler getOldProcessHandler(@NotNull LaunchInfo currentLaunchInfo,
-                                                @NotNull ProcessHandlerLaunchStatus launchStatus) {
-    ProcessHandler processHandler = getDescriptor(currentLaunchInfo, launchStatus).getProcessHandler();
-    assert processHandler != null;
-    return processHandler;
   }
 
   @Override
@@ -103,12 +81,12 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     Logger.getInstance(ConnectJavaDebuggerTask.class)
       .info(String.format(Locale.US, "Attempting to connect debugger to port %1$s [client %2$d]", debugPort, pid));
 
-    ProcessHandler processHandler = getOldProcessHandler(currentLaunchInfo, launchStatus);
-    RunContentDescriptor descriptor = getDescriptor(currentLaunchInfo, launchStatus);
+    ProcessHandler processHandler = launchStatus.getProcessHandler();
+    RunContentDescriptor descriptor = Preconditions.checkNotNull(processHandler.getUserData(AndroidSessionInfo.KEY)).getDescriptor();
 
     // create a new process handler
     RemoteConnection connection = new RemoteConnection(true, "localhost", debugPort, false);
-    ProcessHandler debugProcessHandler = createDebugProcessHandler(launchStatus);
+    ProcessHandler debugProcessHandler = new AndroidRemoteDebugProcessHandler(myProject);
 
     // switch the launch status and console printers to point to the new process handler
     // this is required, esp. for AndroidTestListener which holds a reference to the launch status and printers, and those should
