@@ -150,10 +150,13 @@ internal fun findInjections(
       val element = context.resolveReference(text, true)
       return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
     }
-    // extra["PROPERTY_NAME"]
+    // extra["PROPERTY_NAME"], someMap["MAP_KEY"], someList[0]
     is KtArrayAccessExpression -> {
       val arrayExpression = psiElement.arrayExpression ?: return noInjections
       val name = arrayExpression.text
+      // extra["PROPERTY_NAME"]
+      //
+      // TODO(xof): handle qualified references to extra properties (e.g. rootProject.extra["prop1"])
       if (name == "extra") {
         val indices = psiElement.indexExpressions
         if (indices.size == 1) {
@@ -167,6 +170,14 @@ internal fun findInjections(
             return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
           }
         }
+      }
+      // someMap["MAP_KEY"], someList[0], someMultiDimensionalThing["Key"][0][...]
+      //
+      // TODO(xof): handle dereferences of extra properties (e.g. extra["prop1"]["MAP_KEY"])
+      else {
+        val text = psiElement.text
+        val element = context.resolveReference(text, true)
+        return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
       }
       return noInjections
     }
