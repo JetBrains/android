@@ -63,7 +63,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
     AndroidProjectStub androidProject = new AndroidProjectStub("app");
     androidProject.getJavaCompileOptions().setEncoding(modelEncoding);
     when(androidModel.getAndroidProject())
-      .thenAnswer(invocation -> new IdeAndroidProjectImpl(androidProject, new IdeDependenciesFactory(), null, null));
+      .thenAnswer(invocation -> IdeAndroidProjectImpl.create(androidProject, new IdeDependenciesFactory(), null, null));
 
     myStrategy.validate(mock(Module.class), androidModel);
 
