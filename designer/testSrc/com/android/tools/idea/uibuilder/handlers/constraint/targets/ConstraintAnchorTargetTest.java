@@ -52,6 +52,30 @@ public class ConstraintAnchorTargetTest extends SceneTest {
                                           "        tools:layout_editor_absoluteY=\"15dp\" />");
   }
 
+  public void testConnectToParentWhenDraggingToExpandingArea() {
+    SceneComponent inner = myScene.getSceneComponent("inner");
+    SceneComponent textView = myScene.getSceneComponent("textView");
+
+    myInteraction.select("textView", true);
+
+    // Drag left anchor of textView to top-left sides of nested constraint layout. It shouldn't connect to any edge of parent.
+    myInteraction.mouseDown("textView", AnchorTarget.Type.LEFT);
+    myInteraction.mouseRelease(inner.getDrawX() - 50, inner.getDrawY() - 50);
+    assertNull(textView.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF));
+
+    // Drag left anchor of textView to left side of nested constraint layout.
+    myInteraction.mouseDown("textView", AnchorTarget.Type.LEFT);
+    myInteraction.mouseRelease(inner.getDrawX() - 50, inner.getCenterY());
+    assertEquals(SdkConstants.ATTR_PARENT,
+                 textView.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF));
+
+    // Drag top anchor of textView to bottom side of nested constraint layout.
+    myInteraction.mouseDown("textView", AnchorTarget.Type.TOP);
+    myInteraction.mouseRelease(inner.getDrawX(), inner.getCenterY() + 50);
+    assertEquals(SdkConstants.ATTR_PARENT,
+                 textView.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF));
+  }
+
   public void testRenderDuringDragging() {
     myInteraction.select("button2", true);
     myInteraction.mouseDown("button2", AnchorTarget.Type.LEFT);
@@ -92,7 +116,6 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     myScreen.get("@id/button2").expectXml("<Button\n" +
                                           "    android:id=\"@id/button2\"/>");
   }
-
 
   public void testBaselineTargetPosition() {
     SceneComponent button2 = myScene.getSceneComponent("button2");
