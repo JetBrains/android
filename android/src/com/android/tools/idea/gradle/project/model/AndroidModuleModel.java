@@ -165,7 +165,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                                           @NotNull IdeDependenciesFactory dependenciesFactory,
                                           @Nullable Collection<Variant> variantsToAdd,
                                           @Nullable ProjectSyncIssues syncIssues) {
-    IdeAndroidProject ideAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
+    IdeAndroidProject ideAndroidProject = IdeAndroidProjectImpl.create(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
     return new AndroidModuleModel(moduleName, rootDirPath, ideAndroidProject, variantName);
   }
 
