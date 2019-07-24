@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.editor.CloudTestMatrixTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetContext;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -515,26 +514,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     // Assert
     assertNull(myPresentation.getDescription());
     assertTrue(myPresentation.isEnabled());
-  }
-
-  @Test
-  public void updatePresentationFirebaseTestLabDeviceMatrixTargetIsSelected() {
-    // Arrange
-    DeployTargetContext context = Mockito.mock(DeployTargetContext.class);
-    Mockito.when(context.getCurrentDeployTargetProvider()).thenReturn(new CloudTestMatrixTargetProvider());
-
-    AndroidRunConfigurationBase configuration = Mockito.mock(AndroidTestRunConfiguration.class);
-    Mockito.when(configuration.getDeployTargetContext()).thenReturn(context);
-
-    RunnerAndConfigurationSettings settings = Mockito.mock(RunnerAndConfigurationSettings.class);
-    Mockito.when(settings.getConfiguration()).thenReturn(configuration);
-
-    // Act
-    DeviceAndSnapshotComboBoxAction.updatePresentation(myPresentation, settings);
-
-    // Assert
-    assertEquals("Not applicable for the Firebase test lab device matrix target", myPresentation.getDescription());
-    assertFalse(myPresentation.isEnabled());
   }
 
   @Test

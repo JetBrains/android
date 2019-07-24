@@ -17,8 +17,8 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.run.DeviceCount;
 import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.State;
 import com.android.tools.idea.run.editor.DeployTarget;
-import com.android.tools.idea.run.editor.DeployTargetState;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -28,7 +28,7 @@ import java.util.Collection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<DeployTargetState> {
+final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<State> {
   @NotNull
   private final Collection<Device> myDevices;
 
@@ -43,19 +43,13 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<DeployTarget
 
   @NotNull
   @Override
-  public RunProfileState getRunProfileState(@NotNull Executor executor,
-                                            @NotNull ExecutionEnvironment environment,
-                                            @NotNull DeployTargetState state) {
+  public RunProfileState getRunProfileState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment, @NotNull State state) {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  public DeviceFutures getDevices(@NotNull DeployTargetState state,
-                                  @NotNull AndroidFacet facet,
-                                  @NotNull DeviceCount count,
-                                  boolean debug,
-                                  int id) {
+  public DeviceFutures getDevices(@NotNull State state, @NotNull AndroidFacet facet, @NotNull DeviceCount count, boolean debug, int id) {
     DeviceFutures futures = new DeviceFutures(new ArrayList<>(myDevices.size()));
     Project project = facet.getModule().getProject();
     myDevices.forEach(device -> device.addTo(futures, project, null));
