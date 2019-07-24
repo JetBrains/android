@@ -16,6 +16,7 @@
 package com.android.tools.idea.res.psi;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReferenceExpression;
@@ -23,7 +24,6 @@ import com.intellij.psi.ResolveResult;
 import com.intellij.psi.xml.XmlElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 public interface AndroidResourceToPsiResolver {
@@ -57,7 +57,7 @@ public interface AndroidResourceToPsiResolver {
    * Returns the {@link PsiElement}s for "go to declaration" on fields of R and Manifest classes.
    */
   @NotNull
-  PsiElement[] getGotoDeclarationTargets(@NotNull AndroidResourceUtil.MyReferredResourceFieldInfo fieldInfo,
+  PsiElement[] getGotoDeclarationTargets(@NotNull ResourceReference resourceReference,
                                          @NotNull PsiReferenceExpression refExpr);
 
   static AndroidResourceToPsiResolver getInstance() {
