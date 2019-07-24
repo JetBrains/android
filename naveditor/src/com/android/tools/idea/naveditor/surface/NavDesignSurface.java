@@ -143,7 +143,6 @@ public class NavDesignSurface extends DesignSurface {
   private DesignerEditorPanel myEditorPanel;
 
   private static final WeakHashMap<AndroidFacet, SoftReference<ConfigurationManager>> ourConfigurationManagers = new WeakHashMap<>();
-  private static final Set<Project> PROJECTS_WITH_LISTENERS = ContainerUtil.createWeakSet();
 
   private static final List<GradleCoordinate> NAVIGATION_DEPENDENCIES = ImmutableList.of(
     GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+"),
@@ -184,23 +183,6 @@ public class NavDesignSurface extends DesignSurface {
         requestRender();
       }
     });
-
-    synchronized (PROJECTS_WITH_LISTENERS) {
-      if (!PROJECTS_WITH_LISTENERS.contains(project)) {
-        PROJECTS_WITH_LISTENERS.add(project);
-        project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
-          @Override
-          public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-            // skip the initial opening
-            if (event.getOldEditor() != null && event.getNewEditor() != null) {
-              NavUsageTracker.Companion.getInstance(getModel())
-                .createEvent(event.getNewEditor() instanceof NavEditor ? SELECT_DESIGN_TAB : SELECT_XML_TAB)
-                .log();
-            }
-          }
-        });
-      }
-    }
   }
 
   @Override
