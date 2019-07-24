@@ -116,6 +116,16 @@ import org.jetbrains.annotations.Nullable;
  * A generic design surface for use in a graphical editor.
  */
 public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider, Zoomable {
+
+  public enum State {
+    /** Surface is taking the total space of the design editor. */
+    FULL,
+    /** Surface is sharing the design editor horizontal space with a text editor. */
+    SPLIT,
+    /** Surface is deactivated and not being displayed. */
+    DEACTIVATED
+  }
+
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
 
   private final Project myProject;
@@ -175,6 +185,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   private final DesignerAnalyticsManager myAnalyticsManager;
+
+  @NotNull
+  private State myState = State.FULL;
 
   public DesignSurface(@NotNull Project project, @NotNull SelectionModel selectionModel, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
@@ -503,6 +516,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public JComponent getPreferredFocusedComponent() {
     return myGlassPane;
+  }
+
+  public final void setState(@NotNull State state) {
+    myState = state;
+  }
+
+  @NotNull
+  public final State getState() {
+    return myState;
   }
 
   public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {

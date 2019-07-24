@@ -69,6 +69,7 @@ import com.android.tools.idea.common.analytics.UsageTrackerUtilTest;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
@@ -349,10 +350,11 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     assertThat(logged.getActive(0).getAttributeName()).isEqualTo(ATTR_ELEVATION);
   }
 
-  protected NlUsageTracker getUsageTracker() {
+  private NlUsageTracker getUsageTracker() {
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(LayoutFileType.INSTANCE);
     when(surface.getSceneMode()).thenReturn(SceneMode.BOTH);
+    surface.setState(DesignSurface.State.SPLIT);
     NlAnalyticsManager analyticsManager = new NlAnalyticsManager(surface);
     when(surface.getAnalyticsManager()).thenReturn(analyticsManager);
     when(surface.getScale()).thenReturn(0.50);
