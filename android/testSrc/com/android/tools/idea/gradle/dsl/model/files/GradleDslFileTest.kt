@@ -123,9 +123,11 @@ class GradleDslFileTest : GradleFileModelTestCase() {
       val files = buildModel.involvedFiles
       assertSize(4, files)
       val fileParent = myBuildFile.parent
-      val expected = listOf(myBuildFile.path,
-                            fileParent.findChild("a.gradle")!!.path, fileParent.findChild("b.gradle")!!.path,
-                            fileParent.findChild("gradle.properties")!!.path)
+      val expected =
+        listOf(myBuildFile.path,
+               fileParent.findChild("a$myTestDataExtension")!!.path,
+               fileParent.findChild("b$myTestDataExtension")!!.path,
+               fileParent.findChild("gradle.properties")!!.path)
       assertContainsElements(files.map { it.virtualFile.path }, expected.map { toSystemIndependentPath(it) })
     }
   }
@@ -148,14 +150,14 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     }
 
     run {
-      val properties = getFile(fileParent.findChild("a.gradle")!!, files).declaredProperties
+      val properties = getFile(fileParent.findChild("a$myTestDataExtension")!!, files).declaredProperties
       assertSize(2, properties)
       verifyPropertyModel(properties[0], STRING_TYPE, "hello", STRING, VARIABLE, 0, "hello")
       verifyPropertyModel(properties[1], BOOLEAN_TYPE, false, BOOLEAN, REGULAR, 0, "prop2")
     }
 
     run {
-      val properties = getFile(fileParent.findChild("b.gradle")!!, files).declaredProperties
+      val properties = getFile(fileParent.findChild("b$myTestDataExtension")!!, files).declaredProperties
       assertSize(5, properties)
       verifyPropertyModel(properties[0], STRING_TYPE, "1", STRING, VARIABLE, 0, "var1")
       verifyPropertyModel(properties[1], INTEGER_TYPE, 2, INTEGER, VARIABLE, 0, "var2")
