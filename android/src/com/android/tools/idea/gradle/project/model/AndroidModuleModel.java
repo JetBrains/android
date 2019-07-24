@@ -112,8 +112,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable private transient GradleVersion myModelVersion;
   @NotNull private String mySelectedVariantName;
 
-  private transient VirtualFile myRootDir;
-
   @Nullable private Boolean myOverridesManifestPackage;
   @Nullable private transient AndroidVersion myMinSdkVersion;
 
@@ -545,22 +543,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   public File getRootDirPath() {
     return myRootDirPath;
-  }
-
-  /**
-   * @return the root directory of the imported Android-Gradle project. The returned path belongs to the IDEA module containing the
-   * build.gradle file.
-   */
-  @Override
-  @NotNull
-  public VirtualFile getRootDir() {
-    if (myRootDir == null) {
-      VirtualFile found = findFileByIoFile(myRootDirPath, true);
-      // the module's root directory can never be null.
-      assert found != null;
-      myRootDir = found;
-    }
-    return myRootDir;
   }
 
   @Override
