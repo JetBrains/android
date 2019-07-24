@@ -21,6 +21,7 @@ import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY
 import com.android.SdkConstants.FN_RESOURCE_TEXT
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.Library
 import com.android.projectmodel.RecursiveResourceFolder
@@ -31,6 +32,7 @@ import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
@@ -49,11 +51,17 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
-import org.jetbrains.android.dom.manifest.packageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
+
+/** Creates a map for the given pairs, filtering out null values. */
+private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
+  return pairs.asSequence()
+    .filter { it.second != null }
+    .toMap() as Map<K, V>
+}
 
 class DefaultModuleSystem(override val module: Module) :
   AndroidModuleSystem,
@@ -179,6 +187,18 @@ class DefaultModuleSystem(override val module: Module) :
       packageName.nullize(true)
     }
     return facet.putUserDataIfAbsent(PACKAGE_NAME, cachedValue).value
+  }
+
+  override fun getManifestOverrides(): ManifestOverrides {
+    val facet = AndroidFacet.getInstance(module)
+    val androidModel = facet?.configuration?.model ?: return ManifestOverrides()
+    val directOverrides = notNullMapOf(
+      ManifestSystemProperty.MIN_SDK_VERSION to androidModel.minSdkVersion?.apiString,
+      ManifestSystemProperty.TARGET_SDK_VERSION to androidModel.targetSdkVersion?.apiString,
+      ManifestSystemProperty.VERSION_CODE to androidModel.versionCode?.takeIf { it > 0 }?.toString(),
+      ManifestSystemProperty.PACKAGE to androidModel.applicationId
+    )
+    return ManifestOverrides(directOverrides)
   }
 
   override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
