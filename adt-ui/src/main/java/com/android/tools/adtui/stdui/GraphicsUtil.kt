@@ -62,7 +62,7 @@ fun paintBackground(graphics: Graphics, component: JComponent) {
   val bg = if (opaque != null) opaque.background else component.background
 
   val rect = RoundRectangle2D.Double(1.0, 1.0, (size.width - 3).toDouble(), (size.height - 3).toDouble(), 4.0, 4.0)
-  if (UIUtil.isUnderAquaLookAndFeel() || UIUtil.isUnderDefaultMacTheme()) {
+  if (UIUtil.isUnderDefaultMacTheme()) {
     g.color = Gray.xE0
     g.fill(rect)
     g.color = Gray.xCA
