@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.serialization.PropertyMapping;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,7 +46,7 @@ import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
  */
 public class JavaModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 3L;
+  private static final long serialVersionUID = 4L;
 
   @NotNull private final String myModuleName;
   @NotNull private final Collection<JavaModuleContentRoot> myContentRoots;
@@ -73,12 +74,46 @@ public class JavaModuleModel implements ModuleModel {
     return javaFacet.getJavaModuleModel();
   }
 
+  public static JavaModuleModel create(@NotNull String moduleName,
+                                       @NotNull Collection<JavaModuleContentRoot> contentRoots,
+                                       @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
+                                       @NotNull Collection<JarLibraryDependency> jarLibraryDependencies,
+                                       @NotNull Map<String, Set<File>> artifactsByConfiguration,
+                                       @NotNull Collection<SyncIssue> syncIssues,
+                                       @Nullable ExtIdeaCompilerOutput compilerOutput,
+                                       @Nullable File buildFolderPath,
+                                       @Nullable String languageLevel,
+                                       boolean buildable,
+                                       boolean androidModuleWithoutVariants) {
+    Collection<SyncIssue> syncIssuesCopy = syncIssues.stream().map(issue -> new IdeSyncIssue(issue)).collect(Collectors.toList());
+    List<String> configurationsCopy = new ArrayList<>(artifactsByConfiguration.keySet());
+    Collections.sort(configurationsCopy);
+
+    return new JavaModuleModel(moduleName, contentRoots, javaModuleDependencies, jarLibraryDependencies, artifactsByConfiguration,
+                               syncIssuesCopy, configurationsCopy, compilerOutput, buildFolderPath, languageLevel, buildable,
+                               androidModuleWithoutVariants);
+  }
+
+  @PropertyMapping({
+    "myModuleName",
+    "myContentRoots",
+    "myJavaModuleDependencies",
+    "myJarLibraryDependencies",
+    "myArtifactsByConfiguration",
+    "mySyncIssues",
+    "myConfigurations",
+    "myCompilerOutput",
+    "myBuildFolderPath",
+    "myLanguageLevel",
+    "myBuildable",
+    "myAndroidModuleWithoutVariants",})
   public JavaModuleModel(@NotNull String moduleName,
                          @NotNull Collection<JavaModuleContentRoot> contentRoots,
                          @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
                          @NotNull Collection<JarLibraryDependency> jarLibraryDependencies,
                          @NotNull Map<String, Set<File>> artifactsByConfiguration,
                          @NotNull Collection<SyncIssue> syncIssues,
+                         @NotNull List<String> configurations,
                          @Nullable ExtIdeaCompilerOutput compilerOutput,
                          @Nullable File buildFolderPath,
                          @Nullable String languageLevel,
@@ -88,15 +123,14 @@ public class JavaModuleModel implements ModuleModel {
     myContentRoots = contentRoots;
     myJavaModuleDependencies = javaModuleDependencies;
     myJarLibraryDependencies = jarLibraryDependencies;
-    mySyncIssues = syncIssues.stream().map(issue -> new IdeSyncIssue(issue)).collect(Collectors.toList());
     myArtifactsByConfiguration = artifactsByConfiguration;
+    mySyncIssues = syncIssues;
+    myConfigurations = configurations;
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
     myLanguageLevel = languageLevel;
     myBuildable = buildable;
     myAndroidModuleWithoutVariants = androidModuleWithoutVariants;
-    myConfigurations = new ArrayList<>(myArtifactsByConfiguration.keySet());
-    Collections.sort(myConfigurations);
   }
 
   @Override
