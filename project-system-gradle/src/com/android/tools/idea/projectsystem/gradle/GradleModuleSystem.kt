@@ -17,13 +17,16 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
+import com.android.builder.model.BuildType
 import com.android.ide.common.gradle.model.GradleModelConverter
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersionRange
 import com.android.ide.common.repository.MavenRepositories
+import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.Library
 import com.android.repository.io.FileOpUtils
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
@@ -33,6 +36,7 @@ import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.DependencyType
+import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
@@ -51,9 +55,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.util.text.nullize
+import org.jetbrains.android.dom.manifest.AndroidManifestXmlFile
 import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
-import org.jetbrains.android.dom.manifest.packageName
+import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
 import java.util.ArrayDeque
@@ -75,6 +81,13 @@ import java.util.Collections
 const val CHECK_DIRECT_GRADLE_DEPENDENCIES = false
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
+
+/** Creates a map for the given pairs, filtering out null values. */
+private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
+  return pairs.asSequence()
+    .filter { it.second != null }
+    .toMap() as Map<K, V>
+}
 
 class GradleModuleSystem(
   override val module: Module,
@@ -157,7 +170,8 @@ class GradleModuleSystem(
           else -> "annotationProcessor"
         }
       }
-    } else {
+    }
+    else {
       manager.addDependenciesWithoutSync(module, coordinates)
     }
   }
@@ -366,6 +380,38 @@ class GradleModuleSystem(
 
     override fun toString() = "$groupId:$artifactId"
     fun isSameAs(coordinate: GradleCoordinate) = groupId == coordinate.groupId && artifactId == coordinate.artifactId
+  }
+
+  override fun getManifestOverrides(): ManifestOverrides {
+    val facet = AndroidFacet.getInstance(module)
+    val androidModel = facet?.configuration?.model ?: return ManifestOverrides()
+    val directOverrides = notNullMapOf(
+      ManifestSystemProperty.MIN_SDK_VERSION to androidModel.minSdkVersion?.apiString,
+      ManifestSystemProperty.TARGET_SDK_VERSION to androidModel.targetSdkVersion?.apiString,
+      ManifestSystemProperty.VERSION_CODE to androidModel.versionCode?.takeIf { it > 0 }?.toString(),
+      ManifestSystemProperty.PACKAGE to androidModel.applicationId
+    )
+    val gradleModel = AndroidModuleModel.get(facet) ?: return ManifestOverrides(directOverrides)
+    val flavor = gradleModel.selectedVariant.mergedFlavor
+    val buildType = gradleModel.findBuildType(gradleModel.selectedVariant.buildType)!!.buildType
+    val placeholders = (flavor.manifestPlaceholders + buildType.manifestPlaceholders).mapValues { it.value.toString() }
+    val directOverridesFromGradle = notNullMapOf(
+      ManifestSystemProperty.MAX_SDK_VERSION to flavor.maxSdkVersion?.toString(),
+      ManifestSystemProperty.VERSION_NAME to getVersionNameOverride(facet, gradleModel, buildType)
+    )
+    return ManifestOverrides(directOverrides + directOverridesFromGradle, placeholders)
+  }
+
+  private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel, buildType: BuildType): String? {
+    val flavor = gradleModel.selectedVariant.mergedFlavor
+    val versionName = flavor.versionName
+    val flavorSuffix = if (gradleModel.features.isProductFlavorVersionSuffixSupported) flavor.versionNameSuffix.orEmpty() else ""
+    val suffix =  flavorSuffix + buildType.versionNameSuffix.orEmpty()
+    return when {
+      versionName != null && versionName.isNotEmpty() -> versionName + suffix
+      suffix.isEmpty() -> null
+      else -> facet.getPrimaryManifestXml()?.versionName.orEmpty() + suffix
+    }
   }
 
   override fun getPackageName(): String? {

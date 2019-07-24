@@ -138,6 +138,8 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
       override fun getPackageName(): String? = null
 
+      override fun getManifestOverrides() = ManifestOverrides()
+
       override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
         return module.getModuleWithDependenciesAndLibrariesScope(scopeType != ScopeType.MAIN)
       }

@@ -20,6 +20,8 @@ package org.jetbrains.android.dom.manifest
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_PACKAGE
+import com.android.SdkConstants.ATTR_VERSION_NAME
+import com.android.SdkConstants.TAG_MANIFEST
 import com.android.SdkConstants.TAG_PERMISSION
 import com.android.SdkConstants.TAG_PERMISSION_GROUP
 import com.android.annotations.concurrency.AnyThread
@@ -126,33 +128,39 @@ fun <T> AndroidFacet.cachedValueFromPrimaryManifest(valueSelector: AndroidManife
 /**
  * Returns the PSI representation of the facet's primary manifest, if available.
  */
-private fun AndroidFacet.getPrimaryManifestXml(): AndroidManifestXmlFile? {
+fun AndroidFacet.getPrimaryManifestXml(): AndroidManifestXmlFile? {
   val psiFile = SourceProviderManager.getInstance(this).mainManifestFile?.let { AndroidPsiUtils.getPsiFileSafely(module.project, it) }
-  return psiFile as? AndroidManifestXmlFile
+  return (psiFile as? XmlFile)?.let(::AndroidManifestXmlFile)
 }
 
 /**
  * The PSI representation of an Android manifest file.
  */
-typealias AndroidManifestXmlFile = XmlFile
+class AndroidManifestXmlFile(delegate: XmlFile) : XmlFile by delegate {
+  init {
+    require(delegate.rootTag?.name == TAG_MANIFEST)
+  }
 
-val AndroidManifestXmlFile.packageName get() = rootTag?.getAttributeValue(ATTR_PACKAGE, null)
+  val packageName get() = rootTag?.getAttributeValue(ATTR_PACKAGE, null)
 
-val AndroidManifestXmlFile.customPermissions get() = findAndroidNamesForTags(TAG_PERMISSION)
+  val customPermissions get() = findAndroidNamesForTags(TAG_PERMISSION)
 
-val AndroidManifestXmlFile.customPermissionGroups get() = findAndroidNamesForTags(TAG_PERMISSION_GROUP)
+  val customPermissionGroups get() = findAndroidNamesForTags(TAG_PERMISSION_GROUP)
 
-/**
- * Returns the android:name attribute of each [XmlTag] of the given type in the [XmlFile].
- */
-private fun AndroidManifestXmlFile.findAndroidNamesForTags(tagName: String): Collection<String> {
-  val androidNames = mutableListOf<String>()
-  accept(object : XmlRecursiveElementVisitor() {
-    override fun visitXmlTag(tag: XmlTag?) {
-      super.visitXmlTag(tag)
-      if (tagName != tag?.name) return
-      tag.getAttributeValue(ATTR_NAME, ANDROID_URI)?.let(androidNames::add)
-    }
-  })
-  return androidNames
+  val versionName get() = rootTag?.getAttributeValue(ATTR_VERSION_NAME, ANDROID_URI)
+
+  /**
+   * Returns the android:name attribute of each [XmlTag] of the given type in the [XmlFile].
+   */
+  private fun findAndroidNamesForTags(tagName: String): Collection<String> {
+    val androidNames = mutableListOf<String>()
+    accept(object : XmlRecursiveElementVisitor() {
+      override fun visitXmlTag(tag: XmlTag?) {
+        super.visitXmlTag(tag)
+        if (tagName != tag?.name) return
+        tag.getAttributeValue(ATTR_NAME, ANDROID_URI)?.let(androidNames::add)
+      }
+    })
+    return androidNames
+  }
 }

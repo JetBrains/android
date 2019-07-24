@@ -15,30 +15,21 @@
  */
 package com.android.tools.idea.model;
 
-import static com.android.SdkConstants.ANDROID_URI;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.android.SdkConstants;
 import com.android.annotations.concurrency.Immutable;
 import com.android.annotations.concurrency.Slow;
-import com.android.builder.model.BaseConfig;
-import com.android.builder.model.BuildType;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavor;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.ManifestMerger2;
-import com.android.manifmerger.ManifestSystemProperty;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlDocument;
-import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.project.SyncTimestampUtil;
+import com.android.tools.idea.projectsystem.ManifestOverrides;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
 import com.android.utils.XmlUtils;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -60,11 +51,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.apache.commons.io.input.CharSequenceInputStream;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
@@ -325,9 +313,6 @@ final class MergedManifestInfo {
     ManifestMerger2.MergeType mergeType =
       facet.getConfiguration().isAppOrFeature() ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
 
-    AndroidModel androidModel = facet.getConfiguration().getModel();
-    AndroidModuleModel gradleModel = AndroidModuleModel.get(facet);
-
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);
     manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING);
     manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[0]));
@@ -339,65 +324,9 @@ final class MergedManifestInfo {
     }
     manifestMergerInvoker.addBundleManifests(libraryManifests);
 
-    if (androidModel != null) {
-      AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
-      if (minSdkVersion != null) {
-        manifestMergerInvoker.setOverride(ManifestSystemProperty.MIN_SDK_VERSION, minSdkVersion.getApiString());
-      }
-      AndroidVersion targetSdkVersion = androidModel.getTargetSdkVersion();
-      if (targetSdkVersion != null) {
-        manifestMergerInvoker.setOverride(ManifestSystemProperty.TARGET_SDK_VERSION, targetSdkVersion.getApiString());
-      }
-      Integer versionCode = androidModel.getVersionCode();
-      if (versionCode != null && versionCode > 0) {
-        manifestMergerInvoker.setOverride(ManifestSystemProperty.VERSION_CODE, String.valueOf(versionCode));
-      }
-      String packageOverride = androidModel.getApplicationId();
-      if (!Strings.isNullOrEmpty(packageOverride)) {
-        manifestMergerInvoker.setOverride(ManifestSystemProperty.PACKAGE, packageOverride);
-      }
-    }
-
-    if (gradleModel != null) {
-      BuildTypeContainer buildTypeContainer = gradleModel.findBuildType(gradleModel.getSelectedVariant().getBuildType());
-      assert buildTypeContainer != null;
-      BuildType buildType = buildTypeContainer.getBuildType();
-
-      ProductFlavor mergedProductFlavor = gradleModel.getSelectedVariant().getMergedFlavor();
-      // copy-paste from {@link VariantConfiguration#getManifestPlaceholders()}
-      Map<String, Object> placeHolders = new HashMap<>(mergedProductFlavor.getManifestPlaceholders());
-      placeHolders.putAll(buildType.getManifestPlaceholders());
-      manifestMergerInvoker.setPlaceHolderValues(placeHolders);
-
-
-      // @deprecated maxSdkVersion has been ignored since Android 2.1 (API level 7)
-      Integer maxSdkVersion = mergedProductFlavor.getMaxSdkVersion();
-      if (maxSdkVersion != null) {
-        manifestMergerInvoker.setOverride(ManifestSystemProperty.MAX_SDK_VERSION, maxSdkVersion.toString());
-      }
-
-      // TODO we should have version Name for non-gradle projects
-      // copy-paste from {@link VariantConfiguration#getVersionName()}
-      String versionName = mergedProductFlavor.getVersionName();
-      String flavorVersionNameSuffix = null;
-      if (gradleModel.getFeatures().isProductFlavorVersionSuffixSupported()) {
-        flavorVersionNameSuffix = getVersionNameSuffix(mergedProductFlavor);
-      }
-      String versionNameSuffix = Joiner.on("").skipNulls().join(flavorVersionNameSuffix, getVersionNameSuffix(buildType));
-      if (!Strings.isNullOrEmpty(versionName) || !Strings.isNullOrEmpty(versionNameSuffix)) {
-        if (Strings.isNullOrEmpty(versionName)) {
-          Manifest manifest = Manifest.getMainManifest(facet);
-          if (manifest != null) {
-            versionName = manifest.getXmlTag().getAttributeValue(SdkConstants.ATTR_VERSION_NAME, ANDROID_URI);
-          }
-        }
-        if (!Strings.isNullOrEmpty(versionNameSuffix)) {
-          versionName = Strings.nullToEmpty(versionName) + versionNameSuffix;
-        }
-        manifestMergerInvoker.setOverride(ManifestSystemProperty.VERSION_NAME, versionName);
-      }
-
-    }
+    ManifestOverrides overrides = ProjectSystemUtil.getModuleSystem(facet.getModule()).getManifestOverrides();
+    overrides.getPlaceholders().forEach((placeholder, value) -> manifestMergerInvoker.setPlaceHolderValue(placeholder, value));
+    overrides.getDirectOverrides().forEach((property, value) -> manifestMergerInvoker.setOverride(property, value));
 
     if (mergeType == ManifestMerger2.MergeType.APPLICATION) {
       manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.REMOVE_TOOLS_DECLARATIONS);
@@ -490,19 +419,5 @@ final class MergedManifestInfo {
 
 
     return manifestMergerInvoker.merge();
-  }
-
-  // TODO: Remove once Android plugin v. 2.3 is the "recommended" version.
-  @Nullable
-  @Deprecated
-  // TODO replace with IdeBaseConfig#getVersionNameSuffix
-  private static String getVersionNameSuffix(@NotNull BaseConfig config) {
-    try {
-      return config.getVersionNameSuffix();
-    }
-    catch (UnsupportedOperationException e) {
-      LOG.warn("Method 'getVersionNameSuffix' not found", e);
-      return null;
-    }
   }
 }
