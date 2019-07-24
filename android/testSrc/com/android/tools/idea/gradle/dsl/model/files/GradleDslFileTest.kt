@@ -113,8 +113,8 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
   @Test
   fun testInvolvedAppliedFiles() {
-    writeToNewProjectFile("b.gradle", GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE)
-    writeToNewProjectFile("a.gradle", GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO)
+    writeToNewProjectFile("b", GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE)
+    writeToNewProjectFile("a", GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO)
     writeToBuildFile(GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES)
 
     val buildModel = gradleBuildModel
@@ -132,8 +132,8 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
   @Test
   fun testListPropertiesFromAppliedFiles() {
-    writeToNewProjectFile("b.gradle", GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE)
-    writeToNewProjectFile("a.gradle", GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO)
+    writeToNewProjectFile("b", GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE)
+    writeToNewProjectFile("a", GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO)
     writeToBuildFile(GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES)
 
     val buildModel = gradleBuildModel
@@ -167,7 +167,7 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
   @Test
   fun testApplyFromBlock() {
-    writeToNewProjectFile("a.gradle", GRADLE_DSL_FILE_APPLY_FROM_BLOCK_APPLIED)
+    writeToNewProjectFile("a", GRADLE_DSL_FILE_APPLY_FROM_BLOCK_APPLIED)
     writeToBuildFile(GRADLE_DSL_FILE_APPLY_FROM_BLOCK)
 
     val buildModel = gradleBuildModel
