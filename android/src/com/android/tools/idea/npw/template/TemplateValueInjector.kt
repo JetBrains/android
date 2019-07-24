@@ -25,8 +25,9 @@ import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommen
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.util.DynamicAppUtils
+import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
@@ -310,14 +311,15 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   fun setBaseFeature(baseFeature: Module): TemplateValueInjector {
-    val moduleModel = AndroidModuleModel.get(baseFeature)!!
-    val baseModuleRoot = moduleModel.rootDirPath
-    val resDirectories = moduleModel.defaultSourceProvider.resDirectories
+    val androidFacet = AndroidFacet.getInstance(baseFeature)!!
+    val gradleFacet = GradleFacet.getInstance(baseFeature)!!
+    val rootFolder = GradleProjects.findModuleRootFolderPath(baseFeature)
+    val resDirectories = androidFacet.mainSourceProvider.resDirectories
     assert(!resDirectories.isEmpty())
     val baseModuleResourceRoot = resDirectories.iterator().next() // Put the new resources in any of the available res directories
 
-    myTemplateValues[ATTR_BASE_FEATURE_NAME] = baseModuleRoot.name
-    myTemplateValues[ATTR_BASE_FEATURE_DIR] = baseModuleRoot.path
+    myTemplateValues[ATTR_BASE_FEATURE_NAME] = gradleFacet.gradleModuleModel?.moduleName.orEmpty()
+    myTemplateValues[ATTR_BASE_FEATURE_DIR] = rootFolder?.path.orEmpty()
     myTemplateValues[ATTR_BASE_FEATURE_RES_DIR] = baseModuleResourceRoot.path
     return this
   }
