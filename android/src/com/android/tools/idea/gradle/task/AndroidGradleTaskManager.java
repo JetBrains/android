@@ -32,7 +32,6 @@ import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.jetbrains.plugins.gradle.service.task.GradleTaskManager.appendInitScriptArgument;

@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers.perfd;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
 import org.jetbrains.annotations.NotNull;

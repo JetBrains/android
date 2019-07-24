@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.ng;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;

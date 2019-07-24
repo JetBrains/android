@@ -30,8 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.function.Consumer;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;

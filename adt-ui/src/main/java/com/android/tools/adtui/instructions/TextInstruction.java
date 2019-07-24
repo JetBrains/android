@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 
 /**

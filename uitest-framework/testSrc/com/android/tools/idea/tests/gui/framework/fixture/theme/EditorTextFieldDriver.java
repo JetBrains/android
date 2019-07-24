@@ -25,7 +25,6 @@ import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;

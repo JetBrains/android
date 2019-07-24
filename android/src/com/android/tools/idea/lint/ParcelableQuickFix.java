@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lint;
 
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;

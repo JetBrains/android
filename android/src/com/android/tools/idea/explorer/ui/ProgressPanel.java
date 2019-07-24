@@ -21,13 +21,11 @@ import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBProgressBar;
 import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**

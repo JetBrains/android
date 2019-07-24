@@ -16,7 +16,6 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.UnifiedEventsTable;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.StatusRuntimeException;

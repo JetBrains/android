@@ -20,7 +20,6 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
-import org.junit.Ignore;
 
 import java.util.ArrayList;
 import java.util.List;
