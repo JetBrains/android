@@ -8,10 +8,6 @@ iml_module(
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
-        "//tools/idea/images:intellij.platform.images",
-        "//tools/idea/xml/dom-impl:intellij.xml.dom.impl",
-        "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/plugins/groovy/jps-plugin:intellij.groovy.jps",
         "//tools/idea/plugins/ant/jps-plugin:intellij.ant.jps",
