@@ -110,16 +110,19 @@ public abstract class AbstractResourceRepositoryWithLocking extends AbstractReso
   }
 
   @Override
-  public void accept(@NotNull ResourceVisitor visitor) {
+  @NotNull
+  public ResourceVisitor.VisitResult accept(@NotNull ResourceVisitor visitor) {
     synchronized (ITEM_MAP_LOCK) {
       for (Map.Entry<ResourceNamespace, Map<ResourceType, ListMultimap<String, ResourceItem>>> entry : getFullTable().rowMap().entrySet()) {
         if (visitor.shouldVisitNamespace(entry.getKey())) {
           if (acceptByResources(entry.getValue(), visitor) == ResourceVisitor.VisitResult.ABORT) {
-            return;
+            return ResourceVisitor.VisitResult.ABORT;
           }
         }
       }
     }
+
+    return ResourceVisitor.VisitResult.CONTINUE;
   }
 
   @Override
