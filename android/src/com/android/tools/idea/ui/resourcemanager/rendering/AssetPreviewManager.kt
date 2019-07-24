@@ -91,8 +91,12 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) :
   override fun getDataProvider(resourceType: ResourceType): AssetDataProvider =
     when(resourceType) {
       ResourceType.COLOR -> colorDataProvider
-      ResourceType.DIMEN,
+      ResourceType.ARRAY,
       ResourceType.BOOL,
+      ResourceType.DIMEN,
+      ResourceType.FRACTION,
+      ResourceType.INTEGER,
+      ResourceType.PLURALS,
       ResourceType.STRING -> valueDataProvider
       else -> defaultDataProvider
     }
