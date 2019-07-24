@@ -41,7 +41,6 @@ open class TestAndroidModel @JvmOverloads constructor(
   private val debuggable: Boolean = false,
   private val dataBindingMode: DataBindingMode = DataBindingMode.NONE,
   private val versionCode: Int? = null,
-  private val rootDirPath: File? = null,
   private val namespacing: AaptOptions.Namespacing = AaptOptions.Namespacing.DISABLED,
   private val desugaringLevel: Set<Desugaring> = Desugaring.DEFAULT
 ) : AndroidModel {
@@ -69,7 +68,6 @@ open class TestAndroidModel @JvmOverloads constructor(
   override fun getClassJarProvider(): ClassJarProvider = classJarProvider ?: error("classJarProvider not set")
   override fun getNamespacing(): AaptOptions.Namespacing = namespacing
   override fun getDesugaring(): Set<Desugaring> = desugaringLevel
-  override fun getRootDirPath(): File = rootDirPath ?: error("rootDirPath not set")
   override fun isGenerated(file: VirtualFile): Boolean = TODO("not implemented")
   override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean = TODO("not implemented")
 }
