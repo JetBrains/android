@@ -2857,8 +2857,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   @Test
   fun testVariablesFromNestedApply() {
-    writeToNewProjectFile("b.gradle", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_ONE)
-    writeToNewProjectFile("a.gradle", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_TWO)
+    writeToNewProjectFile("b", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_ONE)
+    writeToNewProjectFile("a", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_TWO)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY)
 
     val buildModel = gradleBuildModel
@@ -2909,7 +2909,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
   @Ignore
   @Test
   fun testApplicationCycle() {
-    writeToNewProjectFile("a.gradle", GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE_APPLIED)
+    writeToNewProjectFile("a", GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE_APPLIED)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE)
 
     // Make sure we don't blow up.
@@ -2923,7 +2923,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   @Test
   fun testVariablesFromApply() {
-    writeToNewProjectFile("vars.gradle", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_APPLY_APPLIED)
+    writeToNewProjectFile("vars", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_APPLY_APPLIED)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLES_FROM_APPLY)
 
     val buildModel = gradleBuildModel
