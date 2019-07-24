@@ -17,8 +17,6 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.DefaultExecutionTarget;
@@ -432,21 +430,8 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    if (configuration instanceof AndroidTestRunConfiguration &&
-        isFirebaseTestLabDeviceMatrixTargetSelected((AndroidRunConfigurationBase)configuration)) {
-      presentation.setDescription("Not applicable for the Firebase test lab device matrix target");
-      presentation.setEnabled(false);
-
-      return;
-    }
-
     presentation.setDescription(null);
     presentation.setEnabled(true);
-  }
-
-  private static boolean isFirebaseTestLabDeviceMatrixTargetSelected(@NotNull AndroidRunConfigurationBase configuration) {
-    Object id = TargetSelectionMode.FIREBASE_DEVICE_MATRIX.name();
-    return configuration.getDeployTargetContext().getCurrentDeployTargetProvider().getId().equals(id);
   }
 
   private void updateSelectedSnapshot(@NotNull Project project) {
