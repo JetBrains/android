@@ -657,6 +657,8 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
     val surface = model.surface
+    val f1 = model.find("f1")!!
+    surface.selectionModel.setSelection(listOf(f1))
     val dialog = mock(AddActionDialog::class.java)
 
     `when`(dialog.showAndGet()).thenReturn(true)
@@ -666,7 +668,7 @@ class AddActionDialogTest : NavTestCase() {
 
     TestNavUsageTracker.create(model).use { tracker ->
       showAndUpdateFromDialog(dialog, surface, true)
-      assertSameElements(surface.selectionModel.selection, action)
+      assertSameElements(surface.selectionModel.selection, f1)
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(EDIT_ACTION)
                                  .setActionInfo(NavActionInfo.newBuilder()
