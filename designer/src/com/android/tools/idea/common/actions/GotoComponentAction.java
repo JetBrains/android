@@ -55,7 +55,7 @@ public class GotoComponentAction extends DumbAwareAction {
         SplitEditor splitEditor = (SplitEditor)selectedEditor;
         if (splitEditor.isDesignMode()) {
           // If we're in design mode, we want to change the split editor mode to XML-only before navigating to the element.
-          splitEditor.selectTextMode();
+          splitEditor.selectTextMode(false);
         }
       }
     }
