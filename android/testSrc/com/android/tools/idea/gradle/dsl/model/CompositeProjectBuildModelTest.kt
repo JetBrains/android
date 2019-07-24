@@ -38,7 +38,7 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
   override fun setUp() {
     super.setUp()
     writeToBuildFile(COMPOSITE_BUILD_MAIN_PROJECT_ROOT_BUILD)
-    writeToNewProjectFile("applied.gradle", COMPOSITE_BUILD_MAIN_PROJECT_APPLIED)
+    writeToNewProjectFile("applied", COMPOSITE_BUILD_MAIN_PROJECT_APPLIED)
     writeToSubModuleBuildFile(COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD)
     writeToSettingsFile(COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS)
 

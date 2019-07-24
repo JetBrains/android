@@ -54,7 +54,7 @@ import java.io.IOException
 class ProjectBuildModelTest : GradleFileModelTestCase() {
   @Test
   fun testAppliedFilesShared() {
-    writeToNewProjectFile("b.gradle", PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED_APPLIED)
+    writeToNewProjectFile("b", PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED_APPLIED)
     writeToBuildFile(PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED)
     writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED_SUB)
     writeToSettingsFile(subModuleSettingsText)
@@ -171,9 +171,9 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   fun testApplyResolvesCorrectFile() {
     // The sub-module applies a sub-module Gradle file which in turn applies a Gradle file from the root project directory.
     writeToBuildFile(PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE)
-    writeToNewProjectFile("applied.gradle", PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_APPLIED)
+    writeToNewProjectFile("applied", PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_APPLIED)
     writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_SUB)
-    writeToNewSubModuleFile("applied.gradle", PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_APPLIED_SUB)
+    writeToNewSubModuleFile("applied", PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_APPLIED_SUB)
     writeToSettingsFile(subModuleSettingsText)
 
     // This should correctly resolve the variable
@@ -265,7 +265,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_SUB)
     writeToBuildFile(PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER)
     writeToSettingsFile(subModuleSettingsText)
-    writeToNewSubModuleFile("a.gradle", PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED)
+    writeToNewSubModuleFile("a", PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED)
 
     val pbm = ProjectBuildModel.get(myProject)
     val buildModel = pbm.getModuleBuildModel(myModule)
