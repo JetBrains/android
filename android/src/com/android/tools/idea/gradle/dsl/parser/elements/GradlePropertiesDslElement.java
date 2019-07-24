@@ -413,8 +413,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   /**
-   * Adds the given element to the to-be added elements list, which are applied when {@link #apply()} method is invoked
-   * or discarded when the {@lik #resetState()} method is invoked.
+   * Adds the given element to the to-be-added elements list, which are applied when {@link #apply()} method is invoked
+   * or discarded when the {@link #resetState()} method is invoked.
    */
   @NotNull
   public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
@@ -550,7 +550,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   @Nullable
   public GradleDslElement requestAnchor(@NotNull GradleDslElement element) {
     // We need to find the element before `element` in my properties. The last one that has a psiElement, has the same name scheme as
-    // the given element (to ensure that they should be placed in the same block) and much either have a state of TO_BE_ADDED or EXISTING.
+    // the given element (to ensure that they should be placed in the same block) and must have a state of EXISTING, TO_BE_ADDED or MOVED.
     GradleDslElement lastElement = null;
     for (ElementList.ElementItem item : myProperties.myElements) {
       if (item.myElement == element) {
@@ -916,7 +916,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     /**
      * Moves the element tree represented by item.
      *
-     * @param item root of the tree to be movedx
+     * @param item root of the tree to be moved
      */
     private static void moveElementTree(@NotNull ElementItem item) {
       // Move the current element item, unless it is not on file yet.
