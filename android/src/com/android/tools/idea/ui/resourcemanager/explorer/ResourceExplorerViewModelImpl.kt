@@ -78,6 +78,8 @@ class ResourceExplorerViewModelImpl(
 
   override var facetUpdaterCallback: ((facet: AndroidFacet) -> Unit)? = null
 
+  override var resourceTypeUpdaterCallback: ((resourceType: ResourceType) -> Unit)? = null
+
   override var facet by Delegates.observable(facet) { _, oldFacet, newFacet -> facetUpdated(newFacet, oldFacet) }
 
   private var resourceVersion: ResourceNotificationManager.ResourceVersion? = null
@@ -111,6 +113,7 @@ class ResourceExplorerViewModelImpl(
       if (field != value &&
           value in 0 until resourceTypes.size) {
         field = value
+        resourceTypeUpdaterCallback?.invoke(resourceTypes[field])
         resourceChangedCallback?.invoke()
       }
     }
