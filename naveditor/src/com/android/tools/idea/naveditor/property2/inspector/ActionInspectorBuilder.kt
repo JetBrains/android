@@ -16,54 +16,24 @@
 package com.android.tools.idea.naveditor.property2.inspector
 
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.naveditor.model.actionDestination
-import com.android.tools.idea.naveditor.model.argumentName
 import com.android.tools.idea.naveditor.model.isAction
-import com.android.tools.idea.naveditor.model.isArgument
-import com.android.tools.idea.naveditor.model.isNavigation
-import com.android.tools.idea.naveditor.model.startDestination
-import com.android.tools.idea.naveditor.property2.ui.DefaultValueModel
-import com.android.tools.idea.naveditor.property2.ui.DefaultValuePanel
-import com.android.tools.idea.naveditor.property2.ui.DefaultValueTableModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_SINGLE_TOP
 
 class ActionInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    val component = properties.first?.components?.singleOrNull() ?: return
-    if (!component.isAction) {
+    if (properties.first?.components?.singleOrNull()?.isAction != true) {
       return
     }
 
-    addAnimationProperties(inspector, properties)
-    addDefaultValuePanel(inspector, component)
     addPopBehaviorProperties(inspector, properties)
     addLaunchOptionProperties(inspector, properties)
-  }
-
-  private fun addDefaultValuePanel(inspector: InspectorPanel, component: NlComponent) {
-    val arguments = getArguments(component)
-    val list = arguments.map { DefaultValueModel(it, component) }
-
-    val panel = DefaultValuePanel(DefaultValueTableModel(list))
-
-    val title = inspector.addExpandableTitle("Argument Default Values", list.isNotEmpty())
-    inspector.addComponent(panel, title)
-  }
-
-  private fun addAnimationProperties(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    addActionProperties(inspector, properties, "Animations", ATTR_ENTER_ANIM, ATTR_EXIT_ANIM, ATTR_POP_ENTER_ANIM, ATTR_POP_EXIT_ANIM)
   }
 
   private fun addPopBehaviorProperties(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
@@ -85,16 +55,5 @@ class ActionInspectorBuilder(private val editorProvider: EditorProvider<NeleProp
       val property = properties.getOrNull(ResourceNamespace.TODO().xmlNamespaceUri, propertyName) ?: continue
       inspector.addEditor(editorProvider.createEditor(property), titleModel)
     }
-  }
-
-  private fun getArguments(component: NlComponent): List<NlComponent> {
-    var destination = component.actionDestination ?: return listOf()
-    if (destination.isNavigation) {
-      destination = destination.startDestination ?: return listOf()
-    }
-
-    return destination.children
-      .filter { it.isArgument }
-      .sortedBy { it.argumentName ?: "" }
   }
 }
