@@ -13,25 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea.data.model;
+package com.android.tools.idea.gradle.project.sync.idea.data.model
 
-import org.gradle.tooling.model.idea.IdeaModule;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.serialization.PropertyMapping
+import java.io.Serializable
 
-import java.io.Serializable;
-
-public class ImportedModule implements Serializable {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-
-  @NotNull private final String myName;
-
-  public ImportedModule(@NotNull IdeaModule module) {
-    myName = module.getName();
-  }
-
-  @NotNull
-  public String getName() {
-    return myName;
+data class ImportedModule @PropertyMapping("name") constructor(val name: String) : Serializable {
+  companion object {
+    // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+    private const val serialVersionUID = 2L
   }
 }

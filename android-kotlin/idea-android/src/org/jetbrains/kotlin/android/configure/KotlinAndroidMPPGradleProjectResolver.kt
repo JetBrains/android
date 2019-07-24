@@ -55,7 +55,7 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
             for (childNode in ExternalSystemApiUtil.getChildren(ideModule, GradleSourceSetData.KEY)) {
                 if (childNode.kotlinSourceSet == null) continue
                 val moduleName = childNode.data.internalName
-                val importedModule = ImportedModule(gradleModule)
+                val importedModule = ImportedModule(gradleModule.name)
                 importedModuleNameField.set(importedModule, moduleName)
                 ideModule.createChild(IMPORTED_MODULE, importedModule)
             }
