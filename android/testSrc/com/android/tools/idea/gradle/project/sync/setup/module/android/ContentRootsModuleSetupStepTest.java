@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.android.tools.idea.util.FileExtensions.toIoFile;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.*;
@@ -71,7 +72,7 @@ public class ContentRootsModuleSetupStepTest extends IdeaTestCase {
     when(myAndroidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
 
     when(myAndroidModel.getAndroidProject()).thenReturn(myAndroidProject);
-    when(myAndroidModel.getRootDir()).thenReturn(myModuleFolder);
+    when(myAndroidModel.getRootDirPath()).thenReturn(toIoFile(myModuleFolder));
     when(myAndroidModel.getRootDirPath()).thenReturn(virtualToIoFile(myModuleFolder));
 
     addContentRoots("a", "b", "c");
