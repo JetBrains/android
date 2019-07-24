@@ -26,6 +26,7 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtil;
@@ -247,7 +248,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
   public void testFindSourceProvider() throws Exception {
     assertNotNull(myAppFacet.getConfiguration().getModel());
-    VirtualFile moduleFile = myAppFacet.getConfiguration().getModel().getRootDir();
+    VirtualFile moduleFile = VfsUtil.findFileByIoFile(myAppFacet.getConfiguration().getModel().getRootDirPath(), true);
     assertNotNull(moduleFile);
 
     // Try finding main flavor
@@ -411,7 +412,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
 
-    VirtualFile moduleFile = myAppFacet.getConfiguration().getModel().getRootDir();
+    VirtualFile moduleFile = VfsUtil.findFileByIoFile(myAppFacet.getConfiguration().getModel().getRootDirPath(), true);
     assertNotNull(moduleFile);
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);
@@ -432,7 +433,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
 
-    VirtualFile moduleFile = myAppFacet.getConfiguration().getModel().getRootDir();
+    VirtualFile moduleFile = VfsUtil.findFileByIoFile(myAppFacet.getConfiguration().getModel().getRootDirPath(), true);
     assertNotNull(moduleFile);
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);

@@ -142,16 +142,6 @@ public interface AndroidModel {
   boolean isGenerated(@NotNull VirtualFile file);
 
   /**
-   * @return the path of the root directory of the module.
-   *
-   * TODO: Do we really need two methods in our model interface for getting the root dir? It looks like it's not called very often, so we
-   * should be able to just re-locate it every time instead of caching.
-   */
-  @Deprecated
-  @NotNull
-  VirtualFile getRootDir();
-
-  /**
    * @return Whether data binding is enabled for this model and whether it is support or X versions.
    */
   @NotNull
