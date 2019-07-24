@@ -118,6 +118,28 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         }
         return unquoteString(literal.text)
       }
+      is KtArrayAccessExpression -> {
+        if (resolve) {
+          val gradleDslElement : GradleDslElement?
+          // TODO(xof) argh, this is the third example of this block of code
+          if (literal is KtArrayAccessExpression &&
+              literal.arrayExpression is KtNameReferenceExpression &&
+              (literal.arrayExpression as KtNameReferenceExpression).text == "extra" &&
+              literal.indexExpressions.size == 1 &&
+              literal.indexExpressions[0] is KtStringTemplateExpression &&
+              !(literal.indexExpressions[0] as KtStringTemplateExpression).hasInterpolation()) {
+            val text = (literal.indexExpressions[0] as KtStringTemplateExpression).entries[0].text
+            gradleDslElement = context.resolveReference(text, true)
+          }
+          else {
+            gradleDslElement = context.resolveReference(literal.text, true)
+          }
+          if (gradleDslElement is GradleDslSimpleExpression) {
+            return gradleDslElement.value
+          }
+        }
+        return unquoteString(literal.text)
+      }
       // For String and constant literals. Ex : Integers, single-quoted Strings.
       is KtStringTemplateExpression, is KtStringTemplateEntry -> {
         if (!resolve || context.hasCycle()) {
