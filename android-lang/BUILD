@@ -14,7 +14,6 @@ iml_module(
     tags = ["no_test_mac_psq"],  # b/113099009
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/plugins/groovy/jps-plugin:intellij.groovy.jps",
         "//tools/idea/plugins/ant/jps-plugin:intellij.ant.jps",
