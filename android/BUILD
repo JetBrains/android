@@ -56,7 +56,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/java/openapi:intellij.java[module]",
-        "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer.annotations",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/java/execution/impl:intellij.java.execution.impl[module]",
         "//tools/idea/xml/dom-impl:intellij.xml.dom.impl[module]",
@@ -157,6 +156,7 @@ iml_module(
         "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
         "//prebuilts/studio/layoutlib:data/layoutlib",
+        "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer.annotations[module]",
     ],
 )
 
@@ -322,6 +322,7 @@ iml_module(
         "//tools/idea/.idea/libraries:NanoXML[test]",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
+        "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer[module, test]",
     ],
 )
 
