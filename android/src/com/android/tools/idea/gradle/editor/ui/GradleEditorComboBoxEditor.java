@@ -52,12 +52,8 @@ public class GradleEditorComboBoxEditor implements ComboBoxEditor {
   private Object oldValue;
 
   public GradleEditorComboBoxEditor() {
-    if (SystemInfo.isMac && UIUtil.isUnderAquaLookAndFeel()) {
-      myField = new MacComboBoxTextField();
-    } else {
-      myField = new JTextField();
-      myField.setBorder(null);
-    }
+    myField = new JTextField();
+    myField.setBorder(null);
   }
 
   protected JTextField getField() {
