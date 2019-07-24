@@ -16,30 +16,37 @@
 package com.android.tools.idea.res.psi
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.xml.XmlElement
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil
 
 object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
-  override fun getXmlAttributeNameGotoDeclarationTargets(attributeName: String,
-                                                         namespace: ResourceNamespace,
-                                                         context: PsiElement,
-                                                         facet: AndroidFacet): Array<PsiElement> {
+
+  override fun getXmlAttributeNameGotoDeclarationTargets(
+    attributeName: String,
+    namespace: ResourceNamespace,
+    context: PsiElement,
+    facet: AndroidFacet
+  ): Array<PsiElement> {
     TODO("not implemented")
   }
 
-  override fun resolveToPsi(resourceValue: ResourceValue,
-                            element: XmlElement,
-                            facet: AndroidFacet): Array<out ResolveResult> {
+  override fun resolveToPsi(
+    resourceValue: ResourceValue,
+    element: XmlElement,
+    facet: AndroidFacet
+  ): Array<out ResolveResult> {
     TODO("not implemented")
   }
 
-  override fun getGotoDeclarationTargets(fieldInfo: AndroidResourceUtil.MyReferredResourceFieldInfo,
-                                         refExpr: PsiReferenceExpression): Array<PsiElement> {
+  override fun getGotoDeclarationTargets(
+    resourceReference: ResourceReference,
+    refExpr: PsiReferenceExpression
+  ): Array<PsiElement> {
     TODO("not implemented")
   }
 }

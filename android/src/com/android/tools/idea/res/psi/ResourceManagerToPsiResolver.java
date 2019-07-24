@@ -19,6 +19,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.sampledata.SampleDataManager;
@@ -32,7 +33,6 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.android.tools.idea.resources.base.BasicResourceItem;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementResolveResult;
@@ -43,9 +43,6 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.android.dom.AndroidAttributeValue;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName;
 import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.DeclareStyleable;
 import org.jetbrains.android.dom.resources.ResourceValue;
@@ -56,7 +53,6 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
 import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -170,46 +166,48 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
 
   @Override
   @NotNull
-  public PsiElement[] getGotoDeclarationTargets(@NotNull AndroidResourceUtil.MyReferredResourceFieldInfo info,
+  public PsiElement[] getGotoDeclarationTargets(@NotNull ResourceReference resourceReference,
                                                 @NotNull PsiReferenceExpression refExpr) {
     AndroidFacet facet = AndroidFacet.getInstance(refExpr);
     if (facet == null) {
       return PsiElement.EMPTY_ARRAY;
     }
+    ResourceType resourceType = resourceReference.getResourceType();
+    ResourceNamespace namespace = resourceReference.getNamespace();
+    String resourceName = resourceReference.getName();
 
-    String nestedClassName = info.getClassName();
-    String fieldName = info.getFieldName();
     List<PsiElement> resourceList = new ArrayList<>();
 
-    if (info.isFromManifest()) {
-      collectManifestElements(nestedClassName, fieldName, facet, resourceList);
+    ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
+    ResourceManager manager = namespace == ResourceNamespace.ANDROID
+                                  ? resourceManagers.getFrameworkResourceManager(false)
+                                  : resourceManagers.getLocalResourceManager();
+    if (manager == null) {
+      return PsiElement.EMPTY_ARRAY;
     }
-    else {
-      ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
-      ResourceManager manager = info.getNamespace() == ResourceNamespace.ANDROID
-                                    ? resourceManagers.getFrameworkResourceManager(false)
-                                    : resourceManagers.getLocalResourceManager();
-      if (manager == null) {
-        return PsiElement.EMPTY_ARRAY;
-      }
-      manager.collectLazyResourceElements(info.getNamespace(), nestedClassName, fieldName, false, refExpr, resourceList);
 
-      if (manager instanceof LocalResourceManager) {
-        LocalResourceManager localManager = (LocalResourceManager)manager;
+    manager.collectLazyResourceElements(namespace,
+                                        resourceType.getName(),
+                                        resourceName,
+                                        false,
+                                        refExpr,
+                                        resourceList);
 
-        if (nestedClassName.equals(ResourceType.ATTR.getName())) {
-          for (Attr attr : localManager.findAttrs(info.getNamespace(), fieldName)) {
-            resourceList.add(attr.getName().getXmlAttributeValue());
-          }
+    if (manager instanceof LocalResourceManager) {
+      LocalResourceManager localManager = (LocalResourceManager)manager;
+
+      if (resourceType.equals(ResourceType.ATTR)) {
+        for (Attr attr : localManager.findAttrs(namespace, resourceName)) {
+          resourceList.add(attr.getName().getXmlAttributeValue());
         }
-        else if (nestedClassName.equals(ResourceType.STYLEABLE.getName())) {
-          for (DeclareStyleable styleable : localManager.findStyleables(info.getNamespace(), fieldName)) {
-            resourceList.add(styleable.getName().getXmlAttributeValue());
-          }
+      }
+      else if (resourceType.equals(ResourceType.STYLEABLE)) {
+        for (DeclareStyleable styleable : localManager.findStyleables(namespace, resourceName)) {
+          resourceList.add(styleable.getName().getXmlAttributeValue());
+        }
 
-          for (Attr styleable : localManager.findStyleableAttributesByFieldName(info.getNamespace(), fieldName)) {
-            resourceList.add(styleable.getName().getXmlAttributeValue());
-          }
+        for (Attr styleable : localManager.findStyleableAttributesByFieldName(namespace, resourceName)) {
+          resourceList.add(styleable.getName().getXmlAttributeValue());
         }
       }
     }
@@ -222,40 +220,6 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
     return resourceList.toArray(PsiElement.EMPTY_ARRAY);
   }
 
-  private static void collectManifestElements(@NotNull String nestedClassName,
-                                              @NotNull String fieldName,
-                                              @NotNull AndroidFacet facet,
-                                              @NotNull List<PsiElement> result) {
-    Manifest manifest = facet.getManifest();
-
-    if (manifest == null) {
-      return;
-    }
-    List<? extends ManifestElementWithRequiredName> list;
-
-    if ("permission".equals(nestedClassName)) {
-      list = manifest.getPermissions();
-    }
-    else if ("permission_group".equals(nestedClassName)) {
-      list = manifest.getPermissionGroups();
-    }
-    else {
-      return;
-    }
-
-    for (ManifestElementWithRequiredName domElement : list) {
-      AndroidAttributeValue<String> nameAttribute = domElement.getName();
-      String unqualifiedName = StringUtil.getShortName(StringUtil.notNullize(nameAttribute.getValue()));
-
-      if (AndroidUtils.equal(unqualifiedName, fieldName, false)) {
-        XmlElement psiElement = nameAttribute.getXmlAttributeValue();
-
-        if (psiElement != null) {
-          result.add(psiElement);
-        }
-      }
-    }
-  }
 
   private static class AarResourceResolveResult implements ResolveResult {
     @Nullable private final PsiElement myElement;
