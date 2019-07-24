@@ -33,13 +33,13 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Arrays.asList;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
-import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -56,7 +56,6 @@ import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMo
 import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
@@ -78,7 +77,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-public class IdeaGradleSync implements GradleSync {
+public class GradleSyncExecutor {
   private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
     SystemProperties.getBooleanProperty("studio.sync.with.cached.model.only", false);
 
@@ -88,11 +87,11 @@ public class IdeaGradleSync implements GradleSync {
   @NotNull public static final Key<Boolean> SOURCE_GENERATION_KEY = new Key<>("android.sourcegeneration.enabled");
   @NotNull public static final Key<Boolean> SINGLE_VARIANT_KEY = new Key<>("android.singlevariant.enabled");
 
-  public IdeaGradleSync(@NotNull Project project) {
+  public GradleSyncExecutor(@NotNull Project project) {
     myProject = project;
   }
 
-  @Override
+  @WorkerThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     if (SYNC_WITH_CACHED_MODEL_ONLY || request.useCachedGradleModels) {
       ProjectBuildFileChecksums buildFileChecksums = ProjectBuildFileChecksums.findFor((myProject));
@@ -188,8 +187,8 @@ public class IdeaGradleSync implements GradleSync {
    * external system infrastructure.
    *
    * @param shouldGenerateSources whether or not sources should be generated
-   * @param singleVariant whether or not only a single variant should be synced
-   * @param listener the listener that is being used for the current sync.
+   * @param singleVariant         whether or not only a single variant should be synced
+   * @param listener              the listener that is being used for the current sync.
    */
   private void setProjectUserDataForAndroidGradleProjectResolver(boolean shouldGenerateSources,
                                                                  boolean singleVariant,
@@ -199,9 +198,8 @@ public class IdeaGradleSync implements GradleSync {
     myProject.putUserData(LISTENER_KEY, listener);
   }
 
-  @Override
   @NotNull
-  public List<GradleModuleModels> fetchGradleModels(@NotNull ProgressIndicator indicator) {
+  public List<GradleModuleModels> fetchGradleModels() {
     GradleExecutionSettings settings = getGradleExecutionSettings(myProject);
     ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, myProject);
     String projectPath = myProject.getBasePath();

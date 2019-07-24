@@ -37,7 +37,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.build.output.AndroidGradleSyncTextConsoleView;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
-import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
+import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
@@ -238,14 +238,15 @@ public class GradleSyncInvoker {
       ? createSourceGenerationLatch(project)
       : null;
 
-    new IdeaGradleSync(project).sync(request, listener);
+    new GradleSyncExecutor(project).sync(request, listener);
 
     if (latch != null) {
       try {
         if (!latch.await(1, TimeUnit.MINUTES)) {
           throw new TimeoutException("Timed out waiting for source generation");
         }
-      } catch (InterruptedException | TimeoutException e) {
+      }
+      catch (InterruptedException | TimeoutException e) {
         throw new RuntimeException("Failed to wait for source generation to finish", e);
       }
     }
@@ -332,8 +333,8 @@ public class GradleSyncInvoker {
   }
 
   @NotNull
-  public List<GradleModuleModels> fetchGradleModels(@NotNull Project project, @NotNull ProgressIndicator indicator) {
-    return new IdeaGradleSync(project).fetchGradleModels(indicator);
+  public List<GradleModuleModels> fetchGradleModels(@NotNull Project project) {
+    return new GradleSyncExecutor(project).fetchGradleModels();
   }
 
   public static class Request {

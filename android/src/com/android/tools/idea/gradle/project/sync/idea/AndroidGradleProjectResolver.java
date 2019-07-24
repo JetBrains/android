@@ -36,7 +36,6 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCate
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
 import static java.util.Collections.emptyList;
@@ -70,15 +69,15 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
+import com.android.tools.idea.gradle.project.sync.SelectedVariants;
+import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
-import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
-import com.android.tools.idea.gradle.project.sync.SelectedVariants;
-import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -109,7 +108,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -225,7 +223,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     String projectPath = projectDataNode.getData().getLinkedExternalProjectPath();
     String moduleConfigPath = getModuleConfigPath(resolverCtx, gradleModule, projectPath);
 
-    String gradlePath = gradleModule.getGradleProject().getPath();
     String moduleId = GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule);
     ProjectSystemId owner = GradleConstants.SYSTEM_ID;
     String typeId = StdModuleTypes.JAVA.getId();
@@ -274,7 +271,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       if (!project.isDisposed()) {
         GradleSyncState.getInstance(project).sourceGenerationFinished();
 
-        GradleSyncListener syncListener = project.getUserData(IdeaGradleSync.LISTENER_KEY);
+        GradleSyncListener syncListener = project.getUserData(GradleSyncExecutor.LISTENER_KEY);
         if (syncListener == null) {
           return;
         }
@@ -375,7 +372,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         !hasArtifacts(gradleModule)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      createJavaProject(gradleModule, ideModule, Collections.emptyList(), false);
+      createJavaProject(gradleModule, ideModule, emptyList(), false);
       return;
     }
 
@@ -713,12 +710,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   private static boolean shouldGenerateSources(@NotNull Project project) {
-    Boolean generateSourcesRequested = project.getUserData(IdeaGradleSync.SOURCE_GENERATION_KEY);
+    Boolean generateSourcesRequested = project.getUserData(GradleSyncExecutor.SOURCE_GENERATION_KEY);
     return generateSourcesRequested != null && generateSourcesRequested;
   }
 
   private static boolean shouldOnlySyncSingleVariant(@NotNull Project project) {
-    Boolean shouldOnlySyncSingleVariant = project.getUserData(IdeaGradleSync.SINGLE_VARIANT_KEY);
+    Boolean shouldOnlySyncSingleVariant = project.getUserData(GradleSyncExecutor.SINGLE_VARIANT_KEY);
     return shouldOnlySyncSingleVariant != null && shouldOnlySyncSingleVariant;
   }
 
