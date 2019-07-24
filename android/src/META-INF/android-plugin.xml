@@ -23,8 +23,8 @@
   <depends>org.jetbrains.kotlin</depends>
 
   <!-- One of the layoutlib plugins is required -->
-  <depends optional="true" config-file="layoutlib-standard.xml">com.android.layoutlib.standard</depends>
   <depends optional="true" config-file="layoutlib-native.xml">com.android.layoutlib.native</depends>
+  <depends optional="true" config-file="layoutlib-standard.xml">com.android.layoutlib.standard</depends>
 
   <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
