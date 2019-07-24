@@ -15,21 +15,29 @@
  */
 package com.android.tools.idea.naveditor.property2.inspector
 
-import com.android.SdkConstants
-import com.android.tools.idea.naveditor.model.isDestination
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
 
-class NameInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
+class AnimationInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    if (properties.first?.components?.singleOrNull()?.isDestination != true) {
+    if (properties.first?.components?.singleOrNull()?.isAction != true) {
       return
     }
 
-    val name = properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME) ?: return
-    inspector.addEditor(editorProvider.createEditor(name))
+    val titleModel = inspector.addExpandableTitle("Animations")
+
+    for (propertyName in arrayOf(ATTR_ENTER_ANIM, ATTR_EXIT_ANIM, ATTR_POP_ENTER_ANIM, ATTR_POP_EXIT_ANIM)) {
+      val property = properties.getOrNull(ResourceNamespace.TODO().xmlNamespaceUri, propertyName) ?: continue
+      inspector.addEditor(editorProvider.createEditor(property), titleModel)
+    }
   }
 }
