@@ -26,7 +26,9 @@ import org.junit.Test
 class SyncIssueUsageReporterTest : AndroidGradleTestCase() {
   @Test
   fun testAllSyncIssueTypesHaveGradleSyncIssueType() {
-    val mappedToNull = (SyncIssue.TYPE_GENERIC + 1 until SyncIssue.TYPE_MAX).filter { it.toGradleSyncIssueType() == null }
-    assertThat(mappedToNull).isEmpty()
+    val nonGenericSyncIssues = SyncIssue::class.java.fields.filter { it.name.startsWith("TYPE_") && it.name != "TYPE_GENERIC" }
+    for (syncIssue in nonGenericSyncIssues) {
+      assertThat(syncIssue.getInt(SyncIssue::class.java).toGradleSyncIssueType()).isNotNull()
+    }
   }
 }
