@@ -23,7 +23,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTraceParser;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;

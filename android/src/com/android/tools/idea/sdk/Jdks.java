@@ -32,7 +32,6 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;

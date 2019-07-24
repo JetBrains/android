@@ -21,7 +21,6 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;

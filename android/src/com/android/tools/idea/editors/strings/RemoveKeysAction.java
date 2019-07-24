@@ -30,7 +30,6 @@ import com.intellij.refactoring.safeDelete.SafeDeleteDialog;
 import com.intellij.refactoring.safeDelete.SafeDeleteProcessor;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 

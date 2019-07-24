@@ -20,11 +20,10 @@ import static org.junit.Assert.*;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.resourceExplorer.view.ResourceDragHandlerKt;
-import com.intellij.ide.dnd.TransferableList;
+
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
+
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 

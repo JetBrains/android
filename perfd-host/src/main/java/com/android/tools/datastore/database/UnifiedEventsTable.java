@@ -15,17 +15,14 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.protobuf3jarjar.*;
-import java.sql.Statement;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 

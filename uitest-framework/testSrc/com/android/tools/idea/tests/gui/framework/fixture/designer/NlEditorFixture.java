@@ -27,7 +27,6 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirectoryDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;

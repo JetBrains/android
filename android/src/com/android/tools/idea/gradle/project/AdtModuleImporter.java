@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.vfs.VirtualFile;

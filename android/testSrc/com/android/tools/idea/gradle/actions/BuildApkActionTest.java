@@ -42,7 +42,6 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEAT
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static java.util.Collections.emptyList;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 

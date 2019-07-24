@@ -19,7 +19,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;

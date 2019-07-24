@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.chart.hchart;
 
-import com.android.tools.adtui.model.DefaultHNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

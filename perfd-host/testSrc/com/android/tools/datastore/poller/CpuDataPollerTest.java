@@ -26,7 +26,7 @@ import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
-import java.util.ArrayDeque;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.After;
@@ -41,7 +41,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class CpuDataPollerTest extends DataStorePollerTest {

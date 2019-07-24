@@ -16,7 +16,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.ColorPickerListener;

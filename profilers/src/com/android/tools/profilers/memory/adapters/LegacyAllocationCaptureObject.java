@@ -24,7 +24,6 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.Executor;

@@ -26,8 +26,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.List;
 
-import static com.intellij.util.ui.UIUtil.getLabelFont;
-
 /**
  * @author Eugene.Kudelevsky
  */

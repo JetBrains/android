@@ -28,9 +28,6 @@ import com.intellij.testFramework.LightPlatformTestCase;
 import java.util.Collections;
 import org.mockito.Mock;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 

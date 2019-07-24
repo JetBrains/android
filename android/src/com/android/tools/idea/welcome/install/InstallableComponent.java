@@ -16,7 +16,6 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.RepoManager;
 import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.impl.meta.RepositoryPackages;

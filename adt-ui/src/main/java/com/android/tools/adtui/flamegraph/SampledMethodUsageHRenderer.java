@@ -16,7 +16,6 @@
 package com.android.tools.adtui.flamegraph;
 
 import com.android.tools.adtui.chart.hchart.DefaultHRenderer;
-import com.android.tools.adtui.model.DefaultHNode;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 

@@ -19,17 +19,13 @@ import com.intellij.build.events.Failure;
 import com.intellij.build.events.FailureResult;
 import com.intellij.build.events.MessageEvent;
 import com.intellij.build.events.MessageEventResult;
-import com.intellij.notification.Notification;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
-import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent.convertCategory;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 
 public class AndroidSyncIssueEventResult implements MessageEventResult, FailureResult {
 

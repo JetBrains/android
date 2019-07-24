@@ -19,8 +19,6 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.*;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourBottomAttributes;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourTopAttributes;
 
 /**
  * Check if the component is in a chain and remembers it

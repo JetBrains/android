@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
