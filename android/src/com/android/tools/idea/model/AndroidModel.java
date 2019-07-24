@@ -23,15 +23,13 @@ import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A common interface for Android module models.
@@ -126,12 +124,6 @@ public interface AndroidModel {
    */
   @Nullable
   Integer getVersionCode();
-
-  /**
-   * @return the path of the root directory of the module.
-   */
-  @NotNull
-  File getRootDirPath();
 
   /**
    * Indicates whether the given file or directory is generated.

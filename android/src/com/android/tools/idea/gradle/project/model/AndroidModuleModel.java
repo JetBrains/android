@@ -539,7 +539,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @return the path of the root directory of the imported Android-Gradle project. The returned path belongs to the IDEA module containing
    * the build.gradle file.
    */
-  @Override
   @NotNull
   public File getRootDirPath() {
     return myRootDirPath;
