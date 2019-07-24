@@ -303,7 +303,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     populateSourcesAndJavadocModel(gradleModule);
-    ImportedModule importedModule = new ImportedModule(gradleModule);
+    ImportedModule importedModule = new ImportedModule(gradleModule.getName());
     ideModule.createChild(IMPORTED_MODULE, importedModule);
 
     // do not derive module root dir based on *.iml file location
