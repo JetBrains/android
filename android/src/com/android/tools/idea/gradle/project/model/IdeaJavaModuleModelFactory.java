@@ -65,10 +65,11 @@ public class IdeaJavaModuleModelFactory {
                                 @Nullable ModuleExtendedModel javaModel,
                                 boolean androidModuleWithoutVariants) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
-    return new JavaModuleModel(ideaModule.getName(), getContentRoots(ideaModule, javaModel), dependencies.first, dependencies.second,
-                               getArtifactsByConfiguration(javaModel), syncIssues, getCompilerOutput(javaModel),
-                               ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(javaModel),
-                               !androidModuleWithoutVariants && isBuildable(ideaModule.getGradleProject()), androidModuleWithoutVariants);
+    return JavaModuleModel.create(ideaModule.getName(), getContentRoots(ideaModule, javaModel), dependencies.first, dependencies.second,
+                                  getArtifactsByConfiguration(javaModel), syncIssues, getCompilerOutput(javaModel),
+                                  ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(javaModel),
+                                  !androidModuleWithoutVariants && isBuildable(ideaModule.getGradleProject()),
+                                  androidModuleWithoutVariants);
   }
 
   @NotNull

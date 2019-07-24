@@ -16,6 +16,12 @@
 package com.android.tools.idea.gradle.model.java;
 
 import com.google.common.collect.Sets;
+import com.intellij.serialization.PropertyMapping;
+import java.io.File;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
@@ -23,18 +29,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaContentRoot;
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-
 /**
  * Content root of a Java module.
  */
 public class JavaModuleContentRoot implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final File myRootDirPath;
   @NotNull private final Collection<File> mySourceDirPaths;
@@ -86,6 +86,15 @@ public class JavaModuleContentRoot implements Serializable {
     return paths;
   }
 
+  @PropertyMapping({
+    "myRootDirPath",
+    "mySourceDirPaths",
+    "myGenSourceDirPaths",
+    "myResourceDirPaths",
+    "myTestDirPaths",
+    "myGenTestDirPaths",
+    "myTestResourceDirPaths",
+    "myExcludeDirPaths"})
   public JavaModuleContentRoot(@NotNull File rootDirPath,
                                @NotNull Collection<File> sourceDirPaths,
                                @NotNull Collection<File> genSourceDirPaths,
