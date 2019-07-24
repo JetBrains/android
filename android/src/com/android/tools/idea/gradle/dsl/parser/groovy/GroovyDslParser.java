@@ -169,7 +169,7 @@ public class GroovyDslParser implements GradleDslParser {
     if (literal instanceof GrReferenceExpression || literal instanceof GrIndexProperty) {
       if (resolve) {
         GradleDslElement e = context.resolveReference(literal.getText(), true);
-        // Only attempt to get the value if its a simple expression.
+        // Only attempt to get the value if it is a simple expression.
         if (e instanceof GradleDslSimpleExpression) {
           return ((GradleDslSimpleExpression)e).getValue();
         }
@@ -181,7 +181,7 @@ public class GroovyDslParser implements GradleDslParser {
       return new ReferenceTo(literal.getText());
     }
 
-    // If this literal has a value then return is, this will be the case for none-string values.
+    // If this literal has a value then return it: this will be the case for non-string values.
     Object value = ((GrLiteral)literal).getValue();
     if (value != null) {
       return value;

@@ -171,7 +171,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   public abstract GradleDslSimpleExpression copy();
 
   /**
-   * This should be overwritten by subclasses if they require different behaviour, such as getting the dependencies of
+   * This should be overridden by subclasses if they require different behaviour, such as getting the dependencies of
    * un-applied expressions.
    */
   @Override
@@ -228,7 +228,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     | - - - - gradle.properties
     | - - - - SecondLevelChildProject
     | - - - - - - build.gradle
-    | - - - - - - gralde.properties
+    | - - - - - - gradle.properties
     | - - - - - - ThirdLevelChildProject
     | - - - - - - - - build.gradle
     | - - - - - - - - gradle.properties
@@ -575,7 +575,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       }
 
       if (parentDslFile.getParentModuleDslFile() == null) {
-        // This is the root project build.gradle file and the roo project's gradle.properties file is already looked in
+        // This is the root project build.gradle file and the root project's gradle.properties file is already considered in
         // resolveReferenceInSameModule method.
         return null;
       }
