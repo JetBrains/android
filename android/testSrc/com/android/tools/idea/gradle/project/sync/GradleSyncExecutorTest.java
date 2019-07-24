@@ -29,6 +29,7 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
@@ -36,7 +37,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
@@ -47,23 +47,30 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GradleSyncTestCase extends GradleSyncIntegrationTestCase {
-  protected GradleSync myGradleSync;
+public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
+  protected GradleSyncExecutor mySyncExecutor;
 
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myGradleSync = createGradleSync();
+    mySyncExecutor = new GradleSyncExecutor(getProject());
   }
 
-  @NotNull
-  protected abstract GradleSync createGradleSync();
+  @Override
+  protected boolean useSingleVariantSyncInfrastructure() {
+    return true;
+  }
+
+  @Override
+  protected boolean useCompoundSyncInfrastructure() {
+    return true;
+  }
 
   public void testFetchGradleModelsWithSimpleApplication() throws Exception {
     loadSimpleApplication();
 
-    List<GradleModuleModels> models = myGradleSync.fetchGradleModels(new MockProgressIndicator());
+    List<GradleModuleModels> models = mySyncExecutor.fetchGradleModels();
     Map<String, GradleModuleModels> modulesByModuleName = indexByModuleName(models);
 
     GradleModuleModels app = modulesByModuleName.get("app");
@@ -74,7 +81,7 @@ public abstract class GradleSyncTestCase extends GradleSyncIntegrationTestCase {
   public void testFetchGradleModelsWithTransitiveDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
 
-    List<GradleModuleModels> models = myGradleSync.fetchGradleModels(new MockProgressIndicator());
+    List<GradleModuleModels> models = mySyncExecutor.fetchGradleModels();
     Map<String, GradleModuleModels> modulesByModuleName = indexByModuleName(models);
 
     GradleModuleModels app = modulesByModuleName.get("app");
