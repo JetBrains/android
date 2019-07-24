@@ -263,7 +263,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     propertyElement.setUseAssignment(true)
     propertyElement.setElementType(REGULAR)
 
-    parent.setParsedElement(propertyElement)
+    parentBlock.setParsedElement(propertyElement)
   }
 
   override fun visitProperty(expression: KtProperty, parent: GradlePropertiesDslElement) {
