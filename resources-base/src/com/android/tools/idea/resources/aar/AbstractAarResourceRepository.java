@@ -100,10 +100,16 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
   }
 
   @Override
-  public void accept(@NotNull ResourceVisitor visitor) {
+  @NotNull
+  public ResourceVisitor.VisitResult accept(@NotNull ResourceVisitor visitor) {
     if (visitor.shouldVisitNamespace(myNamespace)) {
-      AbstractResourceRepository.acceptByResources(myResources, visitor);
+      if (AbstractResourceRepository.acceptByResources(myResources, visitor) == ResourceVisitor.VisitResult.ABORT) {
+        return ResourceVisitor.VisitResult.ABORT;
+      }
     }
+
+    return ResourceVisitor.VisitResult.CONTINUE;
+
   }
 
   @Override
