@@ -805,6 +805,18 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testMissingIntDefSwitch() throws Exception {
+    addIntDef();
+    doTestWithFix(new AndroidLintSwitchIntDefInspection(),
+                  "Add Missing @IntDef Constants", "/src/test/pkg/MissingIntDefSwitch.java", "java");
+  }
+
+  public void testMissingIntDefSwitchKotlin() throws Exception {
+    addIntDef();
+    doTestWithFix(new AndroidLintSwitchIntDefInspection(),
+                  "Add Missing @IntDef Constants", "/src/test/pkg/MissingIntDefSwitch.kt", "kt");
+  }
+
+  private void addIntDef() {
     myFixture.addFileToProject("/src/android/support/annotation/IntDef.java", "package android.support.annotation;\n" +
                                                                               "\n" +
                                                                               "import java.lang.annotation.Retention;\n" +
@@ -824,8 +836,6 @@ public class AndroidLintTest extends AndroidTestCase {
                                                                               "    long[] value() default {};\n" +
                                                                               "    boolean flag() default false;\n" +
                                                                               "}\n");
-    doTestWithFix(new AndroidLintSwitchIntDefInspection(),
-                  "Add Missing @IntDef Constants", "/src/test/pkg/MissingIntDefSwitch.java", "java");
   }
 
   public void testIncludeParams() throws Exception {
