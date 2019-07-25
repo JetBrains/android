@@ -22,7 +22,6 @@ import com.android.tools.idea.resources.aar.CachingData
 import com.android.tools.idea.resources.aar.FrameworkResourceRepository
 import com.android.tools.idea.resources.aar.RESOURCE_CACHE_DIRECTORY
 import com.google.common.hash.Hashing
-import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
 import org.jetbrains.annotations.TestOnly
@@ -82,7 +81,7 @@ class FrameworkResourceRepositoryManager {
 
     val pathHash = Hashing.farmHashFingerprint64().hashUnencodedChars(resFolderOrJar.toString()).toString()
     val prefix = resFolderOrJar.parent?.parent?.fileName.toString() ?: "framework"
-    val filename = String.format("%s_%s.bin", prefix, pathHash)
+    val filename = String.format("%s_%s.dat", prefix, pathHash)
     val cacheFile = Paths.get(PathManager.getSystemPath(), RESOURCE_CACHE_DIRECTORY, filename)
     return CachingData(cacheFile, contentVersion, codeVersion, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor())
   }
