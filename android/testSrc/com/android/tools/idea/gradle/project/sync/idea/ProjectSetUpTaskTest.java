@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -73,7 +74,7 @@ public class ProjectSetUpTaskTest extends AndroidGradleTestCase {
     mySetupTask.onFailure(myTaskId, "sync failed", null);
 
     // Verify that FinishBuildEvent is created.
-    verify(syncViewManager, times(1)).onEvent(eventCaptor.capture());
+    verify(syncViewManager, times(1)).onEvent(eq(myTaskId), eventCaptor.capture());
     List<BuildEvent> capturedEvents = eventCaptor.getAllValues();
     assertThat(capturedEvents).hasSize(1);
     assertThat(capturedEvents.get(0)).isInstanceOf(FinishBuildEvent.class);
