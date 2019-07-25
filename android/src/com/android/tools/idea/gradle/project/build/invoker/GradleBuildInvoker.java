@@ -423,10 +423,11 @@ public class GradleBuildInvoker {
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
     // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
     //noinspection resource, IOResourceOpenedButNotSafelyClosed
-    BuildOutputInstantReaderImpl buildOutputInstantReader = new BuildOutputInstantReaderImpl(request.myTaskId, request.myTaskId, buildViewManager,
-                                                                                             Collections
-                                                                                               .unmodifiableList(
-                                                                                                 buildOutputParsersWrappers));
+    BuildOutputInstantReaderImpl buildOutputInstantReader =
+      new BuildOutputInstantReaderImpl(request.myTaskId, request.myTaskId, buildViewManager,
+                                       Collections
+                                         .unmodifiableList(
+                                           buildOutputParsersWrappers));
     try {
       return new ExternalSystemTaskNotificationListenerAdapter() {
         @NotNull private BuildOutputInstantReaderImpl myReader = buildOutputInstantReader;
@@ -464,24 +465,24 @@ public class GradleBuildInvoker {
           StartBuildEventImpl event = new StartBuildEventImpl(new DefaultBuildDescriptor(id, executionName, workingDir, eventTime),
                                                               "running...");
           event.withRestartAction(restartAction).withExecutionFilter(new AndroidReRunBuildFilter(workingDir));
-          buildViewManager.onEvent(event);
+          buildViewManager.onEvent(id, event);
         }
 
         @Override
         public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
           if (event instanceof ExternalSystemBuildEvent) {
             BuildEvent buildEvent = ((ExternalSystemBuildEvent)event).getBuildEvent();
-            buildViewManager.onEvent(buildEvent);
+            buildViewManager.onEvent(event.getId(), buildEvent);
           }
           else if (event instanceof ExternalSystemTaskExecutionEvent) {
             BuildEvent buildEvent = convert(((ExternalSystemTaskExecutionEvent)event));
-            buildViewManager.onEvent(buildEvent);
+            buildViewManager.onEvent(event.getId(), buildEvent);
           }
         }
 
         @Override
         public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
-          buildViewManager.onEvent(new OutputBuildEventImpl(id, text, stdOut));
+          buildViewManager.onEvent(id, new OutputBuildEventImpl(id, text, stdOut));
           myReader.append(text);
         }
 
@@ -508,7 +509,7 @@ public class GradleBuildInvoker {
         public void onSuccess(@NotNull ExternalSystemTaskId id) {
           FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "completed successfully",
                                                                 new SuccessResultImpl());
-          buildViewManager.onEvent(event);
+          buildViewManager.onEvent(id, event);
         }
 
         @Override
@@ -516,7 +517,7 @@ public class GradleBuildInvoker {
           myBuildFailed = true;
           String title = executionName + " failed";
           FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
-          buildViewManager.onEvent(new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult));
+          buildViewManager.onEvent(id, new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult));
         }
 
         @Override
@@ -524,7 +525,7 @@ public class GradleBuildInvoker {
           super.onCancel(id);
           // Cause build view to show as skipped all pending tasks (b/73397414)
           FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "cancelled", new SkippedResultImpl());
-          buildViewManager.onEvent(event);
+          buildViewManager.onEvent(id, event);
           myReader.close();
         }
       };
