@@ -85,7 +85,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -183,9 +182,6 @@ public class PostSyncProjectSetup {
 
       myDependencySetupIssues.reportIssues();
       myVersionCompatibilityChecker.checkAndReportComponentIncompatibilities(myProject);
-
-      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-      List<Module> modules = Arrays.asList(moduleManager.getModules());
 
       if (mySyncState.lastSyncFailed()) {
         failTestsIfSyncIssuesPresent();
@@ -317,7 +313,7 @@ public class PostSyncProjectSetup {
     FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), message, result);
     ApplicationManager.getApplication().invokeLater(() -> {
       if (!myProject.isDisposed()) {
-        ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
+        ServiceManager.getService(myProject, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
       }
     });
   }
@@ -329,7 +325,7 @@ public class PostSyncProjectSetup {
       List<Failure> failures = messages.showEvents(taskId);
       FailureResultImpl failureResult = new FailureResultImpl(failures);
       FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), message, failureResult);
-      ServiceManager.getService(project, SyncViewManager.class).onEvent(finishBuildEvent);
+      ServiceManager.getService(project, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
     }
   }
 
@@ -483,7 +479,7 @@ public class PostSyncProjectSetup {
     String workingDir = toCanonicalPath(getBaseDirPath(project).getPath());
     DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Project setup", workingDir, currentTimeMillis());
     SyncViewManager syncManager = ServiceManager.getService(project, SyncViewManager.class);
-    syncManager.onEvent(new StartBuildEventImpl(buildDescriptor, "reading from cache...").withContentDescriptorSupplier(
+    syncManager.onEvent(taskId, new StartBuildEventImpl(buildDescriptor, "reading from cache...").withContentDescriptorSupplier(
       () -> {
         AndroidGradleSyncTextConsoleView consoleView = new AndroidGradleSyncTextConsoleView(project);
         return new RunContentDescriptor(consoleView, null, consoleView.getComponent(), "Gradle Sync");

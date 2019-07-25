@@ -52,31 +52,31 @@ class BuildInvokerTest : AndroidGradleTestCase() {
 
     // Replace BuildViewManager service before loading a project, but leave it inactive until later moment.
     IdeComponents(project).replaceProjectService(
-        BuildViewManager::class.java,
-        object : BuildViewManager(project, ServiceManager.getService(project, BuildContentManager::class.java)) {
-          override fun onEvent(event: BuildEvent) {
-            if (!enabled) return // Skip events until activated.
-            when (event) {
-              is StartBuildEvent -> {
-                val gradleProgressIndicator = ProgressIndicatorProvider.getGlobalProgressIndicator()!!
-                ApplicationManager.getApplication().invokeLater {
-                  // Cancel the build after running for 100ms.
-                  Thread.sleep(100)
-                  gradleProgressIndicator.cancel()
-                }
-              }
-              is FinishBuildEvent -> {
-                buildFinishedEventReceived = true
+      BuildViewManager::class.java,
+      object : BuildViewManager(project, ServiceManager.getService(project, BuildContentManager::class.java)) {
+        override fun onEvent(buildId: Any, event: BuildEvent) {
+          if (!enabled) return // Skip events until activated.
+          when (event) {
+            is StartBuildEvent -> {
+              val gradleProgressIndicator = ProgressIndicatorProvider.getGlobalProgressIndicator()!!
+              ApplicationManager.getApplication().invokeLater {
+                // Cancel the build after running for 100ms.
+                Thread.sleep(100)
+                gradleProgressIndicator.cancel()
               }
             }
+            is FinishBuildEvent -> {
+              buildFinishedEventReceived = true
+            }
           }
-        })
+        }
+      })
 
     loadProject(SIMPLE_APPLICATION)
     enabled = true
 
     // Subscribe to GradleBuildState notifications.
-    GradleBuildState.subscribe(project, object: GradleBuildListener {
+    GradleBuildState.subscribe(project, object : GradleBuildListener {
       override fun buildExecutorCreated(request: GradleBuildInvoker.Request) = Unit
 
       override fun buildStarted(context: BuildContext) {
