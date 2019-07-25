@@ -67,7 +67,7 @@ import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet
 import org.jetbrains.plugins.gradle.model.ExternalTask
-import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataService
+import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import java.io.File
 
 typealias AndroidProjectBuilder = (projectName: String, basePath: File) -> AndroidProject
@@ -288,7 +288,7 @@ fun setupTestProjectFromAndroidModel(
 
   projectDataNode.addChild(
     DataNode<ExternalProject>(
-      ExternalProjectDataService.KEY,
+      ExternalProjectDataCache.KEY,
       object : ExternalProject {
         override fun getExternalSystemId(): String = GRADLE_SYSTEM_ID.id
         override fun getId(): String = projectName
