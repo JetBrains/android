@@ -15,15 +15,25 @@
  */
 package org.jetbrains.android;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+
+import com.android.SdkConstants;
+import com.android.tools.idea.psi.TagToClassMapper;
+import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.module.Module;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.LongAdder;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.Set;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 public class TagToClassMapperImplTest extends AndroidTestCase {
   private static final String MODULE_WITH_DEPENDENCY = "withdep";
@@ -70,6 +80,39 @@ public class TagToClassMapperImplTest extends AndroidTestCase {
       .keySet();
     assertDoesntContain(classes, "com.test.ClassA");
     assertContainsElements(classes, "com.test.other.ClassB");
+  }
 
+  private static class CountingMapper extends TagToClassMapperImpl {
+    CountingMapper(@NotNull Module module) {
+      super(module);
+    }
+
+    LongAdder fullRebuilds = new LongAdder();
+
+    @NotNull
+    @Override
+    Map<String, SmartPsiElementPointer<PsiClass>> computeInitialClassMap(@NotNull String className) {
+      fullRebuilds.increment();
+      return super.computeInitialClassMap(className);
+    }
+  }
+
+  public void testFullRebuilds() {
+    CountingMapper countingMapper = new CountingMapper(myModule);
+
+    // Use the counting mapper.
+    new IdeComponents(getProject()).replaceModuleService(myModule, TagToClassMapper.class, countingMapper);
+
+    // Use a min API level that affects short names, to make sure it's used in up-to-date checks. See ResourceHelper.isViewPackageNeeded.
+    runWriteCommandAction(getProject(), () -> myFacet.getManifest().addUsesSdk().getMinSdkVersion().setValue("21"));
+
+    countingMapper.getFrameworkClassMap(SdkConstants.CLASS_VIEW);
+    assertThat(countingMapper.fullRebuilds.longValue()).named("Number of full rebuilds").isEqualTo(1);
+
+    PsiFile layoutFile = myFixture.addFileToProject("res/layout/my_layout.xml", "<LinearLayout><<caret></LinearLayout>");
+    myFixture.configureFromExistingVirtualFile(layoutFile.getVirtualFile());
+    myFixture.completeBasic();
+
+    assertThat(countingMapper.fullRebuilds.longValue()).named("Number of full rebuilds").isEqualTo(1);
   }
 }
