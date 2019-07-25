@@ -306,7 +306,7 @@ public class GradleSyncInvoker {
     List<Failure> failures = messages.showEvents(taskId);
     EventResult result = new FailureResultImpl(failures);
     FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), failureCause, result);
-    ServiceManager.getService(project, SyncViewManager.class).onEvent(finishBuildEvent);
+    ServiceManager.getService(project, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
   }
 
   /**
@@ -324,7 +324,7 @@ public class GradleSyncInvoker {
     String workingDir = toCanonicalPath(getBaseDirPath(project).getPath());
     DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Preparing for sync", workingDir, currentTimeMillis());
     SyncViewManager syncManager = ServiceManager.getService(project, SyncViewManager.class);
-    syncManager.onEvent(new StartBuildEventImpl(buildDescriptor, "Running pre sync checks...").withContentDescriptorSupplier(
+    syncManager.onEvent(taskId, new StartBuildEventImpl(buildDescriptor, "Running pre sync checks...").withContentDescriptorSupplier(
       () -> {
         AndroidGradleSyncTextConsoleView consoleView = new AndroidGradleSyncTextConsoleView(project);
         return new RunContentDescriptor(consoleView, null, consoleView.getComponent(), "Gradle Sync");
