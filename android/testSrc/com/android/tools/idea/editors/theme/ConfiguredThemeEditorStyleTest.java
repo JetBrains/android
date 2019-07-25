@@ -221,21 +221,4 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     // We expect only the main app parent to be available
     assertEquals("ATheme", theme.getParentNames().iterator().next().getElement());
   }
-
-  /**
-   * Tests {@link ConfiguredThemeEditorStyle#getConfiguredValues()}
-   * Tests values coming from different modules.
-   * Dependency used in the test: mainModule -> moduleA, mainModule -> moduleB
-   */
-  public void testGetConfiguredValues() {
-    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_4.xml", "additionalModules/moduleB/res/values-v19/styles.xml");
-    VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml",
-                                                          "additionalModules/moduleA/res/values/styles.xml");
-    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
-    Configuration configuration = configurationManager.getConfiguration(virtualFile);
-    ThemeResolver resolver = new ThemeResolver(configuration);
-    ConfiguredThemeEditorStyle theme = resolver.getTheme("AppTheme");
-    assertNotNull(theme);
-    assertEquals(3, theme.getConfiguredValues().size());
-  }
 }

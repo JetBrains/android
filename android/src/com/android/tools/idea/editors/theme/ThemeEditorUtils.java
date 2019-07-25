@@ -240,45 +240,6 @@ public class ThemeEditorUtils {
   }
 
   /**
-   * Returns the list of the qualified names of all the user-defined themes available from a given module
-   */
-  @NotNull
-  public static ImmutableList<String> getModuleThemeQualifiedNamesList(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
-    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(module);
-    // We create a new ResourceResolverCache instead of using cache from myConfiguration to optimize memory instead of time/speed,
-    // because we are about to create a lot of instances of ResourceResolver here that won't be used outside of this method
-    final ResourceResolverCache resolverCache = new ResourceResolverCache(manager);
-    final IAndroidTarget target = manager.getTarget();
-    final Map<ResourceValue, Boolean> cache = new HashMap<>();
-    final Set<String> themeNamesSet = Sets.newTreeSet(String.CASE_INSENSITIVE_ORDER);
-
-    ResourceFolderVisitor visitor = (resources, moduleName, variantName, isSelected) -> {
-      if (!isSelected) {
-        return;
-      }
-      for (String simpleThemeName : resources.getResources(ResourceNamespace.TODO(), ResourceType.STYLE).keySet()) {
-        String themeStyleResourceUrl = SdkConstants.STYLE_RESOURCE_PREFIX + simpleThemeName;
-        List<ResourceItem> themeItems = resources.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, simpleThemeName);
-        for (ResourceItem themeItem : themeItems) {
-          ResourceResolver resolver = resolverCache.getResourceResolver(target, themeStyleResourceUrl, themeItem.getConfiguration());
-          ResourceValue themeItemResourceValue = themeItem.getResourceValue();
-          assert themeItemResourceValue != null;
-          if (resolver.isTheme(themeItemResourceValue, cache)) {
-            themeNamesSet.add(simpleThemeName);
-            break;
-          }
-        }
-      }
-    };
-
-    acceptResourceResolverVisitor(facet, visitor);
-
-    return ImmutableList.copyOf(themeNamesSet);
-  }
-
-  /**
    * Returns a string with the words concatenated into an enumeration w1, w2, ..., w(n-1) and wn
    */
   @NotNull
