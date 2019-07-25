@@ -132,6 +132,30 @@ internal fun createLiteral(context : GradleDslElement, value : Any) : PsiElement
   }
 }
 
+internal fun extraPropertyReferenceName(psiElement: PsiElement) : String? {
+  when (psiElement) {
+    // TODO(xof): handle qualified references to extra properties (e.g. rootProject.extra["prop1"])
+    // TODO(xof): handle dereferences of extra properties (e.g. extra["prop1"]["key"])
+    is KtArrayAccessExpression -> {
+      val arrayExpression = psiElement.arrayExpression ?: return null
+      val name = arrayExpression.text
+      if (name != "extra") return null
+      val indices = psiElement.indexExpressions
+      if (indices.size != 1) return null
+      val index = indices[0] as? KtStringTemplateExpression ?: return null
+      // TODO(xof): we should be able to support dynamic property lookups (e.g. extra["$var"] or even extra["${extra["prop"]}"])
+      if (index.hasInterpolation()) {
+        return null
+      }
+      else {
+        // TODO(xof): handle unquoting
+        return index.entries[0].text
+      }
+    }
+    else -> return null
+  }
+}
+
 internal fun findInjections(
   context: GradleDslSimpleExpression,
   psiElement: PsiElement,
@@ -153,33 +177,15 @@ internal fun findInjections(
     // extra["PROPERTY_NAME"], someMap["MAP_KEY"], someList[0]
     is KtArrayAccessExpression -> {
       val arrayExpression = psiElement.arrayExpression ?: return noInjections
-      val name = arrayExpression.text
       // extra["PROPERTY_NAME"]
-      //
-      // TODO(xof): handle qualified references to extra properties (e.g. rootProject.extra["prop1"])
-      if (name == "extra") {
-        val indices = psiElement.indexExpressions
-        if (indices.size == 1) {
-          val index = indices[0]
-          if (index is KtStringTemplateExpression && !index.hasInterpolation()) {
-            val entries = index.entries
-            val entry = entries[0]
-            val text = entry.text
-            // TODO(xof): unquoting
-            val element = context.resolveReference(text, true)
-            return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
-          }
-        }
+      extraPropertyReferenceName(psiElement)?.let {
+        val element = context.resolveReference(it, true)
+        return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, it))
       }
-      // someMap["MAP_KEY"], someList[0], someMultiDimensionalThing["Key"][0][...]
-      //
-      // TODO(xof): handle dereferences of extra properties (e.g. extra["prop1"]["MAP_KEY"])
-      else {
-        val text = psiElement.text
-        val element = context.resolveReference(text, true)
-        return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
-      }
-      return noInjections
+      // someMap["MAP_KEY"], someList[0]
+      val text = psiElement.text
+      val element = context.resolveReference(text, true)
+      return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
     }
     // "foo bar", "foo $bar", "foo ${extra["PROPERTY_NAME"]}"
     is KtStringTemplateExpression -> {
