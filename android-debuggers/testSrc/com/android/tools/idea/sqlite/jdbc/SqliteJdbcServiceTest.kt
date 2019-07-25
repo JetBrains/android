@@ -109,7 +109,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("Book", listOf())))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("Book", listOf(), false)))
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
@@ -209,7 +209,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(sqliteService.executeUpdate("DROP TABLE Book"))
-    val error = pumpEventsAndWaitForFutureException(sqliteService.readTable(SqliteTable("Book", listOf())))
+    val error = pumpEventsAndWaitForFutureException(sqliteService.readTable(SqliteTable("Book", listOf(), false)))
 
     // Assert
     assertThat(error).isNotNull()
@@ -220,7 +220,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("Book", listOf())))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("Book", listOf(), false)))
     Disposer.dispose(resultSet)
     val error = pumpEventsAndWaitForFutureException(resultSet.nextRowBatch())
 
@@ -233,7 +233,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val error = pumpEventsAndWaitForFutureException(sqliteService.readTable(SqliteTable("IncorrectTableName", listOf())))
+    val error = pumpEventsAndWaitForFutureException(sqliteService.readTable(SqliteTable("IncorrectTableName", listOf(), false)))
 
     // Assert
     assertThat(error).isNotNull()
