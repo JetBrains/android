@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite.ui
+package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.SchemaProvider
-import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
-import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
-import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteSchema
 
-class SqliteEditorViewFactoryImpl : SqliteEditorViewFactory {
-
-  companion object {
-    @JvmStatic fun getInstance() = ServiceManager.getService(SqliteEditorViewFactoryImpl::class.java)!!
-  }
-
-  override fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider) = SqliteEvaluatorViewImpl(project, schemaProvider)
-
-  override fun createTableView() = TableViewImpl()
+class MockSchemaProvider: SchemaProvider {
+  override fun getSchema(database: SqliteDatabase): SqliteSchema? = null
 }

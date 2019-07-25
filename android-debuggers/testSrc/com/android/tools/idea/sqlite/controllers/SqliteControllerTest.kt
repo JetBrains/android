@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.editors.sqlite.SqliteTestUtil
 import com.android.tools.idea.sqlite.SqliteService
+import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
 import com.android.tools.idea.sqlite.mocks.MockSqliteEditorViewFactory
 import com.android.tools.idea.sqlite.mocks.MockSqliteServiceFactory
 import com.android.tools.idea.sqlite.mocks.MockSqliteView
@@ -74,7 +75,7 @@ class SqliteControllerTest : PlatformTestCase() {
 
   private lateinit var mockSqliteService: SqliteService
 
-  private val testSqliteTable = SqliteTable("testTable", arrayListOf())
+  private val testSqliteTable = SqliteTable("testTable", arrayListOf(), true)
   private lateinit var sqliteResultSet: SqliteResultSet
 
   override fun setUp() {
@@ -300,7 +301,7 @@ class SqliteControllerTest : PlatformTestCase() {
     sqliteView.viewListeners.single().closeTabActionInvoked(tabId!!)
 
     // Assert
-    verify(viewFactory).createEvaluatorView(myProject)
+    verify(viewFactory).createEvaluatorView(myProject, sqliteController)
     verify(sqliteView).closeTab(eq(tabId))
   }
 
@@ -364,7 +365,7 @@ class SqliteControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    val evaluatorView = viewFactory.createEvaluatorView(project)
+    val evaluatorView = viewFactory.createEvaluatorView(project, MockSchemaProvider())
     verify(evaluatorView).addDatabase(sqliteDatabase1, "com.my.app/db1.db", 0)
     verify(evaluatorView).addDatabase(sqliteDatabase2, "com.my.app/db2.db", 1)
     verify(evaluatorView).addDatabase(sqliteDatabase3, "com.ay.app/db.db", 0)
@@ -373,7 +374,7 @@ class SqliteControllerTest : PlatformTestCase() {
   fun testUpdateExistingDatabaseAddTables() {
     // Prepare
     val schema = SqliteSchema(emptyList())
-    val newSchema = SqliteSchema(listOf(SqliteTable("table", emptyList())))
+    val newSchema = SqliteSchema(listOf(SqliteTable("table", emptyList(), false)))
     val evaluatorView = viewFactory.sqliteEvaluatorView
 
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(schema))
@@ -394,13 +395,13 @@ class SqliteControllerTest : PlatformTestCase() {
     verify(sqliteView).updateDatabase(
       sqliteDatabase1,
       emptyList(),
-      listOf(IndexedSqliteTable(0, SqliteTable("table", emptyList())))
+      listOf(IndexedSqliteTable(0, SqliteTable("table", emptyList(), false)))
     )
   }
 
   fun testUpdateExistingDatabaseRemoveTables() {
     // Prepare
-    val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList()), SqliteTable("table2", emptyList())))
+    val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), false), SqliteTable("table2", emptyList(), false)))
     val newSchema = SqliteSchema(emptyList())
     val evaluatorView = viewFactory.sqliteEvaluatorView
 
@@ -422,7 +423,7 @@ class SqliteControllerTest : PlatformTestCase() {
     // Assert
     verify(sqliteView).updateDatabase(
       sqliteDatabase1,
-      listOf(SqliteTable("table1", emptyList()), SqliteTable("table2", emptyList())),
+      listOf(SqliteTable("table1", emptyList(), false), SqliteTable("table2", emptyList(), false)),
       emptyList()
     )
   }
