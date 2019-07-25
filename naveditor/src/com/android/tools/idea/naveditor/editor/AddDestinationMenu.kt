@@ -17,7 +17,9 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.actions.NewAndroidComponentAction
+import com.android.tools.idea.actions.NewAndroidFragmentAction
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.model.includeFile
@@ -56,10 +58,8 @@ import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.speedSearch.FilteringListModel
-import com.intellij.util.BooleanFunction
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -300,8 +300,18 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
   private fun createNewDestination(e: AnActionEvent) {
     balloon?.hide()
-    val action = NewAndroidComponentAction("Fragment", "Fragment (Blank)", 7)
-    action.setShouldOpenFiles(false)
+    val action = if (StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.get()) {
+      NewAndroidFragmentAction().apply {
+        // Not moving out the same setShouldOpenFiles method as the other branch because AnAction
+        // doesn't have the method and once NPW_SHOW_FRAGMENT_GALLERY flag is removed, this if
+        // statement is going to be removed.
+        shouldOpenFiles = false
+      }
+    } else {
+      NewAndroidComponentAction("Fragment", "Fragment (Blank)", 7).apply {
+        setShouldOpenFiles(false)
+      }
+    }
     createNewDestination(e, action)
   }
 

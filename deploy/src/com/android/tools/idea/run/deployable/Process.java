@@ -16,16 +16,18 @@
 package com.android.tools.idea.run.deployable;
 
 import com.android.ddmlib.Client;
+import java.util.HashSet;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 class Process {
   private final int myPid;
-  @Nullable private volatile String myApplicationId;
+  @NotNull private volatile Set<String> myApplicationIds;
   @NotNull private Client myClient;
 
   Process(@NotNull Client client) {
     myPid = client.getClientData().getPid();
+    myApplicationIds = new HashSet<>();
     myClient = client;
   }
 
@@ -42,12 +44,11 @@ class Process {
     myClient = client;
   }
 
-  void setApplicationId(@NotNull String applicationId) {
-    myApplicationId = applicationId;
+  void addApplicationId(@NotNull String applicationId) {
+    myApplicationIds.add(applicationId);
   }
 
-  @Nullable
-  String getApplicationId() {
-    return myApplicationId;
+  boolean containsApplicationId(@NotNull String applicationId) {
+    return myApplicationIds.contains(applicationId);
   }
 }

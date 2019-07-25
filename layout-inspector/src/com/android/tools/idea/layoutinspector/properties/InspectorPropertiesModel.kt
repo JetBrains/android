@@ -23,6 +23,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.containers.ContainerUtil
 import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
@@ -37,6 +38,9 @@ import kotlin.reflect.KProperty
 class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   private val modelListeners: MutableList<PropertiesModelListener<InspectorPropertyItem>> = ContainerUtil.createConcurrentList()
   private val provider = PropertiesProvider(this)
+
+  var structuralUpdates = 0
+    private set
 
   override var properties: PropertiesTable<InspectorPropertyItem> = PropertiesTable.emptyTable()
     private set
@@ -81,6 +85,9 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
 
   @Suppress("UNUSED_PARAMETER")
   private fun handleModelChange(oldView: ViewNode?, newView: ViewNode?, structuralChange: Boolean) {
+    if (structuralChange) {
+      structuralUpdates++
+    }
     val selection = layoutInspector?.layoutInspectorModel?.selection
     if (selection != null && client?.isConnected == true) {
       provider.requestProperties(selection)
@@ -97,6 +104,6 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   }
 
   private fun firePropertiesGenerated() {
-    modelListeners.forEach { it.propertiesGenerated(this) }
+    modelListeners.forEach { ApplicationManager.getApplication().invokeLater { it.propertiesGenerated(this) } }
   }
 }

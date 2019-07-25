@@ -365,7 +365,7 @@ class SessionsViewTest {
     assertThat(sessionsPanel.componentCount).isEqualTo(1)
     assertThat((sessionsPanel.getComponent(0) as SessionItemView).artifact.session).isEqualTo(session1)
 
-    val session = mySessionsManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
+    val session = mySessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
     mySessionsManager.update()
     mySessionsManager.setSession(session)
     assertThat(sessionsPanel.componentCount).isEqualTo(2)
@@ -711,8 +711,6 @@ class SessionsViewTest {
     val allocationItem = sessionsPanel.getComponent(1) as LegacyAllocationsArtifactView
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(allocationItem.artifact.session).isEqualTo(session)
-
-    myMemoryService.setExplicitAllocationEvents(MemoryProfiler.LegacyAllocationEventsResponse.Status.SUCCESS, emptyList())
 
     // Makes sure we're in monitor stage.
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java)

@@ -25,10 +25,11 @@ import javax.swing.SwingConstants
 
 class ModuleUnsupportedConfigurable(
   context: PsContext,
+  perspectiveConfigurable: BasePerspectiveConfigurable,
   module: PsModule,
   val message: String = "Nothing to show. Please select an Android module."
 ) :
-  AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, module) {
+  AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, perspectiveConfigurable, module) {
 
   override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context) {
     init {
@@ -39,5 +40,5 @@ class ModuleUnsupportedConfigurable(
     override fun dispose() = Unit
   }
 
-  override fun getId(): String = "android.psd.unsupported_java_module." + module.name
+  override fun getId(): String = "android.psd.unsupported_module." + module.name
 }

@@ -17,22 +17,17 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup.removeExistingContentEntries;
 
-import com.android.builder.model.NativeAndroidProject;
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.setup.Facets;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
   @NotNull private final AndroidContentEntriesSetup.Factory myContentEntriesSetupFactory;
@@ -64,7 +59,9 @@ public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
     }
 
     List<ContentEntry> contentEntries = new ArrayList<>();
-    ContentEntry contentEntry = moduleModel.addContentEntry(androidModel.getRootDir());
+    VirtualFile roootVirtualFile = VfsUtil.findFileByIoFile(androidModel.getRootDirPath(), true);
+    assert roootVirtualFile != null;
+    ContentEntry contentEntry = moduleModel.addContentEntry(roootVirtualFile);
     contentEntries.add(contentEntry);
 
     return contentEntries;

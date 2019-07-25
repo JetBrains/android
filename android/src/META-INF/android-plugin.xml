@@ -22,6 +22,10 @@
   <depends>com.android.tools.idea.smali</depends>
   <depends>org.jetbrains.kotlin</depends>
 
+  <!-- One of the layoutlib plugins is required -->
+  <depends optional="true" config-file="layoutlib-standard.xml">com.android.layoutlib.standard</depends>
+  <depends optional="true" config-file="layoutlib-native.xml">com.android.layoutlib.native</depends>
+
   <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
   <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
@@ -361,7 +365,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.SupportedModuleChecker"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.LibraryFilePaths"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.BuildFileProcessor"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleVersions"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleProjectSettingsFinder"/>
@@ -590,6 +593,7 @@
     <projectService serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
     <projectService serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.LibraryFilePaths"/>
 
     <referencesSearch implementation="org.jetbrains.android.AndroidReferenceSearchExecutor"/>
     <projectService serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
@@ -924,6 +928,7 @@
   <actions>
     <action id="DeviceAndSnapshotComboBox" class="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction"
             text="Select Device">
+      <add-to-group group-id="RunMenu" relative-to-action="editRunConfigurations" anchor="after"/>
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="after"/>
     </action>
   </actions>

@@ -7,13 +7,6 @@ iml_module(
     iml_files = ["connection-assistant.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
-    # keep sorted
-    test_data = [
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/android/testData",
-        "//tools/base/templates",
-    ],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",

@@ -16,9 +16,14 @@
 package com.android.tools.idea.profilers.perfd;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.StudioLegacyAllocationTracker;
 import com.android.tools.idea.profilers.StudioLegacyCpuTraceProfiler;
+import com.android.tools.idea.profilers.commands.GcCommandHandler;
+import com.android.tools.idea.profilers.commands.LegacyAllocationCommandHandler;
 import com.android.tools.idea.transport.TransportProxy;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -27,7 +32,7 @@ import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 
 public class ProfilerServiceProxyManager {
-  @NotNull private static final String MEMORY_PROXY_EXECUTOR_NAME = "MemoryServiceProxy";
+  @NotNull private static final String MEMORY_PROXY_EXECUTOR_NAME = "MemoryAllocationDataFetchExecutor";
 
   public static void registerProxies(TransportProxy transportProxy) {
     IDevice device = transportProxy.getDevice();
@@ -49,5 +54,24 @@ public class ProfilerServiceProxyManager {
       transportProxy.getBytesCache()));
     transportProxy.registerProxyService(new NetworkServiceProxy(transportChannel));
     transportProxy.registerProxyService(new EnergyServiceProxy(transportChannel));
+  }
+
+  public static void registerCommandHandlers(TransportProxy transportProxy) {
+    IDevice device = transportProxy.getDevice();
+
+    GcCommandHandler gcCommandHandler = new GcCommandHandler(device);
+    transportProxy.registerProxyCommandHandler(Commands.Command.CommandType.GC, gcCommandHandler);
+
+    if (!StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get() || device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O) {
+      LegacyAllocationCommandHandler trackAllocationHandler =
+        new LegacyAllocationCommandHandler(device,
+                                           transportProxy.getEventQueue(),
+                                           transportProxy.getBytesCache(),
+                                           Executors.newSingleThreadExecutor(
+                                             new ThreadFactoryBuilder().setNameFormat(MEMORY_PROXY_EXECUTOR_NAME).build()),
+                                           (d, p) -> new StudioLegacyAllocationTracker(d, p));
+      transportProxy.registerProxyCommandHandler(Commands.Command.CommandType.START_ALLOC_TRACKING, trackAllocationHandler);
+      transportProxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_ALLOC_TRACKING, trackAllocationHandler);
+    }
   }
 }

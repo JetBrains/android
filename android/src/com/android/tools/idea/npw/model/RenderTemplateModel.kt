@@ -17,11 +17,9 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.builder.model.SourceProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.assetstudio.IconGenerator
-import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.AndroidPackageUtils
 import com.android.tools.idea.npw.template.TemplateHandle
@@ -72,8 +70,6 @@ class RenderTemplateModel private constructor(
   private val multiTemplateRenderer: MultiTemplateRenderer,
   private val shouldOpenFiles: Boolean,
   val language: ObjectProperty<Language> = languagePropertyFromProject(project.valueOrNull),
-  /** [SourceProvider] used by this model (the source provider affects which paths the template's output will be rendered into). */
-  val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty(),
   /** Populated in [Template.render] */
   val createdFiles: MutableList<File> = arrayListOf()
 ) : WizardModel() {
@@ -116,8 +112,6 @@ class RenderTemplateModel private constructor(
         .setModuleRoots(paths, projectLocation.get(), moduleName.get(), packageName.get())
 
       if (androidFacet == null) {
-        // If we don't have an AndroidFacet, we must have the Android Sdk info
-        templateInjector.setBuildVersion(androidSdkInfo.value, project.valueOrNull)
         return
       }
       templateInjector.setFacet(androidFacet)
@@ -220,11 +214,11 @@ class RenderTemplateModel private constructor(
                           shouldOpenFiles)
 
     @JvmStatic
-    fun fromModuleModel(moduleModel: NewModuleModel, templateHandle: TemplateHandle?, template: NamedModuleTemplate, commandName: String) =
+    fun fromModuleModel(moduleModel: NewModuleModel, templateHandle: TemplateHandle?, commandName: String) =
       RenderTemplateModel(moduleModel.project,
                           null,
                           templateHandle,
-                          ObjectValueProperty(template),
+                          moduleModel.template,
                           moduleModel.projectLocation,
                           moduleModel.moduleName,
                           moduleModel.packageName,

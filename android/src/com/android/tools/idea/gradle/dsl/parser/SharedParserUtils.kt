@@ -82,6 +82,7 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElem
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
@@ -100,6 +101,10 @@ import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslE
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement
+import com.google.common.base.Splitter
+import com.google.common.collect.Lists
+import com.intellij.psi.PsiElement
+import java.util.ArrayList
 
 /**
  * Set of classes whose properties should not be merged into each other.
@@ -250,4 +255,75 @@ private fun createNewElementForFileOrSubProject(resultElement: GradlePropertiesD
       return ProjectPropertiesDslElement(resultElement, GradleNameElement.fake(projectKey))
     }
   }
+}
+
+/**
+ * Get the parent dsl element with a valid psi
+ */
+internal fun getNextValidParent(element: GradleDslElement): GradleDslElement? {
+  var element : GradleDslElement? = element
+  var psi = element?.psiElement
+  while (element != null && (psi == null || !psi.isValid)) {
+    element = element.parent ?: return element
+
+    psi = element.psiElement
+  }
+
+  return element
+}
+
+internal fun removePsiIfInvalid(element: GradleDslElement?) {
+  if (element == null) return
+
+  if (element.psiElement != null && !element.psiElement!!.isValid) {
+    element.psiElement = null
+  }
+
+  if (element.parent != null) {
+    removePsiIfInvalid(element.parent)
+  }
+}
+
+/**
+ * @param startElement starting element
+ * @return the last non-null psi element in the tree starting at node startElement.
+ */
+internal fun findLastPsiElementIn(startElement: GradleDslElement): PsiElement? {
+  val psiElement = startElement.psiElement
+  if (psiElement != null) {
+    return psiElement
+  }
+
+  for (element in Lists.reverse(ArrayList(startElement.children))) {
+    if (element != null) {
+      val psi = findLastPsiElementIn(element)
+      if (psi != null) {
+        return psi
+      }
+    }
+  }
+  return null
+}
+
+internal fun needToCreateParent(element: GradleDslElement): Boolean {
+  val parent = element.parent
+  return parent != null && parent.psiElement == null
+}
+
+internal fun maybeTrimForParent(name: GradleNameElement, parent: GradleDslElement?): String {
+  if (parent == null) return name.fullName()
+
+  val parts = ArrayList(name.fullNameParts())
+  if (parts.isEmpty()) {
+    return name.fullName()
+  }
+  val lastNamePart = parts.removeAt(parts.size - 1)
+  val parentParts = Splitter.on(".").splitToList(parent.qualifiedName)
+  var i = 0
+  while (i < parentParts.size && !parts.isEmpty() && parentParts[i] == parts[0]) {
+    parts.removeAt(0)
+    i++
+  }
+  parts.add(lastNamePart)
+  return GradleNameElement.createNameFromParts(parts)
 }

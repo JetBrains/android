@@ -39,7 +39,7 @@ public class MavenPoms {
 
   @NotNull
   public static List<PsArtifactDependencySpec> findDependenciesInPomFile(@NotNull File libraryPath) {
-    File pomFilePath = LibraryFilePaths.getInstance().findPomPathForLibrary(libraryPath);
+    File pomFilePath = LibraryFilePaths.findPomPathForLibrary(libraryPath);
     if (pomFilePath == null) {
       return Collections.emptyList();
     }

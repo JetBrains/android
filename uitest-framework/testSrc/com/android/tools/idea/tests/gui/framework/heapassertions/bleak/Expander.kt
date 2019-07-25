@@ -142,38 +142,6 @@ class ArrayObjectIdentityExpander(g: HeapGraph): Expander(g) {
   }
 }
 
-@Deprecated("You probably want ArrayObjectIdentityExpander")
-class ArrayIndexExpander(g: HeapGraph): Expander(g) {
-  inner class IndexLabel(val index: Int): Label() {
-    override fun signature() = index.toString()
-    override fun equals(other: Any?) = other is IndexLabel && index == other.index
-    override fun hashCode(): Int = index.hashCode()
-  }
-
-  override fun canExpand(obj: Any): Boolean = obj.javaClass.isArray && !obj.javaClass.componentType.isPrimitive
-
-  override fun expand(n: Node) {
-    (n.obj as Array<*>).forEachIndexed { i, element -> if (element != null) n.addEdgeTo(element, IndexLabel(i)) }
-  }
-
-  override fun expandCorrespondingEdge(n: Node, e: Edge): Node? {
-    if (e.label is IndexLabel) {
-      val i = e.label.index
-      if (i >= 0 && i < (n.obj as Array<*>).size) {
-        val elem = n.obj[i]
-        if (elem != null) {
-          return n.addEdgeTo(elem, e.label)
-        }
-      }
-    }
-    return null
-  }
-
-  // this is broken in the incremental case
-  override fun getChildForLabel(n: Node, label: Label): Node? =
-    if (label is IndexLabel && label.index >= 0 && label.index < n.degree) n.edges[label.index].end else null
-}
-
 /** [ClassStaticsExpander] takes a Class object and generates children for all of its static fields,
  * using [FieldLabel]s for the edge labels.
  */

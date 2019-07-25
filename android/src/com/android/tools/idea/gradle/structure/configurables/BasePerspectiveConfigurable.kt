@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
 import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.android.tools.idea.structure.dialog.logUsagePsdAction
@@ -52,7 +53,7 @@ import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
-import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
+import com.intellij.util.ui.tree.TreeUtil
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
 import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
@@ -208,11 +209,11 @@ abstract class BasePerspectiveConfigurable protected constructor(
     else {
       super<MasterDetailsComponent>.disposeUIResources()
     }
-    myTree.showsRootHandles = false
     loadTree()
 
     currentModuleSelectorStyle = null
     super<MasterDetailsComponent>.reset()
+    TreeUtil.expandAll(myTree)
   }
 
   override fun initTree() {
@@ -231,7 +232,8 @@ abstract class BasePerspectiveConfigurable protected constructor(
       createTreeModel(
         object : NamedContainerConfigurableBase<PsModule>("root") {
           override fun getChildrenModels(): Collection<PsModule> = extraModules + context.project.modules
-          override fun createChildConfigurable(model: PsModule) = createConfigurableFor(model).also { it.setHistory(myHistory) }
+            .filter { it.gradlePath == null || GradleUtil.isDirectChild(it.gradlePath, ":") }
+          override fun createChildConfigurable(model: PsModule) = this@BasePerspectiveConfigurable.createChildConfigurable(model)
           override fun onChange(disposable: Disposable, listener: () -> Unit) = context.project.modules.onChange(disposable, listener)
           override fun dispose() = Unit
         }.also { Disposer.register(this, it) })
@@ -248,6 +250,9 @@ abstract class BasePerspectiveConfigurable protected constructor(
       it.add(contents, BorderLayout.CENTER)
     }
   }
+
+  fun createChildConfigurable(model: PsModule) : NamedConfigurable<out PsModule> =
+    createConfigurableFor(model).also { it.setHistory(myHistory) }
 
   protected abstract fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *>
 

@@ -66,12 +66,8 @@ private fun Signature.isWhitelisted(): Boolean =
   entry(2) == "sun.java2d.Disposer#records" ||
   entry(2) == "sun.java2d.marlin.OffHeapArray#REF_LIST" ||
   entry(2) == "sun.awt.X11.XInputMethod#lastXICFocussedComponent" || // b/126447315
-  entry(-3) == "sun.font.XRGlyphCache#cacheMap"
-
-// "Troublesome" signatures are whitelisted as well, but are removed from the set of leak roots before leakShare is determined, rather
-// than after.
-fun Signature.isTroublesome(): Boolean =
-  size == 4 && lastLabel() in listOf("_set", "_values") && first() == "com.intellij.openapi.util.Disposer#ourTree" ||  // this accounts for both myObject2NodeMap and myRootObjects
+  entry(-3) == "sun.font.XRGlyphCache#cacheMap" ||
+  lastLabel() in listOf("_set", "_values") && entry(-4) == "com.intellij.openapi.util.Disposer#ourTree" ||  // this accounts for both myObject2NodeMap and myRootObjects
   entry(-3) == "com.intellij.openapi.application.impl.ReadMostlyRWLock#readers"
 
 fun runWithBleak(scenario: Runnable) {
@@ -120,9 +116,8 @@ fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
 
   println("Found ${finalGraph.leakRoots.size} leak roots")
   val errorMessage = buildString {
-    for ((leakRoot, leakShare) in finalGraph.rankLeakRoots().filterNot { it.first.getPath().signature().isWhitelisted() }) {
-      appendln("Root with leakShare $leakShare:")
-      appendln(leakRoot.getPath().verboseSignature().joinToString(separator = "\n  ", prefix = "  "))
+    for (leakRoot in finalGraph.leakRoots.filterNot { it.getPath().signature().isWhitelisted() }) {
+      appendln(leakRoot.getPath().verboseSignature().joinToString(separator = "\n"))
       val prevLeakRoot = g2.getNodeForPath(leakRoot.getPath()) ?: g2.leakRoots.find { it.obj === leakRoot.obj }
       if (prevLeakRoot != null) {
         val prevChildrenObjects = IdentityHashMap<Any, Any>(prevLeakRoot.degree)

@@ -148,9 +148,7 @@ public class AndroidInlineLayoutTest extends AndroidTestCase {
     AndroidInlineLayoutHandler.setTestConfig(new AndroidInlineTestConfig(true));
     try {
       myFixture.testAction(new InlineAction());
-/* b/137334920
       fail();
-b/137334920 */
     }
     catch (IncorrectOperationException e) {
       assertTrue(e.getMessage().length() > 0);
@@ -168,9 +166,7 @@ b/137334920 */
 
   private void doTestCommonInlineAll() throws Exception {
     doTestCommonInlineAction(false);
-/* b/137334920
     assertNull(myFixture.getTempDirFixture().getFile("res/layout/included.xml"));
-b/137334920 */
   }
 
   private void doTestCommonInlineActionWithConflicts(boolean inlineThisOnly, boolean configureFromIncludedFile) {
@@ -199,17 +195,13 @@ b/137334920 */
     AndroidInlineLayoutHandler.setTestConfig(new AndroidInlineTestConfig(inlineThisOnly));
     try {
       final Presentation p = myFixture.testAction(new InlineAction());
-/* b/137334920
       assertTrue(p.isEnabled());
-b/137334920 */
       assertTrue(p.isVisible());
     }
     finally {
       AndroidInlineLayoutHandler.setTestConfig(null);
     }
-/* b/137334920
     myFixture.checkResultByFile(BASE_PATH + testName + "_after.xml", true);
-b/137334920 */
   }
 
   private void doTestInlineIncludeAction(boolean inlineThisOnly) {

@@ -76,7 +76,7 @@ public class Device {
 
     List<Client> clients = new ArrayList<>();
     for (Process process : myPidToProcess.values()) {
-      if (applicationId.equals(process.getApplicationId())) {
+      if (process.containsApplicationId(applicationId)) {
         clients.add(process.getClient());
       }
     }
@@ -167,8 +167,8 @@ public class Device {
       }
 
       Matcher m = PACKAGE_NAME_PATTERN.matcher(output);
-      if (m.find()) {
-        process.setApplicationId(m.group(1));
+      while (m.find()) {
+        process.addApplicationId(m.group(1));
       }
       return null;
     });
@@ -214,7 +214,7 @@ public class Device {
           for (String line : lines) {
             int pid = Integer.parseInt(line);
             myPidToProcess.computeIfPresent(pid, (ignored, process) -> {
-              process.setApplicationId(applicationId);
+              process.addApplicationId(applicationId);
               return process;
             });
           }

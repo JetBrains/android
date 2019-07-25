@@ -74,6 +74,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
@@ -100,7 +101,7 @@ public class TransportServiceProxy extends ServiceProxy
   @NotNull private final Common.Device myProfilerDevice;
   private final Map<Client, Common.Process> myCachedProcesses = Collections.synchronizedMap(new HashMap<>());
   private final boolean myIsDeviceApiSupported;
-  private final LinkedBlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
+  private final BlockingDeque<Common.Event> myEventQueue;
   private Thread myEventsListenerThread;
   private final Map<CommandType, TransportProxy.ProxyCommandHandler> myCommandHandlers = new HashMap<>();
   private final List<TransportEventPreprocessor> myEventPreprocessors = new ArrayList<>();
@@ -112,13 +113,15 @@ public class TransportServiceProxy extends ServiceProxy
   @Nullable private CountDownLatch myEventStreamingLatch = null;
 
   /**
-   * @param ddmlibDevice      the {@link IDevice} for retrieving process informatino.
-   * @param transportDevice   the {@link Common.Device} corresponding to the ddmlibDevice,
-   *                          as generated via {@link #transportDeviceFromIDevice(IDevice)}
-   * @param channel           the channel that is used for communicating with the device daemon.
-   * @param myProxyBytesCache byte cache shared by the proxy layer.
+   * @param ddmlibDevice    the {@link IDevice} for retrieving process informatino.
+   * @param transportDevice the {@link Common.Device} corresponding to the ddmlibDevice,
+   *                        as generated via {@link #transportDeviceFromIDevice(IDevice)}
+   * @param channel         the channel that is used for communicating with the device daemon.
+   * @param proxyEventQueue event queue shared by the proxy layer.
+   * @param proxyBytesCache byte cache shared by the proxy layer.
    */
   public TransportServiceProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device transportDevice, @NotNull ManagedChannel channel,
+                               @NotNull BlockingDeque<Common.Event> proxyEventQueue,
                                @NotNull Map<String, ByteString> proxyBytesCache) {
     super(TransportServiceGrpc.getServiceDescriptor());
     myDevice = ddmlibDevice;
@@ -126,6 +129,7 @@ public class TransportServiceProxy extends ServiceProxy
     // Unsupported device are expected to have the unsupportedReason field set.
     myIsDeviceApiSupported = myProfilerDevice.getUnsupportedReason().isEmpty();
     myServiceStub = TransportServiceGrpc.newBlockingStub(channel);
+    myEventQueue = proxyEventQueue;
     myProxyBytesCache = proxyBytesCache;
     getLog().info(String.format("ProfilerDevice created: %s", myProfilerDevice));
 

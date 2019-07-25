@@ -326,18 +326,6 @@ public class Scene implements SelectionListener, Disposable {
   /////////////////////////////////////////////////////////////////////////////
 
   /**
-   * Clear all constraints on a scene
-   */
-  public void clearAllConstraints() {
-    if (myRoot != null) {
-      Stream.of(myRoot)
-        .flatMap(c -> c.getChildren().stream())
-        .forEach(c -> c.clearAttributes());
-    }
-    select(Collections.emptyList());
-  }
-
-  /**
    * Add the given SceneComponent to the Scene
    *
    * @param component component to add
@@ -962,8 +950,7 @@ public class Scene implements SelectionListener, Disposable {
     SceneComponent closestComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
-      Target closest = myHitListener.getFilteredTarget(myHitTarget);
-      myHitTarget.mouseRelease(x, y, closest != null ? Collections.singletonList(closest) : Collections.emptyList());
+      myHitTarget.mouseRelease(x, y, myHitListener.getHitTargets());
       myHitTarget.getComponent().setDragging(false);
       if (myHitTarget instanceof MultiComponentTarget) {
         // TODO: Check if it is samw as started.

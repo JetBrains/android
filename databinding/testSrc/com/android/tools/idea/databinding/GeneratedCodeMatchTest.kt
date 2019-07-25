@@ -23,6 +23,7 @@ import org.junit.Assert.fail
 import org.junit.runners.Parameterized.Parameters
 
 import com.android.ide.common.blame.Message
+import com.android.tools.idea.databinding.finders.DataBindingScopeEnlarger
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -40,6 +41,7 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import java.io.File
 import java.io.IOException
 import java.util.HashSet
@@ -267,7 +269,11 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
       }
     }.map { classReader -> classReader.className to classReader }.toMap()
 
-    val moduleScope = projectRule.androidFacet.module.getModuleWithDependenciesAndLibrariesScope(false)
+    // Random class in the current module; we just need something so we can resolve it, triggering
+    // a data binding scope-enlargement behind the scenes
+    val moduleScope = (projectRule.fixture as JavaCodeInsightTestFixture)
+      .findClass("com.android.example.appwithdatabinding.MainActivity").resolveScope
+
     val missingClasses = HashSet<String>()
     val generatedClasses = HashSet<String>()
     val manifestPackage = projectRule.androidFacet.manifest!!.`package`.value!!.pkgToPath()
@@ -287,10 +293,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
       val asmInfo = ClassDescriber.collectDescriptionSet(classReader, baseClassInfo)
       val psiInfo = ClassDescriber.collectDescriptionSet(psiClass)
 
-      // TODO(b/134532947): BR completion doesn't include user fields (temporarily) to avoid a deadlock, skip check for now
-      if (className != "com.android.example.appwithdatabinding.BR") {
-        assertWithMessage(className).that(asmInfo).isEqualTo(psiInfo)
-      }
+      assertWithMessage(className).that(asmInfo).isEqualTo(psiInfo)
     }
     assertWithMessage("Failed to find expected generated data binding classes; did the compiler change?")
       .that(generatedClasses).containsExactly(

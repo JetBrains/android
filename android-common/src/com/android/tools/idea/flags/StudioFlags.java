@@ -81,11 +81,6 @@ public final class StudioFlags {
     "Let the user keep templates in the .android folder such that they are kept after a Studio install/upgrade",
     true);
 
-  public static final Flag<Boolean> NPW_TEMPLATES_AUTOMOTIVE = Flag.create(
-    NPW, "templates.automotive", "Include 'Automotive' templates in wizards",
-    "Show 'Automotive' templates in 'New Project', 'New Module' and 'New component' wizards. Also present 'Automotive' devices in AVD.",
-    true);
-
   public static final Flag<Boolean> NPW_FIRST_RUN_SHOW = Flag.create(
     NPW, "first.run.wizard.show", "Show Welcome Wizard always",
     "Show the Welcome Wizard when Studio starts",
@@ -271,11 +266,6 @@ public final class StudioFlags {
     "Enable this flag to show selection boundaries without other decoration when mouse is not hovered in layout",
     true);
 
-  public static final Flag<Boolean> NELE_NATIVE_LAYOUTLIB = Flag.create(
-    NELE, "native.layoutlib", "Enable the native version of layoutlib",
-    "Use the native version of layoutlib when rendering Android resources",
-    false);
-
   public static final Flag<Boolean> NELE_SPLIT_EDITOR = Flag.create(
     NELE, "split.layout.editor", "Enable design editors and XML side-by-side view.",
     "Enable this flag to display the design editors side-by-side with their text representation.",
@@ -409,13 +399,6 @@ public final class StudioFlags {
     "When a project is loaded, automatically add a \"Gradle-aware Make\" task to each Run Configuration if the task is missing",
     true);
 
-  public static final Flag<Boolean> GRADLE_INVOCATIONS_INDEXING_AWARE = Flag.create(
-    GRADLE_IDE, "indexing.aware", "Execute gradle actions in indexing-aware mode",
-    "Make Gradle actions and IDE indexing mutually exclusive to allow better utilisation of machine resources.",
-    true);
-  public static final Flag<Boolean> NEW_SYNC_INFRA_ENABLED = Flag.create(
-    GRADLE_IDE, "new.sync", "Enable \"New Sync\" infrastructure",
-    "Turns on the new infrastructure for \"Gradle Sync\", resulting in faster Sync executions.", false);
   public static final Flag<Boolean> NEW_PSD_ENABLED = Flag.create(
     GRADLE_IDE, "new.psd", "Enable new \"Project Structure\" dialog",
     "Turns on the new \"Project Structure\" dialog.", true);
@@ -684,6 +667,14 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW = Flag.create(
     COMPOSE, "compose.preview.enabled", "Enable the Compose preview",
     "If enabled, a visual preview will be available for Compose.",
+    false);
+  //endregion
+
+  //region Binding
+  private static final FlagGroup BINDING = new FlagGroup(FLAGS, "binding", "Data/View Binding");
+  public static final Flag<Boolean> VIEW_BINDING_ENABLED = Flag.create(
+    BINDING, "view.binding.enabled", "Enable View Binding",
+    "Enables view binding integration. Additionally, enabling the compiler may require updating Gradle settings as well",
     false);
   //endregion
 

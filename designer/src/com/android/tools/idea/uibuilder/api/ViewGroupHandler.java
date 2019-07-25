@@ -206,11 +206,10 @@ public class ViewGroupHandler extends ViewHandler {
   }
 
   /**
-   * Let the ViewGroupHandler handle clearing attributes on a given component
-   *
-   * @param component
+   * Let the ViewGroupHandler handle clearing attributes on the given components.
+   * If component list is not empty, it clears all attributes in one undo action.
    */
-  public void clearAttributes(@NotNull NlComponent component) {
+  public void clearAttributes(@NotNull List<NlComponent> components) {
     // do nothing
   }
 

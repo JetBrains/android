@@ -43,4 +43,10 @@ public class PsiDbInferredFormalParameterListImpl extends DataBindingPsiElement 
     else super.accept(visitor);
   }
 
+  @Override
+  @NotNull
+  public List<PsiDbInferredFormalParameter> getInferredFormalParameterList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, PsiDbInferredFormalParameter.class);
+  }
+
 }

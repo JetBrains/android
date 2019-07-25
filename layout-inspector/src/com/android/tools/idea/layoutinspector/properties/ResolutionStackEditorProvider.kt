@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
+import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.ui.ResolutionElementEditor
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
@@ -26,14 +27,16 @@ import javax.swing.JComponent
  * [EditorProvider] that provides a link below the normal editor.
  */
 class ResolutionStackEditorProvider(
+  model: InspectorPropertiesModel,
   enumSupportProvider: EnumSupportProvider<InspectorPropertyItem>,
   controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>
 ) : EditorProvider<InspectorPropertyItem> {
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
+  private val resolutionStackModel = ResolutionStackModel(model)
 
   override fun createEditor(property: InspectorPropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val (model, editor) = editorProvider.createEditor(property, asTableCellEditor)
     model.readOnly = true
-    return Pair(model, ResolutionElementEditor(model, editor))
+    return Pair(model, ResolutionElementEditor(resolutionStackModel, model, editor))
   }
 }

@@ -20,30 +20,32 @@ import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.templates.TemplateManager
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
  * Step for the gallery for Fragment templates.
  */
-class ChooseFragmentTypeStep(moduleModel: NewModuleModel,
-                             renderModel: RenderTemplateModel,
-                             formFactor: FormFactor,
-                             targetDirectory: VirtualFile)
-  : ChooseGalleryItemStep(moduleModel, renderModel, formFactor,
-                          targetDirectory,
-                          messageKeys = FragmentGalleryStepMessageKeys(),
-                          emptyItemLabel = "Blank Fragment") {
-
+class ChooseFragmentTypeStep(
+  moduleModel: NewModuleModel,
+  renderModel: RenderTemplateModel,
+  formFactor: FormFactor,
+  targetDirectory: VirtualFile
+) : ChooseGalleryItemStep(
+  moduleModel, renderModel, formFactor, targetDirectory,
+  messageKeys = fragmentGalleryStepMessageKeys,
+  emptyItemLabel = "Blank Fragment"
+) {
   override val templateRenders = (if (isNewModule) listOf(TemplateRenderer(null)) else listOf()) +
                                  TemplateManager.getInstance().getFragmentTemplateList(formFactor).map(::TemplateRenderer)
 }
 
-class FragmentGalleryStepMessageKeys : WizardGalleryItemsStepMessageKeys {
-
-  override val addMessage: String = "android.wizard.fragment.add"
-  override val stepTitle: String = "android.wizard.config.fragment.title"
-  override val itemNotFound: String = "android.wizard.fragment.not.found"
-  override val invalidMinSdk: String = "android.wizard.fragment.invalid.min.sdk"
-  override val invalidMinBuild: String = "android.wizard.fragment.invalid.min.build"
-  override val invalidAndroidX: String = "android.wizard.fragment.invalid.androidx"
-}
+@VisibleForTesting
+val fragmentGalleryStepMessageKeys = WizardGalleryItemsStepMessageKeys(
+  "android.wizard.fragment.add",
+  "android.wizard.config.fragment.title",
+  "android.wizard.fragment.not.found",
+  "android.wizard.fragment.invalid.min.sdk",
+  "android.wizard.fragment.invalid.min.build",
+  "android.wizard.fragment.invalid.androidx"
+)

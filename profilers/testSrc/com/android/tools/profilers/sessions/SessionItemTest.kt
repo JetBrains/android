@@ -108,7 +108,7 @@ class SessionItemTest {
     Truth.assertThat(profilers.stageClass).isEqualTo(NullMonitorStage::class.java)
 
     val sessionsManager = profilers.sessionsManager
-    val session = sessionsManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
+    val session = sessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
     sessionsManager.update()
     sessionsManager.setSession(session)
     Truth.assertThat(profilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
@@ -124,7 +124,7 @@ class SessionItemTest {
   fun testImportedHprofSessionName() {
     val profilers = StudioProfilers(myProfilerClient, FakeIdeProfilerServices(), FakeTimer())
     val sessionsManager = profilers.sessionsManager
-    sessionsManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
+    sessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
     sessionsManager.update()
     Truth.assertThat(sessionsManager.sessionArtifacts.size).isEqualTo(1)
     val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
