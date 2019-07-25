@@ -141,10 +141,4 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertEquals("one and two", ThemeEditorUtils.generateWordEnumeration(Arrays.asList("one", "two")));
     assertEquals("one, two and Three", ThemeEditorUtils.generateWordEnumeration(Arrays.asList("one", "two", "Three")));
   }
-
-  public void testThemeNamesListOrder() {
-    myFixture.copyFileToProject("themeEditor/styles_alphabetical.xml", "res/values/styles.xml");
-    List<String> themeNames = ThemeEditorUtils.getModuleThemeQualifiedNamesList(myModule);
-    assertThat(themeNames).containsExactly("aTheme", "BTheme", "cTheme", "DTheme").inOrder();
-  }
 }

@@ -16,24 +16,23 @@
 package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValueImpl;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represents styles in ThemeEditor. In addition to {@link ThemeEditorStyle},
@@ -81,54 +80,6 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
    */
   public boolean isReadOnly() {
     return !isProjectStyle();
-  }
-
-  /**
-   * Returns all the style attributes and its values. For each attribute, multiple {@link ConfiguredElement} can be returned
-   * representing the multiple values in different configurations for each item.
-   * TODO: needs to be deleted, as we don't use this method except tests
-   */
-  @NotNull
-  public ImmutableCollection<ConfiguredElement<StyleItemResourceValue>> getConfiguredValues() {
-    // Get a list of all the items indexed by the item name. Each item contains a list of the possible
-    // values in this theme in different configurations.
-    //
-    // If item1 has multiple values in different configurations, there will be an
-    // item1 = {folderConfiguration1 -> value1, folderConfiguration2 -> value2}
-    final ImmutableList.Builder<ConfiguredElement<StyleItemResourceValue>> itemResourceValues = ImmutableList.builder();
-
-    if (isFramework()) {
-      ResourceRepository frameworkResources = myConfiguration.getFrameworkResources();
-      assert frameworkResources != null;
-
-      List<ResourceItem> styleItems =
-          frameworkResources.getResources(ResourceNamespace.ANDROID, ResourceType.STYLE, myStyleResourceValue.getName());
-      for (ResourceItem item : styleItems) {
-        ResourceValue styleResourceValue = item.getResourceValue();
-
-        if (styleResourceValue instanceof StyleResourceValue) {
-          FolderConfiguration folderConfiguration = item.getConfiguration();
-          for (StyleItemResourceValue value : ((StyleResourceValue)styleResourceValue).getDefinedItems()) {
-            itemResourceValues.add(ConfiguredElement.create(folderConfiguration, value));
-          }
-        }
-      }
-    }
-    else {
-      for (ResourceItem styleDefinition : getStyleResourceItems()) {
-        ResourceValue styleResourceValue = styleDefinition.getResourceValue();
-        FolderConfiguration folderConfiguration = styleDefinition.getConfiguration();
-
-        if (styleResourceValue instanceof StyleResourceValue) {
-          for (StyleItemResourceValue value : ((StyleResourceValue)styleResourceValue).getDefinedItems()) {
-            // We use the qualified name since apps and libraries can use the same attribute name twice with and without "android:"
-            itemResourceValues.add(ConfiguredElement.create(folderConfiguration, value));
-          }
-        }
-      }
-    }
-
-    return itemResourceValues.build();
   }
 
   /**
@@ -226,13 +177,5 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
   @NotNull
   public Configuration getConfiguration() {
     return myConfiguration;
-  }
-
-  /**
-   * Plain getter, see {@link #mySourceModule} for field description.
-   */
-  @Nullable
-  public final Module getSourceModule() {
-    return mySourceModule;
   }
 }
