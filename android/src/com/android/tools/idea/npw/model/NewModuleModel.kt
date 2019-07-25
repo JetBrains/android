@@ -168,10 +168,7 @@ class NewModuleModel : WizardModel {
         injector.setLanguage(language.value)
       }
 
-      renderTemplateModel.valueOrNull?.let {
-        templateValues.putAll(it.templateValues) // TODO - Wrong copy direction - Remove next CL's
-        it.templateValues.putAll(templateValues)
-      }
+      renderTemplateModel.valueOrNull?.templateValues?.putAll(templateValues)
 
       // Returns false if there was a render conflict and the user chose to cancel creating the template
       return renderModule(true, templateValues, project, moduleName.get())
