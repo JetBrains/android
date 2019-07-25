@@ -109,7 +109,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       return null;
     }
     String dirComponent =
-        FileUtil.sanitizeFileName(resourceDir.getParent().getName()) + '_' + Integer.toHexString(resourceDir.hashCode()) + ".bin";
+        FileUtil.sanitizeFileName(resourceDir.getParent().getName()) + '_' + Integer.toHexString(resourceDir.hashCode()) + ".dat";
     return projectComponent.resolve(dirComponent);
   }
 
