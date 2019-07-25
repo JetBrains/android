@@ -75,4 +75,34 @@ public final class DataBindingClassFactory {
     }
     return existing;
   }
+
+  /**
+   * Package private class used by binding component class finder to create a DataBindingComponent
+   * light file on demand.
+   *
+   * @param facet The facet for which the binding component may be necessary.
+   * @return The {@link LightDataBindingComponentClass} that belongs to the given module, or {@code null}
+   * if not relevant for the current module (i.e. it's not an app module)
+   */
+  @Nullable
+  public static LightDataBindingComponentClass getOrCreateDataBindingComponentClassFor(@NotNull AndroidFacet facet) {
+    if (facet.getConfiguration().isLibraryProject()) {
+      return null;
+    }
+
+    ModuleDataBinding dataBinding = ModuleDataBinding.getInstance(facet);
+
+    LightDataBindingComponentClass lightClass = dataBinding.getLightDataBindingComponentClass();
+    if (lightClass == null) {
+      //noinspection SynchronizationOnLocalVariableOrMethodParameter
+      synchronized (facet) {
+        lightClass = dataBinding.getLightDataBindingComponentClass();
+        if (lightClass == null) {
+          lightClass = new LightDataBindingComponentClass(PsiManager.getInstance(facet.getModule().getProject()), facet);
+          dataBinding.setLightDataBindingComponentClass(lightClass);
+        }
+      }
+    }
+    return lightClass;
+  }
 }

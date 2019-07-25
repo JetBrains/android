@@ -38,18 +38,6 @@ public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
   }
 
   public void testIsModified() {
-    myConfigurable.setMaxModuleCountForSourceGen(6);
-    mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 8;
-    assertTrue(myConfigurable.isModified());
-    mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 6;
-    assertFalse(myConfigurable.isModified());
-
-    myConfigurable.setSkipSourceGenOnSync(true);
-    mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
-    assertTrue(myConfigurable.isModified());
-    mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-    assertFalse(myConfigurable.isModified());
-
     myConfigurable.setUseL2DependenciesInSync(true);
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
     assertTrue(myConfigurable.isModified());
@@ -70,60 +58,44 @@ public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
   }
 
   public void testApply() throws ConfigurationException {
-    myConfigurable.setMaxModuleCountForSourceGen(6);
-    myConfigurable.setSkipSourceGenOnSync(true);
     myConfigurable.setUseL2DependenciesInSync(true);
     myConfigurable.setUseSingleVariantSync(true);
     myConfigurable.setUseNewPsd(true);
 
     myConfigurable.apply();
 
-    assertEquals(6, mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
-    assertTrue(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     assertTrue(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     assertTrue(mySettings.USE_SINGLE_VARIANT_SYNC);
     assertTrue(mySettings.USE_NEW_PSD);
 
-    myConfigurable.setMaxModuleCountForSourceGen(8);
-    myConfigurable.setSkipSourceGenOnSync(false);
     myConfigurable.setUseL2DependenciesInSync(false);
     myConfigurable.setUseSingleVariantSync(false);
     myConfigurable.setUseNewPsd(false);
 
     myConfigurable.apply();
 
-    assertEquals(8, mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
-    assertFalse(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     assertFalse(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     assertFalse(mySettings.USE_SINGLE_VARIANT_SYNC);
     assertFalse(mySettings.USE_NEW_PSD);
   }
 
   public void testReset() {
-    mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-    mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 6;
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = true;
     mySettings.USE_SINGLE_VARIANT_SYNC = true;
     mySettings.USE_NEW_PSD = true;
 
     myConfigurable.reset();
 
-    assertTrue(myConfigurable.isSkipSourceGenOnSync());
-    assertEquals(6, myConfigurable.getMaxModuleCountForSourceGen().intValue());
     assertTrue(myConfigurable.isUseL2DependenciesInSync());
     assertTrue(myConfigurable.isUseSingleVariantSync());
     assertTrue(myConfigurable.isUseNewPsd());
 
-    mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
-    mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 8;
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
     mySettings.USE_SINGLE_VARIANT_SYNC = false;
     mySettings.USE_NEW_PSD = false;
 
     myConfigurable.reset();
 
-    assertFalse(myConfigurable.isSkipSourceGenOnSync());
-    assertEquals(8, myConfigurable.getMaxModuleCountForSourceGen().intValue());
     assertFalse(myConfigurable.isUseL2DependenciesInSync());
     assertFalse(myConfigurable.isUseSingleVariantSync());
     assertFalse(myConfigurable.isUseNewPsd());

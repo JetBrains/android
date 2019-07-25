@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -23,6 +29,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.ProxySettingsDialogFix
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.net.HttpConfigurable;
+import java.io.File;
+import java.io.IOException;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
@@ -30,26 +38,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.io.IOException;
-
-import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
-import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
-import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class GradlePreSyncTest {
   @Nullable private File myBackupProperties;
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @Before
-  public void skipSourceGenerationOnSync() {
-    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-  }
 
   /**
    * Generate a backup copy of user gradle.properties since some tests in this class make changes to the proxy that could

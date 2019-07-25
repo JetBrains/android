@@ -65,6 +65,7 @@ class StructurePanel(parentDisposable: Disposable) : AdtSecondaryPanel(BorderLay
       add(hostPanel, BorderLayout.NORTH)
 
       val dl = DestinationList(this, toolContext)
+      dl.name = "DestinationList"
       destinationList = dl
       val graphHeader = AdtSecondaryPanel(BorderLayout())
       val graphSeparator = TitledSeparator("GRAPH")

@@ -24,6 +24,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -50,10 +51,6 @@ class BrClassFinder(project: Project) : PsiElementFinder() {
   }
 
   override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
-    if (psiPackage.project != scope.project) {
-      return PsiClass.EMPTY_ARRAY
-    }
-
     val qualifiedPackage = psiPackage.qualifiedName
     return if (qualifiedPackage.isNotEmpty()) {
       findClasses("$qualifiedPackage.${DataBindingUtil.BR}", scope)
@@ -68,7 +65,7 @@ class BrClassFinder(project: Project) : PsiElementFinder() {
       return null
     }
     val psiClass = classByPackageCache.value[qualifiedName]
-    return psiClass?.takeIf { psiClass.project == scope.project }
+    return psiClass?.takeIf { PsiSearchScopeUtil.isInScope(scope, it) }
   }
 
   override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> {

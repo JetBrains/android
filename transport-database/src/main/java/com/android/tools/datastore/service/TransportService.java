@@ -123,7 +123,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     DataStoreTable.addDataStoreErrorCallback(unifiedPoller);
     myFetchExecutor.accept(unifiedPoller);
 
-    if (!PROFILER_UNIFIED_PIPELINE.get()) {
+    if (!PROFILER_UNIFIED_PIPELINE.get() && stream.getType() == Stream.Type.DEVICE) {
       DeviceProcessPoller legacyPoller = new DeviceProcessPoller(myLegacyTable, stub);
       myLegacyPollers.put(channel, legacyPoller);
       myFetchExecutor.accept(legacyPoller);
@@ -216,7 +216,9 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
     if (response == null && client != null) {
       response = client.getBytes(request);
-      myTable.insertBytes(streamId, request.getId(), response);
+      if (!response.getContents().isEmpty()) {
+        myTable.insertBytes(streamId, request.getId(), response);
+      }
     }
     else if (response == null) {
       response = BytesResponse.getDefaultInstance();

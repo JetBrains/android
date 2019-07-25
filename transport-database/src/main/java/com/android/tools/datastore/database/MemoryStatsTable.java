@@ -15,8 +15,6 @@
  */
 package com.android.tools.datastore.database;
 
-import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.INSERT_LEGACY_ALLOCATED_CLASS;
-import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.INSERT_LEGACY_ALLOCATION_STACK;
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.INSERT_OR_REPLACE_ALLOCATIONS_INFO;
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.INSERT_OR_REPLACE_HEAP_INFO;
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.INSERT_SAMPLE;
@@ -25,21 +23,12 @@ import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatem
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_ALLOC_STATS;
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_GC_STATS;
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_HEAP_INFO_BY_TIME;
-import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_LEGACY_ALLOCATED_CLASS;
-import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_LEGACY_ALLOCATION_EVENTS_BY_ID;
-import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_LEGACY_ALLOCATION_STACK;
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_MEMORY;
-import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.UPDATE_LEGACY_ALLOCATIONS_INFO_EVENTS;
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.values;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Memory.AllocatedClass;
-import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
@@ -81,13 +70,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
     UPDATE_LEGACY_ALLOCATIONS_INFO_EVENTS("UPDATE Memory_AllocationInfo SET LegacyEventsData = ? WHERE Session = ? AND StartTime = ?"),
     // EndTime = UNSPECIFIED_DURATION checks for the special case where we have an ongoing duration sample
     QUERY_ALLOCATION_INFO_BY_TIME("SELECT InfoData FROM Memory_AllocationInfo WHERE Session = ? AND EndTime > ? AND StartTime <= ?"),
-    QUERY_ALLOCATION_INFO_BY_ID("SELECT InfoData from Memory_AllocationInfo WHERE Session = ? AND StartTime = ?"),
-    QUERY_LEGACY_ALLOCATION_EVENTS_BY_ID("SELECT LegacyEventsData from Memory_AllocationInfo WHERE Session = ? AND StartTime = ?"),
-
-    INSERT_LEGACY_ALLOCATION_STACK("INSERT OR IGNORE INTO Memory_LegacyAllocationStack (Session, Id, Data) VALUES (?, ?, ?)"),
-    INSERT_LEGACY_ALLOCATED_CLASS("INSERT OR IGNORE INTO Memory_LegacyAllocatedClass (Session, Id, Data) VALUES (?, ?, ?)"),
-    QUERY_LEGACY_ALLOCATION_STACK("Select Data FROM Memory_LegacyAllocationStack WHERE Session = ? AND Id = ?"),
-    QUERY_LEGACY_ALLOCATED_CLASS("Select Data FROM Memory_LegacyAllocatedClass WHERE Session = ? AND Id = ?");
+    QUERY_ALLOCATION_INFO_BY_ID("SELECT InfoData from Memory_AllocationInfo WHERE Session = ? AND StartTime = ?");
 
     @NotNull private final String mySqlStatement;
 
@@ -115,10 +98,6 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
                   "Data BLOB", "PRIMARY KEY(Session, Timestamp, Type)");
       createTable("Memory_AllocationInfo", "Session INTEGER NOT NULL", "StartTime INTEGER",
                   "EndTime INTEGER", "InfoData BLOB", "LegacyEventsData BLOB", "PRIMARY KEY(Session, StartTime)");
-      createTable("Memory_LegacyAllocationStack", "Session INTEGER NOT NULL", "Id INTEGER", "Data BLOB",
-                  "PRIMARY KEY(Session, Id)");
-      createTable("Memory_LegacyAllocatedClass", "Session INTEGER NOT NULL", "Id INTEGER", "Data BLOB",
-                  "PRIMARY KEY(Session, Id)");
       createTable("Memory_HeapDump", "Session INTEGER NOT NULL", "StartTime INTEGER",
                   "EndTime INTEGER", "InfoData BLOB", "PRIMARY KEY(Session, StartTime)");
     }
@@ -205,12 +184,6 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
     execute(INSERT_OR_REPLACE_ALLOCATIONS_INFO, session.getSessionId(), info.getStartTime(), info.getEndTime(), info.toByteArray());
   }
 
-  public void updateLegacyAllocationEvents(@NotNull Common.Session session,
-                                           long trackingStartTime,
-                                           @NotNull LegacyAllocationEventsResponse allocationData) {
-    execute(UPDATE_LEGACY_ALLOCATIONS_INFO_EVENTS, allocationData.toByteArray(), session.getSessionId(), trackingStartTime);
-  }
-
   /**
    * @return the AllocationsInfo associated with the tracking start time. Null if an entry does not exist.
    */
@@ -230,67 +203,6 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
     }
 
     return null;
-  }
-
-
-  /**
-   * @return the AllocationEventsResponse associated with the tracking start time. Null if an entry does not exist.
-   */
-  @Nullable
-  public LegacyAllocationEventsResponse getLegacyAllocationData(@NotNull Common.Session session, long trackingStartTime) {
-
-    try {
-      ResultSet resultSet = executeQuery(QUERY_LEGACY_ALLOCATION_EVENTS_BY_ID, session.getSessionId(), trackingStartTime);
-      if (resultSet.next()) {
-        byte[] bytes = resultSet.getBytes(1);
-        if (bytes != null) {
-          return LegacyAllocationEventsResponse.parseFrom(resultSet.getBytes(1));
-        }
-      }
-    }
-    catch (InvalidProtocolBufferException | SQLException ex) {
-      onError(ex);
-    }
-    return null;
-  }
-
-  public void insertLegacyAllocationContext(@NotNull Common.Session session,
-                                            @NotNull List<AllocatedClass> classes,
-                                            @NotNull List<AllocationStack> stacks) {
-    // TODO: batch insert
-    classes.forEach(klass -> execute(INSERT_LEGACY_ALLOCATED_CLASS, session.getSessionId(), klass.getClassId(), klass.toByteArray()));
-    stacks
-      .forEach(stack -> execute(INSERT_LEGACY_ALLOCATION_STACK, session.getSessionId(), stack.getStackId(), stack.toByteArray()));
-  }
-
-  @NotNull
-  public LegacyAllocationContextsResponse getLegacyAllocationContexts(@NotNull LegacyAllocationContextsRequest request) {
-
-    LegacyAllocationContextsResponse.Builder builder = LegacyAllocationContextsResponse.newBuilder();
-    // TODO optimize queries
-    try {
-      for (int i = 0; i < request.getClassIdsCount(); i++) {
-        ResultSet classResultSet =
-          executeQuery(QUERY_LEGACY_ALLOCATED_CLASS, request.getSession().getSessionId(), request.getClassIds(i));
-        if (classResultSet.next()) {
-          AllocatedClass data = AllocatedClass.newBuilder().mergeFrom(classResultSet.getBytes(1)).build();
-          builder.addClasses(data);
-        }
-      }
-
-      for (int i = 0; i < request.getStackIdsCount(); i++) {
-        ResultSet stackResultSet =
-          executeQuery(QUERY_LEGACY_ALLOCATION_STACK, request.getSession().getSessionId(), request.getStackIds(i));
-        if (stackResultSet.next()) {
-          AllocationStack data = AllocationStack.newBuilder().mergeFrom(stackResultSet.getBytes(1)).build();
-          builder.addStacks(data);
-        }
-      }
-    }
-    catch (InvalidProtocolBufferException | SQLException ex) {
-      onError(ex);
-    }
-    return builder.build();
   }
 
   /**

@@ -29,6 +29,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -367,33 +368,37 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
+    presentation.setVisible(true);
     Project project = event.getProject();
 
     if (project == null) {
       return;
     }
 
-    presentation.setVisible(true);
     updatePresentation(presentation, RunManager.getInstance(project).getSelectedConfiguration());
-
-    Collection<Device> devices = getDevices(project);
-
-    if (devices.isEmpty()) {
-      presentation.setIcon(null);
-      presentation.setText("No devices");
-
-      return;
-    }
-
-    updateSelectedSnapshot(project);
-
     Device device = getSelectedDevice(project);
-    assert device != null;
 
-    presentation.setIcon(device.getIcon());
+    if (event.getPlace().equals(ActionPlaces.MAIN_MENU)) {
+      presentation.setIcon(null);
+      presentation.setText("Select Device...");
+    }
+    else {
+      Collection<Device> devices = getDevices(project);
 
-    String name = Devices.getName(device, devices);
-    presentation.setText(mySelectedSnapshot == null ? name : name + " - " + mySelectedSnapshot, false);
+      if (devices.isEmpty()) {
+        presentation.setIcon(null);
+        presentation.setText("No Devices");
+      }
+      else {
+        updateSelectedSnapshot(project);
+
+        assert device != null;
+        presentation.setIcon(device.getIcon());
+
+        String name = Devices.getName(device, devices);
+        presentation.setText(mySelectedSnapshot == null ? name : name + " - " + mySelectedSnapshot, false);
+      }
+    }
 
     updateExecutionTargetManager(project, device);
   }

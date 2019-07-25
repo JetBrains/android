@@ -24,4 +24,7 @@ import com.intellij.psi.PsiElement;
 
 public interface PsiDbInferredFormalParameterList extends PsiElement {
 
+  @NotNull
+  List<PsiDbInferredFormalParameter> getInferredFormalParameterList();
+
 }

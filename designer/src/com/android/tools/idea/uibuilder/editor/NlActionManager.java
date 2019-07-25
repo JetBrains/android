@@ -712,7 +712,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
                                         @NotNull ViewHandler handler,
                                         @NotNull NlComponent component,
                                         @NotNull List<NlComponent> selectedChildren) {
-      super("", action.getLabel(), action.getIcon());
+      super(null, action.getLabel(), action.getIcon());
       myAction = action;
       myEditor = editor;
       myHandler = handler;

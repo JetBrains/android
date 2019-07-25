@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
+import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
+
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
+import com.android.utils.HtmlBuilder;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
 public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @NotNull private final PsContext myContext;
@@ -43,8 +44,9 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
-    presentation.setIcon(ANDROID_MODULE);
-    presentation.setText(myBasePerspective.getSelectedModuleName());
+    PsModule selectedModule = myBasePerspective.getSelectedModule();
+    presentation.setIcon(selectedModule != null ? selectedModule.getIcon() : ANDROID_MODULE);
+    presentation.setText(selectedModule != null ? selectedModule.getName() : null);
   }
 
   @Override
@@ -55,8 +57,11 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
     for (PsModule module : myBasePerspective.getExtraModules()) {
       group.add(new ModuleAction(module));
     }
+    group.addSeparator();
 
-    myContext.getProject().forEachModule(module -> group.add(new ModuleAction(module)));
+    myContext.getProject().getModules().stream()
+      .filter(PsModule::isDeclared)
+      .forEach(module -> group.add(new ModuleAction(module)));
     return group;
   }
 
@@ -64,13 +69,31 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
     @NotNull private final String myModuleName;
 
     ModuleAction(@NotNull PsModule module) {
-      super(module.getName(), "", module.getIcon());
+      super(fullPath(module), "", module.getIcon());
       myModuleName = module.getName();
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
       myBasePerspective.selectModule(myModuleName);
+    }
+  }
+
+  @NotNull
+  private static String fullPath(@NotNull PsModule module) {
+    String gradlePath = module.getGradlePath();
+    if (gradlePath == null) {
+      return module.getName();
+    }
+    else {
+      String parentPath = GradleUtil.getParentModulePath(gradlePath);
+      return new HtmlBuilder()
+        .openHtmlBody()
+        .add(parentPath)
+        .add(":")
+        .addBold(module.getName())
+        .closeHtmlBody()
+        .getHtml();
     }
   }
 }

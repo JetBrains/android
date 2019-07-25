@@ -42,7 +42,7 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     File rootDirPath = getBaseDirPath(getProject());
     myAndroidProject = TestProjects.createFlavorsProject();
     myAndroidModel =
-      new AndroidModuleModel(myAndroidProject.getName(), rootDirPath, myAndroidProject, "f1fa-debug", new IdeDependenciesFactory());
+      AndroidModuleModel.create(myAndroidProject.getName(), rootDirPath, myAndroidProject, "f1fa-debug", new IdeDependenciesFactory());
   }
 
   public void /*test*/FindBuildType() throws Exception {
@@ -99,8 +99,8 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.setVariantNames("debug", "release");
 
     // Create AndroidModuleModel with "debug" as selected variant.
-    AndroidModuleModel androidModel =
-      new AndroidModuleModel(androidProject.getName(), getBaseDirPath(getProject()), androidProject, "debug", new IdeDependenciesFactory());
+    AndroidModuleModel androidModel = AndroidModuleModel
+      .create(androidProject.getName(), getBaseDirPath(getProject()), androidProject, "debug", new IdeDependenciesFactory());
 
     // Verify that "release" is set as selected variant.
     assertThat(androidModel.getSelectedVariant().getName()).isEqualTo("release");
@@ -118,9 +118,8 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.setVariantNames("debug", "release");
 
     // Create AndroidModuleModel with "release" as selected variant.
-    AndroidModuleModel androidModel =
-      new AndroidModuleModel(androidProject.getName(), getBaseDirPath(getProject()), androidProject, "release",
-                             new IdeDependenciesFactory());
+    AndroidModuleModel androidModel = AndroidModuleModel
+      .create(androidProject.getName(), getBaseDirPath(getProject()), androidProject, "release", new IdeDependenciesFactory());
     // Verify that "release" is set as selected variant.
     assertThat(androidModel.getSelectedVariant().getName()).isEqualTo("release");
   }

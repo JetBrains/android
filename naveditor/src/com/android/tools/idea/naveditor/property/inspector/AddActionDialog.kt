@@ -75,7 +75,9 @@ import javax.swing.JList
 fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurface?, hadExisting: Boolean) {
   if (actionDialog.showAndGet()) {
     val action = actionDialog.writeUpdatedAction()
-    surface?.selectionModel?.setSelection(listOf(action))
+    if (!hadExisting) {
+      surface?.selectionModel?.setSelection(listOf(action))
+    }
     NavUsageTracker.getInstance(surface?.model).createEvent(if (hadExisting) EDIT_ACTION else CREATE_ACTION)
       .withActionInfo(action)
       .withSource(actionDialog.invocationSite)

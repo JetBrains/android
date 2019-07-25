@@ -29,9 +29,7 @@ import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
-import com.android.tools.profiler.proto.Memory.TrackStatus;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
@@ -43,9 +41,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
@@ -201,54 +196,10 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void importLegacyAllocations(ImportLegacyAllocationsRequest request,
                                       StreamObserver<ImportLegacyAllocationsResponse> responseObserver) {
     assert request.getInfo().getLegacy();
+    myUnifiedTable.insertBytes(request.getSession().getStreamId(), Long.toString(request.getInfo().getStartTime()),
+                               Transport.BytesResponse.newBuilder().setContents(request.getData()).build());
     myStatsTable.insertOrReplaceAllocationsInfo(request.getSession(), request.getInfo());
-
-    myStatsTable.insertLegacyAllocationContext(request.getSession(), request.getClassesList(), request.getStacksList());
-    LegacyAllocationEventsResponse allocations = request.getAllocations();
-    if (!allocations.equals(LegacyAllocationEventsResponse.getDefaultInstance())) {
-      myStatsTable.updateLegacyAllocationEvents(request.getSession(), request.getInfo().getStartTime(), allocations);
-    }
-
     responseObserver.onNext(ImportLegacyAllocationsResponse.newBuilder().setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                          StreamObserver<MemoryProfiler.LegacyAllocationContextsResponse> responseObserver) {
-    responseObserver.onNext(myStatsTable.getLegacyAllocationContexts(request));
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getLegacyAllocationEvents(LegacyAllocationEventsRequest request,
-                                        StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
-    LegacyAllocationEventsResponse.Builder builder = LegacyAllocationEventsResponse.newBuilder();
-
-    AllocationsInfo response = myStatsTable.getAllocationsInfo(request.getSession(), request.getStartTime());
-    if (response == null) {
-      builder.setStatus(LegacyAllocationEventsResponse.Status.NOT_FOUND);
-    }
-    else if (response.getEndTime() != Long.MAX_VALUE && !response.getSuccess()) {
-      builder.setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN);
-    }
-    else {
-      if (response.getLegacy()) {
-        LegacyAllocationEventsResponse events =
-          myStatsTable.getLegacyAllocationData(request.getSession(), request.getStartTime());
-        if (events == null) {
-          builder.setStatus(LegacyAllocationEventsResponse.Status.NOT_READY);
-        }
-        else {
-          builder.mergeFrom(events);
-        }
-      }
-      else {
-        // O+ allocation does not have legacy data.
-        builder.setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN);
-      }
-    }
-    responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
 

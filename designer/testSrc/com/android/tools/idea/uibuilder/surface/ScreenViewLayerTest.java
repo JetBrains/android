@@ -25,7 +25,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
-import com.intellij.util.ui.JBUIScale;
+import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -153,7 +153,7 @@ public class ScreenViewLayerTest {
 
     double xScale = imageHQ.getWidth() / screenViewSize.get().getWidth();
     double yScale = imageHQ.getHeight() / screenViewSize.get().getHeight();
-    BufferedImage imageHQScaled = ScreenViewLayer.scaleOriginalImage(imageHQ.getCopy(), xScale, yScale, JBUIScale.ScaleContext.create(g));
+    BufferedImage imageHQScaled = ScreenViewLayer.scaleOriginalImage(imageHQ.getCopy(), xScale, yScale, ScaleContext.create(g));
 
     BufferedImage scaledHQ = new BufferedImage(imageHQScaled.getWidth(), imageHQScaled.getHeight(), BufferedImage.TYPE_INT_ARGB);
     UIUtil.drawImage(scaledHQ.createGraphics(), imageHQScaled, 0, 0, null);

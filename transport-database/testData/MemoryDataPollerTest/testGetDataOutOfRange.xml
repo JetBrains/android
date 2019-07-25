@@ -183,50 +183,6 @@ allocations_info {
 }
 </message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationEvents" Class="class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationEventsRequest">
-        <Message>session {
-  session_id: 1234
-  pid: 4321
-}
-start_time: 86400000000000
-end_time: 86401000000000
-</Message>
-        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationEventsRequest</clazz>
-        <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationEvents</functionCalled>
-        <message>session {
-  session_id: 1234
-  pid: 4321
-}
-start_time: 86400000000000
-end_time: 86401000000000
-</message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationEvents" Class="class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationEventsResponse">
-        <Message></Message>
-        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationEventsResponse</clazz>
-        <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationEvents</functionCalled>
-        <message></message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationContexts" Class="class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsRequest">
-        <Message>session {
-  session_id: 1234
-  pid: 4321
-}
-</Message>
-        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsRequest</clazz>
-        <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationContexts</functionCalled>
-        <message>session {
-  session_id: 1234
-  pid: 4321
-}
-</message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationContexts" Class="class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsResponse">
-        <Message></Message>
-        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsResponse</clazz>
-        <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationContexts</functionCalled>
-        <message></message>
-    </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopRequest">
         <Message>session {
   session_id: 1234

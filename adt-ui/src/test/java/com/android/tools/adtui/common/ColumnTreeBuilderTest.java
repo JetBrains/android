@@ -62,7 +62,6 @@ public class ColumnTreeBuilderTest {
 
     // Assert: Check the tree height has been extended to the whole viewport
     assertThat(sizesNormal.headerSize.width).isEqualTo(sizesWithBorder.headerSize.width);
-/* b/137780575
     assertThat(sizesNormal.headerSize.height).isEqualTo(sizesWithBorder.headerSize.height - top - bottom);
 
     assertThat(sizesNormal.column0Size.width).isEqualTo(sizesWithBorder.column0Size.width - left - right);
@@ -70,7 +69,6 @@ public class ColumnTreeBuilderTest {
 
     assertThat(sizesNormal.column1Size.width).isEqualTo(sizesWithBorder.column1Size.width - left - right);
     assertThat(sizesNormal.column1Size.height).isEqualTo(sizesWithBorder.column1Size.height - top - bottom);
-b/137780575 */
   }
 
   @Test

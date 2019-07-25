@@ -100,13 +100,13 @@ class AarResourceRepositoryCache private constructor() {
     }
     // Compute content version as a maximum of the modification times of the res directory and the .aar file itself.
     var modificationTime = try {
-      Files.getLastModifiedTime(resFolder.root.toPath())
+      Files.getLastModifiedTime(resFolder.root.toPath()!!)
     }
     catch (e: NoSuchFileException) {
       return null // No caching if the resource directory doesn't exist.
     }
     library.location?.let {
-      modificationTime = modificationTime.coerceAtLeast(Files.getLastModifiedTime(it.toPath()))
+      modificationTime = modificationTime.coerceAtLeast(Files.getLastModifiedTime(it.toPath()!!))
     }
     val contentVersion = modificationTime.toString()
 
@@ -114,7 +114,7 @@ class AarResourceRepositoryCache private constructor() {
 
     val path = resFolder.root
     val pathHash = Hashing.farmHashFingerprint64().hashUnencodedChars(path.portablePath).toString()
-    val filename = String.format("%s_%s.bin", library.location?.fileName ?: "", pathHash)
+    val filename = String.format("%s_%s.dat", library.location?.fileName ?: "", pathHash)
     val cacheFile = Paths.get(PathManager.getSystemPath(), RESOURCE_CACHE_DIRECTORY, filename)
 
     return CachingData(cacheFile, contentVersion, codeVersion, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor())

@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.run.editor;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+
 import com.android.annotations.concurrency.Slow;
+import com.android.builder.model.TestOptions;
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.run.tasks.AndroidTestOrchestratorJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.android.tools.idea.run.tasks.ReattachingDebugConnectorTask;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.ui.breakpoints.JavaFieldBreakpointType;
@@ -44,16 +47,13 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.util.NotNullFunction;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.builder.model.TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR;
 
 public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebuggerState> {
   public static final String ID = "Java";
@@ -105,13 +105,16 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
                                                    @NotNull AndroidDebuggerState state,
                                                    @NotNull String runConfigTypeId,
                                                    boolean monitorRemoteProcess) {
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-    if (androidModuleModel != null && ANDROID_TEST_ORCHESTRATOR.equals(androidModuleModel.getTestExecutionStrategy())) {
-      return new AndroidTestOrchestratorJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess);
-    }
-    else {
-      return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess,
-                                         facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
+    TestOptions.Execution executionType = Optional.ofNullable(AndroidModuleModel.get(facet))
+      .map(AndroidModuleModel::getTestExecutionStrategy)
+      .orElse(TestOptions.Execution.HOST);
+    switch(executionType) {
+      case ANDROID_TEST_ORCHESTRATOR:
+      case ANDROIDX_TEST_ORCHESTRATOR:
+        return new ReattachingDebugConnectorTask(applicationIds, this, env.getProject(), monitorRemoteProcess);
+      default:
+        return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess,
+                                           facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
     }
   }
 

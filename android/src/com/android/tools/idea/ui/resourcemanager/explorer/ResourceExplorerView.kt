@@ -54,6 +54,8 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.labels.LinkLabel
+import com.intellij.ui.components.labels.LinkListener
 import com.intellij.ui.speedSearch.NameFilteringListModel
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
@@ -63,7 +65,6 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
-import java.awt.FlowLayout
 import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.KeyAdapter
@@ -84,8 +85,7 @@ import javax.swing.JScrollPane
 import javax.swing.JSeparator
 import javax.swing.JTabbedPane
 import javax.swing.LayoutFocusTraversalPolicy
-import javax.swing.event.ListSelectionEvent
-import javax.swing.event.ListSelectionListener
+import javax.swing.ListSelectionModel
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -131,7 +131,9 @@ class ResourceExplorerView(
   private val resourcesBrowserViewModel: ResourceExplorerViewModel,
   private val resourceImportDragTarget: ResourceImportDragTarget,
   withMultiModuleSearch: Boolean = true,
-  withSummaryView: Boolean = false
+  withSummaryView: Boolean = false,
+  private val withDetailView: Boolean = true, // TODO: Refactor detailView to follow a closer pattern with summaryView
+  private val multiSelection: Boolean = true
 ) : JPanel(BorderLayout()), Disposable, DataProvider {
 
   private var updatePending = false
@@ -285,15 +287,17 @@ class ResourceExplorerView(
    * Replace the content of the view with a [ResourceDetailView] for the provided [designAssetSet].
    */
   private fun doSelectAssetAction(designAssetSet: ResourceAssetSet) {
-    if (designAssetSet.assets.size == 1) {
+    if (designAssetSet.assets.isNotEmpty()) {
       val asset = designAssetSet.assets.first()
+      if (designAssetSet.assets.size > 1 && withDetailView) {
+        showDetailView(designAssetSet)
+        return
+      }
       if (!(asset is DesignAsset)) return // TODO: Show some sort of ui feedback. E.g: A warning icon on resource + error dialog.
       ResourceManagerTracking.logAssetOpened(asset.type)
       resourcesBrowserViewModel.doSelectAssetAction(asset)
       return
     }
-    // TODO: Should not show the DetailsView for ResourcePicker.
-    showDetailView(designAssetSet)
   }
 
   private fun showDetailView(designAssetSet: ResourceAssetSet) {
@@ -575,12 +579,13 @@ class ResourceExplorerView(
       addMouseListener(popupHandler)
       addMouseListener(mouseClickListener)
       addKeyListener(keyListener)
-      this.addListSelectionListener(object: ListSelectionListener {
-        override fun valueChanged(e: ListSelectionEvent?) {
-          // TODO: Call listeners in ResourceExplorerView
-          updateSummaryPreview()
+      selectionMode = if (multiSelection) ListSelectionModel.MULTIPLE_INTERVAL_SELECTION else ListSelectionModel.SINGLE_SELECTION
+      this.addListSelectionListener {
+        listeners.forEach { listener ->
+          listener.onDesignAssetSetSelected(sectionList.selectedValue as? ResourceAssetSet)
         }
-      })
+        updateSummaryPreview()
+      }
       thumbnailWidth = this@ResourceExplorerView.previewSize
       isGridMode = this@ResourceExplorerView.gridMode
     })
@@ -604,15 +609,30 @@ class ResourceExplorerView(
     override var list: JList<T>
   ) : Section<T> {
 
+    private var listIsExpanded = true
+
     override var header: JComponent = createHeaderComponent()
 
-    private fun createHeaderComponent() = JPanel(FlowLayout(FlowLayout.LEFT, 4, 8)).apply {
+    private fun createHeaderComponent() = JPanel(BorderLayout()).apply {
       isOpaque = false
       val itemNumber = this@AssetSection.size?.let { " ($it)" } ?: ""
       val nameLabel = JBLabel("${this@AssetSection.name}$itemNumber").apply {
         font = SECTION_HEADER_LABEL_FONT
+        border = JBUI.Borders.empty(8, 0)
       }
-      add(nameLabel)
+      val linkLabel = LinkLabel(null, AllIcons.Ide.Notification.Collapse, LinkListener<String> { source, _ ->
+        // Create a clickable label that toggles the expand/collapse icon every time is clicked, and hides/shows the list in this section.
+        source.icon = if (listIsExpanded) AllIcons.Ide.Notification.Expand else AllIcons.Ide.Notification.Collapse
+        source.setHoveringIcon(if (listIsExpanded) AllIcons.Ide.Notification.ExpandHover else AllIcons.Ide.Notification.CollapseHover)
+        listIsExpanded = !listIsExpanded
+        list.isVisible = listIsExpanded
+        // Clear selection to avoid interaction issues.
+        list.selectionModel.clearSelection()
+      }).apply {
+        setHoveringIcon(AllIcons.Ide.Notification.CollapseHover)
+      }
+      add(nameLabel, BorderLayout.WEST)
+      add(linkLabel, BorderLayout.EAST)
       border = SECTION_HEADER_BORDER
     }
   }

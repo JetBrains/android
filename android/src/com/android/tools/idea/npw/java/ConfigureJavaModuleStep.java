@@ -45,7 +45,6 @@ import java.util.Collection;
 import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-
 public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleModel> {
   @NotNull private final StudioWizardStepPanel myRootPanel;
   @NotNull private ValidatorPanel myValidatorPanel;
@@ -70,7 +69,7 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
     myBindings.bindTwoWay(new TextProperty(myClassName), model.className());
 
     Expression<String> computedPackageName =
-      new DomainToPackageExpression(new StringValueProperty(getInitialDomain(false)), model.libraryNameName());
+      new DomainToPackageExpression(new StringValueProperty(getInitialDomain()), model.libraryNameName());
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
 
     TextProperty packageNameText = new TextProperty(myPackageName);

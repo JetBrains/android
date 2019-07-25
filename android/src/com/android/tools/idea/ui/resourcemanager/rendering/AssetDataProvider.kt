@@ -43,7 +43,7 @@ interface AssetDataProvider {
 open class DefaultAssetDataProvider: AssetDataProvider {
 
   override fun getAssetData(asset: DesignAsset): AssetData {
-    val title = asset.qualifiers.joinToString("-") { it.folderSegment }.takeIf { it.isNotBlank() } ?: "default"
+    val title = asset.qualifiers.getReadableConfigurations()
     val subtitle = asset.file.name
     val metadata = asset.getDisplayableFileSize()
     return AssetData(title, subtitle, metadata)

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
-import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.FolderTypeRelationship
@@ -26,11 +25,7 @@ import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.resources.aar.AarResourceRepository
-import com.android.tools.idea.resources.base.BasicArrayResourceItem
-import com.android.tools.idea.resources.base.BasicFileResourceItem
-import com.android.tools.idea.resources.base.BasicPluralsResourceItem
 import com.android.tools.idea.ui.resourcemanager.ImageCache
-import com.android.tools.idea.ui.resourcemanager.SUPPORTED_RESOURCES
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
@@ -38,6 +33,8 @@ import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
+import com.android.tools.idea.ui.resourcemanager.rendering.getReadableConfigurations
+import com.android.tools.idea.ui.resourcemanager.rendering.getReadableValue
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.navigation.NavigationUtil
@@ -66,10 +63,12 @@ private const val UNRESOLVED_VALUE = "Could not resolve"
  *
  * @param filterInitialParams Sets the initial values for the filter options.
  * @param selectAssetAction Optional callback for asset selection, default behavior opens the asset's file.
+ * @param supportedResourceTypes Resources to be displayed, each index should represent each resource type in the tabbed pane.
  */
 class ResourceExplorerViewModelImpl(
   facet: AndroidFacet,
   filterInitialParams: FilterOptionsParams,
+  private val supportedResourceTypes: Array<ResourceType>,
   selectAssetAction: ((asset: Asset) -> Unit)? = null
 ) : Disposable, ResourceExplorerViewModel {
   /**
@@ -116,7 +115,7 @@ class ResourceExplorerViewModelImpl(
       }
     }
 
-  override val resourceTypes: Array<ResourceType> get() = SUPPORTED_RESOURCES
+  override val resourceTypes: Array<ResourceType> get() = supportedResourceTypes
 
   override val selectedTabName: String get() = resourceTypes[resourceTypeIndex].displayName
 
@@ -344,37 +343,6 @@ private fun userReadableLibraryName(lib: AarResourceRepository) =
     GradleCoordinate.parseCoordinateString(it)?.artifactId
   }
   ?: ""
-
-/**
- * Simplifies the [ResourceValue] for the summary view. E.g: When it references a path it should only return the file name, when it
- * references an Array resource it should try to list all values in the array.
- */
-private fun ResourceValue.getReadableValue(): String {
-  val valueString = this.value ?: NO_VALUE
-
-  // Some types of resource values require special handling.
-  return when (this) {
-    // Eg: "one: %s coin, many: %s coins"
-    is BasicPluralsResourceItem -> {
-      val plurals = arrayOfNulls<String>(this.pluralsCount)
-      for (index in 0 until plurals.size) {
-        plurals[index] = (this.getQuantity(index) + ": " + this.getValue(index))
-      }
-      plurals.joinToString(", ").takeIf { it.isNotBlank() } ?: NO_VALUE
-    }
-    // Eg: "Monday, Tuesday, Wednesday"
-    is BasicArrayResourceItem -> this.joinToString(", ").takeIf { it.isNotBlank() } ?: NO_VALUE
-    // Eg: "activity_main.xml"
-    is BasicFileResourceItem -> this.source.fileName
-    else -> valueString
-  }
-}
-
-/**
- * Returns a simplified string of the configurations available for this resource. If there's no configurations, returns "default".
- */
-private fun ResourceItem.getReadableConfigurations(): String =
-  this.configuration.qualifiers.joinToString("-") { it.folderSegment }.takeIf { it.isNotBlank() } ?: "default"
 
 /**
  * For a resolved resource, returns the readable name of the declared resource data type. This is usually the root of the element defined in

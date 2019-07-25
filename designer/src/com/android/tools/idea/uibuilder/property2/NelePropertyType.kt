@@ -28,6 +28,7 @@ import java.util.EnumSet
 enum class NelePropertyType {
   UNKNOWN,
   ANIM,
+  ANIMATOR,
   ARRAY,
   BOOLEAN,
   CLASS_NAME,
@@ -60,6 +61,7 @@ enum class NelePropertyType {
   val resourceTypes: EnumSet<ResourceType>
     get() = when (this) {
       ANIM -> EnumSet.of(ResourceType.ANIM)
+      ANIMATOR -> EnumSet.of(ResourceType.ANIMATOR)
       ARRAY -> EnumSet.of(ResourceType.ARRAY)
       BOOLEAN -> EnumSet.of(ResourceType.BOOL)
       COLOR -> EnumSet.of(ResourceType.COLOR)

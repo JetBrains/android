@@ -24,7 +24,6 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.util.FormScalingUtil;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
 import com.android.tools.idea.npw.model.NewProjectModel;
@@ -43,7 +42,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Streams;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.util.BackgroundTaskUtil;
@@ -61,15 +59,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionListener;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -181,7 +176,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     TemplateRenderer selectedTemplate = formFactorInfo.tabPanel.myGallery.getSelectedElement();
     assert selectedTemplate != null;
 
-    getModel().enableCppSupport().set(selectedTemplate.isCppTemplate());
+    getModel().enableCppSupport.set(selectedTemplate.isCppTemplate());
     myNewProjectModuleModel.formFactor().set(formFactorInfo.formFactor);
     myNewProjectModuleModel.moduleTemplateFile().setNullableValue(formFactorInfo.templateFile);
     myNewProjectModuleModel.renderTemplateHandle().setNullableValue(selectedTemplate.getTemplate());
@@ -220,14 +215,6 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
         continue;
       }
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
-      if (formFactor == FormFactor.AUTOMOTIVE && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
-        // Only show Automotive if it is enabled
-        continue;
-      }
-      if (formFactor == FormFactor.CAR && StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
-        // Only show Car if Automotive is not enabled
-        continue;
-      }
       FormFactorInfo prevFormFactorInfo = formFactorInfoMap.get(formFactor);
       int templateMinSdk = metadata.getMinSdk();
 
@@ -253,15 +240,6 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
       Map<String, TemplateHandle> entryMap = templateHandles.stream().collect(toMap(it -> it.getMetadata().getTitle(), it -> it));
       return Arrays.stream(ORDERED_ACTIVITY_NAMES).map(it -> entryMap.get(it)).filter(Objects::nonNull).collect(toList());
     }
-    if (formFactor == FormFactor.AUTOMOTIVE) {
-      // Include CAR templates in the AUTOMOTIVE tab. If the same template exists in both, only show the AUTOMOTIVE one.
-      Set<String> titles = templateHandles.stream().map(it -> it.getMetadata().getTitle()).collect(Collectors.toSet());
-      for (TemplateHandle carTemplateHandle : TemplateManager.getInstance().getTemplateList(FormFactor.CAR)) {
-        if (!titles.contains(carTemplateHandle.getMetadata().getTitle())) {
-          templateHandles.add(carTemplateHandle);
-        }
-      }
-    }
 
     return templateHandles;
   }
@@ -271,7 +249,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     List<TemplateHandle> templateHandles = getFilteredTemplateHandles(formFactor);
 
     List<TemplateRenderer> templateRenderers = Lists.newArrayListWithExpectedSize(templateHandles.size() + 2);
-    templateRenderers.add(new TemplateRenderer(null, false)); // "Add No Activity" entry
+    templateRenderers.add(new TemplateRenderer(null, false)); // "No Activity" entry
     for (TemplateHandle templateHandle : templateHandles) {
       templateRenderers.add(new TemplateRenderer(templateHandle, false));
     }
@@ -296,7 +274,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
       }
     }
 
-    // Default template not found. Instead, return the index to the first valid template renderer (e.g. skip "Add No Activity", etc.)
+    // Default template not found. Instead, return the index to the first valid template renderer (e.g. skip "No Activity", etc.)
     for (int i = 0; i < templateRenderers.length; i++) {
       if (templateRenderers[i].getTemplate() != null) {
         return i;

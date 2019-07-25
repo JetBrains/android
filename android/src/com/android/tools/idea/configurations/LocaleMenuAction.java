@@ -51,16 +51,14 @@ public class LocaleMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
-    super("", "Locale for Preview", null);
+    super(null, "Locale for Preview", null);
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     updatePresentation(presentation);
   }
 
   @Override
-  protected boolean hasDropDownArrow() {
-    // This menu always has most of the time at least two options so no need to calculate the actions to show the arrow. In most cases
-    // the actions to Edit translations and switch to RTL locale are always present.
+  public boolean displayTextInToolbar() {
     return true;
   }
 

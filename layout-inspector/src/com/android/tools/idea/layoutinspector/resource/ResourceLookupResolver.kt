@@ -33,6 +33,8 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.resources.FolderTypeRelationship
+import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.AndroidPsiUtils
@@ -44,13 +46,15 @@ import com.android.tools.idea.res.ResourceNamespaceContext
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.StateList
 import com.android.tools.idea.res.colorToString
-import com.android.tools.idea.res.getNamespacesContext
 import com.android.tools.idea.res.resolve
+import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
 import com.android.tools.idea.res.resolveLayout
 import com.android.tools.idea.res.resolveStateList
+import com.android.tools.idea.res.resourceNamespace
 import com.android.tools.idea.res.toFileResourcePathString
 import com.android.tools.idea.util.toVirtualFile
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type.COLOR
 import com.intellij.ide.util.EditSourceUtil
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleManager
@@ -62,7 +66,10 @@ import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidResourceUtil
+import javax.swing.Icon
 
 /**
  * Find the [AndroidFacet] that matches the specified [packageName] among the facets in the project.
@@ -99,6 +106,15 @@ fun mapReference(facet: AndroidFacet?, reference: ResourceReference?): ResourceR
   else ResourceReference(mapNamespace(facet, reference.namespace), reference.resourceType, reference.name)
 
 /**
+ * Find a [Navigatable] given a [PsiElement].
+ */
+fun findNavigatable(element: PsiElement): Navigatable? =
+  when (element) {
+    is Navigatable -> element
+    else -> EditSourceUtil.getDescriptor(element)
+  }
+
+/**
  * Holds functions which implements the services offered in [ResourceLookup].
  */
 class ResourceLookupResolver(
@@ -110,6 +126,7 @@ class ResourceLookupResolver(
   private val projectResources = ResourceRepositoryManager.getProjectResources(appFacet)
   private val androidResourceNamespaceResolver =
     ResourceNamespace.Resolver { namespacePrefix -> if (namespacePrefix == ANDROID_NS_NAME) ANDROID_URI else null }
+  private val androidNamespaceContext = ResourceNamespaceContext(ResourceNamespace.ANDROID, androidResourceNamespaceResolver)
 
   /**
    * Find the attribute value from resource reference.
@@ -138,6 +155,17 @@ class ResourceLookupResolver(
       ResourceType.STYLE -> findFileLocationsFromStyle(property, source, max)
       else -> emptyList()
     }
+  }
+
+  /**
+   * Resolve this drawable property as an icon.
+   */
+  fun resolveAsIcon(property: InspectorPropertyItem): Icon? {
+    val url = property.value?.let { ResourceUrl.parse(it) } ?: return null
+    val tag = findViewTagInFile(property.view, property.view.layout) ?: return null
+    val (namespace, namespaceResolver) = getNamespacesContext(tag)
+    val reference = url.resolve(namespace, namespaceResolver) ?: return null
+    return resolver.resolveAsIcon(resolver.getUnresolvedResource(reference), project, appFacet)
   }
 
   private fun findFileLocationsFromViewTag(property: InspectorPropertyItem, layout: ResourceReference, max: Int): List<SourceLocation> {
@@ -172,22 +200,48 @@ class ResourceLookupResolver(
   private fun findAttributeValueFromViewTag(property: InspectorPropertyItem, layout: ResourceReference): String? {
     val xmlAttributeValue = findLayoutAttribute(property, layout)?.valueElement ?: return null
     val resValue = dereferenceRawAttributeValue(xmlAttributeValue) ?: return xmlAttributeValue.value
-    return resolveValue(resValue) ?: xmlAttributeValue.value
+    return resolveValue(property, resValue) ?: xmlAttributeValue.value
   }
 
   private fun findAttributeValueFromStyle(property: InspectorPropertyItem, style: ResourceReference): String? {
     val reference = mapReference(style) ?: return null
     val styleValue = resolver.getStyle(reference) ?: return null
-    val styleItem = styleValue.getItem(attr(property)) ?: return null
-    return resolveValue(styleItem)
+    val styleItem = styleValue.getItem(attr(property))?.let { StyleItemResourceValueWithStyleReference(styleValue, it) } ?: return null
+    return resolveValue(property, styleItem)
   }
 
-  private fun resolveValue(resValue: ResourceValue): String? {
-    val value = resolver.resolveResValue(resValue) ?: return null
-    if (value.resourceType == ResourceType.COLOR) {
-      return resolver.resolveColor(value, project)?.let { colorToString(it) }
+  /**
+   * Resolve a [ResourceValue] to a string value.
+   *
+   * Color values should be resolved by paying attention to the alpha factor
+   * in color state lists. This is handled by [ResourceResolver.resolveColor].
+   *
+   * Other types are resolved using [dereference] rather than [ResourceResolver.resolveResValue]
+   * since the former also handles state lists.
+   */
+  private fun resolveValue(property: InspectorPropertyItem, resValue: ResourceValue): String? {
+    if (property.type == COLOR) {
+      return resolver.resolveColor(resValue, project)?.let { colorToString(it) }
     }
-    return value.value
+    return toString(property, generateSequence(resValue) { dereference(it) }.take(MAX_RESOURCE_INDIRECTION).last())
+  }
+
+  /**
+   * Convert the [ResourceValue] into a readable string value.
+   *
+   * If the value is a file return the reference value instead of the filename.
+   */
+  private fun toString(property: InspectorPropertyItem, resValue: ResourceValue): String? {
+    val stringValue = resValue.value ?: return null
+    // If this is not a file accept the value as is.
+    toFileResourcePathString(stringValue) ?: return stringValue
+
+    // Otherwise convert to a reference value instead (e.g. @drawable/my_drawable).
+    val tag = findViewTagInFile(property.view, property.view.layout) ?: return stringValue
+    val (namespace, namespaceResolver) = getNamespacesContext(tag)
+    val reference = resValue.asReference()
+    val url = reference.getRelativeResourceUrl(namespace, namespaceResolver)
+    return url.toString()
   }
 
   private fun attr(property: InspectorPropertyItem): ResourceReference {
@@ -209,12 +263,19 @@ class ResourceLookupResolver(
     val stringValue = state.value ?: return null
     val url = ResourceUrl.parse(stringValue) ?: return null
     val tag = convertStateListToXmlTag(value) ?: return null
-
-    // Cannot use ResourceHelper.resolve directly since some framework state lists do not have namespace declarations.
-    // Instead default to the predefined androidResourceNamespaceResolver.
-    val (namespace, namespaceResolver) =
-      getNamespacesContext(tag) ?: ResourceNamespaceContext(ResourceNamespace.ANDROID, androidResourceNamespaceResolver)
+    val (namespace, namespaceResolver) = getNamespacesContext(tag)
     return url.resolve(namespace, namespaceResolver)?.let { dereferenceReference(it) }
+  }
+
+  // Cannot use ResourceHelper.resolve directly since some framework state lists do not have namespace declarations.
+  // Instead default to the predefined androidResourceNamespaceResolver.
+  private fun getNamespacesContext(tag: XmlTag): ResourceNamespaceContext {
+    return tag.resourceNamespace?.let {
+      ResourceNamespaceContext(it, object : ResourceNamespace.Resolver {
+        override fun uriToPrefix(namespaceUri: String): String? = tag.getPrefixByNamespace(namespaceUri)
+        override fun prefixToUri(namespacePrefix: String): String? = tag.getNamespaceByPrefix(namespacePrefix).nullize()
+      })
+    } ?: androidNamespaceContext
   }
 
   // Unfortunately a style item is not a ResourceItem, and we need the style value to locate this value.
@@ -278,7 +339,11 @@ class ResourceLookupResolver(
 
   private fun convertSimpleValueToXmlTag(value: ResourceValue): XmlTag? {
     val item = convertToResourceItem(value) ?: return null
-    return LocalResourceRepository.getItemTag(project, item)
+    if (FolderTypeRelationship.getRelatedFolders(item.type).contains(ResourceFolderType.VALUES)) {
+      return LocalResourceRepository.getItemTag(project, item)
+    }
+    val xmlFile = AndroidResourceUtil.getItemPsiFile(project, item) as? XmlFile
+    return xmlFile?.rootTag
   }
 
   private fun convertStyleItemValueToXmlTag(style: StyleResourceValue, item: StyleItemResourceValue): XmlTag? {
@@ -333,12 +398,6 @@ class ResourceLookupResolver(
     val line = doc?.getLineNumber(element.textOffset)?.plus(1) ?: return file.name
     return "${file.name}:$line"
   }
-
-  private fun findNavigatable(element: PsiElement): Navigatable? =
-    when (element) {
-      is Navigatable -> element
-      else -> EditSourceUtil.getDescriptor(element)
-    }
 
   private fun findLayoutAttribute(property: InspectorPropertyItem, layout: ResourceReference): XmlAttribute? {
     val reference = mapReference(layout) ?: return null

@@ -104,9 +104,8 @@ public class CommandLineArgs {
       // Example of version to pass: 2.4.0.6
       args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, myApplicationInfo.getStrictVersion()));
     }
-    // Whether or not skip download of source and javadoc jars during Gradle sync.
-    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD,
-                                   GradleExperimentalSettings.getInstance().SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC));
+    // Skip download of source and javadoc jars during Gradle sync, this flag has no effect on AGP prior to 3.5.
+    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD, true));
 
     if (project != null) {
       Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);

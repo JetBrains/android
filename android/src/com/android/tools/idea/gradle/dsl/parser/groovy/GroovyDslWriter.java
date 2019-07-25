@@ -37,6 +37,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssign
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
+import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.maybeTrimForParent;
+import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.needToCreateParent;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.*;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
 import static org.jetbrains.plugins.groovy.lang.psi.impl.PsiImplUtil.isWhiteSpaceOrNls;
@@ -99,7 +101,7 @@ public class GroovyDslWriter implements GradleDslWriter {
       return psiElement;
     }
 
-    if (isNewEmptyBlockElement(element)) {
+    if (element.isNewEmptyBlockElement()) {
       return null; // Avoid creation of an empty block statement.
     }
 

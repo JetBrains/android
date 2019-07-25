@@ -23,6 +23,7 @@ import com.intellij.lang.PsiBuilder.Marker;
 import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
 import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.IFileElementType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
@@ -40,47 +41,11 @@ public class DbParser implements PsiParser, LightPsiParser {
     boolean r;
     b = adapt_builder_(t, b, this, EXTENDS_SETS_);
     Marker m = enter_section_(b, 0, _COLLAPSE_, null);
-    if (t == CLASS_OR_INTERFACE_TYPE) {
-      r = classOrInterfaceType(b, 0);
-    }
-    else if (t == CONSTANT_VALUE) {
-      r = constantValue(b, 0);
-    }
-    else if (t == DEFAULTS) {
-      r = defaults(b, 0);
-    }
-    else if (t == EXPR) {
-      r = expr(b, 0, -1);
-    }
-    else if (t == EXPRESSION_LIST) {
-      r = expressionList(b, 0);
-    }
-    else if (t == ID) {
-      r = id(b, 0);
-    }
-    else if (t == INFERRED_FORMAL_PARAMETER_LIST) {
-      r = inferredFormalParameterList(b, 0);
-    }
-    else if (t == LAMBDA_EXPRESSION) {
-      r = lambdaExpression(b, 0);
-    }
-    else if (t == LAMBDA_PARAMETERS) {
-      r = lambdaParameters(b, 0);
-    }
-    else if (t == PRIMITIVE_TYPE) {
-      r = primitiveType(b, 0);
-    }
-    else if (t == RESOURCE_PARAMETERS) {
-      r = resourceParameters(b, 0);
-    }
-    else if (t == TYPE) {
-      r = type(b, 0);
-    }
-    else if (t == TYPE_ARGUMENTS) {
-      r = typeArguments(b, 0);
+    if (t instanceof IFileElementType) {
+      r = parse_root_(t, b, 0);
     }
     else {
-      r = parse_root_(t, b, 0);
+      r = false;
     }
     exit_section_(b, 0, m, t, r, true, TRUE_CONDITION);
   }
@@ -308,19 +273,31 @@ public class DbParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // IDENTIFIER (',' IDENTIFIER)*
+  // IDENTIFIER
+  public static boolean inferredFormalParameter(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "inferredFormalParameter")) return false;
+    if (!nextTokenIs(b, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, INFERRED_FORMAL_PARAMETER, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // inferredFormalParameter (',' inferredFormalParameter)*
   public static boolean inferredFormalParameterList(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "inferredFormalParameterList")) return false;
     if (!nextTokenIs(b, IDENTIFIER)) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, IDENTIFIER);
+    r = inferredFormalParameter(b, l + 1);
     r = r && inferredFormalParameterList_1(b, l + 1);
     exit_section_(b, m, INFERRED_FORMAL_PARAMETER_LIST, r);
     return r;
   }
 
-  // (',' IDENTIFIER)*
+  // (',' inferredFormalParameter)*
   private static boolean inferredFormalParameterList_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "inferredFormalParameterList_1")) return false;
     while (true) {
@@ -331,13 +308,26 @@ public class DbParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // ',' IDENTIFIER
+  // ',' inferredFormalParameter
   private static boolean inferredFormalParameterList_1_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "inferredFormalParameterList_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokens(b, 0, COMMA, IDENTIFIER);
+    r = consumeToken(b, COMMA);
+    r = r && inferredFormalParameter(b, l + 1);
     exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // inferredFormalParameter
+  public static boolean inferredFormalSingleParameterList(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "inferredFormalSingleParameterList")) return false;
+    if (!nextTokenIs(b, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = inferredFormalParameter(b, l + 1);
+    exit_section_(b, m, INFERRED_FORMAL_PARAMETER_LIST, r);
     return r;
   }
 
@@ -357,14 +347,14 @@ public class DbParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // '(' inferredFormalParameterList? ')'
-  //   |   IDENTIFIER
+  //   |   inferredFormalSingleParameterList
   public static boolean lambdaParameters(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "lambdaParameters")) return false;
     if (!nextTokenIs(b, "<lambda parameters>", IDENTIFIER, LPARENTH)) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LAMBDA_PARAMETERS, "<lambda parameters>");
     r = lambdaParameters_0(b, l + 1);
-    if (!r) r = consumeToken(b, IDENTIFIER);
+    if (!r) r = inferredFormalSingleParameterList(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }

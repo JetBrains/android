@@ -25,13 +25,14 @@ import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommen
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.util.DynamicAppUtils
+import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.npw.ThemeHelper
-import com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain
+import com.android.tools.idea.npw.model.NewProjectModel.Companion.getInitialDomain
 import com.android.tools.idea.npw.model.getKotlinVersion
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
@@ -53,7 +54,6 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_EXISTS
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_NO_ACTION_BAR
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_POPUP_OVERLAY
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_DIR
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_RES_DIR
@@ -73,7 +73,6 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LOW_MEMORY
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_EAP_REPO
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_EAP_REPO_URL
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE
@@ -96,7 +95,6 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_TEST_DIR
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_TEST_OUT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT
-import com.android.tools.idea.templates.TemplateMetadata.KOTLIN_EAP_REPO_URL
 import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
 import com.google.common.collect.Iterables
 import com.intellij.openapi.application.ApplicationManager
@@ -273,9 +271,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
    * [com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION],
    * [com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_VERSION], etc.
    */
-  fun setProjectDefaults(project: Project?, moduleTitle: String): TemplateValueInjector {
-    myTemplateValues[ATTR_APP_TITLE] = moduleTitle
-
+  fun setProjectDefaults(project: Project?): TemplateValueInjector {
     // For now, our definition of low memory is running in a 32-bit JVM. In this case, we have to be careful about the amount of memory we
     // request for the Gradle build.
     myTemplateValues[ATTR_IS_LOW_MEMORY] = SystemInfo.is32Bit
@@ -283,7 +279,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     addGradleVersions(project)
     addKotlinVersion()
 
-    // TODO: This seems project stuff
     if (project != null) {
       myTemplateValues[ATTR_TOP_OUT] = project.basePath!!
     }
@@ -316,14 +311,15 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   fun setBaseFeature(baseFeature: Module): TemplateValueInjector {
-    val moduleModel = AndroidModuleModel.get(baseFeature)!!
-    val baseModuleRoot = moduleModel.rootDirPath
-    val resDirectories = moduleModel.defaultSourceProvider.resDirectories
+    val androidFacet = AndroidFacet.getInstance(baseFeature)!!
+    val gradleFacet = GradleFacet.getInstance(baseFeature)!!
+    val rootFolder = GradleProjects.findModuleRootFolderPath(baseFeature)
+    val resDirectories = androidFacet.mainSourceProvider.resDirectories
     assert(!resDirectories.isEmpty())
     val baseModuleResourceRoot = resDirectories.iterator().next() // Put the new resources in any of the available res directories
 
-    myTemplateValues[ATTR_BASE_FEATURE_NAME] = baseModuleRoot.name
-    myTemplateValues[ATTR_BASE_FEATURE_DIR] = baseModuleRoot.path
+    myTemplateValues[ATTR_BASE_FEATURE_NAME] = gradleFacet.gradleModuleModel?.moduleName.orEmpty()
+    myTemplateValues[ATTR_BASE_FEATURE_DIR] = rootFolder?.path.orEmpty()
     myTemplateValues[ATTR_BASE_FEATURE_RES_DIR] = baseModuleResourceRoot.path
     return this
   }
@@ -337,21 +333,16 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   fun addTemplateAdditionalValues(packageName: String, template: ObjectProperty<NamedModuleTemplate>): TemplateValueInjector {
     myTemplateValues[ATTR_PACKAGE_NAME] = packageName
     myTemplateValues[ATTR_SOURCE_PROVIDER_NAME] = template.get().name
-    myTemplateValues[ATTR_COMPANY_DOMAIN] = getInitialDomain(false)
+    myTemplateValues[ATTR_COMPANY_DOMAIN] = getInitialDomain()
     return this
   }
 
   private fun addKotlinVersion() {
-    // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     val kotlinVersion = getKotlinVersion()
+    // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     myTemplateValues[ATTR_KOTLIN_VERSION] = kotlinVersion
-    if (isEAP(kotlinVersion)) {
-      myTemplateValues[ATTR_KOTLIN_EAP_REPO] = true
-      myTemplateValues[ATTR_KOTLIN_EAP_REPO_URL] = KOTLIN_EAP_REPO_URL
-    }
+    myTemplateValues[ATTR_KOTLIN_EAP_REPO] = setOf("rc", "eap", "-M").any { it in kotlinVersion }
   }
-
-  private fun isEAP(version: String): Boolean = listOf("rc", "eap", "-M").any { version.contains(it) }
 
   private fun addBuildToolVersion(project: Project?, buildToolRevision: Revision) {
     val gradlePluginVersion = determineGradlePluginVersion(project)

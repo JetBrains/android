@@ -106,8 +106,8 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void clearAttributes(@NotNull NlComponent component) {
-    myHandler.clearAttributes(component);
+  public void clearAttributes(@NotNull List<NlComponent> components) {
+    myHandler.clearAttributes(components);
   }
 
   @Override

@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
 import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -137,28 +138,24 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testCanBuildDefaultNewInstantAppProjects() {
-    //TODO: check for dist:module
+  public void testCanBuildDefaultNewInstantAppProjects() throws IOException {
     createAndOpenDefaultAIAProject("BuildApp", null);
-    String manifestContent = guiTest.ideFrame().getEditor()
-                                    .open("app/src/main/res/layout/activity_main.xml")
-                                    .open("app/src/main/AndroidManifest.xml")
-                                    .getCurrentFileContents();
+
+    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/layout/activity_main.xml")).isFile();
+
+    String manifestContent = guiTest.getProjectFileText("app/src/main/AndroidManifest.xml");
     assertThat(manifestContent).contains("xmlns:dist=\"http://schemas.android.com/apk/distribution\"");
     assertThat(manifestContent).contains("<dist:module dist:instant=\"true\" />");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
-  public void testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls() {
-    String activityMainXml = "app/src/main/res/layout/activity_main.xml";
-    String manifestPath = "app/src/main/AndroidManifest.xml";
+  public void testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls() throws IOException {
     createAndOpenDefaultAIAProject("BuildApp", null);
-    String manifestContent = guiTest.ideFrame().getEditor()
-      .open(activityMainXml)
-      .open(manifestPath)
-      .getCurrentFileContents();
 
+    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/layout/activity_main.xml")).isFile();
+
+    String manifestContent = guiTest.getProjectFileText("app/src/main/AndroidManifest.xml");
     assertThat(manifestContent).contains("android.intent.action.MAIN");
     assertThat(manifestContent).contains("android.intent.category.LAUNCHER");
     assertThat(manifestContent).doesNotContain("android:host=");
@@ -166,19 +163,15 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testCanBuildNewInstantAppProjectsWithLoginActivity() {
+  public void testCanBuildNewInstantAppProjectsWithLoginActivity() throws IOException {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
-           .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
-           .clickFinish();
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
 
-    String baseStrings = guiTest.ideFrame()
-                                .waitForGradleProjectSyncToFinish()
-                                .getEditor()
-                                .open("app/src/main/res/values/strings.xml")
-                                .getCurrentFileContents();
-
-    assertThat(baseStrings).contains("title_activity_login");
+    assertThat(guiTest.getProjectFileText("app/src/main/res/values/strings.xml"))
+      .contains("title_activity_login");
     assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/layout/activity_login.xml")).isFile();
 
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
@@ -219,39 +212,29 @@ public class NewInstantAppTest {
 
   // b/68478730
   @Test
-  public void addMasterDetailActivityToExistingIappModule() {
-    String stringPath = "app/src/main/res/values/strings.xml";
+  public void addMasterDetailActivityToExistingIappModule() throws IOException {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
-           .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Master/Detail Flow")
-           .clickFinish();
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Master/Detail Flow")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
 
-    String baseStrings = guiTest.ideFrame()
-                                .waitForGradleProjectSyncToFinish()
-                                .getEditor()
-                                .open(stringPath)
-                                .getCurrentFileContents();
-
+    String baseStrings = guiTest.getProjectFileText("app/src/main/res/values/strings.xml");
     assertThat(baseStrings).contains("title_item_detail");
     assertThat(baseStrings).contains("title_item_list");
   }
 
   // b/68684401
   @Test
-  public void addFullscreenActivityToExistingIappModule() {
-    String stringXmlPath = "app/src/main/res/values/strings.xml";
+  public void addFullscreenActivityToExistingIappModule() throws IOException {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
-           .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Fullscreen Activity")
-           .clickFinish();
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Fullscreen Activity")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
 
-    String baseStrings = guiTest.ideFrame()
-                                .waitForGradleProjectSyncToFinish()
-                                .getEditor()
-                                .open(stringXmlPath)
-                                .getCurrentFileContents();
-
-    assertThat(baseStrings).contains("title_activity_fullscreen");
+    assertThat(guiTest.getProjectFileText("app/src/main/res/values/strings.xml"))
+      .contains("title_activity_fullscreen");
   }
 
   // With warnings coming from multiple projects the order of warnings is not deterministic, also there are some warnings that show up only

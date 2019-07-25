@@ -116,8 +116,7 @@ public class GradleRenderErrorContributorTest extends IdeaTestCase {
     // https://code.google.com/p/android/issues/detail?id=170841
     androidProject.setModelVersion("1.2.2");
 
-    AndroidModuleModel model =
-      new AndroidModuleModel(androidProject.getName(), root, androidProject, "debug", myDependenciesFactory);
+    AndroidModuleModel model = AndroidModuleModel.create(androidProject.getName(), root, androidProject, "debug", myDependenciesFactory);
     facet.getConfiguration().setModel(model);
     model = AndroidModuleModel.get(myModule);
 

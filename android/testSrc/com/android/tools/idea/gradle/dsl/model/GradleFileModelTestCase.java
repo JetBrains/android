@@ -143,6 +143,21 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return myLanguageName.equals(GROOVY_LANGUAGE);
   }
 
+  /**
+   * @param name the name of an extra property
+   *
+   * @return the String that corresponds to looking up the extra property {@code name} in the language of this test case
+   */
+  protected String extraName(String name) {
+    if (myLanguageName.equals(GROOVY_LANGUAGE)) {
+      return name;
+    }
+    else {
+      assumeTrue("Language is neither Groovy nor Kotlin", myLanguageName.equals(KOTLIN_LANGUAGE));
+      return "extra[\"" + name + "\"]";
+    }
+  }
+
   protected static <R, E extends Exception> void runWriteAction(@NotNull ThrowableComputable<R, E> runnable) throws E {
     ApplicationManager.getApplication().runWriteAction(runnable);
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.impl.table
 
+import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
@@ -29,6 +30,7 @@ import com.android.tools.property.ptable2.PTableCellEditorProvider
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -37,6 +39,7 @@ import java.awt.Component
 import java.awt.KeyboardFocusManager
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.JTable
 import javax.swing.border.Border
 
 /**
@@ -97,8 +100,9 @@ class PTableCellEditorImpl : PTableCellEditor {
   private var controlType: ControlType? = null
   private var item: PTableItem? = null
   private var column: PTableColumn? = null
+  private val listener = ValueChangedListener { updateFromModel() }
 
-  override var editorComponent: JComponent? = null
+  override var editorComponent: EditorPanel? = null
     private set
 
   override val value: String?
@@ -128,6 +132,7 @@ class PTableCellEditorImpl : PTableCellEditor {
 
   override fun close(oldTable: PTable) {
     if (table == oldTable) {
+      model?.removeListener(listener)
       table = null
       item = null
       column = null
@@ -142,13 +147,25 @@ class PTableCellEditorImpl : PTableCellEditor {
   }
 
   fun nowEditing(newTable: PTable, newItem: PTableItem, newColumn: PTableColumn,
-                 newControlType: ControlType, newModel: PropertyEditorModel, newEditor: JComponent) {
+                 newControlType: ControlType, newModel: PropertyEditorModel, newEditor: EditorPanel) {
     table = newTable
     item = newItem
     column = newColumn
     model = newModel
     controlType = newControlType
     editorComponent = newEditor
+    newModel.addListener(listener)
+  }
+
+  private fun updateFromModel() {
+    val component = editorComponent?.editor ?: return
+    if (component is PTableVariableHeightCellEditor && component.isCustomHeight) {
+      val jtable = table?.component as? JTable
+      val row = jtable?.editingRow
+      if (row != null && row >= 0) {
+        jtable.setRowHeight(row, component.preferredSize.height)
+      }
+    }
   }
 }
 

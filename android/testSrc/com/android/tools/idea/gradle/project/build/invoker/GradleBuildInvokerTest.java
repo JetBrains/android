@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ArrayListMultimap;
@@ -88,11 +87,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
     }
   }
 
-  public void testCleanUpWithSourceGenerationEnabled() {
-    // Simulate the case when source generation is enabled.
-    GradleProjectBuilder builderMock = new IdeComponents(getProject()).mockProjectService(GradleProjectBuilder.class);
-    when(builderMock.isSourceGenerationEnabled()).thenReturn(true);
-
+  public void testCleanUp() {
     // Invoke method to test.
     List<String> tasks = setUpTasksForSourceGeneration();
     myBuildInvoker.cleanProject();
@@ -102,21 +97,6 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
     // Verify task list includes source generation tasks and clean.
     assertThat(request.getGradleTasks()).containsExactly(expectedTasks.toArray());
     assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
-
-    verifyInteractionWithMocks(CLEAN);
-  }
-
-  public void testCleanUpWithSourceGenerationDisabled() {
-    // Simulate the case when source generation is disabled.
-    GradleProjectBuilder builderMock = new IdeComponents(getProject()).mockProjectService(GradleProjectBuilder.class);
-    when(builderMock.isSourceGenerationEnabled()).thenReturn(false);
-
-    // Invoke method to test.
-    myBuildInvoker.cleanProject();
-    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    // Verify source generation tasks are not run.
-    assertThat(request.getGradleTasks()).containsExactly("clean");
-    assertThat(request.getCommandLineArguments()).isEmpty();
 
     verifyInteractionWithMocks(CLEAN);
   }
@@ -155,7 +135,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
     Messages.setTestDialog(new TestDialog() {
       @Override
-      public int show(String message) {
+      public int show(@NotNull String message) {
         return Messages.CANCEL;
       }
     });
