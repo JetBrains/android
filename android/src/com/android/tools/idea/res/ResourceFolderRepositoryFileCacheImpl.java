@@ -113,14 +113,14 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     return projectComponent.resolve(dirComponent);
   }
 
-  @Nullable
   @VisibleForTesting
+  @Nullable
   Path getRootDir() {
     try {
       return Files.createDirectories(myRootDir);
     }
     catch (IOException e) {
-      getLogger().error("Failed to create cache root directory " + myRootDir);
+      getLogger().error("Failed to create cache root directory " + myRootDir, e);
       return null;
     }
   }
