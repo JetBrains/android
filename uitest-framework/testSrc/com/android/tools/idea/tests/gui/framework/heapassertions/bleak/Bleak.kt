@@ -68,24 +68,40 @@ fun Signature.isWhitelisted(): Boolean =
   lastLabel() in listOf("_set", "_values") && entry(-4) == "com.intellij.openapi.util.Disposer#ourTree" ||  // this accounts for both myObject2NodeMap and myRootObjects
   entry(-3) == "com.intellij.openapi.application.impl.ReadMostlyRWLock#readers"
 
+class BleakResult(val leakInfos: List<LeakInfo> = listOf(), val disposerInfo: Map<DisposerInfo.Key, Int> = mapOf()) {
+  val success = leakInfos.filterNot { it.whitelisted }.isEmpty() && disposerInfo.isEmpty()
+  val errorMessage = mangleSunReflect(
+    buildString {
+      if (disposerInfo.isNotEmpty()) {
+        appendln("Disposer Info:")
+        disposerInfo.forEach {
+          append("\nDisposable of type ${it.key.disposable.javaClass.name} has an increasing number (${it.value}) of children of type ${it.key.klass.name}")
+        }
+        append("\n------------------------------\n")
+      }
+      append(leakInfos.filterNot { it.whitelisted }.joinToString(separator = "\n------------------------------\n"))
+    }
+  )
+}
+
 fun runWithBleak(scenario: Runnable) {
   runWithBleak { scenario.run() }
 }
 
 fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
-  val errorMessage = findLeaks(runs, scenario).filterNot { it.whitelisted }.joinToString(separator = "\n------------------------------\n")
-  if (errorMessage.isNotEmpty()) {
-    throw MemoryLeakDetectedError(mangleSunReflect(errorMessage))
+  val result = findLeaks(runs, scenario)
+  if (!result.success) {
+    throw MemoryLeakDetectedError(result.errorMessage)
   }
 }
 
 private val USE_INCREMENTAL_PROPAGATION = System.getProperty("bleak.incremental.propagation") == "true"
 
-fun findLeaks(runs: Int = 3, scenario: () -> Unit): List<LeakInfo> {
+fun findLeaks(runs: Int = 3, scenario: () -> Unit): BleakResult {
   scenario()  // warm up
-  if (System.getProperty("enable.bleak") != "true") return listOf() // if BLeak isn't enabled, the test will run normally.
+  if (System.getProperty("enable.bleak") != "true") return BleakResult() // if BLeak isn't enabled, the test will run normally.
 
-  var g1 = HeapGraph { isRootNode || obj.javaClass.isArray }.expandWholeGraph()
+  var g1 = HeapGraph { isRootNode || obj.javaClass.isArray }.expandWholeGraph(initialRun = true)
   scenario()
   var g2 = HeapGraph().expandWholeGraph()
   g1.propagateGrowing(g2)
@@ -104,8 +120,7 @@ fun findLeaks(runs: Int = 3, scenario: () -> Unit): List<LeakInfo> {
   scenario()
   val finalGraph = HeapGraph().expandWholeGraph()
   g2.propagateGrowing(finalGraph)
-
-  return finalGraph.getLeaks(g2)
+  return BleakResult(finalGraph.getLeaks(g2), finalGraph.disposerInfo.growingCounts)
 }
 
 // Ant filters out lines in exception messages that contain 'sun.reflect', among other things. I have so far been unable
