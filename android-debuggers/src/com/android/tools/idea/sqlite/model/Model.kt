@@ -39,8 +39,11 @@ fun SqliteDatabase.getFormattedSqliteDatabaseName(): String {
 /** Representation of the Sqlite database schema */
 data class SqliteSchema(val tables: List<SqliteTable>)
 
-/** Representation of the Sqlite database table */
-data class SqliteTable(val name: String, val columns: List<SqliteColumn>)
+/** Representation of the Sqlite database table
+ *
+ * @see [https://www.sqlite.org/lang_createview.html] for isView
+ **/
+data class SqliteTable(val name: String, val columns: List<SqliteColumn>, val isView: Boolean)
 
 /** Representation of the Sqlite table row */
 data class SqliteRow(val values: List<SqliteColumnValue>)

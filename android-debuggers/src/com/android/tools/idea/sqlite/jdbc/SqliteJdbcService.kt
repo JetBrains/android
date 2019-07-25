@@ -82,7 +82,8 @@ class SqliteJdbcService(
         sqliteTables.add(
           SqliteTable(
             tables.getString("TABLE_NAME"),
-            readColumnDefinitions(connection, tables.getString("TABLE_NAME"))
+            readColumnDefinitions(connection, tables.getString("TABLE_NAME")),
+            isView = tables.getString("TABLE_TYPE") == "VIEW"
           )
         )
       }

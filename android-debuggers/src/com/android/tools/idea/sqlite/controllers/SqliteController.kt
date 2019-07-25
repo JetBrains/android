@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
+import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.SqliteServiceFactory
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
@@ -49,7 +50,7 @@ class SqliteController(
   val sqliteView: SqliteView,
   edtExecutor: EdtExecutorService,
   taskExecutor: Executor
-) : Disposable {
+) : Disposable, SchemaProvider {
   private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val taskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
 
@@ -107,6 +108,8 @@ class SqliteController(
   }
 
   fun hasOpenDatabase() = openDatabases.isNotEmpty()
+
+  override fun getSchema(database: SqliteDatabase) = openDatabases[database]
 
   fun runSqlStatement(query: String) {
     val sqliteEvaluatorController = openNewEvaluatorTab()
@@ -189,7 +192,7 @@ class SqliteController(
   private fun openNewEvaluatorTab(): SqliteEvaluatorController {
     val tabId = TabId.AdHocQueryTab()
 
-    val sqliteEvaluatorView = viewFactory.createEvaluatorView(project)
+    val sqliteEvaluatorView = viewFactory.createEvaluatorView(project, this)
     // TODO(b/136556640) What name should we use for these tabs?
     sqliteView.displayResultSet(tabId, "New Query", sqliteEvaluatorView.component)
 
