@@ -120,20 +120,8 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       }
       is KtArrayAccessExpression -> {
         if (resolve) {
-          val gradleDslElement : GradleDslElement?
-          // TODO(xof) argh, this is the third example of this block of code
-          if (literal is KtArrayAccessExpression &&
-              literal.arrayExpression is KtNameReferenceExpression &&
-              (literal.arrayExpression as KtNameReferenceExpression).text == "extra" &&
-              literal.indexExpressions.size == 1 &&
-              literal.indexExpressions[0] is KtStringTemplateExpression &&
-              !(literal.indexExpressions[0] as KtStringTemplateExpression).hasInterpolation()) {
-            val text = (literal.indexExpressions[0] as KtStringTemplateExpression).entries[0].text
-            gradleDslElement = context.resolveReference(text, true)
-          }
-          else {
-            gradleDslElement = context.resolveReference(literal.text, true)
-          }
+          val property = extraPropertyReferenceName(literal)
+          val gradleDslElement = context.resolveReference(property ?: literal.text, true)
           if (gradleDslElement is GradleDslSimpleExpression) {
             return gradleDslElement.value
           }
@@ -276,25 +264,19 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     if (expression.operationToken != KtTokens.EQ) return
     val left = expression.left ?: return
     val right = expression.right ?: return
-    // TODO(xof): unify this with the similar expression-walking in KotlinDslUtil.findInjections
-    // TODO(xof): handle qualified extra blocks (e.g. rootProject.extra["property"] = init)
-    if (left is KtArrayAccessExpression &&
-        left.arrayExpression is KtNameReferenceExpression &&
-        (left.arrayExpression as KtNameReferenceExpression).text == "extra" &&
-        left.indexExpressions.size == 1 &&
-        left.indexExpressions[0] is KtStringTemplateExpression &&
-        !(left.indexExpressions[0] as KtStringTemplateExpression).hasInterpolation()) {
-      // we have something of the form extra["literalString"] = init
-      parentBlock = getBlockElement(listOf("ext"), parent, null) ?: return
-      name = GradleNameElement.create((left.indexExpressions[0] as KtStringTemplateExpression).entries[0].text)
-    }
-    else {
-      // all cases of assignment other than extra["literalString"] = init
-      name = GradleNameElement.from(left)
-      if (name.isEmpty) return
-      if (name.isQualified) {
-        val nestedElement = getBlockElement(name.qualifyingParts(), parent, null) ?: return
-        parentBlock = nestedElement
+    when (val property = extraPropertyReferenceName(left)) {
+      is String -> {
+        // we have something of the form extra["literalString"] = init
+        parentBlock = getBlockElement(listOf("ext"), parent, null) ?: return
+        name = GradleNameElement.create(property)
+      }
+      else -> {
+        name = GradleNameElement.from(left)
+        if (name.isEmpty) return
+        if (name.isQualified) {
+          val nestedElement = getBlockElement(name.qualifyingParts(), parent, null) ?: return
+          parentBlock = nestedElement
+        }
       }
     }
     val propertyElement = createExpressionElement(parentBlock, expression, name, right) ?: return
