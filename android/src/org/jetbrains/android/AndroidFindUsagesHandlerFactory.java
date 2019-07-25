@@ -16,18 +16,29 @@
 
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.ATTR_NAME;
+
+import com.android.annotations.concurrency.WorkerThread;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.res.ResourceFolderRepository;
 import com.google.common.collect.ObjectArrays;
+import com.intellij.codeInsight.daemon.impl.IdentifierHighlighterPass;
 import com.intellij.find.findUsages.FindUsagesHandler;
 import com.intellij.find.findUsages.FindUsagesHandlerFactory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.*;
-import com.intellij.util.xml.DomElement;
-import com.intellij.util.xml.DomManager;
-import org.jetbrains.android.dom.resources.ResourceElement;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlElement;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import java.util.List;
+import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
+import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
@@ -38,11 +49,26 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-import static com.android.SdkConstants.ATTR_NAME;
-
+/**
+ * Provides a custom {@link FindUsagesHandler} that understands the connection between XML and R class fields.
+ *
+ * <p>To find all usages of an Android resource, we need to know what {@link PsiElement}s may conceptually refer to a resource, what {@link
+ * PsiReference}s are attached to them and what those references resolve to. Currently the resolve targets may be instances of {@link
+ * PsiField} (for light R classes fields), {@link ValueResourceElementWrapper}, {@link FileResourceElementWrapper} or {@link PsiFile}. Note
+ * that {@link FileResourceElementWrapper} implements {@link PsiFile} and is equivalent to the {@link PsiFile} it wraps, so needs no
+ * special handling.
+ */
 public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
+
+  /**
+   * Quickly checks if the given element represents an Android resource and should be treated specially.
+   *
+   * <p>This method is called often by {@link IdentifierHighlighterPass}, so has to avoid expensive computations. These including touching
+   * the DOM layer or finding light R class fields. {@link #createFindUsagesHandler(PsiElement, boolean)} can recover from false positives
+   * by returning null, once it checks if we're being invoked for highlighting or refactoring (in which case we can perform long-running
+   * computations).
+   */
+  @WorkerThread
   @Override
   public boolean canFindUsages(@NotNull PsiElement element) {
     PsiElement element1 = LazyValueResourceElementWrapper.computeLazyElement(element);
@@ -52,7 +78,7 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
 
     if (element1 instanceof XmlAttributeValue) {
       XmlAttributeValue value = (XmlAttributeValue)element1;
-      if (AndroidResourceUtil.findIdFields(value).length > 0) {
+      if (AndroidResourceUtil.isIdDeclaration(value)) {
         return true;
       }
     }
@@ -98,8 +124,7 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
   private static PsiElement correctResourceElement(PsiElement element) {
     if (element instanceof XmlElement && !(element instanceof XmlFile)) {
       XmlTag tag = element instanceof XmlTag ? (XmlTag)element : PsiTreeUtil.getParentOfType(element, XmlTag.class);
-      DomElement domElement = DomManager.getDomManager(element.getProject()).getDomElement(tag);
-      if (domElement instanceof ResourceElement) {
+      if (tag != null && ResourcesDomFileDescription.isResourcesFile((XmlFile)tag.getContainingFile())) {
         return tag;
       }
       return null;
@@ -114,7 +139,24 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
     return new ValueResourceElementWrapper(value);
   }
 
+  /**
+   * Provides a custom {@link FindUsagesHandler} for elements related to Android resources. See the class documentation for details. In
+   * some cases it returns null, which means that the standard usage handler will be used, i.e. only references to {@code element} will
+   * be found.
+   *
+   * <p>If {@code forHighlightUsages} is true, this method needs to avoid expensive operations, including finding light R class fields. The
+   * {@link IdentifierHighlighterPass} runs after every change in an XML file and changing an XML file may cause {@link
+   * ResourceFolderRepository} to increase its modification stamp, which means light R fields need to be recomputed, which means merging
+   * resources up the {@link ResourceRepository} hierarchy, for the current module as well as all modules that depend on it. Although this
+   * methods runs on a background thread, finding R fields causes a flurry of activity, may result in holding the read lock for noticeable
+   * amounts of time and increases memory pressure.
+   *
+   * <p>Finding related light R fields can safely be skipped for highlighting usages, because the usage search is executed only on the
+   * current file, and XML files don't contain references that resolve to light R fields.
+   */
+  @WorkerThread
   @Override
+  @Nullable
   public FindUsagesHandler createFindUsagesHandler(@NotNull PsiElement element, boolean forHighlightUsages) {
     PsiElement e = LazyValueResourceElementWrapper.computeLazyElement(element);
     if (e == null) {
@@ -127,16 +169,18 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
     }
     if (e instanceof XmlAttributeValue) {
       XmlAttributeValue value = (XmlAttributeValue)e;
-      PsiField[] fields = AndroidResourceUtil.findIdFields(value);
-      if (fields.length > 0) {
+      if (AndroidResourceUtil.isIdDeclaration(value)) {
         e = wrapIfNecessary(value);
+        PsiField[] fields = forHighlightUsages ? PsiField.EMPTY_ARRAY : AndroidResourceUtil.findIdFields(value);
         return new MyFindUsagesHandler(e, fields);
       }
     }
     e = correctResourceElement(e);
     if (e instanceof PsiFile) {
       // resource file
-      PsiField[] fields = AndroidResourceUtil.findResourceFieldsForFileResource((PsiFile)e, true);
+      PsiField[] fields = forHighlightUsages
+                          ? PsiField.EMPTY_ARRAY
+                          : AndroidResourceUtil.findResourceFieldsForFileResource((PsiFile)e, true);
       if (fields.length == 0) {
         return null;
       }
@@ -145,18 +189,23 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
     else if (e instanceof XmlTag) {
       // value resource
       XmlTag tag = (XmlTag)e;
-      PsiField[] fields = AndroidResourceUtil.findResourceFieldsForValueResource(tag, true);
-      if (fields.length == 0) {
-        return null;
-      }
-
-      PsiField[] styleableFields = AndroidResourceUtil.findStyleableAttributeFields(tag, true);
-      if (styleableFields.length > 0) {
-        fields = ObjectArrays.concat(fields, styleableFields, PsiField.class);
-      }
       final XmlAttribute nameAttr = tag.getAttribute(ATTR_NAME);
       final XmlAttributeValue nameValue = nameAttr != null ? nameAttr.getValueElement() : null;
       assert nameValue != null;
+
+      PsiField[] fields = PsiField.EMPTY_ARRAY;
+      if (!forHighlightUsages) {
+        fields = AndroidResourceUtil.findResourceFieldsForValueResource(tag, true);
+        if (fields.length == 0) {
+          return null;
+        }
+
+        PsiField[] styleableFields = AndroidResourceUtil.findStyleableAttributeFields(tag, true);
+        if (styleableFields.length > 0) {
+          fields = ObjectArrays.concat(fields, styleableFields, PsiField.class);
+        }
+      }
+
       return new MyFindUsagesHandler(nameValue, fields);
     }
     else if (e instanceof PsiField) {
@@ -172,5 +221,4 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
     }
     return null;
   }
-
 }
