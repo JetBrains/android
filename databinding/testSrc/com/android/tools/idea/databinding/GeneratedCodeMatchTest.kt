@@ -274,14 +274,25 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     val moduleScope = (projectRule.fixture as JavaCodeInsightTestFixture)
       .findClass("com.android.example.appwithdatabinding.MainActivity").resolveScope
 
-    val missingClasses = HashSet<String>()
-    val generatedClasses = HashSet<String>()
+    // The data binding compiler generates a bunch of stuff we don't care about in Studio. The
+    // following set is what we want to make sure we generate PSI for.
+    val interestingClasses = setOf(
+      "${parameters.mode.packageName}DataBindingComponent",
+      "com.android.example.appwithdatabinding.BR",
+      "com.android.example.appwithdatabinding.databinding.ActivityMainBinding",
+      "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBinding",
+      "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBindingImpl",
+      "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBindingLandImpl",
+      "com.android.example.appwithdatabinding.databinding.NoVariableLayoutBinding"
+    )
+    val generatedClasses = mutableSetOf<String>()
+    val missingClasses = mutableSetOf<String>()
     val manifestPackage = projectRule.androidFacet.manifest!!.`package`.value!!.pkgToPath()
     for (classReader in classMap.values) {
-      if (!isGeneratedDataBindingClass(viewDataBindingClass, manifestPackage, classReader)) {
+      val className = classReader.className.pathToPkg()
+      if (!interestingClasses.contains(className)) {
         continue
       }
-      val className = classReader.className.pathToPkg()
       generatedClasses.add(className)
       val psiClass = javaPsiFacade.findClass(className, moduleScope)
       if (psiClass == null) {
@@ -293,28 +304,12 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
       val asmInfo = ClassDescriber.collectDescriptionSet(classReader, baseClassInfo)
       val psiInfo = ClassDescriber.collectDescriptionSet(psiClass)
 
-      assertWithMessage(className).that(asmInfo).isEqualTo(psiInfo)
+      assertWithMessage(className).that(psiInfo).isEqualTo(asmInfo)
     }
     assertWithMessage("Failed to find expected generated data binding classes; did the compiler change?")
-      .that(generatedClasses).containsExactly(
-        "${parameters.mode.packageName}DataBindingComponent",
-        "com.android.example.appwithdatabinding.BR",
-        "com.android.example.appwithdatabinding.databinding.ActivityMainBinding",
-        "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBinding",
-        "com.android.example.appwithdatabinding.databinding.NoVariableLayoutBinding")
+      .that(generatedClasses).containsExactlyElementsIn(interestingClasses)
 
-    assertWithMessage("PSI and generated code are out of sync for: ${missingClasses.joinToString(", ")}")
+    assertWithMessage("PSI could not be found for some generated code: ${missingClasses.joinToString(", ")}")
       .that(missingClasses).isEmpty()
-  }
-
-  /**
-   * Returns `true` if the class associated with [classReader] is a generated `Binding` class,
-   * `BR` class, or `DataBindingComponent` class.
-   */
-  private fun isGeneratedDataBindingClass(viewDataBindingClass: ClassReader, manifestPackage: String, classReader: ClassReader): Boolean {
-    return viewDataBindingClass.className == classReader.superName
-           || parameters.dataBindingComponentClassName == classReader.className
-           // Exclude the framework's BR.java
-           || (classReader.className.endsWith("/BR") && classReader.className.contains(manifestPackage))
   }
 }
