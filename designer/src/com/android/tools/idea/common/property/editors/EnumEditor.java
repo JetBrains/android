@@ -30,6 +30,7 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.UndoManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -148,8 +149,12 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
         if (myProperty == EmptyProperty.INSTANCE) {
           return;
         }
+        Project project = myProperty.getModel().getProject();
+        if (project.isDisposed()) {
+          return;
+        }
         ValueWithDisplayString value = createFromEditorValue(myEditor.getText());
-        UndoManager undoManager = UndoManager.getInstance(myProperty.getModel().getProject());
+        UndoManager undoManager = UndoManager.getInstance(project);
         // b/110880308: Avoid updating the property during undo/redo
         if (!Objects.equals(value.getValue(), myProperty.getValue()) &&
             !undoManager.isUndoInProgress() && !undoManager.isRedoInProgress()) {
