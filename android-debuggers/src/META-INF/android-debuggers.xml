@@ -18,6 +18,7 @@
     <fileTypeFactory implementation="com.android.tools.idea.editors.SqliteFileTypeFactory"/>
     <fileTypeDetector implementation="com.android.tools.idea.editors.sqlite.SqliteFileTypeDetector" />
     <applicationService serviceImplementation="com.android.tools.idea.sqlite.ui.SqliteEditorViewFactoryImpl"/>
+    <elementDescriptionProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.AndroidSqlFakePsiElementDescriptionProvider"/>
 
     <annotator language="JAVA" implementationClass="com.android.tools.idea.SqliteQueryAnnotator"/>
     <annotator language="kotlin" implementationClass="com.android.tools.idea.SqliteQueryAnnotator"/>
@@ -38,5 +39,8 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea.explorer">
     <fileHandler implementation="com.android.tools.idea.SqliteFileHandler"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.lang">
+    <androidSql.contextProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext$Provider" />
   </extensions>
 </idea-plugin>

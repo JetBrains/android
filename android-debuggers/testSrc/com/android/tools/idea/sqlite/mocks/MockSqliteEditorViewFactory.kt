@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
+import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactory
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
@@ -34,5 +35,5 @@ open class MockSqliteEditorViewFactory : SqliteEditorViewFactory {
 
   override fun createTableView(): TableView = tableView
 
-  override fun createEvaluatorView(project: Project): SqliteEvaluatorView = sqliteEvaluatorView
+  override fun createEvaluatorView(project: Project, provider: SchemaProvider): SqliteEvaluatorView = sqliteEvaluatorView
 }

@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite.ui
+package com.android.tools.idea.sqlite
 
-import com.android.tools.idea.sqlite.SchemaProvider
-import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
-import com.android.tools.idea.sqlite.ui.tableView.TableView
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteSchema
 
-interface SqliteEditorViewFactory {
-  /**
-   * Returns a [TableView].
-   */
-  fun createTableView(): TableView
-
-  /**
-   * Returns a [SqliteEvaluatorView].
-   */
-  fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider): SqliteEvaluatorView
+/**
+ * Returns [SqliteSchema] for given [SqliteDatabase].
+ *
+ * Used in [SqliteEvaluatorViewImpl] to get [SqliteSchema] for further SQL language support in [SqliteSchemaContext]
+ */
+interface SchemaProvider {
+  fun getSchema(database: SqliteDatabase): SqliteSchema?
 }
