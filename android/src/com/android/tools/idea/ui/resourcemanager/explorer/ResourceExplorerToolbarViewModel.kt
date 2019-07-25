@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.android.tools.idea.ui.resourcemanager.actions.AddFontAction
 import com.android.tools.idea.ui.resourcemanager.actions.NewResourceValueAction
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialog
@@ -111,9 +112,9 @@ class ResourceExplorerToolbarViewModel(
         ResourceType.DIMEN,
         ResourceType.INTEGER,
         ResourceType.STRING -> add(NewResourceValueAction(resourceType, facet))
+        ResourceType.FONT -> add(AddFontAction(facet))
       }
     }
-
 
   /**
    * Returns the [AnAction] to open the available [com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter]s.
