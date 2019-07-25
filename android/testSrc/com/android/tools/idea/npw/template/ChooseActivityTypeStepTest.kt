@@ -28,7 +28,7 @@ import org.junit.Test
  */
 class ChooseActivityTypeStepTest {
 
-  private val messageKeys = ActivityGalleryStepMessageKeys()
+  private val messageKeys = activityGalleryStepMessageKeys
 
   @Test
   fun testNoTemplateForExistingModule() {

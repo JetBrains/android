@@ -34,12 +34,10 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStopResponse;
-import com.android.tools.profiler.proto.CpuProfiler.EmptyCpuReply;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
-import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.StartupProfilingRequest;
 import com.android.tools.profiler.proto.CpuProfiler.StartupProfilingResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
@@ -129,13 +127,6 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     }
 
     responseObserver.onNext(myLastTraceInfoResponse.getResponse());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void saveTraceInfo(SaveTraceInfoRequest request, StreamObserver<EmptyCpuReply> responseObserver) {
-    myCpuTable.insertTraceInfo(request.getSession(), request.getTraceInfo());
-    responseObserver.onNext(EmptyCpuReply.getDefaultInstance());
     responseObserver.onCompleted();
   }
 

@@ -436,18 +436,59 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
   }
 
   @Test
+  fun testImportedSessionOnlyProcessedWhenEnded() {
+    Assume.assumeTrue(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
+
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, 1,
+                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE).build())
+    myManager.update()
+    Truth.assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
+
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, 2).build())
+    myManager.update()
+    Truth.assertThat(myManager.sessionArtifacts.size).isEqualTo(1)
+  }
+
+  @Test
   fun testImportedSessionDoesNotHaveChildren() {
     // TODO b/136292864
     Assume.assumeFalse(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
-    myManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
+
+    val session1Timestamp = 1L
+    val session2Timestamp = 2L
+
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
-    myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
-    myManager.createImportedSession("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 1)
-    val simpleperfTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
                           .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
                                             .setTraceType(Cpu.CpuTraceType.SIMPLEPERF))).build()
-    myCpuService.addTraceInfo(simpleperfTraceInfo)
+
+    if (useUnifiedEvents) {
+      myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, session1Timestamp,
+                                                                                         Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE).build())
+      myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, session1Timestamp).build());
+      val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(session1Timestamp, session1Timestamp, heapDumpInfo)
+      myTransportService.addEventToStream(1, heapDumpEvent.build())
+
+      myTransportService.addEventToStream(2, ProfilersTestData.generateSessionStartEvent(2, 2, session2Timestamp,
+                                                                                         Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE).build())
+      myTransportService.addEventToStream(2, ProfilersTestData.generateSessionEndEvent(2, 2, session2Timestamp).build());
+      val cpuTrace = Common.Event.newBuilder()
+        .setGroupId(session2Timestamp)
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(session2Timestamp)
+        .setIsEnded(true)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+        .build()
+      myTransportService.addEventToStream(2, cpuTrace)
+    }
+    else {
+      myManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
+      myManager.createImportedSessionLegacy("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 1)
+      myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+      myCpuService.addTraceInfo(cpuTraceInfo)
+    }
     myManager.update()
 
     Truth.assertThat(myManager.sessionArtifacts.size).isEqualTo(2)

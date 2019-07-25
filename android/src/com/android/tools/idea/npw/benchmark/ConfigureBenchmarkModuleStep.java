@@ -88,7 +88,7 @@ public class ConfigureBenchmarkModuleStep extends SkippableWizardStep<NewBenchma
     myModuleName.setText(WizardUtils.getUniqueName(model.moduleName().get(), moduleValidator));
 
     Expression<String> computedPackageName =
-      new DomainToPackageExpression(new StringValueProperty(getInitialDomain(false)), model.moduleName());
+      new DomainToPackageExpression(new StringValueProperty(getInitialDomain()), model.moduleName());
     myBindings.bind(model.moduleName(), moduleNameText, myValidatorPanel.hasErrors().not());
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myBindings.bind(model.packageName(), packageNameText);

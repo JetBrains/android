@@ -26,42 +26,18 @@ import com.android.tools.idea.run.editor.DeployTargetState;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.Executor;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.ide.ui.UISettings;
-import com.intellij.ide.ui.customization.CustomActionsSchema;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import java.util.Map;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
-  @NotNull
-  private final Supplier<UISettings> myGetUiSettings;
-
-  @NotNull
-  private final Predicate<String> myContainsComboBox;
-
   private boolean myProvidingMultipleTargets;
-
-  @VisibleForTesting
-  public DeviceAndSnapshotComboBoxTargetProvider() {
-    this(UISettings::getInstance, DeviceAndSnapshotComboBoxTargetProvider::containsComboBox);
-  }
-
-  @VisibleForTesting
-  DeviceAndSnapshotComboBoxTargetProvider(@NotNull Supplier<UISettings> getUiSettings, @NotNull Predicate<String> containsComboBox) {
-    myGetUiSettings = getUiSettings;
-    myContainsComboBox = containsComboBox;
-  }
 
   @NotNull
   @Override
@@ -116,31 +92,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
 
   @Override
   public boolean requiresRuntimePrompt() {
-    return myProvidingMultipleTargets || !isComboBoxVisible();
-  }
-
-  @VisibleForTesting
-  boolean isComboBoxVisible() {
-    UISettings settings = myGetUiSettings.get();
-
-    if (settings.getPresentationMode()) {
-      return false;
-    }
-
-    if (settings.getShowMainToolbar()) {
-      return myContainsComboBox.test(IdeActions.GROUP_MAIN_TOOLBAR);
-    }
-
-    if (settings.getShowNavigationBar()) {
-      return myContainsComboBox.test("NavBarToolBar");
-    }
-
-    return false;
-  }
-
-  private static boolean containsComboBox(@NotNull String id) {
-    ActionGroup group = (ActionGroup)CustomActionsSchema.getInstance().getCorrectedAction(id);
-    return ActionUtil.recursiveContainsAction(group, ActionManager.getInstance().getAction("DeviceAndSnapshotComboBox"));
+    return myProvidingMultipleTargets;
   }
 
   void setProvidingMultipleTargets(@SuppressWarnings("SameParameterValue") boolean providingMultipleTargets) {

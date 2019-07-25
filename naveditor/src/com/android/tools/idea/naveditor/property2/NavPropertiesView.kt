@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property2
 
+import com.android.tools.idea.naveditor.property2.inspector.ActionInspectorBuilder
 import com.android.tools.idea.naveditor.property2.inspector.DestinationInspectorBuilder
 import com.android.tools.idea.naveditor.property2.inspector.GraphInspectorBuilder
 import com.android.tools.idea.naveditor.property2.inspector.LabelInspectorBuilder
@@ -49,5 +50,6 @@ class NavPropertiesView(model: NelePropertiesModel) : PropertiesView<NelePropert
     tab.builders.add(StartDestinationInspectorBuilder(editorProvider))
     tab.builders.add(GraphInspectorBuilder(editorProvider))
     tab.builders.add(NameInspectorBuilder(editorProvider))
+    tab.builders.add(ActionInspectorBuilder(editorProvider))
   }
 }

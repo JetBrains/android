@@ -78,6 +78,13 @@ class GenericFileFilterTest {
     .checkFileLinks("/path/to/file.c")
 
   @Test
+  fun `a huge line number will not break it`() = getFilterResultAndCheckHighlightPositions("""
+    | /path/to/file.c:99999999999999999
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  """.trimIndent())
+    .checkFileLinks("/path/to/file.c")
+
+  @Test
   fun `recognize path with line number and column`() = getFilterResultAndCheckHighlightPositions("""
     | /path/to/file.c:3:7
       ^^^^^^^^^^^^^^^^^^^

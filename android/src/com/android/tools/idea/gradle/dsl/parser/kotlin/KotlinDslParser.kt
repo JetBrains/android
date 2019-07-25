@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
@@ -61,11 +62,9 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtScriptInitializer
 import org.jetbrains.kotlin.psi.KtStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
-import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtVisitor
@@ -217,6 +216,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       else {
         blockElement = dslFile.getBlockElement(listOf(referenceName), parent) ?: return
       }
+      // Get the block psi element of expression.
+      val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
+
+      blockElement.setPsiElement(argumentsBlock)
       blockElements.add(blockElement)
       blockElements.forEach { block ->
         // Visit the children of this element, with the current block set as parent.
@@ -231,7 +234,8 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
       val name = GradleNameElement.from(expression.referenceExpression()!!)
       if (argumentsList != null) {
-        val callExpression = getCallExpression(parent, expression, name, argumentsList, referenceName, true)
+        val callExpression =
+          getCallExpression(parent, expression, name, argumentsList, referenceName, true) ?: return
         if (argumentsBlock != null) {
           callExpression.setParsedClosureElement(getClosureBlock(callExpression, argumentsBlock, name))
         }
@@ -259,34 +263,45 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     propertyElement.setUseAssignment(true)
     propertyElement.setElementType(REGULAR)
 
-    parent.setParsedElement(propertyElement)
+    parentBlock.setParsedElement(propertyElement)
   }
 
   override fun visitProperty(expression: KtProperty, parent: GradlePropertiesDslElement) {
     val identifier = expression.nameIdentifier ?: return
-    // handling delegated KtProperties ( val foo by ... ) to support Gradle extra properties.
-    //
-    // TODO(xof): implement support for local variables ( val foo = ... )
-    val delegate = expression.delegate ?: return
-    val callExpression = delegate.expression as? KtCallExpression ?: return
+    val delegate = expression.delegate
+    if (delegate == null) {
+      // handling standard KtProperties ( val foo = ...) to support variables
+      val initializer = expression.initializer ?: return
 
-    val referenceExpression = callExpression.referenceExpression() ?: return
-    // TODO(xof): it's more complicated than this, of course; kotlinscript can express gradle properties on other
-    //  projects' extra blocks, using "val foo by rootProject.extra(42)".  The Kotlinscript Psi tree is the wrong way round
-    //  for us to detect it easily: (rootProject dot (extra [42])) rather than ((rootProject dot extra) [42]) so more work
-    //  is needed here.
-    if (referenceExpression.text != "extra") return
-    val arguments = callExpression.valueArgumentList?.arguments ?: return
-    if (arguments.size != 1) return
-    val initializer = arguments[0].getArgumentExpression() ?: return
+      // if we've got this far, we have a variable declaration/initialization of the form "val foo = bar"
 
-    // If we've got this far, we have an extra property declaration/initialization of the form "val foo by extra(bar)".
+      val name = GradleNameElement.from(identifier)
+      val propertyElement = createExpressionElement(parent, expression, name, initializer) ?: return
+      propertyElement.elementType = VARIABLE
+      parent.setParsedElement(propertyElement)
+    }
+    else {
+      // handling delegated KtProperties ( val foo by ... ) to support Gradle extra properties.
+      val callExpression = delegate.expression as? KtCallExpression ?: return
 
-    val ext = getBlockElement(listOf("ext"), parent, null) ?: return
-    val name = GradleNameElement.from(identifier) // TODO(xof): error checking: empty/qualified/etc
-    val propertyElement = createExpressionElement(ext, expression, name, initializer) ?: return
-    propertyElement.elementType = REGULAR
-    ext.setParsedElement(propertyElement)
+      val referenceExpression = callExpression.referenceExpression() ?: return
+      // TODO(xof): it's more complicated than this, of course; kotlinscript can express gradle properties on other
+      //  projects' extra blocks, using "val foo by rootProject.extra(42)".  The Kotlinscript Psi tree is the wrong way round
+      //  for us to detect it easily: (rootProject dot (extra [42])) rather than ((rootProject dot extra) [42]) so more work
+      //  is needed here.
+      if (referenceExpression.text != "extra") return
+      val arguments = callExpression.valueArgumentList?.arguments ?: return
+      if (arguments.size != 1) return
+      val initializer = arguments[0].getArgumentExpression() ?: return
+
+      // If we've got this far, we have an extra property declaration/initialization of the form "val foo by extra(bar)".
+
+      val ext = getBlockElement(listOf("ext"), parent, null) ?: return
+      val name = GradleNameElement.from(identifier) // TODO(xof): error checking: empty/qualified/etc
+      val propertyElement = createExpressionElement(ext, expression, name, initializer) ?: return
+      propertyElement.elementType = REGULAR
+      ext.setParsedElement(propertyElement)
+    }
   }
 
   private fun getCallExpression(
@@ -296,7 +311,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     argumentsList : KtValueArgumentList,
     methodName : String,
     isFirstCall : Boolean
-  ) : GradleDslExpression {
+  ) : GradleDslExpression? {
     if (methodName == "mapOf") {
       return getExpressionMap(parentElement, argumentsList, name, argumentsList.arguments)
     }
@@ -307,16 +322,15 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // If the method has one argument, we should check if it's declared under a dependency block in order to resolve it to a dependency,
       // or to a plugin otherwise.
       if (argumentsList.arguments.size == 1) {
+        val nameExpression = argumentsList.arguments[0].getArgumentExpression() ?: return null
         if (parentElement.fullName == "plugins") {
-          // Get the plugin name from the argument.
-          // Since the argument in not null, getArgumentExpression() is non null, and hence using !! is safe.
-          val pluginName = "kotlin-${unquoteString(argumentsList.arguments[0].getArgumentExpression()!!.text)}"
+          val pluginName = "kotlin-${unquoteString(nameExpression.text)}"
           val literalExpression = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
           literalExpression.setValue(pluginName)
           return literalExpression
         }
         else {
-          val dependencyName = "org.jetbrains.kotlin:kotlin-${unquoteString(argumentsList.arguments[0].getArgumentExpression()!!.text)}"
+          val dependencyName = "org.jetbrains.kotlin:kotlin-${unquoteString(nameExpression.text)}"
           val dependencyLiteral = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
           dependencyLiteral.setValue(dependencyName)
           return dependencyLiteral
@@ -325,9 +339,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // If the method has two arguments then it should automatically resolve to a dependency.
       else if (argumentsList.arguments.size == 2) {
         // arguments are not null and each argument will have an non null argumentExpression as well, so using !! in this case is safe.
-        val moduleName = unquoteString(argumentsList.arguments[0].getArgumentExpression()!!.text)
-        val version = unquoteString(argumentsList.arguments[1].getArgumentExpression()!!.text)
-        val dependencyName = "org.jetbrains.kotlin:kotlin-${moduleName}:${version}"
+        val moduleName = argumentsList.arguments[0].getArgumentExpression() ?: return null
+        val version = argumentsList.arguments[1].getArgumentExpression() ?: return null
+        val dependencyName = "org.jetbrains.kotlin:kotlin-${unquoteString(moduleName.text)}:${unquoteString(version.text)}"
         val dependencyLiteral = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
         dependencyLiteral.setValue(dependencyName)
         return dependencyLiteral
@@ -354,7 +368,11 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           methodName)
       }
       if (isFirstCall && !arguments[0].isNamed()) {
-        return getExpressionElement(parentElement, psiElement, name, arguments[0].getArgumentExpression() as KtElement)
+        return getExpressionElement(
+          parentElement,
+          arguments[0].getArgumentExpression() as PsiElement,
+          name,
+          arguments[0].getArgumentExpression() as KtElement)
       }
       return getMethodCall(parentElement, psiElement, name, methodName)
     }
@@ -398,6 +416,8 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     val expressionList = GradleDslExpressionList(parentElement, listPsiElement, propertyName, isLiteral)
     valueArguments.map {
       expression -> expression as KtValueArgument
+    }.filter {
+      arg -> arg.getArgumentExpression() != null
     }.mapNotNull {
       argumentExpression -> createExpressionElement(
       expressionList,
@@ -448,6 +468,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // Ex: Delete::class.
       is KtClassLiteralExpression -> GradleDslLiteral(
         parentElement, psiElement, propertyName, propertyExpression.receiverExpression as  PsiElement, true)
+      // Ex: extra["COMPILE_SDK_VERSION"]
+      is KtArrayAccessExpression -> GradleDslLiteral(
+        parentElement, psiElement, propertyName, propertyExpression, true)
       else -> {
         // The expression is not supported.
         parentElement.notification(NotificationTypeReference.INCOMPLETE_PARSING).addUnknownElement(propertyExpression)

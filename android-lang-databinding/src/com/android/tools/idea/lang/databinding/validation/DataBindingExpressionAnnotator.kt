@@ -58,20 +58,8 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
    */
   private fun isViewDataBindingMethod(name: String) = name == "safeUnbox"
 
-  private fun toElements(parameters: PsiDbInferredFormalParameterList): List<PsiElement> {
-    val identifierList = mutableListOf<PsiElement>()
-    var node = parameters.firstChild
-    while (node != null) {
-      if (node is LeafPsiElement && node.elementType == DbTokenTypes.IDENTIFIER) {
-        identifierList.add(node)
-      }
-      node = node.nextSibling
-    }
-    return identifierList
-  }
-
   private fun toNames(parameters: PsiDbInferredFormalParameterList): List<String> {
-    return toElements(parameters).map { it.text }
+    return parameters.inferredFormalParameterList.map { it.text }
   }
 
   /**
@@ -162,9 +150,9 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
    */
   override fun visitInferredFormalParameterList(parameters: PsiDbInferredFormalParameterList) {
     super.visitInferredFormalParameterList(parameters)
-    val nodes = toElements(parameters)
-    nodes.filter {
-      nodes.count { node -> it.text == node.text } > 1
+
+    parameters.inferredFormalParameterList.filter { parameter ->
+      parameters.inferredFormalParameterList.count { it.text == parameter.text } > 1
     }.forEach {
       annotateError(it, DUPLICATE_CALLBACK_ARGUMENT, it.text)
     }

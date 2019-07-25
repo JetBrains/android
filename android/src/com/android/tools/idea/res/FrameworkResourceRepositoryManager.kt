@@ -17,7 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants.DOT_JAR
 import com.android.tools.idea.concurrency.AndroidIoManager
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.resources.aar.CachingData
 import com.android.tools.idea.resources.aar.FrameworkResourceRepository
 import com.android.tools.idea.resources.aar.RESOURCE_CACHE_DIRECTORY
@@ -54,7 +54,7 @@ class FrameworkResourceRepositoryManager {
     val path = resourceDirectoryOrFile.toPath()
     val cachingData = createCachingData(path)
     val cached = cache.computeIfAbsent(path) {
-      file -> FrameworkResourceRepository.create(file, languages, cachingData, StudioFlags.NELE_NATIVE_LAYOUTLIB.get())
+       FrameworkResourceRepository.create(it, languages, cachingData, LayoutLibrary.isNative())
     }
     if (languages.isEmpty()) {
       return cached
@@ -81,7 +81,7 @@ class FrameworkResourceRepositoryManager {
 
     val pathHash = Hashing.farmHashFingerprint64().hashUnencodedChars(resFolderOrJar.toString()).toString()
     val prefix = resFolderOrJar.parent?.parent?.fileName.toString() ?: "framework"
-    val filename = String.format("%s_%s.bin", prefix, pathHash)
+    val filename = String.format("%s_%s.dat", prefix, pathHash)
     val cacheFile = Paths.get(PathManager.getSystemPath(), RESOURCE_CACHE_DIRECTORY, filename)
     return CachingData(cacheFile, contentVersion, codeVersion, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor())
   }

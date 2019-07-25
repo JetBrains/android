@@ -36,7 +36,6 @@ import com.android.tools.idea.lint.AndroidLintApplySharedPrefInspection;
 import com.android.tools.idea.lint.AndroidLintAuthLeakInspection;
 import com.android.tools.idea.lint.AndroidLintButtonOrderInspection;
 import com.android.tools.idea.lint.AndroidLintByteOrderMarkInspection;
-import com.android.tools.idea.lint.AndroidLintUnsupportedChromeOsCameraSystemFeatureInspection;
 import com.android.tools.idea.lint.AndroidLintContentDescriptionInspection;
 import com.android.tools.idea.lint.AndroidLintDeprecatedInspection;
 import com.android.tools.idea.lint.AndroidLintDisableBaselineAlignmentInspection;
@@ -68,6 +67,7 @@ import com.android.tools.idea.lint.AndroidLintMenuTitleInspection;
 import com.android.tools.idea.lint.AndroidLintMissingApplicationIconInspection;
 import com.android.tools.idea.lint.AndroidLintMissingIdInspection;
 import com.android.tools.idea.lint.AndroidLintMissingLeanbackSupportInspection;
+import com.android.tools.idea.lint.AndroidLintMissingPermissionInspection;
 import com.android.tools.idea.lint.AndroidLintMissingPrefixInspection;
 import com.android.tools.idea.lint.AndroidLintMissingSuperCallInspection;
 import com.android.tools.idea.lint.AndroidLintMissingTvBannerInspection;
@@ -106,6 +106,7 @@ import com.android.tools.idea.lint.AndroidLintTypographyDashesInspection;
 import com.android.tools.idea.lint.AndroidLintTypographyQuotesInspection;
 import com.android.tools.idea.lint.AndroidLintTyposInspection;
 import com.android.tools.idea.lint.AndroidLintUnprotectedSMSBroadcastReceiverInspection;
+import com.android.tools.idea.lint.AndroidLintUnsupportedChromeOsCameraSystemFeatureInspection;
 import com.android.tools.idea.lint.AndroidLintUnsupportedChromeOsHardwareInspection;
 import com.android.tools.idea.lint.AndroidLintUnusedAttributeInspection;
 import com.android.tools.idea.lint.AndroidLintUnusedResourcesInspection;
@@ -479,6 +480,20 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestWithFix(new AndroidLintInvalidPermissionInspection(),
                   AndroidBundle.message("android.lint.fix.remove.attribute"),
                   "AndroidManifest.xml", "xml");
+  }
+
+  public void testMissingPermissionJava() throws Exception {
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+    doTestWithFix(new AndroidLintMissingPermissionInspection(),
+                  "Add permission check",
+                  "/src/p1/p2/LocationTestJava.java", "java");
+  }
+
+  public void testMissingPermissionKotlin() throws Exception {
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+    doTestWithFix(new AndroidLintMissingPermissionInspection(),
+                  "Add permission check",
+                  "/src/p1/p2/LocationTest.kt", "kt");
   }
 
   public void testUselessLeaf() throws Exception {

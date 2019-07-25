@@ -16,19 +16,15 @@
 package com.android.tools.idea.naveditor.scene.decorator
 
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.draw.ArrowDirection
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.FillArrow
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.NavColors.ACTION
 import com.android.tools.idea.naveditor.scene.draw.DrawAction
-import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 import com.android.tools.idea.naveditor.scene.draw.DrawSelfAction
 import com.android.tools.idea.naveditor.scene.draw.assertDrawCommandsEqual
 import org.mockito.Mockito
 import java.awt.Graphics2D
-import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
 class ActionDecoratorTest : NavTestCase() {
@@ -57,12 +53,9 @@ class ActionDecoratorTest : NavTestCase() {
 
     ActionDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), f1_to_f2)
 
-    val drawAction = displayList.commands[0]
-    assertNotNull(drawAction as DrawAction) // TODO: Convert DrawAction to data class
-    assertDrawCommandsEqual(FillArrow(ArrowDirection.UP, Rectangle2D.Float(561.75f, 532.0f, 6.0f, 5.0f), ACTION),
-                 displayList.commands[1])
-    assertEquals(DrawIcon(Rectangle2D.Float(487.2728f, 654.0313f, 8.0f, 8.0f), DrawIcon.IconType.POP_ACTION, ACTION),
-                 displayList.commands[2])
+    assertDrawCommandsEqual(DrawAction(Rectangle2D.Float(419f, 619f, 50f, 100f),
+                                       Rectangle2D.Float(526.5f, 400f, 76.5f, 128f),
+                                       0.5f, ACTION, true), displayList.commands[0])
   }
 
   fun testSelfPopAction() {

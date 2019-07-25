@@ -67,7 +67,7 @@ object ActionDecorator : NavBaseDecorator() {
           val destinationSceneComponent = scene.getSceneComponent(targetNlComponent) ?: return
           val destRect = Coordinates.getSwingRectDip(view, destinationSceneComponent.fillDrawRect2D(0, null))
 
-          DrawAction.buildDisplayList(list, view, isPopAction, sourceRect, destRect, color)
+          list.add(DrawAction(sourceRect, destRect, scale, color, isPopAction))
         }
       }
     }

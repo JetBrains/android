@@ -815,6 +815,29 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewGoogleAdMobFragment() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "GoogleAdMobAdsFragment");
+  }
+
+  @TemplateCheck
+  public void testNewGoogleAdMobFragmentWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "GoogleAdMobAdsFragment", false, withKotlin);
+  }
+
+  public void testLoginFragment() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "LoginFragment");
+  }
+
+  @TemplateCheck
+  public void testLoginFragmentWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("fragments", "LoginFragment", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewService() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "Service");
@@ -907,16 +930,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testAndroidAutoMediaService() throws Exception {
-    checkCreateTemplate("other", "AndroidAutoMediaService");
-  }
-
-  @TemplateCheck
-  public void testAndroidAutoMediaServiceWithKotlin() throws Exception {
-    checkCreateTemplate("other", "AndroidAutoMediaService", false, withKotlin);
-  }
-
-  @TemplateCheck
   public void testAutomotiveMediaService() throws Exception {
     checkCreateTemplate("other", "AutomotiveMediaService", false);
   }
@@ -927,13 +940,13 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testAndroidAutoMessagingService() throws Exception {
-    checkCreateTemplate("other", "AndroidAutoMessagingService");
+  public void testAutomotiveMessagingService() throws Exception {
+    checkCreateTemplate("other", "AutomotiveMessagingService");
   }
 
   @TemplateCheck
-  public void testAndroidAutoMessagingServiceWithKotlin() throws Exception {
-    checkCreateTemplate("other", "AndroidAutoMessagingService", false , withKotlin);
+  public void testAutomotiveMessagingServiceWithKotlin() throws Exception {
+    checkCreateTemplate("other", "AutomotiveMessagingService", false , withKotlin);
   }
 
   @TemplateCheck
@@ -1810,15 +1823,13 @@ public class TemplateTest extends AndroidGradleTestCase {
     String activityFormFactorName = activityMetadata.getFormFactor();
     if (activityFormFactorName != null) {
       FormFactor activityFormFactor = FormFactor.get(activityFormFactorName);
-      if (activityFormFactor != FormFactor.CAR) {
-        TemplateManager manager = TemplateManager.getInstance();
-        List<File> applicationTemplates = manager.getTemplatesInCategory(CATEGORY_APPLICATION);
-        for (File formFactorTemplateFile : applicationTemplates) {
-          TemplateMetadata metadata = manager.getTemplateMetadata(formFactorTemplateFile);
-          if (metadata != null && metadata.getFormFactor() != null && FormFactor.get(metadata.getFormFactor()) == activityFormFactor) {
-            moduleTemplate = Template.createFromPath(formFactorTemplateFile);
-            break;
-          }
+      TemplateManager manager = TemplateManager.getInstance();
+      List<File> applicationTemplates = manager.getTemplatesInCategory(CATEGORY_APPLICATION);
+      for (File formFactorTemplateFile : applicationTemplates) {
+        TemplateMetadata metadata = manager.getTemplateMetadata(formFactorTemplateFile);
+        if (metadata != null && metadata.getFormFactor() != null && FormFactor.get(metadata.getFormFactor()) == activityFormFactor) {
+          moduleTemplate = Template.createFromPath(formFactorTemplateFile);
+          break;
         }
       }
     }

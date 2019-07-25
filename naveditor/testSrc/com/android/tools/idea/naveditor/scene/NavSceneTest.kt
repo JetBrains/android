@@ -69,14 +69,11 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1050,928\n" +
-      "DrawAction,580.0x400.0x70.0x19.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,DOWN,435.25x380.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,580.0x400.0x70.0x19.0,400.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
-      "DrawAction,490.0x400.0x76.5x128.0,580.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "FillArrow,UP,612.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,490.0x400.0x76.5x128.0,580.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
       "\n" +
-      "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,UP,435.25x532.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -110,8 +107,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "FillArrow,UP,522.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
@@ -229,8 +225,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1057,928\n" +
-      "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,UP,435.25x532.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -286,8 +281,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,967,928\n" +
-      "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,UP,435.25x532.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -335,11 +329,9 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,1057,928\n" +
-      "DrawAction,400.0x400.0x70.0x19.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7,0\n" +
+      "DrawAction,400.0x400.0x70.0x19.0,490.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
-      "DrawAction,490.0x400.0x76.5x128.0,580.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,RIGHT,571.0x461.0x5.0x6.0,b2a7a7a7,0\n" +
+      "DrawAction,490.0x400.0x76.5x128.0,580.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -367,8 +359,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, view)
     assertEquals(
       "Clip,0,0,967,928\n" +
-      "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,UP,435.25x532.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment3,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -583,8 +574,7 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "FillArrow,UP,522.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,ffa7a7a7\n" +
@@ -603,8 +593,7 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "FillArrow,UP,522.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
@@ -623,8 +612,7 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "FillArrow,UP,522.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
@@ -703,8 +691,7 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "FillArrow,UP,522.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,490.0x389.0x70.0x11.0,0.5,subnav,false,false\n" +
       "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ff1886f7,2.0,Nested Graph,ffa7a7a7\n" +
@@ -801,8 +788,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1057,928\n" +
-      "DrawAction,580.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,UP,435.25x532.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,580.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -844,9 +830,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,967,928\n" +
-      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7,0\n" +
-      "DrawIcon,478.0x453.0x8.0x8.0,POP_ACTION,b2a7a7a7\n" +
+      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x76.5x128.0,0.5,b2a7a7a7,true\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -908,8 +892,7 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,1057,1078\n" +
-      "DrawAction,400.0x520.0x76.5x128.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,UP,525.25x532.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,400.0x520.0x76.5x128.0,490.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
@@ -1036,17 +1019,13 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1057,928\n" +
-      "DrawAction,400.0x430.0x70.0x19.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7,0\n" +
+      "DrawAction,400.0x430.0x70.0x19.0,490.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
-      "DrawAction,400.0x430.0x70.0x19.0,400.0x400.0x70.0x19.0,b2a7a7a7\n" +
-      "FillArrow,UP,432.0x423.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,400.0x430.0x70.0x19.0,400.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
       "\n" +
-      "DrawAction,490.0x400.0x76.5x128.0,580.0x400.0x76.5x128.0,b2a7a7a7\n" +
-      "FillArrow,RIGHT,571.0x461.0x5.0x6.0,b2a7a7a7,0\n" +
+      "DrawAction,490.0x400.0x76.5x128.0,580.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
       "\n" +
-      "DrawAction,490.0x400.0x76.5x128.0,400.0x430.0x70.0x19.0,b2a7a7a7\n" +
-      "FillArrow,UP,432.0x453.0x6.0x5.0,b2a7a7a7,0\n" +
+      "DrawAction,490.0x400.0x76.5x128.0,400.0x430.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
       "\n" +
       "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
       "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +

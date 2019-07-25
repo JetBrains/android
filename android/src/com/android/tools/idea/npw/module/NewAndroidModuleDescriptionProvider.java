@@ -21,11 +21,9 @@ import static com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
-import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
@@ -35,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.swing.Icon;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,17 +51,12 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
 
       int minSdk = metadata.getMinSdk();
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
-      if (formFactor == FormFactor.CAR) {
-        // Auto is not a standalone module (but rather a modification to a mobile module)
-      }
-      else if (formFactor == FormFactor.AUTOMOTIVE && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
-        // If automotive templates are not enabled, then we just ignore this form factor.
-      }
-      else if (formFactor.equals(FormFactor.MOBILE)) {
+      if (formFactor.equals(FormFactor.MOBILE)) {
         res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, getModuleTypeIcon(templateFile),
                                                       message("android.wizard.module.new.mobile"), metadata.getTitle()));
 
         File androidProjectTemplate = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_PROJECT_TEMPLATE);
+        assert androidProjectTemplate != null;
         res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, true, getModuleTypeIcon(androidProjectTemplate),
                                                       message("android.wizard.module.new.library"), metadata.getDescription()));
       }

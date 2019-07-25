@@ -246,13 +246,6 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     responseObserver.onCompleted();
   }
 
-  @Override
-  public void saveTraceInfo(CpuProfiler.SaveTraceInfoRequest request, StreamObserver<CpuProfiler.EmptyCpuReply> responseObserver) {
-    myTraceInfoMap.put(request.getTraceInfo().getTraceId(), request.getTraceInfo());
-    responseObserver.onNext(CpuProfiler.EmptyCpuReply.getDefaultInstance());
-    responseObserver.onCompleted();
-  }
-
   /**
    * Create two threads that overlap for certain amount of time.
    * They are referred as thread1 and thread2 in the comments present in the tests.

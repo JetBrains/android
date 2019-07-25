@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.databinding.viewbinding
 
+import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.isViewBindingEnabled
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.res.binding.BindingLayoutInfoFile
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -44,6 +46,9 @@ class ViewBindingNavigationTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
+  @get:Rule
+  val viewBindingFlagRule = RestoreFlagRule(StudioFlags.VIEW_BINDING_ENABLED)
+
   /**
    * Expose the underlying project rule fixture directly.
    *
@@ -58,6 +63,8 @@ class ViewBindingNavigationTest {
 
   @Before
   fun setUp() {
+    StudioFlags.VIEW_BINDING_ENABLED.override(true)
+
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING)
 

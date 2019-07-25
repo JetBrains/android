@@ -69,10 +69,10 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
           when {
             line[i] == ':' -> {
               val pathEndIndex = i
-              val lineNumber = line.takeWhileFromIndex(i + 1) { it.isDigit() }?.also { i += it.length }?.toInt() ?: 1
+              val lineNumber = line.takeWhileFromIndex(i + 1) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
               val columnNumber =
                 if (line.getOrNull(++i) == ':')
-                  line.takeWhileFromIndex(++i) { it.isDigit() }?.also { i += it.length }?.toInt() ?: 1
+                  line.takeWhileFromIndex(++i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
                 else
                   1
               addItem(pathEndIndex, lineNumber - 1, columnNumber - 1)
@@ -86,6 +86,13 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
     if (items.isEmpty()) return null
     return Filter.Result(items)
   }
+}
+
+private fun String?.safeToIntOrDefault(default: Int): Int = try {
+  this?.toInt() ?: default
+}
+catch (e: NumberFormatException) {
+  default
 }
 
 private fun String.takeWhileFromIndex(index: Int, predicate: (Char) -> Boolean): String? {

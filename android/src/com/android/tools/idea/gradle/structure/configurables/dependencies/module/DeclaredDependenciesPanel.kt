@@ -101,8 +101,10 @@ internal class DeclaredDependenciesPanel(
     }
 
     dependenciesTable.selectionModel.addListSelectionListener {
-      updateDetailsAndIssues()
-      notifySelectionChanged()
+      if (!it.valueIsAdjusting) {
+        updateDetailsAndIssues()
+        notifySelectionChanged()
+      }
     }
     dependenciesTable.selectFirstRow()
 

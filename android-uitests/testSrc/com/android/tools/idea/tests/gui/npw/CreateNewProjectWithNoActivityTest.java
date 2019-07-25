@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,10 +31,10 @@ public class CreateNewProjectWithNoActivityTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  public void activityTemplate() {
+  public void activityTemplate() throws IOException {
     guiTest.welcomeFrame().createNewProject()
       .getChooseAndroidProjectStep()
-      .chooseActivity("Add No Activity")
+      .chooseActivity("No Activity")
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
@@ -42,12 +44,7 @@ public class CreateNewProjectWithNoActivityTest {
       .clickFinish();
 
     // Verification
-    String buildContent = guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
-      .getEditor()
-      .open("app/build.gradle")
-      .getCurrentFileContents();
-
+    String buildContent = guiTest.getProjectFileText("app/build.gradle");
     assertThat(buildContent).contains("applicationId \"dev.tools\"");
     assertThat(buildContent).contains("implementation 'androidx.appcompat:appcompat:");
   }

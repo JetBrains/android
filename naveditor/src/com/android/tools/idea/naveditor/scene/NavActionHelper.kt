@@ -19,7 +19,6 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.model.effectiveDestination
@@ -119,39 +118,8 @@ fun getStartPoint(@SwingCoordinate rectangle: Rectangle2D.Float): Point2D.Float 
   return getConnectionPoint(rectangle, START_DIRECTION)
 }
 
-@SwingCoordinate
-fun getArrowRectangle(view: SceneView,
-                      @SwingCoordinate p: Point2D.Float,
-                      direction: ConnectionDirection): Rectangle2D.Float {
-  val rectangle = Rectangle2D.Float()
-  val parallel = Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PARALLEL)
-  val perpendicular = Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PERPENDICULAR)
-  val deltaX = direction.deltaX.toFloat()
-  val deltaY = direction.deltaY.toFloat()
-
-  rectangle.x = p.x + (if (deltaX == 0f) -perpendicular else parallel * (deltaX - 1)) / 2
-  rectangle.y = p.y + (if (deltaY == 0f) -perpendicular else parallel * (deltaY - 1)) / 2
-  rectangle.width = Math.abs(deltaX * parallel) + Math.abs(deltaY * perpendicular)
-  rectangle.height = Math.abs(deltaX * perpendicular) + Math.abs(deltaY * parallel)
-
-  return rectangle
-}
-
 enum class ConnectionDirection(val deltaX: Int, val deltaY: Int) {
   LEFT(-1, 0), RIGHT(1, 0), TOP(0, -1), BOTTOM(0, 1);
-
-  var opposite: ConnectionDirection? = null
-    private set
-
-  companion object {
-
-    init {
-      LEFT.opposite = RIGHT
-      RIGHT.opposite = LEFT
-      TOP.opposite = BOTTOM
-      BOTTOM.opposite = TOP
-    }
-  }
 }
 
 data class CurvePoints(@SwingCoordinate @JvmField val p1: Point2D.Float,
@@ -168,35 +136,35 @@ private fun getConnectionPoint(rectangle: Rectangle2D.Float,
 @SwingCoordinate
 fun getCurvePoints(@SwingCoordinate source: Rectangle2D.Float,
                    @SwingCoordinate dest: Rectangle2D.Float,
-                   sceneContext: SceneContext): CurvePoints {
+                   scale: Float): CurvePoints {
   val destDirection = getDestinationDirection(source, dest)
   val startPoint = getStartPoint(source)
-  val endPoint = getEndPoint(sceneContext, dest, destDirection)
+  val endPoint = getEndPoint(scale, dest, destDirection)
   return CurvePoints(startPoint,
-                     getControlPoint(sceneContext, startPoint,
+                     getControlPoint(scale, startPoint,
                                      endPoint,
                                      START_DIRECTION),
-                     getControlPoint(sceneContext, endPoint,
+                     getControlPoint(scale, endPoint,
                                      startPoint,
                                      destDirection), endPoint,
                      destDirection)
 }
 
 @SwingCoordinate
-private fun getControlPoint(context: SceneContext,
+private fun getControlPoint(scale: Float,
                             @SwingCoordinate p1: Point2D.Float,
                             @SwingCoordinate p2: Point2D.Float,
                             direction: ConnectionDirection): Point2D.Float {
   val shift = Math.min(Math.hypot((p1.x - p2.x).toDouble(), (p1.y - p2.y).toDouble()) / 2,
-                       context.getSwingDimension(CONTROL_POINT_THRESHOLD).toDouble()).toFloat()
+                       (CONTROL_POINT_THRESHOLD * scale).toDouble()).toFloat()
   return shiftPoint(p1, direction, shift)
 }
 
-fun getEndPoint(context: SceneContext, rectangle: Rectangle2D.Float, direction: ConnectionDirection): Point2D.Float {
+fun getEndPoint(scale: Float, rectangle: Rectangle2D.Float, direction: ConnectionDirection): Point2D.Float {
   return shiftPoint(
-    getArrowPoint(context, rectangle, direction),
+    getArrowPoint(scale, rectangle, direction),
     direction,
-    context.getSwingDimensionDip(NavSceneManager.ACTION_ARROW_PARALLEL) - 1f)
+    NavSceneManager.ACTION_ARROW_PARALLEL * scale - 1f)
 }
 
 /**
@@ -220,7 +188,7 @@ fun getAnyPoint(action: SceneComponent, context: SceneContext): Point2D.Float? {
       val targetNlComponent = actionNlComponent.effectiveDestination ?: return null
       val destinationSceneComponent = scene.getSceneComponent(targetNlComponent) ?: return null
       val destRect = Coordinates.getSwingRectDip(context, destinationSceneComponent.fillDrawRect2D(0, null))
-      val curvePoints = getCurvePoints(sourceRect, destRect, context)
+      val curvePoints = getCurvePoints(sourceRect, destRect, context.scale.toFloat())
       return Point2D.Float(getCurveX(curvePoints, 0.5).toFloat(), getCurveY(curvePoints, 0.5).toFloat())
     }
     ActionType.EXIT, ActionType.GLOBAL ->
@@ -230,7 +198,7 @@ fun getAnyPoint(action: SceneComponent, context: SceneContext): Point2D.Float? {
 }
 
 @SwingCoordinate
-fun getArrowPoint(context: SceneContext,
+fun getArrowPoint(scale: Float,
                   @SwingCoordinate rectangle: Rectangle2D.Float,
                   direction: ConnectionDirection): Point2D.Float {
   @NavCoordinate var shiftY = ACTION_PADDING
@@ -238,7 +206,7 @@ fun getArrowPoint(context: SceneContext,
     shiftY += JBUI.scale(HEADER_HEIGHT).toInt()
   }
   return shiftPoint(getConnectionPoint(rectangle, direction),
-                    direction, context.getSwingDimension(shiftY).toFloat())
+                    direction, shiftY * scale)
 }
 
 /**
@@ -247,17 +215,17 @@ fun getArrowPoint(context: SceneContext,
 @SwingCoordinate
 fun getRegularActionIconRect(@SwingCoordinate source: Rectangle2D.Float,
                              @SwingCoordinate dest: Rectangle2D.Float,
-                             sceneContext: SceneContext): Rectangle2D.Float {
+                             scale: Float): Rectangle2D.Float {
   val startPoint = getStartPoint(source)
-  val points = getCurvePoints(source, dest, sceneContext)
+  val points = getCurvePoints(source, dest, scale)
 
   var t = 0.0
   var previousX = 0.0
   var previousY = 0.0
   var currentX = getCurveX(points, t)
   var currentY = getCurveY(points, t)
-  val range = sceneContext.getSwingDimension(POP_ICON_RANGE)
-  val distance = sceneContext.getSwingDimension(POP_ICON_RADIUS + POP_ICON_DISTANCE)
+  val range = POP_ICON_RANGE * scale
+  val distance = (POP_ICON_RADIUS + POP_ICON_DISTANCE) * scale
 
   // Search for the best point to attach the pop icon to.
   // Four conditions are:
@@ -288,7 +256,7 @@ fun getRegularActionIconRect(@SwingCoordinate source: Rectangle2D.Float,
     deltaY *= -1
   }
 
-  val radius = sceneContext.getSwingDimension(POP_ICON_RADIUS).toFloat()
+  val radius = POP_ICON_RADIUS * scale
   return Rectangle2D.Float((currentX + deltaX).toFloat() - radius,
                            (currentY + deltaY).toFloat() - radius,
                            2 * radius, 2 * radius)

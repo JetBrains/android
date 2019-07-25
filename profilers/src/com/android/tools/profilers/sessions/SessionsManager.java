@@ -20,6 +20,9 @@ import static com.android.tools.profilers.StudioProfilers.buildSessionName;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.transport.EventStreamServer;
+import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Device;
 import com.android.tools.profiler.proto.Common.Event;
@@ -43,7 +46,9 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
+import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -51,6 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -61,6 +67,8 @@ import org.jetbrains.annotations.NotNull;
  * memory heap dump, CPU capture)
  */
 public class SessionsManager extends AspectModel<SessionAspect> {
+  private static Logger getLogger() { return Logger.getInstance(SessionsManager.class); }
+
   /**
    * For usage tracking purposes - specify where a session creation was originated from.
    */
@@ -224,10 +232,18 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     groups.forEach(group -> {
       SessionItem sessionItem = mySessionItems.get(group.getGroupId());
       boolean sessionStateChanged = false;
+      Common.Event startEvent = group.getEvents(0);
+      // For non-full sessions (e.g. import), we expect to receive both the BEGIN_SESSION and END_SESSION events first before
+      // processing them, otherwiser the profiler model might think that it is an ongoing session for a brief moment if all the events
+      // have not been streamed to the database.
+      if (startEvent.getSession().getSessionStarted().getType() != SessionData.SessionStarted.SessionType.FULL &&
+          group.getEventsCount() < 2) {
+        return;
+      }
+
       // We found a new session we process it and update our internal state.
       if (sessionItem == null) {
-        sessionItem = processSessionStarted(group.getEvents(0));
-        setProfilingSession(sessionItem.getSession());
+        sessionItem = processSessionStarted(startEvent);
         sessionStateChanged = true;
       }
       // If we ended a session we process that end here.
@@ -237,6 +253,10 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         sessionStateChanged = true;
       }
       if (sessionStateChanged) {
+        setSessionInternal(sessionItem.getSession());
+        if (sessionItem.isOngoing()) {
+          setProfilingSession(sessionItem.getSession());
+        }
         setSessionInternal(sessionItem.getSession());
       }
       final SessionItem item = sessionItem;
@@ -454,35 +474,89 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   /**
-   * Create and a new session with a specific type
+   * Create and a new session with a specific type. Note that this function will generate the corresponding session begin and end event
+   * pair, so the caller does not have to include those into the input events list.
+   *
+   * @param startTimestampEpochMs epoch timestamp of the session - this is used for ordering in the sessions panel.
+   * @param byteCacheMap          the byte cache for the session.
+   * @param events                the list of events which can be queried for the session.
+   */
+  @NotNull
+  public void createImportedSession(@NotNull String sessionName,
+                                    @NotNull SessionData.SessionStarted.SessionType sessionType,
+                                    long startTimestampNs,
+                                    long endTimestampNs,
+                                    long startTimestampEpochMs,
+                                    Map<String, ByteString> byteCacheMap,
+                                    Common.Event... events) {
+    assert myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled();
+
+    EventStreamServer streamServer = new EventStreamServer(Long.toString(startTimestampEpochMs));
+    try {
+      streamServer.start();
+    }
+    catch (IOException exception) {
+      getLogger().error(String.format("Failed to create a event server. Aborting import for session %s", sessionName));
+      return;
+    }
+    Common.Stream stream = TransportService.getInstance().registerStreamServer(Common.Stream.Type.FILE, streamServer);
+    streamServer.getByteCacheMap().putAll(byteCacheMap);
+    BlockingDeque<Event> deque = streamServer.getEventDeque();
+    for (int i = 0; i < events.length; i++) {
+      deque.offer(events[i]);
+    }
+    // inserts the pair of Session begin + end events.
+    deque.offer(Common.Event.newBuilder()
+                  .setKind(Common.Event.Kind.SESSION)
+                  .setGroupId(startTimestampNs)
+                  .setTimestamp(startTimestampNs)
+                  .setSession(Common.SessionData.newBuilder()
+                                .setSessionStarted(Common.SessionData.SessionStarted.newBuilder()
+                                                     .setStreamId(stream.getStreamId())
+                                                     .setSessionId(startTimestampNs)
+                                                     .setType(sessionType)
+                                                     .setStartTimestampEpochMs(startTimestampEpochMs)
+                                                     .setSessionName(sessionName)))
+                  .build());
+    deque.offer(Common.Event.newBuilder()
+                  .setKind(Common.Event.Kind.SESSION)
+                  .setGroupId(startTimestampNs)
+                  .setTimestamp(endTimestampNs)
+                  .setIsEnded(true)
+                  .build());
+
+    // New imported session will be auto selected once it is queried in the update loop.
+  }
+
+  /**
+   * Create and a new session with a specific type.
    *
    * @param sessionName name of the new session
    * @param sessionType type of the new session
    * @return the new session
    */
   @NotNull
-  public Common.Session createImportedSession(@NotNull String sessionName,
-                                              @NotNull Common.SessionMetaData.SessionType sessionType,
-                                              long startTimestampNs,
-                                              long endTimestampNs,
-                                              long startTimestampEpochMs) {
+  public Common.Session createImportedSessionLegacy(@NotNull String sessionName,
+                                                    @NotNull Common.SessionMetaData.SessionType sessionType,
+                                                    long startTimestampNs,
+                                                    long endTimestampNs,
+                                                    long startTimestampEpochMs) {
+    assert !myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled();
+
     Common.Session session = Common.Session.newBuilder()
       .setSessionId(generateUniqueSessionId())
       .setStartTimestamp(startTimestampNs)
       .setEndTimestamp(endTimestampNs)
       .build();
-    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      // TODO (b/73538507): Move over to new events pipeline.
-    }
-    else {
-      Profiler.ImportSessionRequest sessionRequest = Profiler.ImportSessionRequest.newBuilder()
-        .setSession(session)
-        .setSessionName(sessionName)
-        .setSessionType(sessionType)
-        .setStartTimestampEpochMs(startTimestampEpochMs)
-        .build();
-      myProfilers.getClient().getProfilerClient().importSession(sessionRequest);
-    }
+
+    Profiler.ImportSessionRequest sessionRequest = Profiler.ImportSessionRequest.newBuilder()
+      .setSession(session)
+      .setSessionName(sessionName)
+      .setSessionType(sessionType)
+      .setStartTimestampEpochMs(startTimestampEpochMs)
+      .build();
+    myProfilers.getClient().getProfilerClient().importSession(sessionRequest);
+
     return session;
   }
 

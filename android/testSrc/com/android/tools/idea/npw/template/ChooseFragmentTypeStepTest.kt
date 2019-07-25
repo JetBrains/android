@@ -28,7 +28,7 @@ import org.junit.Test
  */
 class ChooseFragmentTypeStepTest {
 
-  private val messageKeys = FragmentGalleryStepMessageKeys()
+  private val messageKeys = fragmentGalleryStepMessageKeys
 
   @Test
   fun testNoTemplateForExistingModule() {

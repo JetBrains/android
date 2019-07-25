@@ -134,6 +134,8 @@ import org.jetbrains.annotations.TestOnly;
 public class NavDesignSurface extends DesignSurface {
   private static final int SCROLL_DURATION_MS = 300;
   private static final Object CONNECTION_CLIENT_PROPERTY_KEY = new Object();
+  private static final String FAILED_DEPENDENCY = "Failed to add navigation dependency";
+  private static final String FAILED_DEPENDENCY_TITLE = "Failed to Add Dependency";
 
   private NlComponent myCurrentNavigation;
   @VisibleForTesting
@@ -348,9 +350,15 @@ public class NavDesignSurface extends DesignSurface {
       myEditorPanel.putClientProperty(CONNECTION_CLIENT_PROPERTY_KEY, connection);
       connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncFailedListener);
     }
-    ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(
-      getProject(), "Failed to add navigation library dependency", "Failed to Add Dependency"));
-    result.completeExceptionally(new Exception("Failed to add nav library dependency"));
+    ApplicationManager.getApplication().invokeLater(() -> onFailedToAddDependency());
+    result.completeExceptionally(new Exception(FAILED_DEPENDENCY));
+  }
+
+  private void onFailedToAddDependency() {
+    Messages.showErrorDialog(getProject(), FAILED_DEPENDENCY, FAILED_DEPENDENCY_TITLE);
+    if (myEditorPanel != null) {
+      myEditorPanel.getWorkBench().loadingStopped(FAILED_DEPENDENCY);
+    }
   }
 
   private boolean requestAddDependency(@NotNull AndroidFacet facet) {

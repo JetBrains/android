@@ -53,17 +53,17 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/java/plugin:intellij.java.plugin",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/platform/platform-main:intellij.platform.main",
         "//tools/idea/plugins/github:intellij.vcs.github",
         "//tools/idea/colorSchemes:intellij.platform.colorSchemes",
+        "//tools/idea/plugins/yaml:intellij.yaml",
         "//tools/idea/plugins/groovy/structuralsearch-groovy:intellij.groovy.structuralSearch",
         "//tools/adt/idea/android:intellij.android.core.tests",
         "//tools/idea/plugins/git4idea/remote-servers-git-java:intellij.java.remoteServers.git",
@@ -118,10 +118,10 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/naveditor:intellij.android.naveditor[module, test]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//prebuilts/studio/layoutlib:data/layoutlib[test]",
     ],
 )
 
@@ -1679,6 +1679,74 @@ java_test(
         "qa_fast",
         "qa_fast_emu",
         "qa_unreliable",
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "NativeDebuggerBreakpointsTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/debugger/BasicCmakeAppForUI/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }) + [
+        "//prebuilts/tools:lldb",
+        "//prebuilts/python/linux-x86:linux-x86",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.NativeDebuggerBreakpointsTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_windows",
+        "qa_fast",
+        "qa_fast_emu",
+        "qa_unreliable",  # b/137669728
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "SessionRestartTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/debugger/BasicCmakeAppForUI/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }) + [
+        "//prebuilts/tools:lldb",
+        "//prebuilts/python/linux-x86:linux-x86",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.SessionRestartTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_windows",
+        "qa_fast",
+        "qa_fast_emu",
+        "qa_unreliable",  # b/137669728
         "requires-fakeroot",
         "requires_emulator",
         "slow",

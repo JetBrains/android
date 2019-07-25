@@ -21,7 +21,6 @@ import static com.google.common.io.Files.createTempDir;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -253,10 +252,32 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void getParentModulesPaths() {
-    assertEquals(Lists.newArrayList(":foo"), GradleUtil.getParentModulesPaths(":foo:buz"));
-    assertEquals(Lists.newArrayList(), GradleUtil.getParentModulesPaths(":foo"));
-    assertEquals(Lists.newArrayList(), GradleUtil.getParentModulesPaths(":"));
-    assertEquals(Lists.newArrayList(":foo", ":foo:bar", ":foo:bar:buz"), GradleUtil.getParentModulesPaths(":foo:bar:buz:lib"));
+  public void isDirectChild() {
+    assertTrue(GradleUtil.isDirectChild(":app", ":"));
+    assertTrue(GradleUtil.isDirectChild(":libs:lib1", ":libs"));
+    assertTrue(GradleUtil.isDirectChild(":libs:java:lib2", ":libs:java"));
+
+    assertFalse(GradleUtil.isDirectChild(":libs:lib1", ":"));
+    assertFalse(GradleUtil.isDirectChild(":libs", ":app"));
+    assertFalse(GradleUtil.isDirectChild(":libs:lib1", ":app"));
+    assertFalse(GradleUtil.isDirectChild(":libs:java:lib2", ":libs"));
+    assertFalse(GradleUtil.isDirectChild(":libs:android:lib3", ":libs:java"));
+    assertFalse(GradleUtil.isDirectChild(":app", ":app"));
+  }
+
+  @Test
+  public void getAllParentModulesPaths() {
+    assertThat(GradleUtil.getAllParentModulesPaths(":foo:buz")).containsExactly(":foo");
+    assertThat(GradleUtil.getAllParentModulesPaths(":foo")).isEmpty();
+    assertThat(GradleUtil.getAllParentModulesPaths(":")).isEmpty();
+    assertThat(GradleUtil.getAllParentModulesPaths(":foo:bar:buz:lib")).containsExactly(":foo", ":foo:bar", ":foo:bar:buz");
+  }
+
+  @Test
+  public void getParentModulePath() {
+    assertEquals(":foo", GradleUtil.getParentModulePath(":foo:buz"));
+    assertEquals(":foo:bar", GradleUtil.getParentModulePath(":foo:bar:buz"));
+    assertEquals("", GradleUtil.getParentModulePath(":"));
+
   }
 }

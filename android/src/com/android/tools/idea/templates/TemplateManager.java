@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.SdkConstants.FD_ADDONS;
+import static com.android.SdkConstants.FD_EXTRAS;
+import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
+import static com.android.SdkConstants.FD_TEMPLATES;
+import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static java.util.stream.Collectors.toMap;
+
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.prefs.AndroidLocation;
@@ -36,10 +46,22 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Table;
+import com.google.common.collect.TreeBasedTable;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.NonEmptyActionGroup;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -50,24 +72,22 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.platform.templates.github.ZipUtil;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateModelException;
 import icons.AndroidIcons;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * Handles locating templates and providing template metadata
@@ -87,7 +107,6 @@ public class TemplateManager {
   public static final String CATEGORY_ACTIVITY = "Activity";
   public static final String CATEGORY_FRAGMENT = "Fragment";
   public static final String CATEGORY_AUTOMOTIVE = "Automotive";
-  public static final String CATEGORY_ANDROID_AUTO = "Android Auto";
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
   public static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of();
@@ -308,7 +327,7 @@ public class TemplateManager {
 
     // Sort by file name (not path as is File's default)
     if (templates.size() > 1) {
-      Collections.sort(templates, (file1, file2) -> file1.getName().compareTo(file2.getName()));
+      Collections.sort(templates, Comparator.comparing(File::getName));
     }
 
     return templates;
@@ -488,7 +507,7 @@ public class TemplateManager {
     boolean isProjectReady = facet != null && facet.getConfiguration().getModel() != null;
     presentation.setText(text + (isProjectReady ? "" : " (Project not ready)"));
     presentation.setVisible(visible && view != null && facet != null && facet.requiresAndroidModel());
-    presentation.setEnabled(disableIfNotReady ? isProjectReady : true);
+    presentation.setEnabled(!disableIfNotReady || isProjectReady);
   }
 
   @GuardedBy("CATEGORY_TABLE_LOCK")
@@ -554,13 +573,6 @@ public class TemplateManager {
 
     // Automotive category includes Car category templates. If a template is in both categories, use the automotive one.
     Map<String, String> templateCategoryMap = categoryRow.keySet().stream().collect(toMap(it -> it, it -> category));
-    if (category.equals(CATEGORY_AUTOMOTIVE)) {
-      for (String templateName : myCategoryTable.row(CATEGORY_ANDROID_AUTO).keySet()) {
-        if (!templateCategoryMap.containsKey(templateName)) {
-          templateCategoryMap.put(templateName, CATEGORY_ANDROID_AUTO);
-        }
-      }
-    }
     for (Map.Entry<String, String> templateNameAndCategory : templateCategoryMap.entrySet()) {
       String templateName = templateNameAndCategory.getKey();
       String templateCategory = templateNameAndCategory.getValue();
@@ -570,7 +582,7 @@ public class TemplateManager {
       TemplateMetadata metadata = getTemplateMetadata(myCategoryTable.get(templateCategory, templateName));
       int minSdkVersion = metadata == null ? 0 : metadata.getMinSdk();
       int minBuildSdkApi = metadata == null ? 0 : metadata.getMinBuildApi();
-      boolean androidXRequired = metadata == null ? false : metadata.getAndroidXRequired();
+      boolean androidXRequired = metadata != null && metadata.getAndroidXRequired();
       File templateFile = myCategoryTable.row(templateCategory).get(templateName);
       NewAndroidComponentAction templateAction = new NewAndroidComponentAction(
         category, templateName, minSdkVersion, minBuildSdkApi, androidXRequired, templateFile);
@@ -609,7 +621,7 @@ public class TemplateManager {
       facet, null, initialPackageSuggestion, moduleTemplates.get(0),
       commandName, projectSyncInvoker, true);
 
-    NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker);
+    NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker, moduleTemplates.get(0));
     ChooseGalleryItemStep chooseTypeStep;
     if (category.equals(CATEGORY_ACTIVITY)) {
       chooseTypeStep =
@@ -728,13 +740,9 @@ public class TemplateManager {
       templates.addAll(getTemplateList(formFactor, category, excluded));
     }
 
-    // Special case for Android Wear and Android Auto: These tend not to be activities; allow
-    // you to create a module with for example just a watch face
+    // Special case for Android Wear: These tend not to be activities; allow you to create a module with for example just a watch face
     if (formFactor == FormFactor.WEAR) {
       templates.addAll(getTemplateList(formFactor, "Wear", excluded));
-    }
-    if (formFactor == FormFactor.CAR) {
-      templates.addAll(getTemplateList(formFactor, "Android Auto", excluded));
     }
 
     Collections.sort(templates, (o1, o2) -> {

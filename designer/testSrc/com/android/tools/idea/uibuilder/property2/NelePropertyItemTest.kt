@@ -27,6 +27,7 @@ import com.android.SdkConstants.ATTR_LINE_SPACING_EXTRA
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.ATTR_SRC
 import com.android.SdkConstants.ATTR_SRC_COMPAT
+import com.android.SdkConstants.ATTR_STATE_LIST_ANIMATOR
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.ATTR_TEXT_COLOR
@@ -359,8 +360,6 @@ class NelePropertyItemTest {
       override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
         propertiesGenerated = true
       }
-      override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
-      }
     })
 
     property.value = LINEAR_LAYOUT
@@ -503,6 +502,23 @@ class NelePropertyItemTest {
     assertThat(srcCompat.editingSupport.validation("@mipmap/ic_not_found")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'ic_not_found'"))
   }
 
+  @RunsInEdt
+  @Test
+  fun testAnimatorValidation() {
+    projectRule.fixture.addFileToProject("res/animator/my_animator.xml", ANIMATOR_RESOURCE)
+    val util = SupportTestUtil(projectRule, createButton())
+    val animator = util.makeProperty(ANDROID_URI, ATTR_STATE_LIST_ANIMATOR, NelePropertyType.ANIMATOR)
+    assertThat(animator.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@animator/my_animator")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@android:animator/fade_in")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@null")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@android:color/holo_blue_bright")).isEqualTo(
+      Pair(ERROR, "Unexpected resource type: 'color' expected: animator"))
+    assertThat(animator.editingSupport.validation("@animator/no_animator")).isEqualTo(
+      Pair(ERROR, "Cannot resolve symbol: 'no_animator'"))
+    assertThat(animator.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
+  }
+
   @Test
   fun testEnumValidation() {
     val util = SupportTestUtil(projectRule, createTextView())
@@ -603,6 +619,12 @@ class NelePropertyItemTest {
           .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
           .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
           .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design")
+
+  private fun createButton(): ComponentDescriptor =
+    ComponentDescriptor(BUTTON)
+      .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
+      .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
+      .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
 
   private fun createImageView(): ComponentDescriptor =
     ComponentDescriptor(IMAGE_VIEW)
@@ -705,6 +727,38 @@ class NelePropertyItemTest {
       <drawable name="cancel">@android:drawable/ic_delete</drawable>
       <style name="stdButton" parent="@android:style/TextAppearance.Material.Widget.Button"/>
     </resources>
+  """.trimIndent()
+
+  @Language("XML")
+  private val ANIMATOR_RESOURCE = """<?xml version="1.0" encoding="utf-8"?>
+    <selector xmlns:android="http://schemas.android.com/apk/res/android">
+        <!-- the pressed state; increase x and y size to 150% -->
+        <item android:state_pressed="true">
+            <set>
+                <objectAnimator android:propertyName="scaleX"
+                        android:duration="@android:integer/config_shortAnimTime"
+                        android:valueTo="5.0"
+                        android:valueType="floatType"/>
+                <objectAnimator android:propertyName="scaleY"
+                        android:duration="@android:integer/config_shortAnimTime"
+                        android:valueTo="2.0"
+                        android:valueType="floatType"/>
+            </set>
+        </item>
+        <!-- the default, non-pressed state; set x and y size to 100% -->
+        <item android:state_pressed="false">
+            <set>
+                <objectAnimator android:propertyName="scaleX"
+                        android:duration="@android:integer/config_shortAnimTime"
+                        android:valueTo="1"
+                        android:valueType="floatType"/>
+                <objectAnimator android:propertyName="scaleY"
+                        android:duration="@android:integer/config_shortAnimTime"
+                        android:valueTo="1"
+                        android:valueType="floatType"/>
+            </set>
+        </item>
+    </selector>
   """.trimIndent()
 
   private fun findLineAtOffset(file: VirtualFile, offset: Int): String {

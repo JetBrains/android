@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.impl.ActionButton.HIDE_DROPDOWN_ICON
 import java.awt.BorderLayout
 import java.lang.IllegalArgumentException
 import javax.swing.JPanel
@@ -113,7 +114,6 @@ private class NoArrowDropDownButton(menu: ViewActionMenu, surface: DesignSurface
 
   init {
     addAll(menu.actions.map { ViewActionWrapper(it, surface, nlComponents) })
+    templatePresentation.putClientProperty(HIDE_DROPDOWN_ICON, true)
   }
-
-  override fun hasDropDownArrow() = false
 }

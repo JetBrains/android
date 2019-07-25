@@ -76,14 +76,12 @@ public class RenderBasePerfgateTest extends AndroidTestCase {
     try {
       RenderTestUtil.afterRenderTestCase();
     } finally {
-      StudioFlags.NELE_NATIVE_LAYOUTLIB.clearOverride();
       FrameworkResourceRepositoryManager.getInstance().clearCache();
       super.tearDown();
     }
   }
 
   public void testBaseInflate() throws Exception {
-    StudioFlags.NELE_NATIVE_LAYOUTLIB.override(false);
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
@@ -99,7 +97,6 @@ public class RenderBasePerfgateTest extends AndroidTestCase {
   }
 
   public void testBaseRender() throws Exception {
-    StudioFlags.NELE_NATIVE_LAYOUTLIB.override(false);
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
@@ -112,38 +109,6 @@ public class RenderBasePerfgateTest extends AndroidTestCase {
     };
 
     computeAndRecordMetric("render_time_base", "render_memory_base", computable);
-  }
-
-  public void testNativeBaseInflate() throws Exception {
-    StudioFlags.NELE_NATIVE_LAYOUTLIB.override(true);
-    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
-    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
-    RenderLogger logger = mock(RenderLogger.class);
-
-    ThrowableComputable<PerfgateRenderMetric, Exception> computable = () -> {
-      RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-      PerfgateRenderMetric metric = getInflateMetric(task);
-      task.dispose().get(5, TimeUnit.SECONDS);
-      return metric;
-    };
-
-    computeAndRecordMetric("native_inflate_time_base", "native_inflate_memory_base", computable);
-  }
-
-  public void testNativeBaseRender() throws Exception {
-    StudioFlags.NELE_NATIVE_LAYOUTLIB.override(true);
-    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
-    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
-    RenderLogger logger = mock(RenderLogger.class);
-
-    ThrowableComputable<PerfgateRenderMetric, Exception> computable = () -> {
-      RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-      PerfgateRenderMetric metric = getRenderMetric(task);
-      task.dispose().get(5, TimeUnit.SECONDS);
-      return metric;
-    };
-
-    computeAndRecordMetric("native_render_time_base", "native_render_memory_base", computable);
   }
 
   private static void computeAndRecordMetric(

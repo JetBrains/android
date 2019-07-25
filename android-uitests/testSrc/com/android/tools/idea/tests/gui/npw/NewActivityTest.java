@@ -74,15 +74,11 @@ public class NewActivityTest {
   }
 
   @Test
-  public void createLauncherActivity() {
+  public void createLauncherActivity() throws IOException {
     myConfigActivity.selectLauncherActivity();
     myDialog.clickFinish();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
-
-    myEditor.open(PROVIDED_MANIFEST);
-
-    String text = myEditor.getCurrentFileContents();
+    String text = guiTest.getProjectFileText(PROVIDED_MANIFEST);
     assertEquals(2, getOccurrenceCount(text, "android.intent.category.LAUNCHER"));
   }
 
@@ -103,18 +99,16 @@ public class NewActivityTest {
   }
 
   @Test
-  public void createActivityWithNonDefaultPackage() {
+  public void createActivityWithNonDefaultPackage() throws IOException {
     myConfigActivity.enterTextFieldValue(ActivityTextField.PACKAGE_NAME, "google.test2");
     myDialog.clickFinish();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
-
-    String text = myEditor.open("app/src/main/java/google/test2/MainActivity.java").getCurrentFileContents();
+    String text = guiTest.getProjectFileText("app/src/main/java/google/test2/MainActivity.java");
     assertThat(text).startsWith("package google.test2;");
   }
 
   @Test
-  public void createActivityWithKotlin() {
+  public void createActivityWithKotlin() throws IOException {
     myConfigActivity.setSourceLanguage("Kotlin");
     assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.KOTLIN);
     assertThat(getSavedKotlinSupport()).isFalse(); // Changing the Render source language should not affect the project default
@@ -140,10 +134,9 @@ public class NewActivityTest {
     invokeNewActivityMenu();
     myConfigActivity.setSourceLanguage("Kotlin");
     myDialog.clickFinish();
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
-    assertThat(myEditor.open("build.gradle").getCurrentFileContents()).doesNotContain("$kotlin_version");
-    assertThat(myEditor.open("app/build.gradle").getCurrentFileContents()).doesNotContain("$kotlin_version");
+    assertThat(guiTest.getProjectFileText("build.gradle")).doesNotContain("$kotlin_version");
+    assertThat(guiTest.getProjectFileText("app/build.gradle")).doesNotContain("$kotlin_version");
   }
 
   @Test

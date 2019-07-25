@@ -26,7 +26,8 @@ public class AndroidCommonTestSuite extends IdeaTestSuiteBase {
   static {
     symlinkToIdeaHome(
         "tools/adt/idea/adt-ui/lib/libwebp",
-        "tools/adt/idea/artwork/resources/device-art-resources");
+        "tools/adt/idea/artwork/resources/device-art-resources",
+        "tools/idea/java");
   }
 }
 

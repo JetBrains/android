@@ -481,4 +481,28 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   public static String getPsiText(@NotNull PsiElement psiElement) {
     return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> psiElement.getText());
   }
+
+  @Override
+  public boolean isNewEmptyBlockElement() {
+    if (myPsiElement != null) {
+      return false;
+    }
+
+    if (!isBlockElement() || !isInsignificantIfEmpty()) {
+      return false;
+    }
+
+    Collection<GradleDslElement> children = getChildren();
+    if (children.isEmpty()) {
+      return true;
+    }
+
+    for (GradleDslElement child : children) {
+      if (!child.isNewEmptyBlockElement()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
