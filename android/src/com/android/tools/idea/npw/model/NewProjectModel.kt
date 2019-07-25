@@ -186,9 +186,6 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
 
       val params = templateValues.toMutableMap()
       for (newModuleModel in newModuleModels) {
-        // Set global parameters
-        val renderTemplateValues = newModuleModel.renderTemplateModel.value.templateValues
-        renderTemplateValues.putAll(templateValues)
         newModuleModel.templateValues.putAll(templateValues)
       }
 
