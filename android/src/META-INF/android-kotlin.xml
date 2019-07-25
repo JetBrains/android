@@ -91,6 +91,11 @@
 
         <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleLibraryDataService"/>
         <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleMPPModuleDataService"/>
+
+        <registryKey key="kotlin.android.import.mpp.all.transitive"
+                     description="Add all transitive dependencies on MPP modules when Android project is imported"
+                     defaultValue="true"
+                     restartRequired="false"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
