@@ -27,7 +27,6 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.naveditor.model.ActionType;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
-import com.android.tools.idea.naveditor.scene.ConnectionDirection;
 import com.android.tools.idea.naveditor.scene.CurvePoints;
 import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
 import com.google.common.collect.ImmutableList;
@@ -96,13 +95,14 @@ public class ActionTarget extends BaseTarget {
       }
     }
     else {
+      float scale = (float)transform.getScale();
       Rectangle2D.Float dest = Coordinates.getSwingRectDip(transform, myDestComponent.fillDrawRect2D(0, DEST_RECT));
-      CurvePoints points = NavActionHelperKt.getCurvePoints(source, dest, transform);
+      CurvePoints points = NavActionHelperKt.getCurvePoints(source, dest, scale);
       picker.addCurveTo(this, 0, (int)points.p1.x, (int)points.p1.y, (int)points.p2.x, (int)points.p2.y, (int)points.p3.x, (int)points.p3.y,
                         (int)points.p4.x, (int)points.p4.y, 10);
 
       if (isPopAction) {
-        iconRect = getRegularActionIconRect(source, dest, transform);
+        iconRect = getRegularActionIconRect(source, dest, scale);
       }
     }
 

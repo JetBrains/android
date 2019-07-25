@@ -43,10 +43,10 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
 
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
     when (module) {
-      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context)
-      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context)
-      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context)
-      is PsEmptyModule -> ModuleUnsupportedConfigurable(context, module, message = "Nothing to show. Please select another module.")
+      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, this)
+      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context, this)
+      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, this)
+      is PsEmptyModule -> ModuleUnsupportedConfigurable(context, this, module, message = "Nothing to show. Please select another module.")
       else -> throw IllegalStateException()
     }
 

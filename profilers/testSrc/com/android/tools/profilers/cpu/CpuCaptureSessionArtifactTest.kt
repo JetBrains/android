@@ -20,7 +20,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
@@ -63,7 +62,7 @@ class CpuCaptureSessionArtifactTest {
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), myTimer)
     mySessionsManager = profilers.sessionsManager
-    mySessionsManager.createImportedSession("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0)
+    mySessionsManager.createImportedSessionLegacy("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0)
     mySessionsManager.update()
     assertThat(mySessionsManager.sessionArtifacts.size).isEqualTo(1)
     mySessionItem = mySessionsManager.sessionArtifacts[0] as SessionItem

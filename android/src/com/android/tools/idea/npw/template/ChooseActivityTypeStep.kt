@@ -22,20 +22,22 @@ import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.project.AndroidPackageUtils
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.TemplateManager
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
  * Step for the gallery for Activity templates.
  */
-class ChooseActivityTypeStep(moduleModel: NewModuleModel,
-                             renderModel: RenderTemplateModel,
-                             formFactor: FormFactor,
-                             moduleTemplates: List<NamedModuleTemplate>)
-  : ChooseGalleryItemStep(moduleModel, renderModel, formFactor,
-                          moduleTemplates,
-                          messageKeys = ActivityGalleryStepMessageKeys(),
-                          emptyItemLabel = "Empty Activity") {
- 
+class ChooseActivityTypeStep(
+  moduleModel: NewModuleModel,
+  renderModel: RenderTemplateModel,
+  formFactor: FormFactor,
+  moduleTemplates: List<NamedModuleTemplate>
+) : ChooseGalleryItemStep(
+  moduleModel, renderModel, formFactor, moduleTemplates,
+  messageKeys = activityGalleryStepMessageKeys,
+  emptyItemLabel = "Empty Activity"
+) {
   constructor(moduleModel: NewModuleModel, renderModel: RenderTemplateModel, formFactor: FormFactor, targetDirectory: VirtualFile)
     : this(moduleModel, renderModel, formFactor, AndroidPackageUtils.getModuleTemplates(renderModel.androidFacet!!, targetDirectory))
 
@@ -43,12 +45,12 @@ class ChooseActivityTypeStep(moduleModel: NewModuleModel,
                                  TemplateManager.getInstance().getTemplateList(formFactor).map(::TemplateRenderer)
 }
 
-class ActivityGalleryStepMessageKeys : WizardGalleryItemsStepMessageKeys {
-
-  override val addMessage: String = "android.wizard.activity.add"
-  override val stepTitle: String = "android.wizard.config.activity.title"
-  override val itemNotFound: String = "android.wizard.activity.not.found"
-  override val invalidMinSdk: String = "android.wizard.activity.invalid.min.sdk"
-  override val invalidMinBuild: String = "android.wizard.activity.invalid.min.build"
-  override val invalidAndroidX: String = "android.wizard.activity.invalid.androidx"
-}
+@VisibleForTesting
+val activityGalleryStepMessageKeys = WizardGalleryItemsStepMessageKeys(
+  "android.wizard.activity.add",
+  "android.wizard.config.activity.title",
+  "android.wizard.activity.not.found",
+  "android.wizard.activity.invalid.min.sdk",
+  "android.wizard.activity.invalid.min.build",
+  "android.wizard.activity.invalid.androidx"
+)

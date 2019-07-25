@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.modules
 
+import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.createTreeModel
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertiesUiModel
@@ -31,8 +32,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 
 class AndroidModuleRootConfigurable(
-  context: PsContext, module: PsAndroidModule
-) : AbstractModuleConfigurable<PsAndroidModule, ModulePanel>(context, module), Disposable {
+  context: PsContext,
+  perspectiveConfigurable: BasePerspectiveConfigurable,
+  module: PsAndroidModule
+) : AbstractModuleConfigurable<PsAndroidModule, ModulePanel>(context, perspectiveConfigurable, module), Disposable {
 
   private val signingConfigsModel = createTreeModel(SigningConfigsConfigurable(module, context).also { Disposer.register(this, it) })
 

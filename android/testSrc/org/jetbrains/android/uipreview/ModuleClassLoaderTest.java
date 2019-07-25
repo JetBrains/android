@@ -157,8 +157,8 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   public void testIsSourceModified() throws IOException {
     File rootDirPath = Projects.getBaseDirPath(getProject());
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
-    myFacet.getConfiguration().setModel(
-      new AndroidModuleModel(androidProject.getName(), rootDirPath, androidProject, "debug", new IdeDependenciesFactory()));
+    myFacet.getConfiguration()
+      .setModel(AndroidModuleModel.create(androidProject.getName(), rootDirPath, androidProject, "debug", new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
     assertThat(myFacet.requiresAndroidModel()).isTrue();
 
@@ -228,11 +228,11 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     androidProject.setProjectType(AndroidProject.PROJECT_TYPE_LIBRARY);
     myFacet.getConfiguration().getState().PROJECT_TYPE = AndroidProject.PROJECT_TYPE_LIBRARY;
     myFacet.getConfiguration().setModel(
-      new AndroidModuleModel(androidProject.getName(),
-                             Projects.getBaseDirPath(getProject()),
-                             androidProject,
-                             "debug",
-                             new IdeDependenciesFactory()));
+      AndroidModuleModel.create(androidProject.getName(),
+                                Projects.getBaseDirPath(getProject()),
+                                androidProject,
+                                "debug",
+                                new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
     assertThat(myFacet.requiresAndroidModel()).isTrue();
 

@@ -74,7 +74,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
     //Add non-existing mid-hierarchy modules as empty modules.
     val declaredPaths = result.mapSmartSet { it.gradlePath }
     declaredPaths
-      .flatMap { GradleUtil.getParentModulesPaths(it) }
+      .flatMap { GradleUtil.getAllParentModulesPaths(it) }
       .filterNot { declaredPaths.contains(it) }
       .distinct()
       .forEach { result.add(ModuleKey(ModuleKind.EMPTY, it)) }
@@ -94,8 +94,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
   override fun update(key: ModuleKey, model: PsModule) {
     val projectParsedModel = parent.parsedModel
     val moduleName =
-        parent.ideProject.getModuleByGradlePath(key.gradlePath)?.name
-        ?: key.gradlePath.substring(1).replace(':', '-')
+        parent.ideProject.getModuleByGradlePath(key.gradlePath)?.name ?: key.gradlePath.substringAfterLast(':')
 
     val moduleResolvedModel =
         parent.getResolvedModuleModelsByGradlePath()[key.gradlePath]

@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerViewModel
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -33,15 +34,16 @@ import java.awt.BorderLayout
 import javax.swing.JPanel
 import kotlin.properties.Delegates
 
-// TODO: Support receiving a list of ResourceType to display.
-internal val SUPPORTED_RESOURCES get() =
+internal val MANAGER_SUPPORTED_RESOURCES get() =
   if (StudioFlags.RESOURCE_EXPLORER_PICKER.get()) {
-    arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR,
-            ResourceType.LAYOUT, ResourceType.MIPMAP,
-            ResourceType.STRING, ResourceType.FONT)
+    arrayOf(ResourceType.DRAWABLE,     ResourceType.COLOR,      ResourceType.LAYOUT,  ResourceType.MIPMAP,
+            ResourceType.STRING,       ResourceType.NAVIGATION, ResourceType.ANIM,    ResourceType.ANIMATOR,
+            ResourceType.INTERPOLATOR, ResourceType.TRANSITION, ResourceType.FONT,    ResourceType.MENU,
+            ResourceType.STYLE,        ResourceType.ARRAY,      ResourceType.BOOL,    ResourceType.DIMEN,
+            ResourceType.FRACTION,     ResourceType.INTEGER,    ResourceType.PLURALS, ResourceType.XML)
   } else {
     arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR,
-            ResourceType.LAYOUT, ResourceType.MIPMAP)
+            ResourceType.LAYOUT,   ResourceType.MIPMAP)
   }
 
 internal val RESOURCE_DEBUG = System.getProperty("res.manag.debug", "false")?.toBoolean() ?: false
@@ -97,9 +99,13 @@ class ResourceExplorer private constructor(
      */
     fun createResourcePicker(
       facet: AndroidFacet,
+      types: Set<ResourceType>,
+      updateResourceCallback: (resourceItem: ResourceItem) -> Unit,
       doSelectResourceCallback: (resourceItem: ResourceItem) -> Unit): ResourceExplorer {
       val importersProvider = ImportersProvider()
-      val resourceExplorerViewModel = ResourceExplorerViewModel.createResPickerViewModel(facet, doSelectResourceCallback)
+      val resourceExplorerViewModel = ResourceExplorerViewModel.createResPickerViewModel(facet,
+                                                                                         types.toTypedArray(),
+                                                                                         doSelectResourceCallback)
       val toolbarViewModel = ResourceExplorerToolbarViewModel(
         facet,
         importersProvider,
@@ -107,7 +113,16 @@ class ResourceExplorer private constructor(
       val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
       val toolbar = ResourceExplorerToolbar.create(toolbarViewModel, moduleComboEnabled = false)
       val resourceExplorerView = ResourceExplorerView(
-        resourceExplorerViewModel, resourceImportDragTarget, withSummaryView = true, withMultiModuleSearch = false)
+        resourceExplorerViewModel, resourceImportDragTarget, withMultiModuleSearch = false, withSummaryView = true, withDetailView = false,
+        multiSelection = false)
+      resourceExplorerView.addSelectionListener(object: ResourceExplorerView.SelectionListener{
+        override fun onDesignAssetSetSelected(resourceAssetSet: ResourceAssetSet?) {
+          resourceAssetSet?.assets?.firstOrNull()?.let {
+            updateResourceCallback(it.resourceItem)
+          }
+        }
+      })
+
       val explorer = ResourceExplorer(
         facet,
         resourceExplorerViewModel,

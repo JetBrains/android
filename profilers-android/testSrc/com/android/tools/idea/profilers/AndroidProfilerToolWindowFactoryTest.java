@@ -36,6 +36,8 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.testFramework.IdeaTestCase;
 import io.grpc.netty.NettyChannelBuilder;
+import java.util.HashMap;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class AndroidProfilerToolWindowFactoryTest extends IdeaTestCase {
   public void testProfilerServiceStartsCorrectlyAfterToolWindowInit() {
@@ -64,6 +66,8 @@ public class AndroidProfilerToolWindowFactoryTest extends IdeaTestCase {
     TransportProxy mockProxy = mock(TransportProxy.class);
 
     when(mockProxy.getTransportChannel()).thenReturn(NettyChannelBuilder.forTarget("someTarget").build());
+    when(mockProxy.getBytesCache()).thenReturn(new HashMap<>());
+    when(mockProxy.getEventQueue()).thenReturn(new LinkedBlockingDeque<>());
 
     IDevice mockDevice = mock(IDevice.class);
     when(mockDevice.getSerialNumber()).thenReturn("Serial");

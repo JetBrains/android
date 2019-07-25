@@ -96,6 +96,10 @@ public class PsiDbVisitor extends PsiElementVisitor {
     visitExpr(o);
   }
 
+  public void visitInferredFormalParameter(@NotNull PsiDbInferredFormalParameter o) {
+    visitPsiElement(o);
+  }
+
   public void visitInferredFormalParameterList(@NotNull PsiDbInferredFormalParameterList o) {
     visitPsiElement(o);
   }

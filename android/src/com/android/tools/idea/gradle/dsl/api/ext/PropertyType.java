@@ -20,9 +20,9 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 /**
  * Represents the property type for a {@link GradleDslElement}.
  * <ul>
- * <li>{@code REGULAR} - this is a Gradle property, e.g "ext.prop1 = 'value'"</li>
- * <li>{@code VARIABLE} - this is a DSL variable, e.g "def prop1 = 'value'"</li>
- * <li>{@code DERIVED} - this is a internal property derived from values an a map or list, e.g property "key"
+ * <li>{@code REGULAR} - a Gradle property, e.g "ext.prop1 = 'value'"</li>
+ * <li>{@code VARIABLE} - a DSL variable, e.g "def prop1 = 'value'"</li>
+ * <li>{@code DERIVED} - an internal property derived from values in a map or list, e.g. property "key"
  * in "prop1 = ["key" : 'value']"</li>
  * <li>{@code GLOBAL}   - this is a global property defined by Gradle e.g projectDir</li>
  * <li>{@code PROPERTIES_FILE} - a Gradle property from a gradle.properties file</li>

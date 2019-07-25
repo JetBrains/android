@@ -255,73 +255,6 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
     println("New graph has ${newGraph.leakRoots.size} potential leak roots")
   }
 
-  private fun removeTroublesomeRoots() {
-    leakRoots.filter { it.getPath().signature().isTroublesome() }.map { it.unmarkGrowing() }
-    leakRoots.retainAll { it.growing }
-  }
-
-  // ObjectNodes in the Disposer tree have references back to the tree, which maintains a map from Disposable
-  // objects to their nodes. If there is more than one leak root inside the disposer (which is common), the
-  // reported leakShare or retained size will be misleadingly small, as the entire disposer tree will be
-  // reachable from the other leak root. The "troublesome roots" mechanism is insufficient here, since that
-  // whitelists the roots. To get around this, we sever the edge for ObjectTree.myObject2NodeMap before
-  // ranking the leaks.
-  private fun removeDisposerObject2NodeMapEdge() {
-    val disposerTree = instancesOf("com.intellij.openapi.util.objectTree.ObjectTree")[0]
-    disposerTree.edges.find { "myObject2NodeMap" in it.label.signature() }?.delete()
-  }
-
-  enum class LeakRankingStrategy {
-    LEAK_SHARE, RETAINED_SIZE;
-  }
-
-  fun rankLeakRoots(): List<Pair<Node, Double>> = when (LEAK_RANKING_STRATEGY) {
-    LeakRankingStrategy.LEAK_SHARE -> rankLeakRootsByLeakShare()
-    LeakRankingStrategy.RETAINED_SIZE -> rankLeakRootsByRetainedSize()
-  }
-
-  private fun rankLeakRootsByLeakShare(): List<Pair<Node, Double>> {
-    val roots = mutableListOf<Pair<Node, Double>>()
-    removeTroublesomeRoots()
-    removeDisposerObject2NodeMapEdge()
-    time("Computing leakShare") {
-      // mark all nodes reachable from non-growing nodes with 0, others with -1
-      bfs(markValue = 0, followWeakSoftRefs = false, childFilter = { !it.growing }) {}
-      var visitId = 0
-      for (leakRoot in leakRoots) {
-        visitId++
-        bfs(roots = listOf(leakRoot), markValue = visitId, clearMarks = false, followWeakSoftRefs = false, childFilter = { it.mark != 0 }) { leakShareDivisor++ }
-      }
-      for (leakRoot in leakRoots) {
-        visitId++
-        var leakShare = 0.0
-        bfs(roots = listOf(leakRoot), markValue = visitId, clearMarks = false, followWeakSoftRefs = false,
-            childFilter = { it.leakShareDivisor != 0 }) { leakShare += getApproximateSize() / leakShareDivisor }
-        roots.add(leakRoot to leakShare)
-      }
-    }
-    return roots.sortedByDescending { it.second }
-  }
-
-  private fun rankLeakRootsByRetainedSize(): List<Pair<Node, Double>> {
-    val roots = mutableListOf<Pair<Node, Double>>()
-    removeTroublesomeRoots()
-    removeDisposerObject2NodeMapEdge()
-    time("Computing retained sizes of leak roots") {
-      bfs(markValue = 0, followWeakSoftRefs = false, childFilter = { !it.growing }) {}
-      var visitId = 0
-      for (leakRoot in leakRoots) {
-        var retainedSize = 0.0
-        visitId++
-        bfs(roots = leakRoots.minus(leakRoot), markValue = visitId, clearMarks = false, followWeakSoftRefs = false, childFilter = { it.mark != 0 }) {}
-        visitId++
-        bfs(roots = listOf(leakRoot), markValue = visitId, clearMarks = false, followWeakSoftRefs = false, childFilter = { it.mark != 0 && it.mark != visitId-1 }) { retainedSize += getApproximateSize() }
-        roots.add(leakRoot to retainedSize)
-      }
-    }
-    return roots.sortedByDescending { it.second }
-  }
-
   fun List<Node>.anyReachableFrom(roots: List<Node>): Boolean {
     var found = false
     bfs(roots = roots, setIncomingEdges = true) { if (this@bfs in this@anyReachableFrom) found = true; return@bfs }
@@ -355,7 +288,6 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
 
   companion object {
     val jniHelper: BleakHelper = if (System.getProperty("bleak.jvmti.enabled") == "true") JniBleakHelper() else JavaBleakHelper()
-    val LEAK_RANKING_STRATEGY = LeakRankingStrategy.valueOf(System.getProperty("bleak.leak.ranking.strategy") ?: "LEAK_SHARE")
 
     private val objSizeMethod: Method? = try {
       Class.forName(

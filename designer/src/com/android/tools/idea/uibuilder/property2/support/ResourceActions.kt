@@ -101,7 +101,8 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
     val showSampleData = SdkConstants.TOOLS_URI == property.namespace
     val dialog: ResourcePickerDialog =
       if (StudioFlags.RESOURCE_EXPLORER_PICKER.get())
-        ResourceExplorerDialog(property.model.facet)
+        ResourceExplorerDialog(property.model.facet,
+                               property.type.resourceTypes)
       else ChooseResourceDialog.builder()
         .setModule(module)
         .setTypes(property.type.resourceTypes)

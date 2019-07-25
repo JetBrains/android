@@ -47,7 +47,6 @@ public final class NewProjectModuleModel extends WizardModel {
   @NotNull private final NewProjectModel myProjectModel;
   @NotNull private final NewModuleModel myNewModuleModel;
   @NotNull private final RenderTemplateModel myExtraRenderTemplateModel;
-  @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final ObjectProperty<FormFactor> myFormFactor = new ObjectValueProperty<>(FormFactor.MOBILE);
   @NotNull private final OptionalProperty<TemplateHandle> myRenderTemplateHandle = new OptionalValueProperty<>();
 
@@ -55,14 +54,14 @@ public final class NewProjectModuleModel extends WizardModel {
 
   public NewProjectModuleModel(@NotNull NewProjectModel projectModel) {
     myProjectModel = projectModel;
-    myNewModuleModel = new NewModuleModel(myProjectModel, new File(""));
+    myNewModuleModel = new NewModuleModel(myProjectModel, new File(""), createDummyTemplate());
     myExtraRenderTemplateModel =
-      RenderTemplateModel.fromModuleModel(myNewModuleModel, null, createDummyTemplate(), message("android.wizard.config.activity.title"));
+      RenderTemplateModel.fromModuleModel(myNewModuleModel, null, message("android.wizard.config.activity.title"));
   }
 
   @NotNull
   public OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo() {
-    return myAndroidSdkInfo;
+    return myNewModuleModel.getAndroidSdkInfo();
   }
 
   @NotNull
@@ -94,27 +93,26 @@ public final class NewProjectModuleModel extends WizardModel {
   protected void handleFinished() {
     myProjectModel.getNewModuleModels().clear();
 
-    String projectLocation = myProjectModel.projectLocation().get();
     boolean hasCompanionApp = myHasCompanionApp.get();
 
     initMainModule();
 
-    Map<String, Object> projectTemplateValues = myProjectModel.getTemplateValues();
+    Map<String, Object> projectTemplateValues = myProjectModel.templateValues;
     addModuleToProject(myNewModuleModel, myFormFactor.get(), myProjectModel, projectTemplateValues);
 
     if (hasCompanionApp) {
       NewModuleModel companionModuleModel = createCompanionModuleModel(myProjectModel);
-      RenderTemplateModel companionRenderModel = createCompanionRenderModel(projectLocation, companionModuleModel);
+      RenderTemplateModel companionRenderModel = createCompanionRenderModel(companionModuleModel);
       addModuleToProject(companionModuleModel, FormFactor.MOBILE, myProjectModel, projectTemplateValues);
 
-      companionRenderModel.getAndroidSdkInfo().setValue(androidSdkInfo().getValue());
+      companionModuleModel.getAndroidSdkInfo().setValue(androidSdkInfo().getValue());
       companionModuleModel.setRenderTemplateModel(companionRenderModel);
 
       companionModuleModel.handleFinished();
       companionRenderModel.handleFinished();
     }
 
-    RenderTemplateModel newRenderTemplateModel = createMainRenderModel(projectLocation);
+    RenderTemplateModel newRenderTemplateModel = createMainRenderModel();
     myNewModuleModel.setRenderTemplateModel(newRenderTemplateModel);
 
     boolean hasActivity = newRenderTemplateModel.getTemplateHandle() != null;
@@ -142,26 +140,25 @@ public final class NewProjectModuleModel extends WizardModel {
       moduleName = SdkConstants.APP_PREFIX;
     }
 
+    String projectLocation = myProjectModel.projectLocation.get();
+
     myNewModuleModel.getModuleName().set(moduleName);
+    myNewModuleModel.getTemplate().set(createDefaultTemplateAt(projectLocation, moduleName));
   }
 
   @NotNull
-  private RenderTemplateModel createMainRenderModel(String projectLocation) {
-    String moduleName = myNewModuleModel.getModuleName().get();
+  private RenderTemplateModel createMainRenderModel() {
     RenderTemplateModel newRenderTemplateModel;
-    if (myProjectModel.enableCppSupport().get()) {
-      newRenderTemplateModel = createCompanionRenderModel(projectLocation, myNewModuleModel);
+    if (myProjectModel.enableCppSupport.get()) {
+      newRenderTemplateModel = createCompanionRenderModel(myNewModuleModel);
     }
     else if (myExtraRenderTemplateModel.getTemplateHandle() == null) {
-      newRenderTemplateModel =
-        RenderTemplateModel.fromModuleModel(myNewModuleModel, null, createDefaultTemplateAt(projectLocation, moduleName), "");
+      newRenderTemplateModel = RenderTemplateModel.fromModuleModel(myNewModuleModel, null, "");
       newRenderTemplateModel.setTemplateHandle(renderTemplateHandle().getValueOrNull());
     }
     else { // Extra Render is visible. Use it.
       newRenderTemplateModel = myExtraRenderTemplateModel;
-      myExtraRenderTemplateModel.getTemplate().set(createDefaultTemplateAt(projectLocation, moduleName));
     }
-    newRenderTemplateModel.getAndroidSdkInfo().setValue(androidSdkInfo().getValue());
     return newRenderTemplateModel;
   }
 
@@ -176,21 +173,22 @@ public final class NewProjectModuleModel extends WizardModel {
   private static NewModuleModel createCompanionModuleModel(@NotNull NewProjectModel projectModel) {
     // Note: The companion Module is always a Mobile app
     File moduleTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_MODULE);
-    NewModuleModel companionModuleModel = new NewModuleModel(projectModel, moduleTemplateFile);
-    companionModuleModel.getModuleName().set(getModuleName(FormFactor.MOBILE));
+    String moduleName = getModuleName(FormFactor.MOBILE);
+    NamedModuleTemplate namedModuleTemplate = createDefaultTemplateAt(projectModel.projectLocation.get(), moduleName);
+    NewModuleModel companionModuleModel = new NewModuleModel(projectModel, moduleTemplateFile, namedModuleTemplate);
+    companionModuleModel.getModuleName().set(moduleName);
 
     return companionModuleModel;
   }
 
   @NotNull
-  private static RenderTemplateModel createCompanionRenderModel(@NotNull String projectLocation, @NotNull NewModuleModel moduleModel) {
+  private static RenderTemplateModel createCompanionRenderModel(@NotNull NewModuleModel moduleModel) {
     // Note: The companion Render is always a "Empty Activity"
-    NamedModuleTemplate namedModuleTemplate = createDefaultTemplateAt(projectLocation, moduleModel.getModuleName().get());
     File renderTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_ACTIVITY, EMPTY_ACTIVITY);
     TemplateHandle renderTemplateHandle = new TemplateHandle(renderTemplateFile);
 
     RenderTemplateModel companionRenderModel =
-      RenderTemplateModel.fromModuleModel(moduleModel, renderTemplateHandle, namedModuleTemplate, "");
+      RenderTemplateModel.fromModuleModel(moduleModel, renderTemplateHandle, "");
     addRenderDefaultTemplateValues(companionRenderModel);
 
     return companionRenderModel;

@@ -40,7 +40,7 @@ object ActivityGallery {
 
     val thumb = templateHandle?.metadata?.thumbnailPath
     if (thumb == null || thumb.isEmpty()) {
-      return null
+      return TemplateIcon(AndroidIcons.Wizards.NoActivity)
     }
 
     val file = File(templateHandle.rootPath, thumb.replace('/', File.separatorChar))

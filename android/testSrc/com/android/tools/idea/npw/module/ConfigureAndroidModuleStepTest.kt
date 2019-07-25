@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -63,7 +64,7 @@ class ConfigureAndroidModuleStepTest : AndroidGradleTestCase() {
     `when`(moduleManager.modules).thenReturn(Module.EMPTY_ARRAY)
 
     val basePackage = "com.example"
-    val newModuleModel = NewModuleModel(project, null, ProjectSyncInvoker.DefaultProjectSyncInvoker())
+    val newModuleModel = NewModuleModel(project, null, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
 
     Disposer.register(testRootDisposable, newModuleModel)
@@ -92,7 +93,7 @@ class ConfigureAndroidModuleStepTest : AndroidGradleTestCase() {
 
     val basePackage = "com.example"
     val parentName = "parent"
-    val newModuleModel = NewModuleModel(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker())
+    val newModuleModel = NewModuleModel(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
 
     Disposer.register(testRootDisposable, newModuleModel)
@@ -115,7 +116,7 @@ class ConfigureAndroidModuleStepTest : AndroidGradleTestCase() {
    * Selecting API <28 should allow the use of "Go Forward", and API >=28 should stop the user from "Go Forward"
    */
   fun testSelectAndroid_Q_onNonAndroidxProjects() {
-    val newModuleModel = NewModuleModel(project, null, ProjectSyncInvoker.DefaultProjectSyncInvoker())
+    val newModuleModel = NewModuleModel(project, null, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title")
 
     Disposer.register(testRootDisposable, newModuleModel)
@@ -123,11 +124,11 @@ class ConfigureAndroidModuleStepTest : AndroidGradleTestCase() {
     myInvokeStrategy.updateAllSteps()
 
     val androidTarget_P = createMockAndroidVersion(VersionCodes.P)
-    configureAndroidModuleStep.renderModel.androidSdkInfo.value = androidTarget_P
+    newModuleModel.androidSdkInfo.value = androidTarget_P
     assertThat(configureAndroidModuleStep.canGoForward().get()).isTrue()
 
     val androidTarget_Q = createMockAndroidVersion(VersionCodes.Q)
-    configureAndroidModuleStep.renderModel.androidSdkInfo.value = androidTarget_Q
+    newModuleModel.androidSdkInfo.value = androidTarget_Q
     assertThat(configureAndroidModuleStep.canGoForward().get()).isFalse()
   }
 

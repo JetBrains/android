@@ -34,6 +34,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.AddDestinationMenuFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureTemplateParametersWizardFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.ui.UIUtil;
@@ -70,7 +71,7 @@ public class NavNlEditorTest {
 
     assertThat(layout.getSelection()).containsExactly(screen.getComponent());
 
-    DestinationListFixture destinationListFixture = DestinationListFixture.Companion.create(guiTest.robot());
+    DestinationListFixture destinationListFixture = DestinationListFixture.create(guiTest.robot());
     List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();
     assertEquals(1, selectedComponents.size());
     assertEquals("first_screen", selectedComponents.get(0).getId());
@@ -98,7 +99,7 @@ public class NavNlEditorTest {
 
     menuFixture.selectDestination("fragment_my");
 
-    DestinationListFixture fixture = DestinationListFixture.Companion.create(guiTest.robot());
+    DestinationListFixture fixture = DestinationListFixture.create(guiTest.robot());
     fixture.replaceCellReader(new BasicJListCellReader(c -> c.toString()));
     fixture.selectItem("main_activity - Start");
     assertEquals(1, layout.getSelection().size());
@@ -112,6 +113,40 @@ public class NavNlEditorTest {
 
     List<NlComponent> selectedComponents = fixture.getSelectedComponents();
     assertEquals(0, selectedComponents.size());
+  }
+
+  @Test
+  public void testCreateNewFragmentFromWizard() throws Exception {
+    StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
+    try {
+      NlEditorFixture layout = guiTest
+        .importProject("Navigation")
+        .waitForGradleProjectSyncToFinish()
+        .getEditor()
+        .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
+        .getLayoutEditor(true);
+
+      AddDestinationMenuFixture menuFixture = layout
+        .waitForRenderToFinish()
+        .getNavSurface()
+        .openAddDestinationMenu()
+        .waitForContents();
+
+      assertEquals(3, menuFixture.visibleItemCount());
+      menuFixture.clickCreateNewFragment()
+        .waitUntilStepErrorMessageIsGone()
+        .chooseFragment("Fullscreen Fragment")
+        .clickNextFragment()
+        .waitUntilStepErrorMessageIsGone()
+        .clickFinish();
+
+      DestinationListFixture destinationListFixture = DestinationListFixture.create(guiTest.robot());
+      List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();
+      assertEquals(1, selectedComponents.size());
+      assertEquals("fullscreenFragment", selectedComponents.get(0).getId());
+    } finally {
+      StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.clearOverride();
+    }
   }
 
   @Test

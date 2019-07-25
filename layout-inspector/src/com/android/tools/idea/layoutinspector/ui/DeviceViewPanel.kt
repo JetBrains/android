@@ -178,7 +178,9 @@ class DeviceViewPanel(
       }
       else {
         for (stream in processesMap.keys) {
-          val deviceAction = DropDownAction(buildDeviceName(stream.device), null, null)
+          val deviceAction = object : DropDownAction(buildDeviceName(stream.device), null, null) {
+            override fun displayTextInToolbar() = true
+          }
           val processes = processesMap[stream]
           if (processes == null || processes.isEmpty()) {
             val noProcessAction = object : AnAction("No debuggable processes detected") {
@@ -203,6 +205,8 @@ class DeviceViewPanel(
       }
       return true
     }
+
+    override fun displayTextInToolbar() = true
 
     private fun buildDeviceName(device: Common.Device): String {
       val deviceNameBuilder = StringBuilder()

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.buildvariants
 
+import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.buildtypes.BuildTypesConfigurable
 import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.ProductFlavorsConfigurable
@@ -26,9 +27,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 
 class AndroidModuleBuildVariantsConfigurable(
-    context: PsContext,
-    module: PsAndroidModule
-) : AbstractModuleConfigurable<PsAndroidModule, BuildVariantsPanel>(context, module), Disposable {
+  context: PsContext,
+  perspectiveConfigurable: BasePerspectiveConfigurable,
+  module: PsAndroidModule
+) : AbstractModuleConfigurable<PsAndroidModule, BuildVariantsPanel>(context, perspectiveConfigurable, module), Disposable {
 
   private val buildTypesModel = createTreeModel(BuildTypesConfigurable(module, context).also { Disposer.register(this, it) })
   private val productFlavorsModel = createTreeModel(ProductFlavorsConfigurable(module, context).also { Disposer.register(this, it) })

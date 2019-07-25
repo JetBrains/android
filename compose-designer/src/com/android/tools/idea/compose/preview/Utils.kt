@@ -33,9 +33,9 @@ import org.jetbrains.uast.visitor.UastVisitor
 
 const val UNDEFINED_API_LEVEL = -1
 
-internal data class PreviewConfiguration(val apiLevel: Int?,
-                                         val theme: String?,
-                                         val orientation: ScreenOrientation?) {
+data class PreviewConfiguration(val apiLevel: Int?,
+                                val theme: String?,
+                                val orientation: ScreenOrientation?) {
   fun applyTo(renderConfiguration: Configuration) {
     if (apiLevel != null && apiLevel != UNDEFINED_API_LEVEL) {
       val highestTarget = renderConfiguration.configurationManager.highestApiTarget!!
@@ -58,68 +58,74 @@ internal data class PreviewConfiguration(val apiLevel: Int?,
     }
   }
 }
-internal data class PreviewElement(val name: String, val method: String, val configuration: PreviewConfiguration)
+data class PreviewElement(val name: String, val method: String, val configuration: PreviewConfiguration)
 
-/**
- * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
- */
-internal fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
-  val apiLevel = node.findAttributeValue("apiLevel")?.evaluate() as? Int
-  val theme = node.findAttributeValue("theme")?.evaluateString()?.nullize()
-  val orientation = when (node.findAttributeValue("orientation")?.asRenderString()) {
-    "Orientation.LANDSCAPE" -> ScreenOrientation.LANDSCAPE
-    null -> null
-    else -> ScreenOrientation.PORTRAIT
+interface PreviewElementFinder {
+  fun findPreviewMethods(project: Project, vFile: VirtualFile): Set<PreviewElement> {
+    val uFile: UFile = PsiManager.getInstance(project).findFile(vFile)?.toUElement() as? UFile ?: return emptySet<PreviewElement>()
+
+    return findPreviewMethods(uFile)
   }
 
-  return PreviewConfiguration(apiLevel, theme, orientation)
+  fun findPreviewMethods(uFile: UFile): Set<PreviewElement>
 }
 
 /**
- * Returns all the `@Composable` methods in the [vFile] that are also tagged with `@Preview`.
+ * [PreviewElementFinder] that uses `@Preview` annotations.
  */
-internal fun findPreviewMethods(project: Project, vFile: VirtualFile): Set<PreviewElement> {
-  val uFile: UFile = PsiManager.getInstance(project).findFile(vFile)?.toUElement() as? UFile ?: return emptySet()
-
-  return findPreviewMethods(uFile)
-}
-
-/**
- * Returns all the `@Composable` methods in the [uFile] that are also tagged with `@Preview`.
- */
-internal fun findPreviewMethods(uFile: UFile): Set<PreviewElement> {
-  val previewMethodsFqNames = mutableSetOf<PreviewElement>()
-  uFile.accept(object : UastVisitor {
-    private var stopVisitor = false
-
-    override fun visitElement(node: UElement): Boolean = stopVisitor
-
-    /**
-     * Called for every `@Preview` annotation.
-     */
-    private fun visitPreviewAnnotation(previewAnnotation: UAnnotation) {
-      val uMethod = previewAnnotation.uastParent as UMethod
-
-      if (uMethod.uastParameters.isNotEmpty()) {
-        error("Preview methods must not have any parameters")
-      }
-
-      val uClass: UClass = uMethod.uastParent as UClass
-      val composableMethod = "${uClass.qualifiedName}.${uMethod.name}"
-      val previewName = previewAnnotation.findAttributeValue("name")?.evaluateString() ?: ""
-
-      previewMethodsFqNames.add(PreviewElement(previewName, composableMethod,
-                                               attributesToConfiguration(previewAnnotation)))
+object AnnotationPreviewElementFinder : PreviewElementFinder {
+  /**
+   * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
+   */
+  private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
+    val apiLevel = node.findAttributeValue("apiLevel")?.evaluate() as? Int
+    val theme = node.findAttributeValue("theme")?.evaluateString()?.nullize()
+    val orientation = when (node.findAttributeValue("orientation")?.asRenderString()) {
+      "Orientation.LANDSCAPE" -> ScreenOrientation.LANDSCAPE
+      null -> null
+      else -> ScreenOrientation.PORTRAIT
     }
 
-    override fun visitAnnotation(node: UAnnotation): Boolean {
-      if (PREVIEW_ANNOTATION == node.qualifiedName) {
-        visitPreviewAnnotation(node)
+    return PreviewConfiguration(apiLevel, theme, orientation)
+  }
+
+  /**
+   * Returns all the `@Composable` methods in the [uFile] that are also tagged with `@Preview`.
+   */
+  override fun findPreviewMethods(uFile: UFile): Set<PreviewElement> {
+    val previewMethodsFqNames = mutableSetOf<PreviewElement>()
+    uFile.accept(object : UastVisitor {
+      private var stopVisitor = false
+
+      override fun visitElement(node: UElement): Boolean = stopVisitor
+
+      /**
+       * Called for every `@Preview` annotation.
+       */
+      private fun visitPreviewAnnotation(previewAnnotation: UAnnotation) {
+        val uMethod = previewAnnotation.uastParent as UMethod
+
+        if (!uMethod.parameterList.isEmpty) {
+          error("Preview methods must not have any parameters")
+        }
+
+        val uClass: UClass = uMethod.uastParent as UClass
+        val composableMethod = "${uClass.qualifiedName}.${uMethod.name}"
+        val previewName = previewAnnotation.findAttributeValue("name")?.evaluateString() ?: ""
+
+        previewMethodsFqNames.add(PreviewElement(previewName, composableMethod,
+                                                 attributesToConfiguration(previewAnnotation)))
       }
 
-      return super.visitAnnotation(node)
-    }
-  })
+      override fun visitAnnotation(node: UAnnotation): Boolean {
+        if (PREVIEW_ANNOTATION == node.qualifiedName) {
+          visitPreviewAnnotation(node)
+        }
 
-  return previewMethodsFqNames
+        return super.visitAnnotation(node)
+      }
+    })
+
+    return previewMethodsFqNames
+  }
 }

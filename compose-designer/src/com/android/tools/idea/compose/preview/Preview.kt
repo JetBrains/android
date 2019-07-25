@@ -23,6 +23,9 @@ import com.android.tools.adtui.actions.ZoomShortcut
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.ActionsToolbar
+import com.android.tools.idea.common.editor.DesignFileEditor
+import com.android.tools.idea.common.editor.SmartAutoRefresher
+import com.android.tools.idea.common.editor.SmartRefreshable
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
@@ -32,21 +35,13 @@ import com.android.tools.idea.compose.preview.ComposePreviewToolbar.ForceCompile
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.BuildContext
-import com.android.tools.idea.gradle.project.build.BuildStatus
-import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
-import com.android.tools.idea.util.listenUntilNextSync
-import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.icons.AllIcons
-import com.intellij.ide.structureView.StructureViewBuilder
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -54,10 +49,8 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
-import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
@@ -66,7 +59,6 @@ import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -80,10 +72,7 @@ import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinFileType
 import java.awt.BorderLayout
-import java.beans.PropertyChangeListener
 import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
-import javax.swing.JComponent
 import javax.swing.JPanel
 
 /** Only composables with this annotation will be rendered to the surface */
@@ -127,11 +116,11 @@ private class ComposeAdapterLightVirtualFile(name: String, content: String) : Li
  * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` method.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
+ * @param previews a set of @Composable elements available for @Preview in the given [psiFile].
  */
 private class PreviewEditor(private val psiFile: PsiFile,
-                            private val previews: () -> Set<PreviewElement>) : FileEditor, UserDataHolderBase() {
+                            private val previews: () -> Set<PreviewElement>) : SmartRefreshable, DesignFileEditor(psiFile.virtualFile!!) {
   private val project = psiFile.project
-  private val virtualFile = psiFile.virtualFile
 
   private val surface = NlDesignSurface.builder(project, this)
     .setIsPreview(true)
@@ -157,51 +146,21 @@ private class PreviewEditor(private val psiFile: PsiFile,
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  private val workbench = WorkBench<DesignSurface>(project, "Compose Preview", this).apply {
+  override val workbench = WorkBench<DesignSurface>(project, "Compose Preview", this).apply {
     isOpaque = true
     init(editorPanel, surface, listOf())
     showLoading("Waiting for build to finish...")
   }
 
   /**
-   * Initializes the preview editor and triggers a refresh.
+   * Calls refresh method on the the successful gradle build
    */
-  private fun initComposePreview() {
-    refreshPreview()
-
-    GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
-      override fun buildStarted(context: BuildContext) {
-        EditorNotifications.getInstance(project).updateNotifications(virtualFile)
-      }
-
-      override fun buildFinished(status: BuildStatus, context: BuildContext?) {
-        EditorNotifications.getInstance(project).updateNotifications(virtualFile)
-        refreshPreview()
-      }
-    }, this@PreviewEditor)
-  }
-
-  init {
-    project.runWhenSmartAndSyncedOnEdt(this, Consumer<ProjectSystemSyncManager.SyncResult> { result ->
-      if (result.isSuccessful) {
-        initComposePreview()
-      }
-      else {
-        workbench.loadingStopped("Preview is unavailable until after a successful project sync")
-        // The project failed to sync, run initialization when the project syncs correctly
-        project.listenUntilNextSync(this, object : ProjectSystemSyncManager.SyncResultListener {
-          override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-            initComposePreview()
-          }
-        })
-      }
-    })
-  }
+  private val refresher = SmartAutoRefresher(psiFile, this, workbench)
 
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    */
-  private fun refreshPreview() {
+  override fun refresh() {
     surface.models.forEach { surface.removeModel(it) }
     val renders = previews()
       .map { Pair(it, ComposeAdapterLightVirtualFile("testFile.xml", it.toPreviewXmlString())) }
@@ -239,21 +198,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
   }
 
-  override fun getComponent(): JComponent = workbench
-  override fun getPreferredFocusedComponent(): JComponent? = workbench
   override fun getName(): String = "Compose Preview"
-  override fun setState(state: FileEditorState) {}
-  override fun dispose() {}
-  override fun selectNotify() {}
-  override fun deselectNotify() {}
-  override fun isValid(): Boolean = file.isValid
-  override fun isModified(): Boolean = false
-  override fun addPropertyChangeListener(listener: PropertyChangeListener) {}
-  override fun removePropertyChangeListener(listener: PropertyChangeListener) {}
-  override fun getBackgroundHighlighter(): BackgroundEditorHighlighter? = null
-  override fun getCurrentLocation(): FileEditorLocation? = null
-  override fun getStructureViewBuilder(): StructureViewBuilder? = null
-  override fun getFile(): VirtualFile = virtualFile
 }
 
 /**
@@ -367,8 +312,7 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
     val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor,
                                                                 PreviewEditor(
                                                                   psiFile = psiFile) {
-                                                                  findPreviewMethods(
-                                                                    project, file)
+                                                                  AnnotationPreviewElementFinder.findPreviewMethods(project, file)
                                                                 })
 
     // Queue to avoid refreshing notifications on every key stroke

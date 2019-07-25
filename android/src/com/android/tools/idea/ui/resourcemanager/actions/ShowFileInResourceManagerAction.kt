@@ -19,7 +19,7 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_EXPLORER_TOOL_WINDOW_ID
 import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
-import com.android.tools.idea.ui.resourcemanager.SUPPORTED_RESOURCES
+import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
@@ -104,7 +104,7 @@ class ShowFileInResourceManagerAction
 
   private fun isSupportedResource(file: VirtualFile): Boolean {
     val folderName = ResourceFolderType.getFolderType(file.name)?.getName() ?: return false
-    return ResourceType.fromFolderName(folderName) in SUPPORTED_RESOURCES
+    return ResourceType.fromFolderName(folderName) in MANAGER_SUPPORTED_RESOURCES
   }
 
   private fun getPsiDir(file: VirtualFile, project: Project): PsiDirectory? = if (file.isDirectory) {

@@ -114,6 +114,21 @@ public final class ProfilersTestData {
   public static final long JNI_REF_BASE = 0x50000000;
 
   @NotNull
+  public static Common.Event.Builder generateSessionStartEvent(long streamId,
+                                                               long sessionId,
+                                                               long timestampNs,
+                                                               Common.SessionData.SessionStarted.SessionType type) {
+    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(sessionId).setKind(Common.Event.Kind.SESSION)
+      .setSession(Common.SessionData.newBuilder().setSessionStarted(
+        Common.SessionData.SessionStarted.newBuilder().setStreamId(streamId).setSessionId(sessionId).setType(type)));
+  }
+
+  @NotNull
+  public static Common.Event.Builder generateSessionEndEvent(long streamId, long sessionId, long timestampNs) {
+    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(sessionId).setKind(Common.Event.Kind.SESSION).setIsEnded(true);
+  }
+
+  @NotNull
   public static Common.Event.Builder generateNetworkTxEvent(long timestampUs, int throughput) {
     return Common.Event.newBuilder()
       .setTimestamp(TimeUnit.MICROSECONDS.toNanos(timestampUs))

@@ -41,7 +41,7 @@ interface ModelDescriptor<in ModelT, out ResolvedT, out ParsedT> {
   fun getParsed(model: ModelT): ParsedT?
 
   /**
-   * Notifies the PSD that a [model] is baout to be modified.
+   * Notifies the PSD that a [model] is about to be modified.
    */
   fun prepareForModification(model: ModelT)
 

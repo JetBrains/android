@@ -654,21 +654,6 @@ public class SceneComponent {
   //region Maintenance
   /////////////////////////////////////////////////////////////////////////////
 
-  /**
-   * Clear our attributes (delegating the action to our view handler)
-   */
-  void clearAttributes() {
-    NlComponent component = getAuthoritativeNlComponent();
-    NlComponent parent = component.getParent();
-    if (parent != null) {
-      // Parent is ViewGroup. This cleans layout_xxx attributes.
-      ViewGroupHandler parentHandler = NlComponentHelperKt.getViewGroupHandler(parent);
-      if (parentHandler != null) {
-        parentHandler.clearAttributes(component);
-      }
-    }
-  }
-
   protected void addTarget(@NotNull Target target) {
     target.setComponent(this);
     synchronized (myTargets) {

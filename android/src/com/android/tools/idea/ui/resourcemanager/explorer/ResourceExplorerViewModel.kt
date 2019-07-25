@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
+import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
@@ -24,7 +25,6 @@ import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 import com.intellij.ui.speedSearch.SpeedSearch
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
@@ -119,13 +119,17 @@ interface ResourceExplorerViewModel {
   /** Helper functions to create an instance of [ResourceExplorerViewModel].*/
   companion object {
     fun createResManagerViewModel(facet: AndroidFacet): ResourceExplorerViewModel
-      = ResourceExplorerViewModelImpl(facet, FilterOptionsParams(moduleDependenciesInitialValue = false, librariesInitialValue = false))
+      = ResourceExplorerViewModelImpl(facet,
+                                      FilterOptionsParams(moduleDependenciesInitialValue = false, librariesInitialValue = false),
+                                      MANAGER_SUPPORTED_RESOURCES)
 
 
-    fun createResPickerViewModel(facet: AndroidFacet, doSelectAssetCallback: (resource: ResourceItem) -> Unit): ResourceExplorerViewModel
-      = ResourceExplorerViewModelImpl(
-      facet,
-      FilterOptionsParams(moduleDependenciesInitialValue = true, librariesInitialValue = false)) {
+    fun createResPickerViewModel(facet: AndroidFacet,
+                                 supportedResourceTypes: Array<ResourceType>,
+                                 doSelectAssetCallback: (resource: ResourceItem) -> Unit): ResourceExplorerViewModel
+      = ResourceExplorerViewModelImpl(facet,
+                                      FilterOptionsParams(moduleDependenciesInitialValue = true, librariesInitialValue = false),
+                                      supportedResourceTypes) {
       // Callback should not have ResourceExplorerAsset dependency, so we return ResourceItem.
       asset -> doSelectAssetCallback.invoke(asset.resourceItem)
     }

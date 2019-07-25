@@ -107,7 +107,7 @@ iml_module(
         "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea/plugins/gradle:intellij.gradle[module]",
         "//tools/idea/plugins/gradle/java:intellij.gradle.java[module]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib-loader[module]",
+        "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
         "//tools/idea/.idea/libraries:baksmali",
         "//tools/idea/.idea/libraries:dexlib2",
         "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
@@ -149,13 +149,14 @@ iml_module(
         "//tools/idea/.idea/libraries:Java_Compatibility",
         "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model",
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module]",
         "//tools/idea/.idea/libraries:NanoXML",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:perfetto-proto",
         "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
+        "//prebuilts/studio/layoutlib:data/layoutlib",
+        "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer.annotations[module]",
     ],
 )
 
@@ -268,7 +269,7 @@ iml_module(
         "//tools/idea/plugins/gradle:intellij.gradle[module, test]",
         "//tools/idea/plugins/gradle:intellij.gradle.tests[module, test]",
         "//tools/idea/plugins/groovy/groovy-psi:intellij.groovy.psi[module, test]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib-loader[module, test]",
+        "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module, test]",
         "//tools/idea/plugins/properties/properties-psi-api:intellij.properties.psi[module, test]",
         "//tools/idea/platform/diff-impl:intellij.platform.diff.impl[module, test]",
         "//tools/idea/.idea/libraries:dexlib2[test]",
@@ -321,6 +322,7 @@ iml_module(
         "//tools/idea/.idea/libraries:NanoXML[test]",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
+        "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer[module, test]",
     ],
 )
 

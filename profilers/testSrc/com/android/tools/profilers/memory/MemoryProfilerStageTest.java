@@ -20,11 +20,13 @@ import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.Cla
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.ddmlib.allocations.AllocationsParserTest;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
@@ -35,7 +37,6 @@ import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.Memory.TrackStatus;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerMode;
@@ -53,6 +54,7 @@ import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +64,11 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
+
+  @NotNull private final ByteBuffer FAKE_ALLOC_BUFFER = AllocationsParserTest.putAllocationInfo(
+    new String[0], new String[0], new String[0], new int[0][], new short[0][][]
+  );
+
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
   @NotNull private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
 
@@ -131,7 +138,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Prepares the AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
       AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).build()).build());
-    myService.setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
+    myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
 
     // The timeline has reset at this point so we need to advance the current time so data range is advanced during the next update.
     myTimer.setCurrentTimeNs(FakeTimer.ONE_SECOND_IN_NS);
@@ -667,7 +674,6 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Prepares the AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
       AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true)).build());
-    myService.setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
 
     // Advancing time (data range) - MemoryProfilerStage should not select the capture since the feature is disabled.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -697,7 +703,6 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Prepares an unfinished AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
       AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(Long.MAX_VALUE).setLegacy(true)).build());
-    myService.setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
 
     // Advancing time (data range) - stage should not select it yet since the tracking session has not finished
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -708,6 +713,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Prepares a finished AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
       AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true)).build());
+    myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
 
     // Advancing time (data range) - stage should select it since the tracking session is now done.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);

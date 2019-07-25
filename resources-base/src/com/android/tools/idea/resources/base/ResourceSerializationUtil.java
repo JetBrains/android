@@ -66,10 +66,17 @@ public class ResourceSerializationUtil {
    */
   public static void createPersistentCache(@NotNull Path cacheFile, @NotNull byte[] fileHeader,
                                            @NotNull Base128StreamWriter contentWriter) {
+    // Try to delete the old cache file.
+    try {
+      Files.deleteIfExists(cacheFile);
+    }
+    catch (IOException e) {
+      LOG.warn("Unable to delete " + cacheFile.toString(), e);
+    }
+
     // Write to a temporary file first, then rename it to the final name.
     Path tempFile;
     try {
-      Files.deleteIfExists(cacheFile);
       tempFile = FileUtilRt.createTempFile(cacheFile.getParent().toFile(), cacheFile.getFileName().toString(), ".tmp").toPath();
     }
     catch (IOException e) {

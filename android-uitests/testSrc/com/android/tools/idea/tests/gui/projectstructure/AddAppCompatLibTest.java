@@ -21,11 +21,9 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
-import org.fest.swing.timing.Wait;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -73,13 +71,8 @@ public class AddAppCompatLibTest {
 
     DependenciesTestUtil.addLibraryDependency(ideFrame, "com.android.support:appcompat-v7", "app", "implementation");
 
-    ideFrame.waitForGradleProjectSyncToFinish();
-
-    EditorFixture editor = ideFrame.getEditor();
-    editor.open("app/build.gradle", EditorFixture.Tab.EDITOR, Wait.seconds(30));
-    String contents = editor.getCurrentFileContents();
     // Here, only verify the main part of the library, the exact revision number will vary.
     // As default, it's implementation type.
-    assertThat(contents.contains("implementation 'com.android.support:appcompat-v7")).isTrue();
+    assertThat(guiTest.getProjectFileText("app/build.gradle")).contains("implementation 'com.android.support:appcompat-v7");
   }
 }

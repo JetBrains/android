@@ -87,6 +87,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     val focusListener = TextEditorFocusListener(textField, this, model)
     addFocusListener(focusListener)
     textField.addFocusListener(focusListener)
+    setFromModel()
 
     addPopupMenuListener(
       object : PopupMenuListener {
@@ -130,6 +131,10 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
   override fun updateFromModel() {
     super.updateFromModel()
+    setFromModel()
+  }
+
+  private fun setFromModel() {
     isVisible = model.visible
     foreground = model.displayedForeground(UIUtil.getLabelForeground())
     background = model.displayedBackground(secondaryPanelBackground)

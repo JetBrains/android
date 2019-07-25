@@ -11,6 +11,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider
 import java.io.File
 
@@ -24,8 +25,9 @@ class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModule
     override fun isAndroidModule() = androidFacet != null
     override fun isGradleModule() = GradleProjectInfo.getInstance(module.project).isBuildWithGradle
 
-    override fun getAllResourceDirectories(): List<VirtualFile> {
-        return androidFacet?.allResourceDirectories ?: emptyList()
+    override fun getAllResourceDirectories() : List<VirtualFile> {
+        val facet = androidFacet ?: return emptyList()
+        return ResourceFolderManager.getInstance(facet).folders
     }
 
     override fun getApplicationPackage() = androidFacet?.manifest?.`package`?.toString()

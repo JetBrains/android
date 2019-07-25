@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.property.ptable2.PTableGroupItem
 
@@ -34,6 +35,7 @@ class InspectorGroupPropertyItem(
   name: String,
   type: LayoutInspectorProto.Property.Type,
   value: String?,
+  val classLocation: SourceLocation?,
   isDeclared: Boolean,
   source: ResourceReference?,
   view: ViewNode,

@@ -34,14 +34,14 @@ class ValueAssetDataProvider (
 
   override fun getAssetData(asset: DesignAsset): AssetData {
     val defaultData = super.getAssetData(asset)
-    val metadata = resourceResolver.resolveValue(asset)?.value?.truncate()?: defaultData.subtitle
+    val metadata = resourceResolver.resolveValue(asset)?.getReadableValue()?.truncate()?: defaultData.subtitle
     return AssetData(defaultData.title, defaultData.subtitle, metadata)
   }
 
   override fun getAssetSetData(assetSet: ResourceAssetSet): AssetData {
     val defaultData = super.getAssetSetData(assetSet)
     val asset = assetSet.getHighestDensityAsset()
-    val subtitle = resourceResolver.resolveValue(asset)?.value?: defaultData.subtitle
+    val subtitle = resourceResolver.resolveValue(asset)?.getReadableValue()?: defaultData.subtitle
     return AssetData(defaultData.title, subtitle, defaultData.metadata)
   }
 }

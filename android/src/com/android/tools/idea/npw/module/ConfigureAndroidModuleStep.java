@@ -136,13 +136,11 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     myValidatorPanel.registerValidator(model.getPackageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
-    NamedModuleTemplate dummyTemplate = GradleAndroidModuleTemplate.createDummyTemplate();
-
     myRenderModel =
-      RenderTemplateModel.fromModuleModel(moduleModel, null, dummyTemplate, message("android.wizard.activity.add", myFormFactor.id));
+      RenderTemplateModel.fromModuleModel(moduleModel, null, message("android.wizard.activity.add", myFormFactor.id));
 
-    myBindings.bind(myRenderModel.getAndroidSdkInfo(), new SelectedItemProperty<>(myApiLevelCombo));
-    myValidatorPanel.registerValidator(myRenderModel.getAndroidSdkInfo(), value -> {
+    myBindings.bind(model.getAndroidSdkInfo(), new SelectedItemProperty<>(myApiLevelCombo));
+    myValidatorPanel.registerValidator(model.getAndroidSdkInfo(), value -> {
       if (!value.isPresent()) {
         return new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text"));
       }
@@ -199,7 +197,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     // At this point, the validator panel should have no errors, and the user has typed a valid Module Name
     getModel().getModuleName().set(myModuleName.getText());
     Project project = moduleModel.getProject().getValue();
-    myRenderModel.getTemplate().set(createDefaultTemplateAt(project.getBasePath(), moduleModel.getModuleName().get()));
+    getModel().getTemplate().set(createDefaultTemplateAt(project.getBasePath(), moduleModel.getModuleName().get()));
 
     if (moduleModel.isLibrary().get()) {
       moduleModel.setRenderTemplateModel(myRenderModel);
@@ -208,7 +206,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     myInstallRequests.clear();
     myInstallLicenseRequests.clear();
 
-    List<AndroidVersionsInfo.VersionItem> installItems = Collections.singletonList(myRenderModel.getAndroidSdkInfo().getValue());
+    List<AndroidVersionsInfo.VersionItem> installItems = Collections.singletonList(moduleModel.getAndroidSdkInfo().getValue());
     myInstallRequests.addAll(myAndroidVersionsInfo.loadInstallPackageList(installItems));
     myInstallLicenseRequests.addAll(myInstallRequests.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList()));
   }

@@ -35,7 +35,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
-import java.util.List;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -141,16 +140,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
 
     return myMainIdeaSourceSet;
-  }
-  
-  /**
-   * @return all resource directories, in the overlay order.
-   * @deprecated use getResourceFolderManager().getFolders() instead
-   */
-  @NotNull
-  @Deprecated
-  public List<VirtualFile> getAllResourceDirectories() {
-    return ResourceFolderManager.getInstance(this).getFolders();
   }
 
   @Override

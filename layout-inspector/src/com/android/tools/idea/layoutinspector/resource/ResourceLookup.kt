@@ -21,11 +21,19 @@ import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTIO
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.res.RESOURCE_ICON_SIZE
+import com.android.tools.idea.res.parseColor
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.ClassUtil
+import com.intellij.util.ui.ColorIcon
+import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
+import javax.swing.Icon
 
 /**
  * Utility for looking up resources in a project.
@@ -75,4 +83,24 @@ class ResourceLookup(private val project: Project) {
    */
   fun findAttributeValue(property: InspectorPropertyItem, location: ResourceReference): String? =
     resolver?.findAttributeValue(property, location)
+
+  /**
+   * Find the icon from this drawable property.
+   */
+  fun resolveAsIcon(property: InspectorPropertyItem): Icon? {
+    resolver?.resolveAsIcon(property)?.let { return it }
+    val value = property.value
+    val color = value?.let { parseColor(value) } ?: return null
+    return JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false))
+  }
+
+  /**
+   * Convert a class name to a source location.
+   */
+  fun resolveClassNameAsSourceLocation(className: String): SourceLocation {
+    val psiClass = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))
+    val navigatable = psiClass?.let { findNavigatable(psiClass) }
+    val source = ClassUtil.extractClassName(className)
+    return SourceLocation(source, navigatable)
+  }
 }

@@ -117,7 +117,7 @@ public class CpuProfilerTest {
 
     myCpuProfiler = new CpuProfiler(myProfilers);
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
-    Common.Session session = sessionsManager.createImportedSession("name.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0);
+    Common.Session session = sessionsManager.createImportedSessionLegacy("name.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0);
     sessionsManager.update();
     // Expect setting the session to fail, because session manager shouldn't be aware of Common.SessionMetaData.SessionType.CPU_CAPTURE,
     // as we didn't register a listener for this type of captures.

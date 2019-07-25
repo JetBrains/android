@@ -16,12 +16,8 @@
 package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.scene.ConstantValue
-import com.android.tools.idea.common.scene.SceneContext
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
-import java.awt.Graphics2D
-import java.awt.Shape
 import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
 
@@ -41,13 +37,8 @@ class FillArrow(@VisibleForTesting val direction: ArrowDirection,
                 color: Color,
                 level: Int = 0)
   : FillShape(buildPath(rectangle, direction), color, level) {
-  private constructor(tokens: Array<String>)
-    : this(ArrowDirection.valueOf(tokens[0]), stringToRect2D(tokens[1]), stringToColor(tokens[2]), tokens[3].toInt())
 
-  constructor(serialized: String) : this(parse(serialized, 4))
-
-  override fun serialize(): String = buildString(javaClass.simpleName, direction, rect2DToString(rectangle),
-                                                 colorToString(color), level)
+  override fun serialize(): String = ""
 
   companion object {
     private fun buildPath(rectangle: Rectangle2D.Float, direction: ArrowDirection): Path2D.Float {

@@ -43,6 +43,7 @@ public interface DbTokenTypes {
   IElementType FUNCTION_REF_EXPR = new DbElementType("FUNCTION_REF_EXPR");
   IElementType ID = new DbElementType("ID");
   IElementType INEQ_COMPARISON_EXPR = new DbElementType("INEQ_COMPARISON_EXPR");
+  IElementType INFERRED_FORMAL_PARAMETER = new DbElementType("INFERRED_FORMAL_PARAMETER");
   IElementType INFERRED_FORMAL_PARAMETER_LIST = new DbElementType("INFERRED_FORMAL_PARAMETER_LIST");
   IElementType INSTANCE_OF_EXPR = new DbElementType("INSTANCE_OF_EXPR");
   IElementType LAMBDA_EXPRESSION = new DbElementType("LAMBDA_EXPRESSION");
@@ -174,6 +175,9 @@ public interface DbTokenTypes {
       }
       else if (type == INEQ_COMPARISON_EXPR) {
         return new PsiDbIneqComparisonExprImpl(node);
+      }
+      else if (type == INFERRED_FORMAL_PARAMETER) {
+        return new PsiDbInferredFormalParameterImpl(node);
       }
       else if (type == INFERRED_FORMAL_PARAMETER_LIST) {
         return new PsiDbInferredFormalParameterListImpl(node);

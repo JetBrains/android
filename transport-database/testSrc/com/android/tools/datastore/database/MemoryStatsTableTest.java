@@ -44,10 +44,6 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     Common.Session session = Common.Session.getDefaultInstance();
     methodCalls.add((table) -> assertThat(table.getAllocationsInfo(session, 0)).isNull());
     methodCalls.add((table) -> assertThat(table.getHeapDumpInfoByRequest(session, ListDumpInfosRequest.getDefaultInstance())).isEmpty());
-    methodCalls.add(
-      (table) -> assertThat(table.getLegacyAllocationContexts(LegacyAllocationContextsRequest.newBuilder().addClassIds(1).build()))
-        .isEqualTo(LegacyAllocationContextsResponse.getDefaultInstance()));
-    methodCalls.add((table) -> assertThat(table.getLegacyAllocationData(session, 0)).isNull());
     methodCalls.add((table) -> {
       ArrayList<MemoryData.AllocStatsSample> stats = new ArrayList<>();
       stats.add(MemoryData.AllocStatsSample.getDefaultInstance());
@@ -59,18 +55,12 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
       table.insertGcStats(session, samples);
     });
     methodCalls.add((table) -> {
-      List<AllocatedClass> classes = new ArrayList<>();
-      classes.add(AllocatedClass.getDefaultInstance());
-      table.insertLegacyAllocationContext(session, classes, new ArrayList<>());
-    });
-    methodCalls.add((table) -> {
       List<MemoryData.MemorySample> samples = new ArrayList<>();
       samples.add(MemoryData.MemorySample.getDefaultInstance());
       table.insertMemory(session, samples);
     });
     methodCalls.add((table) -> table.insertOrReplaceAllocationsInfo(session, AllocationsInfo.getDefaultInstance()));
     methodCalls.add((table) -> table.insertOrReplaceHeapInfo(session, HeapDumpInfo.getDefaultInstance()));
-    methodCalls.add((table) -> table.updateLegacyAllocationEvents(session, 0, LegacyAllocationEventsResponse.getDefaultInstance()));
     methodCalls.add((table) -> table.getData(MemoryRequest.getDefaultInstance()));
     return methodCalls;
   }
@@ -158,75 +148,6 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     // Test that querying for an invalid session returns no data.
     result = getTable().getData(MemoryRequest.newBuilder().setSession(INVALID_SESSION).setStartTime(0).setEndTime(9).build());
     verifyMemoryDataResultCounts(result, 0, 0, 0, 0, 0);
-  }
-
-
-  @Test
-  public void testLegacyAllocationsQueriesAfterInsertion() {
-    AllocationsInfo sample = AllocationsInfo.newBuilder().setStartTime(1).setEndTime(2).build();
-    getTable().insertOrReplaceAllocationsInfo(VALID_SESSION, sample);
-
-    // Tests that the info has been inserted into table, but the event response + dump data are still null
-    assertThat(getTable().getAllocationsInfo(VALID_SESSION, sample.getStartTime())).isEqualTo(sample);
-    assertThat(getTable().getLegacyAllocationData(VALID_SESSION, sample.getStartTime())).isNull();
-
-    int stackId = 1;
-    LegacyAllocationEventsResponse events = LegacyAllocationEventsResponse
-      .newBuilder()
-      .addEvents(LegacyAllocationEvent.newBuilder().setClassId(1).setStackId(stackId))
-      .addEvents(LegacyAllocationEvent.newBuilder().setClassId(2).setStackId(stackId)).build();
-    getTable().updateLegacyAllocationEvents(VALID_SESSION, sample.getStartTime(), events);
-    assertThat(getTable().getLegacyAllocationData(VALID_SESSION, sample.getStartTime())).isEqualTo(events);
-
-
-    // Test that querying for the invalid app id returns null
-    assertThat(getTable().getAllocationsInfo(INVALID_SESSION, sample.getStartTime())).isNull();
-    assertThat(getTable().getLegacyAllocationData(INVALID_SESSION, sample.getStartTime())).isNull();
-
-    // Test that querying for the invalid session returns null
-    assertThat(getTable().getAllocationsInfo(INVALID_SESSION, sample.getStartTime())).isNull();
-    assertThat(getTable().getLegacyAllocationData(INVALID_SESSION, sample.getStartTime())).isNull();
-  }
-
-  @Test
-  public void testLegacyAllocationContextQueriesAfterInsertion() {
-    int classId1 = 1;
-    int classId2 = 2;
-    int stackId3 = 3;
-    int stackId4 = 4;
-
-    AllocatedClass class1 = AllocatedClass.newBuilder().setClassId(classId1).setClassName("Class1").build();
-    AllocatedClass class2 = AllocatedClass.newBuilder().setClassId(classId2).setClassName("Class2").build();
-    AllocationStack stack1 = AllocationStack.newBuilder().setStackId(stackId3).build();
-    AllocationStack stack2 = AllocationStack.newBuilder().setStackId(stackId4).build();
-    getTable().insertLegacyAllocationContext(VALID_SESSION, Arrays.asList(class1, class2), Arrays.asList(stack1, stack2));
-
-    LegacyAllocationContextsRequest request =
-      LegacyAllocationContextsRequest.newBuilder().setSession(VALID_SESSION).addClassIds(classId1)
-        .addStackIds(stackId4).build();
-    LegacyAllocationContextsResponse response = getTable().getLegacyAllocationContexts(request);
-    assertThat(response.getClassesCount()).isEqualTo(1);
-    assertThat(response.getStacksCount()).isEqualTo(1);
-    assertThat(response.getClasses(0)).isEqualTo(class1);
-    assertThat(response.getStacks(0)).isEqualTo(stack2);
-
-    request = LegacyAllocationContextsRequest.newBuilder().setSession(VALID_SESSION).addClassIds(classId2)
-      .addStackIds(stackId3).build();
-    response = getTable().getLegacyAllocationContexts(request);
-    assertThat(response.getClassesCount()).isEqualTo(1);
-    assertThat(response.getStacksCount()).isEqualTo(1);
-    assertThat(response.getClasses(0)).isEqualTo(class2);
-    assertThat(response.getStacks(0)).isEqualTo(stack1);
-  }
-
-  @Test
-  public void testAllocationContextNotFound() {
-    LegacyAllocationContextsRequest request = LegacyAllocationContextsRequest
-      .newBuilder().setSession(VALID_SESSION).addClassIds(1).addClassIds(2).addStackIds(1).addStackIds(2).build();
-    LegacyAllocationContextsResponse response = getTable().getLegacyAllocationContexts(request);
-
-    assertThat(response.getClassesCount()).isEqualTo(0);
-    assertThat(response.getStacksCount()).isEqualTo(0);
   }
 
   private static void verifyMemoryDataResultCounts(@NotNull MemoryData result,

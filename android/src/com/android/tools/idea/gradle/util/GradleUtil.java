@@ -97,6 +97,7 @@ import com.android.utils.FileUtils;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.facet.ProjectFacetManager;
@@ -537,6 +538,16 @@ public final class GradleUtil {
   }
 
   /**
+   * Checks if module with childPath is a direct child of module with parentPath,
+   * meaning that childPath should have exactly one extra path segment in the end.
+   */
+  public static boolean isDirectChild(String childPath, String parentPath) {
+    List<String> childSegments = getPathSegments(childPath);
+    return childSegments.subList(0, childSegments.size() - 1).equals(getPathSegments(parentPath));
+  }
+
+
+  /**
    * Returns gradle paths for parent modules of the given path.<br/>
    * For example:
    * <ul>
@@ -544,16 +555,26 @@ public final class GradleUtil {
    * </ul>
    */
   @NotNull
-  public static List<String> getParentModulesPaths(@NotNull String gradlePath) {
+  public static Set<String> getAllParentModulesPaths(@NotNull String gradlePath) {
+    ImmutableSet.Builder<String> result = ImmutableSet.builder();
+    for (String parentPath = getParentModulePath(gradlePath); !parentPath.isEmpty(); parentPath = getParentModulePath(parentPath)) {
+      result.add(parentPath);
+    }
+    return result.build();
+  }
+
+  /**
+   * Returns gradle path of a parent of provided path.
+   * Empty string is returned for the root module.
+   */
+  @NotNull
+  public static String getParentModulePath(@NotNull String gradlePath) {
     int parentPathEnd = gradlePath.lastIndexOf(GRADLE_PATH_SEPARATOR);
     if (parentPathEnd <= 0) {
-      return new ArrayList<>();
+      return "";
     }
     else {
-      String parentPath = gradlePath.substring(0, parentPathEnd);
-      List<String> result = getParentModulesPaths(parentPath);
-      result.add(parentPath);
-      return result;
+      return gradlePath.substring(0, parentPathEnd);
     }
   }
 
