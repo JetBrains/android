@@ -133,6 +133,8 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
           .setResizable(true)
           .setMovable(true)
           .setTitle("DEX Byte Code for " + node.getName())
+          .setFocusable(true)
+          .setRequestFocus(true)
           .createPopup();
         Disposer.register(popup, component);
 
