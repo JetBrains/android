@@ -145,7 +145,7 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
 public abstract class LocalResourceRepository extends AbstractResourceRepositoryWithLocking implements ModificationTracker {
-  protected static final Logger LOG = Logger.getInstance(LocalResourceRepository.class);
+  private static final Logger LOG = Logger.getInstance(LocalResourceRepository.class);
 
   protected static final AtomicLong ourModificationCounter = new AtomicLong();
 
