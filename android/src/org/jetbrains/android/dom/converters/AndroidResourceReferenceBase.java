@@ -82,7 +82,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
 
   @NotNull
   private ResolveResult[] resolveInner() {
-    return AndroidResourceToPsiResolver.getInstance().resolveToPsi(myResourceValue, myElement, myFacet);
+    return AndroidResourceToPsiResolver.getInstance().resolveReference(myResourceValue, myElement, myFacet);
   }
 
   @Override

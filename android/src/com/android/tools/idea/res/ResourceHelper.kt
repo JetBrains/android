@@ -1177,3 +1177,15 @@ private fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name:
     !repoManager.resourceVisibility.isPrivate(type, name)
   }
 }
+
+/**
+ * Checks if this [ResourceItem] came from an inline id declaration (`@+id`) in an "id generating" file.
+ */
+fun ResourceItem.isInlineIdDeclaration(): Boolean {
+  if (type != ResourceType.ID) return false
+  val parentFolderName = source?.parentFileName ?: return false
+  return when (val resourceFolderType = ResourceFolderType.getFolderType(parentFolderName)) {
+    null, ResourceFolderType.VALUES -> false
+    else -> FolderTypeRelationship.isIdGeneratingFolderType(resourceFolderType)
+  }
+}
