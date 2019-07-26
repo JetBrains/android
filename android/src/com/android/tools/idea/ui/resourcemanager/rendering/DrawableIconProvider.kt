@@ -22,12 +22,13 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.res.resolveDrawable
 import com.android.tools.idea.ui.resourcemanager.ImageCache
+import com.android.tools.idea.ui.resourcemanager.explorer.EMPTY_ICON
+import com.android.tools.idea.ui.resourcemanager.explorer.ERROR_ICON
+import com.android.tools.idea.ui.resourcemanager.explorer.createFailedIcon
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
 import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderer
-import com.android.tools.idea.ui.resourcemanager.explorer.EMPTY_ICON
-import com.android.tools.idea.ui.resourcemanager.explorer.ERROR_ICON
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.ImageUtil
@@ -123,7 +124,9 @@ class DrawableIconProvider(
           fetchImage(assetToRender, refreshCallback, shouldBeRendered, targetSize, true)
         }
       }
-      imageIcon.image = image
+      // Create the actual error icon for the desired size, ERROR_ICON it's just used as a placeholder to know there was an error.
+      imageIcon.image = if (image == ERROR_ICON) createFailedIcon(targetSize) else image
+      supportsTransparency = image != ERROR_ICON
     }
     else {
       imageIcon.image = EMPTY_ICON
@@ -165,7 +168,7 @@ class DrawableIconProvider(
     return imageCache.computeAndGet(designAsset, EMPTY_ICON, forceImageRender, refreshCallBack) {
       if (isStillVisible()) {
         renderImage(targetSize, designAsset)
-          .thenApplyAsync { image -> image ?: ERROR_ICON }
+          .thenApplyAsync { image -> image ?: throw Exception("Failed to resolve resource") }
           .thenApply { image -> scaleToFitIfNeeded(image, targetSize) }
           .exceptionally { throwable ->
             LOG.error("Error while rendering $designAsset", throwable); ERROR_ICON
