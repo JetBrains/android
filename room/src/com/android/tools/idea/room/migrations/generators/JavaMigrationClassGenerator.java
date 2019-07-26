@@ -24,7 +24,9 @@ import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.PsiStatement;
@@ -60,12 +62,14 @@ public class JavaMigrationClassGenerator {
    */
   public static void createMigrationClass(@NotNull Project project,
                                           @NotNull PsiDirectory targetDirectory,
+                                          @NotNull PsiPackage targetPackage,
                                           @NotNull DatabaseUpdate databaseUpdate) {
     String migrationClassName = String.format(Locale.US,
                                               MIGRATION_CLASS_NAME_TEMPLATE,
                                               databaseUpdate.getPreviousVersion(),
                                               databaseUpdate.getCurrentVersion());
     PsiClass migrationClass = JavaDirectoryService.getInstance().createClass(targetDirectory, migrationClassName);
+    addPackage(migrationClass, project, targetPackage);
     addSuperClass(migrationClass, project);
     addMigrationConstructor(migrationClass, project);
     addMigrationMethod(migrationClass, project, databaseUpdate);
@@ -73,6 +77,10 @@ public class JavaMigrationClassGenerator {
     CodeStyleManager.getInstance(project).reformat(migrationClass);
 
     migrationClass.navigate(true);
+  }
+
+  private static void addPackage(@NotNull PsiClass migrationClass, @NotNull Project project, @NotNull PsiPackage targetPackage) {
+    ((PsiJavaFile)migrationClass.getContainingFile()).setPackageName(targetPackage.getQualifiedName());
   }
 
   private static void addSuperClass(@NotNull PsiClass migrationClass, @NotNull Project project) {
