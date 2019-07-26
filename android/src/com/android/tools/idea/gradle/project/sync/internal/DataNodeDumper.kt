@@ -17,27 +17,63 @@
 
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.tools.idea.gradle.project.model.GradleModuleModel
+import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule
 import com.intellij.openapi.externalSystem.model.DataNode
+import com.intellij.openapi.externalSystem.model.project.ModuleData
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import org.jetbrains.plugins.gradle.model.ExternalProject
 
 fun <T : Any> DataNode<T>.dump(): String = buildString {
 
-  var prefix = ""
-
-  fun out(s: String) {
-    appendln(s.replaceIndent(prefix))
+  fun Any.dumpData() = when (this) {
+    is ModuleData -> "\n" + """
+      id = $id
+      owner = $owner
+      moduleTypeId = $moduleTypeId
+      externalName = $externalName
+      moduleFileDirectoryPath = $moduleFileDirectoryPath
+      externalConfigPath = $linkedExternalProjectPath""".replaceIndent("        ")
+    is ImportedModule -> name
+    is GradleModuleModel -> "\n" + """
+      moduleName = $moduleName
+      taskNames = ${taskNames.take(3)}...
+      gradlePath = $gradlePath
+      rootFolderPath = $rootFolderPath
+      gradlePlugins = $gradlePlugins
+      buildFilePath = $buildFilePath
+      gradleVersion = $gradleVersion
+      agpVersion = $agpVersion
+      isKaptEnabled = $isKaptEnabled""".replaceIndent("        ")
+    is ExternalProject -> "\n" + """
+      externalSystemId = $externalSystemId
+      id = $id
+      name = $name
+      qName = $qName
+      description = $description
+      group = $group
+      version = $version
+      getChildProjects = $childProjects
+      projectDir = $projectDir
+      buildDir = $buildDir
+      buildFile = $buildFile
+      tasks = ${tasks.entries.take(3)}...
+      plugins = $plugins
+      properties = $properties
+      sourceSets = $sourceSets
+      artifacts = ${artifacts.take(3)}...
+      artifactsByConfiguration = ${artifactsByConfiguration.entries.take(3)}...
+      """.replaceIndent("        ")
+    else -> toString()
   }
 
-  fun DataNode<T>.dumpNode() {
+  fun DataNode<T>.dumpNode(prefix: String = "") {
     val v: T = data
-    out("$key(${v.javaClass.typeName}) ==> $v")
+    appendln("$key(${v.javaClass.typeName}) ==> ${v.dumpData()}".replaceIndent(prefix))
 
-    val old = prefix
-    prefix += "   "
     children
-      .filter { it.data !is com.intellij.openapi.externalSystem.model.task.TaskData }
-      .forEach { it.safeAs<DataNode<T>>()?.dumpNode() }
-    prefix = old
+      .filterNot { it.data is com.intellij.openapi.externalSystem.model.task.TaskData }
+      .forEach { it.safeAs<DataNode<T>>()?.dumpNode("$prefix    ") }
   }
 
   this@dump.dumpNode()
