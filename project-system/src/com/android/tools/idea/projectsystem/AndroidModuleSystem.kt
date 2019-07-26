@@ -196,7 +196,12 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
 data class ManifestOverrides(
   val directOverrides: Map<ManifestSystemProperty, String> = mapOf(),
   val placeholders: Map<String, String> = mapOf()
-)
+) {
+  companion object {
+    private val PLACEHOLDER_REGEX = Regex("\\$\\{([^}]*)}") // e.g. matches "${placeholder}" and extracts "placeholder"
+  }
+  fun resolvePlaceholders(string: String) = string.replace(PLACEHOLDER_REGEX) { placeholders[it.groupValues[1]].orEmpty() }
+}
 
 /** Types of dependencies that [AndroidModuleSystem.registerDependency] can add */
 enum class DependencyType {

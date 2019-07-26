@@ -24,11 +24,15 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.flags.StudioFlags.DefaultActivityLocatorStrategy;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
+import com.android.tools.idea.model.AndroidManifestIndex;
+import com.android.tools.idea.projectsystem.ManifestOverrides;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.DefaultActivityLocatorStats;
@@ -38,6 +42,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -98,18 +103,18 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   /**
    * Retrieves the list of activities from the merged manifest of the Android module
-   * corresponding to the given facet. The strategy used to obtain this list is determined by
-   * {@link StudioFlags#DEFAULT_ACTIVITY_LOCATOR_STRATEGY}:
-   * <table>
-   *   <tr><td>"BLOCK":</td> <td>Unconditionally block on a fresh view of the merged manifest.</td></tr>
-   *   <tr><td>"STALE":</td> <td>Use a potentially stale view of the merged manifest if the caller is on the EDT.</td></tr>
-   * </table>
-   * For any unrecognized flag value, we use the "BLOCK" strategy.
+   * corresponding to the given facet.
+   * @see DefaultActivityLocatorStrategy
    */
   @VisibleForTesting
   static List<ActivityWrapper> getActivitiesFromMergedManifest(@NotNull final AndroidFacet facet) {
+    DefaultActivityLocatorStrategy strategy = StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get();
+    if (strategy == DefaultActivityLocatorStrategy.INDEX && AndroidManifestIndex.indexEnabled()) {
+      return DumbService.getInstance(facet.getModule().getProject())
+        .runReadActionInSmartMode(() -> getActivitiesFromManifestIndex(facet));
+    }
     boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
-    boolean usePotentiallyStaleManifest = onEdt && StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get().equals("STALE");
+    boolean usePotentiallyStaleManifest = onEdt && strategy == DefaultActivityLocatorStrategy.STALE;
     Stopwatch timer = Stopwatch.createStarted();
     MergedManifestSnapshot mergedManifest = getMergedManifest(facet, usePotentiallyStaleManifest);
     List<ActivityWrapper> activities = mergedManifest == null ?
@@ -130,6 +135,23 @@ public class DefaultActivityLocator extends ActivityLocator {
       return manifestSupplier.getNow();
     }
     return MergedManifestManager.getFreshSnapshot(facet.getModule());
+  }
+
+  private static List<ActivityWrapper> getActivitiesFromManifestIndex(@NotNull final AndroidFacet facet) {
+    assert !DumbService.isDumb(facet.getModule().getProject()) && ApplicationManager.getApplication().isReadAccessAllowed();
+    boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
+    Stopwatch timer = Stopwatch.createStarted();
+    ManifestOverrides overrides = ProjectSystemUtil.getModuleSystem(facet.getModule()).getManifestOverrides();
+    LinkedList<ActivityWrapper> activityWrappers = new LinkedList<>();
+    LinkedList<ActivityWrapper> activityAliasWrappers = new LinkedList<>();
+    AndroidManifestIndex.getDataForMergedManifestContributors(facet)
+      .forEach(manifest -> {
+        activityWrappers.addAll(IndexedActivityWrapper.getActivities(manifest, overrides));
+        activityAliasWrappers.addAll(IndexedActivityWrapper.getActivityAliases(manifest, overrides));
+      });
+    activityWrappers.addAll(activityAliasWrappers);
+    logManifestLatency(onEdt, false, timer.elapsed(TimeUnit.MILLISECONDS));
+    return activityWrappers;
   }
 
   private static void logManifestLatency(boolean blocksUiThread, boolean usedPotentiallyStaleManifest, long latencyMs) {
