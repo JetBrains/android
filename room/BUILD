@@ -52,6 +52,8 @@ iml_module(
         "//tools/idea/.idea/libraries:gson",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea:intellij.java.impl[module]",
+        "//tools/idea/java/openapi:intellij.java[module]",
     ],
 )
 
