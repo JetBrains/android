@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.tools.lint.checks.CheckResultDetector.CHECK_PERMISSION;
+
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -22,8 +24,6 @@ import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.lint.checks.PermissionDetector.CHECK_PERMISSION;
 
 public class AndroidLintUseCheckPermissionInspection extends AndroidLintInspectionBase {
   public AndroidLintUseCheckPermissionInspection() {
@@ -39,7 +39,7 @@ public class AndroidLintUseCheckPermissionInspection extends AndroidLintInspecti
     String suggested = LintFix.getData(fixData, String.class);
     if (suggested != null) {
       return new AndroidLintQuickFix[]{
-        new AndroidLintCheckResultInspection.ReplaceCallFix(suggested)
+        new ReplaceCallFix(suggested)
       };
     }
 

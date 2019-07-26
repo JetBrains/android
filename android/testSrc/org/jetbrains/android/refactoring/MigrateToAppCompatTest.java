@@ -277,35 +277,6 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
     }
   }
 
-  public void testMigrationQuickFix() throws Exception {
-    TestProjectSystem testProjectSystem = new TestProjectSystem(getProject());
-    testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.getModule(), GradleVersion.parse("+"));
-    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
-                                       testProjectSystem, getTestRootDisposable());
-
-    myFixture.enableInspections(new AndroidLintAppCompatCustomViewInspection());
-    myFixture.copyFileToProject(BASE_PATH + "theme_material_manifest.xml", "AndroidManifest.xml");
-    VirtualFile file = myFixture.copyFileToProject(
-      BASE_PATH + "CustomView_highlighted.java", "src/p1/p2/CustomView.java");
-    myFixture.configureFromExistingVirtualFile(file);
-    myFixture.doHighlighting();
-    myFixture.checkHighlighting(true, false, false);
-    IntentionAction action =
-      AndroidTestUtils.getIntentionAction(myFixture, AndroidBundle.message("android.refactoring.migratetoappcompat"));
-    assertNotNull(action);
-    // Note: For a refactoring this should always be false.
-    assertFalse(action.startInWriteAction());
-
-    new WriteCommandAction(myFixture.getProject(), "") {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
-      }
-    }.execute();
-
-    myFixture.checkResultByFile("src/p1/p2/CustomView.java", BASE_PATH + "CustomView_after.java", true);
-  }
-
   /**
    * Helper/Infrastructure in fluent/builder style api for running {@link MigrateToAppCompatProcessor} and checking
    * that the results match the expected results stored in filename_after.ext
