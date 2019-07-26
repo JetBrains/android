@@ -48,6 +48,7 @@ import java.util.List;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -259,7 +260,7 @@ public class ThemeEditorStyle {
   private XmlTag findXmlTagFromConfiguration(@NotNull FolderConfiguration configuration) {
     for (ResourceItem item : getStyleResourceItems()) {
       if (item.getConfiguration().equals(configuration)) {
-        return LocalResourceRepository.getItemTag(myManager.getProject(), item);
+        return AndroidResourceUtil.getItemTag(myManager.getProject(), item);
       }
     }
     return null;
@@ -361,7 +362,7 @@ public class ThemeEditorStyle {
       return null;
     }
     // Any sourceXml will do to get the name attribute from
-    XmlTag sourceXml = LocalResourceRepository.getItemTag(myManager.getProject(), resources.iterator().next());
+    XmlTag sourceXml = AndroidResourceUtil.getItemTag(myManager.getProject(), resources.iterator().next());
     assert sourceXml != null;
     XmlAttribute nameAttribute = sourceXml.getAttribute("name");
     if (nameAttribute == null) {

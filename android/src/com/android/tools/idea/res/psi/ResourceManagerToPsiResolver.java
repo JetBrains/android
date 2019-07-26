@@ -110,7 +110,7 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
               result.add(new AarResourceResolveResult((BasicResourceItem)item));
             }
             else {
-              XmlTag tag = LocalResourceRepository.getItemTag(facet.getModule().getProject(), item);
+              XmlTag tag = AndroidResourceUtil.getItemTag(facet.getModule().getProject(), item);
               if (tag != null) {
                 elements.add(tag);
               }
