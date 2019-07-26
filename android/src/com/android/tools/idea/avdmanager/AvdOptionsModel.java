@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.Revision;
+import com.android.repository.io.FileOpUtils;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
@@ -42,11 +42,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
