@@ -16,6 +16,7 @@
 package com.android.tools.datastore;
 
 import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURABLE;
+import static com.android.tools.idea.flags.StudioFlags.PROFILER_UNIFIED_PIPELINE;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.database.DataStoreTable;
@@ -177,7 +178,8 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   public void setNoPiiExceptionHandler(@Nullable Consumer<Throwable> noPiiExceptionHandler) {
     if (noPiiExceptionHandler == null) {
       myNoPiiExceptionHandler = (t) -> getLogger().error(t);
-    } else {
+    }
+    else {
       myNoPiiExceptionHandler = noPiiExceptionHandler;
     }
   }
@@ -195,7 +197,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     // TODO b/73538507 shared between all services to support inserting file content into generic byte cache (e.g. importing hprof)
     // We should be able to keep this inside TransportService after legacy pipeline removal.
     UnifiedEventsTable unifiedTable = new UnifiedEventsTable();
-    myTransportService = new TransportService(this, unifiedTable, myFetchExecutor);
+    myTransportService = new TransportService(this, unifiedTable, myFetchExecutor, PROFILER_UNIFIED_PIPELINE.get());
     registerService(myTransportService);
     registerService(new ProfilerService(this, myLogService));
     registerService(new EventService(this, myFetchExecutor));
