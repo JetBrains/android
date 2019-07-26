@@ -15,10 +15,10 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.jetbrains.org.objectweb.asm.Opcodes.*;
