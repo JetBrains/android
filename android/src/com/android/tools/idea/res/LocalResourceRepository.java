@@ -15,34 +15,20 @@
  */
 package com.android.tools.idea.res;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_FORMAT;
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.ATTR_NAME;
-import static com.android.resources.ResourceType.ATTR;
-import static com.android.resources.ResourceType.STYLEABLE;
-import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
-import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
-
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
-import com.android.resources.FolderTypeRelationship;
-import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -250,105 +235,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
   boolean isScanPending(@NotNull PsiFile psiFile) {
     return false;
-  }
-
-  /**
-   * Returns the {@link XmlTag} corresponding to the given resource item. This is only
-   * defined for resource items in value files.
-   */
-  @Nullable
-  public static XmlTag getItemTag(@NotNull Project project, @NotNull ResourceItem item) {
-    if (item instanceof PsiResourceItem) {
-      PsiResourceItem psiResourceItem = (PsiResourceItem)item;
-      return psiResourceItem.getTag();
-    }
-
-    PsiFile psiFile = AndroidResourceUtil.getItemPsiFile(project, item);
-    if (psiFile instanceof XmlFile) {
-      String resourceName = item.getName();
-      XmlFile xmlFile = (XmlFile)psiFile;
-      ApplicationManager.getApplication().assertReadAccessAllowed();
-      XmlTag rootTag = xmlFile.getRootTag();
-      if (rootTag != null && rootTag.isValid()) {
-        XmlTag[] subTags = rootTag.getSubTags();
-        for (XmlTag tag : subTags) {
-          if (tag.isValid()) {
-            ResourceType resourceType = getResourceTypeForResourceTag(tag);
-            if (resourceType == item.getType() && resourceName.equals(tag.getAttributeValue(ATTR_NAME))) {
-              return tag;
-            }
-
-            // Consider children of declare-styleable.
-            if (item.getType() == ATTR && resourceType == STYLEABLE) {
-              XmlTag[] items = tag.getSubTags();
-              for (XmlTag child : items) {
-                if (resourceName.equals(child.getAttributeValue(ATTR_NAME))
-                    && (child.getAttribute(ATTR_FORMAT) != null || child.getSubTags().length > 0)) {
-                  return child;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // This method should only be called on value resource types.
-      assert FolderTypeRelationship.getRelatedFolders(item.getType()).contains(ResourceFolderType.VALUES) : item.getType();
-    }
-
-    return null;
-  }
-
-  @Nullable
-  public String getViewTag(@NotNull ResourceItem item) {
-    if (item instanceof PsiResourceItem) {
-      PsiResourceItem psiItem = (PsiResourceItem)item;
-      XmlTag tag = psiItem.getTag();
-
-      final String id = item.getName();
-
-      if (tag != null && tag.isValid()
-          // Make sure that the id attribute we're searching for is actually
-          // defined for this tag, not just referenced from this tag.
-          // For example, we could have
-          //    <Button a:alignLeft="@+id/target" a:id="@+id/something ...>
-          // and this should *not* return "Button" as the view tag for
-          // @+id/target!
-          && id.equals(stripIdPrefix(tag.getAttributeValue(ATTR_ID, ANDROID_URI)))) {
-        return tag.getName();
-      }
-
-
-      PsiFile file = psiItem.getPsiFile();
-      if (file instanceof XmlFile && file.isValid()) {
-        XmlFile xmlFile = (XmlFile)file;
-        XmlTag rootTag = xmlFile.getRootTag();
-        if (rootTag != null && rootTag.isValid()) {
-          return findViewTag(rootTag, id);
-        }
-      }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  private static String findViewTag(XmlTag tag, String target) {
-    String id = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
-    if (id != null && id.endsWith(target) && target.equals(stripIdPrefix(id))) {
-      return tag.getName();
-    }
-
-    for (XmlTag sub : tag.getSubTags()) {
-      if (sub.isValid()) {
-        String found = findViewTag(sub, target);
-        if (found != null) {
-          return found;
-        }
-      }
-    }
-
-    return null;
   }
 
   /**
