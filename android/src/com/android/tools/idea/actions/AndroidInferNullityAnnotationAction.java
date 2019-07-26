@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;

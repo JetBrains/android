@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncTestCase;
 import org.jetbrains.annotations.NotNull;

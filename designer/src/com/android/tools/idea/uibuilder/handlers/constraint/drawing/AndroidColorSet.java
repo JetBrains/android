@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.constraint.drawing;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.ColorTheme;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
-import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 
 import java.awt.Color;

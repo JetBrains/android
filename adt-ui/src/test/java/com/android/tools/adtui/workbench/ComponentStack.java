@@ -30,14 +30,10 @@ package com.android.tools.adtui.workbench;
  */
 
 import com.intellij.openapi.components.ComponentManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.impl.ComponentManagerImpl;
-import com.intellij.openapi.components.impl.ServiceManagerImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.picocontainer.ComponentAdapter;
 import org.picocontainer.MutablePicoContainer;
-import org.picocontainer.defaults.InstanceComponentAdapter;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

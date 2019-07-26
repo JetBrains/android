@@ -23,10 +23,8 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ColorAssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
-import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchFile;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.testFramework.ProjectRule;

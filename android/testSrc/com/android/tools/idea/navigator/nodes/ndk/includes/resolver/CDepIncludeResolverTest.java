@@ -19,7 +19,6 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;

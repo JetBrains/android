@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.databinding;
 
-import com.android.SdkConstants;
 import com.android.builder.model.AndroidLibrary;
 import com.android.ide.common.blame.Message;
 import com.android.tools.idea.databinding.DataBindingMode;
@@ -23,8 +22,6 @@ import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
@@ -32,13 +29,10 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
-import com.intellij.testFramework.Parameterized;
 import com.intellij.util.containers.ContainerUtil;
 import org.apache.commons.io.FileUtils;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.*;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;

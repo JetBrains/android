@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.VALUE_VERTICAL;
 
 /**
  * Handler for Chain helper

@@ -19,7 +19,6 @@ import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
-import com.android.tools.idea.uibuilder.scout.ScoutChainsArrange;
 import com.android.tools.idea.uibuilder.scout.ScoutConnectArrange;
 import org.jetbrains.annotations.NotNull;
 

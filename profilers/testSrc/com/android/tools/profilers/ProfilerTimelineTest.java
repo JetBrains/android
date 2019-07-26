@@ -18,7 +18,6 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updater;
-import com.google.common.truth.Truth;
 import org.junit.Before;
 import org.junit.Test;
 

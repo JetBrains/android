@@ -38,7 +38,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;

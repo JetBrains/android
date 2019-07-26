@@ -39,7 +39,6 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
 import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 

@@ -18,7 +18,6 @@ package org.jetbrains.android.exportSignedPackage;
 
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.ide.wizard.StepAdapter;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 

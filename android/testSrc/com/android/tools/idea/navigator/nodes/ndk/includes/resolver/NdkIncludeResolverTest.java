@@ -21,7 +21,6 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValues;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
-import org.apache.commons.io.FilenameUtils;
 import org.junit.Test;
 
 import java.io.File;

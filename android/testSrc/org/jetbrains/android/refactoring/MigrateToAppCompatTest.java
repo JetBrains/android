@@ -35,7 +35,6 @@ import com.intellij.util.SmartList;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.AndroidTestUtils;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 

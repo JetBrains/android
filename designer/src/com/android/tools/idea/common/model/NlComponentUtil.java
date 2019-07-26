@@ -25,7 +25,6 @@ import java.util.HashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.List;
 
 public class NlComponentUtil {
   /**

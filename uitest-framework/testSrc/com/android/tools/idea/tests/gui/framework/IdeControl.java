@@ -19,9 +19,9 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.client.JUnitClient;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
-import com.intellij.testGuiFramework.remote.transport.TransportMessage;
+
 import java.util.function.Supplier;
-import org.fest.swing.core.BasicRobot;
+
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;

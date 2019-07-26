@@ -19,12 +19,7 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGMethod
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.MethodGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.BlockGraphEntryNodeImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.BlockGraphExitNodeImpl;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Param;
-import com.google.common.collect.Maps;
-import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
 
 public class MethodGraphImpl extends BlockGraphImpl implements MethodGraph {
 

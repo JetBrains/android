@@ -20,7 +20,6 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TargetProvider;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
-import com.android.tools.idea.naveditor.scene.NavSceneHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

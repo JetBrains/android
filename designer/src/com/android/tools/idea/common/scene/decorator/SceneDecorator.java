@@ -25,9 +25,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The generic Scene Decorator

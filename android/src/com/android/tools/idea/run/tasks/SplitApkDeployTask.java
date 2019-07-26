@@ -23,7 +23,6 @@ import com.android.tools.idea.run.InstallResult;
 import com.android.tools.idea.run.RetryingInstaller;
 import com.android.tools.idea.run.RetryingInstallerResult;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
