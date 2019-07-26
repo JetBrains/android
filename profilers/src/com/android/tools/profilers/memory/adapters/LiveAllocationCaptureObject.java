@@ -37,7 +37,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRespons
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsResponse;
 import com.android.tools.profiler.proto.Memory.NativeBacktrace;
 import com.android.tools.profiler.proto.Memory.NativeCallStack;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -114,8 +113,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private long myContextEndTimeNs = Long.MIN_VALUE;
   private long myPreviousQueryStartTimeNs = Long.MIN_VALUE;
   private long myPreviousQueryEndTimeNs = Long.MIN_VALUE;
-  // Keeps track of the timestamps of all batched sample we have queried.
-  private ArrayList<Long> mySeenSampleTimestampsNs = new ArrayList<>();
+  // Keeps track of the latest sample's timestamp we have queried thus far.
+  private long myLastSeenTimestampNs = Long.MIN_VALUE;
 
   private Range myQueryRange;
 
@@ -425,7 +424,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // Samples that are within the query range may not have arrived from the daemon yet. If the query range is greater than the
         // last sample we have seen. Set the last query timestamp to the last sample's timestmap, so that next time we will requery
         // the range between (last-seen sample, newEndTimeNs).
-        myPreviousQueryEndTimeNs = Math.min(newEndTimeNs, getLastAllocationSampleTimestamp());
+        myPreviousQueryEndTimeNs = Math.min(newEndTimeNs, myLastSeenTimestampNs);
 
         joiner.execute(() -> {
           myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATED);
@@ -505,10 +504,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     List<Memory.BatchAllocationEvents> eventsList = getAllocationEvents(sessionStartNs, snapshotTimeNs);
     Map<Integer, LiveAllocationInstanceObject> liveInstanceMap = new LinkedHashMap<>();
     for (Memory.BatchAllocationEvents events : eventsList) {
-      if (events.getTimestamp() > getLastAllocationSampleTimestamp()) {
-        mySeenSampleTimestampsNs.add(events.getTimestamp());
-      }
-
       // Only consider events up to but excluding the snapshot time.
       Iterator<AllocationEvent> itr = events.getEventsList().stream().filter(evt -> evt.getTimestamp() < snapshotTimeNs)
         .sorted(Comparator.comparingLong(AllocationEvent::getTimestamp)).iterator();
@@ -550,10 +545,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     List<Memory.BatchJNIGlobalRefEvent> eventsList = getJniRefEvents(sessionStartNs, snapshotTimeNs);
     Map<Long, JniReferenceInstanceObject> instanceMap = new LinkedHashMap<>();
     for (Memory.BatchJNIGlobalRefEvent events : eventsList) {
-      if (events.getTimestamp() > getLastAllocationSampleTimestamp()) {
-        mySeenSampleTimestampsNs.add(events.getTimestamp());
-      }
-
       // Only consider events up to but excluding the snapshot time.
       Iterator<JNIGlobalReferenceEvent> itr = events.getEventsList().stream().filter(evt -> evt.getTimestamp() < snapshotTimeNs)
         .sorted(Comparator.comparingLong(JNIGlobalReferenceEvent::getTimestamp)).iterator();
@@ -620,9 +611,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
     List<Memory.BatchAllocationEvents> eventsList = getAllocationEvents(startTimeNs, endTimeNs);
     for (Memory.BatchAllocationEvents events : eventsList) {
-      if (events.getTimestamp() > getLastAllocationSampleTimestamp()) {
-        mySeenSampleTimestampsNs.add(events.getTimestamp());
-      }
       // Only consider events between the delta range [start time, end time)
       Iterator<AllocationEvent> itr =
         events.getEventsList().stream()
@@ -668,10 +656,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
     List<Memory.BatchJNIGlobalRefEvent> eventsList = getJniRefEvents(startTimeNs, endTimeNs);
     for (BatchJNIGlobalRefEvent events : eventsList) {
-      if (events.getTimestamp() > getLastAllocationSampleTimestamp()) {
-        mySeenSampleTimestampsNs.add(events.getTimestamp());
-      }
-
       // Only consider events between the delta range [start time, end time)
       Iterator<JNIGlobalReferenceEvent> itr =
         events.getEventsList().stream().filter(evt -> evt.getTimestamp() >= startTimeNs && evt.getTimestamp() < endTimeNs)
@@ -757,10 +741,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     return builder.build();
   }
 
-  private long getLastAllocationSampleTimestamp() {
-    return mySeenSampleTimestampsNs.isEmpty() ? Long.MIN_VALUE : mySeenSampleTimestampsNs.get(mySeenSampleTimestampsNs.size() - 1);
-  }
-
   @Nullable
   private Memory.MemoryMap.MemoryRegion getRegionByAddress(long address) {
     Map.Entry<Long, Memory.MemoryMap.MemoryRegion> entry = myJniMemoryRegionMap.floorEntry(address);
@@ -778,7 +758,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private List<Memory.BatchAllocationContexts> getAllocationContexts(long startTimeNs, long endTimeNs) {
     if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       Transport.GetEventGroupsResponse response = myClient.getTransportClient().getEventGroups(
-        buildEventGroupRequest(Common.Event.Kind.MEMORY_ALLOC_CONTEXTS, startTimeNs, endTimeNs));
+        buildEventGroupRequest(Common.Event.Kind.MEMORY_ALLOC_CONTEXTS, startTimeNs, endTimeNs + QUERY_BUFFER_NS));
 
       assert response.getGroupsCount() <= 1;
       return response.getGroupsCount() == 1 ?
@@ -800,12 +780,14 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private List<Memory.BatchAllocationEvents> getAllocationEvents(long startTimeNs, long endTimeNs) {
     if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       Transport.GetEventGroupsResponse response = myClient.getTransportClient().getEventGroups(
-        buildEventGroupRequest(Common.Event.Kind.MEMORY_ALLOC_EVENTS, startTimeNs, endTimeNs));
+        buildEventGroupRequest(Common.Event.Kind.MEMORY_ALLOC_EVENTS, startTimeNs - QUERY_BUFFER_NS, endTimeNs + QUERY_BUFFER_NS));
 
       assert response.getGroupsCount() <= 1;
       return response.getGroupsCount() == 1 ?
-             response.getGroups(0).getEventsList().stream().map(event -> event.getMemoryAllocEvents().getEvents())
-               .collect(Collectors.toList()) :
+             getEventsAndUpdateSeenTimestamp(
+               response.getGroups(0).getEventsList().stream().map(event -> event.getMemoryAllocEvents().getEvents())
+                 .collect(Collectors.toList()),
+               Memory.BatchAllocationEvents::getTimestamp) :
              Collections.emptyList();
     }
     else {
@@ -814,7 +796,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
                                                                             .setStartTime(startTimeNs - QUERY_BUFFER_NS)
                                                                             .setEndTime(endTimeNs + QUERY_BUFFER_NS)
                                                                             .build());
-      return response.getEventsList();
+      List<Memory.BatchAllocationEvents> eventsList = response.getEventsList();
+      return getEventsAndUpdateSeenTimestamp(eventsList, Memory.BatchAllocationEvents::getTimestamp);
     }
   }
 
@@ -822,12 +805,14 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private List<Memory.BatchJNIGlobalRefEvent> getJniRefEvents(long startTimeNs, long endTimeNs) {
     if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       Transport.GetEventGroupsResponse response = myClient.getTransportClient().getEventGroups(
-        buildEventGroupRequest(Common.Event.Kind.MEMORY_JNI_REF_EVENTS, startTimeNs, endTimeNs));
+        buildEventGroupRequest(Common.Event.Kind.MEMORY_JNI_REF_EVENTS, startTimeNs - QUERY_BUFFER_NS, endTimeNs + QUERY_BUFFER_NS));
 
       assert response.getGroupsCount() <= 1;
       return response.getGroupsCount() == 1 ?
-             response.getGroups(0).getEventsList().stream().map(event -> event.getMemoryJniRefEvents().getEvents())
-               .collect(Collectors.toList()) :
+             getEventsAndUpdateSeenTimestamp(
+               response.getGroups(0).getEventsList().stream().map(event -> event.getMemoryJniRefEvents().getEvents())
+                 .collect(Collectors.toList()),
+               BatchJNIGlobalRefEvent::getTimestamp) :
              Collections.emptyList();
     }
     else {
@@ -836,7 +821,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         .setStartTime(startTimeNs - QUERY_BUFFER_NS)
         .setEndTime(endTimeNs + QUERY_BUFFER_NS)
         .build();
-      return getClient().getJNIGlobalRefsEvents(request).getEventsList();
+      List<Memory.BatchJNIGlobalRefEvent> eventsList = getClient().getJNIGlobalRefsEvents(request).getEventsList();
+      return getEventsAndUpdateSeenTimestamp(eventsList, BatchJNIGlobalRefEvent::getTimestamp);
     }
   }
 
@@ -851,5 +837,12 @@ public class LiveAllocationCaptureObject implements CaptureObject {
       .setFromTimestamp(startTimeNs)
       .setToTimestamp(endTimeNs)
       .build();
+  }
+
+  private <T> List<T> getEventsAndUpdateSeenTimestamp(List<T> eventList, Function<T, Long> timestampFunc) {
+    for (T event : eventList) {
+      myLastSeenTimestampNs = Math.max(timestampFunc.apply(event), myLastSeenTimestampNs);
+    }
+    return eventList;
   }
 }
