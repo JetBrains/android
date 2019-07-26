@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetProvider;
@@ -36,10 +35,6 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
   public List<ExecutionTarget> getTargets(@NotNull Project project, @NotNull RunnerAndConfigurationSettings configuration) {
     ActionManager manager = ActionManager.getInstance();
     DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
-
-    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
-      return Collections.singletonList(DefaultExecutionTarget.INSTANCE);
-    }
 
     // We always return an ExecutionTarget as long as we have valid config and package names.
     // This is because we don't want to maintain listener states with ddmlib, and we don't
