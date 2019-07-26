@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering.classloading;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.lang.JavaVersion;
 import java.util.Collection;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
@@ -61,27 +61,15 @@ public class ClassConverter {
 
   /** Converts a JDK string like 1.6.0_65 to the corresponding class file version number, e.g. 50 */
   public static int jdkToClassVersion(@NotNull String version) { // e.g. 1.6.0_b52
-    version = StringUtil.trimStart(version, "1.");
-
-    int dot = version.indexOf('.');
-    if (dot != -1) {
-      version = version.substring(0, dot);
-    }
-
-    try {
-      int major = Integer.valueOf(version.trim());
-      if (major > 0) {
-        return major + 44; // 1.3 => 47, ... 1.6 => 50, 1.7 => 51, ...
-      }
-    }
-    catch (NumberFormatException ignored) {
-    }
-
-    return -1;
+    final JavaVersion javaVersion = JavaVersion.tryParse(version);
+    return javaVersion != null ? javaVersion.feature + 44 : -1;
   }
 
   /** Converts a class file version number  JDK string like 1.6.0_65 to the corresponding class file version number, e.g. 50 */
   public static String classVersionToJdk(int version) {
+    if (version >= 53) {
+      return Integer.toString(version - 53 + 9);
+    }
     return "1." + Integer.toString(version - 44); // 47 => 1.3, 50 => 1.6, ...
   }
 
