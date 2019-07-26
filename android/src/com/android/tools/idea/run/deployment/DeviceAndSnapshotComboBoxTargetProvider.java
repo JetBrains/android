@@ -60,11 +60,6 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   public static final class State extends DeployTargetState {
   }
 
-  @Override
-  protected boolean isApplicable(boolean testConfiguration, boolean deviceSnapshotComboBoxVisible) {
-    return deviceSnapshotComboBoxVisible;
-  }
-
   @NotNull
   @Override
   public DeployTargetConfigurable<State> createConfigurable(@NotNull Project project,

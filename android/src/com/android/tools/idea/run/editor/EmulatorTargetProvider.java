@@ -89,8 +89,8 @@ public class EmulatorTargetProvider extends DeployTargetProvider<EmulatorTargetP
   }
 
   @Override
-  protected boolean isApplicable(boolean testConfiguration, boolean deviceSnapshotComboBoxVisible) {
-    return !deviceSnapshotComboBoxVisible;
+  protected boolean isApplicable(boolean testConfiguration) {
+    return false;
   }
 
   @Override
