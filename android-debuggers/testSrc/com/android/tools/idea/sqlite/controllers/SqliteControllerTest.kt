@@ -371,6 +371,26 @@ class SqliteControllerTest : PlatformTestCase() {
     verify(evaluatorView).addDatabase(sqliteDatabase3, "com.ay.app/db.db", 0)
   }
 
+  fun testRemoveDatabase() {
+    // Prepare
+    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    sqliteController.openSqliteDatabase(sqliteFile1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    sqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
+    val evaluatorView = viewFactory.createEvaluatorView(project, MockSchemaProvider())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Act
+    sqliteView.viewListeners.first().removeDatabaseActionInvoked(sqliteDatabase1)
+
+    // Assert
+    verify(mockSqliteService).closeDatabase()
+    verify(evaluatorView).removeDatabase(0)
+    verify(sqliteView).removeDatabaseSchema(sqliteDatabase1)
+    Disposer.isDisposed(sqliteDatabase1)
+  }
+
   fun testUpdateExistingDatabaseAddTables() {
     // Prepare
     val schema = SqliteSchema(emptyList())
