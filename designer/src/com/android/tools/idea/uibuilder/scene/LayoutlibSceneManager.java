@@ -773,14 +773,9 @@ public class LayoutlibSceneManager extends SceneManager {
 
   // Get the root tag of the xml file associated with the specified model.
   // Since this code may be called on a non UI thread be extra careful about expired objects.
-  // Note: NlModel.getFile() probably should be nullable.
   @Nullable
   private static XmlTag getRootTag(@NotNull NlModel model) {
     if (Disposer.isDisposed(model)) {
-      return null;
-    }
-    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(model.getProject(), model.getVirtualFile());
-    if (file == null) {
       return null;
     }
     return AndroidPsiUtils.getRootTagSafely(model.getFile());
