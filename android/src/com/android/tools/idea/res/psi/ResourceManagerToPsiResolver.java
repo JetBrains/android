@@ -33,9 +33,11 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.android.tools.idea.resources.base.BasicResourceItem;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementResolveResult;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.xml.XmlAttribute;
@@ -60,6 +62,26 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
   @NotNull public static final ResourceManagerToPsiResolver INSTANCE = new ResourceManagerToPsiResolver();
 
   private ResourceManagerToPsiResolver() {}
+
+  @Override
+  @Nullable
+  public PsiElement resolveToDeclaration(@NotNull ResourceItem resourceItem, @NotNull Project project) {
+    VirtualFile source = ResourceHelper.getSourceAsVirtualFile(resourceItem);
+    if (source == null) {
+      return null;
+    }
+
+    if (resourceItem.isFileBased()) {
+      return PsiManager.getInstance(project).findFile(source);
+    }
+
+    if (resourceItem.getType() == ResourceType.ID) {
+      XmlAttribute xmlAttribute = AndroidResourceUtil.getIdDeclarationAttribute(project, resourceItem);
+      return xmlAttribute == null ? null : xmlAttribute.getValueElement();
+    }
+
+    return new ValueResourceInfoImpl(resourceItem, source, project).computeXmlElement();
+  }
 
   @Override
   @NotNull
