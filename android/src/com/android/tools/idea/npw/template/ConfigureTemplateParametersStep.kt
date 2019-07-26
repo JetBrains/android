@@ -474,7 +474,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
    * A template is broken down into separate fields, each which is given a row with optional header.
    * This class wraps all UI elements in the row, providing methods for managing them.
    */
-  private class RowEntry<T : JComponent> {
+  // TODO(qumeric) make it private later
+  class RowEntry<T : JComponent> {
     val component: T
     val property: AbstractProperty<*>?
 
