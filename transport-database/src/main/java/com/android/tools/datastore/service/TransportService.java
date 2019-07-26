@@ -15,8 +15,6 @@
  */
 package com.android.tools.datastore.service;
 
-import static com.android.tools.idea.flags.StudioFlags.PROFILER_UNIFIED_PIPELINE;
-
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DataStoreTable;
@@ -71,6 +69,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   @NotNull private final UnifiedEventsTable myTable;
   @NotNull private final DeviceProcessTable myLegacyTable;
   @NotNull private final DataStoreService myService;
+  private final boolean myLegacyPipelineForProfilers;
   /**
    * A mapping of active channels to pollers. This mapping allows us to keep track of active pollers for a channel, and clean up pollers
    * when channels are closed.
@@ -84,11 +83,13 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
   public TransportService(@NotNull DataStoreService service,
                           @NotNull UnifiedEventsTable unifiedTable,
-                          Consumer<Runnable> fetchExecutor) {
+                          Consumer<Runnable> fetchExecutor,
+                          boolean legacyPipelineForProfilers) {
     myService = service;
     myFetchExecutor = fetchExecutor;
     myTable = unifiedTable;
     myLegacyTable = new DeviceProcessTable();
+    myLegacyPipelineForProfilers = legacyPipelineForProfilers;
   }
 
   @NotNull
@@ -102,7 +103,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
     myTable.initialize(connection);
 
-    if (!PROFILER_UNIFIED_PIPELINE.get()) {
+    if (myLegacyPipelineForProfilers) {
       myLegacyTable.initialize(connection);
     }
   }
@@ -123,7 +124,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     DataStoreTable.addDataStoreErrorCallback(unifiedPoller);
     myFetchExecutor.accept(unifiedPoller);
 
-    if (!PROFILER_UNIFIED_PIPELINE.get() && stream.getType() == Stream.Type.DEVICE) {
+    if (myLegacyPipelineForProfilers && stream.getType() == Stream.Type.DEVICE) {
       DeviceProcessPoller legacyPoller = new DeviceProcessPoller(myLegacyTable, stub);
       myLegacyPollers.put(channel, legacyPoller);
       myFetchExecutor.accept(legacyPoller);

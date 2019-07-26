@@ -59,7 +59,7 @@ import org.mockito.Mockito;
 public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
-  private TransportService myTransportService = new TransportService(myDataStore, new UnifiedEventsTable(), getPollTicker()::run);
+  private TransportService myTransportService = new TransportService(myDataStore, new UnifiedEventsTable(), getPollTicker()::run, false);
 
   private FakeTransportService myFakeService = new FakeTransportService();
   private Channel myChannel;
