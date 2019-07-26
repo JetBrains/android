@@ -168,7 +168,7 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
     List<DeployTargetProvider<DeployTargetState>> targets = new ArrayList<>();
 
     for (DeployTargetProvider target : DeployTargetProvider.getProviders()) {
-      if (target.showInDevicePicker(executor) && target.isApplicable(androidTests, false)) {
+      if (target.showInDevicePicker(executor) && target.isApplicable(androidTests)) {
         targets.add(target);
       }
     }
@@ -177,8 +177,8 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
   }
 
   @Override
-  protected boolean isApplicable(boolean testConfiguration, boolean deviceSnapshotComboBoxVisible) {
-    return !deviceSnapshotComboBoxVisible;
+  protected boolean isApplicable(boolean testConfiguration) {
+    return false;
   }
 
   @Override

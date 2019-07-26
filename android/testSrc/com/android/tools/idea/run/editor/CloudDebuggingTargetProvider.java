@@ -23,7 +23,7 @@ final class CloudDebuggingTargetProvider extends TestDeployTargetProvider {
   }
 
   @Override
-  protected boolean isApplicable(boolean testConfiguration, boolean deviceSnapshotComboBoxVisible) {
+  protected boolean isApplicable(boolean testConfiguration) {
     return false;
   }
 }
