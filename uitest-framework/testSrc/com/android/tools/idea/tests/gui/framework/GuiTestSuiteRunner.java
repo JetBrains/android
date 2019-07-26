@@ -19,7 +19,6 @@ import com.google.common.base.Verify;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.ClassPath;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import com.intellij.util.lang.UrlClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
@@ -32,7 +31,6 @@ import org.junit.runners.model.RunnerBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
@@ -40,7 +38,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.DOT_CLASS;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNNING_IN_SUITE_PROPERTY;
-import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 /**

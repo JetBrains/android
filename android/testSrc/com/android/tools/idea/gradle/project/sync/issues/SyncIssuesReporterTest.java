@@ -27,9 +27,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.junit.Test;
 import org.mockito.InOrder;
-import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Map;

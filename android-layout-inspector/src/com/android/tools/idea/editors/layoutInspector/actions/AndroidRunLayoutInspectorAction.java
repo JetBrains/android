@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.layoutInspector.actions;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.tools.idea.editors.layoutInspector.AndroidLayoutInspectorService;
 import com.android.tools.idea.fd.actions.RestartActivityAction;
@@ -28,8 +27,6 @@ import com.intellij.openapi.ui.DialogWrapper;
 import icons.StudioIcons;
 import org.jetbrains.android.actions.AndroidProcessChooserDialog;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunLayoutInspectorAction extends AnAction {
   public AndroidRunLayoutInspectorAction() {

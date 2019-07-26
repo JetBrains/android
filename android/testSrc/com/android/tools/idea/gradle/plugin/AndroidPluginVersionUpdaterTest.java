@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 import org.mockito.verification.VerificationMode;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 

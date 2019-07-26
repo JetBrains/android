@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Throwables;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException;
 import com.intellij.openapi.util.Pair;
@@ -26,11 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import static com.android.tools.idea.gradle.project.sync.idea.ProjectImportErrorHandler.createErrorMessage;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.splitByLines;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;

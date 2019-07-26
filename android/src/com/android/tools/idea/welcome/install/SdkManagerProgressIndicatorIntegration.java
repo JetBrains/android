@@ -20,7 +20,6 @@ import com.android.repository.api.ProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.progress.ProgressIndicator;
-import freemarker.log.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

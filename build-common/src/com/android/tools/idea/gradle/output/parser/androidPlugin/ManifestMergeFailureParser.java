@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
 import com.android.ide.common.blame.Message;
-import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.ParsingFailedException;

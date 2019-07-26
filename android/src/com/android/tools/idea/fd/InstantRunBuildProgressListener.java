@@ -17,10 +17,6 @@ package com.android.tools.idea.fd;
 
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
-import org.gradle.tooling.events.task.TaskOperationResult;
-import org.gradle.tooling.events.task.internal.DefaultTaskFinishEvent;
-import org.gradle.tooling.events.task.internal.DefaultTaskSkippedResult;
-import org.gradle.tooling.events.task.internal.DefaultTaskSuccessResult;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

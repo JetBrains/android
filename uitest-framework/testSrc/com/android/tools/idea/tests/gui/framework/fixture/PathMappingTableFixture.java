@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.google.common.base.Strings;
 import com.intellij.ui.dualView.TreeTableView;
-import com.intellij.ui.table.TableView;
 import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiActionRunner;

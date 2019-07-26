@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.mock.MockProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 

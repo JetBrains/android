@@ -15,8 +15,6 @@ import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.ScheduledExecutorService;
-
 import static com.android.tools.idea.startup.Actions.moveAction;
 
 public class AndroidPlugin implements BaseComponent {

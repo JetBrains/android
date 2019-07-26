@@ -18,7 +18,6 @@ package com.android.tools.idea.ddms.screenrecord;
 
 import com.android.ddmlib.ScreenRecorderOptions;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
