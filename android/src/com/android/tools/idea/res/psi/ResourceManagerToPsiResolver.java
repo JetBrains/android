@@ -38,7 +38,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementResolveResult;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
@@ -85,10 +84,10 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
 
   @Override
   @NotNull
-  public ResolveResult[] resolveToPsi(@NotNull ResourceValue resourceValue,
-                                      @NotNull XmlElement element,
-                                      @NotNull AndroidFacet facet) {
-    ResourceNamespace resolvedNamespace = ResourceHelper.resolveResourceNamespace(element, resourceValue.getPackage());
+  public ResolveResult[] resolveReference(@NotNull ResourceValue resourceValue,
+                                          @NotNull XmlElement context,
+                                          @NotNull AndroidFacet facet) {
+    ResourceNamespace resolvedNamespace = ResourceHelper.resolveResourceNamespace(context, resourceValue.getPackage());
     if (resolvedNamespace == null) {
       return ResolveResult.EMPTY_ARRAY;
     }
@@ -98,10 +97,10 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
     List<PsiElement> elements = new ArrayList<>();
     if (resourceValue.getType() != null && resourceValue.getResourceName() != null) {
       ResourceManager manager =
-        ModuleResourceManagers.getInstance(facet).getResourceManager(resolvedNamespace.getPackageName(), element);
+        ModuleResourceManagers.getInstance(facet).getResourceManager(resolvedNamespace.getPackageName(), context);
       if (manager != null) {
         manager.collectLazyResourceElements(resolvedNamespace, resourceValue.getType().getName(), resourceValue.getResourceName(),
-                                            attrReference, element, elements);
+                                            attrReference, context, elements);
       }
     }
 
@@ -139,9 +138,9 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
             }
           }
         }
-        else if (resourceType == ResourceType.SAMPLE_DATA && element.getParent() instanceof XmlAttribute) {
+        else if (resourceType == ResourceType.SAMPLE_DATA && context.getParent() instanceof XmlAttribute) {
           // The mock references can only be applied to "tools:" attributes.
-          XmlAttribute attribute = (XmlAttribute)element.getParent();
+          XmlAttribute attribute = (XmlAttribute)context.getParent();
           if (TOOLS_URI.equals(attribute.getNamespace())) {
             items.stream()
                  .filter(SampleDataResourceItem.class::isInstance)
@@ -166,8 +165,12 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
   @NotNull
   public PsiElement[] getXmlAttributeNameGotoDeclarationTargets(@NotNull String attributeName,
                                                                 @NotNull ResourceNamespace namespace,
-                                                                @NotNull PsiElement context,
-                                                                @NotNull AndroidFacet facet) {
+                                                                @NotNull PsiElement context) {
+    AndroidFacet facet = AndroidFacet.getInstance(context);
+    if (facet == null) {
+      return PsiElement.EMPTY_ARRAY;
+    }
+
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
     ResourceRepository repository = namespace.equals(ResourceNamespace.ANDROID) ?
                                     repositoryManager.getFrameworkResources(ImmutableSet.of()) : repositoryManager.getAppResources();
@@ -189,8 +192,8 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
   @Override
   @NotNull
   public PsiElement[] getGotoDeclarationTargets(@NotNull ResourceReference resourceReference,
-                                                @NotNull PsiReferenceExpression refExpr) {
-    AndroidFacet facet = AndroidFacet.getInstance(refExpr);
+                                                @NotNull PsiElement context) {
+    AndroidFacet facet = AndroidFacet.getInstance(context);
     if (facet == null) {
       return PsiElement.EMPTY_ARRAY;
     }
@@ -212,7 +215,7 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
                                         resourceType.getName(),
                                         resourceName,
                                         false,
-                                        refExpr,
+                                        context,
                                         resourceList);
 
     if (manager instanceof LocalResourceManager) {
@@ -241,7 +244,6 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
 
     return resourceList.toArray(PsiElement.EMPTY_ARRAY);
   }
-
 
   private static class AarResourceResolveResult implements ResolveResult {
     @Nullable private final PsiElement myElement;

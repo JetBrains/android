@@ -41,7 +41,6 @@ class XmlAttributeNameGotoDeclarationHandler : GotoDeclarationHandler {
     return AndroidResourceToPsiResolver.getInstance().getXmlAttributeNameGotoDeclarationTargets(
       attribute.localName,
       namespace,
-      sourceElement,
-      facet)
+      sourceElement)
   }
 }

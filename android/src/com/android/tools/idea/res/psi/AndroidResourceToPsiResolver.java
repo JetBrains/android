@@ -21,7 +21,6 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.xml.XmlElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
@@ -57,7 +56,7 @@ public interface AndroidResourceToPsiResolver {
    *              file (i.e. a module that depends on the file and has the least dependencies).
    */
   @NotNull
-  ResolveResult[] resolveToPsi(@NotNull ResourceValue resourceValue, @NotNull XmlElement element, @NotNull AndroidFacet facet);
+  ResolveResult[] resolveReference(@NotNull ResourceValue resourceValue, @NotNull XmlElement element, @NotNull AndroidFacet facet);
 
   /**
    * Returns the {@link PsiElement}s for "go to declaration" action on XML attributes names.
@@ -65,14 +64,13 @@ public interface AndroidResourceToPsiResolver {
   @NotNull
   PsiElement[] getXmlAttributeNameGotoDeclarationTargets(@NotNull String attributeName,
                                                          @NotNull ResourceNamespace namespace,
-                                                         @NotNull PsiElement context,
-                                                         @NotNull AndroidFacet facet);
+                                                         @NotNull PsiElement context);
 
   /**
    * Returns the {@link PsiElement}s for "go to declaration" on fields of R and Manifest classes.
    */
   @NotNull
-  PsiElement[] getGotoDeclarationTargets(@NotNull ResourceReference resourceReference, @NotNull PsiReferenceExpression refExpr);
+  PsiElement[] getGotoDeclarationTargets(@NotNull ResourceReference resourceReference, @NotNull PsiElement context);
 
   static AndroidResourceToPsiResolver getInstance() {
     return StudioFlags.RESOLVE_USING_REPOS.get() ? ResourceRepositoryToPsiResolver.INSTANCE : ResourceManagerToPsiResolver.INSTANCE;
