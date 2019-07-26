@@ -18,7 +18,6 @@ package com.android.tools.idea.run;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
@@ -351,13 +350,6 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   @Nullable
   @Override
   public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
-    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
-      if (executor instanceof ExecutorIconProvider) {
-        return ((ExecutorIconProvider)executor).getExecutorIcon(getProject(), executor);
-      }
-      return null;
-    }
-
     // Customize the executor icon for the DeviceAndSnapshotComboBoxAction such that it's tied to the device in addition to the
     // RunConfiguration.
     Project project = configuration.getProject();
