@@ -125,7 +125,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
   @Override
   public Dimension getMinimumSize(JComponent c) {
     Dimension size = super.getMinimumSize(c);
-    return new Dimension(size.width, UIUtil.fixComboBoxHeight(Math.max(size.height, JBUIScale.scale(25))));
+    return new Dimension(size.width, Math.max(size.height, JBUIScale.scale(25)));
   }
 
   @Override
