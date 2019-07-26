@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -27,7 +26,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jdom.Element;
@@ -36,31 +34,26 @@ import org.jetbrains.annotations.NotNull;
 public class DeployTargetContext implements JDOMExternalizable {
   public String TARGET_SELECTION_MODE = TargetSelectionMode.SHOW_DIALOG.name();
 
-  private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
-  private final Function<Boolean, Collection<DeployTargetProvider>> myGetDeployTargetProviders;
+  private final Supplier<Collection<DeployTargetProvider>> myGetDeployTargetProviders;
   private final Map<String, DeployTargetState> myDeployTargetStates;
 
   public DeployTargetContext() {
-    this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get(), DeployTargetProvider::getProviders);
+    this(DeployTargetProvider::getProviders);
   }
 
   @VisibleForTesting
-  DeployTargetContext(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
-                      @NotNull Function<Boolean, Collection<DeployTargetProvider>> getDeployTargetProviders) {
-    mySelectDeviceSnapshotComboBoxVisible = selectDeviceSnapshotComboBoxVisible;
+  DeployTargetContext(@NotNull Supplier<Collection<DeployTargetProvider>> getDeployTargetProviders) {
     myGetDeployTargetProviders = getDeployTargetProviders;
 
     // noinspection UnstableApiUsage
-    myDeployTargetStates = getDeployTargetProviders.apply(true).stream()
+    myDeployTargetStates = getDeployTargetProviders.get().stream()
       .collect(ImmutableMap.toImmutableMap(DeployTargetProvider::getId, DeployTargetProvider::createState));
   }
 
   @NotNull
   public List<DeployTargetProvider> getApplicableDeployTargetProviders(boolean testConfiguration) {
-    boolean deviceSnapshotComboBoxVisible = mySelectDeviceSnapshotComboBoxVisible.get();
-
-    return myGetDeployTargetProviders.apply(deviceSnapshotComboBoxVisible).stream()
-      .filter(provider -> provider.isApplicable(testConfiguration, deviceSnapshotComboBoxVisible))
+    return myGetDeployTargetProviders.get().stream()
+      .filter(provider -> provider.isApplicable(testConfiguration))
       .collect(Collectors.toList());
   }
 
@@ -68,7 +61,7 @@ public class DeployTargetContext implements JDOMExternalizable {
   public DeployTargetProvider getCurrentDeployTargetProvider() {
     Object mode = getTargetSelectionMode().name();
 
-    Optional<DeployTargetProvider> optionalProvider = myGetDeployTargetProviders.apply(mySelectDeviceSnapshotComboBoxVisible.get()).stream()
+    Optional<DeployTargetProvider> optionalProvider = myGetDeployTargetProviders.get().stream()
       .filter(provider -> provider.getId().equals(mode))
       .findFirst();
 
@@ -109,21 +102,6 @@ public class DeployTargetContext implements JDOMExternalizable {
     try {
       TargetSelectionMode mode = TargetSelectionMode.valueOf(TARGET_SELECTION_MODE);
 
-      if (!mySelectDeviceSnapshotComboBoxVisible.get()) {
-        switch (mode) {
-          case DEVICE_AND_SNAPSHOT_COMBO_BOX:
-            return TargetSelectionMode.SHOW_DIALOG;
-          case SHOW_DIALOG:
-          case EMULATOR:
-          case USB_DEVICE:
-          case FIREBASE_DEVICE_MATRIX:
-          case FIREBASE_DEVICE_DEBUGGING:
-            return mode;
-          default:
-            throw new AssertionError(mode);
-        }
-      }
-
       switch (mode) {
         case DEVICE_AND_SNAPSHOT_COMBO_BOX:
           return mode;
@@ -139,9 +117,7 @@ public class DeployTargetContext implements JDOMExternalizable {
       }
     }
     catch (IllegalArgumentException exception) {
-      return mySelectDeviceSnapshotComboBoxVisible.get()
-             ? TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX
-             : TargetSelectionMode.SHOW_DIALOG;
+      return TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX;
     }
   }
 
