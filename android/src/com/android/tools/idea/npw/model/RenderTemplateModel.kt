@@ -33,6 +33,7 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_APPLICATION_PACKAGE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
@@ -40,6 +41,7 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_SOURCE_PROVIDER_
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.WizardParameterData
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.ide.util.PropertiesComponent
@@ -89,6 +91,15 @@ class RenderTemplateModel private constructor(
    * try to render anything.
    */
   val templateValues = hashMapOf<String, Any>()
+  /**
+   * This is used in place of [templateValues] for the new templates.
+   */
+  val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(false) // FIXME(qumeric)
+  val wizardParameterData = WizardParameterData(
+    packageName.get(),
+    module == null,
+    template.get().name
+  )
   var iconGenerator: IconGenerator? = null
   val renderLanguage = ObjectValueProperty(getInitialSourceLanguage(project.valueOrNull)).apply {
     addListener {
@@ -101,6 +112,12 @@ class RenderTemplateModel private constructor(
 
   val hasActivity: Boolean
     get() = templateHandle != null || newTemplate != Template2.NoActivity
+
+  val isNew: Boolean
+    get() = templateHandle == null && newTemplate != Template2.NoActivity
+
+  val isOld: Boolean
+    get() = templateHandle != null && newTemplate == Template2.NoActivity
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(FreeMarkerTemplateRenderer())
@@ -123,6 +140,27 @@ class RenderTemplateModel private constructor(
       }
 
       templateValues.putAll(moduleTemplateValues)
+
+      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()) {
+        moduleTemplateDataBuilder.apply {
+          // sourceProviderName = template.get().name TODO there is no sourcesProvider (yet?)
+          moduleTemplateDataBuilder.setModuleRoots(
+            paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get())
+
+          if (androidFacet == null) {
+            return@apply
+          }
+
+          setFacet(androidFacet)
+          projectTemplateDataBuilder.language = language.get().get()
+
+          // Register application-wide settings
+          val applicationPackage = androidFacet.getPackageForApplication()
+          if (this@RenderTemplateModel.packageName.get() != applicationPackage) {
+            projectTemplateDataBuilder.applicationPackage = androidFacet.getPackageForApplication()
+          }
+        }
+      }
 
       templateValues[ATTR_SOURCE_PROVIDER_NAME] = template.get().name
       if (module == null) { // New Module
@@ -183,6 +221,9 @@ class RenderTemplateModel private constructor(
                                paths: AndroidModulePaths,
                                filesToOpen: MutableList<File>?,
                                filesToReformat: MutableList<File>?): Boolean {
+      if (templateHandle == null) {
+        return true // TODO: implement new template rendering
+      }
       paths.moduleRoot ?: return false
 
       val template = templateHandle!!.template

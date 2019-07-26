@@ -91,7 +91,8 @@ abstract class ChooseGalleryItemStep(
   override fun getPreferredFocusComponent(): JComponent? = itemGallery
 
   public override fun createDependentSteps(): Collection<ModelWizardStep<*>> =
-    arrayListOf(ConfigureTemplateParametersStep(renderModel, message(messageKeys.stepTitle), moduleTemplates))
+    listOf(ConfigureTemplateParametersStep(renderModel, message(messageKeys.stepTitle), moduleTemplates),
+           ConfigureTemplateParametersStep2(renderModel, message(messageKeys.stepTitle), moduleTemplates))
 
   override fun dispose() = listeners.releaseAll()
 
