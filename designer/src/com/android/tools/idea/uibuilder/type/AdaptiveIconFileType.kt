@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.type
 
-import com.android.SdkConstants
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.statelist.StateListActionGroups
+import com.android.tools.idea.common.type.DesignerEditorFileType
+import com.android.tools.idea.uibuilder.adaptiveicon.AdaptiveIconActionGroups
+import com.intellij.psi.PsiFile
+import com.intellij.psi.xml.XmlFile
+import org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDescription
 
-object StateListFileType : DrawableFileType(setOf(SdkConstants.TAG_ANIMATED_SELECTOR, SdkConstants.TAG_SELECTOR)) {
-  override fun getToolbarActionGroups(surface: DesignSurface) = StateListActionGroups(surface)
+object AdaptiveIconFileType : DesignerEditorFileType {
+  override fun isResourceTypeOf(file: PsiFile) = file is XmlFile && AdaptiveIconDomFileDescription.isAdaptiveIcon(file)
+
+  override fun getToolbarActionGroups(surface: DesignSurface) = AdaptiveIconActionGroups(surface)
 }

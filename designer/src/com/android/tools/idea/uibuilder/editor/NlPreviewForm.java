@@ -44,7 +44,7 @@ import com.android.tools.idea.uibuilder.palette.PaletteDefinition;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
-import com.android.tools.idea.uibuilder.type.AdaptativeIconFileType;
+import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -411,7 +411,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       .supplyAsync(() -> NlModel.create(null, null, facet, xmlFile.getVirtualFile(), mySurface.getComponentRegistrar()))
       .thenAcceptAsync(model -> {
         // Set the default density to XXXHDPI for adaptive icon preview
-        if (model.getType() == AdaptativeIconFileType.INSTANCE) {
+        if (model.getType() == AdaptiveIconFileType.INSTANCE) {
           Device device = model.getConfiguration().getDevice();
           if (device != null && !NlModelHelperKt.CUSTOM_DENSITY_ID.equals(device.getId())) {
             NlModelHelperKt.overrideConfigurationDensity(model, Density.XXXHIGH);

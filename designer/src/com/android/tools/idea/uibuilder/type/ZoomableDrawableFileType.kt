@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 package com.android.tools.idea.uibuilder.type
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.statelist.StateListActionGroups
 
-object StateListFileType : DrawableFileType(setOf(SdkConstants.TAG_ANIMATED_SELECTOR, SdkConstants.TAG_SELECTOR)) {
-  override fun getToolbarActionGroups(surface: DesignSurface) = StateListActionGroups(surface)
-}
+object ZoomableDrawableFileType : DrawableFileType(
+  setOf(SdkConstants.TAG_BITMAP, SdkConstants.TAG_CLIP_PATH, SdkConstants.TAG_GRADIENT, SdkConstants.TAG_INSET, SdkConstants.TAG_LAYER_LIST,
+        SdkConstants.TAG_PATH, SdkConstants.TAG_RIPPLE, SdkConstants.TAG_SHAPE, SdkConstants.TAG_TRANSITION))
