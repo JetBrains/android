@@ -28,5 +28,6 @@
     <assistantBundleCreator implementation="com.android.tools.idea.whatsnew.assistant.WhatsNewAssistantBundleCreator"/>
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.WhatsNewUpdateStableAction"/>
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.WhatsNewDismissAction"/>
+    <panelFactory implementation="com.android.tools.idea.whatsnew.assistant.UpdateStatusPanelFactory"/>
   </extensions>
 </idea-plugin>
