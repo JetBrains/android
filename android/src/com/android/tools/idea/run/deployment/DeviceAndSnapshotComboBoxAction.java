@@ -78,9 +78,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
    */
   public static final Key<Boolean> DEPLOYS_TO_LOCAL_DEVICE = Key.create("DeviceAndSnapshotComboBoxAction.deploysToLocalDevice");
 
-  private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
-
   private final Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
 
   @NotNull
@@ -94,20 +92,17 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @SuppressWarnings("unused")
   private DeviceAndSnapshotComboBoxAction() {
-    this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get(),
-         () -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get(),
+    this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get(),
          project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
          PropertiesComponent::getInstance,
          Clock.systemDefaultZone());
   }
 
   @VisibleForTesting
-  public DeviceAndSnapshotComboBoxAction(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
-                                         @NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled,
+  public DeviceAndSnapshotComboBoxAction(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled,
                                          @NotNull Function<Project, AsyncDevicesGetter> devicesGetterGetter,
                                          @NotNull Function<Project, PropertiesComponent> getProperties,
                                          @NotNull Clock clock) {
-    mySelectDeviceSnapshotComboBoxVisible = selectDeviceSnapshotComboBoxVisible;
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
 
     myDevicesGetterGetter = devicesGetterGetter;
@@ -359,21 +354,15 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @Override
   public final void update(@NotNull AnActionEvent event) {
-    Presentation presentation = event.getPresentation();
-
-    if (!mySelectDeviceSnapshotComboBoxVisible.get()) {
-      presentation.setVisible(false);
-      return;
-    }
-
-    presentation.setVisible(true);
     Project project = event.getProject();
 
     if (project == null) {
       return;
     }
 
+    Presentation presentation = event.getPresentation();
     updatePresentation(presentation, RunManager.getInstance(project).getSelectedConfiguration());
+
     Device device = getSelectedDevice(project);
 
     if (event.getPlace().equals(ActionPlaces.MAIN_MENU)) {
