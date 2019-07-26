@@ -1,6 +1,5 @@
 package org.jetbrains.jps.android.model.impl;
 
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.JpsElementChildRole;
 import org.jetbrains.jps.model.artifact.elements.JpsPackagingElement;

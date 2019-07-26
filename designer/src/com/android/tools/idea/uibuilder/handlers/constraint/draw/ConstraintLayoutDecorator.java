@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
-import static com.android.tools.idea.flags.StudioFlags.NELE_SHOW_ON_HOVER;
-
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
@@ -33,7 +31,6 @@ import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

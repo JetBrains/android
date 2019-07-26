@@ -17,7 +17,6 @@ package org.jetbrains.android.sdk;
 
 import com.android.testutils.TestUtils;
 import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
 import net.n3.nanoxml.IXMLBuilder;

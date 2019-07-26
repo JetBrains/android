@@ -16,7 +16,6 @@
 package com.android.tools.idea.stats;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.Revision;
 import com.android.tools.idea.downloads.DownloadService;
 import com.google.common.collect.ImmutableList;

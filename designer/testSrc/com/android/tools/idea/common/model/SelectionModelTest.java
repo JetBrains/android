@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.model;
 
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.openapi.util.Ref;
 import org.junit.Test;
 

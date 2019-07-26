@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter;
 
-import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter.createShapeModelsFromLayerable;
-
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.InheritedProperties;
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.SymbolModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.google.common.collect.ImmutableList;

@@ -21,7 +21,6 @@ import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.AgentStatusRequest;
 import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
 import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.util.ArrayList;

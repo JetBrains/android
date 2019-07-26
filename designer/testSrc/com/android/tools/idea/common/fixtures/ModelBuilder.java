@@ -59,8 +59,6 @@ import java.util.function.Function;
 import static com.android.SdkConstants.DOT_XML;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 /**

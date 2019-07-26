@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
 import static com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories.ANDROID_REPOSITORY_NAME;

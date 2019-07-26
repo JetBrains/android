@@ -16,7 +16,6 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.ui;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SketchLibrary;
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchForeignStyle;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchForeignSymbol;

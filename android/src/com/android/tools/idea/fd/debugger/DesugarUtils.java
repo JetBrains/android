@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.fd.debugger;
 
-import com.android.annotations.VisibleForTesting;
 import com.intellij.debugger.NoDataException;
 import com.intellij.debugger.PositionManager;
 import com.intellij.debugger.SourcePosition;

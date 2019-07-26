@@ -42,7 +42,6 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.plugins.PluginManager;

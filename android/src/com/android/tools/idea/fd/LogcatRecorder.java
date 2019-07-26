@@ -23,7 +23,6 @@ import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.google.common.collect.EvictingQueue;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDateTime;

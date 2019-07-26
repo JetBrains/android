@@ -24,7 +24,6 @@ import com.android.manifmerger.XmlNode;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.PositionXmlParser;
-import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;

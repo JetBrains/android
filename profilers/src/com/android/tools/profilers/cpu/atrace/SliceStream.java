@@ -17,11 +17,9 @@ package com.android.tools.profilers.cpu.atrace;
 
 import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import trebuchet.model.base.SliceGroup;
 
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 

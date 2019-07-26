@@ -15,14 +15,9 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemonsAndRestart;
 
