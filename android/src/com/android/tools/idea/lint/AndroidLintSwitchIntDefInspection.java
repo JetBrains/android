@@ -18,6 +18,7 @@ package com.android.tools.idea.lint;
 import com.android.tools.lint.checks.AnnotationDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.TextFormat;
+import com.intellij.codeInsight.FileModificationService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiCodeBlock;
@@ -58,6 +59,9 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,
                           @NotNull AndroidQuickfixContexts.Context context) {
+          if (!FileModificationService.getInstance().preparePsiElementForWrite(startElement)) {
+            return;
+          }
           if (startElement.getParent() instanceof PsiSwitchStatement) {
             PsiSwitchStatement switchStatement = (PsiSwitchStatement)startElement.getParent();
             Project project = switchStatement.getProject();
