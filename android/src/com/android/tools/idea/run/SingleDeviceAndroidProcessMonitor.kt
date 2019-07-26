@@ -1,0 +1,237 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.run
+
+import com.android.ddmlib.IDevice
+import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitor.Companion.APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS
+import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitor.Companion.POLLING_INTERVAL_MILLIS
+import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
+import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
+import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_IS_RUNNING
+import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_NOT_FOUND
+import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.WAITING_FOR_PROCESS
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.util.concurrency.AppExecutorUtil
+import java.io.Closeable
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
+import javax.annotation.concurrent.GuardedBy
+import kotlin.properties.Delegates
+
+
+/**
+ * Monitors remote android processes with a given [targetApplicationId] running on a given [targetDevice].
+ *
+ * This monitor runs as a finite-state-machine and when the state changes, it will be notified via [listener].
+ * The initial state is [WAITING_FOR_PROCESS] and there are three terminal states, [PROCESS_DETACHED], [PROCESS_FINISHED],
+ * and [PROCESS_NOT_FOUND].
+ *
+ * As soon as a new instance of this class is created, it starts monitoring remote android processes on the device by polling
+ * periodically with the interval of [POLLING_INTERVAL_MILLIS].
+ *
+ * The state moves to [PROCESS_NOT_FOUND] if no target processes are found after [APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS].
+ *
+ * @param targetApplicationId a target application id to be monitored
+ * @param targetDevice a target android device to be monitored
+ * @param listener a listener to listen events from this class
+ * @param deploymentApplicationService a service to be used to look up running processes on a device
+ * @param androidLogcatOutputCapture a controller to start and stop listening logcat messages for a device
+ * @param pollingIntervalMillis a polling interval to check running remote android processes in milliseconds
+ * @param appProcessDiscoveryTimeoutMillis a timeout for the target application discovery used in milliseconds
+ */
+class SingleDeviceAndroidProcessMonitor(
+  val targetApplicationId: String,
+  val targetDevice: IDevice,
+  private val listener: SingleDeviceAndroidProcessMonitorStateListener,
+  private val deploymentApplicationService: DeploymentApplicationService,
+  private val androidLogcatOutputCapture: AndroidLogcatOutputCapture,
+  pollingIntervalMillis: Long = POLLING_INTERVAL_MILLIS,
+  appProcessDiscoveryTimeoutMillis: Long = APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS
+) : Closeable {
+
+  companion object {
+    /**
+     * The default polling interval to check running remote android processes in milliseconds.
+     * This value is chosen heuristically.
+     */
+    const val POLLING_INTERVAL_MILLIS: Long = 1000
+
+    /**
+     * The default timeout for the target application discovery used in milliseconds.
+     * This value is chosen heuristically.
+     */
+    const val APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS: Long = 10000
+  }
+
+  /**
+   * You should acquire synchronization lock to access to this property.
+   */
+  @delegate:GuardedBy("this")
+  private var myState: SingleDeviceAndroidProcessMonitorState by Delegates.observable(WAITING_FOR_PROCESS) { _, _, newValue ->
+    // This callback method can be invoked inside synchronization block. To avoid possible deadlock,
+    // invoke the listener from different thread.
+    ApplicationManager.getApplication().executeOnPooledThread {
+      listener.onStateChanged(this, newValue)
+    }
+  }
+
+  private val myMonitoringPids = ConcurrentHashMap<Int, Unit>()
+
+  private val myStateUpdaterScheduledFuture = AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(
+    this::updateState, 0, pollingIntervalMillis, TimeUnit.MILLISECONDS)
+
+  private val myTimeoutScheduledFuture = AppExecutorUtil.getAppScheduledExecutorService().schedule(
+    this::timeout, appProcessDiscoveryTimeoutMillis, TimeUnit.MILLISECONDS)
+
+  /**
+   * Updates the internal state to sync with the process' state on the target device.
+   * This method is invoked by [myStateUpdaterScheduledFuture] periodically.
+   */
+  private fun updateState() {
+    synchronized(this) {
+      if (myState.isTerminalState()) {
+        // Stop polling once we reach at the terminal state.
+        myStateUpdaterScheduledFuture.cancel(false)
+        return
+      }
+    }
+
+    val clients = deploymentApplicationService.findClient(targetDevice, targetApplicationId)
+    clients.forEach { client ->
+      myMonitoringPids.computeIfAbsent(client.clientData.pid) {
+        androidLogcatOutputCapture.startCapture(targetDevice, client.clientData.pid, targetApplicationId)
+      }
+    }
+    val isTargetProcessFound = clients.isNotEmpty()
+
+    synchronized(this) {
+      when (myState) {
+        WAITING_FOR_PROCESS -> {
+          if (isTargetProcessFound) {
+            myState = PROCESS_IS_RUNNING
+          }
+        }
+        PROCESS_IS_RUNNING -> {
+          if (!isTargetProcessFound) {
+            close()
+          }
+        }
+        else -> {
+          /* Nothing to do here */
+        }
+      }
+    }
+  }
+
+  /**
+   * Moves the state to timeout if the current state is still in [WAITING_FOR_PROCESS]. If the process has been
+   * found already and you call this method, this does nothing.
+   */
+  @Synchronized
+  private fun timeout() {
+    if (myState == WAITING_FOR_PROCESS) {
+      myState = PROCESS_NOT_FOUND
+      close()
+    }
+  }
+
+  /**
+   * Detaches the remote process on Android device from this monitor.
+   * Unlike [close], this method does not kill the target remote processes.
+   */
+  @Synchronized
+  fun detachAndClose() {
+    myState = PROCESS_DETACHED
+    close()
+  }
+
+  /**
+   * Closes the monitor and stops monitoring. This terminates all running target processes on the monitored devices.
+   * If you want to keep those process running and just stop the monitor, use [detachAndClose] instead.
+   */
+  @Synchronized
+  override fun close() {
+    myStateUpdaterScheduledFuture.cancel(false)
+    myTimeoutScheduledFuture.cancel(false)
+    androidLogcatOutputCapture.stopCapture(targetDevice)
+
+    when (myState) {
+      WAITING_FOR_PROCESS, PROCESS_IS_RUNNING -> {
+        // Kill target process if it's still running.
+        deploymentApplicationService.findClient(targetDevice, targetApplicationId).forEach { client ->
+          client.kill()
+        }
+        myState = PROCESS_FINISHED
+      }
+      PROCESS_DETACHED, PROCESS_FINISHED, PROCESS_NOT_FOUND -> {
+        /* Nothing to do here */
+      }
+    }
+  }
+}
+
+/**
+ * Represents an state of [SingleDeviceAndroidProcessMonitor].
+ */
+enum class SingleDeviceAndroidProcessMonitorState {
+  /**
+   * The initial state. The monitor is waiting for target processes to be appear and running.
+   */
+  WAITING_FOR_PROCESS,
+
+  /**
+   * The target process has been found and is currently running.
+   */
+  PROCESS_IS_RUNNING,
+
+  /**
+   * The monitor has been detached from the target process. This is the terminal state.
+   */
+  PROCESS_DETACHED,
+
+  /**
+   * The target process has been found and now terminated. This is the terminal state.
+   */
+  PROCESS_FINISHED,
+
+  /**
+   * The target process has not found within timeout period. This is the terminal state.
+   */
+  PROCESS_NOT_FOUND,
+}
+
+/**
+ * Returns true if the state is terminal state, otherwise false.
+ */
+fun SingleDeviceAndroidProcessMonitorState.isTerminalState(): Boolean {
+  return when (this) {
+    PROCESS_DETACHED, PROCESS_FINISHED, PROCESS_NOT_FOUND -> true
+    else -> false
+  }
+}
+
+/**
+ * An interface to listen [SingleDeviceAndroidProcessMonitorState] changes.
+ */
+interface SingleDeviceAndroidProcessMonitorStateListener {
+  /**
+   * This method is invoked when the [monitor] state changed.
+   *
+   * @param monitor the monitor instance which the state changed to [newState]
+   * @param newState the new current state of [monitor]
+   */
+  fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState)
+}

@@ -1,0 +1,197 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.run
+
+import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
+import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
+import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_NOT_FOUND
+import com.google.common.truth.Truth.assertThat
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.mockito.Mock
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.mockito.MockitoAnnotations
+
+@RunWith(JUnit4::class)
+class AndroidProcessMonitorManagerTest {
+  companion object {
+    const val TARGET_APP_NAME: String = "example.target.app"
+  }
+
+  @Mock
+  lateinit var mockDeploymentAppService: DeploymentApplicationService
+  @Mock
+  lateinit var mockTextEmitter: TextEmitter
+  @Mock
+  lateinit var mockMonitorManagerListener: AndroidProcessMonitorManagerListener
+
+  lateinit var monitorManager: AndroidProcessMonitorManager
+  lateinit var stateChangeListener: SingleDeviceAndroidProcessMonitorStateListener
+  val mockSingleDeviceAndroidProcessMonitors = mutableMapOf<IDevice, SingleDeviceAndroidProcessMonitor>()
+
+  @Before
+  fun setUp() {
+    MockitoAnnotations.initMocks(this)
+
+    monitorManager =  AndroidProcessMonitorManager(TARGET_APP_NAME,
+                                                   mockDeploymentAppService,
+                                                   mockTextEmitter,
+                                                   mockMonitorManagerListener) {_, device, listener, _, _ ->
+      if (::stateChangeListener.isInitialized) {
+        assertThat(listener).isSameAs(stateChangeListener)
+      }
+      assertThat(mockSingleDeviceAndroidProcessMonitors).doesNotContainKey(device)
+
+      stateChangeListener = listener
+
+      val monitor = mock(SingleDeviceAndroidProcessMonitor::class.java)
+      `when`(monitor.targetDevice).thenReturn(device)
+      mockSingleDeviceAndroidProcessMonitors[device] = monitor
+
+      monitor
+    }
+  }
+
+  @Test
+  fun processFinishesOnSingleDevice() {
+    val device = createMockDevice(28)
+    monitorManager.add(device)
+
+    assertThat(monitorManager.isAssociated(device)).isTrue()
+
+    assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device)
+    assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(1)
+
+    stateChangeListener.onStateChanged(mockSingleDeviceAndroidProcessMonitors.getValue(device), PROCESS_FINISHED)
+
+    assertThat(monitorManager.isAssociated(device)).isFalse()
+    verify(mockMonitorManagerListener).onAllTargetProcessesTerminated()
+  }
+
+  @Test
+  fun processNotFoundOnSingleDevice() {
+    val device = createMockDevice(28)
+    monitorManager.add(device)
+
+    assertThat(monitorManager.isAssociated(device)).isTrue()
+
+    assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device)
+    assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(1)
+
+    stateChangeListener.onStateChanged(mockSingleDeviceAndroidProcessMonitors.getValue(device), PROCESS_NOT_FOUND)
+
+    assertThat(monitorManager.isAssociated(device)).isFalse()
+    verify(mockMonitorManagerListener).onAllTargetProcessesTerminated()
+  }
+
+  @Test
+  fun processDetachedOnSingleDevice() {
+    val device = createMockDevice(28)
+    monitorManager.add(device)
+
+    assertThat(monitorManager.isAssociated(device)).isTrue()
+
+    assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device)
+    assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(1)
+
+    stateChangeListener.onStateChanged(mockSingleDeviceAndroidProcessMonitors.getValue(device), PROCESS_DETACHED)
+
+    assertThat(monitorManager.isAssociated(device)).isFalse()
+    verify(mockMonitorManagerListener).onAllTargetProcessesTerminated()
+  }
+
+  @Test
+  fun processFinishesOnTwoDevices() {
+    val device1 = createMockDevice(28)
+    val device2 = createMockDevice(29)
+    monitorManager.add(device1)
+    monitorManager.add(device2)
+
+    assertThat(monitorManager.isAssociated(device1)).isTrue()
+    assertThat(monitorManager.isAssociated(device2)).isTrue()
+
+    assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device1)
+    assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device2)
+    assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(2)
+
+    stateChangeListener.onStateChanged(mockSingleDeviceAndroidProcessMonitors.getValue(device1), PROCESS_FINISHED)
+    assertThat(monitorManager.isAssociated(device1)).isFalse()
+
+    // The process is still running on device2 so the callback should not be called yet.
+    verify(mockMonitorManagerListener, never()).onAllTargetProcessesTerminated()
+
+    stateChangeListener.onStateChanged(mockSingleDeviceAndroidProcessMonitors.getValue(device2), PROCESS_FINISHED)
+    assertThat(monitorManager.isAssociated(device2)).isFalse()
+
+    verify(mockMonitorManagerListener).onAllTargetProcessesTerminated()
+  }
+
+  @Test
+  fun testIsAssociated() {
+    val device1 = createMockDevice(27)
+    val device2 = createMockDevice(28)
+    val device3NotAdded = createMockDevice(29)
+    monitorManager.add(device1)
+    monitorManager.add(device2)
+
+    assertThat(monitorManager.isAssociated(device1)).isTrue()
+    assertThat(monitorManager.isAssociated(device2)).isTrue()
+    assertThat(monitorManager.isAssociated(device3NotAdded)).isFalse()
+  }
+
+  @Test
+  fun testClose() {
+    val device = createMockDevice(28)
+    monitorManager.add(device)
+
+    assertThat(monitorManager.isAssociated(device)).isTrue()
+
+    assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device)
+    assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(1)
+
+    monitorManager.close()
+
+    verify(mockSingleDeviceAndroidProcessMonitors.getValue(device)).close()
+  }
+
+  @Test
+  fun testDetachAndClose() {
+    val device = createMockDevice(28)
+    monitorManager.add(device)
+
+    assertThat(monitorManager.isAssociated(device)).isTrue()
+
+    assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device)
+    assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(1)
+
+    monitorManager.detachAndClose()
+
+    verify(mockSingleDeviceAndroidProcessMonitors.getValue(device)).detachAndClose()
+  }
+
+  private fun createMockDevice(apiVersion: Int): IDevice {
+    val mockDevice = mock(IDevice::class.java)
+    `when`(mockDevice.version).thenReturn(AndroidVersion(apiVersion))
+    return mockDevice
+  }
+}
