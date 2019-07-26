@@ -388,12 +388,28 @@ public final class StudioFlags {
     "So the new Instant Run can use the combo box",
     false);
 
-  public static final Flag<String> DEFAULT_ACTIVITY_LOCATOR_STRATEGY = Flag.create(
+  /**
+   * The strategy that {@link com.android.tools.idea.run.activity.DefaultActivityLocator}
+   * uses to obtain a list of activities from a given module's merged manifest.
+   *
+   * @see StudioFlags#DEFAULT_ACTIVITY_LOCATOR_STRATEGY
+   */
+  public enum DefaultActivityLocatorStrategy {
+    /** Unconditionally block on a fresh view of the merged manifest. */
+    BLOCK,
+    /** Determine the list of activities using the {@link com.android.tools.idea.model.AndroidManifestIndex}. */
+    INDEX,
+    /** Use a potentially stale view of the merged manifest if the caller is on the EDT. */
+    STALE
+  }
+
+  public static final Flag<DefaultActivityLocatorStrategy> DEFAULT_ACTIVITY_LOCATOR_STRATEGY = Flag.create(
     RUNDEBUG,
     "default.activity.locator.strategy",
     "Choose a strategy for selecting the default activity to launch from the merged manifest.",
-    "This can be \"BLOCK\" to unconditionally block on a fresh merged manifest or \"STALE\" to use a potentially stale manifest",
-    "BLOCK"
+    "This can be \"BLOCK\" to unconditionally block on a fresh merged manifest, \"STALE\" to use a potentially stale manifest, "
+      + "or \"INDEX\" to use the custom Android Manifest index (only select this option if manifest indexing is enabled).",
+    DefaultActivityLocatorStrategy.BLOCK
   );
 
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
@@ -818,5 +834,12 @@ public final class StudioFlags {
     true);
   //endregion
 
+  //region Manifests
+  private static final FlagGroup MANIFESTS = new FlagGroup(FLAGS, "manifests", "Android Manifests");
+  public static final Flag<Boolean> ANDROID_MANIFEST_INDEX_ENABLED = Flag.create(
+    MANIFESTS, "index.enabled", "Enable Android Manifest Indexing",
+    "Enables a custom index for pre-parsing your project's AndroidManifest.xml files",
+    false);
+  //endregion
   private StudioFlags() { }
 }
