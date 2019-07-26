@@ -63,6 +63,7 @@ class TestAppResourceRepository private constructor(
         .map {
           aarCache.getSourceRepository(
             ExternalLibrary(address = it.artifactAddress,
+                            location = PathString(it.artifact),
                             resFolder = RecursiveResourceFolder(PathString(it.resFolder))))
         }
         .toList()
