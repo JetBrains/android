@@ -16,7 +16,7 @@
 package org.jetbrains.android.inspections.lint;
 
 import static com.android.tools.lint.checks.CheckResultDetector.CHECK_RESULT;
-import static com.android.tools.lint.checks.PermissionDetector.CHECK_PERMISSION;
+import static com.android.tools.lint.checks.CheckResultDetector.CHECK_PERMISSION;
 import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSION;
 import static com.android.utils.SdkUtils.escapePropertyValue;
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;

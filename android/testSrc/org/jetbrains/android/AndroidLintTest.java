@@ -30,12 +30,14 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.lint.AndroidLintAdapterViewChildrenInspection;
 import com.android.tools.idea.lint.AndroidLintAllowBackupInspection;
 import com.android.tools.idea.lint.AndroidLintAlwaysShowActionInspection;
+import com.android.tools.idea.lint.AndroidLintAnimatorKeepInspection;
 import com.android.tools.idea.lint.AndroidLintAppCompatCustomViewInspection;
 import com.android.tools.idea.lint.AndroidLintAppCompatMethodInspection;
 import com.android.tools.idea.lint.AndroidLintApplySharedPrefInspection;
 import com.android.tools.idea.lint.AndroidLintAuthLeakInspection;
 import com.android.tools.idea.lint.AndroidLintButtonOrderInspection;
 import com.android.tools.idea.lint.AndroidLintByteOrderMarkInspection;
+import com.android.tools.idea.lint.AndroidLintCheckResultInspection;
 import com.android.tools.idea.lint.AndroidLintContentDescriptionInspection;
 import com.android.tools.idea.lint.AndroidLintDeprecatedInspection;
 import com.android.tools.idea.lint.AndroidLintDisableBaselineAlignmentInspection;
@@ -110,6 +112,7 @@ import com.android.tools.idea.lint.AndroidLintUnsupportedChromeOsCameraSystemFea
 import com.android.tools.idea.lint.AndroidLintUnsupportedChromeOsHardwareInspection;
 import com.android.tools.idea.lint.AndroidLintUnusedAttributeInspection;
 import com.android.tools.idea.lint.AndroidLintUnusedResourcesInspection;
+import com.android.tools.idea.lint.AndroidLintUseCheckPermissionInspection;
 import com.android.tools.idea.lint.AndroidLintUseValueOfInspection;
 import com.android.tools.idea.lint.AndroidLintUselessLeafInspection;
 import com.android.tools.idea.lint.AndroidLintUselessParentInspection;
@@ -166,6 +169,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -202,7 +206,8 @@ public class AndroidLintTest extends AndroidTestCase {
     if ("testImlFileOutsideContentRoot".equals(getName())) {
       addModuleWithAndroidFacet(projectBuilder, modules, "module1", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "module2", PROJECT_TYPE_LIBRARY);
-    } else if ("testAppCompatMethod".equals(getName()) || "testExtendAppCompatWidgets".equals(getName())) {
+    }
+    else if ("testAppCompatMethod".equals(getName()) || "testExtendAppCompatWidgets".equals(getName())) {
       addModuleWithAndroidFacet(projectBuilder, modules, "appcompat", PROJECT_TYPE_APP);
     }
   }
@@ -296,8 +301,9 @@ public class AndroidLintTest extends AndroidTestCase {
       assertThat(issue1.getSeverity()).isEqualTo(LintIssueId.LintSeverity.DEFAULT_SEVERITY);
 
       LintPerformance performance = session.getLintPerformance();
-        assertThat(performance.getFileCount()).isEqualTo(1);
-    } finally {
+      assertThat(performance.getFileCount()).isEqualTo(1);
+    }
+    finally {
       usageTracker.close();
       UsageTracker.cleanAfterTesting();
     }
@@ -370,39 +376,8 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testColors() throws Exception {
-    myFixture.addFileToProject("/src/androidx/annotation/ColorRes.java",
-                               "" +
-                               "package androidx.annotation;\n" +
-                               "import static java.lang.annotation.ElementType.FIELD;\n" +
-                               "import static java.lang.annotation.ElementType.LOCAL_VARIABLE;\n" +
-                               "import static java.lang.annotation.ElementType.METHOD;\n" +
-                               "import static java.lang.annotation.ElementType.PARAMETER;\n" +
-                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
-                               "\n" +
-                               "import java.lang.annotation.Documented;\n" +
-                               "import java.lang.annotation.Retention;\n" +
-                               "import java.lang.annotation.Target;\n" +
-                               "@Documented\n" +
-                               "@Retention(CLASS)\n" +
-                               "@Target({METHOD, PARAMETER, FIELD, LOCAL_VARIABLE})\n" +
-                               "public @interface ColorRes {\n" +
-                               "}\n");
-    myFixture.addFileToProject("/src/androidx/annotation/ColorInt.java",
-                               "" +
-                               "package androidx.annotation;\n" +
-                               "\n" +
-                               "import static java.lang.annotation.ElementType.FIELD;\n" +
-                               "import static java.lang.annotation.ElementType.LOCAL_VARIABLE;\n" +
-                               "import static java.lang.annotation.ElementType.METHOD;\n" +
-                               "import static java.lang.annotation.ElementType.PARAMETER;\n" +
-                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
-                               "\n" +
-                               "import java.lang.annotation.Retention;\n" +
-                               "import java.lang.annotation.Target;\n" +
-                               "@Retention(CLASS)\n" +
-                               "@Target({PARAMETER,METHOD,LOCAL_VARIABLE,FIELD})\n" +
-                               "public @interface ColorInt {\n" +
-                               "}");
+    addColorRes();
+    addColorInt();
 
     doTestNoFix(new AndroidLintResourceAsColorInspection(),
                 "/src/test/pkg/Colors.kt", "kt");
@@ -446,7 +421,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testUnusedAttribute() throws Exception {
     doTestWithFix(new AndroidLintUnusedAttributeInspection(),
-                  "Suppress With tools:targetApi Attribute",
+                  "Suppress with tools:targetApi attribute",
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -543,8 +518,8 @@ public class AndroidLintTest extends AndroidTestCase {
     // other hand is extracted and removed by CodeInsightTextFixtureImpl#SelectionAndCaretMarkupLoader
     doTestWithoutHighlightingWithFix(
       new AndroidLintAllowBackupInspection(),
-                  "Generate full-backup-content descriptor",
-                  "AndroidManifest.xml", "xml");
+      "Generate full-backup-content descriptor",
+      "AndroidManifest.xml", "xml");
     // also check the generated backup descriptor.
     myFixture.checkResultByFile("res/xml/backup.xml",
                                 getGlobalTestDir() + "/expected.xml", true);
@@ -785,15 +760,15 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testBomManifest() throws Exception {
-    doTestHighlighting(new AndroidLintByteOrderMarkInspection(),"AndroidManifest.xml", "xml");
+    doTestHighlighting(new AndroidLintByteOrderMarkInspection(), "AndroidManifest.xml", "xml");
   }
 
   public void testBomStrings() throws Exception {
-    doTestHighlighting(new AndroidLintByteOrderMarkInspection(),"/res/values/strings.xml", "xml");
+    doTestHighlighting(new AndroidLintByteOrderMarkInspection(), "/res/values/strings.xml", "xml");
   }
 
   public void testBomClass() throws Exception {
-    doTestHighlighting(new AndroidLintByteOrderMarkInspection(),"/src/test/pkg/MyTest.java", "java");
+    doTestHighlighting(new AndroidLintByteOrderMarkInspection(), "/src/test/pkg/MyTest.java", "java");
   }
 
   public void testCommitToApply() throws Exception {
@@ -807,35 +782,93 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testMissingIntDefSwitch() throws Exception {
     addIntDef();
     doTestWithFix(new AndroidLintSwitchIntDefInspection(),
-                  "Add Missing @IntDef Constants", "/src/test/pkg/MissingIntDefSwitch.java", "java");
+                  "Add Missing @IntDef Constants", "/src/p1/p2/MissingIntDefSwitch.java", "java");
   }
 
   public void testMissingIntDefSwitchKotlin() throws Exception {
     addIntDef();
     doTestWithFix(new AndroidLintSwitchIntDefInspection(),
-                  "Add Missing @IntDef Constants", "/src/test/pkg/MissingIntDefSwitch.kt", "kt");
+                  "Add Missing @IntDef Constants", "/src/p1/p2/MissingIntDefSwitch.kt", "kt");
   }
 
-  private void addIntDef() {
-    myFixture.addFileToProject("/src/android/support/annotation/IntDef.java", "package android.support.annotation;\n" +
-                                                                              "\n" +
-                                                                              "import java.lang.annotation.Retention;\n" +
-                                                                              "import java.lang.annotation.RetentionPolicy;\n" +
-                                                                              "import java.lang.annotation.Target;\n" +
-                                                                              "\n" +
-                                                                              "import static java.lang.annotation.ElementType.ANNOTATION_TYPE;\n" +
-                                                                              "import static java.lang.annotation.ElementType.FIELD;\n" +
-                                                                              "import static java.lang.annotation.ElementType.METHOD;\n" +
-                                                                              "import static java.lang.annotation.ElementType.PARAMETER;\n" +
-                                                                              "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
-                                                                              "import static java.lang.annotation.RetentionPolicy.SOURCE;\n" +
-                                                                              "\n" +
-                                                                              "@Retention(CLASS)\n" +
-                                                                              "@Target({ANNOTATION_TYPE})\n" +
-                                                                              "public @interface IntDef {\n" +
-                                                                              "    long[] value() default {};\n" +
-                                                                              "    boolean flag() default false;\n" +
-                                                                              "}\n");
+  public void testAddSuperCallJava() throws Exception {
+    addCallSuper();
+    doTestWithFix(new AndroidLintMissingSuperCallInspection(),
+                  "Add super call", "/src/p1/p2/SuperTestJava.java", "java");
+  }
+
+  public void testAddSuperCall() throws Exception {
+    addCallSuper();
+    doTestWithFix(new AndroidLintMissingSuperCallInspection(),
+                  "Add super call", "/src/p1/p2/SuperTest.kt", "kt");
+  }
+
+  public void testAddSuperCallExpression() throws Exception {
+    addCallSuper();
+    doTestWithFix(new AndroidLintMissingSuperCallInspection(),
+                  "Add super call", "/src/p1/p2/SuperTest.kt", "kt");
+  }
+
+  public void testAddKeepJava() throws Exception {
+    addKeep();
+    doTestWithFix(new AndroidLintAnimatorKeepInspection(),
+                  "Annotate with @Keep", "/src/p1/p2/AnimatorTest.java", "java");
+  }
+
+  public void testAddKeepKotlin() throws Exception {
+    addKeep();
+    doTestWithFix(new AndroidLintAnimatorKeepInspection(),
+                  "Annotate with @Keep", "/src/p1/p2/AnimatorTest.kt", "kt");
+  }
+
+  public void testJavaCheckResultTest1() throws Exception {
+    addCheckResult();
+    doTestWithFix(new AndroidLintCheckResultInspection(),
+                  "Call replace instead", "/src/p1/p2/JavaCheckResultTest1.java", "java");
+  }
+
+  public void testJavaCheckResultTest2() throws Exception {
+    addCheckResult();
+    doTestWithFix(new AndroidLintUseCheckPermissionInspection(),
+                  "Call enforceFooPermission instead", "/src/p1/p2/JavaCheckResultTest2.java", "java");
+  }
+
+  public void testKotlinCheckResultTest1() throws Exception {
+    addCheckResult();
+    doTestWithFix(new AndroidLintCheckResultInspection(),
+                  "Call replace instead", "/src/p1/p2/KotlinCheckResultTest1.kt", "kt");
+  }
+
+  public void testKotlinCheckResultTest2() throws Exception {
+    addCheckResult();
+    doTestWithFix(new AndroidLintUseCheckPermissionInspection(),
+                  "Call enforceFooPermission instead", "/src/p1/p2/KotlinCheckResultTest2.kt", "kt");
+  }
+
+  public void testJavaRemoveObsoleteSdkCheck() throws Exception {
+    deleteManifest();
+    addMinSdkManifest(19);
+    addRequiresApi();
+    doTestWithFix(new AndroidLintObsoleteSdkIntInspection(),
+                  "Unwrap 'if' statement", "/src/p1/p2/JavaRemoveObsoleteSdkCheckTest.java", "java");
+  }
+
+  public void testKotlinRemoveObsoleteSdkCheck() throws Exception {
+    deleteManifest();
+    addMinSdkManifest(19);
+    addRequiresApi();
+    doTestWithFix(new AndroidLintObsoleteSdkIntInspection(),
+                  "Remove obsolete SDK version check", "/src/p1/p2/KotlinRemoveObsoleteSdkCheckTest.kt", "kt");
+  }
+
+  public void testKotlinRemoveObsoleteSdkCheck2() throws Exception {
+    // Unlike previous test, checks that the quickfix keeps the else clause instead if the check is always false instead
+    // of always true
+    deleteManifest();
+    addMinSdkManifest(19);
+    addRequiresApi();
+    doTestWithFix(new AndroidLintObsoleteSdkIntInspection(),
+                  "Remove obsolete SDK version check", "/src/p1/p2/KotlinRemoveObsoleteSdkCheckTest2.kt", "kt");
   }
 
   public void testIncludeParams() throws Exception {
@@ -998,7 +1031,7 @@ public class AndroidLintTest extends AndroidTestCase {
     moduleDir.refresh(false, true);
     lintXml = moduleDir.findChild("lint.xml");
     assertThat(lintXml).isNotNull();
-    assertThat(new String(lintXml.contentsToByteArray())).isEqualTo(
+    assertThat(new String(lintXml.contentsToByteArray(), StandardCharsets.UTF_8)).isEqualTo(
       "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
       "<lint>\n" +
       "    <issue id=\"IconDuplicates\">\n" +
@@ -1007,32 +1040,16 @@ public class AndroidLintTest extends AndroidTestCase {
       "</lint>\n");
   }
 
-  private static final String CALL_SUPER_SOURCE =
-    "package android.support.annotation;\n" +
-    "\n" +
-    "import java.lang.annotation.Retention;\n" +
-    "import java.lang.annotation.Target;\n" +
-    "\n" +
-    "import static java.lang.annotation.ElementType.METHOD;\n" +
-    "import static java.lang.annotation.RetentionPolicy.SOURCE;\n" +
-    "\n" +
-    "@Retention(SOURCE)\n" +
-    "@Target({METHOD})\n" +
-    "public @interface CallSuper {\n" +
-    "}";
   public void testCallSuper() throws Exception {
-    myFixture.addFileToProject("src/android/support/annotation/CallSuper.java",
-                               CALL_SUPER_SOURCE);
+    addCallSuper();
     doTestWithFix(new AndroidLintMissingSuperCallInspection(),
-                  "Add super call","src/p1/p2/CallSuperTest.java", "java");
+                  "Add super call", "src/p1/p2/CallSuperTest.java", "java");
   }
 
   public void testCallSuper2() throws Exception {
-    // Interfaces
-    myFixture.addFileToProject("src/android/support/annotation/CallSuper.java",
-                               CALL_SUPER_SOURCE);
+    addCallSuper();
     doTestWithFix(new AndroidLintMissingSuperCallInspection(),
-                  "Add super call","src/p1/p2/FooImpl.java", "java");
+                  "Add super call", "src/p1/p2/FooImpl.java", "java");
   }
 
   public void testSuppressingInXml1() throws Exception {
@@ -1089,7 +1106,7 @@ public class AndroidLintTest extends AndroidTestCase {
     // Check adding a tools:targetApi attribute in an XML file to suppress
     createManifest();
     doTestWithFix(new AndroidLintNewApiInspection(),
-                  "Suppress With tools:targetApi Attribute",
+                  "Suppress with tools:targetApi attribute",
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -1107,6 +1124,14 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestWithFix(new AndroidLintNewApiInspection(),
                   "Surround with if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB) { ... }",
                   "/src/p1/p2/MyActivity.java", "java");
+  }
+
+  public void testApiCheck1Kotlin() throws Exception {
+    // Check adding a version-check conditional in a Kotlin file
+    createManifest();
+    doTestWithFix(new AndroidLintNewApiInspection(),
+                  "Surround with if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB) { ... }",
+                  "/src/p1/p2/MyActivity.kt", "kt");
   }
 
   public void testImlFileOutsideContentRoot() throws Exception {
@@ -1177,7 +1202,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testMergeObsoleteFolders() throws Exception {
     // Force minSdkVersion to v14:
     deleteManifest();
-    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+    addMinSdkManifest(14);
 
     VirtualFile mainFile = myFixture.copyFileToProject(getGlobalTestDir() + "/values-strings.xml", "res/values/strings.xml");
     VirtualFile v8strings = myFixture.copyFileToProject(getGlobalTestDir() + "/values-v8-strings.xml", "res/values-v8/strings.xml");
@@ -1216,7 +1241,8 @@ public class AndroidLintTest extends AndroidTestCase {
     if (platform != null && platform.getApiLevel() < 17) {
       myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
       doGlobalInspectionTest(new AndroidLintOverrideInspection());
-    } else {
+    }
+    else {
       // TODO: else try to find and set a target on the project such that the above returns true
     }
   }
@@ -1236,7 +1262,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testDeprecation() throws Exception {
     // Need to use minSdkVersion >= 3 to get all the deprecation warnings to kick in
     deleteManifest();
-    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+    addMinSdkManifest(3);
     doTestNoFix(new AndroidLintDeprecatedInspection(),
                 "/res/layout/deprecation.xml", "xml");
   }
@@ -1260,7 +1286,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testNetworkSecurityConfigTypos1() throws Exception {
     createManifest();
     doTestWithFix(new AndroidLintNetworkSecurityConfigInspection(),
-                "Use domain-config", "res/xml/network-config.xml", "xml");
+                  "Use domain-config", "res/xml/network-config.xml", "xml");
   }
 
   /**
@@ -1275,7 +1301,6 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testDeleteRepeatedWords() throws Exception {
     doTestWithFix(new AndroidLintTyposInspection(),
                   "Delete repeated word", "res/values/strings.xml", "xml");
-
   }
 
   public void testInvalidPinDigestAlg() throws Exception {
@@ -1369,7 +1394,8 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testWifiManagerLeak() throws Exception {
     deleteManifest();
     // Set minSdkVersion to pre-N:
-    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+    deleteManifest();
+    addMinSdkManifest(14);
 
     doTestWithFix(new AndroidLintWifiManagerLeakInspection(),
                   "Add getApplicationContext()",
@@ -1405,7 +1431,8 @@ public class AndroidLintTest extends AndroidTestCase {
             if (actionLabel.equals(name)) {
               if (fix.startInWriteAction()) {
                 WriteCommandAction.runWriteCommandAction(getProject(), () -> fix.applyFix(getProject(), descriptor));
-              } else {
+              }
+              else {
                 fix.applyFix(getProject(), descriptor);
               }
               break;
@@ -1486,9 +1513,10 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension)
-      throws IOException {
+    throws IOException {
     doTestHighlighting(inspection, copyTo, extension, false);
   }
+
   private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension,
                                   boolean skipCheck) throws IOException {
     myFixture.enableInspections(inspection);
@@ -1509,7 +1537,9 @@ public class AndroidLintTest extends AndroidTestCase {
     }
   }
 
-  /** Removes any error and warning markers from a file, and returns the original text */
+  /**
+   * Removes any error and warning markers from a file, and returns the original text
+   */
   @Nullable
   private String stripMarkers(VirtualFile file) {
     Project project = getProject();
@@ -1537,7 +1567,9 @@ public class AndroidLintTest extends AndroidTestCase {
     return prev;
   }
 
-  /** Searches the given document for a prefix and suffix and deletes it if found. Caller must hold write lock. */
+  /**
+   * Searches the given document for a prefix and suffix and deletes it if found. Caller must hold write lock.
+   */
   private static boolean removeTag(@NotNull Document document, @NotNull String prefix, @NotNull String suffix) {
     CharSequence sequence = document.getCharsSequence();
     int start = CharSequences.indexOf(sequence, prefix);
@@ -1553,7 +1585,9 @@ public class AndroidLintTest extends AndroidTestCase {
     return false;
   }
 
-  /** Sets the contents of the given file to the given string. */
+  /**
+   * Sets the contents of the given file to the given string.
+   */
   private void restoreMarkers(VirtualFile file, String contents) {
     Project project = getProject();
     PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
@@ -1567,4 +1601,145 @@ public class AndroidLintTest extends AndroidTestCase {
 
     WriteCommandAction.runWriteCommandAction(project, () -> document.setText(contents));
   }
+
+    private void addMinSdkManifest(int minSdk) {
+    myFixture.addFileToProject("AndroidManifest.xml",
+                               "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                               "    package=\"test.pkg\" >\n" +
+                               "    <uses-sdk android:minSdkVersion=\"" + minSdk + "\" android:targetSdkVersion=\"25\" />\n" +
+                               "</manifest>");
+  }
+
+  private void addRequiresApi() {
+    myFixture.addFileToProject("/src/android/support/annotation/RequiresApi.java",
+                               "" +
+                               "package android.support.annotation;\n" +
+                               "import static java.lang.annotation.ElementType.CONSTRUCTOR;\n" +
+                               "import static java.lang.annotation.ElementType.FIELD;\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.ElementType.PACKAGE;\n" +
+                               "import static java.lang.annotation.ElementType.TYPE;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "@Retention(CLASS)\n" +
+                               "@Target({TYPE, METHOD, CONSTRUCTOR, FIELD, PACKAGE})\n" +
+                               "public @interface RequiresApi {\n" +
+                               "    int value() default 1;\n" +
+                               "    int api() default 1;\n" +
+                               "}");
+  }
+
+  private void addIntDef() {
+    myFixture.addFileToProject("/src/android/support/annotation/IntDef.java",
+                               "package android.support.annotation;\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.RetentionPolicy;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "import static java.lang.annotation.ElementType.ANNOTATION_TYPE;\n" +
+                               "import static java.lang.annotation.ElementType.FIELD;\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.ElementType.PARAMETER;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.SOURCE;\n" +
+                               "\n" +
+                               "@Retention(CLASS)\n" +
+                               "@Target({ANNOTATION_TYPE})\n" +
+                               "public @interface IntDef {\n" +
+                               "    long[] value() default {};\n" +
+                               "    boolean flag() default false;\n" +
+                               "}\n");
+  }
+
+  private void addCallSuper() {
+    myFixture.addFileToProject("/src/android/support/annotation/CallSuper.java",
+                               "package android.support.annotation;\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                               "import java.lang.annotation.Documented;\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "@Documented\n" +
+                               "@Retention(CLASS)\n" +
+                               "@Target({METHOD})\n" +
+                               "public @interface CallSuper {\n" +
+                               "}");
+  }
+
+  private void addKeep() {
+    myFixture.addFileToProject("/src/android/support/annotation/Keep.java",
+                               "package android.support.annotation;\n" +
+                               "import static java.lang.annotation.ElementType.ANNOTATION_TYPE;\n" +
+                               "import static java.lang.annotation.ElementType.CONSTRUCTOR;\n" +
+                               "import static java.lang.annotation.ElementType.FIELD;\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.ElementType.PACKAGE;\n" +
+                               "import static java.lang.annotation.ElementType.TYPE;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "@Retention(CLASS)\n" +
+                               "@Target({PACKAGE,TYPE,ANNOTATION_TYPE,CONSTRUCTOR,METHOD,FIELD})\n" +
+                               "public @interface Keep {\n" +
+                               "}");
+  }
+
+  private void addCheckResult() {
+    myFixture.addFileToProject("/src/android/support/annotation/Keep.java",
+                               "package android.support.annotation;\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                               "import java.lang.annotation.Documented;\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "@Documented\n" +
+                               "@Retention(CLASS)\n" +
+                               "@Target({METHOD})\n" +
+                               "public @interface CheckResult {\n" +
+                               "    String suggest() default \"\";" +
+                               "}");
+  }
+
+  // --- AndroidX ---
+
+  private void addColorInt() {
+    myFixture.addFileToProject("/src/androidx/annotation/ColorInt.java",
+                               "" +
+                               "package androidx.annotation;\n" +
+                               "\n" +
+                               "import static java.lang.annotation.ElementType.FIELD;\n" +
+                               "import static java.lang.annotation.ElementType.LOCAL_VARIABLE;\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.ElementType.PARAMETER;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                               "\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "@Retention(CLASS)\n" +
+                               "@Target({PARAMETER,METHOD,LOCAL_VARIABLE,FIELD})\n" +
+                               "public @interface ColorInt {\n" +
+                               "}");
+  }
+
+  private void addColorRes() {
+    myFixture.addFileToProject("/src/androidx/annotation/ColorRes.java",
+                               "" +
+                               "package androidx.annotation;\n" +
+                               "import static java.lang.annotation.ElementType.FIELD;\n" +
+                               "import static java.lang.annotation.ElementType.LOCAL_VARIABLE;\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.ElementType.PARAMETER;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                               "\n" +
+                               "import java.lang.annotation.Documented;\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "@Documented\n" +
+                               "@Retention(CLASS)\n" +
+                               "@Target({METHOD, PARAMETER, FIELD, LOCAL_VARIABLE})\n" +
+                               "public @interface ColorRes {\n" +
+                               "}\n");
+  }
+
 }
