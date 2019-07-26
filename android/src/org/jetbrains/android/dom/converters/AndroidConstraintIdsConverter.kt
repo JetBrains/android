@@ -57,7 +57,7 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceValue>(",")
     }
     val module = context.module ?: return null
     val facet = module.androidFacet ?: return null
-    val resolveResultList = AndroidResourceToPsiResolver.getInstance().resolveToPsi(value, context.referenceXmlElement!!, facet)
+    val resolveResultList = AndroidResourceToPsiResolver.getInstance().resolveReference(value, context.referenceXmlElement!!, facet)
     return pickMostRelevantId(resolveResultList, context)?.element
   }
 

@@ -115,6 +115,7 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.ResolveResult;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.search.PsiElementProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -192,6 +193,12 @@ public class AndroidResourceUtil {
     }
     return e1.getTextOffset() - e2.getTextOffset();
   };
+
+  /**
+   * Comparator for {@link ResolveResult} using {@link #RESOURCE_ELEMENT_COMPARATOR} on the result PSI element.
+   */
+  public static final Comparator<ResolveResult> RESOLVE_RESULT_COMPARATOR =
+    Comparator.nullsLast(Comparator.comparing(ResolveResult::getElement, RESOURCE_ELEMENT_COMPARATOR));
 
   private AndroidResourceUtil() {
   }
@@ -1248,12 +1255,47 @@ public class AndroidResourceUtil {
   }
 
   /**
-   * Returns the {@link XmlTag} corresponding to the given resource item. This is only
-   * defined for resource items in value files.
+   * Returns the {@link XmlAttributeValue} defining the given resource item. This is only defined for resource items which are not file
+   * based.
+   *
+   * <p>{@link org.jetbrains.android.AndroidFindUsagesHandlerFactory#createFindUsagesHandler} assumes references to value resources
+   * resolve to the "name" {@link XmlAttributeValue}, that's how they are found when looking for usages of a resource.
+   *
+   * TODO(b/113646219): store enough information in {@link ResourceItem} to find the attribute and get the tag from there, not the other
+   * way around.
+   *
+   * @see ResourceItem#isFileBased()
+   * @see org.jetbrains.android.AndroidFindUsagesHandlerFactory#createFindUsagesHandler
+   */
+  @Nullable
+  public static XmlAttributeValue getDeclaringAttributeValue(@NotNull Project project, @NotNull ResourceItem item) {
+    if (item.isFileBased()) {
+      return null;
+    }
+
+    XmlAttribute attribute;
+    if (ResourceHelper.isInlineIdDeclaration(item)) {
+      attribute = getIdDeclarationAttribute(project, item);
+    } else {
+      XmlTag tag = getItemTag(project, item);
+      attribute = tag == null ? null : tag.getAttribute(ATTR_NAME);
+    }
+
+    return attribute == null ? null : attribute.getValueElement();
+  }
+
+  /**
+   * Returns the {@link XmlTag} corresponding to the given resource item. This is only defined for resource items in value files.
+   *
+   * @see #getDeclaringAttributeValue(Project, ResourceItem)
    */
   @Nullable
   public static XmlTag getItemTag(@NotNull Project project, @NotNull ResourceItem item) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
+
+    if (item.isFileBased()) {
+      return null;
+    }
 
     if (item instanceof PsiResourceItem) {
       PsiResourceItem psiResourceItem = (PsiResourceItem)item;
