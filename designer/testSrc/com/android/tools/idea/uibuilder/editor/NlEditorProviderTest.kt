@@ -17,7 +17,11 @@ package com.android.tools.idea.uibuilder.editor
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.setup.Facets
+import com.android.tools.idea.uibuilder.type.FontFileType
+import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
 import org.intellij.lang.annotations.Language
@@ -54,6 +58,14 @@ class NlEditorProviderTest : AndroidTestCase() {
       modifiableModel.commit()
     }
     assertFalse(provider.accept(project, file.virtualFile))
+  }
+
+  fun testRegisterDrawablesIfSplitEditorIsDisabled() {
+    StudioFlags.NELE_SPLIT_EDITOR.override(false)
+    provider = NlEditorProvider()
+    assertTrue(DesignerTypeRegistrar.registeredTypes.contains(ZoomableDrawableFileType))
+    assertTrue(DesignerTypeRegistrar.registeredTypes.contains(FontFileType))
+    StudioFlags.NELE_SPLIT_EDITOR.clearOverride()
   }
 
   @Language("XML")

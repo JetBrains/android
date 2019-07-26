@@ -16,19 +16,5 @@
 package com.android.tools.idea.uibuilder.type
 
 import com.android.SdkConstants
-import com.android.resources.ResourceFolderType
-import com.android.tools.idea.common.editor.SetZoomActionGroups
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.type.DesignerEditorFileType
-import com.intellij.psi.PsiFile
-import com.intellij.psi.xml.XmlFile
-import org.jetbrains.android.dom.FileDescriptionUtils
 
-object VectorFileType : DesignerEditorFileType {
-  override fun isResourceTypeOf(file: PsiFile) =
-    file is XmlFile && FileDescriptionUtils.isResourceOfTypeWithRootTag(file,
-                                                                        ResourceFolderType.DRAWABLE,
-                                                                        setOf(SdkConstants.TAG_VECTOR))
-
-  override fun getToolbarActionGroups(surface: DesignSurface) = SetZoomActionGroups(surface)
-}
+object VectorFileType : DrawableFileType(setOf(SdkConstants.TAG_VECTOR, SdkConstants.TAG_ANIMATED_VECTOR))

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,17 @@
 package com.android.tools.idea.uibuilder.type
 
 import com.android.SdkConstants
+import com.android.resources.ResourceFolderType
+import com.android.tools.idea.common.editor.SetZoomActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.statelist.StateListActionGroups
+import com.android.tools.idea.common.type.DesignerEditorFileType
+import com.intellij.psi.PsiFile
+import com.intellij.psi.xml.XmlFile
+import org.jetbrains.android.dom.FileDescriptionUtils
 
-object StateListFileType : DrawableFileType(setOf(SdkConstants.TAG_ANIMATED_SELECTOR, SdkConstants.TAG_SELECTOR)) {
-  override fun getToolbarActionGroups(surface: DesignSurface) = StateListActionGroups(surface)
+object FontFileType : DesignerEditorFileType {
+  override fun isResourceTypeOf(file: PsiFile) =
+    file is XmlFile && FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.FONT, setOf(SdkConstants.TAG_FONT_FAMILY))
+
+  override fun getToolbarActionGroups(surface: DesignSurface) = SetZoomActionGroups(surface)
 }

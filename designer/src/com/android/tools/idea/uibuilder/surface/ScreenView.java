@@ -22,7 +22,7 @@ import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.type.LayoutFileType;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.collect.ImmutableList;
 import java.awt.Dimension;
 import org.jetbrains.annotations.NotNull;
@@ -35,8 +35,8 @@ import org.jetbrains.annotations.Nullable;
 public class ScreenView extends ScreenViewBase {
 
   /**
-   * Whether this {@link ScreenView} has a {@link BorderLayer}, which should happen in almost every scenario, except if we are previewing a
-   * non-layout file in Preview Dialog (e.g. Previewing Vector Drawable).
+   * Whether this {@link ScreenView} has a {@link BorderLayer}, which should only happen if the file type is a subclass of
+   * {@link LayoutEditorFileType}.
    */
   private final boolean myHasBorderLayer;
 
@@ -51,7 +51,7 @@ public class ScreenView extends ScreenViewBase {
    */
   public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager, boolean useImageSize) {
     super(surface, manager);
-    myHasBorderLayer = !getSurface().isPreviewSurface() || surface.getLayoutType() == LayoutFileType.INSTANCE;
+    myHasBorderLayer = surface.getLayoutType() instanceof LayoutEditorFileType;
     this.useImageSize = useImageSize;
   }
 
