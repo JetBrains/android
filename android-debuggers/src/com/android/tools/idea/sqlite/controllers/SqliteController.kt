@@ -212,7 +212,6 @@ class SqliteController(
   }
 
   private inner class SqliteViewListenerImpl : SqliteViewListener {
-
     override fun tableNodeActionInvoked(database: SqliteDatabase, table: SqliteTable) {
       val tableId = TabId.TableTab(database, table.name)
       if (tableId in resultSetControllers) {
@@ -254,6 +253,10 @@ class SqliteController(
 
       val controller = resultSetControllers.remove(tabId)
       controller?.let(Disposer::dispose)
+    }
+
+    override fun removeDatabaseActionInvoked(database: SqliteDatabase) {
+      closeDatabase(database)
     }
   }
 

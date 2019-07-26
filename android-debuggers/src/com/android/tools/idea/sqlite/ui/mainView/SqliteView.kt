@@ -68,9 +68,14 @@ interface SqliteView {
 }
 
 interface SqliteViewListener {
+  /** Called when the user wants to open a table */
   fun tableNodeActionInvoked(database: SqliteDatabase, table: SqliteTable)
+  /** Called when the user wants to close a tab */
   fun closeTabActionInvoked(tabId: TabId)
+  /** Called when the user wants to open the evaluator tab */
   fun openSqliteEvaluatorTabActionInvoked()
+  /** Called when the user wants to remove a database from the list of open databases */
+  fun removeDatabaseActionInvoked(database: SqliteDatabase)
 }
 
 /**
