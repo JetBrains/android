@@ -23,6 +23,8 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.APP_PREFIX;
 import static com.android.SdkConstants.ATTR_COLOR;
 import static com.android.SdkConstants.ATTR_DRAWABLE;
+import static com.android.SdkConstants.ATTR_FORMAT;
+import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.CLASS_R;
@@ -59,8 +61,10 @@ import static com.android.resources.ResourceType.STRING;
 import static com.android.resources.ResourceType.STYLE;
 import static com.android.resources.ResourceType.STYLEABLE;
 import static com.android.resources.ResourceType.fromXmlTag;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.resources.ResourceItem;
@@ -96,6 +100,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -1240,6 +1245,112 @@ public class AndroidResourceUtil {
     PsiTreeUtil.processElements(xmlFile, processor);
 
     return (XmlAttribute)processor.getFoundElement();
+  }
+
+  /**
+   * Returns the {@link XmlTag} corresponding to the given resource item. This is only
+   * defined for resource items in value files.
+   */
+  @Nullable
+  public static XmlTag getItemTag(@NotNull Project project, @NotNull ResourceItem item) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
+    if (item instanceof PsiResourceItem) {
+      PsiResourceItem psiResourceItem = (PsiResourceItem)item;
+      return psiResourceItem.getTag();
+    }
+
+    PsiFile psiFile = getItemPsiFile(project, item);
+    if (!(psiFile instanceof XmlFile)) {
+      return null;
+    }
+
+    XmlFile xmlFile = (XmlFile)psiFile;
+    XmlTag rootTag = xmlFile.getRootTag();
+    if (rootTag == null || !rootTag.isValid() || !rootTag.getName().equals(SdkConstants.TAG_RESOURCES)) {
+      return null;
+    }
+
+    for (XmlTag tag : rootTag.getSubTags()) {
+      ProgressManager.checkCanceled();
+      if (!tag.isValid()) {
+        continue;
+      }
+
+      ResourceType tagResourceType = getResourceTypeForResourceTag(tag);
+      if (item.getType() == tagResourceType && item.getName().equals(tag.getAttributeValue(ATTR_NAME))) {
+        return tag;
+      }
+
+      // Consider children of declare-styleable.
+      if (item.getType() == ATTR && tagResourceType == STYLEABLE) {
+        XmlTag[] attrs = tag.getSubTags();
+        for (XmlTag attr : attrs) {
+          if (!attr.isValid()) {
+            continue;
+          }
+
+          if (item.getName().equals(attr.getAttributeValue(ATTR_NAME))
+              && (attr.getAttribute(ATTR_FORMAT) != null || attr.getSubTags().length > 0)) {
+            return attr;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public static String getViewTag(@NotNull ResourceItem item) {
+    if (item instanceof PsiResourceItem) {
+      PsiResourceItem psiItem = (PsiResourceItem)item;
+      XmlTag tag = psiItem.getTag();
+
+      final String id = item.getName();
+
+      if (tag != null && tag.isValid()
+          // Make sure that the id attribute we're searching for is actually
+          // defined for this tag, not just referenced from this tag.
+          // For example, we could have
+          //    <Button a:alignLeft="@+id/target" a:id="@+id/something ...>
+          // and this should *not* return "Button" as the view tag for
+          // @+id/target!
+          && id.equals(stripIdPrefix(tag.getAttributeValue(ATTR_ID, ANDROID_URI)))) {
+        return tag.getName();
+      }
+
+
+      PsiFile file = psiItem.getPsiFile();
+      if (file instanceof XmlFile && file.isValid()) {
+        XmlFile xmlFile = (XmlFile)file;
+        XmlTag rootTag = xmlFile.getRootTag();
+        if (rootTag != null && rootTag.isValid()) {
+          return findViewTag(rootTag, id);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static String findViewTag(XmlTag tag, String target) {
+    String id = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
+    if (id != null && id.endsWith(target) && target.equals(stripIdPrefix(id))) {
+      return tag.getName();
+    }
+
+    for (XmlTag sub : tag.getSubTags()) {
+      if (sub.isValid()) {
+        String found = findViewTag(sub, target);
+        if (found != null) {
+          return found;
+        }
+      }
+    }
+
+    return null;
   }
 
   /**

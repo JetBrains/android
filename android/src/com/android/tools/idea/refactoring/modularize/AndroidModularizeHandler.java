@@ -293,7 +293,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
 
       if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.VALUES) {
         // This is just a value, so we'll just scan its corresponding XmlTag
-        return LocalResourceRepository.getItemTag(myProject, resource);
+        return AndroidResourceUtil.getItemTag(myProject, resource);
       }
       return psiFile;
     }

@@ -2,7 +2,6 @@ package org.jetbrains.android.resourceManagers;
 
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.utils.HashCodes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -59,7 +58,7 @@ public final class ValueResourceInfoImpl implements ValueResourceInfo {
       return null;
     }
 
-    XmlTag tag = LocalResourceRepository.getItemTag(myProject, myResource);
+    XmlTag tag = AndroidResourceUtil.getItemTag(myProject, myResource);
     if (tag == null) {
       return null;
     }

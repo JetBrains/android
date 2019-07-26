@@ -44,7 +44,6 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.FileResourceReader;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -129,6 +128,7 @@ import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.inspections.lint.State;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -1152,7 +1152,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   @NonNull
   public Location.Handle createResourceItemHandle(@NonNull ResourceItem item) {
-    XmlTag tag = LocalResourceRepository.getItemTag(myProject, item);
+    XmlTag tag = AndroidResourceUtil.getItemTag(myProject, item);
     if (tag != null) {
       PathString source = item.getSource();
       assert source != null : item;
