@@ -17,6 +17,8 @@ package com.android.tools.idea.res.psi
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.ResourceItem
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.ResolveResult
@@ -25,6 +27,10 @@ import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 
 object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
+
+  override fun resolveToDeclaration(resourceItem: ResourceItem, project: Project): PsiElement? {
+    TODO("not implemented")
+  }
 
   override fun getXmlAttributeNameGotoDeclarationTargets(
     attributeName: String,
