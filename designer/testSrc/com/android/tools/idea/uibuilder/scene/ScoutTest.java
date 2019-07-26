@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import org.jetbrains.annotations.NotNull;

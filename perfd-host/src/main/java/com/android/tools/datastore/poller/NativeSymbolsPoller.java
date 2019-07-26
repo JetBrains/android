@@ -17,7 +17,6 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
-import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.nativeSymbolizer.Symbol;

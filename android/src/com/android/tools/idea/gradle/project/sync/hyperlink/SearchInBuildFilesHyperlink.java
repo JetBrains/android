@@ -20,7 +20,6 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.find.FindManager;
 import com.intellij.find.FindModel;
 import com.intellij.find.FindSettings;
-import com.intellij.find.impl.FindInProjectUtil.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Factory;
 import com.intellij.usageView.UsageInfo;

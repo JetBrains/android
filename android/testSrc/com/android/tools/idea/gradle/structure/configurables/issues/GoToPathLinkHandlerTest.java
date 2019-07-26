@@ -23,7 +23,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.android.tools.idea.gradle.structure.configurables.issues.GoToPathLinkHandler.GO_TO_PATH_TYPE;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class GoToPathLinkHandlerTest {

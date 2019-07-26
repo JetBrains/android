@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public final class AllocStatsDataSeries implements DataSeries<Long> {
   @NotNull private final StudioProfilers myProfilers;

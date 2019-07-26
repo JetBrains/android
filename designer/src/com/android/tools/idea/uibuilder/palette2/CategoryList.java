@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;

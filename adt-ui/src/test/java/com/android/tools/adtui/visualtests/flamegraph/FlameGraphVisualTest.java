@@ -17,7 +17,6 @@
 package com.android.tools.adtui.visualtests.flamegraph;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;

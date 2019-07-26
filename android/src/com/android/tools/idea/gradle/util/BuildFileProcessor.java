@@ -35,7 +35,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;

@@ -15,9 +15,7 @@
  */
 package com.android.tools.profilers.stacktrace;
 
-import com.google.common.collect.Iterators;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;

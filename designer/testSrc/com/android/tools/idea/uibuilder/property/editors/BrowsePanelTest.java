@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 

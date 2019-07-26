@@ -42,7 +42,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.extensions.Extensions.getRootArea;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class TemplateValueInjectorTest{

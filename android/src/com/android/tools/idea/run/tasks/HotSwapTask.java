@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.stats.RunStatsService;
 import com.android.tools.ir.client.InstantRunClient;
 import com.android.tools.ir.client.InstantRunPushFailedException;
 import com.android.tools.ir.client.UpdateMode;
@@ -26,8 +25,6 @@ import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.google.wireless.android.sdk.stats.ArtifactDetail;
-import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 

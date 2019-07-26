@@ -19,7 +19,6 @@ package com.android.tools.idea.refactoring.rtl;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;

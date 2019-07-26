@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.IMPORTED_MODULE;
-import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 

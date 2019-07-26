@@ -26,7 +26,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.i
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.DummyNodeImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Local;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Param;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.LocalImpl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.psi.PsiLocalVariable;
