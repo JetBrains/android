@@ -78,7 +78,7 @@ public class AndroidDataBindingTest {
 
     fixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT + "/databinding");
     fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML);
-    AndroidFacet androidFacet = FacetManager.getInstance(myProjectRule.module).getFacetByType(AndroidFacet.ID);
+    AndroidFacet androidFacet = FacetManager.getInstance(myProjectRule.getModule()).getFacetByType(AndroidFacet.ID);
     ModuleDataBinding.getInstance(androidFacet).setMode(myDataBindingMode);
   }
 
