@@ -18,10 +18,10 @@ package com.android.tools.idea.explorer.adbimpl;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Map;
 
 public class TestShellCommands {

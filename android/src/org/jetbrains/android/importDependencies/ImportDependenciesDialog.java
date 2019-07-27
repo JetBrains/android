@@ -5,13 +5,13 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.util.AndroidBundle;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
