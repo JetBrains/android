@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.KeyboardAction;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.JBFont;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +27,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 public class KeyboardEventRenderer<E> implements EventRenderer<E> {

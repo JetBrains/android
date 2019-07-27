@@ -29,7 +29,6 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashMap;
 import com.siyeh.ig.InspectionGadgetsFix;
 import gnu.trove.THashMap;
 import org.jetbrains.android.util.AndroidBundle;

@@ -18,7 +18,6 @@ package com.android.tools.idea.templates;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.AndroidTestCase;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -30,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
