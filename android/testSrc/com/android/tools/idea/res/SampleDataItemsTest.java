@@ -44,7 +44,7 @@ public class SampleDataItemsTest {
         return "test.csv";
       }
     };
-    file.putUserData(ModuleUtilCore.KEY_MODULE, rule.module);
+    file.putUserData(ModuleUtilCore.KEY_MODULE, rule.getModule());
     file.text = "header0,header1\nA1,B1\nA2\nA3,B3";
 
     SampleDataResourceItem[] item = ApplicationManager.getApplication()
@@ -84,7 +84,7 @@ public class SampleDataItemsTest {
         return "test.json";
       }
     };
-    file.putUserData(ModuleUtilCore.KEY_MODULE, rule.module);
+    file.putUserData(ModuleUtilCore.KEY_MODULE, rule.getModule());
     file.text = content;
 
     SampleDataResourceItem[] item = ApplicationManager.getApplication()
