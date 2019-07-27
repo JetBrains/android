@@ -24,6 +24,7 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.MethodSignatureUtil
+import com.intellij.psi.util.TypeConversionUtil
 import java.util.ArrayList
 
 /**
@@ -191,7 +192,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   /**
    * Returns this class type without any generic type arguments.
    */
-  fun erasure() = this
+  fun erasure() = PsiModelClass(TypeConversionUtil.erasure(type), mode)
 
   /**
    * Finds public methods that matches the given name exactly. These may be resolved into
