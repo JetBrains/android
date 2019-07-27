@@ -1,6 +1,5 @@
 package org.jetbrains.jps.android.builder;
 
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.AndroidJpsUtil;
