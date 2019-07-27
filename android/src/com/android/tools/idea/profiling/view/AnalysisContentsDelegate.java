@@ -31,7 +31,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.util.AndroidBundle;
@@ -45,10 +44,8 @@ import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Responsible for creating tree nodes and rendering them for the capture analysis results light tool window.

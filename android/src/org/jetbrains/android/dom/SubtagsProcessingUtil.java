@@ -19,7 +19,6 @@ import com.google.common.collect.Multimap;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
@@ -33,10 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**

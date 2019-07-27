@@ -30,7 +30,6 @@ import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
@@ -46,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.HashMap;
 import java.util.Map;
 
 public class AndroidDomElementDescriptorProvider implements XmlElementDescriptorProvider {

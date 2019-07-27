@@ -28,7 +28,6 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,8 +40,8 @@ import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 

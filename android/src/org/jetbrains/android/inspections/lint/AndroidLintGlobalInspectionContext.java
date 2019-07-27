@@ -41,7 +41,6 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

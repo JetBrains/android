@@ -41,7 +41,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;

@@ -19,7 +19,6 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.speedSearch.ListWithFilter;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.AbstractLayoutManager;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
@@ -32,10 +31,8 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
 

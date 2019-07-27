@@ -16,9 +16,9 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.ProfilerPreferences;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
