@@ -41,7 +41,7 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.AndroidDomUtil;

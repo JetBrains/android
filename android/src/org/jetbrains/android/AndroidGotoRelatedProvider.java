@@ -20,7 +20,7 @@ import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;

@@ -26,7 +26,7 @@ import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.FilenameIndex;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.android.compiler.tools.AndroidIdl;
 import org.jetbrains.android.compiler.tools.AndroidRenderscript;
 import org.jetbrains.android.dom.manifest.Manifest;

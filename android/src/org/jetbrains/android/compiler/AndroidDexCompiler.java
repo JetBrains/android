@@ -14,7 +14,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.android.compiler.tools.AndroidDxWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;

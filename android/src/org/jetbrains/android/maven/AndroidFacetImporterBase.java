@@ -30,7 +30,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PathUtil;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import com.intellij.util.io.ZipUtil;
 import org.jdom.Element;
 import org.jetbrains.android.compiler.AndroidCompileUtil;

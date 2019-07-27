@@ -21,7 +21,7 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IconUtil;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;

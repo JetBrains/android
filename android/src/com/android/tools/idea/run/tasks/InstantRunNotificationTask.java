@@ -28,7 +28,7 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;

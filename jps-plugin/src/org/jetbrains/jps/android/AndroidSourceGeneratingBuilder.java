@@ -16,7 +16,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import gnu.trove.THashSet;
 import gnu.trove.TObjectLongHashMap;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;

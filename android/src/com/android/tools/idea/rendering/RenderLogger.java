@@ -41,7 +41,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;

@@ -2,7 +2,7 @@
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

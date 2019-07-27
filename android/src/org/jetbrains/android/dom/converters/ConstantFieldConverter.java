@@ -26,7 +26,7 @@ import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.LookupClass;
 import org.jetbrains.android.dom.LookupPrefix;

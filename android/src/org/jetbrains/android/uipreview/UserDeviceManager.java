@@ -11,7 +11,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileEvent;
 import com.intellij.openapi.vfs.VirtualFileListener;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 

@@ -13,7 +13,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.TestActionEvent;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 
 import java.util.*;
 
