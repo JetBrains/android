@@ -4,7 +4,6 @@ import com.android.SdkConstants;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Doubles;
 import com.intellij.psi.xml.XmlElement;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
 import org.jetbrains.annotations.NonNls;

@@ -29,12 +29,12 @@ import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
