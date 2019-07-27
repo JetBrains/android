@@ -21,7 +21,6 @@ import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.containers.HashSet;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -35,6 +34,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 

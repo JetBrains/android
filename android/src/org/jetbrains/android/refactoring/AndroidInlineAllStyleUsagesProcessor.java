@@ -14,7 +14,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.MultiMap;
 import org.jetbrains.android.dom.resources.ResourceNameConverter;
 import org.jetbrains.android.util.AndroidBundle;
@@ -23,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

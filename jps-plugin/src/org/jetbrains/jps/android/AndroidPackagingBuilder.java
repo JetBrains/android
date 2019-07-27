@@ -6,7 +6,6 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.compiler.tools.AndroidApkBuilder;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.android.util.AndroidNativeLibData;

@@ -2,7 +2,6 @@ package org.jetbrains.jps.android;
 
 import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NonNls;
@@ -22,6 +21,7 @@ import org.jetbrains.jps.model.module.JpsModule;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
