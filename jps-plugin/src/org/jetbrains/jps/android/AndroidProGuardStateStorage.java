@@ -2,13 +2,13 @@ package org.jetbrains.jps.android;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.incremental.FSOperations;
 import org.jetbrains.jps.incremental.storage.StorageOwner;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
