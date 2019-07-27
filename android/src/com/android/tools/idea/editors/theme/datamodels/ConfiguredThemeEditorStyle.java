@@ -82,40 +82,6 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
     return !isProjectStyle();
   }
 
-  /**
-   * Returns the names of all the parents of this style. Parents might differ depending on the folder configuration, this returns all the
-   * variants for this style.
-   */
-  // TODO(namespaces): Change return type to Collection<ConfiguredElement<ResourceReference>>.
-  public Collection<ConfiguredElement<String>> getParentNames() {
-    if (isFramework()) {
-      // Framework themes do not have multiple parents so we just get the only one.
-      ConfiguredThemeEditorStyle parent = getParent();
-      if (parent != null) {
-        return ImmutableList.of(ConfiguredElement.create(new FolderConfiguration(), parent.getQualifiedName()));
-      }
-      // The theme has no parent (probably the main "Theme" style).
-      return Collections.emptyList();
-    }
-
-    ImmutableList.Builder<ConfiguredElement<String>> parents = ImmutableList.builder();
-    for (ResourceItem styleItem : getStyleResourceItems()) {
-      StyleResourceValue style = (StyleResourceValue)styleItem.getResourceValue();
-      assert style != null;
-      String parentName = ResolutionUtils.getParentQualifiedName(style);
-      if (parentName != null) {
-        parents.add(ConfiguredElement.create(styleItem.getConfiguration(), parentName));
-      }
-    }
-    return parents.build();
-  }
-
-  public boolean hasItem(@Nullable EditedStyleItem item) {
-    //TODO: add isOverriden() method to EditedStyleItem
-    ResourceReference attrReference = item == null ? null : item.getAttrReference();
-    return attrReference != null && getStyleResourceValue().getItem(attrReference) != null;
-  }
-
   public StyleItemResourceValue getItem(@NotNull String name, boolean isFramework) {
     // TODO: namespaces
     return getStyleResourceValue().getItem(ResourceNamespace.fromBoolean(isFramework), name);
