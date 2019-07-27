@@ -28,7 +28,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.text.DateFormatUtil;
 import org.jetbrains.android.util.*;
 import org.jetbrains.annotations.NonNls;
