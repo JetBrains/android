@@ -3,7 +3,6 @@ package org.jetbrains.jps.android;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.incremental.FSOperations;
 import org.jetbrains.jps.incremental.storage.ValidityState;
@@ -13,6 +12,7 @@ import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
