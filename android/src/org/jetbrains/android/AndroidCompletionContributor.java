@@ -33,7 +33,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.*;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import com.intellij.util.xml.*;
 import com.intellij.util.xml.converters.DelimitedListConverter;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;

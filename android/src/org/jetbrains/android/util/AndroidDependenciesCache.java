@@ -9,7 +9,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
