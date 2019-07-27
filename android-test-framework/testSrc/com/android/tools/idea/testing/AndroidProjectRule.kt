@@ -76,7 +76,7 @@ class AndroidProjectRule private constructor(
   : NamedExternalResource() {
 
   lateinit var fixture: CodeInsightTestFixture
-  lateinit var module: Module
+  val module: Module get() = fixture.module
 
   val project: Project get() = fixture.project
 
@@ -146,7 +146,6 @@ class AndroidProjectRule private constructor(
       createJavaCodeInsightTestFixture(description)
     }
     fixture.setUp()
-    module = fixture.module
     // Initialize an Android manifest
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
