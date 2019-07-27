@@ -29,7 +29,7 @@ import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactProperties;
 import com.intellij.packaging.impl.compiler.ArtifactCompileScope;
 import com.intellij.util.ArrayUtilRt;
-import com.intellij.util.containers.hash.HashSet;
+import java.util.HashSet;
 import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactProperties;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
