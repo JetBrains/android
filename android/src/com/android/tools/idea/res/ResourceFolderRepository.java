@@ -2063,7 +2063,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     private void createCacheFile() {
       assert myCachingData != null;
       byte[] header = getCacheFileHeader(myCachingData);
-      createPersistentCache(myCachingData.getCacheFile(), header, stream -> writeResourcesToStream(myResources, stream, config -> true));
+      try {
+        createPersistentCache(myCachingData.getCacheFile(), header, stream -> writeResourcesToStream(myResources, stream, config -> true));
+      }
+      catch (Throwable e) {
+        LOG.error(e);
+      }
     }
 
     private void scanResFolder() {
