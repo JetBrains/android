@@ -22,13 +22,11 @@ import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
-import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.validator.ModuleValidator;
@@ -145,7 +143,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
         return new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text"));
       }
 
-      if (value.get().getTargetApiLevel() >= VersionCodes.Q && !isAndroidx(project)) {
+      if ((value.get().getTargetApiLevel() >= VersionCodes.Q || myFormFactor == FormFactor.WEAR) && !isAndroidx(project)) {
         return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.module.needs.androidx"));
       }
 
