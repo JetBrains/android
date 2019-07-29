@@ -23,9 +23,6 @@ import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxDeployableProvider;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider;
-import com.android.tools.idea.run.editor.ChooserDeployableProvider;
-import com.android.tools.idea.run.editor.DeployTargetProvider;
-import com.android.tools.idea.run.editor.ShowChooserTargetProvider;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.intellij.execution.RunManager;
@@ -161,11 +158,7 @@ public class DeployActionsInitializer {
       return null;
     }
 
-    DeployTargetProvider currentTargetProvider = androidRunConfig.getDeployTargetContext().getCurrentDeployTargetProvider();
-    if (currentTargetProvider instanceof ShowChooserTargetProvider) {
-      return new ChooserDeployableProvider(androidRunConfig, facet, (ShowChooserTargetProvider)currentTargetProvider);
-    }
-    else if (currentTargetProvider instanceof DeviceAndSnapshotComboBoxTargetProvider) {
+    if (androidRunConfig.getDeployTargetContext().getCurrentDeployTargetProvider() instanceof DeviceAndSnapshotComboBoxTargetProvider) {
       ApplicationIdProvider applicationIdProvider = androidRunConfig.getApplicationIdProvider(facet);
       return new DeviceAndSnapshotComboBoxDeployableProvider(module.getProject(), applicationIdProvider);
     }
@@ -175,9 +168,7 @@ public class DeployActionsInitializer {
   }
 
   private static boolean canOverrideDeployableProvider(@Nullable DeployableProvider provider) {
-    return provider == null ||
-           provider instanceof ChooserDeployableProvider ||
-           provider instanceof DeviceAndSnapshotComboBoxDeployableProvider;
+    return provider == null || provider instanceof DeviceAndSnapshotComboBoxDeployableProvider;
   }
 
   private static void updateDeployableProvider(@NotNull Project project, @Nullable RunnerAndConfigurationSettings configSettings) {

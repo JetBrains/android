@@ -946,7 +946,6 @@
   <!-- End new deployment target selection -->
 
   <extensions defaultExtensionNs="com.android.run">
-    <deployTargetProvider implementation="com.android.tools.idea.run.editor.ShowChooserTargetProvider"/>
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
   </extensions>
 
