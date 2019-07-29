@@ -599,7 +599,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     }
     RenameDialog renameDialog = new RenameDialog(myThemeEditorContext.getProject(), namePsiElement, null, null) {
       @Override
-      protected RenameProcessor createRenameProcessor(String newName) {
+      protected RenameProcessor createRenameProcessor(@NotNull String newName) {
         return new RenameProcessor(myThemeEditorContext.getProject(), namePsiElement, newName,
                                    getRefactoringScope(),
                                    isSearchInComments(), isSearchInNonJavaFiles()) {
