@@ -245,7 +245,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
 
   // TODO: this is used only in TemplateTest. We should pass this value without changing template values.
-  static String ATTR_CREATE_ACTIVITY = "createActivity";
+  final static String ATTR_CREATE_ACTIVITY = "createActivity";
 
   public TemplateTest() {
   }
@@ -1036,7 +1036,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     PlatformTestUtil.assertFilesEqual(desired, actual);
   }
 
-  public void testRelatedParameters() throws Exception {
+  public void testRelatedParameters() {
     Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")));
     TemplateMetadata templateMetadata = template.getMetadata();
     assertNotNull(templateMetadata);
@@ -1374,11 +1374,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   private static class Option {
-    private String id;
-    private int minSdk;
-    private int minBuild;
+    private final String id;
+    private final int minSdk;
+    private final int minBuild;
 
-    public Option(String id, int minSdk, int minBuild) {
+    private Option(String id, int minSdk, int minBuild) {
       this.id = id;
       this.minSdk = minSdk;
       this.minBuild = minBuild;
@@ -1554,7 +1554,7 @@ public class TemplateTest extends AndroidGradleTestCase {
         connection.close();
 
         // Windows work-around: After closing the gradle connection, it's possible that some files (eg local.properties) are locked
-        // for a bit of time. It is also possible that there are Virtual Files that are still syncronizing to the File System, this will
+        // for a bit of time. It is also possible that there are Virtual Files that are still synchronizing to the File System, this will
         // break tear-down, when it tries to delete the project.
         if (SystemInfo.isWindows) {
           System.out.println("Windows: Attempting to delete project Root - " + projectRoot);
