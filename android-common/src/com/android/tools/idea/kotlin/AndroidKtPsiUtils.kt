@@ -30,26 +30,37 @@ import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 
-fun KtClass.insideBody(offset: Int): Boolean = getBody()?.range?.contains(offset) ?: false
+/** Checks if the given offset is within [KtClass.getBody] of this [KtClass]. */
+fun KtClass.insideBody(offset: Int): Boolean = body?.range?.contains(offset) ?: false
 
+/** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
 fun KtProperty.hasBackingField(): Boolean {
   val propertyDescriptor = descriptor as? PropertyDescriptor ?: return false
   return analyze(BodyResolveMode.PARTIAL)[BindingContext.BACKING_FIELD_REQUIRED, propertyDescriptor] ?: false
 }
 
-fun List<KtAnnotationEntry>.findAnnotation(annotationName: String) = this.firstOrNull { it.getQualifiedName() == annotationName }
+/** Computes the qualified name of this [KtAnnotationEntry]. */
+fun KtAnnotationEntry.getQualifiedName(): String? {
+  return analyze().get(BindingContext.ANNOTATION, this)?.fqName?.asString()
+}
 
-fun KtAnnotationEntry.getQualifiedName(): String? =
-  analyze().get(BindingContext.ANNOTATION, this)?.fqName?.asString()
-
+/**
+ * Finds the [KtExpression] assigned to [annotationAttributeName] in this [KtAnnotationEntry].
+ *
+ * @see org.jetbrains.kotlin.psi.ValueArgument.getArgumentExpression
+ */
 fun KtAnnotationEntry.findArgumentExpression(annotationAttributeName: String): KtExpression? {
   return valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == annotationAttributeName }?.getArgumentExpression()
 }
 
-// Original code jetbrains/kotlin/idea/injection/InterpolatedStringInjectorProcessor.kt:98
-fun tryEvaluateConstant(expression: KtExpression) =
-  ConstantExpressionEvaluator.getConstant(expression, expression.analyze())
+/**
+ * Tries to evaluate this [KtExpression] as a constant-time constant string.
+ *
+ * Based on InterpolatedStringInjectorProcessor in the Kotlin plugin.
+ */
+fun KtExpression.tryEvaluateConstant(): String? {
+  return ConstantExpressionEvaluator.getConstant(this, analyze())
     ?.takeUnless { it.isError }
     ?.getValue(TypeUtils.NO_EXPECTED_TYPE)
     ?.safeAs<String>()
-
+}
