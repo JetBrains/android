@@ -36,7 +36,6 @@ import com.android.tools.idea.templates.FmGetConfigurationNameMethod
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException
 import com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate
-import com.android.tools.idea.templates.RecipeMergeUtils
 import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APPLICATION_PACKAGE
@@ -49,6 +48,8 @@ import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.TemplateUtils.writeTextFile
+import com.android.tools.idea.templates.mergeGradleSettingsFile
+import com.android.tools.idea.templates.mergeXml
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.google.common.base.Strings.isNullOrEmpty
 import com.google.common.base.Strings.nullToEmpty
@@ -270,12 +271,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
           readTextFromDisk(sourceFile) ?: return
 
       val contents: String = when {
-        targetFile.name == GRADLE_PROJECT_SETTINGS_FILE -> RecipeMergeUtils.mergeGradleSettingsFile(sourceText, targetText)
+        targetFile.name == GRADLE_PROJECT_SETTINGS_FILE -> mergeGradleSettingsFile(sourceText, targetText)
         targetFile.name == FN_BUILD_GRADLE -> {
           val compileSdkVersion = paramMap[TemplateMetadata.ATTR_BUILD_API_STRING] as String
           io.mergeBuildFiles(sourceText, targetText, context.project, compileSdkVersion)
         }
-        hasExtension(targetFile, DOT_XML) -> RecipeMergeUtils.mergeXml(context, sourceText, targetText, targetFile)
+        hasExtension(targetFile, DOT_XML) -> mergeXml(context, sourceText, targetText, targetFile)
         else -> throw RuntimeException("Only XML or Gradle settings files can be merged at this point: $targetFile")
       }
 
