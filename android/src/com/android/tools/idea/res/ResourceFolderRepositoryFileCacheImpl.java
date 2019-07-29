@@ -54,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
  */
 class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryFileCache {
   private static final String CACHE_DIRECTORY = "caches/project_resources";
-  private static final String INVALIDATE_CACHE_STAMP = "invalidate_caches_stamp.dat";
+  private static final String INVALIDATION_MARKER_FILE = "invalidated.txt";
 
   @NotNull private final Path myRootDir;
 
@@ -150,7 +150,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     if (rootDir == null) {
       return;
     }
-    Path stampFile = rootDir.resolve(INVALIDATE_CACHE_STAMP);
+    Path stampFile = rootDir.resolve(INVALIDATION_MARKER_FILE);
     try {
       Files.createFile(stampFile);
     }
@@ -171,7 +171,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     // First delete all the subdirectories except for the stamp.
     try {
       Files.list(rootDir).forEach(subCache -> {
-        if (!subCache.getFileName().toString().equals(INVALIDATE_CACHE_STAMP)) {
+        if (!subCache.getFileName().toString().equals(INVALIDATION_MARKER_FILE)) {
           FileUtil.delete(subCache.toFile());
         }
       });
@@ -192,7 +192,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     if (rootDir == null) {
       return false;
     }
-    Path stampFile = rootDir.resolve(INVALIDATE_CACHE_STAMP);
+    Path stampFile = rootDir.resolve(INVALIDATION_MARKER_FILE);
     return Files.notExists(stampFile);
   }
 
