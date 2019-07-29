@@ -372,16 +372,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     templateMap.put(ATTR_PACKAGE_NAME, "test.pkg.in"); // Add in a Kotlin keyword ("in") in the package name to trigger escape code too
   });
 
-  private final ProjectStateCustomizer withAndroidx = ((templateMap, projectMap) -> {
-    projectMap.put(ATTR_ANDROIDX_SUPPORT, true);
-    templateMap.put(ATTR_ANDROIDX_SUPPORT, true);
-  });
-
-  private final ProjectStateCustomizer withAndroidxAndKotlin = ((templateMap, projectMap) -> {
-    withAndroidx.customize(templateMap, projectMap);
-    withKotlin.customize(templateMap, projectMap);
-  });
-
   //--- Activity templates ---
 
   @TemplateCheck
@@ -555,18 +545,17 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewSettingsActivity() throws Exception {
-    // Note: SettingsActivity is only enabled in the UI for androidx projects
-    checkCreateTemplate("activities", "SettingsActivity", false, withAndroidx);
+    checkCreateTemplate("activities", "SettingsActivity", false);
   }
 
   @TemplateCheck
   public void testNewProjectWithSettingsActivity() throws Exception {
-    checkCreateTemplate("activities", "SettingsActivity", true, withAndroidx);
+    checkCreateTemplate("activities", "SettingsActivity", true);
   }
 
   @TemplateCheck
   public void testNewProjectWithSettingsActivityWithKotlin() throws Exception {
-    checkCreateTemplate("activities", "SettingsActivity", true, withAndroidxAndKotlin);
+    checkCreateTemplate("activities", "SettingsActivity", true, withKotlin);
   }
 
   @TemplateCheck
@@ -679,15 +668,14 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewSliceProvider() throws Exception {
-    // Note: SliceProvider is only enabled in the UI for androidx projects
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "SliceProvider", false, withAndroidx);
+    checkCreateTemplate("other", "SliceProvider", false);
   }
 
   @TemplateCheck
   public void testNewSliceProviderWithKotlin() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "SliceProvider", false, withAndroidxAndKotlin);
+    checkCreateTemplate("other", "SliceProvider", false, withKotlin);
   }
 
   @TemplateCheck
@@ -745,15 +733,15 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testNewSettingsFragmentWithAndroidX() throws Exception {
+  public void testNewSettingsFragment() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("fragments", "SettingsFragment", true, withAndroidx);
+    checkCreateTemplate("fragments", "SettingsFragment", true);
   }
 
   @TemplateCheck
-  public void testNewSettingsFragmentWithAndroidXAndKotlin() throws Exception {
+  public void testNewSettingsFragmentWithKotlin() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("fragments", "SettingsFragment", false, withAndroidxAndKotlin);
+    checkCreateTemplate("fragments", "SettingsFragment", false, withKotlin);
   }
 
   @TemplateCheck
@@ -1431,6 +1419,10 @@ public class TemplateTest extends AndroidGradleTestCase {
       checkLib = "Activity".equals(templateMetadata.getCategory()) &&
                  "Mobile".equals(templateMetadata.getFormFactor()) &&
                  !moduleState.getBoolean(ATTR_CREATE_ACTIVITY);
+
+      if (templateMetadata.getAndroidXRequired()) {
+        setAndroidSupport(true, moduleState, activityState);
+      }
     }
 
     if (!Boolean.TRUE.equals(moduleState.get(ATTR_ANDROIDX_SUPPORT))) {
