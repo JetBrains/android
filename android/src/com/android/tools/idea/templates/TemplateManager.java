@@ -530,26 +530,6 @@ public class TemplateManager {
       categoryGroup.add(galleryAction);
       categoryGroup.addSeparator();
       setPresentation(category, galleryAction);
-
-      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()) {
-        AnAction experimentalGalleryAction = new AnAction() {
-          @Override
-          public void update(@NotNull AnActionEvent e) {
-            updateAction(e, "Experimental gallery...", true, true);
-          }
-
-          @Override
-          public void actionPerformed(@NotNull AnActionEvent e) {
-            showWizardDialog(e, CATEGORY_ACTIVITY,
-                             AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id),
-                             "New Android Activity");
-          }
-        };
-
-        categoryGroup.add(experimentalGalleryAction);
-        categoryGroup.addSeparator();
-        setPresentation(category, experimentalGalleryAction);
-      }
     }
 
     if (StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.get() && category.equals(CATEGORY_FRAGMENT)) {
