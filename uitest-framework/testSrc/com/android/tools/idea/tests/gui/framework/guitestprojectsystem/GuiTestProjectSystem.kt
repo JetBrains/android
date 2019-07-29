@@ -22,7 +22,6 @@ import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.Extensions
-import com.intellij.openapi.extensions.ExtensionsArea
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -81,10 +80,10 @@ interface GuiTestProjectSystem {
   fun getProjectRootDirectory(project: Project): VirtualFile
 
   companion object {
-    val EP_NAME: ExtensionPointName<GuiTestProjectSystem> = ExtensionPointName.create("com.android.project.guitestprojectsystem")
+    private val EP_NAME = ExtensionPointName<GuiTestProjectSystem>("com.android.project.guitestprojectsystem")
 
     fun forBuildSystem(buildSystem: TargetBuildSystem.BuildSystem): GuiTestProjectSystem? = try {
-      EP_NAME.extensions.firstOrNull { it.buildSystem == buildSystem }
+      EP_NAME.iterable.firstOrNull { it.buildSystem == buildSystem }
     } catch (e: IllegalArgumentException) {
       // b/73902993: Additional logging to identify the root cause of some sporadic errors
       val message = getPluginLoadingDebugLogs()
@@ -108,7 +107,7 @@ interface GuiTestProjectSystem {
         }
 
       // List all loaded plugins
-      val loadedPlugins = PluginManagerCore.getPlugins().map { it.name }.joinToString(", ")
+      val loadedPlugins = PluginManagerCore.getPlugins().joinToString(", ") { it.name }
       sb.append("Loaded Plugins: $loadedPlugins\n")
 
       // Was the UI Test Framework plugin present?
@@ -117,14 +116,15 @@ interface GuiTestProjectSystem {
 
       // Extensions present in the UI Test Framework plugin
       if (uiTestPlugin is IdeaPluginDescriptorImpl) {
-        val extensionPoints = uiTestPlugin.extensionsPoints?.let {
-          it.values().map { it.getAttribute("qualifiedName").value }.joinToString(", ")
-        } ?: "<null>"
-        sb.append("Extension Points registered by UI Test Framework plugin: $extensionPoints")
+        val extensionPoints = mutableListOf<String>()
+        uiTestPlugin.processExtensionPoints {
+          extensionPoints.add((it.getAttribute("qualifiedName") ?: return@processExtensionPoints).value)
+        }
+        sb.append("Extension Points registered by UI Test Framework plugin: ${extensionPoints.joinToString()}")
       }
 
       // List out all registered extensions
-      val registeredExtensions = Extensions.getRootArea().extensionPoints.map { ep -> ep.name }.joinToString(", ")
+      val registeredExtensions = Extensions.getRootArea().extensionPoints.joinToString(", ") { ep -> ep.name }
       sb.append("Extension Points registered in the root area: $registeredExtensions")
 
       return sb.toString()
