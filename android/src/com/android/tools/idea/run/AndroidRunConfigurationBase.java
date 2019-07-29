@@ -21,7 +21,6 @@ import com.android.tools.idea.run.editor.DeployTargetContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
 import com.android.tools.idea.run.editor.ProfilerState;
-import com.android.tools.idea.run.editor.ShowChooserTargetProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
@@ -248,7 +247,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     updateExtraRunStats(stats);
 
     final boolean isDebugging = executor instanceof DefaultDebugExecutor;
-    boolean userSelectedDeployTarget = requiresUserSelection(executor, isDebugging, facet);
+    boolean userSelectedDeployTarget = getDeployTargetContext().getCurrentDeployTargetProvider().requiresRuntimePrompt();
     stats.setUserSelectedTarget(userSelectedDeployTarget);
 
     // Figure out deploy target, prompt user if needed (ignore completely if user chose to hotswap).
@@ -322,20 +321,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     return null;
-  }
-
-  /**
-   * @return {@code true} if the current {@link DeployTargetProvider} will require user to select the {@link DeployTarget}.
-   */
-  private boolean requiresUserSelection(@NotNull Executor executor, boolean debug, @NotNull AndroidFacet facet) {
-    DeployTargetProvider currentTargetProvider = getDeployTargetContext().getCurrentDeployTargetProvider();
-    if (currentTargetProvider instanceof ShowChooserTargetProvider) {
-      return currentTargetProvider.requiresRuntimePrompt() &&
-             ((ShowChooserTargetProvider)currentTargetProvider)
-               .getCachedDeployTarget(executor, facet, getDeviceCount(debug), getDeployTargetContext().getDeployTargetStates(),
-                                      hashCode()) == null;
-    }
-    return currentTargetProvider.requiresRuntimePrompt();
   }
 
   @Nullable

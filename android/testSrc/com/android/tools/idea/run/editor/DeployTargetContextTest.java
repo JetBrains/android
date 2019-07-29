@@ -28,7 +28,6 @@ import org.junit.Test;
 
 public final class DeployTargetContextTest {
   private DeployTargetProvider myDeviceAndSnapshotComboBoxTargetProvider;
-  private DeployTargetProvider myShowChooserTargetProvider;
   private DeployTargetProvider myCloudTestMatrixTargetProvider;
 
   private DeployTargetContext myContext;
@@ -36,7 +35,6 @@ public final class DeployTargetContextTest {
   @Before
   public void initProviders() {
     myDeviceAndSnapshotComboBoxTargetProvider = new DeviceAndSnapshotComboBoxTargetProvider();
-    myShowChooserTargetProvider = new ShowChooserTargetProvider();
     myCloudTestMatrixTargetProvider = new CloudTestMatrixTargetProvider();
   }
 
@@ -47,11 +45,7 @@ public final class DeployTargetContextTest {
 
   @NotNull
   private Collection<DeployTargetProvider> getDeployTargetProviders() {
-    return Arrays.asList(
-      myDeviceAndSnapshotComboBoxTargetProvider,
-      myShowChooserTargetProvider,
-      myCloudTestMatrixTargetProvider,
-      new CloudDebuggingTargetProvider());
+    return Arrays.asList(myDeviceAndSnapshotComboBoxTargetProvider, myCloudTestMatrixTargetProvider, new CloudDebuggingTargetProvider());
   }
 
   @Test
