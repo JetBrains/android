@@ -199,7 +199,7 @@ class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
     isLibrary!!,
     packageName!!,
     formFactor!!,
-    themesData!!,
+    themesData ?: ThemesData(),
     baseFeature
   )
 }

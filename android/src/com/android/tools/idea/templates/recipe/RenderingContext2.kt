@@ -15,27 +15,13 @@
  */
 package com.android.tools.idea.templates.recipe
 
-import com.intellij.openapi.project.Project
-import com.android.tools.idea.templates.FreemarkerConfiguration;
-import com.android.tools.idea.templates.FreemarkerUtils;
-import com.android.tools.idea.templates.StudioTemplateLoader;
-import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.wizard.template.ModuleTemplateData
-import com.android.tools.idea.wizard.template.TemplateData
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.SetMultimap;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import freemarker.template.Configuration;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import com.google.common.collect.LinkedHashMultimap
+import com.google.common.collect.SetMultimap
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VfsUtilCore
+import java.io.File
 
 data class RenderingContext2(
   val project: Project,
@@ -54,4 +40,15 @@ data class RenderingContext2(
   val filesToOpen = mutableListOf<File>()
   val warnings = mutableListOf<String>()
 
+  val showWarnings: Boolean get() = showErrors && dryRun
 }
+
+// TODO use it
+data class ExecutionResult(
+  val plugins: List<String> = listOf(),
+  val classpathEntries: List<String> = listOf(),
+  val dependencies: SetMultimap<String, String> = LinkedHashMultimap.create(),
+  val filesToOpen: List<File> = listOf(),
+  val targetFiles: List<File> = listOf(),
+  val warnings: List<String> = listOf()
+)
