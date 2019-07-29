@@ -49,5 +49,9 @@ iml_module(
         "//tools/idea/plugins/junit:intellij.junit[module]",
         "//tools/idea/java/execution/impl:intellij.java.execution.impl[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
+        "//tools/idea/plugins/gradle/tooling-extension-impl:intellij.gradle.toolingExtension.impl[module]",
+        "//tools/idea/plugins/gradle:intellij.gradle[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
     ],
 )
