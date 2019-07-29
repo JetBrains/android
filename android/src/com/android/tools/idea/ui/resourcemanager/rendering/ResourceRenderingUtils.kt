@@ -23,7 +23,6 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BasicStroke
 import java.awt.Color
@@ -39,7 +38,7 @@ import kotlin.math.max
 internal val EMPTY_IMAGE = createIcon(if (RESOURCE_DEBUG) JBColor.GREEN else Color(0, 0, 0, 0))
 internal val ERROR_IMAGE = createIcon(if (RESOURCE_DEBUG) JBColor.RED else Color(10, 10, 10, 10))
 
-internal fun createIcon(color: Color?): BufferedImage = UIUtil.createImage(
+internal fun createIcon(color: Color?): BufferedImage = ImageUtil.createImage(
   80, 80, BufferedImage.TYPE_INT_ARGB
 ).apply {
   with(createGraphics()) {

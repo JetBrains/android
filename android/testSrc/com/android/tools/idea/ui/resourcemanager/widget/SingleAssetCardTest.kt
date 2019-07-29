@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.ui.resourcemanager.widget
 
+import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.image.BufferedImage
 import javax.swing.ImageIcon
@@ -30,7 +30,7 @@ private class SingleImageViewTest {
     @JvmStatic
     fun main(args: Array<String>) {
       JFrame().apply {
-        val imageIcon = ImageIcon(UIUtil.createImage(115, 75, BufferedImage.TYPE_INT_ARGB).apply {
+        val imageIcon = ImageIcon(ImageUtil.createImage(115, 75, BufferedImage.TYPE_INT_ARGB).apply {
           createGraphics().apply {
             this.color = Color.BLUE
             this.fillRect(0, 0, 200, 300)
