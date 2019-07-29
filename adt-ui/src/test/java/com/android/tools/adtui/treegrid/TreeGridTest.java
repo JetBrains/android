@@ -31,7 +31,7 @@ import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -71,7 +71,7 @@ public class TreeGridTest extends LightPlatformTestCase {
     myGrid.setFixedCellWidth(40);
     myGrid.setFixedCellHeight(40);
     myGrid.doLayout();
-    BufferedImage image = UIUtil.createImage(1000, 1000, TYPE_INT_ARGB);
+    BufferedImage image = ImageUtil.createImage(1000, 1000, TYPE_INT_ARGB);
     myGrid.paint(image.getGraphics());
 
     List<JList<String>> lists = myGrid.getLists();

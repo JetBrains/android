@@ -27,6 +27,7 @@ import com.intellij.util.Alarm;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.ColorIcon;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.util.Locale;
@@ -1236,7 +1237,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
         myZoomRect = new Rectangle(0, 0, 32, 32);
 
-        myMaskImage = UIUtil.createImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        myMaskImage = ImageUtil.createImage(32, 32, BufferedImage.TYPE_INT_ARGB);
         Graphics2D maskG = myMaskImage.createGraphics();
         maskG.setColor(Color.BLUE);
         maskG.fillRect(0, 0, 32, 32);
@@ -1246,7 +1247,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         maskG.fillRect(0, 0, 32, 32);
         maskG.dispose();
 
-        myMagnifierImage = UIUtil.createImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        myMagnifierImage = ImageUtil.createImage(32, 32, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = myMagnifierImage.createGraphics();
 
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

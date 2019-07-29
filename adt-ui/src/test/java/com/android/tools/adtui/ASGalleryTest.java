@@ -19,7 +19,7 @@ import com.google.common.base.Function;
 import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IconUtil;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -47,7 +47,7 @@ public final class ASGalleryTest extends LightPlatformTestCase {
     for (int i = 0; i < COLUMNS; i++) {
       objects[i] = new ModelObject(i + 1);
       if (i > 0) {
-        objects[i].myIcon = IconUtil.createImageIcon(UIUtil.createImage(500, 500, BufferedImage.TYPE_INT_ARGB));
+        objects[i].myIcon = IconUtil.createImageIcon(ImageUtil.createImage(500, 500, BufferedImage.TYPE_INT_ARGB));
       }
       objects[i].myLabel = "Model " + i;
     }

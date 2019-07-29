@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.layout3d;
 
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -54,7 +54,7 @@ public class CheckLayout3d extends JPanel {
     // but for testing we just build a pattern
     int width = 1024;
     int height = 1920;
-    img = UIUtil.createImage(width, height, BufferedImage.TYPE_INT_RGB);
+    img = ImageUtil.createImage(width, height, BufferedImage.TYPE_INT_RGB);
     int[] data = ((DataBufferInt)img.getRaster().getDataBuffer()).getData();
     for (int i = 0; i < data.length; i++) {
       data[i] = ((((i % width) * 255) / width) << 16) | ((((i / width) * 255) / height) << 8) | (i >> 10);

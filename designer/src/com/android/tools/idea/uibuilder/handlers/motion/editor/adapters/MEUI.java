@@ -26,8 +26,8 @@ import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.IconUtil;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -122,7 +122,7 @@ public class MEUI {
   public static final Color ourAddConstraintPlus = makeColor("UIDesigner.motion.AddConstraintPlus", 0xffc9c9c9, 0xff333333);
 
   public static BufferedImage createImage(int w, int h, int type) {
-    return UIUtil.createImage(w, h, type);
+    return ImageUtil.createImage(w, h, type);
   }
 
   /**
