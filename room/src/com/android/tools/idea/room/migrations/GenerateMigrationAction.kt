@@ -58,8 +58,8 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
       val oldSchema = SchemaBundle.deserialize(files[0].inputStream)
       val newSchema = SchemaBundle.deserialize(files[1].inputStream)
       WriteCommandAction.runWriteCommandAction(project) {
-        JavaMigrationClassGenerator.createMigrationClass(project,
-                                                         migrationDialog.targetDirectory,
+        val javaMigrationClassGenerator = JavaMigrationClassGenerator(project)
+        javaMigrationClassGenerator.createMigrationClass(migrationDialog.targetDirectory,
                                                          migrationDialog.targetPackage,
                                                          DatabaseUpdate(oldSchema.database, newSchema.database))
       }
