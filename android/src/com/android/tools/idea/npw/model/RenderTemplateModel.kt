@@ -49,7 +49,6 @@ import com.android.tools.idea.wizard.template.WizardParameterData
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.module.Module
@@ -159,12 +158,13 @@ class RenderTemplateModel private constructor(
           moduleTemplateDataBuilder.setModuleRoots(
             paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get())
 
+          projectTemplateDataBuilder.language = language.get().get()
+
           if (androidFacet == null) {
             return@apply
           }
 
           setFacet(androidFacet)
-          projectTemplateDataBuilder.language = language.get().get()
 
           // Register application-wide settings
           val applicationPackage = androidFacet.getPackageForApplication()
@@ -246,9 +246,7 @@ class RenderTemplateModel private constructor(
 
         val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
 
-        return writeCommandAction(project).withName(commandName).compute<Boolean, Throwable> {
-          newTemplate.recipe(executor, moduleTemplateDataBuilder.build())
-        }
+        return newTemplate.render(context, executor)
       }
 
       val template = templateHandle!!.template

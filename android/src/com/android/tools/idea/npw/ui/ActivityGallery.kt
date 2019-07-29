@@ -63,6 +63,9 @@ object ActivityGallery {
     if (isCppTemplate) {
       return TemplateIcon(AndroidIcons.Wizards.CppConfiguration)
     }
+    if (template == Template.NoActivity) {
+      return TemplateIcon(AndroidIcons.Wizards.CppConfiguration)
+    }
 
     val thumb = template.thumb().path
 
