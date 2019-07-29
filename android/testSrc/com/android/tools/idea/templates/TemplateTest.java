@@ -966,24 +966,6 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   //--- Special cases ---
 
-  public void testCppBasicActivityWithFragments() throws Exception {
-    // Regression test for https://code.google.com/p/android/issues/detail?id=221824
-    if (DISABLED) {
-      return;
-    }
-    myApiSensitiveTemplate = false;
-    File templateFile = findTemplate("activities", "BasicActivity");
-    assertNotNull(templateFile);
-    Stopwatch stopwatch = Stopwatch.createStarted();
-    checkTemplate(templateFile, true, (templateMap, projectMap) -> {
-      projectMap.put(ATTR_CPP_SUPPORT, true);
-      templateMap.put(ATTR_CPP_SUPPORT, true);
-      projectMap.put(ATTR_CPP_FLAGS, "");
-    });
-    stopwatch.stop();
-    System.out.println("Checked " + templateFile.getName() + " with cpp and fragments successfully in " + stopwatch.toString());
-  }
-
   public void testJdk7() throws Exception {
     if (DISABLED) {
       return;
