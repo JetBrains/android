@@ -37,6 +37,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.awt.event.KeyEvent
 import java.io.IOException
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 /**
@@ -163,6 +164,9 @@ class QrScanningCujTest {
       .open("app/build.gradle")
       .moveBetween("dependencies {\n", "")
       .typeText("    implementation 'com.google.android.gms:play-services-vision:+'\n")
+      // play-services-vision uses AndroidX, so we need to add the following property (see bug 130286699). Eventually, all the dependencies
+      // used in this test project should be upgraded to AndroidX.
+      .newFile(Paths.get("gradle.properties"), "android.useAndroidX=true")
       .ideFrame
       .requestProjectSync()
       .waitForGradleProjectSyncToFinish()
