@@ -77,13 +77,12 @@ fun mergeGradleSettingsFile(source: String, dest: String): String {
   https://docs.gradle.org/current/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])
    */
 
-  val includeLines = LinkedList<String>()
-  for (line in Splitter.on('\n').omitEmptyStrings().trimResults().split(source)) {
-    if (!line.startsWith("include")) {
-      throw RuntimeException("When merging settings.gradle files, only include directives can be merged.")
-    }
-    includeLines.add(line)
+  val includeLines = Splitter.on('\n').omitEmptyStrings().trimResults().split(source).toList()
+
+  if (!includeLines.all { it.startsWith("include") }) {
+    throw RuntimeException("When merging settings.gradle files, only include directives can be merged.")
   }
+
   if (includeLines.isEmpty()) {
     return dest
   }
@@ -101,8 +100,7 @@ fun mergeGradleSettingsFile(source: String, dest: String): String {
 
 /**
  * Merges sourceXml into targetXml/targetFile (targetXml is the contents of targetFile).
- * Returns the resulting xml if it still needs to be written to targetFile,
- * or null if the file has already been/doesn't need to be updated.
+ * @return the resulting xml if it still needs to be written to targetFile or null if the file has already been/doesn't need to be updated.
  */
 fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, targetFile: File): String {
   val ok: Boolean
@@ -110,8 +108,8 @@ fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, ta
   var contents: String?
   var errors: String? = null
   if (fileName == FN_ANDROID_MANIFEST_XML) {
-    val currentDocument = XmlUtils.parseDocumentSilently(targetXml, true) ?: error("$targetXml failed to parse")
-    val fragment = XmlUtils.parseDocumentSilently(sourceXml, true) ?: error("$sourceXml failed to parse")
+    XmlUtils.parseDocumentSilently(targetXml, true) ?: error("$targetXml failed to parse")
+    XmlUtils.parseDocumentSilently(sourceXml, true) ?: error("$sourceXml failed to parse")
     val report = mergeManifest(context.moduleRoot, targetFile, targetXml, sourceXml)
     if (report != null && report.result.isSuccess) {
       contents = report.getMergedDocument(MergingReport.MergedManifestKind.MERGED)
@@ -185,11 +183,7 @@ fun mergeResourceFile(context: RenderingContext,
   val root = targetPsiFile.document!!.rootTag ?: error("Cannot find XML root in target: $targetXml")
 
   val attributes = sourcePsiFile.rootTag!!.attributes
-  for (attr in attributes) {
-    if (attr.namespacePrefix == XMLNS_PREFIX) {
-      root.setAttribute(attr.name, attr.value)
-    }
-  }
+  attributes.filter {it.namespacePrefix == XMLNS_PREFIX}.forEach { root.setAttribute(it.name, it.value) }
 
   val prependElements = newArrayList<XmlTagChild>()
   var indent: XmlText? = null
@@ -312,18 +306,10 @@ private fun mergeManifest(moduleRoot: File, targetManifest: File,
   }
 }
 
-private fun getResourceId(tag: XmlTag): String? {
-  var name = tag.getAttributeValue(ATTR_NAME)
-  if (name == null) {
-    name = tag.getAttributeValue(ATTR_ID)
-  }
-  return name
-}
+private fun getResourceId(tag: XmlTag): String? = tag.getAttributeValue(ATTR_NAME) ?: tag.getAttributeValue(ATTR_ID)
 
 /**
  * Wraps the given strings in the standard conflict syntax
  */
-private fun wrapWithMergeConflict(original: String, added: String): String {
-  val sep = "\n"
-  return "<<<<<<< Original$sep$original$sep=======$sep$added>>>>>>> Added$sep"
-}
+private fun wrapWithMergeConflict(original: String, added: String): String =
+  "<<<<<<< Original\n$original\n=======\n$added>>>>>>> Added\n"
