@@ -26,6 +26,7 @@ import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.ProjectTopics;
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -35,15 +36,16 @@ import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import java.util.Collections;
@@ -51,6 +53,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.idea.KotlinLanguage;
 
 class TagToClassMapperImpl implements TagToClassMapper {
   private static final Logger LOG = Logger.getInstance(TagToClassMapper.class);
@@ -100,7 +103,10 @@ class TagToClassMapperImpl implements TagToClassMapper {
     if (value == null) {
       value = CachedValuesManager.getManager(myModule.getProject()).createCachedValue(() -> {
         Map<String, PsiClass> map = computeClassMap(className);
-        return CachedValueProvider.Result.create(map, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT);
+        return CachedValueProvider.Result.create(
+          map,
+          ((PsiModificationTrackerImpl)PsiManager.getInstance(myModule.getProject()).getModificationTracker()).forLanguages(
+            language -> language.is(JavaLanguage.INSTANCE) || language.is(KotlinLanguage.INSTANCE)));
       }, false);
       myClassMaps.put(className, value);
     }
