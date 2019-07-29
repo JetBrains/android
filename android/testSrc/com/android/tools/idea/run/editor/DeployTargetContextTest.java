@@ -30,7 +30,6 @@ public final class DeployTargetContextTest {
   private DeployTargetProvider myDeviceAndSnapshotComboBoxTargetProvider;
   private DeployTargetProvider myShowChooserTargetProvider;
   private DeployTargetProvider myEmulatorTargetProvider;
-  private DeployTargetProvider myUsbDeviceTargetProvider;
   private DeployTargetProvider myCloudTestMatrixTargetProvider;
 
   private DeployTargetContext myContext;
@@ -40,7 +39,6 @@ public final class DeployTargetContextTest {
     myDeviceAndSnapshotComboBoxTargetProvider = new DeviceAndSnapshotComboBoxTargetProvider();
     myShowChooserTargetProvider = new ShowChooserTargetProvider();
     myEmulatorTargetProvider = new EmulatorTargetProvider();
-    myUsbDeviceTargetProvider = new UsbDeviceTargetProvider();
     myCloudTestMatrixTargetProvider = new CloudTestMatrixTargetProvider();
   }
 
@@ -55,7 +53,6 @@ public final class DeployTargetContextTest {
       myDeviceAndSnapshotComboBoxTargetProvider,
       myShowChooserTargetProvider,
       myEmulatorTargetProvider,
-      myUsbDeviceTargetProvider,
       myCloudTestMatrixTargetProvider,
       new CloudDebuggingTargetProvider());
   }
