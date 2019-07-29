@@ -117,28 +117,15 @@ fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, ta
     else {
       contents = null
       if (report != null) {
-        // report.getReportString() isn't useful, it just says to look at the logs
-        val sb = StringBuilder()
-        for (record in report.loggingRecords) {
-          val severity = record.severity
-          if (severity != MergingReport.Record.Severity.ERROR) {
-            // Some of the warnings are misleading -- e.g. "missing package declaration";
-            // that's deliberate. Users only have to deal with errors to get the
-            // manifest merge to succeed.
-            continue
-          }
-          sb.append("* ")
-          sb.append(record.message)
-          sb.append("\n\n")
-        }
-
-        errors = sb.toString()
-        // Error messages may refer to our internal temp name for the target manifest file
-
-        errors = errors.replace("AndroidManifest.xml", "current AndroidManifest.xml")
-
-        errors = errors.replace("nevercreated.xml", "template AndroidManifest.xml")
-        errors = errors.trim { it <= ' ' }
+        // report.reportString isn't useful, it just says to look at the logs
+        // Also, some of the warnings are misleading -- e.g. "missing package declaration";
+        // that's deliberate. Users only have to deal with errors to get the manifest merge to succeed.
+        errors = report.loggingRecords.asSequence()
+          .filter { it.severity == MergingReport.Record.Severity.ERROR }
+          .joinToString("") { "* ${it.message}\n\n" }
+          .replace("AndroidManifest.xml", "current AndroidManifest.xml") // Error messages may refer to our internal temp name for the target manifest file
+          .replace("nevercreated.xml", "template AndroidManifest.xml")
+          .trim()
       }
     }
 
@@ -185,93 +172,91 @@ fun mergeResourceFile(context: RenderingContext,
   val attributes = sourcePsiFile.rootTag!!.attributes
   attributes.filter {it.namespacePrefix == XMLNS_PREFIX}.forEach { root.setAttribute(it.name, it.value) }
 
+  if (folderType != ResourceFolderType.VALUES) {
+    // In other file types, such as layouts, just append all the new content at the end.
+    sourcePsiFile.rootTag!!.children.filterIsInstance<XmlTag>().forEach {
+      root.addSubTag(it, false)
+    }
+    return targetPsiFile.text
+  }
+
   val prependElements = newArrayList<XmlTagChild>()
   var indent: XmlText? = null
-  if (folderType == ResourceFolderType.VALUES) {
-    // Try to merge items of the same name
-    val old = Maps.newHashMap<String, XmlTag>()
-    for (newSibling in root.subTags) {
-      old[getResourceId(newSibling)] = newSibling
-    }
-    for (child in sourcePsiFile.rootTag!!.children) {
-      when (child) {
-        is XmlComment -> {
+  // Try to merge items of the same name
+  val old = Maps.newHashMap<String, XmlTag>()
+  for (newSibling in root.subTags) {
+    old[getResourceId(newSibling)] = newSibling
+  }
+  for (child in sourcePsiFile.rootTag!!.children) {
+    when (child) {
+      is XmlComment -> {
+        if (indent != null) {
+          prependElements.add(indent)
+        }
+        prependElements.add(child as XmlTagChild)
+      }
+      is XmlText -> indent = child
+      is XmlTag -> {
+        var subTag = child
+        val mergeStrategy = subTag.getAttributeValue(MERGE_ATTR_STRATEGY)
+        subTag.setAttribute(MERGE_ATTR_STRATEGY, null)
+        // remove the space left by the deleted attribute
+        CodeStyleManager.getInstance(context.project).reformat(subTag)
+        val name = getResourceId(subTag)
+        val replace = if (name != null) old[name] else null
+        if (replace != null) {
+          // There is an existing item with the same id. Either replace it
+          // or preserve it depending on the "templateMergeStrategy" attribute.
+          // If that attribute does not exist, default to preserving it.
+
+          // Let's say you've used the activity wizard once, and it
+          // emits some configuration parameter as a resource that
+          // it depends on, say "padding". Then the user goes and
+          // tweaks the padding to some other number.
+          // Now running the wizard a *second* time for some new activity,
+          // we should NOT go and set the value back to the template's
+          // default!
+          when {
+            MERGE_ATTR_STRATEGY_REPLACE == mergeStrategy -> {
+              val newChild = replace.replace(child)
+              // When we're replacing, the line is probably already indented. Skip the initial indent
+              if (newChild.prevSibling is XmlText && prependElements[0] is XmlText) {
+                prependElements.removeAt(0)
+                // If we're adding something we'll need a newline/indent after it
+                if (prependElements.isNotEmpty()) {
+                  prependElements.add(indent)
+                }
+              }
+              for (element in prependElements) {
+                root.addBefore(element, newChild)
+              }
+            }
+            MERGE_ATTR_STRATEGY_PRESERVE == mergeStrategy -> {
+              // Preserve the existing value.
+            }
+            replace.text.trim { it <= ' ' } == child.getText().trim { it <= ' ' } -> {
+              // There are no differences, do not issue a warning.
+            }
+            else -> // No explicit directive given, preserve the original value by default.
+              context.warnings.add(String.format(
+                "Ignoring conflict for the value: %1\$s wanted: \"%2\$s\" but it already is: \"%3\$s\" in the file: %4\$s", name,
+                child.getText(), replace.text, fileName))
+          }
+        }
+        else {
           if (indent != null) {
             prependElements.add(indent)
           }
-          prependElements.add(child as XmlTagChild)
+          subTag = root.addSubTag(subTag, false)
+          for (element in prependElements) {
+            root.addBefore(element, subTag)
+          }
         }
-        is XmlText -> indent = child
-        is XmlTag -> {
-          var subTag = child
-          val mergeStrategy = subTag.getAttributeValue(MERGE_ATTR_STRATEGY)
-          subTag.setAttribute(MERGE_ATTR_STRATEGY, null)
-          // remove the space left by the deleted attribute
-          CodeStyleManager.getInstance(context.project).reformat(subTag)
-          val name = getResourceId(subTag)
-          val replace = if (name != null) old[name] else null
-          if (replace != null) {
-            // There is an existing item with the same id. Either replace it
-            // or preserve it depending on the "templateMergeStrategy" attribute.
-            // If that attribute does not exist, default to preserving it.
+        prependElements.clear()
+      }
+    }
+  }
 
-            // Let's say you've used the activity wizard once, and it
-            // emits some configuration parameter as a resource that
-            // it depends on, say "padding". Then the user goes and
-            // tweaks the padding to some other number.
-            // Now running the wizard a *second* time for some new activity,
-            // we should NOT go and set the value back to the template's
-            // default!
-            when {
-              MERGE_ATTR_STRATEGY_REPLACE == mergeStrategy -> {
-                val newChild = replace.replace(child)
-                // When we're replacing, the line is probably already indented. Skip the initial indent
-                if (newChild.prevSibling is XmlText && prependElements[0] is XmlText) {
-                  prependElements.removeAt(0)
-                  // If we're adding something we'll need a newline/indent after it
-                  if (prependElements.isNotEmpty()) {
-                    prependElements.add(indent)
-                  }
-                }
-                for (element in prependElements) {
-                  root.addBefore(element, newChild)
-                }
-              }
-              MERGE_ATTR_STRATEGY_PRESERVE == mergeStrategy -> {
-                // Preserve the existing value.
-              }
-              replace.text.trim { it <= ' ' } == child.getText().trim { it <= ' ' } -> {
-                // There are no differences, do not issue a warning.
-              }
-              else -> // No explicit directive given, preserve the original value by default.
-                context.warnings.add(String.format(
-                  "Ignoring conflict for the value: %1\$s wanted: \"%2\$s\" but it already is: \"%3\$s\" in the file: %4\$s", name,
-                  child.getText(), replace.text, fileName))
-            }
-          }
-          else {
-            if (indent != null) {
-              prependElements.add(indent)
-            }
-            subTag = root.addSubTag(subTag, false)
-            for (element in prependElements) {
-              root.addBefore(element, subTag)
-            }
-          }
-          prependElements.clear()
-        }
-      }
-    }
-  }
-  else {
-    // In other file types, such as layouts, just append all the new content
-    // at the end.
-    for (child in sourcePsiFile.rootTag!!.children) {
-      if (child is XmlTag) {
-        root.addSubTag(child, false)
-      }
-    }
-  }
   return targetPsiFile.text
 }
 
