@@ -34,6 +34,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -116,13 +117,16 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   @VisibleForTesting
   @Nullable
   Path getRootDir() {
-    try {
-      return Files.createDirectories(myRootDir);
+    if (!Files.isDirectory(myRootDir, LinkOption.NOFOLLOW_LINKS)) {
+      try {
+        Files.createDirectories(myRootDir);
+      }
+      catch (IOException e) {
+        getLogger().error("Failed to create cache root directory " + myRootDir, e);
+        return null;
+      }
     }
-    catch (IOException e) {
-      getLogger().error("Failed to create cache root directory " + myRootDir, e);
-      return null;
-    }
+    return myRootDir;
   }
 
   /**
