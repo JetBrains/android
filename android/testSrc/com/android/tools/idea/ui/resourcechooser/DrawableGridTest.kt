@@ -32,6 +32,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
 import org.junit.BeforeClass
 import org.junit.ClassRule
@@ -82,7 +83,7 @@ class DrawableGridTest {
   @Test
   fun renderCell() {
 
-    val image = UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).apply {
+    val image = ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).apply {
       with(createGraphics()) {
         color = testColor
         drawRect(0, 0, 1, 1)

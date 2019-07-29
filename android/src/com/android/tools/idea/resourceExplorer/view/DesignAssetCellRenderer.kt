@@ -30,23 +30,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.ColorUtil
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.ide.PooledThreadExecutor
-import java.awt.BorderLayout
-import java.awt.Color
-import java.awt.Component
-import java.awt.Dimension
-import java.awt.Graphics
-import java.awt.Image
+import java.awt.*
 import java.awt.image.BufferedImage
-import javax.swing.ImageIcon
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JList
-import javax.swing.JPanel
-import javax.swing.ListCellRenderer
+import javax.swing.*
 
 private val LOG = Logger.getInstance(DesignAssetCellRenderer::class.java)
 
@@ -56,7 +45,7 @@ private const val VERSION = "version"
 
 private fun String.pluralize(size: Int) = this + (if (size > 1) "s" else "")
 
-fun createIcon(color: Color?) = UIUtil.createImage(
+fun createIcon(color: Color?) = ImageUtil.createImage(
   80, 80, BufferedImage.TYPE_INT_ARGB
 ).apply {
   with(createGraphics()) {

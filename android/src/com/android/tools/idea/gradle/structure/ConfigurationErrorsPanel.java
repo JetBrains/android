@@ -477,7 +477,7 @@ class ConfigurationErrorsPanel extends JPanel implements Disposable, ListDataLis
                                                 bounds.height - 1 - insets.top - insets.bottom, 6, 6);
 
       if (mySelected) {
-        g2d.setColor(UIUtil.getListSelectionBackground());
+        g2d.setColor(UIUtil.getListSelectionBackground(true));
         g2d.fillRect(0, 0, bounds.width, bounds.height);
       }
 

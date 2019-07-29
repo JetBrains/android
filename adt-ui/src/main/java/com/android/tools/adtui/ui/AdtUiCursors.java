@@ -16,6 +16,7 @@
 package com.android.tools.adtui.ui;
 
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 
@@ -31,7 +32,7 @@ public final class AdtUiCursors {
     // Icons are loaded at 2x for retina displays. For cursors we don't want to use this double sized icon so we scale it down.
     float scaleFactor = UIUtil.isRetina() ? 0.5f : 1.0f;
     Icon scaledIcon = ((IconLoader.CachedImageIcon)icon).scale(scaleFactor);
-    BufferedImage image = UIUtil.createImage(scaledIcon.getIconWidth(), scaledIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+    BufferedImage image = ImageUtil.createImage(scaledIcon.getIconWidth(), scaledIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
     scaledIcon.paintIcon(new JPanel(), image.getGraphics(), 0, 0);
     // We offset the icon center from the upper left to the center for a more natural placement with existing cursors.
     return Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(image.getWidth() / 2, image.getHeight() / 2), name);

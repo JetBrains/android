@@ -26,7 +26,8 @@ import static java.awt.RenderingHints.VALUE_RENDER_SPEED;
 
 import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
+
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -120,7 +121,7 @@ public class ImageUtils {
   }
 
   public static BufferedImage createDipImage(int width, int height, int type) {
-    return UIUtil.createImage(width, height, type);
+    return ImageUtil.createImage(width, height, type);
   }
 
   public static boolean supportsRetina() {

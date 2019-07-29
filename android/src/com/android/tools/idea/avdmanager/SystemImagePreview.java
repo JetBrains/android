@@ -30,8 +30,8 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.StartupUiUtil;
-import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -198,7 +198,7 @@ public class SystemImagePreview {
       return icon;
     }
     int size = JBUIScale.scale(128);
-    Image image = UIUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
+    Image image = ImageUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
     Graphics g = image.getGraphics();
     GraphicsUtil.setupAntialiasing(g);
     GraphicsUtil.setupAAPainting(g);

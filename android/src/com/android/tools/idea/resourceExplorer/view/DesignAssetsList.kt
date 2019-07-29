@@ -20,6 +20,7 @@ import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.google.common.cache.CacheBuilder
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -32,7 +33,7 @@ import javax.swing.*
 
 private val ICON_SIZE = JBUI.size(64)
 private const val ITEM_BORDER_WIDTH = 1
-private val EMPTY_ICON = UIUtil.createImage(
+private val EMPTY_ICON = ImageUtil.createImage(
   ICON_SIZE.width, ICON_SIZE.height, BufferedImage.TYPE_INT_ARGB
 ) // TODO Get an error/loading image
 
@@ -95,7 +96,7 @@ class DesignAssetsList(
         background = UIUtil.getListUnfocusedSelectionBackground()
         val emptyBorderWidth = itemMargin - ITEM_BORDER_WIDTH
         BorderFactory.createCompoundBorder(
-          BorderFactory.createLineBorder(UIUtil.getListSelectionBackground(), ITEM_BORDER_WIDTH, true),
+          BorderFactory.createLineBorder(UIUtil.getListSelectionBackground(true), ITEM_BORDER_WIDTH, true),
           BorderFactory.createEmptyBorder(emptyBorderWidth, emptyBorderWidth, emptyBorderWidth, emptyBorderWidth)
         )
       } else {
