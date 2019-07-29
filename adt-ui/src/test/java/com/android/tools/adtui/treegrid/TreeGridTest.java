@@ -18,7 +18,7 @@ package com.android.tools.adtui.treegrid;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.util.ArrayUtilRt;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
 import junit.framework.TestCase;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +54,7 @@ public class TreeGridTest extends TestCase {
     myGrid.setFixedCellWidth(40);
     myGrid.setFixedCellHeight(40);
     myGrid.doLayout();
-    BufferedImage image = UIUtil.createImage(1000, 1000, TYPE_INT_ARGB);
+    BufferedImage image = ImageUtil.createImage(1000, 1000, TYPE_INT_ARGB);
     myGrid.paint(image.getGraphics());
 
     List<JList<String>> lists = myGrid.getLists();

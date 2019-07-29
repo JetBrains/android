@@ -130,7 +130,7 @@ public class ChooseResourceDialog extends DialogWrapper {
                                                                                                SimpleTextAttributes.STYLE_SEARCH_MATCH);
   private static final Action[] EMPTY_ACTIONS = new Action[0];
   private static final ResourceChooserGroup[] EMPTY_RESOURCE_CHOOSER_GROUPS = new ResourceChooserGroup[0];
-  private static final Border GRID_SELECTION_BORDER = BorderFactory.createLineBorder(UIUtil.getListSelectionBackground());
+  private static final Border GRID_SELECTION_BORDER = BorderFactory.createLineBorder(UIUtil.getListSelectionBackground(true));
 
   @NotNull private final Module myModule;
   @NotNull private final AndroidFacet myFacet;

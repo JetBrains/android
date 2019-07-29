@@ -23,6 +23,7 @@ import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -556,7 +557,7 @@ class AttachedToolWindow<T> implements Disposable {
     }
 
     private void startDragging(@NotNull MouseEvent event) {
-      BufferedImage image = UIUtil.createImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+      BufferedImage image = ImageUtil.createImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
       Graphics graphics = image.getGraphics();
       paint(graphics);
       graphics.dispose();

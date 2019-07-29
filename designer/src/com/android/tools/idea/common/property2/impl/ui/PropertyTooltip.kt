@@ -16,14 +16,13 @@
 package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
-import com.android.tools.adtui.stdui.StandardColors.ERROR_BUBBLE_BORDER_COLOR
-import com.android.tools.adtui.stdui.StandardColors.ERROR_BUBBLE_FILL_COLOR
-import com.android.tools.adtui.stdui.StandardColors.ERROR_BUBBLE_TEXT_COLOR
+import com.android.tools.adtui.stdui.StandardColors.*
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.intellij.ide.IdeTooltip
 import com.intellij.ide.IdeTooltipManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.text.nullize
+import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -32,11 +31,7 @@ import java.awt.Color
 import java.awt.Point
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
-import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.JTextArea
-import javax.swing.SwingConstants
+import javax.swing.*
 
 private const val ICON_SPACING = 6
 private const val MAX_COLUMN_WIDTH = 50 // Measured in 'em'
@@ -169,7 +164,7 @@ private class TooltipComponent: JPanel(BorderLayout()) {
   // To fix this: make a dummy paint when the text is replaced to force the internals of the
   // UI to compute the correct number of rows.
   private fun forcePreferredSizeUpdate() {
-    val buffer = UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_RGB)
+    val buffer = ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_RGB)
     val graphics = buffer.createGraphics()
     val size = textArea.preferredSize
     textArea.setBounds(0, 0, size.width, size.height)

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.util
 
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.ImageUtil
 import java.awt.Image
 import java.awt.image.BufferedImage
 import javax.swing.Icon
@@ -31,7 +31,7 @@ fun iconToImage(icon: Icon): Image {
   else {
     val w = icon.iconWidth
     val h = icon.iconHeight
-    val image = UIUtil.createImage(w, h, BufferedImage.TYPE_4BYTE_ABGR)
+    val image = ImageUtil.createImage(w, h, BufferedImage.TYPE_4BYTE_ABGR)
     val g = image.createGraphics()
     icon.paintIcon(null, g, 0, 0)
     g.dispose()

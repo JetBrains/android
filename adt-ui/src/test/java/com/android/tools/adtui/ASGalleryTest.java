@@ -18,7 +18,7 @@ package com.android.tools.adtui;
 import com.google.common.base.Function;
 import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
 
 import javax.accessibility.Accessible;
 import javax.swing.*;
@@ -43,7 +43,7 @@ public final class ASGalleryTest extends LightPlatformTestCase {
     for (int i = 0; i < COLUMNS; i++) {
       objects[i] = new ModelObject(i + 1);
       if (i > 0) {
-        objects[i].myImage = UIUtil.createImage(500, 500, BufferedImage.TYPE_INT_ARGB);
+        objects[i].myImage = ImageUtil.createImage(500, 500, BufferedImage.TYPE_INT_ARGB);
       }
       objects[i].myLabel = "Model " + i;
     }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
-import com.intellij.util.ui.UIUtil
-import org.junit.Assert.*
+import com.intellij.util.ui.ImageUtil
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -29,7 +29,7 @@ class ColorIndicatorTest {
     indicator.setSize(10, 10)
     indicator.background = Color.WHITE
 
-    val bf = UIUtil.createImage(10, 10, BufferedImage.TYPE_INT_ARGB)
+    val bf = ImageUtil.createImage(10, 10, BufferedImage.TYPE_INT_ARGB)
     indicator.paint(bf.graphics)
     assertEquals(DEFAULT_PICKER_COLOR, Color(bf.getRGB(5, 5)))
 
@@ -48,7 +48,7 @@ class ColorIndicatorTest {
     indicator.setSize(10, 10)
     indicator.background = Color.WHITE
 
-    val bf = UIUtil.createImage(10, 10, BufferedImage.TYPE_INT_ARGB)
+    val bf = ImageUtil.createImage(10, 10, BufferedImage.TYPE_INT_ARGB)
 
     indicator.color = Color(0x40, 0x80, 0xA0, 0xC0)
     indicator.paint(bf.graphics)

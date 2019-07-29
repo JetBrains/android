@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.border
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.intellij.ui.JBColor
 import com.intellij.ui.RoundedLineBorder
+import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -56,8 +57,8 @@ private val CHESSBOARD_PAINT by object {
   /**
    * Four alternating squares to make the chessboard pattern
    */
-  private fun createTexturePattern() = UIUtil.createImage(CHESSBOARD_PATTERN_SIZE, CHESSBOARD_PATTERN_SIZE,
-                                                          BufferedImage.TYPE_INT_ARGB).apply {
+  private fun createTexturePattern() = ImageUtil.createImage(CHESSBOARD_PATTERN_SIZE, CHESSBOARD_PATTERN_SIZE,
+                                                             BufferedImage.TYPE_INT_ARGB).apply {
     with(this.graphics) {
       color = CHESSBOARD_COLOR_1
       fillRect(0, 0, CHESSBOARD_PATTERN_SIZE, CHESSBOARD_PATTERN_SIZE)

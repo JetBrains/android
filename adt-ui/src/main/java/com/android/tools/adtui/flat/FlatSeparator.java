@@ -18,6 +18,7 @@ package com.android.tools.adtui.flat;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 
 import javax.swing.*;
@@ -47,7 +48,7 @@ public class FlatSeparator extends JComponent {
   @Override
   protected void paintComponent(final Graphics g) {
     final Insets i = getInsets();
-    if (UIUtil.isUnderAquaBasedLookAndFeel() || UIUtil.isUnderDarcula()) {
+    if (UIUtil.isUnderAquaBasedLookAndFeel() || StartupUiUtil.isUnderDarcula()) {
       if (getParent() != null) {
         final JBColor col = new JBColor(Gray._128, Gray._111);
         final Graphics2D g2 = (Graphics2D)g;

@@ -17,7 +17,7 @@ package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.intellij.ide.customize.CustomizeUIThemeStepPanel;
 import com.intellij.ide.ui.laf.darcula.DarculaInstaller;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -44,7 +44,7 @@ public class SelectThemeStep extends FirstRunWizardStep {
   public boolean commitStep() {
     // This code is duplicated from LafManager.initComponent(). But our Welcome Wizard is started
     // AFTER that call so we repeat it here.
-    if (UIUtil.isUnderDarcula()) {
+    if (StartupUiUtil.isUnderDarcula()) {
       DarculaInstaller.install();
     }
     else {

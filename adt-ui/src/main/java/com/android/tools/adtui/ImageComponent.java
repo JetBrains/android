@@ -16,7 +16,7 @@
 package com.android.tools.adtui;
 
 import com.intellij.ui.components.panels.OpaquePanel;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +48,7 @@ public class ImageComponent extends OpaquePanel {
 
   public void setIcon(@Nullable Icon icon) {
     if (icon != null) {
-      myImage = UIUtil.createImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+      myImage = ImageUtil.createImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
       final Graphics2D gg = myImage.createGraphics();
       setRenderingHints(gg);
       icon.paintIcon(this, gg, 0, 0);
