@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WelcomeFrameProvider;
@@ -30,12 +29,12 @@ import java.awt.*;
 import static com.intellij.util.ui.update.UiNotifyConnector.doWhenFirstShown;
 
 /**
- * {@link WelcomeFrameProvider} for the {@link FirstRunWizard}.
+ * {@link WelcomeFrameProvider} for the {@link StudioFirstRunWelcomeScreen}.
  */
-public class FirstRunWizardFrameProvider implements WelcomeFrameProvider {
+public final class FirstRunWizardFrameProvider implements WelcomeFrameProvider {
   @Override
   public IdeFrame createFrame() {
-    for (WelcomeScreenProvider provider : WelcomeScreenProvider.EP_NAME.getExtensions()) {
+    for (WelcomeScreenProvider provider : WelcomeScreenProvider.EP_NAME.getIterable()) {
       if (provider instanceof AndroidStudioWelcomeScreenProvider && provider.isAvailable()) {
         // If we need to show the first run wizard, return a normal WelcomeFrame (which will initialize the wizard via the
         // WelcomeScreenProvider extension point).
@@ -56,7 +55,7 @@ public class FirstRunWizardFrameProvider implements WelcomeFrameProvider {
    */
   @Nullable
   private IdeFrame customizeFlatWelcomeFrame() {
-    for (WelcomeFrameProvider provider : WelcomeFrame.EP.getExtensions()) {
+    for (WelcomeFrameProvider provider : WelcomeFrame.EP.getIterable()) {
       if (provider == this) {
         // Avoid infinite recursion, since we are one of the providers.
         continue;
