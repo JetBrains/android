@@ -376,13 +376,6 @@ public final class StudioFlags {
     "Upon installing, if application is already on device, only send parts of the apks which have changed (the delta).",
     true);
 
-  public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE = Flag.create(
-    RUNDEBUG,
-    "select.device.snapshot.combo.box.visible",
-    "Show the Select Device/Snapshot combo box",
-    "Show the Select Device/Snapshot combo box next to the Select Run/Debug Configuration one in the toolbar",
-    true);
-
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
     RUNDEBUG,
     "select.device.snapshot.combo.box.snapshots.enabled",
