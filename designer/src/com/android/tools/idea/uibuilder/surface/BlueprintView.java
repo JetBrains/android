@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.surface;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
@@ -39,7 +38,7 @@ public class BlueprintView extends ScreenView {
   @Override
   protected ImmutableList<Layer> createLayers() {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
-    if (myShowBorder) {
+    if (hasBorderLayer()) {
       builder.add(new BorderLayer(this));
     }
     if (getSurface().isShowModelNames()) {
