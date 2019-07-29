@@ -61,7 +61,7 @@ interface Asset {
 data class BaseAsset (
   override val type: ResourceType,
   override val name: String = "resource_name",
-  override val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, "external")
+  override val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, null, "external")
 ) : Asset
 
 /**
@@ -74,7 +74,7 @@ data class DesignAsset(
   var qualifiers: List<ResourceQualifier>,
   override val type: ResourceType,
   override val name: String = file.nameWithoutExtension,
-  override val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, "external")
+  override val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, null, "external")
 ): Asset {
 
   /**
