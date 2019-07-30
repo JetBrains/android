@@ -23,8 +23,10 @@ import com.android.tools.idea.npw.FormFactor.Companion.get
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
+import com.android.tools.idea.npw.template.ChooseGalleryItemStep
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateHandle
+import com.android.tools.idea.npw.template.getDefaultSelectedTemplateIndex
 import com.android.tools.idea.npw.ui.ActivityGallery.getTemplateDescription
 import com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon
 import com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImageLabel
@@ -62,8 +64,8 @@ import javax.swing.JPanel
 import javax.swing.event.ListSelectionListener
 
 /**
- * First page in the New Project wizard that allows user to select the Form Factor (Mobile, Wear, TV, etc) and its
- * Template ("Empty Activity", "Basic", "Nav Drawer", etc)
+ * First page in the New Project wizard that allows user to select the [FormFactor] (Mobile, Wear, TV, etc.) and its
+ * template ("Empty Activity", "Basic", "Navigation Drawer", etc.)
  */
 class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProjectModel>(model, message("android.wizard.project.new.choose")) {
   private var loadingPanel = JBLoadingPanel(BorderLayout(), this)
@@ -113,9 +115,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
       // Update UI with the loaded formFactors. Switch back to UI thread.
       GuiUtils.invokeLaterIfNeeded(
-        {
-          updateUi(wizard, formFactors)
-        },
+        { updateUi(wizard, formFactors) },
         ModalityState.any())
     })
   }
@@ -125,26 +125,28 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
    */
   private fun updateUi(wizard: Facade, formFactors: List<FormFactorInfo>) {
     ApplicationManager.getApplication().assertIsDispatchThread()
-    for (formFactorInfo in formFactors) {
-      val tabPanel = formFactorInfo.tabPanel
-      tabsPanel.addTab(formFactorInfo.formFactor.toString(), tabPanel.myRootPanel)
-      tabPanel.myGallery.setDefaultAction(object : AbstractAction() {
-        override fun actionPerformed(actionEvent: ActionEvent?) {
-          wizard.goForward()
+
+    formFactors.forEach {
+      with(it.tabPanel) {
+        tabsPanel.addTab(it.formFactor.toString(), myRootPanel)
+        myGallery.setDefaultAction(object : AbstractAction() {
+          override fun actionPerformed(actionEvent: ActionEvent?) {
+            wizard.goForward()
+          }
+        })
+        val activitySelectedListener = ListSelectionListener {
+          myGallery.selectedElement?.let { renderer ->
+            myTemplateName.text = renderer.label
+            myTemplateDesc.text = "<html>" + renderer.description + "</html>"
+            myDocumentationLink.isVisible = renderer.isCppTemplate
+            canGoForward.set(true)
+          } ?: canGoForward.set(false)
         }
-      })
-      val activitySelectedListener = ListSelectionListener {
-        val selectedTemplate = tabPanel.myGallery.selectedElement
-        if (selectedTemplate != null) {
-          tabPanel.myTemplateName.text = selectedTemplate.imageLabel
-          tabPanel.myTemplateDesc.text = "<html>" + selectedTemplate.templateDescription + "</html>"
-          tabPanel.myDocumentationLink.isVisible = selectedTemplate.isCppTemplate
-        }
-        canGoForward.set(selectedTemplate != null)
+        myGallery.addListSelectionListener(activitySelectedListener)
+        activitySelectedListener.valueChanged(null)
       }
-      tabPanel.myGallery.addListSelectionListener(activitySelectedListener)
-      activitySelectedListener.valueChanged(null)
     }
+
     FormScalingUtil.scaleComponentTree(this.javaClass, rootPanel)
     loadingPanel.stopLoading()
   }
@@ -153,11 +155,12 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     val formFactorInfo = formFactors!!.get()[tabsPanel.selectedIndex]
     val selectedTemplate = formFactorInfo.tabPanel.myGallery.selectedElement!!
     model.enableCppSupport.set(selectedTemplate.isCppTemplate)
-    newProjectModuleModel!!.formFactor.set(formFactorInfo.formFactor)
-    newProjectModuleModel!!.moduleTemplateFile().setNullableValue(formFactorInfo.templateFile)
-    newProjectModuleModel!!.renderTemplateHandle.setNullableValue(selectedTemplate.template)
-    val extraStepTemplateHandle = if (formFactorInfo.formFactor === FormFactor.THINGS) selectedTemplate.template else null
-    newProjectModuleModel!!.extraRenderTemplateModel.templateHandle = extraStepTemplateHandle
+    with(newProjectModuleModel!!) {
+      formFactor.set(formFactorInfo.formFactor)
+      moduleTemplateFile().setNullableValue(formFactorInfo.templateFile)
+      renderTemplateHandle.setNullableValue(selectedTemplate.template)
+      extraRenderTemplateModel.templateHandle = if (formFactorInfo.formFactor === FormFactor.THINGS) selectedTemplate.template else null
+    }
   }
 
   override fun canGoForward(): ObservableBool = canGoForward
@@ -166,20 +169,18 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
   override fun getPreferredFocusComponent(): JComponent = tabsPanel
 
-  private class FormFactorInfo internal constructor(
+  private class FormFactorInfo(
     internal var templateFile: File,
     internal val formFactor: FormFactor,
     internal var minSdk: Int,
-    internal val tabPanel: ChooseAndroidProjectPanel<TemplateRenderer>)
+    internal val tabPanel: ChooseAndroidProjectPanel<TemplateRendererWithDescription>)
 
-  private class TemplateRenderer(internal val template: TemplateHandle?, internal val isCppTemplate: Boolean) {
-    internal val imageLabel: String get() = getTemplateImageLabel(template, isCppTemplate)
-    internal val templateDescription: String get() = getTemplateDescription(template, isCppTemplate)
-    override fun toString(): String = imageLabel
-    /**
-     * Return the image associated with the current template, if it specifies one, or null otherwise.
-     */
-    internal val icon: Icon? get() = getTemplateIcon(template, isCppTemplate)
+  private class TemplateRendererWithDescription(
+    template: TemplateHandle?, internal val isCppTemplate: Boolean
+  ) : ChooseGalleryItemStep.TemplateRenderer(template) {
+    override val label: String get() = getTemplateImageLabel(template, isCppTemplate)
+    override val icon: Icon? get() = getTemplateIcon(template, isCppTemplate)
+    internal val description: String get() = getTemplateDescription(template, isCppTemplate)
   }
 
   companion object {
@@ -192,24 +193,25 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> {
       val formFactorInfoMap = mutableMapOf<FormFactor, FormFactorInfo>()
       val manager = TemplateManager.getInstance()
-      val applicationTemplates: List<File> = manager!!.getTemplatesInCategory(CATEGORY_APPLICATION)
-      for (templateFile in applicationTemplates) {
-        val metadata = manager.getTemplateMetadata(templateFile)
-        metadata?.formFactor ?: continue
-        val formFactor = get(metadata.formFactor!!)
-        val prevFormFactorInfo = formFactorInfoMap[formFactor]
-        val templateMinSdk = metadata.minSdk
-        if (prevFormFactorInfo == null) {
-          // TODO(qumeric) validate templates with minimum api instead
-          val minSdk = templateMinSdk.coerceAtLeast(formFactor.minOfflineApiLevel)
-          val tabPanel = ChooseAndroidProjectPanel(createGallery(wizardTitle, formFactor))
-          formFactorInfoMap[formFactor] = FormFactorInfo(templateFile, formFactor, minSdk, tabPanel)
+
+      manager!!.getTemplatesInCategory(CATEGORY_APPLICATION)
+        .filter { manager.getTemplateMetadata(it)?.formFactor != null }
+        .forEach { templateFile ->
+          val metadata = manager.getTemplateMetadata(templateFile)!!
+          val formFactor = get(metadata.formFactor!!)
+          val prevFormFactorInfo = formFactorInfoMap[formFactor]
+          val templateMinSdk = metadata.minSdk
+          if (prevFormFactorInfo == null) {
+            // TODO(qumeric) validate templates with minimum api instead
+            val minSdk = templateMinSdk.coerceAtLeast(formFactor.minOfflineApiLevel)
+            val tabPanel = ChooseAndroidProjectPanel(createGallery(wizardTitle, formFactor))
+            formFactorInfoMap[formFactor] = FormFactorInfo(templateFile, formFactor, minSdk, tabPanel)
+          }
+          else if (templateMinSdk > prevFormFactorInfo.minSdk) {
+            prevFormFactorInfo.minSdk = templateMinSdk
+            prevFormFactorInfo.templateFile = templateFile
+          }
         }
-        else if (templateMinSdk > prevFormFactorInfo.minSdk) {
-          prevFormFactorInfo.minSdk = templateMinSdk
-          prevFormFactorInfo.templateFile = templateFile
-        }
-      }
       return formFactorInfoMap.values.sortedBy(FormFactorInfo::formFactor)
     }
 
@@ -222,29 +224,21 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       return templateHandles
     }
 
-    private fun createGallery(title: String, formFactor: FormFactor): ASGallery<TemplateRenderer> {
+    private fun createGallery(title: String, formFactor: FormFactor): ASGallery<TemplateRendererWithDescription> {
       val templateHandles = getFilteredTemplateHandles(formFactor)
-      val templateRenderers = mutableListOf<TemplateRenderer>()
-      templateRenderers.add(TemplateRenderer(null, false)) // "No Activity" entry
+      val listItems = sequence {
+        yield(TemplateRendererWithDescription(null, false)) // "No Activity" entry
 
-      templateHandles.forEach {
-        templateRenderers.add(TemplateRenderer(it, false))
-      }
-      if (formFactor === FormFactor.MOBILE) {
-        templateRenderers.add(TemplateRenderer(null, true)) // "Native C++" entry
-      }
-      val listItems = templateRenderers.toTypedArray()
-      return WizardGallery<TemplateRenderer>(title, { it!!.icon }, { it!!.imageLabel }).apply {
-        model = JBList.createDefaultListModel<Any?>(*listItems as Array<Any>)
+        yieldAll(templateHandles.map { TemplateRendererWithDescription(it, false) })
+        if (formFactor === FormFactor.MOBILE) {
+          yield(TemplateRendererWithDescription(null, true)) // "Native C++" entry
+        }
+      }.toList()
+
+      return WizardGallery<TemplateRendererWithDescription>(title, { it!!.icon }, { it!!.label }).apply {
+        model = JBList.createDefaultListModel(listItems)
         selectedIndex = getDefaultSelectedTemplateIndex(listItems)
       }
-    }
-
-    private fun getDefaultSelectedTemplateIndex(templateRenderers: Array<TemplateRenderer>): Int = templateRenderers.indices.run {
-      val defaultTemplateIndex = firstOrNull { templateRenderers[it].imageLabel == "Empty Activity" }
-      val firstValidTemplateIndex = firstOrNull { templateRenderers[it].template != null }
-
-      defaultTemplateIndex ?: firstValidTemplateIndex ?: throw IllegalArgumentException("No valid Template found")
     }
   }
 }

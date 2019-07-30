@@ -124,7 +124,6 @@ abstract class ChooseGalleryItemStep(
     model.setRenderTemplateModel(renderModel)
   }
 
-
   /**
    * See also [com.android.tools.idea.actions.NewAndroidComponentAction.update]
    */
@@ -145,34 +144,24 @@ abstract class ChooseGalleryItemStep(
       templateData, moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, messageKeys))
   }
 
-  class TemplateRenderer(internal val template: TemplateHandle?) {
-    internal val label: String
-      get() = ActivityGallery.getTemplateImageLabel(template, false)
-
+  open class TemplateRenderer(internal val template: TemplateHandle?) {
+    internal open val label: String get() = ActivityGallery.getTemplateImageLabel(template, false)
     /**
      * Return the image associated with the current template, if it specifies one, or null otherwise.
      */
-    internal val icon: Icon?
-      get() = ActivityGallery.getTemplateIcon(template, false)
-
+    internal open val icon: Icon? get() = ActivityGallery.getTemplateIcon(template, false)
     override fun toString(): String = label
   }
+}
 
-  companion object {
-    private fun getDefaultSelectedTemplateIndex(templateRenderers: List<TemplateRenderer>, emptyItemLabel: String): Int {
-      val emptyItemIndex = templateRenderers.indexOfFirst { it.label == emptyItemLabel }
+fun getDefaultSelectedTemplateIndex(
+  templateRenderers: List<ChooseGalleryItemStep.TemplateRenderer>,
+  emptyItemLabel: String = "Empty Activity"
+): Int = templateRenderers.indices.run {
+  val defaultTemplateIndex = firstOrNull { templateRenderers[it].label == emptyItemLabel }
+  val firstValidTemplateIndex = firstOrNull { templateRenderers[it].template != null }
 
-      if (emptyItemIndex != -1) {
-        return emptyItemIndex
-      }
-
-      val firstValidTemplateIndex = templateRenderers.indexOfFirst { it.template != null }
-
-      assert(firstValidTemplateIndex != -1)
-
-      return firstValidTemplateIndex
-    }
-  }
+  defaultTemplateIndex ?: firstValidTemplateIndex ?: throw IllegalArgumentException("No valid Template found")
 }
 
 @VisibleForTesting
