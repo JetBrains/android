@@ -27,7 +27,6 @@ import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -76,13 +75,6 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
     }
   }
 
-  @Override
-  public void getAllClassNames(@NotNull HashSet<String> dest) {
-    if (isEnabled()) {
-      dest.add(SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT);
-    }
-  }
-
   @NotNull
   @Override
   public PsiMethod[] getMethodsByName(@NonNls @NotNull String name, @NotNull GlobalSearchScope scope) {
@@ -114,11 +106,6 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
     return ArrayUtilRt.EMPTY_STRING_ARRAY;
   }
 
-  @Override
-  public void getAllMethodNames(@NotNull HashSet<String> set) {
-
-  }
-
   @NotNull
   @Override
   public PsiField[] getFieldsByName(@NotNull @NonNls String name, @NotNull GlobalSearchScope scope) {
@@ -129,11 +116,6 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   @Override
   public String[] getAllFieldNames() {
     return ArrayUtilRt.EMPTY_STRING_ARRAY;
-  }
-
-  @Override
-  public void getAllFieldNames(@NotNull HashSet<String> set) {
-
   }
 
   private boolean isEnabled() {

@@ -33,13 +33,11 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -148,14 +146,6 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
     return myAllClassNamesCache.getValue();
   }
 
-  @Override
-  public void getAllClassNames(@NotNull HashSet<String> dest) {
-    if (!isEnabled()) {
-      return;
-    }
-    Collections.addAll(dest, getAllClassNames());
-  }
-
   @NotNull
   @Override
   public PsiMethod[] getMethodsByName(@NonNls @NotNull String name, @NotNull GlobalSearchScope scope) {
@@ -228,14 +218,6 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
     return myAllMethodNamesCache.getValue();
   }
 
-  @Override
-  public void getAllMethodNames(@NotNull HashSet<String> set) {
-    if (!isEnabled()) {
-      return;
-    }
-    Collections.addAll(set, getAllClassNames());
-  }
-
   @NotNull
   @Override
   public PsiField[] getFieldsByName(@NotNull @NonNls String name, @NotNull GlobalSearchScope scope) {
@@ -255,16 +237,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
     return myAllFieldNamesCache.getValue();
   }
 
-  @Override
-  public void getAllFieldNames(@NotNull HashSet<String> set) {
-    if (!isEnabled()) {
-      return;
-    }
-    Collections.addAll(set, getAllFieldNames());
-  }
-
   private static class NameCacheProvider extends ProjectResourceCachedValueProvider.MergedMapValueProvider<String, DataBindingInfo> {
-
     NameCacheProvider(DataBindingProjectComponent component) {
       super(component);
     }

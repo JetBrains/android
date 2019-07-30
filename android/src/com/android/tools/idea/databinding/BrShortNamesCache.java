@@ -28,7 +28,6 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -92,14 +91,6 @@ public class BrShortNamesCache extends PsiShortNamesCache {
     return BR_CLASS_NAME_LIST;
   }
 
-  @Override
-  public void getAllClassNames(@NotNull HashSet<String> dest) {
-    if (!isEnabled()) {
-      return;
-    }
-    dest.add(DataBindingUtil.BR);
-  }
-
   @NotNull
   @Override
   public PsiMethod[] getMethodsByName(@NonNls @NotNull String name, @NotNull GlobalSearchScope scope) {
@@ -135,10 +126,6 @@ public class BrShortNamesCache extends PsiShortNamesCache {
     return ArrayUtilRt.EMPTY_STRING_ARRAY;
   }
 
-  @Override
-  public void getAllMethodNames(@NotNull HashSet<String> set) {
-  }
-
   @NotNull
   @Override
   public PsiField[] getFieldsByName(@NotNull @NonNls String name, @NotNull GlobalSearchScope scope) {
@@ -166,11 +153,6 @@ public class BrShortNamesCache extends PsiShortNamesCache {
       return ArrayUtilRt.EMPTY_STRING_ARRAY;
     }
     return myAllFieldNamesCache.getValue();
-  }
-
-  @Override
-  public void getAllFieldNames(@NotNull HashSet<String> set) {
-    Collections.addAll(set, getAllFieldNames());
   }
 
   private static PsiClass[] filterByScope(AndroidFacet[] facets, @NotNull GlobalSearchScope scope) {
