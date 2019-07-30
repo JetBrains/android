@@ -15,9 +15,12 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import org.gradle.tooling.events.ProgressEvent
 
 interface BuildEventsAnalyzer {
+  val warningsFilter: BuildAttributionWarningsFilter
+
   fun receiveEvent(event: ProgressEvent)
 
   fun onBuildStart()

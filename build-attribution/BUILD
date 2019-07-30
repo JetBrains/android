@@ -81,6 +81,7 @@ iml_module(
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
     ],
+    test_shard_count = 4,
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],

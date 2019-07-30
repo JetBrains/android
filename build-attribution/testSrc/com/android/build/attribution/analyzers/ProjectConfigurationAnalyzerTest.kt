@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -22,16 +23,16 @@ import java.time.Duration
 
 class ProjectConfigurationAnalyzerTest {
 
-  @Test
-  fun testProjectConfigurationAnalyzer() {
-    val analyzer = ProjectConfigurationAnalyzer()
+  private val warningsFilter = BuildAttributionWarningsFilter()
+  private val analyzer = ProjectConfigurationAnalyzer(warningsFilter)
 
-    val androidGradlePlugin = createBinaryPluginIdentifierStub("com.android.application")
-    val pluginA = createBinaryPluginIdentifierStub("pluginA")
-    val pluginB = createBinaryPluginIdentifierStub("pluginB")
-    val pluginC = createBinaryPluginIdentifierStub("pluginC")
-    val buildScript = createScriptPluginIdentifierStub("build.gradle")
+  private val androidGradlePlugin = createBinaryPluginIdentifierStub("com.android.application")
+  private val pluginA = createBinaryPluginIdentifierStub("pluginA")
+  private val pluginB = createBinaryPluginIdentifierStub("pluginB")
+  private val pluginC = createBinaryPluginIdentifierStub("pluginC")
+  private val buildScript = createScriptPluginIdentifierStub("build.gradle")
 
+  private fun sendProjectConfigurationEventsToAnalyzer() {
     analyzer.onBuildStart()
 
     analyzer.receiveEvent(createProjectConfigurationFinishEventStub(":app", listOf(
@@ -49,6 +50,11 @@ class ProjectConfigurationAnalyzerTest {
       Pair(buildScript, Duration.ofMillis(250))), 0, 830))
 
     analyzer.onBuildSuccess()
+  }
+
+  @Test
+  fun testProjectConfigurationAnalyzer() {
+    sendProjectConfigurationEventsToAnalyzer()
 
     assertThat(analyzer.pluginsSlowingConfiguration).hasSize(2)
 
@@ -61,5 +67,22 @@ class ProjectConfigurationAnalyzerTest {
     assertThat(analyzer.pluginsSlowingConfiguration[1].pluginsConfigurationData).containsExactlyElementsIn(
       listOf(ProjectConfigurationAnalyzer.PluginConfigurationData(PluginData(pluginC), Duration.ofMillis(300)),
              ProjectConfigurationAnalyzer.PluginConfigurationData(PluginData(buildScript), Duration.ofMillis(250))))
+  }
+
+  @Test
+  fun testProjectConfigurationAnalyzerWithSuppressedWarnings() {
+    warningsFilter.suppressWarningsForPlugin(pluginC.displayName)
+
+    sendProjectConfigurationEventsToAnalyzer()
+
+    assertThat(analyzer.pluginsSlowingConfiguration).hasSize(2)
+
+    assertThat(analyzer.pluginsSlowingConfiguration[0].project).isEqualTo(":app")
+    assertThat(analyzer.pluginsSlowingConfiguration[0].pluginsConfigurationData).containsExactlyElementsIn(
+      listOf(ProjectConfigurationAnalyzer.PluginConfigurationData(PluginData(pluginA), Duration.ofMillis(400))))
+
+    assertThat(analyzer.pluginsSlowingConfiguration[1].project).isEqualTo(":lib")
+    assertThat(analyzer.pluginsSlowingConfiguration[1].pluginsConfigurationData).containsExactlyElementsIn(
+      listOf(ProjectConfigurationAnalyzer.PluginConfigurationData(PluginData(buildScript), Duration.ofMillis(250))))
   }
 }
