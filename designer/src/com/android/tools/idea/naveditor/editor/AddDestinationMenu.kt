@@ -28,7 +28,6 @@ import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableList
-import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
@@ -188,14 +187,12 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     val facet = surface.model!!.facet
     notificationManager.addListener(resourceListener, facet, null, null)
 
-    val lafListener = LafManagerListener { _mainPanel = null }
-    LafManager.getInstance().addLafManagerListener(lafListener)
+    surface.project.messageBus.connect(surface).subscribe(LafManagerListener.TOPIC, LafManagerListener { _mainPanel = null })
 
     surface.model?.module?.let { NavigationSchema.addSchemaRebuildListener(it, refreshCallback) }
 
     Disposer.register(surface, Disposable {
       notificationManager.removeListener(resourceListener, facet, null, null)
-      LafManager.getInstance().removeLafManagerListener(lafListener)
       surface.model?.module?.let { NavigationSchema.removeSchemaRebuildListener(it, refreshCallback) }
     })
   }
@@ -342,7 +339,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   fun createNewDestination(e: AnActionEvent, action: AnAction) {
     createdFiles.clear()
     action.actionPerformed(e)
-    val project = e?.project ?: return
+    val project = e.project ?: return
     val model = surface.model ?: return
     val schema = model.schema
     val resourceManager = LocalResourceManager.getInstance(model.module) ?: return
