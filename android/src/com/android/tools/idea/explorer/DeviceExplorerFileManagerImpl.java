@@ -26,6 +26,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -94,17 +95,46 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   public ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress) {
     SettableFuture<Void> futureResult = SettableFuture.create();
 
-    try {
-      // Ensure parent directories are created and file is not present
-      FileUtils.mkdirs(localPath.getParent().toFile());
-      FileUtils.deleteIfExists(localPath.toFile());
-    }
-    catch (IOException e) {
-      futureResult.setException(e);
-      return futureResult;
-    }
+    FileUtils.mkdirs(localPath.getParent().toFile());
+    ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(localPath);
 
-    // Download the local file
+    // Using VFS to delete files has the advantage of throwing VFS events,
+    // so listeners can react to actions on the files - for example by closing a file before it being deleted.
+    myEdtExecutor.addCallback(getVirtualFile, new FutureCallback<VirtualFile>() {
+      @Override
+      public void onSuccess(VirtualFile virtualFile) {
+        ApplicationManager.getApplication().runWriteAction(() -> {
+          deleteVirtualFile(futureResult, virtualFile);
+          downloadFile(futureResult, entry, localPath, progress);
+        });
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        downloadFile(futureResult, entry, localPath, progress);
+      }
+    });
+
+    return futureResult;
+  }
+
+  private void deleteVirtualFile(SettableFuture<Void> futureResult, VirtualFile virtualFile) {
+    if (virtualFile != null) {
+      try {
+        virtualFile.delete(this);
+      }
+      catch (IOException e) {
+        futureResult.setException(e);
+      }
+    }
+  }
+
+  private void downloadFile(
+    SettableFuture<Void> futureResult,
+    @NotNull DeviceFileEntry entry,
+    @NotNull Path localPath,
+    @NotNull FileTransferProgress progress
+  ) {
     ListenableFuture<Void> result = entry.downloadFile(localPath, progress);
     myEdtExecutor.addCallback(result, new FutureCallback<Void>() {
       @Override
@@ -118,8 +148,6 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
         deleteTemporaryFile(localPath);
       }
     });
-
-    return futureResult;
   }
 
   @Override
