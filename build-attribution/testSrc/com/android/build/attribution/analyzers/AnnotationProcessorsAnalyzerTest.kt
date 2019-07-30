@@ -18,6 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.build.attribution.BuildAttributionManager
 import com.android.build.attribution.BuildAttributionManagerImpl
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
@@ -46,8 +47,7 @@ class AnnotationProcessorsAnalyzerTest {
     StudioFlags.BUILD_ATTRIBUTION_ENABLED.clearOverride()
   }
 
-  @Test
-  fun testNonIncrementalAnnotationProcessorsAnalyzer() {
+  private fun setUpProject() {
     myProjectRule.load(SIMPLE_APPLICATION)
 
     FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", FN_BUILD_GRADLE), """
@@ -67,6 +67,11 @@ class AnnotationProcessorsAnalyzerTest {
         }
       }
     """.trimIndent())
+  }
+
+  @Test
+  fun testNonIncrementalAnnotationProcessorsAnalyzer() {
+    setUpProject()
 
     myProjectRule.invokeTasks("assembleDebug")
 
@@ -82,6 +87,31 @@ class AnnotationProcessorsAnalyzerTest {
         "com.google.auto.value.processor.AutoValueProcessor",
         "com.google.auto.value.extension.memoized.processor.MemoizedValidator",
         "dagger.internal.codegen.ComponentProcessor"
+      )
+    )
+  }
+
+  @Test
+  fun testNonIncrementalAnnotationProcessorsAnalyzerWithSuppressedWarnings() {
+    setUpProject()
+
+    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressWarningsForAnnotationProcessor(
+      "dagger.internal.codegen.ComponentProcessor")
+    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressWarningsForAnnotationProcessor(
+      "com.google.auto.value.processor.AutoValueProcessor")
+
+    myProjectRule.invokeTasks("assembleDebug")
+
+    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
+                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+
+    assertThat(
+      buildAttributionManager.analyzersProxy.getNonIncrementalAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
+      setOf(
+        "com.google.auto.value.processor.AutoAnnotationProcessor",
+        "com.google.auto.value.processor.AutoValueBuilderProcessor",
+        "com.google.auto.value.processor.AutoOneOfProcessor",
+        "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
       )
     )
   }

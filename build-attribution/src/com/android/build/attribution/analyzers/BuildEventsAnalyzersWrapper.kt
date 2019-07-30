@@ -17,20 +17,20 @@ package com.android.build.attribution.analyzers
 
 import org.gradle.tooling.events.ProgressEvent
 
-class BuildEventsAnalyzersWrapper(val analyzers: List<BuildEventsAnalyzer>): BuildEventsAnalyzer {
-  override fun onBuildStart() {
+class BuildEventsAnalyzersWrapper(val analyzers: List<BuildEventsAnalyzer>) {
+  fun onBuildStart() {
     analyzers.forEach(BuildEventsAnalyzer::onBuildStart)
   }
 
-  override fun onBuildSuccess() {
+  fun onBuildSuccess() {
     analyzers.forEach(BuildEventsAnalyzer::onBuildSuccess)
   }
 
-  override fun onBuildFailure() {
+  fun onBuildFailure() {
     analyzers.forEach(BuildEventsAnalyzer::onBuildFailure)
   }
 
-  override fun receiveEvent(event: ProgressEvent) {
+  fun receiveEvent(event: ProgressEvent) {
     analyzers.forEach { it.receiveEvent(event) }
   }
 }

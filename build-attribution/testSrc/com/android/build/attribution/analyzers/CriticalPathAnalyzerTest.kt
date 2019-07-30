@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginData
 import com.google.common.truth.Truth.assertThat
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -28,7 +29,7 @@ class CriticalPathAnalyzerTest {
 
   @Test
   fun testCriticalPathAnalyzer() {
-    val analyzer = CriticalPathAnalyzer()
+    val analyzer = CriticalPathAnalyzer(BuildAttributionWarningsFilter())
 
     val pluginA = createBinaryPluginIdentifierStub("pluginA")
     val pluginB = createBinaryPluginIdentifierStub("pluginB")

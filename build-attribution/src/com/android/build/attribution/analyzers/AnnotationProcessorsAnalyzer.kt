@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
@@ -23,7 +24,7 @@ import java.time.Duration
 /**
  * Analyzer for reporting non incremental annotation processors and the annotation processors compilation time.
  */
-class AnnotationProcessorsAnalyzer : BuildEventsAnalyzer {
+class AnnotationProcessorsAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter) : BuildEventsAnalyzer {
   private val annotationProcessorsMap = HashMap<String, Duration>()
   private val nonIncrementalAnnotationProcessorsSet = HashSet<String>()
 
@@ -41,14 +42,11 @@ class AnnotationProcessorsAnalyzer : BuildEventsAnalyzer {
       val result = event.result
       if (result is JavaCompileTaskOperationResult) {
         result.annotationProcessorResults?.forEach {
-          when (it?.type) {
-            JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.UNKNOWN -> {
-              updateAnnotationProcessorCompilationTime(it.className, it.duration)
-              nonIncrementalAnnotationProcessorsSet.add(it.className)
-            }
-            JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.AGGREGATING,
-            JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.ISOLATING ->
-              updateAnnotationProcessorCompilationTime(it.className, it.duration)
+          updateAnnotationProcessorCompilationTime(it.className, it.duration)
+
+          if (it.type == JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.UNKNOWN &&
+              warningsFilter.applyAnnotationProcessorFilter(it.className)) {
+            nonIncrementalAnnotationProcessorsSet.add(it.className)
           }
         }
       }

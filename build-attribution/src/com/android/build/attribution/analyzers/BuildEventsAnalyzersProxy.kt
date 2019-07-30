@@ -15,15 +15,17 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
+
 /**
  * A way of interaction between the build events analyzers and the build attribution manager.
  * Used to fetch the final data from the analyzers after the build is complete.
  */
-class BuildEventsAnalyzersProxy {
-  private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer()
-  private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer()
-  private val criticalPathAnalyzer = CriticalPathAnalyzer()
-  private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer()
+class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter) {
+  private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(warningsFilter)
+  private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(warningsFilter)
+  private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter)
+  private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(warningsFilter)
 
   fun getAnalyzers(): List<BuildEventsAnalyzer> = listOf(alwaysRunTasksAnalyzer,
                                                          annotationProcessorsAnalyzer,
