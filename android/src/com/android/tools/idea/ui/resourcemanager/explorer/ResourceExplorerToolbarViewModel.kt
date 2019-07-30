@@ -26,7 +26,6 @@ import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialogVi
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.idea.util.toVirtualFile
 import com.intellij.icons.AllIcons
 import com.intellij.ide.IdeView
 import com.intellij.ide.util.DirectoryChooserUtil
@@ -75,6 +74,9 @@ class ResourceExplorerToolbarViewModel(
 
   var facetUpdaterCallback: (AndroidFacet) -> Unit = {}
 
+  /** Callback for when a new resource is created from a toolbar action. */
+  var resourceUpdaterCallback: ((String, ResourceType) -> Unit)? = null
+
   var resourceType: ResourceType by Delegates.observable(initialResourceType) { _, oldValue, newValue ->
     if (newValue != oldValue) {
       updateUICallback()
@@ -111,8 +113,8 @@ class ResourceExplorerToolbarViewModel(
         ResourceType.COLOR,
         ResourceType.DIMEN,
         ResourceType.INTEGER,
-        ResourceType.STRING -> add(NewResourceValueAction(resourceType, facet))
-        ResourceType.FONT -> add(AddFontAction(facet))
+        ResourceType.STRING -> add(NewResourceValueAction(resourceType, facet, this@ResourceExplorerToolbarViewModel::onCreatedResource))
+        ResourceType.FONT -> add(AddFontAction(facet, this@ResourceExplorerToolbarViewModel::onCreatedResource))
       }
     }
 
@@ -209,6 +211,10 @@ class ResourceExplorerToolbarViewModel(
       AndroidResourceUtil.getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()
     }
     return subDir ?: resDirs.firstOrNull()
+  }
+
+  private fun onCreatedResource(name: String, type: ResourceType) {
+    resourceUpdaterCallback?.invoke(name, type)
   }
 
   /**
