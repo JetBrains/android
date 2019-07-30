@@ -74,6 +74,31 @@ class ResourceExplorerViewTest {
   }
 
   @Test
+  fun selectAsset() {
+    projectRule.fixture.copyDirectoryToProject("res/", "res/")
+    val viewModel = createViewModel(projectRule.module)
+    val view = createResourceExplorerView(viewModel)
+
+    // 'Drawable' tab is selected by default.
+    selectAndAssertAsset(view, "png")
+    // Change to COLOR resources.
+    runInEdtAndWait { viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR) }
+    waitAndAssertListView(view) { listView ->
+      if (listView != null && listView.model.size > 0) {
+        // Best is to make sure the resources in the list are now of the desired type.
+        return@waitAndAssertListView listView.model.getElementAt(0).assets.any { it.type == ResourceType.COLOR }
+      }
+      return@waitAndAssertListView false
+    }
+    selectAndAssertAsset(view, "colorPrimary")
+    runInEdtAndWait { view.selectAsset("png", false) }
+    val list = UIUtil.findComponentOfType(view, AssetListView::class.java)!!
+    // Selection should not change if we try to select a resource not visible here.
+    assertThat(list.selectedValue).isNotNull()
+    assertThat(list.selectedValue.name).isEqualTo("colorPrimary")
+  }
+
+  @Test
   fun searchIntegration() {
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
     val viewModel = createViewModel(projectRule.module)
@@ -211,24 +236,24 @@ class ResourceExplorerViewTest {
     waitAndAssertListView(view) { list -> list != null }
     return view
   }
+}
 
-  private fun simulatePressEnter(component: JComponent) {
-    val keyEvent = KeyEvent(component, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER, KeyEvent.CHAR_UNDEFINED)
-    component.keyListeners.forEach {
-      it.keyPressed(keyEvent)
-    }
+private fun simulatePressEnter(component: JComponent) {
+  val keyEvent = KeyEvent(component, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER, KeyEvent.CHAR_UNDEFINED)
+  component.keyListeners.forEach {
+    it.keyPressed(keyEvent)
   }
+}
 
-  private fun simulateMouseClick(component: JComponent, point: Point, clickCount: Int) {
-    runInEdtAndWait {
-      // A click is done through a mouse pressed & released event, followed by the actual mouse clicked event.
-      component.dispatchEvent(MouseEvent(
-        component, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
-      component.dispatchEvent(MouseEvent(
-        component, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
-      component.dispatchEvent(MouseEvent(
-        component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, clickCount, false))
-    }
+private fun simulateMouseClick(component: JComponent, point: Point, clickCount: Int) {
+  runInEdtAndWait {
+    // A click is done through a mouse pressed & released event, followed by the actual mouse clicked event.
+    component.dispatchEvent(MouseEvent(
+      component, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
+    component.dispatchEvent(MouseEvent(
+      component, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
+    component.dispatchEvent(MouseEvent(
+      component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, clickCount, false))
   }
 }
 
@@ -237,4 +262,16 @@ private fun waitAndAssertListView(view: ResourceExplorerView, condition: (list: 
     public override fun condition() = condition(UIUtil.findComponentOfType(view, AssetListView::class.java))
   }
   assertThat(waitForAssetListView.isConditionRealized).isTrue()
+}
+
+private fun selectAndAssertAsset(view: ResourceExplorerView, assetName: String) {
+  val list = UIUtil.findComponentOfType(view, AssetListView::class.java)!!
+  runInEdtAndWait { list.clearSelection() }
+  // Make sure selection is cleared since selection is carried over when possible.
+  assertThat(list.selectedValue).isNull()
+  runInEdtAndWait { view.selectAsset(assetName, false) }
+  val selected = list.selectedValue
+  assertThat(selected).isNotNull()
+  // The correct asset should now be selected.
+  assertThat(selected.name).isEqualTo(assetName)
 }

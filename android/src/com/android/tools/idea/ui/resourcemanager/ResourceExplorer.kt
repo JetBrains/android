@@ -67,6 +67,7 @@ class ResourceExplorer private constructor(
 
   init {
     toolbarViewModel.facetUpdaterCallback = {newValue -> this.facet = newValue}
+    toolbarViewModel.resourceUpdaterCallback = { name, type -> selectAsset(name, type, newResource = true) }
     resourceExplorerViewModel.facetUpdaterCallback = {newValue -> this.facet = newValue}
     resourceExplorerViewModel.resourceTypeUpdaterCallback = this::updateResourceType
   }
@@ -177,8 +178,23 @@ class ResourceExplorer private constructor(
       else -> null
     }
 
+  /**
+   * Selects an asset in the [ResourceExplorer] from the resource's [VirtualFile]. E.g: Select the 'main_activity' Layout resource from the
+   * file '...app/res/layout/main_activity.xml'.
+   */
   fun selectAsset(facet: AndroidFacet, path: VirtualFile) {
     updateFacet(facet)
     resourceExplorerView.selectAsset(path)
+  }
+
+  /**
+   * Selects an asset in the [ResourceExplorer] from a given resource name and its [ResourceType]. E.g: Select the 'main_activity' resource
+   * which is a [ResourceType.LAYOUT]. Assumes the [ResourceExplorer] has the correct [AndroidFacet] defined (or it doesn't need to change).
+   *
+   * @param newResource True if the resource was recently added (i.e: created in the same EDT call).
+   */
+  fun selectAsset(resourceName: String, type: ResourceType, newResource: Boolean) {
+    resourceExplorerViewModel.resourceTypeIndex = resourceExplorerViewModel.resourceTypes.indexOf(type)
+    resourceExplorerView.selectAsset(resourceName, newResource)
   }
 }
