@@ -16,12 +16,11 @@
 package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.databinding.DataBindingProjectComponent
-import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
+import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
-import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.util.CachedValue
@@ -42,7 +41,7 @@ class DataBindingComponentClassFinder(project: Project) : PsiElementFinder() {
     classes = CachedValuesManager.getManager(project).createCachedValue(
       {
         val classes: List<PsiClass> = component.getDataBindingEnabledFacets()
-          .mapNotNull(DataBindingClassFactory::getOrCreateDataBindingComponentClassFor)
+          .mapNotNull { facet -> ModuleDataBinding.getInstance(facet).lightDataBindingComponentClass }
 
         CachedValueProvider.Result.create(classes, component, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT)
       }, false)
