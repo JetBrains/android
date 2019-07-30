@@ -30,6 +30,7 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.google.common.util.concurrent.Futures
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
@@ -111,9 +112,9 @@ class SqliteControllerTest : PlatformTestCase() {
     `when`(mockSqliteService.closeDatabase()).thenReturn(Futures.immediateFuture(null))
     `when`(mockSqliteService.readTable(testSqliteTable)).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
-    sqliteDatabase1 = SqliteDatabase(sqliteFile1.path, mockSqliteService)
-    sqliteDatabase2 = SqliteDatabase(sqliteFile2.path, mockSqliteService)
-    sqliteDatabase3 = SqliteDatabase(sqliteFile3.path, mockSqliteService)
+    sqliteDatabase1 = SqliteDatabase(sqliteFile1, sqliteFile1.path, mockSqliteService)
+    sqliteDatabase2 = SqliteDatabase(sqliteFile2, sqliteFile2.path, mockSqliteService)
+    sqliteDatabase3 = SqliteDatabase(sqliteFile3, sqliteFile3.path, mockSqliteService)
 
     Disposer.register(project, sqliteDatabase1)
     Disposer.register(project, sqliteDatabase2)
@@ -162,23 +163,6 @@ class SqliteControllerTest : PlatformTestCase() {
 
     orderVerifier.verify(sqliteView)
       .reportErrorRelatedToService(eq(mockSqliteService), eq("Error opening Sqlite database"), refEq(throwable))
-  }
-
-  fun testDatabaseGetsClosedWhenReopened() {
-    // Prepare
-    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-
-    // Act
-    sqliteController.openSqliteDatabase(sqliteFile1)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    sqliteController.openSqliteDatabase(sqliteFile1)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Assert
-    orderVerifier.verify(mockSqliteService).openDatabase()
-    orderVerifier.verify(mockSqliteService).closeDatabase()
-    orderVerifier.verify(mockSqliteService).openDatabase()
   }
 
   fun testOpenSqliteDatabaseFailureReadSchema() {
@@ -388,7 +372,7 @@ class SqliteControllerTest : PlatformTestCase() {
     verify(mockSqliteService).closeDatabase()
     verify(evaluatorView).removeDatabase(0)
     verify(sqliteView).removeDatabaseSchema(sqliteDatabase1)
-    Disposer.isDisposed(sqliteDatabase1)
+    assert(Disposer.isDisposed(sqliteDatabase1))
   }
 
   fun testTablesAreRemovedWhenDatabasedIsRemoved() {
@@ -463,5 +447,21 @@ class SqliteControllerTest : PlatformTestCase() {
       listOf(SqliteTable("table1", emptyList(), false), SqliteTable("table2", emptyList(), false)),
       emptyList()
     )
+  }
+
+  fun testDatabaseIsClosedWhenFileIsDeleted() {
+    // Prepare
+    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+
+    // Act
+    sqliteController.openSqliteDatabase(sqliteFile1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    ApplicationManager.getApplication().runWriteAction { sqliteFile1.delete(this) }
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(sqliteView).removeDatabaseSchema(sqliteDatabase1)
+    verify(mockSqliteService).closeDatabase()
   }
 }
