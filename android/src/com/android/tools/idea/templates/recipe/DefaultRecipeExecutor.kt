@@ -289,30 +289,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     }
   }
 
-  override fun append(from: File, to: File) {
-    try {
-      val sourceFile = context.loader.getSourceFile(from)
-      val targetFile = getTargetFile(to)
-
-      val sourceText = readTextFromDisk(sourceFile) ?: return
-
-      if (targetFile.exists()) {
-        val targetContents = readTextFromDisk(targetFile)
-        val resultContents = (if (targetContents == null) "" else targetContents + LINE_SEPARATOR) + sourceText
-
-        io.writeFile(this, resultContents, targetFile)
-      }
-      else {
-        io.writeFile(this, sourceText, targetFile)
-      }
-      referencesExecutor.addSourceFile(sourceFile)
-      referencesExecutor.addTargetFile(targetFile)
-    }
-    catch (e: IOException) {
-      throw RuntimeException(e)
-    }
-  }
-
   override fun addGlobalVariable(id: String, value: Any) {
     context.paramMap[id] = value
   }
