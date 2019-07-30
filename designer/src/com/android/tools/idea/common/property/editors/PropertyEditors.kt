@@ -25,8 +25,11 @@ import com.intellij.openapi.application.ApplicationManager
  */
 abstract class PropertyEditors : LafManagerListener {
   init {
-    @Suppress("LeakingThis")
-    ApplicationManager.getApplication().messageBus.connect().subscribe(LafManagerListener.TOPIC, this)
+    val app = ApplicationManager.getApplication()
+    if (!app.isHeadlessEnvironment) {
+      @Suppress("LeakingThis")
+      app.messageBus.connect().subscribe(LafManagerListener.TOPIC, this)
+    }
   }
 
   protected abstract fun resetCachedEditors()
