@@ -18,25 +18,20 @@ package com.android.tools.idea.common.property.editors
 import com.android.tools.idea.common.property.NlProperty
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.LafManagerListener
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.ProjectComponent
+import com.intellij.openapi.application.ApplicationManager
 
 /**
  * Facility for providing [NlComponentEditor]s for [NlProperty]s.
  */
-abstract class PropertyEditors : ProjectComponent, LafManagerListener, Disposable {
+abstract class PropertyEditors : LafManagerListener {
+  init {
+    @Suppress("LeakingThis")
+    ApplicationManager.getApplication().messageBus.connect().subscribe(LafManagerListener.TOPIC, this)
+  }
+
   protected abstract fun resetCachedEditors()
 
   abstract fun create(property: NlProperty): NlComponentEditor
 
-  override fun projectOpened() {}
-
-  override fun projectClosed() {}
-
-  override fun initComponent() = LafManager.getInstance().addLafManagerListener(this, this)
-
   override fun lookAndFeelChanged(source: LafManager) = resetCachedEditors()
-
-  override fun dispose() {
-  }
 }
