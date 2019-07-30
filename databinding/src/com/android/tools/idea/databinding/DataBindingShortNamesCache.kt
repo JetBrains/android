@@ -17,7 +17,6 @@ package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider
-import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.project.Project
@@ -177,7 +176,7 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
       val moduleResources = ResourceRepositoryManager.getInstance(facet).existingModuleResources ?: return defaultValue()
       val groups = moduleResources.dataBindingResourceFiles ?: return defaultValue()
       return groups
-        .flatMap { group -> DataBindingClassFactory.getOrCreateBindingClassesFor(group) }
+        .flatMap { group -> ModuleDataBinding.getInstance(facet).getLightBindingClasses(group) }
         .groupBy { bindingClass -> bindingClass.name }
     }
 
