@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -34,25 +33,25 @@ import org.jetbrains.annotations.NotNull;
 public class DeployTargetContext implements JDOMExternalizable {
   public String TARGET_SELECTION_MODE = TargetSelectionMode.SHOW_DIALOG.name();
 
-  private final Supplier<Collection<DeployTargetProvider>> myGetDeployTargetProviders;
+  private final Collection<DeployTargetProvider> myDeployTargetProviders;
   private final Map<String, DeployTargetState> myDeployTargetStates;
 
   public DeployTargetContext() {
-    this(DeployTargetProvider::getProviders);
+    this(DeployTargetProvider.getProviders());
   }
 
   @VisibleForTesting
-  DeployTargetContext(@NotNull Supplier<Collection<DeployTargetProvider>> getDeployTargetProviders) {
-    myGetDeployTargetProviders = getDeployTargetProviders;
+  DeployTargetContext(@NotNull Collection<DeployTargetProvider> deployTargetProviders) {
+    myDeployTargetProviders = deployTargetProviders;
 
     // noinspection UnstableApiUsage
-    myDeployTargetStates = getDeployTargetProviders.get().stream()
+    myDeployTargetStates = deployTargetProviders.stream()
       .collect(ImmutableMap.toImmutableMap(DeployTargetProvider::getId, DeployTargetProvider::createState));
   }
 
   @NotNull
   public List<DeployTargetProvider> getApplicableDeployTargetProviders(boolean testConfiguration) {
-    return myGetDeployTargetProviders.get().stream()
+    return myDeployTargetProviders.stream()
       .filter(provider -> provider.isApplicable(testConfiguration))
       .collect(Collectors.toList());
   }
@@ -61,7 +60,7 @@ public class DeployTargetContext implements JDOMExternalizable {
   public DeployTargetProvider getCurrentDeployTargetProvider() {
     Object mode = getTargetSelectionMode().name();
 
-    Optional<DeployTargetProvider> optionalProvider = myGetDeployTargetProviders.get().stream()
+    Optional<DeployTargetProvider> optionalProvider = myDeployTargetProviders.stream()
       .filter(provider -> provider.getId().equals(mode))
       .findFirst();
 
