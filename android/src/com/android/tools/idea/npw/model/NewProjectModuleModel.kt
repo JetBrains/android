@@ -69,6 +69,12 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
     val projectTemplateValues = projectModel.templateValues
     addModuleToProject(newModuleModel, formFactor.get(), projectModel, projectTemplateValues)
 
+    fun notifyModelsThatFormFactorIsIncluded(ff: FormFactor) =
+      projectModel.newModuleModels.forEach { model ->
+        model.templateValues[ff.id + ATTR_INCLUDE_FORM_FACTOR] = true
+        model.templateValues[ff.id + ATTR_MODULE_NAME] = model.moduleName.get()
+      }
+
     if (hasCompanionApp) {
       val companionModuleModel = createCompanionModuleModel(projectModel)
       val companionRenderModel = createCompanionRenderModel(companionModuleModel)
@@ -79,7 +85,11 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
       companionModuleModel.handleFinished()
       companionRenderModel.handleFinished()
+
+      notifyModelsThatFormFactorIsIncluded(FormFactor.MOBILE)
     }
+
+    notifyModelsThatFormFactorIsIncluded(formFactor.get())
 
     val newRenderTemplateModel = createMainRenderModel()
     newModuleModel.setRenderTemplateModel(newRenderTemplateModel)
