@@ -20,9 +20,7 @@ import static org.junit.Assert.assertEquals;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,12 +38,10 @@ public final class DeployTargetContextTest {
 
   @Before
   public void initContext() {
-    myContext = new DeployTargetContext(this::getDeployTargetProviders);
-  }
-
-  @NotNull
-  private Collection<DeployTargetProvider> getDeployTargetProviders() {
-    return Arrays.asList(myDeviceAndSnapshotComboBoxTargetProvider, myCloudTestMatrixTargetProvider, new CloudDebuggingTargetProvider());
+    myContext = new DeployTargetContext(Arrays.asList(
+      myDeviceAndSnapshotComboBoxTargetProvider,
+      myCloudTestMatrixTargetProvider,
+      new CloudDebuggingTargetProvider()));
   }
 
   @Test
