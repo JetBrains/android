@@ -41,11 +41,6 @@ internal class FindReferencesRecipeExecutor(private val myContext: RenderingCont
     addTargetFile(to)
   }
 
-  override fun append(from: File, to: File) {
-    addSourceFile(from)
-    addTargetFile(to)
-  }
-
   override fun addGlobalVariable(id: String, value: Any) {
     myContext.paramMap[id] = value
   }

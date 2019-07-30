@@ -91,11 +91,6 @@ interface RecipeExecutor {
   fun popFolder()
 
   /**
-   * Append contents of the first file to the second one.
-   */
-  fun append(from: File, to: File)
-
-  /**
    * Add a variable that can be referenced while the template is being rendered.
    */
   fun addGlobalVariable(id: String, value: Any)
