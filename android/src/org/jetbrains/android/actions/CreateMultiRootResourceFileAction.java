@@ -86,13 +86,18 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
 
   @Override
   public String getDefaultRootTag(@Nullable Module module) {
-    if (module == null
-        || myResourceFolderType != ResourceFolderType.LAYOUT
-        || !DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
-      return super.getDefaultRootTag(module);
+
+    if (module != null &&
+        myResourceFolderType == ResourceFolderType.LAYOUT) {
+
+      if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
+        return SdkConstants.CONSTRAINT_LAYOUT.oldName();
+      } else if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)) {
+        return SdkConstants.CONSTRAINT_LAYOUT.newName();
+      }
     }
 
-    return SdkConstants.CONSTRAINT_LAYOUT.oldName();
+    return super.getDefaultRootTag(module);
   }
 
   @NotNull
