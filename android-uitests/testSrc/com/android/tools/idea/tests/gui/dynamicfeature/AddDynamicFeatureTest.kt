@@ -31,7 +31,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.matcher.JLabelMatcher
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -479,15 +478,15 @@ class AddDynamicFeatureTest {
    * 4. "com.android.support" base dependencies, should be re-written from "implementation" to "api"
    * </pre>
    */
-  @Ignore // b/138645352
+  @Test
   @Throws(Exception::class)
   fun addMapsActivityToDynamicModule() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
-    val ideFrame = guiTest.importSimpleApplication()
+    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
 
     guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).contains("implementation 'com.android.support:appcompat-v7:")
-      assertThat(this).contains("implementation 'com.android.support.constraint:constraint-layout:")
+      assertThat(this).contains("implementation 'androidx.appcompat:appcompat:")
+      assertThat(this).contains("implementation 'androidx.constraintlayout:constraintlayout:")
     }
 
     createDefaultDynamicModule(ideFrame)
@@ -502,8 +501,8 @@ class AddDynamicFeatureTest {
 
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("api 'com.google.android.gms:play-services-maps")
-      assertThat(this).contains("api 'com.android.support:appcompat-v7:")  // "implementation" re-written as "api"
-      assertThat(this).contains("api 'com.android.support.constraint:constraint-layout:")
+      assertThat(this).contains("api 'androidx.appcompat:appcompat:")  // "implementation" re-written as "api"
+      assertThat(this).contains("api 'androidx.constraintlayout:constraintlayout:")
     }
   }
 
