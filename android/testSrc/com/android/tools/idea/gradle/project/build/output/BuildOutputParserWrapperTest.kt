@@ -123,7 +123,6 @@ class BuildOutputParserWrapperTest {
 
     val buildOutputEvent = buildOutputEvents[0]
     val messages = buildOutputEvent.studioEvent.buildOutputWindowStats.buildErrorMessagesList
-    assertThat(messages).isNotNull()
     assertThat(messages).hasSize(5)
     checkSentMetricsData(messages[0], BuildErrorMessage.ErrorType.JAVA_COMPILER, BuildErrorMessage.FileType.PROJECT_FILE,
                          fileIncluded = true, lineIncluded = true)
@@ -142,11 +141,11 @@ class BuildOutputParserWrapperTest {
   fun testNoErrorFoundMetricsReporting() {
     sendBuildFailureMetrics(listOf(myParserWrapper), myProject)
 
-    assertThat(tracker.usages).hasSize(1)
-    assertThat(tracker.usages.first().studioEvent.kind).isEquivalentAccordingToCompareTo(
-      AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS)
-    val messages = tracker.usages.first().studioEvent.buildOutputWindowStats.buildErrorMessagesList
-    assertThat(messages).isNotNull()
+    val buildOutputEvents = tracker.usages.filter{ use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
+    assertThat(buildOutputEvents).hasSize(1)
+
+    val buildOutputEvent = buildOutputEvents[0]
+    val messages = buildOutputEvent.studioEvent.buildOutputWindowStats.buildErrorMessagesList
     assertThat(messages).hasSize(0)
   }
 }
