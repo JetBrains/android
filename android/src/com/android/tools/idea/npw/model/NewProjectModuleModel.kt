@@ -171,7 +171,6 @@ private fun addRenderDefaultTemplateValues(renderTemplateModel: RenderTemplateMo
 
   val packageName = renderTemplateModel.packageName.get()
   TemplateValueInjector(additionalValues).addTemplateAdditionalValues(packageName, renderTemplateModel.template)
-  additionalValues[ATTR_PACKAGE_NAME] = renderTemplateModel.packageName.get()
 
   try {
     val parameterValues = ParameterValueResolver.resolve(templateMetadata.parameters, userValues, additionalValues)
