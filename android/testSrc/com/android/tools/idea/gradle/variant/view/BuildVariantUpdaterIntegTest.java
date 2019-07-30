@@ -19,10 +19,13 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import java.io.File;
+import org.jetbrains.android.facet.AndroidFacet;
 
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_NATIVE_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
+import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 
 public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
   private boolean mySavedSingleVariantSyncSetting = false;
@@ -37,8 +40,12 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    super.tearDown();
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = mySavedSingleVariantSyncSetting;
+    try {
+      GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = mySavedSingleVariantSyncSetting;
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testWithModules() throws Exception {
@@ -60,6 +67,33 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "debug");
     assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
     assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
+  }
+
+  public void testWithNonExistingFeatureVariant() throws Exception {
+    loadProject(DYNAMIC_APP);
+
+    // Define new buildType qa in app module.
+    File appBuildFile = getBuildFilePath("app");
+    appendToFile(appBuildFile, "\nandroid.buildTypes { qa { } }\n");
+
+    requestSyncAndWait();
+
+    // Verify debug is selected by default.
+    AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+    AndroidModuleModel featureAndroidModel = AndroidModuleModel.get(getModule("feature1"));
+    assertNotNull(appAndroidModel);
+    assertNotNull(featureAndroidModel);
+    assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
+    assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
+
+    // Switch selected variant for app module to qa.
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "qa");
+
+    // Verify that variant for app module is updated to qa, and is unchanged for feature module since feature module doesn't contain variant qa.
+    assertEquals("qa", appAndroidModel.getSelectedVariant().getName());
+    assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
+    AndroidFacet featureFacet = AndroidFacet.getInstance(getModule("feature1"));
+    assertEquals("debug", featureFacet.getProperties().SELECTED_BUILD_VARIANT);
   }
 
   public void testWithProductFlavors() throws Exception {
