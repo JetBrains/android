@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginData
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent
@@ -24,7 +25,7 @@ import java.time.Duration
 /**
  * Analyzer for reporting plugins slowing down project configuration.
  */
-class ProjectConfigurationAnalyzer : BuildEventsAnalyzer {
+class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter) : BuildEventsAnalyzer {
   val pluginsSlowingConfiguration = ArrayList<ProjectConfigurationData>()
   val projectsConfigurationData = ArrayList<ProjectConfigurationData>()
 
@@ -57,7 +58,9 @@ class ProjectConfigurationAnalyzer : BuildEventsAnalyzer {
                                                  totalConfigurationTime: Long) {
     val androidGradlePlugin = pluginsConfigurationData.find { isAndroidGradlePlugin(it.plugin) } ?: return
 
-    pluginsConfigurationData.filter { it.configurationDuration > androidGradlePlugin.configurationDuration }.let {
+    pluginsConfigurationData.filter {
+      it.configurationDuration > androidGradlePlugin.configurationDuration && warningsFilter.applyPluginFilter(it.plugin.displayName)
+    }.let {
       if (it.isNotEmpty()) {
         pluginsSlowingConfiguration.add(ProjectConfigurationData(it, project, totalConfigurationTime))
       }
