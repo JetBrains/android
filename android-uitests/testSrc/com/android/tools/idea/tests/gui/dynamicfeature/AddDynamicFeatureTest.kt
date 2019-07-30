@@ -31,6 +31,7 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.matcher.JLabelMatcher
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -478,7 +479,7 @@ class AddDynamicFeatureTest {
    * 4. "com.android.support" base dependencies, should be re-written from "implementation" to "api"
    * </pre>
    */
-  @Test
+  @Ignore // b/138645352
   @Throws(Exception::class)
   fun addMapsActivityToDynamicModule() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
