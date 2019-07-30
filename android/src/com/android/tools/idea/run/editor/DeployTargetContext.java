@@ -91,11 +91,6 @@ public class DeployTargetContext implements JDOMExternalizable {
     TARGET_SELECTION_MODE = target.getId();
   }
 
-  @VisibleForTesting
-  void setTargetSelectionMode(@NotNull @SuppressWarnings("SameParameterValue") String mode) {
-    TARGET_SELECTION_MODE = mode;
-  }
-
   @NotNull
   public TargetSelectionMode getTargetSelectionMode() {
     try {
@@ -103,14 +98,13 @@ public class DeployTargetContext implements JDOMExternalizable {
 
       switch (mode) {
         case DEVICE_AND_SNAPSHOT_COMBO_BOX:
+        case FIREBASE_DEVICE_MATRIX:
+        case FIREBASE_DEVICE_DEBUGGING:
           return mode;
         case SHOW_DIALOG:
         case EMULATOR:
         case USB_DEVICE:
           return TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX;
-        case FIREBASE_DEVICE_MATRIX:
-        case FIREBASE_DEVICE_DEBUGGING:
-          return mode;
         default:
           throw new AssertionError(mode);
       }
