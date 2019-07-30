@@ -17,12 +17,14 @@ package com.android.tools.idea.sqlite.model
 
 import com.android.tools.idea.sqlite.SqliteService
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.vfs.VirtualFile
 import java.sql.JDBCType
 
 /**
  * Representation of a database instance.
  */
 data class SqliteDatabase(
+  val virtualFile: VirtualFile,
   val name: String,
   val sqliteService: SqliteService
 ) : Disposable {
