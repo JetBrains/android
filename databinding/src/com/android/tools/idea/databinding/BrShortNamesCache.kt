@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding
 
-import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -50,7 +49,7 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
       {
         val facets = component.getDataBindingEnabledFacets()
         val allFields = facets
-          .mapNotNull(DataBindingClassFactory::getOrCreateBrClassFor)
+          .mapNotNull { facet -> ModuleDataBinding.getInstance(facet).lightBrClass }
           .flatMap { brClass -> brClass.allFieldNames.asIterable() }
           .toTypedArray()
 
@@ -64,8 +63,8 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
     }
 
     return component.getDataBindingEnabledFacets()
-      .filter { scope.isSearchInModuleContent(it.module) }
-      .mapNotNull(DataBindingClassFactory::getOrCreateBrClassFor)
+      .filter { facet -> scope.isSearchInModuleContent(facet.module) }
+      .mapNotNull { facet -> ModuleDataBinding.getInstance(facet).lightBrClass }
       .toTypedArray()
   }
 
