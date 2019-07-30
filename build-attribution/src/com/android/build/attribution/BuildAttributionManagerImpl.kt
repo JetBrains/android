@@ -29,7 +29,7 @@ class BuildAttributionManagerImpl(
   private val myBuildContentManager: BuildContentManager
 ) : BuildAttributionManager {
   @get:VisibleForTesting
-  val analyzersProxy = BuildEventsAnalyzersProxy()
+  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(myProject))
   private val analyzersWrapper = BuildEventsAnalyzersWrapper(analyzersProxy.getAnalyzers())
 
   override fun onBuildStart() {
