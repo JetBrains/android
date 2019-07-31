@@ -22,6 +22,8 @@ import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -31,6 +33,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.components.JBList;
 import com.intellij.xdebugger.stepping.XSmartStepIntoVariant;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -39,21 +42,36 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.ListModel;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class SmartStepIntoTest extends DebuggerTestBase {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  private final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+
+  private final AvdTestRule avdRule = AvdTestRule.Companion.buildAvdTestRule(() ->
+    new AvdSpec.Builder()
+  );
 
   private static final String JAVA_FILE_NAME = "MainActivity.java";
   private static final String NATIVE_FILE_NAME = "native-lib.c";
   private static final int METHODS_COUNT = 2;
   private static final String NATIVE_METHOD_NAME = "stringFromJNI";
   private static final String JAVA_METHOD_NAME = "setMyString";
+
+  @Rule public final RuleChain emulatorRules = RuleChain
+    .outerRule(avdRule)
+    .around(guiTest);
+
+  @Before
+  public void setupSdkAndLldb() throws IOException {
+    DebuggerTestUtil.setupSpecialSdk(avdRule);
+    DebuggerTestUtil.symlinkLldb();
+  }
 
   /**
    * Verifies that JNI functions can be navigated to from the java definition.
@@ -92,9 +110,7 @@ public class SmartStepIntoTest extends DebuggerTestBase {
       "app/src/main/java/com/example/basiccmakeapp/" + JAVA_FILE_NAME,
       "setMyString(stringFromJNI());");
 
-    emulator.createDefaultAVD(ideFrame.invokeAvdManager());
-
-    ideFrame.debugApp(DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
+    ideFrame.debugApp(DEBUG_CONFIG_NAME, avdRule.getMyAvd().getName());
 
     // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
     guiTest.waitForBackgroundTasks();
