@@ -33,7 +33,6 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_IN
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_ON_DEMAND
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_TITLE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_IS_INSTANT_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_FEATURE
@@ -79,7 +78,6 @@ class DynamicFeatureModel(
           it[ATTR_IS_LIBRARY_MODULE] = false
           it[ATTR_DYNAMIC_IS_INSTANT_MODULE] = instantModule.get()
           // Dynamic delivery conditions
-          it[ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY] = StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get()
           it[ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY] = downloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME
           it[ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY] = downloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS
           it[ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY] = downloadInstallKind.value == DownloadInstallKind.ON_DEMAND_ONLY
