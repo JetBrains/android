@@ -114,7 +114,6 @@ object AndroidStudioUsageTracker {
   private fun currentIdeTheme(): ProductDetails.IdeTheme {
     return when {
       UIUtil.isUnderDarcula() -> ProductDetails.IdeTheme.DARCULA
-      UIUtil.isUnderGTKLookAndFeel() -> ProductDetails.IdeTheme.GTK
       UIUtil.isUnderIntelliJLaF() ->
         // When the theme is IntelliJ, there are mac and window specific registries that govern whether the theme refers to the native
         // themes, or the newer, platform-agnostic Light theme. UIUtil.isUnderWin10LookAndFeel() and UIUtil.isUnderDefaultMacTheme() take
