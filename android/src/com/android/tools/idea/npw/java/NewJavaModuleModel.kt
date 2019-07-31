@@ -33,40 +33,27 @@ import java.io.File
 class NewJavaModuleModel(val project: Project,
                          private val myTemplateHandle: TemplateHandle,
                          private val myProjectSyncInvoker: ProjectSyncInvoker) : WizardModel() {
-  private val myLibraryName: StringProperty = StringValueProperty("lib")
-  private val myPackageName: StringProperty = StringValueProperty()
-  private val myClassName: StringProperty = StringValueProperty("MyClass")
-
-  fun libraryNameName(): StringProperty {
-    return myLibraryName
-  }
-
-  fun packageName(): StringProperty {
-    return myPackageName
-  }
-
-  fun className(): StringProperty {
-    return myClassName
-  }
+  @JvmField val libraryName: StringProperty = StringValueProperty("lib")
+  @JvmField val packageName: StringProperty = StringValueProperty()
+  @JvmField val className: StringProperty = StringValueProperty("MyClass")
 
   override fun handleFinished() {
-    val modulePaths = createDefaultTemplateAt(project.basePath!!, libraryNameName().get()).paths
-    val myTemplateValues = mutableMapOf<String, Any>()
-    TemplateValueInjector(myTemplateValues)
-      .setModuleRoots(modulePaths, project.basePath!!, libraryNameName().get(), packageName().get())
+    val modulePaths = createDefaultTemplateAt(project.basePath!!, libraryName.get()).paths
+    val templateValues = mutableMapOf<String, Any>()
+    TemplateValueInjector(templateValues)
+      .setModuleRoots(modulePaths, project.basePath!!, libraryName.get(), packageName.get())
       .setJavaVersion(project)
-    myTemplateValues[TemplateMetadata.ATTR_CLASS_NAME] = className().get()
-    myTemplateValues[TemplateMetadata.ATTR_IS_NEW_PROJECT] = true
-    myTemplateValues[TemplateMetadata.ATTR_IS_LIBRARY_MODULE] = true
+    templateValues[TemplateMetadata.ATTR_CLASS_NAME] = className.get()
+    templateValues[TemplateMetadata.ATTR_IS_NEW_PROJECT] = true
+    templateValues[TemplateMetadata.ATTR_IS_LIBRARY_MODULE] = true
     val moduleRoot = modulePaths.moduleRoot!!
-    if (doDryRun(moduleRoot, myTemplateValues)) {
-      render(moduleRoot, myTemplateValues)
+    if (doDryRun(moduleRoot, templateValues)) {
+      render(moduleRoot, templateValues)
     }
   }
 
-  private fun doDryRun(moduleRoot: File, templateValues: Map<String, Any>): Boolean {
-    return renderTemplate(true, project, moduleRoot, templateValues, null)
-  }
+  private fun doDryRun(moduleRoot: File, templateValues: Map<String, Any>): Boolean =
+    renderTemplate(true, project, moduleRoot, templateValues, null)
 
   private fun render(moduleRoot: File, templateValues: Map<String, Any>) {
     val filesToOpen = mutableListOf<File>()
