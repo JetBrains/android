@@ -23,13 +23,13 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureDynamicFeatureDeliveryStepFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureDynamicFeatureStepFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.matcher.JLabelMatcher
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -40,47 +40,6 @@ class AddDynamicFeatureTest {
   @Rule
   @JvmField
   val guiTest = GuiTestRule()
-
-  @After
-  fun tearDown() {
-    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.clearOverride()
-  }
-
-  /**
-   * Verifies that user is able to add a Dynamic Feature Module through the
-   * new module wizard.
-   *
-   * <pre>
-   * Test steps:
-   * 1. Import simple application project
-   * 2. Go to File -> New module to open the new module dialog wizard.
-   * 3. Follow through the wizard to add a new Dynamic Feature Module, accepting defaults.
-   * 4. Complete the wizard and wait for the build to complete.
-   * Verify:
-   * 1. The new Dynamic Feature Module is shown in the project explorer pane.
-   * 2. Open the Dynamic Feature Module manifest and check that "dist:onDemand" and
-   * "dist:fusing include" are set to true.
-   * 3. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
-   * new string was added for the dynamic feature title
-   * </pre>
-   */
-  @Test
-  @Throws(Exception::class)
-  fun addDefaultDynamicModule() {
-    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
-    val ideFrame = guiTest.importSimpleApplication()
-
-    createDefaultDynamicModule(ideFrame)
-
-    guiTest.getProjectFileText("dynamicfeature/src/main/AndroidManifest.xml").run {
-      assertThat(this).contains("""dist:onDemand="true"""")
-      assertThat(this).contains("""<dist:fusing dist:include="true" />""")
-    }
-
-    guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
-      assertThat(this).contains("""<string name="title_dynamicfeature">Module Title</string>""")
-    }
-  }
 
   /**
    * Verifies that user is able to add a Instant Dynamic Feature Module through the
@@ -103,18 +62,20 @@ class AddDynamicFeatureTest {
    * 6. Check the app (base module) Manifest contains the attribute "dist:instant" set to true
    * </pre>
    */
+
+  /**
+   * Same as the test above, except the fusing check box is checked. Verify the "dist:fusing" attribute is set to true
+   */
   @Test
-  @Throws(Exception::class)
-  fun addInstantDynamicModule_baseHasNoModule() {
-    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
+  fun addInstantDynamicModuleWithFusing_baseHasNoModule() {
     val ideFrame = guiTest.importSimpleApplication()
-    createInstantDynamicModule(ideFrame)
+
+    createInstantDynamicModuleWithFusing(ideFrame)
 
     guiTest.getProjectFileText("dynamicfeature/src/main/AndroidManifest.xml").run {
-      assertThat(this).contains("""dist:onDemand="false"""")
-      assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
-      assertThat(this).contains("""<dist:fusing dist:include="false" />""")
       assertThat(this).contains("""dist:instant="true"""")
+      assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
+      assertThat(this).contains("""<dist:fusing dist:include="true" />""")
     }
 
     guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
@@ -128,33 +89,10 @@ class AddDynamicFeatureTest {
   }
 
   /**
-   * Same as the test above, except the fusing check box is checked. Verify the "dist:fusing" attribute is set to true
-   */
-  @Test
-  @Throws(Exception::class)
-  fun addInstantDynamicModuleWithFusing_baseHasNoModule() {
-    val ideFrame = guiTest.importSimpleApplication()
-
-    createInstantDynamicModuleWithFusing(ideFrame)
-
-    guiTest.getProjectFileText("dynamicfeature/src/main/AndroidManifest.xml").run {
-      assertThat(this).contains("""dist:instant="true"""")
-      assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
-      assertThat(this).contains("""<dist:fusing dist:include="true" />""")
-    }
-
-    guiTest.getProjectFileText("app/src/main/AndroidManifest.xml").run {
-      assertThat(this).contains("""dist:instant="true"""")
-      assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
-    }
-  }
-
-  /**
    * Same as above, except the "dist:module" tag and "dist:instant="true"" attribute is added to the app module manifest
    */
   @RunIn(TestGroup.UNRELIABLE)  // b/116415248
   @Test
-  @Throws(Exception::class)
   fun addInstantDynamicModuleWithFusing_baseHasModule() {
     val ideFrame = guiTest.importSimpleApplication()
 
@@ -175,8 +113,7 @@ class AddDynamicFeatureTest {
   }
 
   /**
-   * Verifies that user is able to add a Dynamic Feature Module through the
-   * new module wizard.
+   * Verifies that user is able to add a Dynamic Feature Module through the new module wizard.
    *
    * <pre>
    * Test steps:
@@ -184,7 +121,8 @@ class AddDynamicFeatureTest {
    * 2. Go to File -> New module to open the new module dialog wizard.
    * 3. Select Dynamic Feature Module and press next.
    * 4. In the Module Configuration step, select "app" as the Base application module and name the Module "MyDynamicFeature"
-   * 5. In the Dynamic Delivery step, name the Delivery ""My Dynamic Feature Title", and un-tick the check box for On-Demand/Fusing.
+   * 5. In the Dynamic Delivery step, name the Delivery ""My Dynamic Feature Title" and un-tick the check box for Fusing.
+   * 6. Set delivery mode to "install time" and click Finish.
    * Verify:
    * 1. The new Dynamic Feature Module is shown in the project explorer pane (MyDynamicFeature).
    * 2. Open the Dynamic Feature Module manifest and check that "dist:onDemand" and
@@ -194,64 +132,10 @@ class AddDynamicFeatureTest {
    * </pre>
    */
   @Test
-  @Throws(Exception::class)
-  fun addDynamicModuleWithModifiedDelivery() {
-    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
-    val ideFrame = guiTest.importSimpleApplication()
-
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
-    NewModuleWizardFixture.find(ideFrame)
-      .clickNextToDynamicFeature()
-      .enterFeatureModuleName("MyDynamicFeature")
-      .selectBaseApplication("app")
-      .selectMinimumSdkApi("26")
-      .clickNextToConfigureDynamicDelivery()
-      .enterName("My Dynamic Feature Title")
-      .setFusing(false)
-      .setOnDemand(false)
-      .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
-      .projectView
-      .selectAndroidPane()
-      .clickPath("MyDynamicFeature")
-
-    guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
-      assertThat(this).contains("""dist:onDemand="false"""")
-      assertThat(this).contains("""<dist:fusing dist:include="false" />""")
-    }
-
-    guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
-      assertThat(this).contains("""<string name="title_mydynamicfeature">My Dynamic Feature Title</string>""")
-    }
-  }
-
-  /**
-   * Verifies that user is able to add a Dynamic Feature Module through the
-   * new module wizard, with conditional delivery specifying "install time".
-   */
-  @Test
-  @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_includeAtInstallTime() {
-    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
     val ideFrame = guiTest.importSimpleApplication()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
-    NewModuleWizardFixture.find(ideFrame)
-      .clickNextToDynamicFeature()
-      .enterFeatureModuleName("MyDynamicFeature")
-      .selectBaseApplication("app")
-      .selectMinimumSdkApi("26")
-      .clickNextToConfigureConditionalDelivery()
-      .enterName("My Dynamic Feature Title")
-      .setFusing(false)
-      .setDownloadInstallKind(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME)
-      .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
-      .projectView
-      .selectAndroidPane()
-      .clickPath("MyDynamicFeature")
+    createDynamicModule(ideFrame, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME)
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
@@ -267,31 +151,13 @@ class AddDynamicFeatureTest {
   }
 
   /**
-   * Verifies that user is able to add a Dynamic Feature Module through the
-   * new module wizard, with conditional delivery specifying "on demand only".
+   * Same as above, but sets the delivery mode to "on-demand only".
    */
   @Test
-  @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_installOnDemandOnly() {
-    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
     val ideFrame = guiTest.importSimpleApplication()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
-    NewModuleWizardFixture.find(ideFrame)
-      .clickNextToDynamicFeature()
-      .enterFeatureModuleName("MyDynamicFeature")
-      .selectBaseApplication("app")
-      .selectMinimumSdkApi("26")
-      .clickNextToConfigureConditionalDelivery()
-      .enterName("My Dynamic Feature Title")
-      .setFusing(false)
-      .setDownloadInstallKind(DownloadInstallKind.ON_DEMAND_ONLY)
-      .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
-      .projectView
-      .selectAndroidPane()
-      .clickPath("MyDynamicFeature")
+    createDynamicModule(ideFrame, DownloadInstallKind.ON_DEMAND_ONLY)
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
@@ -307,31 +173,13 @@ class AddDynamicFeatureTest {
   }
 
   /**
-   * Verifies that user is able to add a Dynamic Feature Module through the
-   * new module wizard, without specifying device feature conditions.
+   * Same as above, but sets the delivery mode to "include at install time with conditions" without specifying device feature conditions.
    */
   @Test
-  @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_installOnDemandWithMinSdk() {
-    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
     val ideFrame = guiTest.importSimpleApplication()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
-    NewModuleWizardFixture.find(ideFrame)
-      .clickNextToDynamicFeature()
-      .enterFeatureModuleName("MyDynamicFeature")
-      .selectBaseApplication("app")
-      .selectMinimumSdkApi("26")
-      .clickNextToConfigureConditionalDelivery()
-      .enterName("My Dynamic Feature Title")
-      .setFusing(false)
-      .setDownloadInstallKind(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
-      .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
-      .projectView
-      .selectAndroidPane()
-      .clickPath("MyDynamicFeature")
+    createDynamicModule(ideFrame, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
@@ -350,37 +198,19 @@ class AddDynamicFeatureTest {
   }
 
   /**
-   * Verifies that user is able to add a Dynamic Feature Module through the
-   * new module wizard, with conditional delivery specifying a couple of
-   * device feature conditions
+   * Same as above, but sets the delivery mode to "include at install time with conditions" and
+   * specifies a few clauses for conditional delivery.
    */
   @Test
-  @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_installOnDemandDeviceFeatures() {
-    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
-
     val ideFrame = guiTest.importSimpleApplication()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
-    NewModuleWizardFixture.find(ideFrame)
-      .clickNextToDynamicFeature()
-      .enterFeatureModuleName("MyDynamicFeature")
-      .selectBaseApplication("app")
-      .selectMinimumSdkApi("26")
-      .clickNextToConfigureConditionalDelivery()
-      .enterName("My Dynamic Feature Title")
-      .setFusing(false)
-      .setDownloadInstallKind(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
-      .addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test")
-      .addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test2")
-      .addConditionalDeliveryFeature(DeviceFeatureKind.GL_ES_VERSION, "0x2000000")
-      .removeConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test2")
-      .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
-      .projectView
-      .selectAndroidPane()
-      .clickPath("MyDynamicFeature")
+    createDynamicModule(ideFrame, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS) {
+      addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test")
+      addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test2")
+      addConditionalDeliveryFeature(DeviceFeatureKind.GL_ES_VERSION, "0x2000000")
+      removeConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test2")
+    }
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
 
@@ -438,12 +268,10 @@ class AddDynamicFeatureTest {
    * </pre>
    */
   @Test
-  @Throws(Exception::class)
   fun addLoginActivityToDynamicModule() {
-    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDefaultDynamicModule(ideFrame)
+    createDynamicModule(ideFrame)
       .invokeMenuPath("File", "New", "Activity", "Login Activity")
     NewActivityWizardFixture.find(ideFrame)
       .clickFinish()
@@ -453,7 +281,7 @@ class AddDynamicFeatureTest {
       assertThat(this).contains("title_activity_login")
     }
 
-    guiTest.getProjectFileText("dynamicfeature/src/main/res/values/strings.xml").run {
+    guiTest.getProjectFileText("MyDynamicFeature/src/main/res/values/strings.xml").run {
       assertThat(this).contains("prompt_email")
       assertThat(this).contains("prompt_password")
       assertThat(this).contains("invalid_password")
@@ -479,9 +307,7 @@ class AddDynamicFeatureTest {
    * </pre>
    */
   @Test
-  @Throws(Exception::class)
   fun addMapsActivityToDynamicModule() {
-    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
 
     guiTest.getProjectFileText("app/build.gradle").run {
@@ -489,13 +315,13 @@ class AddDynamicFeatureTest {
       assertThat(this).contains("implementation 'androidx.constraintlayout:constraintlayout:")
     }
 
-    createDefaultDynamicModule(ideFrame)
+    createDynamicModule(ideFrame)
       .invokeMenuPath("File", "New", "Google", "Google Maps Activity")
     NewActivityWizardFixture.find(ideFrame)
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
 
-    guiTest.getProjectFileText("dynamicfeature/build.gradle").run {
+    guiTest.getProjectFileText("MyDynamicFeature/build.gradle").run {
       assertThat(this).doesNotContain("play-services-maps")
     }
 
@@ -521,7 +347,6 @@ class AddDynamicFeatureTest {
    * </pre>
    */
   @Test
-  @Throws(Exception::class)
   fun checkWarningLabelIsHiddenWhenBaseIsInstant() {
     val ideFrame = guiTest.importSimpleApplication()
     writeDistModuleToBaseManifest(true)
@@ -550,7 +375,6 @@ class AddDynamicFeatureTest {
    * </pre>
    */
   @Test
-  @Throws(Exception::class)
   fun checkWarningLabelIsVisibleWhenBaseIsNotInstant() {
     val ideFrame = guiTest.importSimpleApplication()
     writeDistModuleToBaseManifest(false)
@@ -579,42 +403,36 @@ class AddDynamicFeatureTest {
   }
 
   private fun writeDistModuleToBaseManifest(isInstant: Boolean) {
-    val editor = guiTest.ideFrame().getEditor()
+    val editor = guiTest.ideFrame().editor
     editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
     editor.moveBetween("\"http://schemas.android.com/apk/res/android\"", "")
     editor.enterText("\nxmlns:dist=\"http://schemas.android.com/apk/distribution\"")
     editor.moveBetween("google.simpleapplication\" >", "")
-    if (isInstant) {
-      editor.enterText("""<dist:module dist:instant="true" />""")
-    }
-    else {
-      editor.enterText("""<dist:module dist:instant="false" />""")
-    }
+    editor.enterText("""<dist:module dist:instant="$isInstant" />""")
   }
 
-  private fun createDefaultDynamicModule(ideFrame: IdeFrameFixture): IdeFrameFixture {
+  private fun createDynamicModule(
+    ideFrame: IdeFrameFixture,
+    downloadInstallKind: DownloadInstallKind = DownloadInstallKind.ON_DEMAND_ONLY,
+    setFeatures: ConfigureDynamicFeatureDeliveryStepFixture<NewModuleWizardFixture>.() -> ConfigureDynamicFeatureDeliveryStepFixture<NewModuleWizardFixture> = { this }
+  ): IdeFrameFixture {
     ideFrame.invokeMenuPath("File", "New", "New Module...")
-    NewModuleWizardFixture.find(ideFrame)
+    return NewModuleWizardFixture.find(ideFrame)
       .clickNextToDynamicFeature()
-      .clickNextToConfigureDynamicDelivery()
+      .enterFeatureModuleName("MyDynamicFeature")
+      .selectBaseApplication("app")
+      .selectMinimumSdkApi("26")
+      .clickNextToConfigureConditionalDelivery()
+      .enterName("My Dynamic Feature Title")
+      .setFusing(false)
+      .setDownloadInstallKind(downloadInstallKind)
+      .setFeatures()
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
       .projectView
       .selectAndroidPane()
-      .clickPath("dynamicfeature")
-
-    return ideFrame
-  }
-
-  private fun createInstantDynamicModule(ideFrame: IdeFrameFixture): IdeFrameFixture {
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
-    NewModuleWizardFixture.find(ideFrame)
-      .clickNextToInstantDynamicFeature()
-      .wizard()
-      .clickFinish()
-
-    return ideFrame
+      .clickPath("MyDynamicFeature")
   }
 
   private fun createInstantDynamicModuleWithFusing(ideFrame: IdeFrameFixture): IdeFrameFixture {
