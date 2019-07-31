@@ -28,36 +28,35 @@ import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
-import java.util.ArrayList
 import javax.swing.Icon
 
 class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project?): Collection<ModuleTemplateGalleryEntry?>? {
-    val res = ArrayList<ModuleTemplateGalleryEntry?>()
-    val manager = TemplateManager.getInstance()
-    val applicationTemplates: List<File?> = manager!!.getTemplatesInCategory(CATEGORY_APPLICATION)
-    for (templateFile in applicationTemplates) {
-      val metadata = manager.getTemplateMetadata(templateFile!!)
-      if (metadata == null || metadata.formFactor == null) {
-        continue
+  override fun getDescriptions(project: Project?): Collection<ModuleTemplateGalleryEntry>? {
+    val manager = TemplateManager.getInstance()!!
+    return manager.getTemplatesInCategory(CATEGORY_APPLICATION)
+      .filter { manager.getTemplateMetadata(it)?.formFactor != null }
+      .flatMap { templateFile ->
+        val metadata = manager.getTemplateMetadata(templateFile)!!
+        val minSdk = metadata.minSdk
+        val formFactor = get(metadata.formFactor!!)
+
+        fun File.getIcon(): Icon = getTemplateIcon(TemplateHandle(this), false)!!
+        fun createTemplateEntry(isLibrary: Boolean, icon: Icon, title: String = metadata.title!!) =
+          AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, isLibrary, icon, title, metadata.description!!)
+
+        val templateIcon = templateFile.getIcon()
+
+        if (formFactor == FormFactor.MOBILE) {
+          val androidProjectTemplate = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_PROJECT_TEMPLATE)!!
+          listOf(
+            createTemplateEntry(false, templateIcon, message("android.wizard.module.new.mobile")),
+            createTemplateEntry(true, androidProjectTemplate.getIcon(), message("android.wizard.module.new.library"))
+          )
+        }
+        else {
+          listOf(createTemplateEntry(false, templateIcon))
+        }
       }
-      val minSdk = metadata.minSdk
-      val formFactor = get(metadata.formFactor!!)
-      if (formFactor == FormFactor.MOBILE) {
-        res.add(AndroidModuleTemplateGalleryEntry(
-          templateFile, formFactor, minSdk, false, getModuleTypeIcon(templateFile)!!,
-          message("android.wizard.module.new.mobile"), metadata.title!!))
-        val androidProjectTemplate = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_PROJECT_TEMPLATE)!!
-        res.add(AndroidModuleTemplateGalleryEntry(
-          templateFile, formFactor, minSdk, true, getModuleTypeIcon(androidProjectTemplate)!!,
-          message("android.wizard.module.new.library"), metadata.description!!))
-      }
-      else {
-        res.add(AndroidModuleTemplateGalleryEntry(
-          templateFile, formFactor, minSdk, false, getModuleTypeIcon(templateFile)!!, metadata.title!!, metadata.description!!))
-      }
-    }
-    return res
   }
 
   private class AndroidModuleTemplateGalleryEntry(
@@ -77,5 +76,3 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   }
 }
 
-private fun getModuleTypeIcon(templateFile: File): Icon? =
-  getTemplateIcon(TemplateHandle(templateFile), false)
