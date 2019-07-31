@@ -15,31 +15,50 @@
  */
 package com.android.build.attribution.data
 
-class TaskData(taskPath: String, val originPlugin: PluginData) {
-  val taskName: String
-  val projectPath: String
+import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.tooling.events.task.TaskSuccessResult
 
-  init {
-    val lastColonIndex = taskPath.lastIndexOf(':')
-    projectPath = taskPath.substring(0, lastColonIndex)
-    taskName = taskPath.substring(lastColonIndex + 1)
+data class TaskData(val taskName: String,
+                    val projectPath: String,
+                    val originPlugin: PluginData,
+                    val executionTime: Long,
+                    val executionMode: TaskExecutionMode,
+                    val executionReasons: List<String>) {
+  enum class TaskExecutionMode {
+    FROM_CACHE,
+    UP_TO_DATE,
+    INCREMENTAL,
+    FULL
   }
 
   fun getTaskPath(): String {
     return "$projectPath:$taskName"
   }
 
-  override fun equals(other: Any?): Boolean {
-    if (other is TaskData) {
-      return taskName == other.taskName && projectPath == other.projectPath && originPlugin == other.originPlugin
+  companion object {
+    private fun getTaskExecutionMode(isFromCache: Boolean, isUpToDate: Boolean, isIncremental: Boolean): TaskExecutionMode {
+      if (isFromCache) {
+        return TaskExecutionMode.FROM_CACHE
+      }
+      if (isUpToDate) {
+        return TaskExecutionMode.UP_TO_DATE
+      }
+      if (isIncremental) {
+        return TaskExecutionMode.INCREMENTAL
+      }
+      return TaskExecutionMode.FULL
     }
-    return super.equals(other)
-  }
 
-  override fun hashCode(): Int {
-    var result = originPlugin.hashCode()
-    result = 31 * result + taskName.hashCode()
-    result = 31 * result + projectPath.hashCode()
-    return result
+    fun createTaskData(taskFinishEvent: TaskFinishEvent): TaskData {
+      val result = taskFinishEvent.result as TaskSuccessResult
+      val taskPath = taskFinishEvent.descriptor.taskPath
+      val lastColonIndex = taskPath.lastIndexOf(':')
+      return TaskData(taskPath.substring(lastColonIndex + 1),
+                      taskPath.substring(0, lastColonIndex),
+                      PluginData(taskFinishEvent.descriptor.originPlugin),
+                      result.endTime - result.startTime,
+                      getTaskExecutionMode(result.isFromCache, result.isUpToDate, result.isIncremental),
+                      result.executionReasons ?: emptyList())
+    }
   }
 }

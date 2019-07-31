@@ -17,15 +17,11 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.data.TaskData
 import com.google.common.truth.Truth.assertThat
-import org.gradle.tooling.events.task.TaskFinishEvent
 import org.junit.Test
 
 class CriticalPathAnalyzerTest {
-
-  private fun createTaskBuildData(taskFinishEvent: TaskFinishEvent, taskExecutionTime: Long): CriticalPathAnalyzer.TaskBuildData {
-    return CriticalPathAnalyzer.TaskBuildData(createTaskData(taskFinishEvent), taskExecutionTime)
-  }
 
   @Test
   fun testCriticalPathAnalyzer() {
@@ -67,8 +63,8 @@ class CriticalPathAnalyzerTest {
     assertThat(analyzer.criticalPathDuration).isEqualTo(70)
 
     assertThat(analyzer.tasksCriticalPath).isEqualTo(
-      listOf(createTaskBuildData(taskA, 10), createTaskBuildData(taskC, 30), createTaskBuildData(taskD, 20),
-             createTaskBuildData(taskF, 10)))
+      listOf(TaskData.createTaskData(taskA), TaskData.createTaskData(taskC), TaskData.createTaskData(taskD),
+             TaskData.createTaskData(taskF)))
 
     assertThat(analyzer.pluginsCriticalPath).hasSize(2)
     assertThat(analyzer.pluginsCriticalPath[0].plugin).isEqualTo(PluginData(pluginA))
@@ -111,7 +107,8 @@ class CriticalPathAnalyzerTest {
     assertThat(analyzer.criticalPathDuration).isEqualTo(55)
 
     assertThat(analyzer.tasksCriticalPath).isEqualTo(
-      listOf(createTaskBuildData(taskA, 10), createTaskBuildData(taskB, 5), createTaskBuildData(taskD, 25), createTaskBuildData(taskE, 15)))
+      listOf(TaskData.createTaskData(taskA), TaskData.createTaskData(taskB), TaskData.createTaskData(taskD),
+             TaskData.createTaskData(taskE)))
 
     assertThat(analyzer.pluginsCriticalPath).hasSize(2)
     assertThat(analyzer.pluginsCriticalPath[0].plugin).isEqualTo(PluginData(pluginB))
