@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
@@ -42,18 +43,15 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_FEATURE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_SIMPLE_NAME
-import com.android.tools.idea.templates.recipe.RenderingContext.Builder
-import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task.Modal
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
-import java.io.File
 
 class DynamicFeatureModel(
-  val project: Project, val templateHandle: TemplateHandle, private val projectSyncInvoker: ProjectSyncInvoker, isInstant: Boolean
-) : WizardModel() {
+  project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker, isInstant: Boolean
+) : ModuleModel(project, templateHandle, projectSyncInvoker) {
   @JvmField val moduleName: StringProperty = StringValueProperty("dynamicfeature")
   @JvmField val featureTitle: StringProperty = StringValueProperty("Module Title")
   @JvmField val packageName: StringProperty = StringValueProperty()
@@ -67,7 +65,7 @@ class DynamicFeatureModel(
     if (isInstant)
       OptionalValueProperty(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME)
     else
-      OptionalValueProperty( DownloadInstallKind.ON_DEMAND_ONLY)
+      OptionalValueProperty(DownloadInstallKind.ON_DEMAND_ONLY)
 
   override fun handleFinished() {
     object : Modal(project, message(
@@ -101,29 +99,5 @@ class DynamicFeatureModel(
         }
       }
     }.queue()
-  }
-
-  private fun doDryRun(moduleRoot: File, templateValues: Map<String, Any>): Boolean =
-    renderTemplate(true, project, moduleRoot, templateValues)
-
-  private fun render(moduleRoot: File, templateValues: Map<String, Any>) {
-    renderTemplate(false, project, moduleRoot, templateValues)
-    projectSyncInvoker.syncProject(project)
-  }
-
-  private fun renderTemplate(
-    dryRun: Boolean, project: Project, moduleRoot: File, templateValues: Map<String, Any>
-  ): Boolean {
-    val template = templateHandle.template
-
-    val context = Builder.newContext(template, project)
-      .withCommandName(message("android.wizard.module.new.module.menu.description"))
-      .withDryRun(dryRun)
-      .withShowErrors(true)
-      .withModuleRoot(moduleRoot)
-      .withParams(templateValues)
-      .build()
-
-    return template.render(context!!, dryRun)
   }
 }

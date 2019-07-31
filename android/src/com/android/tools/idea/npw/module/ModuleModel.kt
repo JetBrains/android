@@ -28,7 +28,7 @@ import java.io.File
 
 abstract class ModuleModel(
   val project: Project,
-  private val templateHandle: TemplateHandle,
+  val templateHandle: TemplateHandle,
   private val projectSyncInvoker: ProjectSyncInvoker
 ) : WizardModel() {
   protected fun doDryRun(moduleRoot: File, templateValues: Map<String, Any>): Boolean =
