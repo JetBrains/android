@@ -34,7 +34,9 @@ import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Tests for the Android Test Runner related things
+ * Tests for the Android Test Runner related things.
+ *
+ * TODO: Delete this file and merge it into AndroidTestRunConfigurationTest.
  */
 public class AndroidTestRunnerTest extends AndroidGradleTestCase {
   @Override
@@ -69,6 +71,13 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertThat(runner.getAmInstrumentCommand()).contains("-e size large");
     assertThat(runner.getAmInstrumentCommand()).doesNotContain("-e size medium");
     assertThat(runner.getAmInstrumentCommand()).doesNotContain("-e foo bar");
+  }
+
+  public void testTestOptionsSetByGradle() throws Exception {
+    loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS);
+
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("com.android.runnerarguments.ExampleInstrumentationTest");
+    assertThat(runner.getAmInstrumentCommand()).contains("--no-window-animation");
   }
 
   public void testRunnerIsObtainedFromGradleProjects() throws Exception {
