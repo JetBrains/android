@@ -576,7 +576,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
 
-    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", STRING, DERIVED, 3)
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", STRING, REGULAR, 3)
   }
 
   @Test
