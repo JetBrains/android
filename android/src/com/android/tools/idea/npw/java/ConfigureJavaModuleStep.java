@@ -63,24 +63,24 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
     myValidatorPanel = new ValidatorPanel(this, myPanel);
 
     ModuleValidator moduleValidator = new ModuleValidator(model.getProject());
-    myLibraryName.setText(WizardUtils.getUniqueName(model.libraryNameName().get(), moduleValidator));
+    myLibraryName.setText(WizardUtils.getUniqueName(model.libraryName.get(), moduleValidator));
     TextProperty libraryNameText = new TextProperty(myLibraryName);
-    myBindings.bind(model.libraryNameName(), libraryNameText, myValidatorPanel.hasErrors().not());
-    myBindings.bindTwoWay(new TextProperty(myClassName), model.className());
+    myBindings.bind(model.libraryName, libraryNameText, myValidatorPanel.hasErrors().not());
+    myBindings.bindTwoWay(new TextProperty(myClassName), model.className);
 
     Expression<String> computedPackageName =
-      new DomainToPackageExpression(new StringValueProperty(getInitialDomain()), model.libraryNameName());
+      new DomainToPackageExpression(new StringValueProperty(getInitialDomain()), model.libraryName);
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
 
     TextProperty packageNameText = new TextProperty(myPackageName);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
-    myBindings.bind(model.packageName(), packageNameText);
+    myBindings.bind(model.packageName, packageNameText);
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
     myValidatorPanel.registerValidator(libraryNameText, moduleValidator);
-    myValidatorPanel.registerValidator(model.packageName(),
+    myValidatorPanel.registerValidator(model.packageName,
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
-    myValidatorPanel.registerValidator(model.className(), new ClassNameValidator());
+    myValidatorPanel.registerValidator(model.className, new ClassNameValidator());
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
