@@ -34,9 +34,9 @@ class NewBenchmarkModuleDescriptionProvider : ModuleDescriptionProvider {
     private val templateHandle: TemplateHandle = TemplateHandle(
       TemplateManager.getInstance().getTemplateFile(Template.CATEGORY_APPLICATION, "Benchmark Module")!!)
 
-    override fun getIcon(): Icon? = getTemplateIcon(templateHandle, false)
-    override fun getName(): String = message("android.wizard.module.new.benchmark.module.app")
-    override fun getDescription(): String? = templateHandle.metadata.description
+    override val icon: Icon? = getTemplateIcon(templateHandle, false)
+    override val name: String = message("android.wizard.module.new.benchmark.module.app")
+    override val description: String? = templateHandle.metadata.description
     override fun toString(): String = name
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> {
       val benchmarkModuleModel = NewBenchmarkModuleModel(model.project.value, templateHandle, model.projectSyncInvoker)

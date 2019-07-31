@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,21 +38,22 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
   private class SourceImportModuleGalleryEntry(templateName: String) : ModuleGalleryEntry {
     private val templateHandle = TemplateHandle(TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, templateName)!!)
 
-    override fun getIcon(): Icon? = getTemplateIcon(templateHandle, false)
-    override fun getName(): String = templateHandle.metadata.title!!
-    override fun getDescription(): String? = templateHandle.metadata.description
+    override val icon: Icon? = getTemplateIcon(templateHandle, false)
+    override val name: String = templateHandle.metadata.title!!
+    override val description: String? = templateHandle.metadata.description
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
       SourceToGradleModuleStep(SourceToGradleModuleModel(model.project.value, model.projectSyncInvoker))
   }
 
   private class ArchiveImportModuleGalleryEntry : ModuleGalleryEntry {
-    override fun getIcon(): Icon? {
-      val androidModuleTemplate = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_PROJECT_TEMPLATE)
-      return getTemplateIcon(TemplateHandle(androidModuleTemplate!!), false)
-    }
+    override val icon: Icon?
+      get() {
+        val androidModuleTemplate = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_PROJECT_TEMPLATE)
+        return getTemplateIcon(TemplateHandle(androidModuleTemplate!!), false)
+      }
 
-    override fun getName(): String = message("android.wizard.module.import.title")
-    override fun getDescription(): String = message("android.wizard.module.import.description")
+    override val name: String = message("android.wizard.module.import.title")
+    override val description: String = message("android.wizard.module.import.description")
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
       ArchiveToGradleModuleStep(ArchiveToGradleModuleModel(model.project.value, model.projectSyncInvoker))
   }
