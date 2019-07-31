@@ -42,7 +42,7 @@ class AndroidTestApplicationLaunchTask private constructor(
   private val myTestApplicationId: String,
   private val myArtifact: IdeAndroidArtifact?,
   private val myWaitForDebugger: Boolean,
-  private val myExtraInstrumentationOptions: String,
+  private val myInstrumentationOptions: String,
   private val myAndroidTestRunnerConfigurator: (RemoteAndroidTestRunner) -> Unit) : LaunchTask {
 
   companion object {
@@ -56,14 +56,14 @@ class AndroidTestApplicationLaunchTask private constructor(
       instrumentationTestRunner: String,
       testApplicationId: String,
       waitForDebugger: Boolean,
-      extraInstrumentationOptions: String,
+      instrumentationOptions: String,
       artifact: IdeAndroidArtifact?): AndroidTestApplicationLaunchTask {
       return AndroidTestApplicationLaunchTask(
         instrumentationTestRunner,
         testApplicationId,
         artifact,
         waitForDebugger,
-        extraInstrumentationOptions) {}
+        instrumentationOptions) {}
     }
 
     /**
@@ -74,7 +74,7 @@ class AndroidTestApplicationLaunchTask private constructor(
       instrumentationTestRunner: String,
       testApplicationId: String,
       waitForDebugger: Boolean,
-      extraInstrumentationOptions: String,
+      instrumentationOptions: String,
       artifact: IdeAndroidArtifact?,
       packageName: String): AndroidTestApplicationLaunchTask {
       return AndroidTestApplicationLaunchTask(
@@ -82,7 +82,7 @@ class AndroidTestApplicationLaunchTask private constructor(
         testApplicationId,
         artifact,
         waitForDebugger,
-        extraInstrumentationOptions) { runner -> runner.setTestPackageName(packageName) }
+        instrumentationOptions) { runner -> runner.setTestPackageName(packageName) }
     }
 
     /**
@@ -93,7 +93,7 @@ class AndroidTestApplicationLaunchTask private constructor(
       instrumentationTestRunner: String,
       testApplicationId: String,
       waitForDebugger: Boolean,
-      extraInstrumentationOptions: String,
+      instrumentationOptions: String,
       artifact: IdeAndroidArtifact?,
       testClassName: String): AndroidTestApplicationLaunchTask {
       return AndroidTestApplicationLaunchTask(
@@ -101,7 +101,7 @@ class AndroidTestApplicationLaunchTask private constructor(
         testApplicationId,
         artifact,
         waitForDebugger,
-        extraInstrumentationOptions) { runner -> runner.setClassName(testClassName) }
+        instrumentationOptions) { runner -> runner.setClassName(testClassName) }
     }
 
     /**
@@ -112,7 +112,7 @@ class AndroidTestApplicationLaunchTask private constructor(
       instrumentationTestRunner: String,
       testApplicationId: String,
       waitForDebugger: Boolean,
-      extraInstrumentationOptions: String,
+      instrumentationOptions: String,
       artifact: IdeAndroidArtifact?,
       testClassName: String,
       testMethodName: String): AndroidTestApplicationLaunchTask {
@@ -121,7 +121,7 @@ class AndroidTestApplicationLaunchTask private constructor(
         testApplicationId,
         artifact,
         waitForDebugger,
-        extraInstrumentationOptions) { runner -> runner.setMethodName(testClassName, testMethodName) }
+        instrumentationOptions) { runner -> runner.setMethodName(testClassName, testMethodName) }
     }
   }
 
@@ -161,7 +161,7 @@ class AndroidTestApplicationLaunchTask private constructor(
       else -> RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device)
     }.apply {
       setDebug(myWaitForDebugger)
-      runOptions = myExtraInstrumentationOptions
+      runOptions = myInstrumentationOptions
       myAndroidTestRunnerConfigurator(this)
     }
   }
