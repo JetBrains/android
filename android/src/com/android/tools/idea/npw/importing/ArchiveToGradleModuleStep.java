@@ -69,15 +69,15 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
                                           new FileChooserDescriptor(true, false, true, true, false, false)
                                             .withFileFilter(ArchiveToGradleModuleStep::isValidExtension));
 
-    myBindings.bindTwoWay(new TextProperty(myArchivePath.getTextField()), model.archive());
-    myBindings.bindTwoWay(new TextProperty(myGradlePath), model.gradlePath());
+    myBindings.bindTwoWay(new TextProperty(myArchivePath.getTextField()), model.archive);
+    myBindings.bindTwoWay(new TextProperty(myGradlePath), model.gradlePath);
 
     // Note: model.inModule() depends on the value of model.archive(), so lets setup model.archive() first
-    myListeners.listenAndFire(model.archive(), archivePath -> model.gradlePath().set(Files.getNameWithoutExtension(archivePath)));
+    myListeners.listenAndFire(model.archive, archivePath -> model.gradlePath.set(Files.getNameWithoutExtension(archivePath)));
 
     SelectedProperty removeOriginal = new SelectedProperty(myRemoveOriginalFileCheckBox);
-    myBindings.bind(model.moveArchive(), removeOriginal.and(model.inModule()));
-    myBindings.bind(removeOriginal, model.moveArchive());
+    myBindings.bind(model.moveArchive, removeOriginal.and(model.inModule()));
+    myBindings.bind(removeOriginal, model.moveArchive);
     myBindings.bind(new VisibleProperty(myRemoveOriginalFileCheckBox), model.inModule());
   }
 
@@ -89,8 +89,8 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     ArchiveToGradleModuleModel model = getModel();
-    myValidatorPanel.registerValidator(model.archive(), new ArchiveValidator());
-    myValidatorPanel.registerValidator(model.gradlePath(), new GradleValidator(model.getProject()));
+    myValidatorPanel.registerValidator(model.archive, new ArchiveValidator());
+    myValidatorPanel.registerValidator(model.gradlePath, new GradleValidator(model.getProject()));
   }
 
   @Override

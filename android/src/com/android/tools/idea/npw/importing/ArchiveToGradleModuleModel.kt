@@ -31,45 +31,32 @@ import java.io.File
 /**
  * Model that represents the import of an existing library (.jar or .aar) into a Gradle project as a new Module
  */
-class ArchiveToGradleModuleModel(val project: Project,
-                                 private val myProjectSyncInvoker: ProjectSyncInvoker) : WizardModel() {
-  private val myArchive: StringProperty = StringValueProperty()
-  private val myGradlePath: StringProperty = StringValueProperty()
-  private val myMoveArchive: BoolProperty = BoolValueProperty()
+class ArchiveToGradleModuleModel(val project: Project, private val projectSyncInvoker: ProjectSyncInvoker) : WizardModel() {
+  @JvmField val archive: StringProperty = StringValueProperty()
+  @JvmField val gradlePath: StringProperty = StringValueProperty()
+  @JvmField val moveArchive: BoolProperty = BoolValueProperty()
 
   init {
-    myArchive.addConstraint { it.trim() }
-    myGradlePath.addConstraint { it.trim() }
-    myArchive.set(project.basePath!!)
+    archive.addConstraint(String::trim)
+    gradlePath.addConstraint(String::trim)
+    archive.set(project.basePath!!)
   }
 
-  fun archive(): StringProperty {
-    return myArchive
-  }
-
-  fun gradlePath(): StringProperty {
-    return myGradlePath
-  }
-
-  fun moveArchive(): BoolProperty {
-    return myMoveArchive
-  }
-
-  fun inModule(): BooleanExpression = object : BooleanExpression(myArchive) {
-    override fun get(): Boolean = getContainingModule(File(myArchive.get()), project) != null
+  fun inModule(): BooleanExpression = object : BooleanExpression(archive) {
+    override fun get(): Boolean = getContainingModule(File(archive.get()), project) != null
   }
 
   public override fun handleFinished() {
-    val path = myGradlePath.get()
     CreateModuleFromArchiveAction(
       project,
-      if (path.startsWith(GRADLE_PATH_SEPARATOR)) path else GRADLE_PATH_SEPARATOR + path,
-      myArchive.get(),
-      myMoveArchive.get(),
-      getContainingModule(File(myArchive.get()), project)).execute()
+      GRADLE_PATH_SEPARATOR + gradlePath.get().removePrefix(GRADLE_PATH_SEPARATOR),
+      archive.get(),
+      moveArchive.get(),
+      getContainingModule(File(archive.get()), project)).execute()
+
     if (!ApplicationManager.getApplication().isUnitTestMode) {
       assert(ApplicationManager.getApplication().isDispatchThread)
-      myProjectSyncInvoker.syncProject(project)
+      projectSyncInvoker.syncProject(project)
     }
   }
 }
