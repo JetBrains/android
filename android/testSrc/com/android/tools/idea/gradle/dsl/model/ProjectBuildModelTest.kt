@@ -273,4 +273,25 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     val pluginModel = buildModel!!.buildscript().dependencies().artifacts()[0].completeModel()
     assertEquals("com.android.tools.build:gradle:${'$'}version", pluginModel.forceString())
   }
+
+  @Test
+  fun testProjectModelGetFile() {
+    // We reuse a build file here since we just need any file for this test.
+    writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_SUB)
+    writeToBuildFile(PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER)
+    writeToSettingsFile(subModuleSettingsText)
+    writeToNewSubModuleFile("a", PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED)
+
+    val pbm = ProjectBuildModel.get(myProject)
+    val mainBuildModel = pbm.getModuleBuildModel(myModule)!!
+    val subBuildModel = pbm.getModuleBuildModel(mySubModule)!!
+    val settingModel = pbm.projectSettingsModel!!
+
+    val mainPsiFile = mainBuildModel.psiFile!!
+    val subPsiFile = subBuildModel.psiFile!!
+    val settingFile = settingModel.psiFile!!
+    assertEquals(mainPsiFile.virtualFile, mainBuildModel.virtualFile)
+    assertEquals(subPsiFile.virtualFile, subBuildModel.virtualFile)
+    assertEquals(settingFile.virtualFile, settingModel.virtualFile)
+  }
 }

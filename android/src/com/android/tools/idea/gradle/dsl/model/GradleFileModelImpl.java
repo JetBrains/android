@@ -20,19 +20,19 @@ import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 public abstract class GradleFileModelImpl implements GradleFileModel {
   @NotNull protected GradleDslFile myGradleDslFile;
@@ -148,5 +148,12 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
   public Map<String, List<BuildModelNotification>> getNotifications() {
     return getAllInvolvedFiles().stream().filter(e -> !e.getPublicNotifications().isEmpty())
       .collect(Collectors.toMap(e -> e.getFile().getPath(), e -> e.getPublicNotifications()));
+  }
+
+  @Override
+  @Nullable
+  public PsiFile getPsiFile() {
+    PsiElement element = myGradleDslFile.getPsiElement();
+    return (element instanceof PsiFile) ? (PsiFile) element : null;
   }
 }
