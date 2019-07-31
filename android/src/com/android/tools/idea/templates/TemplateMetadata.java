@@ -97,7 +97,6 @@ public class TemplateMetadata {
   public static final String ATTR_DEPENDENCIES_MULTIMAP = "dependenciesMultimap";
 
   public static final String ATTR_IS_DYNAMIC_FEATURE = "isDynamicFeature";
-  public static final String ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY = "dynamicFeatureSupportsDynamicDelivery";
   public static final String ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY = "dynamicFeatureInstallTimeDelivery";
   public static final String ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY = "dynamicFeatureInstallTimeWithConditionsDelivery";
   public static final String ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY = "dynamicFeatureOnDemandDelivery";
