@@ -35,7 +35,7 @@ class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarnin
       (event.result as TaskSuccessResult).executionReasons?.forEach {
         if (it == TaskExecutionMode.NO_OUTPUTS_WITHOUT_ACTIONS.rebuildReason.get() ||
             it == TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS.rebuildReason.get()) {
-          alwaysRunTasksSet.add(AlwaysRunTaskData(TaskData(event.descriptor.taskPath, PluginData(event.descriptor.originPlugin)), it))
+          alwaysRunTasksSet.add(AlwaysRunTaskData(TaskData.createTaskData(event), it))
         }
       }
     }
