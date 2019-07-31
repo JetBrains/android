@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.editors.manifest;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
+
 import com.android.SdkConstants;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.blame.SourceFile;
@@ -25,14 +28,16 @@ import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlNode;
 import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -71,37 +76,56 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.*;
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
-import org.w3c.dom.*;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
+import javax.swing.JEditorPane;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JTree;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 // TODO for permission if not from main file
 // TODO then have option to tools:node="remove" tools:selector="com.example.lib1"
@@ -712,38 +736,62 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     HtmlBuilder sb = new HtmlBuilder();
 
     GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(facet.getModule().getProject());
-    if (gradleVersion.isAtLeast(3, 0, 0)) {
-      final GradleBuildFile buildFile = GradleBuildFile.get(facet.getModule());
-      if (buildFile != null) {
-        int start = message.indexOf("to at least ");
-        if (start < 0) {
-          throw new IllegalArgumentException("unexpected use suggestion format " + message);
-        }
-        int end = message.indexOf(',', start);
-        if (end < 0) {
-          throw new IllegalArgumentException("unexpected use suggestion format " + message);
-        }
-        final String minSdkVersion = message.substring(start + 1, end - 1);
-        Runnable link =
-          () -> new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile()) {
-            @Override
-            protected void run() throws Throwable {
-              GrStatementOwner defaultConfig = buildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
-              if (defaultConfig == null) {
-                buildFile.setValue(BuildFileKey.DEFAULT_CONFIG, "{}");
-                defaultConfig = buildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
-              }
-              assert defaultConfig != null;
-              buildFile.setValue(defaultConfig, BuildFileKey.MIN_SDK_VERSION, minSdkVersion);
-              requestSync(facet.getModule().getProject());
-            }
-          }.execute();
-        sb.addLink(message.substring(0, end + 1), htmlLinkManager.createRunnableLink(link));
-        sb.add(message.substring(end + 1));
+    if (gradleVersion != null && gradleVersion.isAtLeast(3, 0, 0)) {
+      String versionPrefix = "to at least ";
+      int start = message.indexOf(versionPrefix) + versionPrefix.length();
+      if (start < 0) {
+        throw new IllegalArgumentException("unexpected use suggestion format " + message);
       }
-      else {
+      int end = message.indexOf(',', start);
+      if (end < 0) {
+        throw new IllegalArgumentException("unexpected use suggestion format " + message);
+      }
+      final String minSdkVersionString = message.substring(start, end);
+      int minSdkVersion;
+      try {
+        minSdkVersion = Integer.parseInt(minSdkVersionString);
+      } catch (NumberFormatException e) {
+        // Ignore this and just add the message, we don't want to add a link
         sb.add(message);
+        return sb.getHtml();
       }
+
+      final int finalMinSdk = minSdkVersion;
+
+      Runnable link =
+        () -> {
+          Runnable linkAction = () -> {
+            // We reparse the buildModel as it is possible that it has change since this link was created.
+            ProjectBuildModel pbm = ProjectBuildModel.get(facet.getModule().getProject());
+            GradleBuildModel gbm = pbm.getModuleBuildModel(facet.getModule());
+
+            if (gbm == null) {
+              return;
+            }
+
+            gbm.android().defaultConfig().minSdkVersion().setValue(finalMinSdk);
+            ApplicationManager.getApplication().invokeAndWait(() -> WriteCommandAction
+              .runWriteCommandAction(facet.getModule().getProject(), "Update build file minSdkVersion", null, () -> pbm.applyChanges(),
+                                     gbm.getPsiFile()));
+            // We must make sure that the files have been updated before we sync, we block above but not here.
+            Runnable syncRunnable = () -> requestSync(facet.getModule().getProject());
+            if (ApplicationManager.getApplication().isUnitTestMode()) {
+              syncRunnable.run();
+            }
+            else {
+              ApplicationManager.getApplication().invokeLater(syncRunnable);
+            }
+          };
+
+          if (ApplicationManager.getApplication().isUnitTestMode()) {
+            linkAction.run();
+          }
+          else {
+            ApplicationManager.getApplication().executeOnPooledThread(linkAction);
+          }
+        };
+      sb.addLink(message.substring(0, end), htmlLinkManager.createRunnableLink(link));
+      sb.add(message.substring(end));
     } else {
       // use tools override suggestion.
       int eq = message.indexOf('=');
