@@ -71,11 +71,6 @@ public final class StudioFlags {
     "Show new version of the Welcome Wizard when Studio starts",
     false);
 
-  public static final Flag<Boolean> NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY = Flag.create(
-    NPW, "dynamic.apps.conditional.delivery", "Support for conditional delivery for dynamic feature modules",
-    "Support for conditional delivery for dynamic feature modules",
-    true);
-
   public static final Flag<Boolean> NPW_USE_HOME_FOLDER_AS_EXTRA_TEMPLATE_ROOT_FOLDER = Flag.create(
     NPW, "home.template.root", "Use .android folder as a Template Root Folder",
     "Let the user keep templates in the .android folder such that they are kept after a Studio install/upgrade",
