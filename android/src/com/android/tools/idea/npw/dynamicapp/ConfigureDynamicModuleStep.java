@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.npw.project.DomainToPackageExpression;
 import com.android.tools.idea.npw.project.FormFactorSdkControls;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.ui.ActivityGallery;
@@ -46,7 +45,6 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.StringProperty;
-import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
@@ -107,26 +105,26 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     super(model, message("android.wizard.module.config.title"));
 
     TextProperty packageNameText = new TextProperty(myPackageName);
-    Expression<String> computedPackageName = new Expression<String>(model.moduleName()) {
+    Expression<String> computedPackageName = new Expression<String>(model.moduleName) {
       @NotNull
       @Override
       public String get() {
-        return format("%s.%s", basePackage, nameToJavaPackage(model.moduleName().get()));
+        return format("%s.%s", basePackage, nameToJavaPackage(model.moduleName.get()));
       }
     };
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
-    myBindings.bind(model.packageName(), packageNameText);
+    myBindings.bind(model.packageName, packageNameText);
 
     myInstantInfoIcon.setIcon(AllIcons.General.BalloonInformation);
     if (isInstant) {
       SelectedProperty isFusingSelected = new SelectedProperty(myFusingCheckbox);
-      myBindings.bind(model.featureFusing(), isFusingSelected);
+      myBindings.bind(model.featureFusing, isFusingSelected);
       BoolProperty isOnDemand = new BoolValueProperty(false);
-      myBindings.bind(model.featureOnDemand(), isOnDemand);
+      myBindings.bind(model.featureOnDemand, isOnDemand);
       BoolProperty isInstantModule = new BoolValueProperty(true);
-      myBindings.bind(model.instantModule(), isInstantModule);
-      myBindings.bindTwoWay(new TextProperty(myModuleTitle), getModel().featureTitle());
+      myBindings.bind(model.instantModule, isInstantModule);
+      myBindings.bindTwoWay(new TextProperty(myModuleTitle), getModel().featureTitle);
     }
     else {
       myFusingCheckbox.setVisible(false);
@@ -161,7 +159,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    StringProperty modelName = getModel().moduleName();
+    StringProperty modelName = getModel().moduleName;
     Project project = getModel().getProject();
 
     myBindings.bindTwoWay(new TextProperty(myModuleName), modelName);
@@ -172,11 +170,11 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
       .transform(appName -> format("%s.%s", basePackage, nameToJavaPackage(appName)));
     TextProperty packageNameText = new TextProperty(myPackageName);
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
-    myBindings.bind(getModel().packageName(), packageNameText);
+    myBindings.bind(getModel().packageName, packageNameText);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
-    OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo();
+    OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo;
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
     AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_APP)
@@ -184,13 +182,13 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
                       .filter(module -> AndroidModuleModel.get(module) != null)
                       .forEach(module -> myBaseApplication.addItem(module));
 
-    OptionalProperty<Module> baseApplication = getModel().baseApplication();
+    OptionalProperty<Module> baseApplication = getModel().baseApplication;
     myBindings.bind(baseApplication, new SelectedItemProperty<>(myBaseApplication));
 
     myValidatorPanel.registerValidator(modelName, value ->
       value.isEmpty() ? new Validator.Result(ERROR, message("android.wizard.validate.empty.module.name")) : OK);
 
-    myValidatorPanel.registerValidator(getModel().packageName(),
+    myValidatorPanel.registerValidator(getModel().packageName,
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
     myValidatorPanel.registerValidator(androidSdkInfo, value ->
