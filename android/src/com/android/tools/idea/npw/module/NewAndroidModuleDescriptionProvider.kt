@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,25 +60,19 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     return res
   }
 
-  private class AndroidModuleTemplateGalleryEntry internal constructor(
-    private val myTemplateFile: File,
-    private val myFormFactor: FormFactor,
-    private val myMinSdkLevel: Int,
-    private val myIsLibrary: Boolean,
-    private val myIcon: Icon,
-    private val myName: String,
-    private val myDescription: String) : ModuleTemplateGalleryEntry {
-    override fun getTemplateFile(): File = myTemplateFile
-    override fun getFormFactor(): FormFactor = myFormFactor
-    override fun isLibrary(): Boolean = myIsLibrary
-    override fun getIcon(): Icon? = myIcon
-    override fun getName(): String = myName
-    override fun getDescription(): String? = myDescription
+  private class AndroidModuleTemplateGalleryEntry(
+    override val templateFile: File,
+    override val formFactor: FormFactor,
+    private val minSdkLevel: Int,
+    override val isLibrary: Boolean,
+    override val icon: Icon,
+    override val name: String,
+    override val description: String) : ModuleTemplateGalleryEntry {
     override fun toString(): String = name
 
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      return ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, basePackage, myName)
+      return ConfigureAndroidModuleStep(model, formFactor, minSdkLevel, basePackage, name)
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,19 +40,16 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     FeatureTemplateGalleryEntry(true))
 
   private class FeatureTemplateGalleryEntry(private val isInstant: Boolean) : ModuleTemplateGalleryEntry {
-    private val templateFile: File = TemplateManager.getInstance().getTemplateFile(
+    override val templateFile: File = TemplateManager.getInstance().getTemplateFile(
       CATEGORY_APPLICATION, if (isInstant) INSTANT_DYNAMIC_FEATURE_TEMPLATE else DYNAMIC_FEATURE_TEMPLATE)!!
     private val templateHandle: TemplateHandle = TemplateHandle(templateFile)
+    override val icon: Icon? = getTemplateIcon(templateHandle, false)
+    override val name: String = message(if (isInstant) "android.wizard.module.new.dynamic.module.instant" else "android.wizard.module.new.dynamic.module")
+    override val description: String? = templateHandle.metadata.description
+    override val formFactor = FormFactor.MOBILE
+    override val isLibrary = false
 
-    override fun getIcon(): Icon? = getTemplateIcon(templateHandle, false)
-    override fun getName(): String =
-      message(if (isInstant) "android.wizard.module.new.dynamic.module.instant" else "android.wizard.module.new.dynamic.module")
-
-    override fun getDescription(): String? = templateHandle.metadata.description
-    override fun toString(): String = name
-    override fun getTemplateFile(): File = templateFile
-    override fun getFormFactor() = FormFactor.MOBILE
-    override fun isLibrary() = false
+    override fun toString() = name
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
       return ConfigureDynamicModuleStep(
