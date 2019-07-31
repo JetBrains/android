@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.benchmark
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
+import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateHandle
@@ -29,20 +30,14 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
-import com.android.tools.idea.templates.TemplateUtils.openEditors
-import com.android.tools.idea.templates.recipe.RenderingContext.Builder
-import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task.Modal
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
-import java.io.File
 
 class NewBenchmarkModuleModel(
-  val project: Project,
-  private val templateHandle: TemplateHandle,
-  private val projectSyncInvoker: ProjectSyncInvoker) : WizardModel() {
+  project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker
+) : ModuleModel(project, templateHandle, projectSyncInvoker) {
   @JvmField val moduleName: StringProperty = StringValueProperty("benchmark")
   @JvmField val packageName: StringProperty = StringValueProperty()
   @JvmField val language: OptionalProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
@@ -69,35 +64,5 @@ class NewBenchmarkModuleModel(
         }
       }
     }.queue()
-  }
-
-  private fun doDryRun(moduleRoot: File, templateValues: Map<String, Any>): Boolean =
-    renderTemplate(true, project, moduleRoot, templateValues, null)
-
-  private fun render(moduleRoot: File, templateValues: Map<String, Any>) {
-    val filesToOpen = mutableListOf<File>()
-    val success = renderTemplate(false, project, moduleRoot, templateValues, filesToOpen)
-    if (success) {
-      // calling smartInvokeLater will make sure that files are open only when the project is ready
-      DumbService.getInstance(project).smartInvokeLater { openEditors(project, filesToOpen, true) }
-      projectSyncInvoker.syncProject(project)
-    }
-  }
-
-  private fun renderTemplate(
-    dryRun: Boolean, project: Project, moduleRoot: File, templateValues: Map<String, Any>, filesToOpen: MutableList<File>?
-  ): Boolean {
-    val template = templateHandle.template
-
-    val context = Builder.newContext(template, project)
-      .withCommandName(message("android.wizard.module.new.module.menu.description"))
-      .withDryRun(dryRun)
-      .withShowErrors(true)
-      .withModuleRoot(moduleRoot)
-      .withParams(templateValues)
-      .intoOpenFiles(filesToOpen)
-      .build()
-
-    return template.render(context!!, dryRun)
   }
 }
