@@ -82,20 +82,20 @@ public class ConfigureBenchmarkModuleStep extends SkippableWizardStep<NewBenchma
     ModuleValidator moduleValidator = new ModuleValidator(model.getProject());
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myValidatorPanel.registerValidator(moduleNameText, moduleValidator);
-    myValidatorPanel.registerValidator(model.packageName(),
+    myValidatorPanel.registerValidator(model.packageName,
             value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
-    myModuleName.setText(WizardUtils.getUniqueName(model.moduleName().get(), moduleValidator));
+    myModuleName.setText(WizardUtils.getUniqueName(model.moduleName.get(), moduleValidator));
 
     Expression<String> computedPackageName =
-      new DomainToPackageExpression(new StringValueProperty(getInitialDomain()), model.moduleName());
-    myBindings.bind(model.moduleName(), moduleNameText, myValidatorPanel.hasErrors().not());
+      new DomainToPackageExpression(new StringValueProperty(getInitialDomain()), model.moduleName);
+    myBindings.bind(model.moduleName, moduleNameText, myValidatorPanel.hasErrors().not());
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
-    myBindings.bind(model.packageName(), packageNameText);
-    myBindings.bindTwoWay(language, model.language());
+    myBindings.bind(model.packageName, packageNameText);
+    myBindings.bindTwoWay(language, model.language);
 
-    myBindings.bind(model.minSdk(), new SelectedItemProperty<>(myApiLevelComboBox));
-    myValidatorPanel.registerValidator(model.minSdk(), value -> {
+    myBindings.bind(model.minSdk, new SelectedItemProperty<>(myApiLevelComboBox));
+    myValidatorPanel.registerValidator(model.minSdk, value -> {
       if (!value.isPresent()) {
         return new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text"));
       }
