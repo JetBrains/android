@@ -44,7 +44,6 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_SIMPLE_NAME
 import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.wizard.model.WizardModel
-import com.google.common.collect.Maps
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task.Modal
@@ -52,113 +51,69 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 
-class DynamicFeatureModel(val project: Project,
-                          val templateHandle: TemplateHandle,
-                          private val myProjectSyncInvoker: ProjectSyncInvoker,
-                          isInstant: Boolean) : WizardModel() {
-  private val myModuleName: StringProperty = StringValueProperty("dynamicfeature")
-  private val myFeatureTitle: StringProperty = StringValueProperty("Module Title")
-  private val myPackageName: StringProperty = StringValueProperty()
-  private val myAndroidSdkInfo: OptionalProperty<VersionItem> = OptionalValueProperty()
-  private val myBaseApplication: OptionalProperty<Module> = OptionalValueProperty()
-  private val myFeatureOnDemand: BoolProperty = BoolValueProperty(true)
-  private val myFeatureFusing: BoolProperty = BoolValueProperty(true)
-  private val myInstantModule: BoolProperty = BoolValueProperty(false)
-  private val myDeviceFeatures = ObservableList<DeviceFeatureModel>()
-  private val myDownloadInstallKind: OptionalProperty<DownloadInstallKind> =
+class DynamicFeatureModel(
+  val project: Project, val templateHandle: TemplateHandle, private val projectSyncInvoker: ProjectSyncInvoker, isInstant: Boolean
+) : WizardModel() {
+  @JvmField val moduleName: StringProperty = StringValueProperty("dynamicfeature")
+  @JvmField val featureTitle: StringProperty = StringValueProperty("Module Title")
+  @JvmField val packageName: StringProperty = StringValueProperty()
+  @JvmField val androidSdkInfo: OptionalProperty<VersionItem> = OptionalValueProperty()
+  @JvmField val baseApplication: OptionalProperty<Module> = OptionalValueProperty()
+  @JvmField val featureOnDemand: BoolProperty = BoolValueProperty(true)
+  @JvmField val featureFusing: BoolProperty = BoolValueProperty(true)
+  @JvmField val instantModule: BoolProperty = BoolValueProperty(false)
+  @JvmField val deviceFeatures = ObservableList<DeviceFeatureModel>()
+  @JvmField val downloadInstallKind: OptionalProperty<DownloadInstallKind> =
     if (isInstant)
       OptionalValueProperty(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME)
     else
       OptionalValueProperty( DownloadInstallKind.ON_DEMAND_ONLY)
 
-  fun moduleName(): StringProperty {
-    return myModuleName
-  }
-
-  fun featureTitle(): StringProperty {
-    return myFeatureTitle
-  }
-
-  fun packageName(): StringProperty {
-    return myPackageName
-  }
-
-  fun baseApplication(): OptionalProperty<Module> {
-    return myBaseApplication
-  }
-
-  fun androidSdkInfo(): OptionalProperty<VersionItem> {
-    return myAndroidSdkInfo
-  }
-
-  fun featureOnDemand(): BoolProperty {
-    return myFeatureOnDemand
-  }
-
-  fun downloadInstallKind(): OptionalProperty<DownloadInstallKind> {
-    return myDownloadInstallKind
-  }
-
-  fun deviceFeatures(): ObservableList<DeviceFeatureModel> {
-    return myDeviceFeatures
-  }
-
-  fun featureFusing(): BoolProperty {
-    return myFeatureFusing
-  }
-
-  fun instantModule(): BoolProperty {
-    return myInstantModule
-  }
-
   override fun handleFinished() {
     object : Modal(project, message(
       "android.compile.messages.generating.r.java.content.name"), false) {
       override fun run(indicator: ProgressIndicator) {
-        val modulePaths = createDefaultTemplateAt(
-          myProject.basePath!!, moduleName().get()).paths
-        val myTemplateValues: MutableMap<String, Any>? = Maps.newHashMap()
-        TemplateValueInjector(myTemplateValues!!)
-          .setModuleRoots(modulePaths, myProject.basePath!!, moduleName().get(), packageName().get())
-          .setBuildVersion(androidSdkInfo().value, myProject).setBaseFeature(baseApplication().value)
+        val modulePaths = createDefaultTemplateAt(myProject.basePath!!, moduleName.get()).paths
+        val templateValues = mutableMapOf<String, Any>()
+        TemplateValueInjector(templateValues)
+          .setModuleRoots(modulePaths, myProject.basePath!!, moduleName.get(), packageName.get())
+          .setBuildVersion(androidSdkInfo.value, myProject).setBaseFeature(baseApplication.value)
 
-        myTemplateValues.let {
+        templateValues.let {
           it[ATTR_IS_DYNAMIC_FEATURE] = true
-          it[ATTR_MODULE_SIMPLE_NAME] = nameToJavaPackage(moduleName().get())
-          it[ATTR_DYNAMIC_FEATURE_TITLE] = featureTitle().get()
-          it[ATTR_DYNAMIC_FEATURE_ON_DEMAND] = featureOnDemand().get()
-          it[ATTR_DYNAMIC_FEATURE_FUSING] = featureFusing().get()
+          it[ATTR_MODULE_SIMPLE_NAME] = nameToJavaPackage(moduleName.get())
+          it[ATTR_DYNAMIC_FEATURE_TITLE] = featureTitle.get()
+          it[ATTR_DYNAMIC_FEATURE_ON_DEMAND] = featureOnDemand.get()
+          it[ATTR_DYNAMIC_FEATURE_FUSING] = featureFusing.get()
           it[ATTR_IS_NEW_PROJECT] = true
           it[ATTR_IS_LIBRARY_MODULE] = false
-          it[ATTR_DYNAMIC_IS_INSTANT_MODULE] = instantModule().get()
+          it[ATTR_DYNAMIC_IS_INSTANT_MODULE] = instantModule.get()
           // Dynamic delivery conditions
           it[ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY] = StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get()
-          it[ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY] = myDownloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME
-          it[ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY] = myDownloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS
-          it[ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY] = myDownloadInstallKind.value == DownloadInstallKind.ON_DEMAND_ONLY
-          it[ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST] = myDeviceFeatures
+          it[ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY] = downloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME
+          it[ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY] = downloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS
+          it[ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY] = downloadInstallKind.value == DownloadInstallKind.ON_DEMAND_ONLY
+          it[ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST] = deviceFeatures
         }
         val moduleRoot = modulePaths.moduleRoot!!
-        if (doDryRun(moduleRoot, myTemplateValues)) {
-          render(moduleRoot, myTemplateValues)
+        if (doDryRun(moduleRoot, templateValues)) {
+          render(moduleRoot, templateValues)
         }
       }
     }.queue()
   }
 
-  private fun doDryRun(moduleRoot: File, templateValues: Map<String, Any>): Boolean {
-    return renderTemplate(true, project, moduleRoot, templateValues)
-  }
+  private fun doDryRun(moduleRoot: File, templateValues: Map<String, Any>): Boolean =
+    renderTemplate(true, project, moduleRoot, templateValues)
 
   private fun render(moduleRoot: File, templateValues: Map<String, Any>) {
     renderTemplate(false, project, moduleRoot, templateValues)
-    myProjectSyncInvoker.syncProject(project)
+    projectSyncInvoker.syncProject(project)
   }
 
-  private fun renderTemplate(dryRun: Boolean,
-                             project: Project,
-                             moduleRoot: File,
-                             templateValues: Map<String, Any>): Boolean {
+  private fun renderTemplate(
+    dryRun: Boolean, project: Project, moduleRoot: File, templateValues: Map<String, Any>
+  ): Boolean {
     val template = templateHandle.template
 
     val context = Builder.newContext(template, project)
