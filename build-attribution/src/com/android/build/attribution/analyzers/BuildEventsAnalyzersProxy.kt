@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.TaskData
 
 /**
  * A way of interaction between the build events analyzers and the build attribution manager.
@@ -44,7 +45,11 @@ class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter) 
     return criticalPathAnalyzer.criticalPathDuration
   }
 
-  fun getTasksCriticalPath(): List<CriticalPathAnalyzer.TaskBuildData> {
+  fun getTotalBuildTime(): Long {
+    return criticalPathAnalyzer.totalBuildTime
+  }
+
+  fun getTasksCriticalPath(): List<TaskData> {
     return criticalPathAnalyzer.tasksCriticalPath
   }
 

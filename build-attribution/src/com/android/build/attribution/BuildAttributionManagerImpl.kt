@@ -66,10 +66,10 @@ class BuildAttributionManagerImpl(
     analyzersProxy.getTasksCriticalPath().let {
       if (it.isNotEmpty()) {
         stringBuilder.appendln("Tasks critical path:")
-        it.forEach { taskBuildData ->
-          val percentage = taskBuildData.taskExecutionTime * 100 / analyzersProxy.getCriticalPathDuration()
-          stringBuilder.append("Task ${taskBuildData.taskData.getTaskPath()} from ${taskBuildData.taskData.originPlugin}")
-            .appendln(", time ${Duration.ofMillis(taskBuildData.taskExecutionTime)} ($percentage%)")
+        it.forEach { taskData ->
+          val percentage = taskData.executionTime * 100 / analyzersProxy.getTotalBuildTime()
+          stringBuilder.append("Task ${taskData.getTaskPath()} from ${taskData.originPlugin}")
+            .appendln(", time ${Duration.ofMillis(taskData.executionTime)} ($percentage%)")
         }
       }
     }
@@ -78,7 +78,7 @@ class BuildAttributionManagerImpl(
       if (it.isNotEmpty()) {
         stringBuilder.appendln("Plugins determining build duration:")
         it.forEach { pluginBuildData ->
-          val percentage = pluginBuildData.buildDuration * 100 / analyzersProxy.getCriticalPathDuration()
+          val percentage = pluginBuildData.buildDuration * 100 / analyzersProxy.getTotalBuildTime()
           stringBuilder.append("${pluginBuildData.plugin}, time ${Duration.ofMillis(pluginBuildData.buildDuration)}")
             .appendln(" ($percentage%)")
         }
