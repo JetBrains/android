@@ -134,7 +134,7 @@ public abstract class IdeaSourceProvider {
     @Override
     public VirtualFile getManifestFile() {
       File manifestFile = myProvider.getManifestFile();
-      if (myManifestFile == null || !filesEqual(manifestFile, myManifestIoFile)) {
+      if (myManifestFile == null || !myManifestFile.isValid() || !filesEqual(manifestFile, myManifestIoFile)) {
         myManifestIoFile = manifestFile;
         myManifestFile = findFileByIoFile(manifestFile, false);
       }
