@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,61 +15,29 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
-import com.android.tools.idea.tests.util.WizardUtils;
-import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.io.IOException;
-import org.fest.swing.timing.Wait;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.LINE_END;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
+import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 /**
- * Tests, that newly generated modules work, even with older gradle plugin versions.
+ * Tests that newly generated modules work, even with older gradle plugin versions.
  */
 @RunWith(GuiTestRemoteRunner.class)
 public class NewModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @Test
-  public void testNewModuleOldGradle() throws Exception {
-    guiTest.importSimpleApplication()
-      // the oldest combination we support:
-      .updateAndroidGradlePluginVersion("1.0.0")
-      .updateGradleWrapperVersion("2.2.1")
-      .getEditor()
-      .open("app/build.gradle")
-      // delete lines using DSL features added after Android Gradle 1.0.0
-      .moveBetween("use", "Library")
-      .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
-      .moveBetween("test", "Implementation")
-      .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
-      .getIdeFrame()
-      .requestProjectSync()
-      .waitForGradleProjectSyncToFail(Wait.seconds(30))
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Android Library")
-      .clickNextToStep("Android Library")
-      .setModuleName("somelibrary")
-      .clickFinish()
-      .waitForGradleProjectSyncToFail();
-
-    String gradleFileContents = guiTest.getProjectFileText("somelibrary/build.gradle");
-    assertThat(gradleFileContents).doesNotContain("testCompile");
-    assertThat(gradleFileContents).doesNotContain("testImplementation");
-    assertAbout(file()).that(guiTest.getProjectPath("somelibrary/src/main")).isDirectory();
-    assertAbout(file()).that(guiTest.getProjectPath("somelibrary/src/test")).doesNotExist();
-  }
 
   @Test
   public void createNewModuleFromJar() throws Exception {
