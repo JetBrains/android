@@ -13,29 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.module;
+package com.android.tools.idea.npw.module
 
-import com.android.tools.idea.npw.FormFactor;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.npw.FormFactor
+import java.io.File
 
-import java.io.File;
-
-public interface ModuleTemplateGalleryEntry extends ModuleGalleryEntry {
-
+interface ModuleTemplateGalleryEntry : ModuleGalleryEntry {
   /**
-   * @return The file from where this template was loaded.
+   * The file from where this template was loaded.
    */
-  @NotNull
-  File getTemplateFile();
-
+  val templateFile: File
   /**
-   * @return form factor associated with this template.
+   * Form factor associated with this template.
    */
-  @NotNull
-  FormFactor getFormFactor();
-
+  val formFactor: FormFactor
   /**
-   * @return true if this template belongs to a Library.
+   * true if this template belongs to a Library.
    */
-  boolean isLibrary();
+  val isLibrary: Boolean
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ class NewJavaModuleDescriptionProvider : ModuleDescriptionProvider {
     private val templateHandle =
       TemplateHandle(TemplateManager.getInstance().getTemplateFile(Template.CATEGORY_APPLICATION, "Java Library")!!)
 
-    override fun getIcon(): Icon? = getTemplateIcon(templateHandle, false)
-    override fun getName(): String = templateHandle.metadata.title!!
-    override fun getDescription(): String? = templateHandle.metadata.description
+    override val icon: Icon? = getTemplateIcon(templateHandle, false)
+    override val name: String = templateHandle.metadata.title!!
+    override val description: String? = templateHandle.metadata.description
     override fun toString(): String = name
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
       ConfigureJavaModuleStep(NewJavaModuleModel(model.project.value, templateHandle, model.projectSyncInvoker), name)
