@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.cre
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -33,8 +34,8 @@ import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.templates.TemplateManager.CATEGORY_ACTIVITY
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
 import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -144,6 +145,8 @@ private fun addModuleToProject(moduleModel: NewModuleModel, formFactor: FormFact
                                projectModel: NewProjectModel, projectTemplateValues: MutableMap<String, Any>) {
   projectTemplateValues[formFactor.id + ATTR_INCLUDE_FORM_FACTOR] = true
   projectTemplateValues[formFactor.id + ATTR_MODULE_NAME] = moduleModel.moduleName.get()
+  // TODO introduce isNewProjectField to TemplateMetadata
+  moduleModel.templateValues[ATTR_KOTLIN_SUPPORT] = projectModel.language.value == Language.KOTLIN
   projectModel.newModuleModels.add(moduleModel)
 }
 
