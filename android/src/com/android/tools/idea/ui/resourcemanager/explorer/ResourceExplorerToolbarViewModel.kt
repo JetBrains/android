@@ -49,6 +49,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import org.jetbrains.android.actions.CreateResourceFileAction
+import org.jetbrains.android.actions.CreateTypedResourceFileAction
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.util.AndroidResourceUtil
@@ -192,6 +193,7 @@ class ResourceExplorerToolbarViewModel(
     CommonDataKeys.PSI_ELEMENT.name -> getVirtualFileForResourceType()?.let {
       PsiManager.getInstance(facet.module.project).findDirectory(it)
     }
+    CreateTypedResourceFileAction.TARGET_RESOURCE_FOLDER_TYPE.name -> FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()
     else -> null
   }
 
@@ -201,10 +203,11 @@ class ResourceExplorerToolbarViewModel(
    */
   private fun getVirtualFileForResourceType(): VirtualFile? {
     val resDirs = facet.mainSourceProvider.resDirectories.mapNotNull { it.toVirtualFile() }
-    return FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()?.let { resourceFolderType ->
+    val subDir = FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()?.let { resourceFolderType ->
       // TODO: Make a smart suggestion. E.g: Colors may be on a colors or values directory and the first might be preferred.
       AndroidResourceUtil.getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()
     }
+    return subDir ?: resDirs.firstOrNull()
   }
 
   /**
