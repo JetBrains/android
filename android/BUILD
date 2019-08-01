@@ -159,6 +159,7 @@ iml_module(
         "//prebuilts/studio/layoutlib:data/layoutlib",
         "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer.annotations[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
+        "//tools/idea/plugins/terminal:intellij.terminal[module]",
     ],
 )
 

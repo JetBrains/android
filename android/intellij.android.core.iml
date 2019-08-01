@@ -179,5 +179,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="intellij.platform.objectSerializer.annotations" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
+    <orderEntry type="module" module-name="intellij.terminal" />
   </component>
 </module>

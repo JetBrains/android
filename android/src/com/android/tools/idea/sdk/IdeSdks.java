@@ -42,6 +42,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.util.TerminalUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
@@ -586,16 +587,22 @@ public class IdeSdks {
 
   /**
    * Get JDK path based on the value of JAVA_HOME environment variable. If this variable is not defined or does not correspond to a valid
-   * JDK folder then look into java.home system property.
+   * JDK folder then look into java.home system property. This method will try to get the environment from a terminal when possible and if
+   * not, use the current environment.
    *
    * @return null if no JDK can be found, or the path where the JDK is located.
    */
   @Nullable
   public static String getJdkFromJavaHome() {
-    // Try Environment variable first
-    String result = doGetJdkFromPathOrParent(System.getenv("JAVA_HOME"));
-    if (result != null) {
-      return result;
+    // Try terminal environment first
+    String terminalValue = doGetJdkFromPathOrParent(TerminalUtil.getJavaHomeFromTerminal());
+    if (!isNullOrEmpty(terminalValue)) {
+      return terminalValue;
+    }
+    // Now try with current environment
+    String envVariableValue = doGetJdkFromPathOrParent(System.getenv("JAVA_HOME"));
+    if (!isNullOrEmpty(envVariableValue)) {
+      return envVariableValue;
     }
     // Then system property
     return doGetJdkFromPathOrParent(SystemProperties.getJavaHome());
