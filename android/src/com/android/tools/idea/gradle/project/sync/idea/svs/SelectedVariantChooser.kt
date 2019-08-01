@@ -39,17 +39,17 @@ import java.util.LinkedList
  *     depends on module "lib" - variant "freeDebug", the selected variant in "lib" will be "freeDebug". If a library module is a leaf
  *     (i.e. no other modules depend on it) a variant will be picked as if the module was an app module.
  *
- *  All of the [Variant] or [NativeVariantAbi] models obtained from Gradle are stored in the [IdeaAndroidModule]s [VariantGroup]
+ *  All of the [Variant] or [NativeVariantAbi] models obtained from Gradle are stored in the [AndroidModule]s [VariantGroup]
  *  once this method returns.
  */
 @UsedInBuildAction
 fun chooseSelectedVariants(
   controller: BuildController,
-  inputModules: List<IdeaAndroidModule>,
+  inputModules: List<AndroidModule>,
   selectedVariants: SelectedVariants,
   shouldGenerateSources: Boolean
 ) {
-  val modulesById = HashMap<String, IdeaAndroidModule>()
+  val modulesById = HashMap<String, AndroidModule>()
   val allModules = LinkedList<String>()
   val visitedModules = HashSet<String>()
 
@@ -82,7 +82,7 @@ fun chooseSelectedVariants(
 @UsedInBuildAction
 private fun selectVariantForAppOrLeaf(
   controller: BuildController,
-  androidModule: IdeaAndroidModule,
+  androidModule: AndroidModule,
   selectedVariants: SelectedVariants,
   moduleId: String,
   shouldGenerateSources: Boolean
@@ -112,8 +112,8 @@ private fun selectVariantForAppOrLeaf(
 @UsedInBuildAction
 private fun selectVariantForDependencyModules(
   controller: BuildController,
-  androidModule: IdeaAndroidModule,
-  modulesById: Map<String, IdeaAndroidModule>,
+  androidModule: AndroidModule,
+  modulesById: Map<String, AndroidModule>,
   visitedModules: MutableSet<String>,
   shouldGenerateSources: Boolean
 ) {
@@ -147,7 +147,7 @@ private fun selectVariantForDependencyModules(
 @UsedInBuildAction
 private fun syncAndAddVariant(
   controller: BuildController,
-  module: IdeaAndroidModule,
+  module: AndroidModule,
   variantName: String,
   shouldGenerateSources: Boolean
 ): Variant? = controller.findModel(module.gradleProject, Variant::class.java, ModelBuilderParameter::class.java) { parameter ->
@@ -175,7 +175,7 @@ private fun syncAndAddVariant(
 @UsedInBuildAction
 private fun syncAndAddNativeVariantAbi(
   controller: BuildController,
-  module: IdeaAndroidModule,
+  module: AndroidModule,
   variantName: String,
   selectedAbi: String?
 ): String? {
