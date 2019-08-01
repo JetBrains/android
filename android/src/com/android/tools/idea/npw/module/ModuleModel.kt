@@ -41,15 +41,17 @@ abstract class ModuleModel(
     renderTemplate(false, project)
   }
 
-  private fun renderTemplate(dryRun: Boolean, project: Project): Boolean {
+  private fun renderTemplate(dryRun: Boolean, project: Project, runFromTemplateRenderer: Boolean = false): Boolean {
+    val projectRoot = File(project.basePath!!)
     val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
     val template = templateHandle.template
     val filesToOpen = mutableListOf<File>()
 
     val context = Builder.newContext(template, project)
-      .withCommandName(message("android.wizard.module.new.module.menu.description"))
+      .withCommandName(message("android.wizard.module.new.module.header"))
       .withDryRun(dryRun)
       .withShowErrors(true)
+      .withOutputRoot(projectRoot)
       .withModuleRoot(moduleRoot)
       .withParams(templateValues)
       .intoOpenFiles(filesToOpen)
@@ -59,7 +61,10 @@ abstract class ModuleModel(
       if (it && !dryRun) {
         // calling smartInvokeLater will make sure that files are open only when the project is ready
         DumbService.getInstance(project).smartInvokeLater { openEditors(project, filesToOpen, true) }
-        projectSyncInvoker.syncProject(project) // TODO remove after moving to moduleTemplateRenderer
+         // TODO remove after moving to moduleTemplateRenderer
+        if (!runFromTemplateRenderer) {
+          projectSyncInvoker.syncProject(project)
+        }
       }
     }
   }
