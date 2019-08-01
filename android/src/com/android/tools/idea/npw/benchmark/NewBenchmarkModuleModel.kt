@@ -53,9 +53,8 @@ class NewBenchmarkModuleModel(
         templateValues[ATTR_APP_TITLE] = moduleName.get()
         templateValues[ATTR_IS_NEW_PROJECT] = false
         templateValues[ATTR_IS_LIBRARY_MODULE] = true
-        val moduleRoot = modulePaths.moduleRoot!!
-        if (doDryRun(moduleRoot)) {
-          render(moduleRoot)
+        if (doDryRun()) {
+          render()
         }
       }
     }.queue()

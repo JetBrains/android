@@ -172,7 +172,7 @@ class NewModuleModel : WizardModel {
       }
 
       // Returns false if there was a render conflict and the user chose to cancel creating the template
-      return renderModule(true, project.value, moduleName.get())
+      return renderModule(true, project.value)
     }
 
     @WorkerThread
@@ -180,7 +180,7 @@ class NewModuleModel : WizardModel {
       val project = project.value
 
       val success = WriteCommandAction.writeCommandAction(project).withName("New Module").compute<Boolean, Exception> {
-        renderModule(false, project, moduleName.get())
+        renderModule(false, project)
       }
 
       if (!success) {
@@ -188,9 +188,9 @@ class NewModuleModel : WizardModel {
       }
     }
 
-    private fun renderModule(dryRun: Boolean, project: Project, moduleName: String): Boolean {
+    private fun renderModule(dryRun: Boolean, project: Project): Boolean {
       val projectRoot = File(project.basePath!!)
-      val moduleRoot = getModuleRoot(project.basePath!!, moduleName)
+      val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
       val template = Template.createFromPath(templateFile.value)
       val filesToOpen = ArrayList<File>()
 

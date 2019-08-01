@@ -33,15 +33,16 @@ abstract class ModuleModel(
   moduleName: String
 ) : WizardModel() {
   @JvmField val moduleName = StringValueProperty(moduleName)
-  val templateValues: MutableMap<String, Any> = mutableMapOf()
+  val templateValues = mutableMapOf<String, Any>()
 
-  protected fun doDryRun(moduleRoot: File): Boolean = renderTemplate(true, project, moduleRoot)
+  protected fun doDryRun(): Boolean = renderTemplate(true, project)
 
-  protected fun render(moduleRoot: File) {
-    renderTemplate(false, project, moduleRoot)
+  protected fun render() {
+    renderTemplate(false, project)
   }
 
-  private fun renderTemplate(dryRun: Boolean, project: Project, moduleRoot: File): Boolean {
+  private fun renderTemplate(dryRun: Boolean, project: Project): Boolean {
+    val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
     val template = templateHandle.template
     val filesToOpen = mutableListOf<File>()
 
