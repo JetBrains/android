@@ -407,6 +407,8 @@ public final class TemplateValueInjector {
 
     // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
+    if (provider == null)
+      return;
     String kotlinVersion = provider.getKotlinVersion();
     myTemplateValues.put(ATTR_KOTLIN_VERSION, kotlinVersion);
     if (isEAP(kotlinVersion)) {
