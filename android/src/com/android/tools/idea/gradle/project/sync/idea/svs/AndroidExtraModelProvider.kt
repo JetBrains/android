@@ -74,7 +74,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     project: IdeaProject,
     consumer: ProjectImportExtraModelProvider.BuildModelConsumer
   ) {
-    val androidModules: MutableList<IdeaAndroidModule> = mutableListOf()
+    val androidModules: MutableList<AndroidModule> = mutableListOf()
     project.modules.forEach { module ->
       findParameterizedAndroidModel(controller, module.gradleProject, AndroidProject::class.java)?.also { androidProject ->
         consumer.consume(module, androidProject, AndroidProject::class.java)
@@ -83,7 +83,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
           consumer.consume(module, it, NativeAndroidProject::class.java)
         }
 
-        androidModules.add(IdeaAndroidModule(module, androidProject, nativeAndroidProject))
+        androidModules.add(AndroidModule(module, androidProject, nativeAndroidProject))
       }
     }
 

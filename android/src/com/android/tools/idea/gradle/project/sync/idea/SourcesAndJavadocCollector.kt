@@ -23,7 +23,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.model.sources.SourcesAndJavadocArtifactIdentifier
 import com.android.model.sources.SourcesAndJavadocArtifacts
 import com.android.model.sources.SourcesAndJavadocParameter
-import com.android.tools.idea.gradle.project.sync.idea.svs.IdeaAndroidModule
+import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.tooling.BuildController
 import org.jetbrains.plugins.gradle.model.ProjectImportExtraModelProvider
@@ -31,7 +31,7 @@ import org.jetbrains.plugins.gradle.model.ProjectImportExtraModelProvider
 @UsedInBuildAction
 fun getSourcesAndJavadocArtifacts(
   controller: BuildController,
-  inputModules: List<IdeaAndroidModule>,
+  inputModules: List<AndroidModule>,
   cachedSourcesAndJavadoc: Collection<String>,
   consumer: ProjectImportExtraModelProvider.BuildModelConsumer
 ) {
