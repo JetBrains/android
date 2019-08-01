@@ -197,10 +197,6 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     Project project = moduleModel.getProject().getValue();
     getModel().getTemplate().set(createDefaultTemplateAt(project.getBasePath(), moduleModel.getModuleName().get()));
 
-    if (moduleModel.isLibrary().get()) {
-      moduleModel.setRenderTemplateModel(myRenderModel);
-    }
-
     myInstallRequests.clear();
     myInstallLicenseRequests.clear();
 
