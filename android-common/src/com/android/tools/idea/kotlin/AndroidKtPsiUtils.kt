@@ -23,6 +23,8 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtQualifiedExpression
+import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
@@ -63,4 +65,13 @@ fun KtExpression.tryEvaluateConstant(): String? {
     ?.takeUnless { it.isError }
     ?.getValue(TypeUtils.NO_EXPECTED_TYPE)
     ?.safeAs<String>()
+}
+
+/**
+ * When given an element in a qualified chain expression (eg. activity in R.layout.activity), this finds the previous element in the chain
+ * (In this case layout).
+ */
+fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {
+  val receiverExpression = getQualifiedExpressionForSelector()?.receiverExpression
+  return (receiverExpression as? KtQualifiedExpression)?.selectorExpression ?: receiverExpression
 }

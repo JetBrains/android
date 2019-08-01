@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.android
 import com.android.SdkConstants.R_CLASS
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInsight.completion.CompletionContributor
