@@ -27,6 +27,7 @@ import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceVisibility
+import com.android.tools.idea.actions.OpenStringResourceEditorAction
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.theme.ResolutionUtils
@@ -49,6 +50,8 @@ import com.android.tools.idea.util.androidFacet
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -64,7 +67,6 @@ import java.util.function.Supplier
 import kotlin.math.pow
 import kotlin.properties.Delegates
 
-private const val NO_VALUE = "No value"
 private const val UNRESOLVED_VALUE = "Could not resolve"
 
 /**
@@ -141,6 +143,18 @@ class ResourceExplorerViewModelImpl(
     { resourceChangedCallback?.invoke() },
     { speedSearch.updatePattern(it) },
     filterInitialParams)
+
+  /** Returns actions related to the resources being displayed. These do not directly affect/interact with the [ResourceExplorerView]. */
+  override val externalActions: Collection<ActionGroup>
+    get() =
+      when (resourceTypes[resourceTypeIndex]) {
+        ResourceType.STRING -> listOf(DefaultActionGroup().apply {
+          add(object : OpenStringResourceEditorAction() {
+            override fun displayTextInToolbar() = true
+          })
+        })
+        else -> emptyList()
+      }
 
   init {
     subscribeListener(facet)
