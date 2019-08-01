@@ -143,6 +143,23 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
   }
 
   private inner class ProjectTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
+    lateinit var projectTemplate: Template
+    @WorkerThread
+    override fun init() {
+      projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME)
+      // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
+      templateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
+      templateValues[ATTR_CPP_FLAGS] = cppFlags.get()
+      templateValues[ATTR_TOP_OUT] = project.value.basePath ?: ""
+      templateValues[ATTR_KOTLIN_SUPPORT] = language.value === KOTLIN
+
+      for (newModuleModel in newModuleModels) {
+        newModuleModel.templateValues.putAll(templateValues)
+      }
+
+      TemplateValueInjector(templateValues).setProjectDefaults(project.value)
+    }
+
     @WorkerThread
     override fun doDryRun(): Boolean {
       if (project.valueOrNull == null) {
@@ -169,32 +186,14 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
     }
 
     @UiThread
-    override fun finish() {
-      performGradleImport()
-    }
+    override fun finish() = performGradleImport()
 
     private fun performCreateProject(dryRun: Boolean) {
-      val project = project.value
-
-      // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
-      templateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
-      templateValues[ATTR_CPP_FLAGS] = cppFlags.get()
-      templateValues[ATTR_TOP_OUT] = project.basePath ?: ""
-      templateValues[ATTR_KOTLIN_SUPPORT] = language.value === KOTLIN
-
-      TemplateValueInjector(templateValues).setProjectDefaults(project)
-
-      val params = templateValues.toMutableMap()
-      for (newModuleModel in newModuleModels) {
-        newModuleModel.templateValues.putAll(templateValues)
-      }
-
-      val projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME)
-      val context = RenderingContext.Builder.newContext(projectTemplate, project)
+      val context = RenderingContext.Builder.newContext(projectTemplate, project.value)
         .withCommandName("New Project")
         .withDryRun(dryRun)
         .withShowErrors(true)
-        .withParams(params)
+        .withParams(templateValues)
         .build()
 
       projectTemplate.render(context, dryRun)
