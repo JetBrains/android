@@ -33,9 +33,7 @@ import com.android.tools.idea.templates.ParameterValueResolver
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.templates.TemplateManager.CATEGORY_ACTIVITY
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
 import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -46,51 +44,34 @@ import java.util.Locale
 private val log: Logger get() = logger<NewProjectModuleModel>()
 
 class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardModel() {
-  private val newModuleModel: NewModuleModel = NewModuleModel(projectModel, File(""), createDummyTemplate())
-  @JvmField val extraRenderTemplateModel: RenderTemplateModel = RenderTemplateModel.fromModuleModel(newModuleModel, null, message("android.wizard.config.activity.title"))
   @JvmField val formFactor = ObjectValueProperty(FormFactor.MOBILE)
+  private val newModuleModel = NewModuleModel(projectModel, File(""), createDummyTemplate(), formFactor)
+  @JvmField val extraRenderTemplateModel = RenderTemplateModel.fromModuleModel(newModuleModel, null, message("android.wizard.config.activity.title"))
   @JvmField val renderTemplateHandle = OptionalValueProperty<TemplateHandle>()
   @JvmField val hasCompanionApp = BoolValueProperty()
 
-  fun androidSdkInfo(): OptionalProperty<AndroidVersionsInfo.VersionItem> {
-    return newModuleModel.androidSdkInfo
-  }
+  fun androidSdkInfo(): OptionalProperty<AndroidVersionsInfo.VersionItem> = newModuleModel.androidSdkInfo
 
-  fun moduleTemplateFile(): OptionalProperty<File> {
-    return newModuleModel.templateFile
-  }
+  fun moduleTemplateFile(): OptionalProperty<File> = newModuleModel.templateFile
 
   override fun handleFinished() {
-    projectModel.newModuleModels.clear()
-
     val hasCompanionApp = hasCompanionApp.get()
 
     initMainModule()
 
-    val projectTemplateValues = projectModel.templateValues
-    addModuleToProject(newModuleModel, formFactor.get(), projectModel, projectTemplateValues)
-
-    fun notifyModelsThatFormFactorIsIncluded(ff: FormFactor) =
-      projectModel.newModuleModels.forEach { model ->
-        model.templateValues[ff.id + ATTR_INCLUDE_FORM_FACTOR] = true
-        model.templateValues[ff.id + ATTR_MODULE_NAME] = model.moduleName.get()
-      }
+    addModuleToProject(newModuleModel, projectModel)
 
     if (hasCompanionApp) {
       val companionModuleModel = createCompanionModuleModel(projectModel)
       val companionRenderModel = createCompanionRenderModel(companionModuleModel)
-      addModuleToProject(companionModuleModel, FormFactor.MOBILE, projectModel, projectTemplateValues)
+      addModuleToProject(companionModuleModel, projectModel)
 
       companionModuleModel.androidSdkInfo.value = androidSdkInfo().value
       companionModuleModel.setRenderTemplateModel(companionRenderModel)
 
       companionModuleModel.handleFinished()
       companionRenderModel.handleFinished()
-
-      notifyModelsThatFormFactorIsIncluded(FormFactor.MOBILE)
     }
-
-    notifyModelsThatFormFactorIsIncluded(formFactor.get())
 
     val newRenderTemplateModel = createMainRenderModel()
     newModuleModel.setRenderTemplateModel(newRenderTemplateModel)
@@ -141,13 +122,9 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 private const val EMPTY_ACTIVITY = "Empty Activity"
 private const val ANDROID_MODULE = "Android Module"
 
-private fun addModuleToProject(moduleModel: NewModuleModel, formFactor: FormFactor,
-                               projectModel: NewProjectModel, projectTemplateValues: MutableMap<String, Any>) {
-  projectTemplateValues[formFactor.id + ATTR_INCLUDE_FORM_FACTOR] = true
-  projectTemplateValues[formFactor.id + ATTR_MODULE_NAME] = moduleModel.moduleName.get()
+private fun addModuleToProject(moduleModel: NewModuleModel, projectModel: NewProjectModel) {
   // TODO introduce isNewProjectField to TemplateMetadata
   moduleModel.templateValues[ATTR_KOTLIN_SUPPORT] = projectModel.language.value == Language.KOTLIN
-  projectModel.newModuleModels.add(moduleModel)
 }
 
 private fun createCompanionModuleModel(projectModel: NewProjectModel): NewModuleModel {

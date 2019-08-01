@@ -79,7 +79,6 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
   /**
    * When the project is created, it contains the list of new Module that should also be created.
    */
-  val newModuleModels = hashSetOf<NewModuleModel>()
   val multiTemplateRenderer = MultiTemplateRenderer(null, this.projectSyncInvoker)
 
   init {
@@ -152,10 +151,6 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
       templateValues[ATTR_CPP_FLAGS] = cppFlags.get()
       templateValues[ATTR_TOP_OUT] = project.value.basePath ?: ""
       templateValues[ATTR_KOTLIN_SUPPORT] = language.value === KOTLIN
-
-      for (newModuleModel in newModuleModels) {
-        newModuleModel.templateValues.putAll(templateValues)
-      }
 
       TemplateValueInjector(templateValues).setProjectDefaults(project.value)
     }
