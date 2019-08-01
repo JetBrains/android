@@ -38,7 +38,6 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.android.AndroidUtilKt;
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression;
 
 // TODO: ask for extension point
@@ -51,7 +50,7 @@ public class KotlinAndroidGotoDeclarationHandler implements GotoDeclarationHandl
       return null;
     }
 
-    AndroidFacet facet = AndroidUtilKt.getAndroidFacetForFile(referenceExpression);
+    AndroidFacet facet = AndroidFacet.getInstance(referenceExpression);
     if (facet == null) {
       return null;
     }

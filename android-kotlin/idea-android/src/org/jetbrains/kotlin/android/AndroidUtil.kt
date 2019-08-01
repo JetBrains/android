@@ -16,60 +16,19 @@
 
 package org.jetbrains.kotlin.android
 
-import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_PKG
 import com.android.SdkConstants.R_CLASS
-import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.*
-import com.android.tools.idea.res.AndroidInternalRClassFinder
-import com.android.tools.idea.res.ResourceRepositoryManager
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
-import org.jetbrains.android.dom.AndroidAttributeValue
-import org.jetbrains.android.dom.manifest.Manifest
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil
-import org.jetbrains.android.util.AndroidResourceUtil.*
-import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.APP
+import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.FRAMEWORK
+import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.NONE
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
-import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.load.java.descriptors.JavaClassDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
-import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-
-internal fun KtClass.findComponentDeclarationInManifest(manifest: Manifest): AndroidAttributeValue<PsiClass>? {
-    val application = manifest.application ?: return null
-    val type = (unsafeResolveToDescriptor(BodyResolveMode.PARTIAL) as? ClassDescriptor)?.defaultType ?: return null
-
-    return when {
-        type.isSubclassOf(AndroidUtils.ACTIVITY_BASE_CLASS_NAME) ->
-            application.activities?.find { it.activityClass.value?.qualifiedName == fqName?.asString() }?.activityClass
-        type.isSubclassOf(AndroidUtils.SERVICE_CLASS_NAME) ->
-            application.services?.find { it.serviceClass.value?.qualifiedName == fqName?.asString() }?.serviceClass
-        type.isSubclassOf(AndroidUtils.RECEIVER_CLASS_NAME) ->
-            application.receivers?.find { it.receiverClass.value?.qualifiedName == fqName?.asString() }?.receiverClass
-        type.isSubclassOf(AndroidUtils.PROVIDER_CLASS_NAME) ->
-            application.providers?.find { it.providerClass.value?.qualifiedName == fqName?.asString() }?.providerClass
-        else -> null
-    }
-}
-
-internal fun PsiElement.getAndroidFacetForFile(): AndroidFacet? {
-    val file = containingFile ?: return null
-    return AndroidFacet.getInstance(file)
-}
 
 internal fun JavaPropertyDescriptor.getAndroidResourceType(): ResourceType? {
     if (getResourceReferenceType() == NONE) {
@@ -94,53 +53,4 @@ internal fun JavaPropertyDescriptor.getResourceReferenceType(): AndroidPsiUtils.
     }
 
     return NONE
-}
-
-internal fun getReferredResourceOrManifestField(facet: AndroidFacet, expression: KtSimpleNameExpression, localOnly: Boolean)
-        = getReferredResourceOrManifestField(facet, expression, null, localOnly)
-
-internal fun getReferredResourceOrManifestField(facet: AndroidFacet, expression: KtSimpleNameExpression,
-                                       className: String?, localOnly: Boolean): AndroidResourceUtil.MyReferredResourceFieldInfo? {
-    val resFieldName = expression.getReferencedName()
-    val resClassReference = expression.getPreviousInQualifiedChain() as? KtSimpleNameExpression ?: return null
-    val resClassName = resClassReference.getReferencedName()
-
-    if (resClassName.isEmpty() || className != null && className != resClassName) {
-        return null
-    }
-
-    val rClassReference = resClassReference.getPreviousInQualifiedChain() as? KtSimpleNameExpression ?: return null
-    val resolvedClass = rClassReference.mainReference.resolve() as? PsiClass ?: return null
-
-    val rClassShortName = resolvedClass.name
-    val fromManifest = AndroidUtils.MANIFEST_CLASS_NAME == rClassShortName
-
-    if (!fromManifest && AndroidUtils.R_CLASS_NAME != rClassShortName) {
-        return null
-    }
-
-    val qName = resolvedClass.qualifiedName
-    if (!localOnly) {
-
-        if (SdkConstants.CLASS_R == qName || AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME == qName) {
-            return MyReferredResourceFieldInfo(resClassName, resFieldName, facet.module, ResourceNamespace.ANDROID, false)
-        }
-    }
-
-    if (if (fromManifest) !isManifestClass(resolvedClass) else !isRJavaClass(resolvedClass)) {
-        return null
-    }
-
-    return MyReferredResourceFieldInfo(
-      resClassName,
-      resFieldName,
-      facet.module,
-      AndroidResourceUtil.getRClassNamespace(facet, qName),
-      false
-    )
-}
-
-internal fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {
-    val receiverExpression = getQualifiedExpressionForSelector()?.receiverExpression
-    return (receiverExpression as? KtQualifiedExpression)?.selectorExpression ?: receiverExpression
 }
