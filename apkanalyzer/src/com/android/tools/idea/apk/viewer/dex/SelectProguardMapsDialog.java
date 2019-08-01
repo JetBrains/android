@@ -15,26 +15,27 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.annotations.NonNull;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.apk.analyzer.internal.ProguardMappingFiles;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
+
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SelectProguardMapsDialog {
   private final Project myProject;
-  private final VirtualFile myApkFolder;
+  @Nullable private final VirtualFile myApkFolder;
 
   private ProguardMappingFiles myMappingFiles;
 
-  public SelectProguardMapsDialog(@NonNull Project project, @NonNull VirtualFile apkFolder) {
+  public SelectProguardMapsDialog(@NotNull Project project, @Nullable VirtualFile apkFolder) {
     myProject = project;
     myApkFolder = apkFolder;
   }
@@ -48,7 +49,7 @@ public class SelectProguardMapsDialog {
                                     || file.getName().contains("seeds")
                                     || file.getName().contains("usage")));
 
-    VirtualFile[] files = FileChooser.chooseFiles(desc, myProject, getDefaultFolderToSelect(myApkFolder));
+    VirtualFile[] files = FileChooser.chooseFiles(desc, myProject, myApkFolder != null ? getDefaultFolderToSelect(myApkFolder): null);
     if (files.length == 0) { // user canceled
       return false;
     }
@@ -64,7 +65,7 @@ public class SelectProguardMapsDialog {
   }
 
   @VisibleForTesting
-  static VirtualFile getDefaultFolderToSelect(VirtualFile apkFolder) {
+  static VirtualFile getDefaultFolderToSelect(@NotNull VirtualFile apkFolder) {
     // typically, gradle projects have the following structure
     //   |--build/outputs
     //   |----apk/release/release.apk
@@ -108,7 +109,7 @@ public class SelectProguardMapsDialog {
     return folderToSelect;
   }
 
-  @NonNull
+  @NotNull
   public ProguardMappingFiles getMappingFiles() {
     return myMappingFiles;
   }

@@ -15,7 +15,10 @@
  */
 package org.jetbrains.android.fileTypes;
 
+import com.android.tools.idea.apk.AarFileType;
 import com.android.tools.idea.apk.ApkFileType;
+import com.android.tools.idea.apk.BundleFileType;
+import com.android.tools.idea.apk.DexFileType;
 import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.fileTypes.AndroidNinePatchFileType;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
@@ -38,6 +41,9 @@ public class AndroidFileTypeFactory extends FileTypeFactory {
     WebpMetadata.ensureWebpRegistered();
     consumer.consume(ImageFileTypeManager.getInstance().getImageFileType(), WebpMetadata.EXT_WEBP);
     consumer.consume(ApkFileType.INSTANCE, ApkFileType.INSTANCE.getDefaultExtension());
+    consumer.consume(DexFileType.INSTANCE, DexFileType.INSTANCE.getDefaultExtension());
+    consumer.consume(AarFileType.INSTANCE, AarFileType.INSTANCE.getDefaultExtension());
+    consumer.consume(BundleFileType.INSTANCE, BundleFileType.INSTANCE.getDefaultExtension());
     consumer.consume(FontFileType.INSTANCE, FontFileType.fileNameMatchers());
   }
 }
