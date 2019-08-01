@@ -369,7 +369,7 @@ fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguration) {
       head("MergedCompilerArguments") { null }
       dump(mergedCompilerArguments)
     }
-    prop("Platform") { platform?.toString() }
+    prop("Platform") { targetPlatform?.toString() }
     prop("ProductionOutputPath") { productionOutputPath }
     sourceSetNames.forEach { prop("- SourceSetName") { it } }
     prop("TestOutputPath") { testOutputPath }

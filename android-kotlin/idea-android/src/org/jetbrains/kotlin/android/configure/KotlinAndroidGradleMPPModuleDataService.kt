@@ -74,7 +74,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             for (sourceSetInfo in kotlinAndroidSourceSets) {
                 val compilation = sourceSetInfo.kotlinModule as? KotlinCompilation ?: continue
                 for (sourceSet in compilation.sourceSets) {
-                    if (sourceSet.platform == KotlinPlatform.ANDROID) {
+                    if (sourceSet.actualPlatforms.supports(KotlinPlatform.ANDROID)) {
                         val sourceType = if (sourceSet.isTestModule) JavaSourceRootType.TEST_SOURCE else JavaSourceRootType.SOURCE
                         val resourceType = if (sourceSet.isTestModule) JavaResourceRootType.TEST_RESOURCE else JavaResourceRootType.RESOURCE
                         sourceSet.sourceDirs.forEach { addSourceRoot(it, sourceType, rootModel, shouldCreateEmptySourceRoots) }
@@ -95,7 +95,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             for (activeSourceSetInfo in activeSourceSetInfos) {
                 val activeCompilation = activeSourceSetInfo.kotlinModule as? KotlinCompilation ?: continue
                 for (sourceSet in activeCompilation.sourceSets) {
-                    if (sourceSet.platform != KotlinPlatform.ANDROID) {
+                    if (! sourceSet.actualPlatforms.supports(KotlinPlatform.ANDROID)) {
                         val sourceSetId = activeSourceSetInfo.sourceSetIdsByName[sourceSet.name] ?: continue
                         val sourceSetNode = ExternalSystemApiUtil.findFirstRecursively(projectNode) {
                             (it.data as? ModuleData)?.id == sourceSetId
@@ -158,11 +158,11 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
     }
 
     private fun List<DataNode<GradleSourceSetData>>.firstByPlatformOrNull(platform: KotlinPlatform) = firstOrNull {
-        it.kotlinSourceSet?.platform == platform
+        it.kotlinSourceSet?.actualPlatforms?.supports(platform) ?: false
     }
 
     private fun List<DataNode<GradleSourceSetData>>.filterByPlatform(platform: KotlinPlatform) = this.filter {
-        it.kotlinSourceSet?.platform == platform
+        it.kotlinSourceSet?.actualPlatforms?.supports(platform) ?: false
     }
 
     private fun addExtraDependeeModules(
@@ -192,7 +192,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
                     )
                     addIfNotNull(
                         relevantNodes.firstOrNull {
-                            it.kotlinSourceSet?.platform == KotlinPlatform.COMMON && it.kotlinSourceSet?.kotlinModule?.name == commonSourceSetName
+                            (it.kotlinSourceSet?.actualPlatforms?.supports(KotlinPlatform.COMMON) ?: false) && it.kotlinSourceSet?.kotlinModule?.name == commonSourceSetName
                         }
                     )
                 } else {
@@ -204,7 +204,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
                     }
                     addAll(
                         relevantNodes.filter {
-                            it.kotlinSourceSet?.platform == KotlinPlatform.COMMON && it.kotlinSourceSet?.kotlinModule?.name == commonSourceSetName
+                            (it.kotlinSourceSet?.actualPlatforms?.supports(KotlinPlatform.COMMON) ?: false) && it.kotlinSourceSet?.kotlinModule?.name == commonSourceSetName
                         }
                     )
                 }
