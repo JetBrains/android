@@ -64,6 +64,7 @@ public class TemplateMetadata {
   public static final String ATTR_MIN_API_LEVEL = "minApiLevel";
   public static final String ATTR_PACKAGE_NAME = "packageName";
   public static final String ATTR_APP_TITLE = "appTitle";
+  // TODO(qumeric): rename it to isNewModule and introduce isNewProject
   public static final String ATTR_IS_NEW_PROJECT = "isNewProject";
   public static final String ATTR_THEME_EXISTS = "themeExists";
   public static final String ATTR_TOP_OUT = "topOut";

@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.cre
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -33,7 +32,6 @@ import com.android.tools.idea.templates.ParameterValueResolver
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.templates.TemplateManager.CATEGORY_ACTIVITY
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT
 import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -55,16 +53,11 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
   fun moduleTemplateFile(): OptionalProperty<File> = newModuleModel.templateFile
 
   override fun handleFinished() {
-    val hasCompanionApp = hasCompanionApp.get()
-
     initMainModule()
 
-    addModuleToProject(newModuleModel, projectModel)
-
-    if (hasCompanionApp) {
+    if (hasCompanionApp.get()) {
       val companionModuleModel = createCompanionModuleModel(projectModel)
       val companionRenderModel = createCompanionRenderModel(companionModuleModel)
-      addModuleToProject(companionModuleModel, projectModel)
 
       companionModuleModel.androidSdkInfo.value = androidSdkInfo().value
 
@@ -119,11 +112,6 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
 private const val EMPTY_ACTIVITY = "Empty Activity"
 private const val ANDROID_MODULE = "Android Module"
-
-private fun addModuleToProject(moduleModel: NewModuleModel, projectModel: NewProjectModel) {
-  // TODO introduce isNewProjectField to TemplateMetadata
-  moduleModel.templateValues[ATTR_KOTLIN_SUPPORT] = projectModel.language.value == Language.KOTLIN
-}
 
 private fun createCompanionModuleModel(projectModel: NewProjectModel): NewModuleModel {
   // Note: The companion Module is always a Mobile app
