@@ -42,11 +42,18 @@ import java.util.Locale
 private val log: Logger get() = logger<NewProjectModuleModel>()
 
 class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardModel() {
-  @JvmField val formFactor = ObjectValueProperty(FormFactor.MOBILE)
+  @JvmField
+  val formFactor = ObjectValueProperty(FormFactor.MOBILE)
   private val newModuleModel = NewModuleModel(projectModel, File(""), createDummyTemplate(), formFactor)
-  @JvmField val extraRenderTemplateModel = RenderTemplateModel.fromModuleModel(newModuleModel, null, message("android.wizard.config.activity.title"))
-  @JvmField val renderTemplateHandle = OptionalValueProperty<TemplateHandle>()
-  @JvmField val hasCompanionApp = BoolValueProperty()
+  /**
+   * A model which is used at the optional step after usual activity configuring. Currently only used for Android Things.
+   */
+  @JvmField
+  val extraRenderTemplateModel = RenderTemplateModel.fromModuleModel(newModuleModel, null, message("android.wizard.config.activity.title"))
+  @JvmField
+  val renderTemplateHandle = OptionalValueProperty<TemplateHandle>()
+  @JvmField
+  val hasCompanionApp = BoolValueProperty()
 
   fun androidSdkInfo(): OptionalProperty<AndroidVersionsInfo.VersionItem> = newModuleModel.androidSdkInfo
 
@@ -67,19 +74,18 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
     val newRenderTemplateModel = createMainRenderModel()
 
-    val hasActivity = newRenderTemplateModel.templateHandle != null
-    if (hasActivity && newRenderTemplateModel != extraRenderTemplateModel) { // Extra render is driven by the Wizard itself
-      addRenderDefaultTemplateValues(newRenderTemplateModel)
+    newModuleModel.handleFinished()
+
+    if (newRenderTemplateModel == extraRenderTemplateModel) {
+      return // Extra render is driven by the Wizard itself
     }
 
-    newModuleModel.handleFinished()
-    if (newRenderTemplateModel != extraRenderTemplateModel) { // Extra render is driven by the Wizard itself
-      if (hasActivity) {
-        newRenderTemplateModel.handleFinished()
-      }
-      else {
-        newRenderTemplateModel.handleSkipped() // "No Activity" selected
-      }
+    if (newRenderTemplateModel.templateHandle != null) {
+      addRenderDefaultTemplateValues(newRenderTemplateModel)
+      newRenderTemplateModel.handleFinished()
+    }
+    else {
+      newRenderTemplateModel.handleSkipped() // "No Activity" selected
     }
   }
 
@@ -95,18 +101,11 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
     newModuleModel.template.set(createDefaultTemplateAt(projectLocation, moduleName))
   }
 
-  private fun createMainRenderModel(): RenderTemplateModel {
-    val newRenderTemplateModel: RenderTemplateModel
-    when {
-      projectModel.enableCppSupport.get() -> newRenderTemplateModel = createCompanionRenderModel(newModuleModel)
-      extraRenderTemplateModel.templateHandle == null -> {
-        newRenderTemplateModel = RenderTemplateModel.fromModuleModel(newModuleModel, null, "")
-        newRenderTemplateModel.templateHandle = renderTemplateHandle.valueOrNull
-      }
-      else -> // Extra Render is visible. Use it.
-        newRenderTemplateModel = extraRenderTemplateModel
-    }
-    return newRenderTemplateModel
+  private fun createMainRenderModel(): RenderTemplateModel = when {
+    projectModel.enableCppSupport.get() -> createCompanionRenderModel(newModuleModel)
+    extraRenderTemplateModel.templateHandle == null ->
+      RenderTemplateModel.fromModuleModel(newModuleModel, renderTemplateHandle.valueOrNull)
+    else -> extraRenderTemplateModel // Extra Render is visible. Use it.
   }
 }
 
@@ -129,7 +128,7 @@ private fun createCompanionRenderModel(moduleModel: NewModuleModel): RenderTempl
   val renderTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_ACTIVITY, EMPTY_ACTIVITY)
   val renderTemplateHandle = TemplateHandle(renderTemplateFile!!)
 
-  val companionRenderModel = RenderTemplateModel.fromModuleModel(moduleModel, renderTemplateHandle, "")
+  val companionRenderModel = RenderTemplateModel.fromModuleModel(moduleModel, renderTemplateHandle)
   addRenderDefaultTemplateValues(companionRenderModel)
 
   return companionRenderModel
