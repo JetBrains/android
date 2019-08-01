@@ -20,30 +20,27 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.templates.TemplateMetadata
 import com.intellij.openapi.project.Project
 
 class NewJavaModuleModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel(project, templateHandle, projectSyncInvoker) {
-  @JvmField val libraryName: StringProperty = StringValueProperty("lib")
-  @JvmField val packageName: StringProperty = StringValueProperty()
-  @JvmField val className: StringProperty = StringValueProperty("MyClass")
+) : ModuleModel(project, templateHandle, projectSyncInvoker, "lib") {
+  @JvmField val packageName = StringValueProperty()
+  @JvmField val className = StringValueProperty("MyClass")
 
   override fun handleFinished() {
-    val modulePaths = createDefaultTemplateAt(project.basePath!!, libraryName.get()).paths
-    val templateValues = mutableMapOf<String, Any>()
+    val modulePaths = createDefaultTemplateAt(project.basePath!!, moduleName.get()).paths
     TemplateValueInjector(templateValues)
-      .setModuleRoots(modulePaths, project.basePath!!, libraryName.get(), packageName.get())
+      .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
       .setJavaVersion(project)
     templateValues[TemplateMetadata.ATTR_CLASS_NAME] = className.get()
     templateValues[TemplateMetadata.ATTR_IS_NEW_PROJECT] = true
     templateValues[TemplateMetadata.ATTR_IS_LIBRARY_MODULE] = true
     val moduleRoot = modulePaths.moduleRoot!!
-    if (doDryRun(moduleRoot, templateValues)) {
-      render(moduleRoot, templateValues)
+    if (doDryRun(moduleRoot)) {
+      render(moduleRoot)
     }
   }
 }

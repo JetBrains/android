@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module
 
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.template.TemplateHandle
+import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.templates.TemplateUtils.openEditors
 import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.wizard.model.WizardModel
@@ -28,25 +29,21 @@ import java.io.File
 abstract class ModuleModel(
   val project: Project,
   val templateHandle: TemplateHandle,
-  private val projectSyncInvoker: ProjectSyncInvoker
+  private val projectSyncInvoker: ProjectSyncInvoker,
+  moduleName: String
 ) : WizardModel() {
-  protected fun doDryRun(moduleRoot: File, templateValues: Map<String, Any>): Boolean =
-    renderTemplate(true, project, moduleRoot, templateValues, null)
+  @JvmField val moduleName = StringValueProperty(moduleName)
+  val templateValues: MutableMap<String, Any> = mutableMapOf()
 
-  protected fun render(moduleRoot: File, templateValues: Map<String, Any>) {
-    val filesToOpen = mutableListOf<File>()
-    val success = renderTemplate(false, project, moduleRoot, templateValues, filesToOpen)
-    if (success) {
-      // calling smartInvokeLater will make sure that files are open only when the project is ready
-      DumbService.getInstance(project).smartInvokeLater { openEditors(project, filesToOpen, true) }
-      projectSyncInvoker.syncProject(project)
-    }
+  protected fun doDryRun(moduleRoot: File): Boolean = renderTemplate(true, project, moduleRoot)
+
+  protected fun render(moduleRoot: File) {
+    renderTemplate(false, project, moduleRoot)
   }
 
-  private fun renderTemplate(
-    dryRun: Boolean, project: Project, moduleRoot: File, templateValues: Map<String, Any>, filesToOpen: MutableList<File>?
-  ): Boolean {
+  private fun renderTemplate(dryRun: Boolean, project: Project, moduleRoot: File): Boolean {
     val template = templateHandle.template
+    val filesToOpen = mutableListOf<File>()
 
     val context = Builder.newContext(template, project)
       .withCommandName(message("android.wizard.module.new.module.menu.description"))
@@ -57,7 +54,13 @@ abstract class ModuleModel(
       .intoOpenFiles(filesToOpen)
       .build()
 
-    return template.render(context!!, dryRun)
+    return template.render(context!!, dryRun).also {
+      if (it && !dryRun) {
+        // calling smartInvokeLater will make sure that files are open only when the project is ready
+        DumbService.getInstance(project).smartInvokeLater { openEditors(project, filesToOpen, true) }
+        projectSyncInvoker.syncProject(project) // TODO remove after moving to moduleTemplateRenderer
+      }
+    }
   }
 }
 
