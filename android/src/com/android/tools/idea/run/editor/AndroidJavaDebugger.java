@@ -103,17 +103,16 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
                                                    @NotNull Set<String> applicationIds,
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull AndroidDebuggerState state,
-                                                   @NotNull String runConfigTypeId,
-                                                   boolean monitorRemoteProcess) {
+                                                   @NotNull String runConfigTypeId) {
     TestOptions.Execution executionType = Optional.ofNullable(AndroidModuleModel.get(facet))
       .map(AndroidModuleModel::getTestExecutionStrategy)
       .orElse(TestOptions.Execution.HOST);
     switch(executionType) {
       case ANDROID_TEST_ORCHESTRATOR:
       case ANDROIDX_TEST_ORCHESTRATOR:
-        return new ReattachingDebugConnectorTask(applicationIds, this, env.getProject(), monitorRemoteProcess);
+        return new ReattachingDebugConnectorTask(applicationIds, this, env.getProject());
       default:
-        return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess,
+        return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject(),
                                            facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
     }
   }
