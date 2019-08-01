@@ -30,6 +30,21 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
+    stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
+    updateComponents();
+  }
+
+  private void updateComponents() {
+    getComponent().removeAll();
+    if (getStage().getState() == CpuCaptureStage.State.PARSING) {
+      getComponent().add(new StatusPanel(getStage().getCaptureHandler(), "Parsing", "Abort"));
+    } else {
+      getComponent().add(createAnalyzingComponents());
+    }
+  }
+
+  private JComponent createAnalyzingComponents() {
+    return new JPanel();
   }
 
   @Override

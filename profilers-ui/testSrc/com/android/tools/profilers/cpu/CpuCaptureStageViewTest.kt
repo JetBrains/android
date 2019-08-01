@@ -25,9 +25,11 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.plugins.PluginNode
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 
 class CpuCaptureStageViewTest {
   private val cpuService = FakeCpuService()
@@ -38,7 +40,6 @@ class CpuCaptureStageViewTest {
   val grpcChannel = FakeGrpcChannel("FramesTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer))
   private lateinit var stage: CpuCaptureStage
   private lateinit var profilersView: StudioProfilersView
-  private lateinit var captureView: CpuCaptureStageView
 
   @Before
   fun setUp() {
@@ -46,14 +47,25 @@ class CpuCaptureStageViewTest {
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    stage = CpuCaptureStage(profilers,  0L)
-    stage.studioProfilers.stage = stage
-    captureView = profilersView.stageView as CpuCaptureStageView
-
+    stage = CpuCaptureStage.create(profilers, "", File(CpuProfilerUITestUtils.VALID_TRACE_PATH))
   }
 
   @Test
   fun validateCaptureStageSetsCaptureView() {
+    stage.studioProfilers.stage = stage
     assertThat(profilersView.stageView).isInstanceOf(CpuCaptureStageView::class.java)
+  }
+
+  @Test
+  fun statusPanelShowingWhenParsing() {
+    val stageView = CpuCaptureStageView(profilersView, stage)
+    assertThat(stageView.component.getComponent(0)).isInstanceOf(StatusPanel::class.java)
+  }
+
+  @Test
+  fun statusPanelIsRemovedWhenNotParsing() {
+    val stageView = CpuCaptureStageView(profilersView, stage)
+    stage.enter()
+    assertThat(stageView.component.getComponent(0)).isNotInstanceOf(StatusPanel::class.java)
   }
 }

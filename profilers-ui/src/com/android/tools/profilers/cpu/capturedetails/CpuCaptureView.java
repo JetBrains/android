@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.*;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -105,31 +105,25 @@ public class CpuCaptureView {
    * A {@link StatusPane} representing the {@link CpuProfilerStage.CaptureState#CAPTURING} state.
    */
   @VisibleForTesting
-  static class RecordingPane extends StatusPane {
-    /**
-     * {@link JButton} used to stop recording.
-     */
-    private JButton myStopRecordingButton;
+  static class RecordingPane extends CapturePane {
 
-    public RecordingPane(@NotNull CpuProfilerStageView stageView) {
-      super(stageView, "Recording");
+    private final StatusPanel myPanel;
+    private final AspectObserver myObserver = new AspectObserver();
+
+    RecordingPane(@NotNull CpuProfilerStageView stageView) {
+      super(stageView);
+      myPanel = new StatusPanel(new CpuCaptureViewStatusModel(stageView.getStage()), "Recording", CpuProfilerToolbar.STOP_TEXT);
+      myPanel.setAbortButtonEnabled(!stageView.getStage().isApiInitiatedTracingInProgress());
       // Disable the stop recording button on state transition.
-      myStage.getAspect().addDependency(myObserver)
-        .onChange(CpuProfilerAspect.CAPTURE_STATE, () -> myStopRecordingButton.setEnabled(false));
+      stageView.getStage().getAspect().addDependency(myObserver)
+        .onChange(CpuProfilerAspect.CAPTURE_STATE, () -> myPanel.setAbortButtonEnabled(false));
+      disableInteraction();
+      updateView();
     }
 
     @Override
-    protected JButton createAbortButton() {
-      myStopRecordingButton = new JButton(CpuProfilerToolbar.STOP_TEXT);
-      myStopRecordingButton.addActionListener((event) -> myStage.toggleCapturing());
-      myStopRecordingButton.setEnabled(!myStage.isApiInitiatedTracingInProgress());
-      return myStopRecordingButton;
-    }
-
-    @NotNull
-    @Override
-    protected String getDurationText() {
-      return TimeFormatter.getMultiUnitDurationString(myStage.getCaptureElapsedTimeUs());
+    void populateContent(@NotNull JPanel panel) {
+      panel.add(myPanel, BorderLayout.CENTER);
     }
   }
 
@@ -137,29 +131,68 @@ public class CpuCaptureView {
    * A {@link StatusPane} representing the {@link CpuCaptureParser#isParsing()} state.
    */
   @VisibleForTesting
-  static class ParsingPane extends StatusPane {
-
+  static class ParsingPane extends CapturePane {
     static final String ABORT_BUTTON_TEXT = "Abort";
 
-    public ParsingPane(@NotNull CpuProfilerStageView stageView) {
-      super(stageView, "Parsing");
+    ParsingPane(@NotNull CpuProfilerStageView stageView) {
+      super(stageView);
+      disableInteraction();
+      updateView();
+    }
+
+    @Override
+    void populateContent(@NotNull JPanel panel) {
+      panel.add(new StatusPanel(new CpuParsingViewStatusModel(myStageView.getStage()), "Parsing", ABORT_BUTTON_TEXT), BorderLayout.CENTER);
+    }
+  }
+
+  static class CpuParsingViewStatusModel extends CpuCaptureViewStatusModel {
+    CpuParsingViewStatusModel(CpuProfilerStage stage) {
+      super(stage);
+    }
+
+    @Override
+    public void abort() {
+      myStage.getCaptureParser().abortParsing();
+      myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
+    }
+
+    @Override
+    protected void updateDuration() {
+      myRange.setMax(TimeUnit.MILLISECONDS.toNanos(myStage.getCaptureParser().getParsingElapsedTimeMs()));
+    }
+  }
+
+  static class CpuCaptureViewStatusModel implements StatusPanelModel {
+    protected Range myRange = new Range(0, 0);
+    protected CpuProfilerStage myStage;
+    private AspectObserver myObserver = new AspectObserver();
+
+    CpuCaptureViewStatusModel(CpuProfilerStage stage) {
+      myStage = stage;
+      myStage.getAspect().addDependency(myObserver)
+        .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateDuration);
     }
 
     @NotNull
     @Override
-    protected String getDurationText() {
-      return TimeFormatter.getMultiUnitDurationString(TimeUnit.MILLISECONDS.toMicros(myStage.getCaptureParser().getParsingElapsedTimeMs()));
+    public String getConfigurationText() {
+      return ProfilingTechnology.fromConfig(myStage.getProfilerConfigModel().getProfilingConfiguration()).getName();
+    }
+
+    @NotNull
+    @Override
+    public Range getRange() {
+      return myRange;
     }
 
     @Override
-    protected JButton createAbortButton() {
-      JButton abortButton = new JButton(ABORT_BUTTON_TEXT);
-      abortButton.addActionListener((event) -> {
-        myStage.getCaptureParser().abortParsing();
-        myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
-        abortButton.setEnabled(false);
-      });
-      return abortButton;
+    public void abort() {
+      myStage.toggleCapturing();
+    }
+
+    protected void updateDuration() {
+      myRange.setMax(TimeUnit.MICROSECONDS.toNanos(myStage.getCaptureElapsedTimeUs()));
     }
   }
 }
