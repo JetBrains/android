@@ -46,7 +46,6 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
   @NotNull protected final Set<String> myApplicationIds;
   @NotNull protected final AndroidDebugger myDebugger;
   @NotNull protected final Project myProject;
-  protected final boolean myMonitorRemoteProcess;
   protected final boolean myAttachToRunningProcess;
 
   protected ConnectDebuggerTask(@NotNull Set<String> applicationIds,
@@ -64,7 +63,6 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
     myApplicationIds = applicationIds;
     myDebugger = debugger;
     myProject = project;
-    myMonitorRemoteProcess = monitorRemoteProcess;
     myAttachToRunningProcess = attachToRunningProcess;
   }
 
