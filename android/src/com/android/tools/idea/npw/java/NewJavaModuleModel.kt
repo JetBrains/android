@@ -38,9 +38,8 @@ class NewJavaModuleModel(
     templateValues[TemplateMetadata.ATTR_CLASS_NAME] = className.get()
     templateValues[TemplateMetadata.ATTR_IS_NEW_PROJECT] = true
     templateValues[TemplateMetadata.ATTR_IS_LIBRARY_MODULE] = true
-    val moduleRoot = modulePaths.moduleRoot!!
-    if (doDryRun(moduleRoot)) {
-      render(moduleRoot)
+    if (doDryRun()) {
+      render()
     }
   }
 }
