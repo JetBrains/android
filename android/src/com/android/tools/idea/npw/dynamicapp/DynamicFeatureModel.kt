@@ -85,9 +85,8 @@ class DynamicFeatureModel(
           it[ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY] = downloadInstallKind.value == DownloadInstallKind.ON_DEMAND_ONLY
           it[ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST] = deviceFeatures
         }
-        val moduleRoot = modulePaths.moduleRoot!!
-        if (doDryRun(moduleRoot)) {
-          render(moduleRoot)
+        if (doDryRun()) {
+          render()
         }
       }
     }.queue()
