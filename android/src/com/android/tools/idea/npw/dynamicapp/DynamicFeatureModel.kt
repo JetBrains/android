@@ -24,11 +24,8 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.collections.ObservableList
-import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
-import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
-import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_FUSING
@@ -51,28 +48,23 @@ import org.jetbrains.android.util.AndroidBundle.message
 
 class DynamicFeatureModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker, isInstant: Boolean
-) : ModuleModel(project, templateHandle, projectSyncInvoker) {
-  @JvmField val moduleName: StringProperty = StringValueProperty("dynamicfeature")
-  @JvmField val featureTitle: StringProperty = StringValueProperty("Module Title")
-  @JvmField val packageName: StringProperty = StringValueProperty()
-  @JvmField val androidSdkInfo: OptionalProperty<VersionItem> = OptionalValueProperty()
-  @JvmField val baseApplication: OptionalProperty<Module> = OptionalValueProperty()
-  @JvmField val featureOnDemand: BoolProperty = BoolValueProperty(true)
-  @JvmField val featureFusing: BoolProperty = BoolValueProperty(true)
-  @JvmField val instantModule: BoolProperty = BoolValueProperty(false)
+) : ModuleModel(project, templateHandle, projectSyncInvoker, "dynamicfeature") {
+  @JvmField val featureTitle = StringValueProperty("Module Title")
+  @JvmField val packageName = StringValueProperty()
+  @JvmField val androidSdkInfo = OptionalValueProperty<VersionItem>()
+  @JvmField val baseApplication = OptionalValueProperty<Module>()
+  @JvmField val featureOnDemand = BoolValueProperty(true)
+  @JvmField val featureFusing = BoolValueProperty(true)
+  @JvmField val instantModule = BoolValueProperty(false)
   @JvmField val deviceFeatures = ObservableList<DeviceFeatureModel>()
-  @JvmField val downloadInstallKind: OptionalProperty<DownloadInstallKind> =
-    if (isInstant)
-      OptionalValueProperty(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME)
-    else
-      OptionalValueProperty(DownloadInstallKind.ON_DEMAND_ONLY)
+  @JvmField val downloadInstallKind =
+    OptionalValueProperty(if (isInstant) DownloadInstallKind.INCLUDE_AT_INSTALL_TIME else DownloadInstallKind.ON_DEMAND_ONLY)
 
   override fun handleFinished() {
     object : Modal(project, message(
       "android.compile.messages.generating.r.java.content.name"), false) {
       override fun run(indicator: ProgressIndicator) {
         val modulePaths = createDefaultTemplateAt(myProject.basePath!!, moduleName.get()).paths
-        val templateValues = mutableMapOf<String, Any>()
         TemplateValueInjector(templateValues)
           .setModuleRoots(modulePaths, myProject.basePath!!, moduleName.get(), packageName.get())
           .setBuildVersion(androidSdkInfo.value, myProject).setBaseFeature(baseApplication.value)
@@ -94,8 +86,8 @@ class DynamicFeatureModel(
           it[ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST] = deviceFeatures
         }
         val moduleRoot = modulePaths.moduleRoot!!
-        if (doDryRun(moduleRoot, templateValues)) {
-          render(moduleRoot, templateValues)
+        if (doDryRun(moduleRoot)) {
+          render(moduleRoot)
         }
       }
     }.queue()

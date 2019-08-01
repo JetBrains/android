@@ -204,13 +204,12 @@ class NewModuleModel : WizardModel {
         .withParams(templateValues)
         .build()
 
-      val renderResult = template.render(context, dryRun)
-      if (renderResult && !dryRun) {
-        // calling smartInvokeLater will make sure that files are open only when the project is ready
-        DumbService.getInstance(project).smartInvokeLater { TemplateUtils.openEditors(project, filesToOpen, false) }
+      return template.render(context, dryRun).also {
+        if (it && !dryRun) {
+          // calling smartInvokeLater will make sure that files are open only when the project is ready
+          DumbService.getInstance(project).smartInvokeLater { TemplateUtils.openEditors(project, filesToOpen, false) }
+        }
       }
-
-      return renderResult
     }
   }
 
