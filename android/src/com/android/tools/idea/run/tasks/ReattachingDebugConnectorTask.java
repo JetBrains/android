@@ -60,9 +60,8 @@ public class ReattachingDebugConnectorTask extends ConnectJavaDebuggerTask {
 
   public ReattachingDebugConnectorTask(@NotNull Set<String> applicationIds,
                                        @NotNull AndroidDebugger debugger,
-                                       @NotNull Project project,
-                                       boolean monitorRemoteProcess) {
-    super(applicationIds, debugger, project, monitorRemoteProcess, false);
+                                       @NotNull Project project) {
+    super(applicationIds, debugger, project, false);
   }
 
   @Nullable
@@ -93,7 +92,7 @@ public class ReattachingDebugConnectorTask extends ConnectJavaDebuggerTask {
   @NotNull
   @Override
   public ProcessHandler createDebugProcessHandler(@NotNull ProcessHandlerLaunchStatus launchStatus) {
-    AndroidRemoteDebugProcessHandler newHandler = new AndroidRemoteDebugProcessHandler(myProject, myMonitorRemoteProcess);
+    AndroidRemoteDebugProcessHandler newHandler = new AndroidRemoteDebugProcessHandler(myProject);
     newHandler.addProcessListener(new ProcessAdapter() {
       @Override
       public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {

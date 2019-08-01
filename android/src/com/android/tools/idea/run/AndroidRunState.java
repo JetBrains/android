@@ -170,7 +170,6 @@ public class AndroidRunState implements RunProfileState {
 
       processHandler = new AndroidProcessHandler.Builder(myEnv.getProject())
         .setApplicationId(applicationId)
-        .monitorRemoteProcesses(myLaunchTasksProvider.monitorRemoteProcess())
         .build();
       console = attachConsole(processHandler, executor);
     }
