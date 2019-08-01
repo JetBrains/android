@@ -30,7 +30,7 @@ import java.util.regex.Pattern
  * The container class for Android module, containing its Android model, Variant models, and dependency modules.
  */
 @UsedInBuildAction
-class IdeaAndroidModule(
+class AndroidModule(
   val ideaModule: IdeaModule,
   val androidProject: AndroidProject,
   val nativeAndroidProject: NativeAndroidProject?
