@@ -21,10 +21,12 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_NATIVE_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
+import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 
 public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
@@ -67,6 +69,34 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "debug");
     assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
     assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
+  }
+
+  public void testWithDepModules() throws Exception {
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
+    loadProject(TRANSITIVE_DEPENDENCIES);
+
+    assertEquals("debug", getVariant("app"));
+    assertEquals("debug", getVariant("library1"));
+    assertEquals("debug", getVariant("library2"));
+
+    // Switch selected variant from debug to release.
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "release");
+    assertEquals("release", getVariant("app"));
+    assertEquals("release", getVariant("library1"));
+    assertEquals("release", getVariant("library2"));
+
+    // Switch selected variant from release to debug.
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "debug");
+    assertEquals("debug", getVariant("app"));
+    assertEquals("debug", getVariant("library1"));
+    assertEquals("debug", getVariant("library2"));
+  }
+
+  @NotNull
+  private String getVariant(@NotNull String moduleName) {
+    AndroidModuleModel moduleModel = AndroidModuleModel.get(getModule(moduleName));
+    assertNotNull(moduleModel);
+    return moduleModel.getSelectedVariant().getName();
   }
 
   public void testWithNonExistingFeatureVariant() throws Exception {
