@@ -25,7 +25,6 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 
-
 abstract class ModuleModel(
   val project: Project,
   val templateHandle: TemplateHandle,
@@ -61,3 +60,9 @@ abstract class ModuleModel(
     return template.render(context!!, dryRun)
   }
 }
+
+/**
+ * Module names may use ":" for sub folders. This mapping is only true when creating new modules, as the user can later customize
+ * the Module Path (called Project Path in gradle world) in "settings.gradle"
+ */
+fun getModuleRoot(projectLocation: String, moduleName: String) = File(projectLocation, moduleName.replace(':', File.separatorChar))
