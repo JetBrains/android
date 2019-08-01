@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.Stage;
@@ -25,12 +26,31 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class holds the models and capture data for the {@link com.android.tools.profilers.cpu.CpuCaptureStageView}.
  * This stage is set when a capture is selected from the {@link CpuProfilerStage}, or when a capture is imported.
  */
 public class CpuCaptureStage extends Stage {
+  public enum Aspect {
+    /**
+     * Triggered when the stage changes state from parsing to analyzing. This can also be viewed as capture parsing completed.
+     * If the capture parsing fails the stage will transfer back to the {@link CpuProfilerStage}
+     */
+    STATE
+  }
+
+  public enum State {
+    /**
+     * Initial state set when creating this stage. Parsing happens when {@link #enter} is called
+     */
+    PARSING,
+    /**
+     * When parsing has completed the state transitions to analyzing, we remain in this state while viewing data of the capture.
+     */
+    ANALYZING,
+  }
 
   /**
    * Helper function to save trace data to disk. The file is put in to the users temp directory with the format cpu_trace_[traceid].trace.
@@ -50,38 +70,98 @@ public class CpuCaptureStage extends Stage {
     }
   }
 
-  private final File myCaptureFile;
-
-  public CpuCaptureStage(@NotNull StudioProfilers profilers, long traceId) {
-    super(profilers);
-    myCaptureFile = getAndSaveCapture(traceId);
-  }
-
-  public CpuCaptureStage(@NotNull StudioProfilers profilers, @NotNull File captureFile) {
-    super(profilers);
-    myCaptureFile = captureFile;
-  }
-
-  private File getAndSaveCapture(long traceId) {
+  @Nullable
+  private static File getAndSaveCapture(@NotNull StudioProfilers profilers, long traceId) {
     Transport.BytesRequest traceRequest = Transport.BytesRequest.newBuilder()
-      .setStreamId(getStudioProfilers().getSession().getStreamId())
+      .setStreamId(profilers.getSession().getStreamId())
       .setId(String.valueOf(traceId))
       .build();
-    Transport.BytesResponse traceResponse = getStudioProfilers().getClient().getTransportClient().getBytes(traceRequest);
+    Transport.BytesResponse traceResponse = profilers.getClient().getTransportClient().getBytes(traceRequest);
     if (!traceResponse.getContents().isEmpty()) {
       return saveCapture(traceId, traceResponse.getContents());
     }
     return null;
   }
 
-  @Override
-  public void enter() {
+  /**
+   * Responsible for parsing trace files into {@link CpuCapture}.
+   * Parsed captures should be obtained from this object.
+   */
+  private final CpuCaptureHandler myCpuCaptureHandler;
+  private final AspectModel<Aspect> myAspect = new AspectModel<>();
+  private State myState = State.PARSING;
 
+  // Accessible only when in state analyzing
+  private CpuCapture myCapture;
+
+  /**
+   * Create a capture stage that loads a given trace id. If a trace id is not found null will be returned.
+   */
+  @Nullable
+  public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull String configurationName, long traceId) {
+    File captureFile = getAndSaveCapture(profilers, traceId);
+    if (captureFile == null) {
+      return null;
+    }
+    return create(profilers, configurationName, captureFile);
   }
 
+  /**
+   * Create a capture stage base don a file, this is used for both importing traces as well as cached traces loaded from trace ids.
+   */
+  @NotNull
+  public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull String configurationName, @NotNull File captureFile) {
+    return new CpuCaptureStage(profilers, configurationName, captureFile);
+  }
+
+  /**
+   * Create a capture stage that loads a given file.
+   */
+  private CpuCaptureStage(@NotNull StudioProfilers profilers, @NotNull String configurationName, @NotNull File captureFile) {
+    super(profilers);
+    myCpuCaptureHandler = new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configurationName);
+  }
+
+  public State getState() {
+    return myState;
+  }
+
+  public AspectModel<Aspect> getAspect() {
+    return myAspect;
+  }
+
+  public CpuCaptureHandler getCaptureHandler() {
+    return myCpuCaptureHandler;
+  }
+
+  private void setState(State state) {
+    myState = state;
+    myAspect.changed(Aspect.STATE);
+  }
+
+  @NotNull
+  private CpuCapture getCapture() {
+    assert myState == State.ANALYZING;
+    return myCapture;
+  }
+
+  @Override
+  public void enter() {
+    getStudioProfilers().getUpdater().register(myCpuCaptureHandler);
+    myCpuCaptureHandler.parse(capture -> {
+      if (capture == null) {
+        getStudioProfilers().getIdeServices().getMainExecutor()
+          .execute(() -> getStudioProfilers().setStage(new CpuProfilerStage(getStudioProfilers())));
+      }
+      else {
+        myCapture = capture;
+        setState(State.ANALYZING);
+      }
+    });
+  }
 
   @Override
   public void exit() {
-
+    getStudioProfilers().getUpdater().unregister(myCpuCaptureHandler);
   }
 }
