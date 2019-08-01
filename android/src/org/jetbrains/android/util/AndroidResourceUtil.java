@@ -74,6 +74,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
+import com.android.tools.idea.kotlin.AndroidKtPsiUtilsKt;
 import com.android.tools.idea.projectsystem.LightResourceClassService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidInternalRClassFinder;
@@ -153,6 +154,9 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.references.ReferenceUtilKt;
+import org.jetbrains.kotlin.psi.KtExpression;
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression;
 
 /**
  * @author Eugene.Kudelevsky
@@ -983,6 +987,59 @@ public class AndroidResourceUtil {
       AndroidUtils.reportError(project, AndroidBundle.message("android.cannot.create.file.error", dirPath + File.separatorChar + fileName));
     }
     return result;
+  }
+
+  @Nullable
+  public static MyReferredResourceFieldInfo getReferredResourceOrManifestField(@NotNull AndroidFacet facet,
+                                                                               @NotNull KtSimpleNameExpression exp,
+                                                                               @Nullable String className,
+                                                                               boolean localOnly) {
+    String resFieldName = exp.getReferencedName();
+    if (resFieldName.isEmpty()) {
+      return null;
+    }
+    KtExpression resClassReference = AndroidKtPsiUtilsKt.getPreviousInQualifiedChain(exp);
+    if (!(resClassReference instanceof KtSimpleNameExpression)) {
+      return null;
+    }
+    String resClassName = ((KtSimpleNameExpression)resClassReference).getReferencedName();
+    if (resClassName.isEmpty() || className != null && !className.equals(resClassName)) {
+      return null;
+    }
+
+    KtExpression rClassReference = AndroidKtPsiUtilsKt.getPreviousInQualifiedChain(resClassReference);
+    if (!(rClassReference instanceof KtSimpleNameExpression)) {
+      return null;
+    }
+    PsiElement resolvedElement = ReferenceUtilKt.getMainReference((KtSimpleNameExpression)rClassReference).resolve();
+    if (!(resolvedElement instanceof PsiClass)) {
+      return null;
+    }
+
+    PsiClass aClass = (PsiClass)resolvedElement;
+    String classShortName = aClass.getName();
+    boolean fromManifest = AndroidUtils.MANIFEST_CLASS_NAME.equals(classShortName);
+
+    if (!fromManifest && !isRJavaClass(aClass)) {
+      return null;
+    }
+    String qName = aClass.getQualifiedName();
+    if (qName == null) {
+      return null;
+    }
+
+    Module resolvedModule = ModuleUtilCore.findModuleForPsiElement(resolvedElement);
+    if (!localOnly) {
+      if (CLASS_R.equals(qName) || AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME.equals(qName)) {
+        return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, ResourceNamespace.ANDROID, false);
+      }
+    }
+
+    if (fromManifest ? !isManifestClass(aClass) : !isRJavaClass(aClass)) {
+      return null;
+    }
+
+    return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, getRClassNamespace(facet, qName), fromManifest);
   }
 
   @Nullable

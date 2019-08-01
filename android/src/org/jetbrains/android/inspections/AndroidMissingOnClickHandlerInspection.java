@@ -7,7 +7,6 @@ import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -20,7 +19,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.DomFileDescription;
 import com.intellij.util.xml.DomManager;
-import org.jetbrains.android.AndroidGotoRelatedProvider;
+import org.jetbrains.android.AndroidGotoRelatedLineMarkerProvider;
 import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
@@ -46,14 +45,8 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
                                                             @NotNull AndroidFacet facet,
                                                             @NotNull DomFileDescription<?> description) {
     if (description instanceof LayoutDomFileDescription) {
-      final Computable<List<GotoRelatedItem>> computable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(file, facet);
-
-      if (computable == null) {
-        return Collections.emptyList();
-      }
-      final List<GotoRelatedItem> items = computable.compute();
-
-      if (items.isEmpty()) {
+      final List<GotoRelatedItem> items = AndroidGotoRelatedLineMarkerProvider.getItemsForXmlFile(file, facet);
+      if (items == null || items.isEmpty()) {
         return Collections.emptyList();
       }
       final PsiClass activityClass = findActivityClass(facet.getModule());
