@@ -67,14 +67,12 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
       addModuleToProject(companionModuleModel, projectModel)
 
       companionModuleModel.androidSdkInfo.value = androidSdkInfo().value
-      companionModuleModel.setRenderTemplateModel(companionRenderModel)
 
       companionModuleModel.handleFinished()
       companionRenderModel.handleFinished()
     }
 
     val newRenderTemplateModel = createMainRenderModel()
-    newModuleModel.setRenderTemplateModel(newRenderTemplateModel)
 
     val hasActivity = newRenderTemplateModel.templateHandle != null
     if (hasActivity && newRenderTemplateModel != extraRenderTemplateModel) { // Extra render is driven by the Wizard itself

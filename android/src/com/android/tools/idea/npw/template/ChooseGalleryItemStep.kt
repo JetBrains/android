@@ -120,10 +120,6 @@ abstract class ChooseGalleryItemStep(
 
   override fun onEntering() = validateTemplate()
 
-  override fun onProceeding() {
-    model.setRenderTemplateModel(renderModel)
-  }
-
   /**
    * See also [com.android.tools.idea.actions.NewAndroidComponentAction.update]
    */
