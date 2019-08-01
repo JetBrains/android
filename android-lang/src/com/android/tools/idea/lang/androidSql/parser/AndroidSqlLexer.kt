@@ -27,6 +27,7 @@ class AndroidSqlLexer : FlexAdapter(_AndroidSqlLexer()) {
     }
 
     /** Checks if the given name (table name, column name) needs escaping and returns a string that's safe to put in SQL. */
+    @JvmStatic
     fun getValidName(name: String): String {
       return if (!needsQuoting(name)) name else "`${name.replace("`", "``")}`"
     }
