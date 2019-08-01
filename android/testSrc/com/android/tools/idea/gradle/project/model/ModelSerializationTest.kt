@@ -100,6 +100,9 @@ import com.android.ide.common.gradle.model.stubs.TestedTargetVariantStub
 import com.android.ide.common.gradle.model.stubs.VariantStub
 import com.android.ide.common.gradle.model.stubs.VectorDrawablesOptionsStub
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
+import com.android.ide.common.gradle.model.stubs.l2JavaLibrary
+import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder
+import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStubBuilder
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
 import com.intellij.serialization.ObjectSerializer
@@ -172,14 +175,12 @@ class ModelSerializationTest {
 
   @Test
   fun level2AndroidLibrary() = assertSerializable {
-    IdeLibraryFactory().create(
-      com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub()) as com.android.ide.common.gradle.model.level2.IdeAndroidLibrary
+    IdeLibraryFactory().create(AndroidLibraryStubBuilder().build()) as com.android.ide.common.gradle.model.level2.IdeAndroidLibrary
   }
 
   @Test
   fun level2JavaLibrary() = assertSerializable {
-    IdeLibraryFactory().create(
-      com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub()) as com.android.ide.common.gradle.model.level2.IdeJavaLibrary
+    IdeLibraryFactory().create(JavaLibraryStubBuilder().build()) as com.android.ide.common.gradle.model.level2.IdeJavaLibrary
   }
 
   @Test
@@ -195,13 +196,10 @@ class ModelSerializationTest {
     val androidGraphItem = GraphItemStub("androidLibrary", listOf(), "")
     val moduleGraphItem = GraphItemStub("module", listOf(), "")
 
-    val level2JavaLibrary = object : com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub() {
-      override fun getArtifactAddress() = "javaLibrary"
-
-    }
-    val level2AndroidLibrary = object : com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub() {
-      override fun getArtifactAddress() = "androidLibrary"
-    }
+    val level2JavaLibrary = l2JavaLibrary("javaLibrary")
+    val level2AndroidLibrary = AndroidLibraryStubBuilder().apply {
+      artifactAddress = "androidLibrary"
+    }.build()
     val level2ModuleLibrary = object : com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub() {
       override fun getArtifactAddress() = "module"
     }

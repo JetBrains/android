@@ -15,8 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
+import static com.android.builder.model.level2.Library.LIBRARY_ANDROID;
+import static com.android.builder.model.level2.Library.LIBRARY_JAVA;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub;
+import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder;
 import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub;
 import com.android.tools.idea.gradle.TestProjects;
@@ -27,21 +36,12 @@ import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.testing.Facets;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.builder.model.level2.Library.LIBRARY_ANDROID;
-import static com.android.builder.model.level2.Library.LIBRARY_JAVA;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link DependenciesExtractor}.
@@ -106,37 +106,13 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     File resFolder = new File(rootDirPath, join("bundle_aar", "res"));
     File localJar = new File(rootDirPath, "local.jar");
 
-    AndroidLibraryStub library = new AndroidLibraryStub() {
-      @Override
-      @NotNull
-      public String getJarFile() {
-        return libJar.getPath();
-      }
-
-      @Override
-      @NotNull
-      public String getCompileJarFile() {
-        return libCompileJar.getPath();
-      }
-
-      @Override
-      @NotNull
-      public String getArtifactAddress() {
-        return "com.android.support:support-core-ui:25.3.1@aar";
-      }
-
-      @Override
-      @NotNull
-      public String getResFolder() {
-        return resFolder.getPath();
-      }
-
-      @Override
-      @NotNull
-      public Collection<String> getLocalJars() {
-        return Collections.singletonList(localJar.getPath());
-      }
-    };
+    AndroidLibraryStubBuilder builder = new AndroidLibraryStubBuilder();
+    builder.setArtifactAddress("com.android.support:support-core-ui:25.3.1@aar");
+    builder.setJarFile(libJar.getPath());
+    builder.setCompileJarFile(libCompileJar.getPath());
+    builder.setResFolder(resFolder.getPath());
+    builder.setLocalJars(Collections.singletonList(localJar.getPath()));
+    AndroidLibraryStub library = builder.build();
 
     myVariant.getMainArtifact().getLevel2Dependencies().addAndroidLibrary(library);
     myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addAndroidLibrary(library);
