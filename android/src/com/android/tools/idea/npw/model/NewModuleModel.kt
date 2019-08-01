@@ -55,7 +55,6 @@ private val log: Logger get() = logger<NewModuleModel>()
 
 class NewModuleModel : WizardModel {
   val isLibrary: BoolProperty = BoolValueProperty()
-  val renderTemplateModel: OptionalProperty<RenderTemplateModel> = OptionalValueProperty()
   val projectTemplateValues: MutableMap<String, Any>
   val templateValues = mutableMapOf<String, Any>()
   val project: OptionalProperty<Project>
@@ -135,14 +134,6 @@ class NewModuleModel : WizardModel {
     bindings.releaseAll()
   }
 
-  /**
-   * This method should be called if there is no "Activity Render Template" step (For example when creating a Library, or the activity
-   * creation is skipped by the user)
-   */
-  fun setRenderTemplateModel(renderModel: RenderTemplateModel) {
-    this.renderTemplateModel.value = renderModel
-  }
-
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(ModuleTemplateRenderer())
   }
@@ -180,8 +171,6 @@ class NewModuleModel : WizardModel {
           setLanguage(language.value)
         }
       }
-
-      renderTemplateModel.valueOrNull?.templateValues?.putAll(templateValues)
     }
 
     @WorkerThread
