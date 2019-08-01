@@ -20,12 +20,9 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
-import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
@@ -37,18 +34,16 @@ import org.jetbrains.android.util.AndroidBundle.message
 
 class NewBenchmarkModuleModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel(project, templateHandle, projectSyncInvoker) {
-  @JvmField val moduleName: StringProperty = StringValueProperty("benchmark")
-  @JvmField val packageName: StringProperty = StringValueProperty()
-  @JvmField val language: OptionalProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
-  @JvmField val minSdk: OptionalProperty<VersionItem> = OptionalValueProperty()
+) : ModuleModel(project, templateHandle, projectSyncInvoker, "benchmark") {
+  @JvmField val packageName = StringValueProperty()
+  @JvmField val language = OptionalValueProperty(getInitialSourceLanguage(project))
+  @JvmField val minSdk = OptionalValueProperty<VersionItem>()
 
   override fun handleFinished() {
     object : Modal(project, message(
       "android.compile.messages.generating.r.java.content.name"), false) {
       override fun run(indicator: ProgressIndicator) {
         val modulePaths = createDefaultTemplateAt(myProject.basePath!!, moduleName.get()).paths
-        val templateValues: MutableMap<String, Any> = mutableMapOf()
         TemplateValueInjector(templateValues)
           .setProjectDefaults(myProject)
           .setModuleRoots(modulePaths, myProject.basePath!!, moduleName.get(), packageName.get())
@@ -59,8 +54,8 @@ class NewBenchmarkModuleModel(
         templateValues[ATTR_IS_NEW_PROJECT] = false
         templateValues[ATTR_IS_LIBRARY_MODULE] = true
         val moduleRoot = modulePaths.moduleRoot!!
-        if (doDryRun(moduleRoot, templateValues)) {
-          render(moduleRoot, templateValues)
+        if (doDryRun(moduleRoot)) {
+          render(moduleRoot)
         }
       }
     }.queue()
