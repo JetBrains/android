@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.speedSearch.SpeedSearch
 import org.jetbrains.android.facet.AndroidFacet
@@ -72,6 +73,8 @@ interface ResourceExplorerViewModel {
   val speedSearch: SpeedSearch
 
   val filterOptions: FilterOptions
+
+  val externalActions: Collection<ActionGroup>
 
   /**
    * Returns a list of [ResourceSection] with one section per namespace, the first section being the

@@ -99,17 +99,25 @@ private const val DEFAULT_GRID_MODE = false
 private val DEFAULT_CELL_WIDTH get() = LIST_CELL_SIZE
 private val SECTION_HEADER_SECONDARY_COLOR get() = JBColor.border()
 
-private val SECTION_HEADER_BORDER get() = BorderFactory.createCompoundBorder(
-  JBUI.Borders.empty(4, 4, 8, 4),
-  JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
-)
+private val SECTION_HEADER_BORDER
+  get() = BorderFactory.createCompoundBorder(
+    JBUI.Borders.empty(4, 4, 8, 4),
+    JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
+  )
 
 private val SECTION_LIST_BORDER get() = JBUI.Borders.empty()
 
-private val SECTION_HEADER_LABEL_FONT get() = JBUI.Fonts.label().deriveFont(mapOf(
-  TextAttribute.WEIGHT to TextAttribute.WEIGHT_SEMIBOLD,
-  TextAttribute.SIZE to JBUI.scale(14f)
-))
+private val SECTION_HEADER_LABEL_FONT
+  get() = JBUI.Fonts.label().deriveFont(mapOf(
+    TextAttribute.WEIGHT to TextAttribute.WEIGHT_SEMIBOLD,
+    TextAttribute.SIZE to JBUI.scaleFontSize(14f)
+  ))
+
+private val TOOLBAR_BORDER
+  get() = BorderFactory.createCompoundBorder(
+    JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
+    JBUI.Borders.empty(4, 2)
+  )
 
 private val GRID_MODE_BACKGROUND = UIUtil.getPanelBackground()
 private val LIST_MODE_BACKGROUND = UIUtil.getListBackground()
@@ -168,14 +176,23 @@ class ResourceExplorerView(
   private val sectionListModel: SectionListModel = SectionListModel()
   private val dragHandler = resourceDragHandler(resourceImportDragTarget)
 
-  private val headerPanel = OverflowingTabbedPaneWrapper().apply {
-    resourcesBrowserViewModel.resourceTypes.forEach {
-      tabbedPane.addTab(it.displayName, null)
-    }
-    tabbedPane.addChangeListener { event ->
-      val index = (event.source as JTabbedPane).model.selectedIndex
-      resourcesBrowserViewModel.resourceTypeIndex = index
-    }
+  private val topActionsPanel = JPanel().apply {
+    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    isOpaque = false
+  }
+
+  private val headerPanel = JPanel().apply {
+    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    add(OverflowingTabbedPaneWrapper().apply {
+      resourcesBrowserViewModel.resourceTypes.forEach {
+        tabbedPane.addTab(it.displayName, null)
+      }
+      tabbedPane.addChangeListener { event ->
+        val index = (event.source as JTabbedPane).model.selectedIndex
+        resourcesBrowserViewModel.resourceTypeIndex = index
+      }
+    })
+    add(topActionsPanel)
   }
 
   private val sectionList: SectionList = SectionList(sectionListModel).apply {
@@ -366,9 +383,11 @@ class ResourceExplorerView(
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
 
     resourcesBrowserViewModel.resourceChangedCallback = {
+      populateExternalActions()
       populateResourcesLists()
       populateSearchLinkLabels()
     }
+    populateExternalActions()
     populateResourcesLists()
     resourcesBrowserViewModel.speedSearch.addChangeListener {
       sectionList.getLists().filterIsInstance<AssetListView>().forEach()
@@ -414,6 +433,17 @@ class ResourceExplorerView(
       .flatMap { it.selectedValuesList }
       .filterIsInstance<ResourceAssetSet>()
       .flatMap(ResourceAssetSet::assets)
+  }
+
+  private fun populateExternalActions() {
+    topActionsPanel.removeAll()
+    val actionManager = ActionManager.getInstance()
+    resourcesBrowserViewModel.externalActions.forEach {
+      actionManager.createActionToolbar("resourceExplorer", it, true).let { actionToolbar ->
+        actionToolbar.setTargetComponent(this@ResourceExplorerView)
+        topActionsPanel.add(actionToolbar.component.apply { border = TOOLBAR_BORDER })
+      }
+    }
   }
 
   private fun populateSearchLinkLabels() {
