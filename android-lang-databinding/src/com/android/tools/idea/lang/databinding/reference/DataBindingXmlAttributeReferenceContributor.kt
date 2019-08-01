@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.databinding.reference
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.patterns.PlatformPatterns
@@ -33,6 +34,7 @@ import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
+import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
@@ -97,10 +99,13 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
                 val index = attributeNameLiterals.indexOfFirst { literal ->
                   val name = literal.text
                   // attributeNameLiterals are always surrounded by quotes, so we add them here.
-                  name == "\"$attributeName\"" || (backupAttributeName!= null && name == "\"$backupAttributeName\"")
+                  name == "\"$attributeName\"" || (backupAttributeName != null && name == "\"$backupAttributeName\"")
                 }
                 if (index != -1) {
                   referenceList.add(PsiParameterReference(element, parameters[index + 1]))
+                  val adapterContainingClass = annotatedMethod.containingClass ?: return@forEach
+                  referenceList.add(PsiMethodReference(element, PsiModelMethod(
+                    PsiModelClass(PsiTypesUtil.getClassType(adapterContainingClass), mode), annotatedMethod)))
                 }
               }
             }
@@ -134,6 +139,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
                     val parameters = method.psiMethod.parameterList.parameters
                     if (parameters.size == 1) {
                       referenceList.add(PsiParameterReference(element, parameters[0]))
+                      referenceList.add(PsiMethodReference(element, method))
                     }
                   }
                 }
@@ -147,6 +153,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
               val parameters = method.psiMethod.parameterList.parameters
               if (parameters.size == 1) {
                 referenceList.add(PsiParameterReference(element, parameters[0]))
+                referenceList.add(PsiMethodReference(element, method))
               }
             }
           }
