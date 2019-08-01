@@ -18,6 +18,11 @@ package com.android.tools.idea.room.generators;
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
+import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
+import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,6 +48,11 @@ public class TestUtils {
 
   @NotNull
   public static EntityBundle createEntityBundle(@NotNull String tableName, @NotNull List<FieldBundle> fields) {
-    return new EntityBundle(tableName, "", fields, null, null, null);
+    return new EntityBundle(tableName,
+                            "",
+                            fields,
+                            new PrimaryKeyBundle(false, Collections.singletonList(fields.get(0).getColumnName())),
+                            null,
+                            null);
   }
 }

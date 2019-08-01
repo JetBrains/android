@@ -47,9 +47,9 @@ public class JavaMigrationClassGeneratorTest extends AndroidTestCase {
     myFixture.addClass("package androidx.sqlite.db;" +
                        "public abstract class SupportSQLiteDatabase {}");
 
-    FieldBundle field1 = createFieldBundle("column1", "VARCHAR", null);
-    FieldBundle field2 = createFieldBundle("column2", "VARCHAR", null);
-    FieldBundle field3 = createFieldBundle("column3", "VARCHAR", null);
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+    FieldBundle field3 = createFieldBundle("column3", "TEXT", null);
 
     EntityBundle entity1 = createEntityBundle("table1", Arrays.asList(field1, field2));
     EntityBundle entity2 = createEntityBundle("table2", Arrays.asList(field1, field2, field3));
@@ -86,7 +86,7 @@ public class JavaMigrationClassGeneratorTest extends AndroidTestCase {
                  "\n" +
                  "    @Override\n" +
                  "    public void migrate(SupportSQLiteDatabase database) {\n" +
-                 "        database.execSQL(\"CREATE TABLE table3 (column1 VARCHAR, column3 VARCHAR);\");\n" +
+                 "        database.execSQL(\"CREATE TABLE table3 (column1 TEXT, column3 TEXT, PRIMARY KEY (column1));\");\n" +
                  "    }\n" +
                  "}\n",
                  migrationClass.getContainingFile().getText());
