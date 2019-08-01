@@ -30,8 +30,8 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.idea.actions.OpenStringResourceEditorAction
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.project.getLastSyncTimestamp
 import com.android.tools.idea.editors.theme.ResolutionUtils
+import com.android.tools.idea.project.getLastSyncTimestamp
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
@@ -57,7 +57,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.xml.XmlFileImpl
@@ -69,7 +68,6 @@ import org.jetbrains.android.util.AndroidUtils
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import java.util.function.Supplier
-import kotlin.math.pow
 import kotlin.properties.Delegates
 
 private const val UNRESOLVED_VALUE = "Could not resolve"
@@ -108,8 +106,15 @@ class ResourceExplorerViewModelImpl(
 
   private val dataManager = ResourceDataManager(facet)
 
-  private val listViewImageCache = ImageCache(
+  private val listViewImageCache = ImageCache.createLargeImageCache(
+    parentDisposable = this,
     mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
+
+  private val summaryImageCache: ImageCache by lazy {
+    ImageCache.createSmallImageCache(
+      parentDisposable = this,
+      mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
+  }
 
   private val resourceNotificationListener = ResourceNotificationManager.ResourceChangeListener { reason ->
     if (reason.size == 1 && reason.contains(ResourceNotificationManager.Reason.EDIT)) {
@@ -173,7 +178,6 @@ class ResourceExplorerViewModelImpl(
 
   init {
     subscribeListener(facet)
-    Disposer.register(this, listViewImageCache)
     val project = facet.module.project
     if (project.getLastSyncTimestamp() < 0L) {
       // No existing successful sync, since there's a fair chance of having rendering errors, wait for next successful sync and reset cache,
@@ -196,18 +200,7 @@ class ResourceExplorerViewModelImpl(
     AssetPreviewManagerImpl(
       facet,
       currentFile,
-      ImageCache(
-        maximumCapacity = (10 * 1024.0.pow(2)).toLong(), // 10 MB
-        mergingUpdateQueue = MergingUpdateQueue("queue",
-                                                1000,
-                                                true,
-                                                MergingUpdateQueue.ANY_COMPONENT,
-                                                this,
-                                                null,
-                                                false)
-      ).also { cache ->
-        Disposer.register(this, cache)
-      })
+      summaryImageCache)
   }
 
   override fun facetUpdated(newFacet: AndroidFacet, oldFacet: AndroidFacet) {
