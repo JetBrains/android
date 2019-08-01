@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.validator
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.Validator.Result
 import com.android.tools.adtui.validation.Validator.Severity
-import com.android.tools.idea.npw.model.NewModuleModel.Companion.getModuleRoot
+import com.android.tools.idea.npw.module.getModuleRoot
 import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.ui.validation.validators.PathValidator
@@ -27,7 +27,6 @@ import com.google.common.base.CharMatcher.inRange
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Validates the module name and its location

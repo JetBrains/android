@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
+import com.android.tools.idea.npw.module.getModuleRoot
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateValueInjector
@@ -40,11 +41,14 @@ import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 import java.util.ArrayList
+
+private val log: Logger get() = logger<NewModuleModel>()
 
 class NewModuleModel : WizardModel {
   val isLibrary: BoolProperty = BoolValueProperty()
@@ -168,7 +172,7 @@ class NewModuleModel : WizardModel {
       }
 
       // Returns false if there was a render conflict and the user chose to cancel creating the template
-      return renderModule(true, templateValues, project.value, moduleName.get())
+      return renderModule(true, project.value, moduleName.get())
     }
 
     @WorkerThread
@@ -176,7 +180,7 @@ class NewModuleModel : WizardModel {
       val project = project.value
 
       val success = WriteCommandAction.writeCommandAction(project).withName("New Module").compute<Boolean, Exception> {
-        renderModule(false, templateValues, project, moduleName.get())
+        renderModule(false, project, moduleName.get())
       }
 
       if (!success) {
@@ -184,8 +188,7 @@ class NewModuleModel : WizardModel {
       }
     }
 
-    private fun renderModule(dryRun: Boolean, templateState: Map<String, Any>, project: Project,
-                             moduleName: String): Boolean {
+    private fun renderModule(dryRun: Boolean, project: Project, moduleName: String): Boolean {
       val projectRoot = File(project.basePath!!)
       val moduleRoot = getModuleRoot(project.basePath!!, moduleName)
       val template = Template.createFromPath(templateFile.value)
@@ -198,7 +201,7 @@ class NewModuleModel : WizardModel {
         .withOutputRoot(projectRoot)
         .withModuleRoot(moduleRoot)
         .intoOpenFiles(filesToOpen)
-        .withParams(templateState)
+        .withParams(templateValues)
         .build()
 
       val renderResult = template.render(context, dryRun)
@@ -217,16 +220,5 @@ class NewModuleModel : WizardModel {
       else -> "android.wizard.module.config.new.application"
     }
     applicationName.set(message(msgId))
-  }
-
-  companion object {
-    // Module names may use ":" for sub folders. This mapping is only true when creating new modules, as the user can later customize
-    // the Module Path (called Project Path in gradle world) in "settings.gradle"
-    @JvmStatic
-    fun getModuleRoot(projectLocation: String, moduleName: String): File =
-      File(projectLocation, moduleName.replace(':', File.separatorChar))
-
-    private val log: Logger
-      get() = Logger.getInstance(NewModuleModel::class.java)
   }
 }
