@@ -17,7 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.gradle.model.IdeAndroidProject
-import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub
+import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStub
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
@@ -357,7 +357,9 @@ class GradleModuleSystemTest : AndroidTestCase() {
     val model = AndroidModuleModel.get(module) ?: createFakeModel(module)
     val dependencies = model.selectedMainCompileLevel2Dependencies as IdeDependenciesStub
     dependencies.androidLibraries.clear()
-    artifacts.forEach { artifact -> dependencies.addAndroidLibrary(AndroidLibraryStub(artifact)) }
+    artifacts.forEach {
+      artifact -> dependencies.addAndroidLibrary(AndroidLibraryStubBuilder().apply { artifactAddress = artifact }.build())
+    }
   }
 
   /**
