@@ -34,8 +34,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -49,12 +51,10 @@ public class JavaToKotlinHandler {
   private JavaToKotlinHandler() {
   }
 
-  @NotNull
+  @Nullable
   public static ConvertJavaToKotlinProvider getJavaToKotlinConversionProvider() {
     ConvertJavaToKotlinProvider[] providers = ConvertJavaToKotlinProvider.EP_NAME.getExtensions();
-    if (providers.length == 0)
-      throw new RuntimeException("Could not find a JavaToKotlinConversionProvider, even though one should be bundled with Studio");
-    return providers[0];
+    return ArrayUtil.getFirstElement(providers);
   }
 
   static void convertJavaFilesToKotlin(@NotNull Project project,
