@@ -232,7 +232,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
    * UI behavior is to merely stop the execution without any other sort of notification, which far from ideal.
    */
   @Override
-  public boolean executeTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
+  public boolean executeTask(@NotNull DataContext context, @NotNull RunConfiguration configuration, @NotNull ExecutionEnvironment env, @NotNull MakeBeforeRunTask task) {
     RunStats stats = RunStats.from(env);
     try {
       stats.beginBeforeRunTasks();
