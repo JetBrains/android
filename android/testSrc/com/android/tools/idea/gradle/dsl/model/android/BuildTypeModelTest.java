@@ -58,6 +58,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -167,22 +168,30 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  buildType.consumerProguardFiles());
-    assertEquals("debuggable", Boolean.TRUE, buildType.debuggable());
-    assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
-    assertEquals("jniDebuggable", Boolean.TRUE, buildType.jniDebuggable());
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2"),
                  buildType.manifestPlaceholders());
-    assertEquals("minifyEnabled", Boolean.TRUE, buildType.minifyEnabled());
+    // note that the Kotlin DSL name for this property is indeed multiDexEnabled (not isMultiDexEnabled)
     assertEquals("multiDexEnabled", Boolean.TRUE, buildType.multiDexEnabled());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
-    assertEquals("pseudoLocalesEnabled", Boolean.TRUE, buildType.pseudoLocalesEnabled());
-    assertEquals("renderscriptDebuggable", Boolean.TRUE, buildType.renderscriptDebuggable());
     assertEquals("renderscriptOptimLevel", Integer.valueOf(1), buildType.renderscriptOptimLevel());
-    assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
-    assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
-    assertEquals("useJack", Boolean.TRUE, buildType.useJack());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
-    assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    // TODO(xof): enable the rest of this test when translation between Kotlin DSL boolean properties (e.g. isDebuggable) and our model
+    //  properties (debuggable) is implemented
+    if (isGroovy()) {
+      assertEquals("debuggable", Boolean.TRUE, buildType.debuggable());
+      assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
+      assertEquals("jniDebuggable", Boolean.TRUE, buildType.jniDebuggable());
+      assertEquals("minifyEnabled", Boolean.TRUE, buildType.minifyEnabled());
+      assertEquals("pseudoLocalesEnabled", Boolean.TRUE, buildType.pseudoLocalesEnabled());
+      assertEquals("renderscriptDebuggable", Boolean.TRUE, buildType.renderscriptDebuggable());
+      assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
+      assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
+      if (isGroovy()) {
+        // versions of AGP recent enough to have a Kotlin DSL have also removed the (deprecated in 3.0) Jack configuration
+        assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+      }
+      assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    }
   }
 
   @Test
@@ -191,24 +200,34 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("applicationIdSuffix", "mySuffix-3", buildType.applicationIdSuffix());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"),
-                 buildType.consumerProguardFiles());
-    assertEquals("debuggable", Boolean.FALSE, buildType.debuggable());
-    assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
-    assertEquals("jniDebuggable", Boolean.FALSE, buildType.jniDebuggable());
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel3", "defaultName3", "activityLabel4", "defaultName4"),
                  buildType.manifestPlaceholders());
-    assertEquals("minifyEnabled", Boolean.TRUE, buildType.minifyEnabled());
     assertEquals("multiDexEnabled", Boolean.FALSE, buildType.multiDexEnabled());
-    assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"), buildType.proguardFiles());
-    assertEquals("pseudoLocalesEnabled", Boolean.TRUE, buildType.pseudoLocalesEnabled());
-    assertEquals("renderscriptDebuggable", Boolean.FALSE, buildType.renderscriptDebuggable());
     assertEquals("renderscriptOptimLevel", Integer.valueOf(2), buildType.renderscriptOptimLevel());
-    assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
-    assertEquals("testCoverageEnabled", Boolean.FALSE, buildType.testCoverageEnabled());
-    assertEquals("useJack", Boolean.TRUE, buildType.useJack());
     assertEquals("versionNameSuffix", "abc-1", buildType.versionNameSuffix());
-    assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
+    // TODO(xof): enable these tests once translation between Kotlin isDebuggable to model debuggable (and similar) is implemented
+    if(isGroovy()) {
+      assertEquals("debuggable", Boolean.FALSE, buildType.debuggable());
+      assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
+      assertEquals("jniDebuggable", Boolean.FALSE, buildType.jniDebuggable());
+      assertEquals("minifyEnabled", Boolean.TRUE, buildType.minifyEnabled());
+      // TODO(xof): this (and the test below) come from overriding the proguardFiles for a build type, which is straightforward to parse
+      //  in Groovy (simple assignment) but not straightforward in Kotlin (requires parsing and data flow analysis of .clear() or
+      //  .setProguardFiles()).
+      if (isGroovy()) {
+        assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"),
+                     buildType.consumerProguardFiles());
+        assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"), buildType.proguardFiles());
+      }
+      assertEquals("pseudoLocalesEnabled", Boolean.TRUE, buildType.pseudoLocalesEnabled());
+      assertEquals("renderscriptDebuggable", Boolean.FALSE, buildType.renderscriptDebuggable());
+      assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
+      assertEquals("testCoverageEnabled", Boolean.FALSE, buildType.testCoverageEnabled());
+      if (isGroovy()) {
+        assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+      }
+      assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
+    }
   }
 
   @Test
