@@ -49,7 +49,9 @@ public class OpenBundleAnalyzerTest extends PlatformTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myBundle = createTempFile("myFooAppBundle.aab", "foo..foo..foo..");
+    // In order not to violate the assertion in TestEditorManagerImpl.java
+    // that return of getDocument is not null, .aab extension is omitted here.
+    myBundle = createTempFile("myFooAppBundle", "foo..foo..foo..");
     myTmpDir = myBundle.getParentFile();
   }
 
