@@ -217,7 +217,8 @@ class RenderTemplateModel private constructor(
                           shouldOpenFiles)
 
     @JvmStatic
-    fun fromModuleModel(moduleModel: NewModuleModel, templateHandle: TemplateHandle?, commandName: String) =
+    fun fromModuleModel(moduleModel: NewModuleModel, templateHandle: TemplateHandle?,
+                        commandName: String = moduleModel.formFactor.get().id) =
       RenderTemplateModel(moduleModel.project,
                           null,
                           templateHandle,
