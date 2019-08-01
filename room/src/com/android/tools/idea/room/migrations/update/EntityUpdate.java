@@ -17,11 +17,14 @@ package com.android.tools.idea.room.migrations.update;
 
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
+import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
+import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Holds the differences between two version of Room database Entity.
@@ -32,6 +35,10 @@ public class EntityUpdate {
   private List<FieldBundle> newFields;
   private List<FieldBundle> modifiedFields;
   private List<FieldBundle> unmodifiedFields;
+  private PrimaryKeyBundle primaryKey;
+  private List<ForeignKeyBundle> foreignKeys;
+  private boolean primaryKeyUpdate;
+  private boolean foreignKeysUpdate;
 
   /**
    * @param oldEntity entity description from an older version of the database
@@ -50,14 +57,35 @@ public class EntityUpdate {
         FieldBundle oldField = oldEntityFields.remove(newField.getColumnName());
         if (!oldField.isSchemaEqual(newField)) {
           modifiedFields.add(newField);
-        } else {
+        }
+        else {
           unmodifiedFields.add(newField);
         }
-      } else {
+      }
+      else {
         newFields.add(newField);
       }
     }
     deletedFields.addAll(oldEntityFields.values());
+
+    primaryKey = newEntity.getPrimaryKey();
+    foreignKeys = newEntity.getForeignKeys();
+    primaryKeyUpdate = !oldEntity.getPrimaryKey().isSchemaEqual(newEntity.getPrimaryKey());
+    foreignKeysUpdate = false;
+
+    if (oldEntity.getForeignKeys() != null && newEntity.getForeignKeys() != null) {
+      if (oldEntity.getForeignKeys().size() != newEntity.getForeignKeys().size()) {
+        foreignKeysUpdate = true;
+      } else {
+        for (int i = 0; i < oldEntity.getForeignKeys().size(); i++) {
+          if (!oldEntity.getForeignKeys().get(i).isSchemaEqual(newEntity.getForeignKeys().get(i))) {
+            foreignKeysUpdate = true;
+          }
+        }
+      }
+    } else if (oldEntity.getForeignKeys() == null && newEntity.getForeignKeys() != null) {
+      foreignKeysUpdate = true;
+    }
   }
 
   @NotNull
@@ -81,7 +109,25 @@ public class EntityUpdate {
   }
 
   @NotNull
+  public PrimaryKeyBundle getPrimaryKey() {
+    return primaryKey;
+  }
+
+  @Nullable
+  public List<ForeignKeyBundle> getForeignKeys() {
+    return foreignKeys;
+  }
+
+  @NotNull
   public String getTableName() {
     return tableName;
+  }
+
+  public boolean keysWereUpdated() {
+    return primaryKeyUpdate | foreignKeysUpdate;
+  }
+
+  public boolean foreignKeysWereUpdated() {
+    return foreignKeysUpdate;
   }
 }
