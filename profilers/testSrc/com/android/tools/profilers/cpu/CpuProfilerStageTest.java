@@ -871,7 +871,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myServices.enableCpuCaptureStage(true);
     myTimer.setCurrentTimeNs(1);  // Update the timer to generate a different trace id for the second trace.
     // Don't pass a capture to the test utils for now as we don't want to block on parsing.
-    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, null);
+    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
     // Force a flush of the UI event queue.
     assertThat(myStage.getStudioProfilers().getStage().getClass()).isAssignableTo(CpuCaptureStage.class);
   }

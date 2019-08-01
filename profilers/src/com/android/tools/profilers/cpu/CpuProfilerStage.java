@@ -633,8 +633,20 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   private void goToCaptureStage(long traceId) {
-    getStudioProfilers().getIdeServices().getMainExecutor()
-      .execute(() -> getStudioProfilers().setStage(new CpuCaptureStage(getStudioProfilers(), traceId)));
+    // TODO (b/138677869): The technology should come from the trace / parser not the selected configuration.
+    // If the user changes the dropdown and clicks on a trace in the sessions panel the technology name
+    // will be wrong. While this behavior is a bug, it maps to what exists today as such will fix in
+    // a follow up.
+    CpuCaptureStage stage = CpuCaptureStage
+      .create(getStudioProfilers(), ProfilingTechnology.fromConfig(getProfilerConfigModel().getProfilingConfiguration()).getName(),
+              traceId);
+    if (stage != null) {
+      getStudioProfilers().getIdeServices().getMainExecutor()
+        .execute(() -> getStudioProfilers().setStage(stage));
+    }
+    else {
+      getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
+    }
   }
 
   @NotNull
@@ -1014,6 +1026,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private class InProgressTraceHandler implements Updatable {
     @Override
     public void update(long elapsedNs) {
+      // If we are parsing a trace we also trigger the aspect to update the UI.
+      if (getCaptureParser().isParsing()) {
+        myAspect.changed(CpuProfilerAspect.CAPTURE_ELAPSED_TIME);
+        return;
+      }
       Cpu.CpuTraceInfo finishedTraceToSelect = null;
       // Request for the entire data range as we don't expect too many (100s) traces withing a single session.
       Range dataRange = getStudioProfilers().getTimeline().getDataRange();
