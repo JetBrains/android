@@ -89,14 +89,6 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
 
   @Test
   fun dbReferencesLiveData() {
-    val assembleDebug = projectRule.invokeTasks("assembleDebug")
-    assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
-      .that(assembleDebug.isBuildSuccessful).isTrue()
-    val syncState = GradleSyncState.getInstance(projectRule.project)
-    assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
-    VirtualFileManager.getInstance().syncRefresh()
-    UIUtil.dispatchAllInvocationEvents()
-
     val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     fixture.configureFromExistingVirtualFile(layoutFile)
 
@@ -114,14 +106,6 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
 
   @Test
   fun dbReferencesObservableFields() {
-    val assembleDebug = projectRule.invokeTasks("assembleDebug")
-    assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
-      .that(assembleDebug.isBuildSuccessful).isTrue()
-    val syncState = GradleSyncState.getInstance(projectRule.project)
-    assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
-    VirtualFileManager.getInstance().syncRefresh()
-    UIUtil.dispatchAllInvocationEvents()
-
     val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     fixture.configureFromExistingVirtualFile(layoutFile)
 
@@ -138,14 +122,6 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
 
   @Test
   fun dbReferencesBindingMethods() {
-    val assembleDebug = projectRule.invokeTasks("assembleDebug")
-    assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
-      .that(assembleDebug.isBuildSuccessful).isTrue()
-    val syncState = GradleSyncState.getInstance(projectRule.project)
-    assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
-    VirtualFileManager.getInstance().syncRefresh()
-    UIUtil.dispatchAllInvocationEvents()
-
     val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     fixture.configureFromExistingVirtualFile(layoutFile)
 
@@ -164,14 +140,6 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
 
   @Test
   fun dbReferencesBindingAdapters() {
-    val assembleDebug = projectRule.invokeTasks("assembleDebug")
-    assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
-      .that(assembleDebug.isBuildSuccessful).isTrue()
-    val syncState = GradleSyncState.getInstance(projectRule.project)
-    assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
-    VirtualFileManager.getInstance().syncRefresh()
-    UIUtil.dispatchAllInvocationEvents()
-
     val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     fixture.configureFromExistingVirtualFile(layoutFile)
 
@@ -190,14 +158,6 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
 
   @Test
   fun dbAttributeWithoutPrefixReferencesBindingAdapters() {
-    val assembleDebug = projectRule.invokeTasks("assembleDebug")
-    assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
-      .that(assembleDebug.isBuildSuccessful).isTrue()
-    val syncState = GradleSyncState.getInstance(projectRule.project)
-    assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
-    VirtualFileManager.getInstance().syncRefresh()
-    UIUtil.dispatchAllInvocationEvents()
-
     val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     fixture.configureFromExistingVirtualFile(layoutFile)
 
@@ -212,5 +172,23 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0]))
     assertThat(parameterReference.resolve()).isEqualTo(psiMethod.parameterList.parameters[0])
+  }
+
+  @Test
+  fun dbAttributeReferencesBindingAdapterMethod() {
+    val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    fixture.configureFromExistingVirtualFile(layoutFile)
+
+    // Move to onClick3="@{v<caret>iew3 -> vo.saveView(view3)}"/>
+    moveCaretToString("Click3")
+    // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
+    fixture.configureFromExistingVirtualFile(layoutFile)
+    val parameterReference = (fixture.getReferenceAtCaretPosition() as PsiMultiReference).references.first { it.resolve() is PsiMethod }
+
+    val psiMethod = fixture.findClass("com.android.example.appwithdatabinding.MyAdapter")
+      .findMethodsByName("bindOnClick3", false)[0].sourceElement!! as PsiMethod
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(parameterReference.isReferenceTo(psiMethod))
+    assertThat(parameterReference.resolve()).isEqualTo(psiMethod)
   }
 }
