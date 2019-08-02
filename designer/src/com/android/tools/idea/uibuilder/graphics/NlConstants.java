@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.graphics;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.intellij.ui.JBColor;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -29,6 +30,11 @@ public class NlConstants {
   /** Distance between blueprint screen and regular screen */
   public static final int SCREEN_DELTA = 10;
 
+  /**
+   * Distance between the bottom bound of model name and top bound of SceneView.
+   */
+  @SwingCoordinate
+  public static final int NAME_LABEL_BOTTOM_MARGIN_PX = 5;
 
   /**
    * The maximum number of pixels will be considered a "match" when snapping

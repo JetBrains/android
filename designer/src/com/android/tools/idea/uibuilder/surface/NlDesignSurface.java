@@ -99,12 +99,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
     private boolean myShowModelName = false;
+    private boolean myIsEditable = true;
 
     /**
      * Factory to create an action manager for the NlDesignSurface
      */
     private Function<DesignSurface, ActionManager<? extends DesignSurface>> myActionManagerProvider =
-      surface -> new NlActionManager((NlDesignSurface)surface);
+      NlDesignSurface::defaultActionManagerProvider;
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -141,15 +142,40 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * Allows customizing the {@link ActionManager}. Use this method if you need to apply additional settings to it or if you
+     * need to completely replace it, for example for tests.
+     *
+     * @see NlDesignSurface#defaultActionManagerProvider(DesignSurface)
+     */
     @NotNull
     public Builder setActionManagerProvider(@NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
       myActionManagerProvider = actionManagerProvider;
       return this;
     }
 
+    /**
+     * Specify if {@link NlDesignSurface} can edit editable content. For example, a xml layout file is a editable content. But
+     * an image drawable file is not editable, so {@link NlDesignSurface} cannot edit the image drawable file even we set
+     * editable for {@link NlDesignSurface}.
+     * <p>
+     * The default value is true (editable)
+     */
+    @NotNull
+    public Builder setEditable(boolean editable) {
+      myIsEditable = editable;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
-      return new NlDesignSurface(myProject, myParentDisposable, myIsPreview, myShowModelName, mySceneManagerProvider, myActionManagerProvider);
+      return new NlDesignSurface(myProject,
+                                 myParentDisposable,
+                                 myIsPreview,
+                                 myIsEditable,
+                                 myShowModelName,
+                                 mySceneManagerProvider,
+                                 myActionManagerProvider);
     }
   }
 
@@ -178,10 +204,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
+                          boolean isEditable,
                           boolean showModelNames,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
-    super(project, new SelectionModel(), parentDisposable, actionManagerProvider);
+    super(project, parentDisposable, actionManagerProvider, isEditable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
@@ -195,6 +222,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
     return new LayoutlibSceneManager(model, surface, () -> RenderSettings.getProjectSettings(model.getProject()));
+  }
+
+  /**
+   * Default {@link NlActionManager} provider.
+   */
+  @NotNull
+  public static ActionManager<? extends NlDesignSurface> defaultActionManagerProvider(@NotNull DesignSurface surface) {
+    return new NlActionManager((NlDesignSurface) surface);
   }
 
   @NotNull
