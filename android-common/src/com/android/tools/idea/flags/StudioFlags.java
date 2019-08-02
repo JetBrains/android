@@ -558,6 +558,15 @@ public final class StudioFlags {
     "If enabled, our custom UI for creating a new Java class is used. Otherwise the platform default is used.",
     true
   );
+
+
+  public static final Flag<Boolean> INCREMENTAL_RESOURCE_REPOSITORIES = Flag.create(
+    EDITOR, "incremental.resource.repositories",
+    "Handle PSI events incrementally in ResourceFolderRepository",
+    "If enabled, ResourceFolderRepository will handle PSI events synchronously, rather than rescanning the whole file.",
+    true
+  );
+
   //endregion
 
   //region Analyzer

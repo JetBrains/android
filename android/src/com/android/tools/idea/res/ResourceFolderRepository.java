@@ -65,6 +65,7 @@ import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceVisibility;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.binding.BindingLayoutGroup;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
@@ -99,6 +100,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiTreeAnyChangeAbstractAdapter;
 import com.intellij.psi.PsiTreeChangeAdapter;
 import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.PsiTreeChangeListener;
@@ -192,7 +194,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private static final Logger LOG = Logger.getInstance(ResourceFolderRepository.class);
 
   @NotNull private final AndroidFacet myFacet;
-  @NotNull private final PsiListener myListener;
+  @NotNull private final PsiTreeChangeListener myPsiListener;
   @NotNull private final VirtualFile myResourceDir;
   @NotNull private final ResourceNamespace myNamespace;
   private final boolean myDataBindingEnabled;
@@ -257,7 +259,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     myResourcePathPrefix = myResourceDir.getPath() + '/';
     myDataBindingEnabled = isDataBindingEnabled(facet);
     myViewBindingEnabled = isViewBindingEnabled(facet);
-    myListener = new PsiListener();
+    myPsiListener = StudioFlags.INCREMENTAL_RESOURCE_REPOSITORIES.get() ? new IncrementalUpdatePsiListener() : new SimplePsiListener();
     myPsiManager = PsiManager.getInstance(getProject());
 
     Loader loader = new Loader(this, cachingData);
@@ -1083,11 +1085,30 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @NotNull
   public PsiTreeChangeListener getPsiListener() {
-    return myListener;
+    return myPsiListener;
   }
 
-  /** PSI listener which together with VfsListener keeps the repository up to date. */
-  private final class PsiListener extends PsiTreeChangeAdapter {
+  /**
+   * PSI listener which schedules a full file rescan after every change.
+   *
+   * @see IncrementalUpdatePsiListener
+   */
+  private final class SimplePsiListener extends PsiTreeAnyChangeAbstractAdapter {
+    @Override
+    protected void onChange(@Nullable PsiFile psiFile) {
+      ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+      if (folderType != null && psiFile != null && isResourceFile(psiFile)) {
+        scheduleScan(psiFile, folderType);
+      }
+    }
+  }
+
+  /**
+   * PSI listener which keeps the repository up to date. It handles simple edits synchronously and schedules rescans for other events.
+   *
+   * @see IncrementalUpdatePsiListener
+   */
+  private final class IncrementalUpdatePsiListener extends PsiTreeChangeAdapter {
     private boolean myIgnoreChildrenChanged;
 
     @Override
