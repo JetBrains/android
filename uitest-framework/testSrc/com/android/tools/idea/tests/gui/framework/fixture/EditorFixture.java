@@ -94,6 +94,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.KeyStroke;
 import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.driver.ComponentDriver;
@@ -258,6 +259,14 @@ public class EditorFixture {
   public EditorFixture enterText(@NotNull final String text) {
     getFocusedEditor();
     robot.enterText(text);
+    return this;
+  }
+
+  @NotNull
+  public EditorFixture pressAndReleaseKey(@NotNull KeyPressInfo keypress) {
+    getFocusedEditor();
+    robot.pressAndReleaseKey(keypress.keyCode(), keypress.modifiers());
+
     return this;
   }
 
