@@ -19,16 +19,17 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.hasAnyKotlinModules
+import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.assetstudio.IconGenerator
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getPackageForApplication
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
+import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
-import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
-import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
@@ -54,32 +55,43 @@ import java.io.File
 
 private val log = logger<RenderTemplateModel>()
 
+class ExistingNewModuleModelData(
+  existingNewProjectModelData: ExistingNewProjectModelData, facet: AndroidFacet, template: NamedModuleTemplate
+) : ModuleModelData, ProjectModelData by existingNewProjectModelData {
+  override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
+  override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
+  override val moduleTemplateValues: MutableMap<String, Any> = mutableMapOf()
+
+  override val moduleParent: String? get() = TODO("not implemented")
+  override val formFactor: ObjectValueProperty<FormFactor> get() = TODO("not implemented")
+  override val isLibrary: BoolProperty get() = TODO("not implemented")
+  override val templateFile: OptionalValueProperty<File> get() = TODO("not implemented")
+  override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> get() = TODO("not implemented")
+}
+
 /**
  * A model responsible for instantiating a FreeMarker [Template] into the current project representing an Android component.
  */
 class RenderTemplateModel private constructor(
-  val project: OptionalProperty<Project>,
+  moduleModelData: ModuleModelData,
   val androidFacet: AndroidFacet?,
   var templateHandle: TemplateHandle? = null,
-  val template: ObjectProperty<NamedModuleTemplate>,
-  private val projectLocation: StringProperty,
-  private val moduleName: StringProperty,
-  /** The package name affects which paths the template's output will be rendered into. */
-  val packageName: StringProperty,
   private val commandName: String,
-  private val multiTemplateRenderer: MultiTemplateRenderer,
   private val shouldOpenFiles: Boolean,
-  val language: ObjectProperty<Language> = languagePropertyFromProject(project.valueOrNull),
   /** Populated in [Template.render] */
-  val createdFiles: MutableList<File> = arrayListOf(),
-  val moduleTemplateValues: MutableMap<String, Any> = mutableMapOf()
-) : WizardModel() {
+  val createdFiles: MutableList<File> = arrayListOf()
+) : WizardModel(), ModuleModelData by moduleModelData {
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
    * try to render anything.
    */
   val templateValues = hashMapOf<String, Any>()
   var iconGenerator: IconGenerator? = null
+  val renderLanguage = ObjectValueProperty(getInitialSourceLanguage(project.valueOrNull)).apply {
+    addListener {
+      PropertiesComponent.getInstance().setValue(PROPERTIES_RENDER_LANGUAGE_KEY, this.get().toString())
+    }
+  }
 
   val module: Module?
     get() = androidFacet?.module
@@ -118,7 +130,7 @@ class RenderTemplateModel private constructor(
         return
       }
       templateInjector.setFacet(androidFacet)
-      templateInjector.setLanguage(language.get()) // Note: For new projects/modules we have a different UI.
+      templateInjector.setLanguage(renderLanguage.get()) // Note: For new projects/modules we have a different UI.
 
       // Register application-wide settings
       val applicationPackage = androidFacet.getPackageForApplication()
@@ -190,49 +202,37 @@ class RenderTemplateModel private constructor(
   }
 
   // For ease of debugging add a scratch file containing the template values.
-  private fun toScratchFile(project: Project?): VirtualFile? {
-    val templateVars = templateValues.map { (key, value) ->
-      "$key=$value"
-    }.joinToString(System.lineSeparator())
-
-    return ScratchRootType.getInstance().createScratchFile(project, "templateVars.txt", PlainTextLanguage.INSTANCE,
-                                                           templateVars, ScratchFileService.Option.create_new_always)
-  }
+  private fun toScratchFile(project: Project?): VirtualFile? = ScratchRootType.getInstance().createScratchFile(
+    project, "templateVars.txt", PlainTextLanguage.INSTANCE,
+    templateValues.map { (key, value) -> "$key=$value" }.joinToString(System.lineSeparator()),
+    ScratchFileService.Option.create_new_always)
 
   companion object {
     private const val PROPERTIES_RENDER_LANGUAGE_KEY = "SAVED_RENDER_LANGUAGE"
 
     @JvmStatic
-    fun fromFacet(facet: AndroidFacet, templateHandle: TemplateHandle?, initialPackageSuggestion: String, template: NamedModuleTemplate,
-                  commandName: String, projectSyncInvoker: ProjectSyncInvoker, shouldOpenFiles: Boolean) =
-      RenderTemplateModel(OptionalValueProperty(facet.module.project),
-                          facet,
-                          templateHandle,
-                          ObjectValueProperty(template),
-                          StringValueProperty(facet.module.project.basePath!!),
-                          StringValueProperty(facet.module.name),
-                          StringValueProperty(initialPackageSuggestion),
-                          commandName,
-                          MultiTemplateRenderer(
-                            renderRunner = { renderer -> renderer(facet.module.project) },
-                            projectSyncInvoker = projectSyncInvoker
-                          ),
-                          shouldOpenFiles)
+    fun fromFacet(
+      facet: AndroidFacet, templateHandle: TemplateHandle?, initialPackageSuggestion: String, template: NamedModuleTemplate,
+      commandName: String, projectSyncInvoker: ProjectSyncInvoker, shouldOpenFiles: Boolean
+    ) = RenderTemplateModel(
+      moduleModelData = ExistingNewModuleModelData(
+        ExistingNewProjectModelData(facet.module.project, projectSyncInvoker).apply { packageName.set(initialPackageSuggestion) },
+        facet, template),
+      androidFacet = facet,
+      templateHandle = templateHandle,
+      commandName = commandName,
+      shouldOpenFiles = shouldOpenFiles)
 
     @JvmStatic
-    fun fromModuleModel(moduleModel: NewModuleModel, templateHandle: TemplateHandle?,
-                        commandName: String = moduleModel.formFactor.get().id) =
-      RenderTemplateModel(moduleModel.project,
-                          null,
-                          templateHandle,
-                          moduleModel.template,
-                          moduleModel.projectLocation,
-                          moduleModel.moduleName,
-                          moduleModel.packageName,
-                          commandName,
-                          moduleModel.multiTemplateRenderer.apply { incrementRenders() },
-                          true,
-                          moduleTemplateValues = moduleModel.moduleTemplateValues)
+    fun fromModuleModel(
+      moduleModel: NewModuleModel, templateHandle: TemplateHandle?, commandName: String = moduleModel.formFactor.get().id
+    ) = RenderTemplateModel(
+      moduleModelData = moduleModel,
+      androidFacet = null,
+      templateHandle = templateHandle,
+      commandName = commandName,
+      shouldOpenFiles = true
+    ).apply { multiTemplateRenderer.incrementRenders() }
 
     /**
      * Design: If there are no kotlin facets in the project, the default should be Java, whether or not you previously chose Kotlin
@@ -245,14 +245,6 @@ class RenderTemplateModel private constructor(
         Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY), Language.KOTLIN)
       else
         Language.JAVA
-    }
-
-    private fun setInitialSourceLanguage(language: Language) {
-      PropertiesComponent.getInstance().setValue(PROPERTIES_RENDER_LANGUAGE_KEY, language.toString())
-    }
-
-    private fun languagePropertyFromProject(project: Project?) = ObjectValueProperty(getInitialSourceLanguage(project)).apply {
-      addListener { setInitialSourceLanguage(this.get()) }
     }
   }
 }
