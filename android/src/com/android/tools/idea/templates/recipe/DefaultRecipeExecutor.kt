@@ -495,13 +495,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
   }
 
   private fun readTextFile(file: File): String? =
-    if (java.lang.Boolean.TRUE == context.paramMap[TemplateMetadata.ATTR_IS_NEW_PROJECT])
+    if (java.lang.Boolean.TRUE == context.paramMap[TemplateMetadata.ATTR_IS_NEW_MODULE])
       readTextFromDisk(file)
     else
       readTextFromDocument(context.project, file)
 
   private fun readTextFile(file: VirtualFile): String? =
-    if (java.lang.Boolean.TRUE == context.paramMap[TemplateMetadata.ATTR_IS_NEW_PROJECT])
+    if (java.lang.Boolean.TRUE == context.paramMap[TemplateMetadata.ATTR_IS_NEW_MODULE])
       readTextFromDisk(virtualToIoFile(file))
     else
       readTextFromDocument(context.project, file)
