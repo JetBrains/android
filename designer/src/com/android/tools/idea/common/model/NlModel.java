@@ -81,6 +81,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -115,6 +116,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   // Variable to track what triggered the latest render (if known)
   private ChangeType myModificationTrigger;
+
+  /**
+   * {@link LayoutlibSceneManager} requires the file from model to be an {@link XmlFile} to be able to render it. This is true in case of
+   * layout file and some others as well. However, we want to use model to render other file types (e.g. Java and Kotlin source files that
+   * contain custom Android {@link View}s)that do not have explicit conversion to {@link XmlFile} (but might have implicit). This provider should
+   * provide us with {@link XmlFile} representation of the VirtualFile fed to the model.
+   */
+  private final BiFunction<Project, VirtualFile, XmlFile> myXmlFileProvider;
 
   /**
    * Returns the responsible for registering an {@link NlComponent} to enhance it with layout-specific properties and methods.
@@ -153,14 +162,37 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar);
   }
 
-  @VisibleForTesting
+  @Slow
+  @NotNull
+  public static NlModel create(@Nullable Disposable parent,
+                               @Nullable String modelDisplayName,
+                               @NotNull AndroidFacet facet,
+                               @NotNull VirtualFile file,
+                               @NotNull Configuration configuration,
+                               @NotNull Consumer<NlComponent> componentRegistrar,
+                               @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider) {
+    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, xmlFileProvider);
+  }
+
   protected NlModel(@Nullable Disposable parent,
                     @Nullable String modelDisplayName,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
                     @NotNull Consumer<NlComponent> componentRegistrar) {
+    this(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile);
+  }
+
+  @VisibleForTesting
+  protected NlModel(@Nullable Disposable parent,
+                    @Nullable String modelDisplayName,
+                    @NotNull AndroidFacet facet,
+                    @NotNull VirtualFile file,
+                    @NotNull Configuration configuration,
+                    @NotNull Consumer<NlComponent> componentRegistrar,
+                    @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider) {
     myFacet = facet;
+    myXmlFileProvider = xmlFileProvider;
     myModelDisplayName = modelDisplayName;
     myFile = file;
     myConfiguration = configuration;
@@ -243,11 +275,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myFile;
   }
 
-  @NotNull
-  public XmlFile getFile() {
-    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(getProject(), myFile);
+  /**
+   * Default implementation of XmlFile provider, XmlFile is the corresponding PSI representation for VirtualFile. VirtualFile must be an
+   * actual XML file in this case.
+   *
+   * @param project a project virtualFile belongs to
+   * @param virtualFile a file
+   * @return {@link XmlFile} representation of a VirtualFile (or its part's) content
+   */
+  private static XmlFile getDefaultXmlFile(Project project, VirtualFile virtualFile) {
+    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
     assert file != null;
     return file;
+  }
+
+  @NotNull
+  public XmlFile getFile() {
+    return myXmlFileProvider.apply(getProject(), myFile);
   }
 
   @NotNull
