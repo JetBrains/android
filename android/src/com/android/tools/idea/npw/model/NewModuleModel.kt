@@ -73,8 +73,6 @@ class NewModuleModel(
   val isLibrary: BoolProperty = BoolValueProperty()
   val templateValues = mutableMapOf<String, Any>()
 
-  // Note: INVOKE_IMMEDIATELY otherwise Objects may be constructed in the wrong state
-  private val bindings = BindingsManager(INVOKE_IMMEDIATELY_STRATEGY)
   val moduleName = StringValueProperty().apply { addConstraint(String::trim) }
   // A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
   // module, or instead modifies an existing module (for example just adding a new Activity)
@@ -119,11 +117,6 @@ class NewModuleModel(
   ) {
     this.templateFile.value = templateFile
     multiTemplateRenderer.incrementRenders()
-  }
-
-  override fun dispose() {
-    super.dispose()
-    bindings.releaseAll()
   }
 
   public override fun handleFinished() {
