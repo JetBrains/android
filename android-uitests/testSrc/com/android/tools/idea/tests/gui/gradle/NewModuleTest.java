@@ -141,7 +141,10 @@ public class NewModuleTest {
     guiTest.ideFrame()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNext() // Default Phone & Tablet Module
-      .setModuleName("otherModule")
+      .getConfigureAndroidModuleStep()
+      .setSourceLanguage("Kotlin")
+      .enterModuleName("otherModule")
+      .wizard()
       .clickNext()
       .chooseActivity("Basic Activity")
       .clickNext() // Default "Empty Activity"
