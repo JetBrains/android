@@ -23,8 +23,8 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import java.awt.Dimension;
@@ -59,7 +59,7 @@ abstract class ScreenViewBase extends SceneView {
       if (graphics != null) {
         Font font = graphics.getFont();
         FontMetrics metrics = graphics.getFontMetrics(font);
-        return metrics.getHeight() + NAME_LABEL_BOTTOM_MARGIN_PX;
+        return metrics.getHeight() + NlConstants.NAME_LABEL_BOTTOM_MARGIN_PX;
       }
     }
     return 0;
