@@ -22,7 +22,6 @@ import com.android.tools.idea.npw.module.getModuleRoot
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.core.BoolProperty
@@ -53,14 +52,26 @@ import java.util.ArrayList
 
 private val log: Logger get() = logger<NewModuleModel>()
 
-class NewModuleModel : WizardModel {
+class NewModuleModel(
+  // Shared with NewProjectModule
+  val projectSyncInvoker: ProjectSyncInvoker,
+  val applicationName: StringProperty,
+  val packageName: StringValueProperty,
+  val projectLocation: StringProperty,
+  // enableCppSupport
+  // cppFlags
+  val project: OptionalProperty<Project>,
+  val projectTemplateValues: MutableMap<String, Any>,
+  val language: OptionalValueProperty<Language>,
+  val multiTemplateRenderer: MultiTemplateRenderer,
+
+  val template: ObjectProperty<NamedModuleTemplate>,
+  val moduleParent: String?,
+  val formFactor: ObjectValueProperty<FormFactor>
+) : WizardModel() {
+
   val isLibrary: BoolProperty = BoolValueProperty()
-  val projectTemplateValues: MutableMap<String, Any>
   val templateValues = mutableMapOf<String, Any>()
-  val project: OptionalProperty<Project>
-  val moduleParent: String?
-  val projectSyncInvoker: ProjectSyncInvoker
-  val multiTemplateRenderer: MultiTemplateRenderer
 
   // Note: INVOKE_IMMEDIATELY otherwise Objects may be constructed in the wrong state
   private val bindings = BindingsManager(INVOKE_IMMEDIATELY_STRATEGY)
@@ -68,50 +79,46 @@ class NewModuleModel : WizardModel {
   // A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
   // module, or instead modifies an existing module (for example just adding a new Activity)
   val templateFile = OptionalValueProperty<File>()
-  val applicationName: StringProperty
-  val projectLocation: StringProperty
-  val packageName: StringValueProperty
-  val language: OptionalValueProperty<Language>
-  val template: ObjectProperty<NamedModuleTemplate>
   val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty()
-  val formFactor: ObjectValueProperty<FormFactor>
 
-  constructor(project: Project,
-              moduleParent: String?,
-              projectSyncInvoker: ProjectSyncInvoker,
-              template: NamedModuleTemplate) {
-    this.project = OptionalValueProperty(project)
-    this.moduleParent = moduleParent
-    this.projectSyncInvoker = projectSyncInvoker
-    this.template = ObjectValueProperty(template)
-    packageName = StringValueProperty()
-    language = OptionalValueProperty(getInitialSourceLanguage(project))
-    applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
-    applicationName.addConstraint(AbstractProperty.Constraint(String::trim))
-    projectLocation = StringValueProperty(project.basePath!!)
-    isLibrary.addListener { updateApplicationName() }
-    multiTemplateRenderer = MultiTemplateRenderer(project, projectSyncInvoker)
-    projectTemplateValues = mutableMapOf()
+  // TODO(qumeric): replace constructors by factories
+  constructor(
+    project: Project, moduleParent: String?, projectSyncInvoker: ProjectSyncInvoker, template: NamedModuleTemplate
+  ) : this(
+    projectSyncInvoker = projectSyncInvoker,
+    applicationName = StringValueProperty(message("android.wizard.module.config.new.application")),
+    packageName = StringValueProperty(),
+    projectLocation = StringValueProperty(project.basePath!!),
+    project = OptionalValueProperty(project),
+    projectTemplateValues = mutableMapOf(),
+    language = OptionalValueProperty(getInitialSourceLanguage(project)),
+    multiTemplateRenderer = MultiTemplateRenderer(project, projectSyncInvoker),
+    template = ObjectValueProperty(template),
+    moduleParent = moduleParent,
     formFactor = ObjectValueProperty(FormFactor.MOBILE)
+  ) {
+    applicationName.addConstraint(String::trim)
+    isLibrary.addListener { updateApplicationName() }
   }
 
   constructor(
     projectModel: NewProjectModel, templateFile: File, template: NamedModuleTemplate,
     formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
+  ) : this(
+    projectSyncInvoker = projectModel.projectSyncInvoker,
+    applicationName = projectModel.applicationName,
+    packageName = projectModel.packageName,
+    projectLocation = projectModel.projectLocation,
+    project = projectModel.project,
+    projectTemplateValues = projectModel.templateValues,
+    language = projectModel.language,
+    multiTemplateRenderer = projectModel.multiTemplateRenderer,
+    template = ObjectValueProperty(template),
+    moduleParent = null,
+    formFactor = formFactor
   ) {
-    this.template = ObjectValueProperty(template)
-    project = projectModel.project
-    this.moduleParent = null
-    packageName = projectModel.packageName
-    projectSyncInvoker = projectModel.projectSyncInvoker
-    applicationName = projectModel.applicationName
-    projectLocation = projectModel.projectLocation
     this.templateFile.value = templateFile
-    multiTemplateRenderer = projectModel.multiTemplateRenderer
     multiTemplateRenderer.incrementRenders()
-    language = OptionalValueProperty()
-    projectTemplateValues = projectModel.templateValues
-    this.formFactor = formFactor
   }
 
   override fun dispose() {
