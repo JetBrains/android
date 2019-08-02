@@ -100,8 +100,8 @@ public class AndroidGradleProjectResolverIdeaTest extends JavaProjectTestCase {
     myProjectModel.addModule("notReallyAGradleProject");
 
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    allModels.addExtraProject(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
-    allModels.addExtraProject(myNativeAndroidProject, NativeAndroidProject.class, myNativeAndroidModuleModel);
+    allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
+    allModels.addModel(myNativeAndroidProject, NativeAndroidProject.class, myNativeAndroidModuleModel);
 
     ExternalSystemTaskId id = ExternalSystemTaskId.create(SYSTEM_ID, RESOLVE_PROJECT, myProjectModel.getName());
     String projectPath = toSystemDependentName(myProjectModel.getBuildFile().getParent());
@@ -135,7 +135,7 @@ public class AndroidGradleProjectResolverIdeaTest extends JavaProjectTestCase {
   public void testCreateModuleWithOldModelVersion() {
     AndroidProject androidProject = mock(AndroidProject.class);
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    allModels.addExtraProject(androidProject, AndroidProject.class, myAndroidModuleModel);
+    allModels.addModel(androidProject, AndroidProject.class, myAndroidModuleModel);
     myResolverCtx.setModels(allModels);
 
     when(androidProject.getModelVersion()).thenReturn("0.0.1");
@@ -160,7 +160,7 @@ public class AndroidGradleProjectResolverIdeaTest extends JavaProjectTestCase {
     myAndroidProjectStub.setSyncIssues(syncIssue);
 
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    allModels.addExtraProject(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
+    allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
     myResolverCtx.setModels(allModels);
 
     myProjectResolver.populateModuleContentRoots(myAndroidModuleModel, moduleDataNode);
