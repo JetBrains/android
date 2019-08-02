@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -31,12 +32,14 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.idea.intentions.branchedTransformations.isNullExpressionOrEmptyBlock
+import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtLambdaExpression
@@ -69,7 +72,7 @@ internal fun getParentPsi(dslElement : GradleDslElement) = dslElement.parent?.cr
 internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslElement?) : PsiElement? {
   var anchorAfter = if (dslAnchor == null) null else findLastPsiElementIn(dslAnchor)
   if (anchorAfter == null && parent is KtBlockExpression) {
-    return adjustForKtBlockExpression(parent as KtBlockExpression)
+    return adjustForKtBlockExpression(parent)
   }
   else {
     while (anchorAfter != null && anchorAfter !is PsiFile && anchorAfter.parent != parent) {
@@ -89,18 +92,28 @@ internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslEl
   }
 }
 
+/**
+ * Get the first non-empty element in a block expression.
+ */
 internal fun adjustForKtBlockExpression(blockExpression: KtBlockExpression) : PsiElement? {
   var element = blockExpression.firstChild
 
-  // Find last empty child after the initial element.
+  // If the first child of the block is not an empty element, return it.
+  if (element != null && !(element.text.isNullOrEmpty() || element.text.matches(ESCAPE_CHILD))) {
+    return element
+  }
+
+  // Find first non-empty child of the block expression.
   while (element != null) {
     element = element.nextSibling
     if (element != null && (element.text.isNullOrEmpty() || element.text.matches(ESCAPE_CHILD))) {
+      // This is an empty element, so continue.
       continue
     }
+    // We found an element that is not empty, we exit the loop.
     break
   }
-  return element?.prevSibling
+  return element
 }
 
 /**
@@ -128,7 +141,7 @@ internal fun createLiteral(context : GradleDslElement, value : Any) : PsiElement
     }
     is Int, is Boolean, is BigDecimal -> return KtPsiFactory(context.dslFile.project).createExpressionIfPossible(value.toString())
     is RawText -> return KtPsiFactory(context.dslFile.project).createExpressionIfPossible(value.getText())
-    else -> throw IncorrectOperationException("Expression '${value}' not supported.")
+    else -> error("Expression '${value}' not supported.")
   }
 }
 
@@ -212,7 +225,13 @@ internal fun findInjections(
 internal fun deletePsiElement(dslElement : GradleDslElement, psiElement : PsiElement?) {
   if (psiElement == null || !psiElement.isValid) return
   val parent = psiElement.parent
-  psiElement.delete()
+  // If the psiElement is a KtValueArgument, we use the removeArgument method provided by the KTS psi that handles removing COMMAs between arguments.
+  if (psiElement is KtValueArgument) {
+    (parent as KtValueArgumentList).removeArgument(psiElement)
+  }
+  else {
+    psiElement.delete()
+  }
   maybeDeleteIfEmpty(parent, dslElement)
 
   // Clear all invalid psiElements in the GradleDslElement tree.
@@ -294,7 +313,11 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
       }
       is KtValueArgument -> {
         if (psiElement.getArgumentExpression() == null) {
-          psiElement.delete()
+          (parent as KtValueArgumentList).removeArgument(psiElement)
+          // Delete any space that might remain after the argument deletion.
+          if (parent.firstChild.node.elementType == LPAR && parent.firstChild.nextSibling.node.elementType == WHITE_SPACE) {
+            parent.firstChild.nextSibling.delete()
+          }
         }
       }
       // TODO: add support for variables when available on Parser.
@@ -308,25 +331,87 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
   }
 }
 
-internal fun processMethodCallElement(expression : GradleDslSettableExpression) : PsiElement? {
+/**
+ * Given a literal expression, create it's PsiElement and add it to it's parent psiElement.
+ */
+internal fun createListElement(expression : GradleDslSettableExpression) : PsiElement? {
   val parent = expression.parent ?: return null
   val parentPsi = parent.create() ?: return null
 
   val expressionPsi = expression.unsavedValue ?: return null
-  var argument : KtValueArgument
-  val psiFactory = KtPsiFactory(expressionPsi.project)
-  val valueArgument = psiFactory.createArgument(expression.value.toString())
-  // support named argument. ex: plugin = "kotlin-android".
-  if (expression.name.isNotEmpty()) {
-    argument = psiFactory.createArgument(valueArgument.getArgumentExpression(), Name.identifier(expression.name))
-  }
-  else {
-    argument = valueArgument
-  }
-  val added  = parentPsi.addBefore(argument, parentPsi.lastChild)
+
+  val added  = createPsiElementInsideList(parent, expression, parentPsi, expressionPsi)
   expression.psiElement = added
   expression.commit()
   return expression.psiElement
+}
+
+/**
+ * Given an literal that is a map element, create the corresponding psiElement and add it to the map (parent) psiElement, and update
+ * the expression value.
+ */
+internal fun createMapElement(expression : GradleDslSettableExpression) : PsiElement? {
+  val parent = requireNotNull(expression.parent)
+  val parentPsiElement = parent.create() as? KtCallExpression ?: return null
+
+  expression.psiElement = parentPsiElement
+  val expressionValue = expression.unsavedValue ?: return null
+
+  val psiFactory = KtPsiFactory(parentPsiElement.project)
+  val argumentStringExpression =
+    "${expression.name.addQuotes(true)} to ${StringUtil.unquoteString(expressionValue.text).addQuotes(true)}"
+  val mapArgument = psiFactory.createExpression(argumentStringExpression)
+
+  val argumentValue = psiFactory.createArgument(mapArgument)
+
+  val added =
+    parentPsiElement.valueArgumentList?.addArgumentAfter(argumentValue, parentPsiElement.valueArgumentList?.arguments?.lastOrNull())
+
+  val argumentExpression = added?.getArgumentExpression() as? KtBinaryExpression // Map elements are KtBinaryExpression.
+  val expressionRight = argumentExpression?.right
+  if (argumentExpression == null || expressionRight == null) return null
+  
+  expression.setExpression(expressionRight)
+  expression.commit()
+  expression.reset()
+  return expression.psiElement
+
+}
+
+/**
+ * Add an argument to a GradleDslList (parentDslElement). The PsiElement of the list (parentPsiElement) can either be :
+ * KtCallExpression : for cases where we have a list in Kotlin (listOf())
+ * KtValueArgumentList : for all the other cases (ex  : KtCallExpression arguments).
+ */
+internal fun createPsiElementInsideList(parentDslElement : GradleDslElement,
+                                        dslElement : GradleDslSettableExpression,
+                                        parentPsiElement: PsiElement,
+                                        psiElement: PsiElement) : PsiElement {
+  val parentPsiElement =
+    if (parentPsiElement !is KtCallExpression) parentPsiElement as? KtValueArgumentList ?:
+                                               error("ParentPsi should be a KtValueArgumentList.")
+    else parentPsiElement.valueArgumentList ?: error("The parent psi element is not valid.")
+
+  val anchor = parentDslElement.requestAnchor(dslElement)
+
+  // Create a valueArgument to add to the list.
+  val psiFactory = KtPsiFactory(parentPsiElement.project)
+  // support named argument. ex: plugin = "kotlin-android".
+  val argument = if (dslElement.name.isNotEmpty()) {
+    psiFactory.createArgument(psiElement as? KtExpression, Name.identifier(dslElement.name))
+  }
+  else {
+    psiFactory.createArgument("${dslElement.value.toString().addQuotes(true)}")
+  }
+
+  // If the dslElement has an anchor that is not null and that the list is not empty, we add it to the list after the anchor ;
+  // otherwise, we add it at the beginning of the list.
+  if (parentPsiElement.arguments.isNotEmpty() && anchor != null) {
+    val anchorPsi = requireNotNull(anchor.psiElement)
+    return parentPsiElement.addArgumentAfter(argument, anchorPsi as KtValueArgument)
+  }
+  return parentPsiElement.addArgumentAfter(argument, parentPsiElement.arguments.firstOrNull())
+
 }
 
 internal fun getKtBlockExpression(psiElement: PsiElement) : KtBlockExpression? {
@@ -350,4 +435,66 @@ internal fun maybeUpdateName(element : GradleDslElement) {
   }
 
   element.nameElement.commitNameChange(newElement)
+}
+
+internal fun createAndAddClosure(closure : GradleDslClosure, element : GradleDslElement) {
+  // TODO(karimai) : implement getting dsl closure block for methodCall.
+}
+
+/**
+ * Create the PsiElement for a list that is an argument of a map. In kotlin each map argument is a KtBinaryExpression.
+ */
+internal fun createBinaryExpression(expressionList : GradleDslExpressionList) : PsiElement? {
+  val parent = expressionList.parent as? GradleDslExpressionMap ?:
+               error("Can't create expression for parent not being GradleDslExpressionMap")
+
+  val parentPsiElement = parent.create() ?: return null
+
+  val psiFactory = KtPsiFactory(parentPsiElement.project)
+  val listName = expressionList.name
+  if (listName.isEmpty()) error("The list Name can't be empty.")
+
+  val expression = psiFactory.createExpression("\"$listName\" to listOf()") as? KtBinaryExpression ?: return null
+  val added : PsiElement?
+  val mapPsiElement : PsiElement
+
+  when (parentPsiElement) {
+    // This is the case when a map is a parameter of a KtCallExpression and use the psiElement of the expression arguments list.
+    // Ex. implementation(mapOf()).
+    is KtValueArgumentList -> mapPsiElement = parentPsiElement.arguments[0].getArgumentExpression()  ?: return null
+    // This is the case where we can have property = mapOf(), where the map has the psi element of the binary expression.
+    is KtBinaryExpression -> mapPsiElement = requireNotNull(parentPsiElement.right)
+    // This is the case where the map dsl element uses it's proper psiElement (i.e. mapOf()).
+    // The dsl element holds the arguments of the original callExpression as psi element.
+    else -> mapPsiElement = parentPsiElement.parent  // We need to get back to the expression psi element.
+  }
+
+  // Get The map arguments list that will be updated and add a new argument to it.
+  val argumentsList = (mapPsiElement as KtCallExpression).valueArgumentList ?: return null
+  val mapValueArgument = psiFactory.createArgument(expression)
+  val lastArgument = argumentsList.arguments.last()
+  added = argumentsList.addArgumentAfter(mapValueArgument, lastArgument)
+
+  if (added is KtValueArgument) {
+    expressionList.psiElement = added.getArgumentExpression()
+    return expressionList.psiElement
+  }
+
+  return null
+}
+
+internal fun hasNewLineBetween(start : PsiElement, end : PsiElement) : Boolean {
+  if(start.parent === end.parent && start.startOffsetInParent <= end.startOffsetInParent) {
+    var element = start
+    while (element !== end) {
+      // WHITE_SPACE represents a group of escape characters and a new line can have spaces for indentation,
+      // so we check that it starts with a new line.
+      if (element.node.elementType == WHITE_SPACE && element.node.text.startsWith("\n")) {
+        return true
+      }
+      element = element.nextSibling
+    }
+    return false
+  }
+  return true
 }
