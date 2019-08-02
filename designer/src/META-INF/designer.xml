@@ -66,6 +66,10 @@
       <headless-implementation-class/>
     </component>
     <component>
+      <implementation-class>com.android.tools.idea.uibuilder.visual.VisualizationManager</implementation-class>
+      <headless-implementation-class/>
+    </component>
+    <component>
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
     </component>
     <component>
