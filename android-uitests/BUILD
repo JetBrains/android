@@ -954,7 +954,6 @@ java_test(
         "no_windows",
         "qa_sanity",
         "qa_sanity_emu",
-        "qa_unreliable",  # b/80421743
         "requires-fakeroot",
         "requires_emulator",
         "slow",
