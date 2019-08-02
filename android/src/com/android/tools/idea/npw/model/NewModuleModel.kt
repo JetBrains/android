@@ -68,21 +68,32 @@ class ExistingNewProjectModelData(project: Project, override val projectSyncInvo
   }
 }
 
+interface ModuleModelData: ProjectModelData {
+  val template: ObjectProperty<NamedModuleTemplate>
+  val moduleParent: String?
+  val formFactor: ObjectValueProperty<FormFactor>
+  val isLibrary: BoolProperty
+  val moduleTemplateValues: MutableMap<String, Any>
+  val moduleName: StringValueProperty
+  /**
+   * A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
+   * module, or instead modifies an existing module (for example just adding a new Activity)
+   */
+  val templateFile: OptionalValueProperty<File>
+  val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem>
+}
+
 class NewModuleModel(
   private val projectModelData: ProjectModelData,
-  val template: ObjectProperty<NamedModuleTemplate>,
-  val moduleParent: String?,
-  val formFactor: ObjectValueProperty<FormFactor>
-) : WizardModel(), ProjectModelData by projectModelData {
-
-  val isLibrary: BoolProperty = BoolValueProperty()
-  val moduleTemplateValues = mutableMapOf<String, Any>()
-
-  val moduleName = StringValueProperty().apply { addConstraint(String::trim) }
-  // A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
-  // module, or instead modifies an existing module (for example just adding a new Activity)
-  val templateFile = OptionalValueProperty<File>()
-  val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty()
+  override val template: ObjectProperty<NamedModuleTemplate>,
+  override val moduleParent: String?,
+  override val formFactor: ObjectValueProperty<FormFactor>
+) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
+  override val isLibrary: BoolProperty = BoolValueProperty()
+  override val moduleTemplateValues = mutableMapOf<String, Any>()
+  override val moduleName = StringValueProperty().apply { addConstraint(String::trim) }
+  override val templateFile = OptionalValueProperty<File>()
+  override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty()
 
   // TODO(qumeric): replace constructors by factories
   constructor(
@@ -129,7 +140,7 @@ class NewModuleModel(
       projectTemplateValues.also {
         it[formFactor.get().id + ATTR_INCLUDE_FORM_FACTOR] = true
         it[formFactor.get().id + ATTR_MODULE_NAME] = moduleName.get()
-        moduleTemplateValues.putAll(it)
+        moduleTemplateValues.putAll(projectTemplateValues)
       }
 
       moduleTemplateValues[ATTR_APP_TITLE] = applicationName.get()
@@ -151,7 +162,7 @@ class NewModuleModel(
     @WorkerThread
     override fun doDryRun(): Boolean {
       // This is done because module needs to know about all included form factors, and currently we know about them only after init run,
-      // so we need to set it after all inits (thus in dryRun) TODO(qumeric): remove after adding formFactors to the project
+      // so we need to set it again after all inits (thus in dryRun) TODO(qumeric): remove after adding formFactors to the project
       moduleTemplateValues.putAll(projectTemplateValues)
       if (templateFile.valueOrNull == null) {
         return false // If here, the user opted to skip creating any module at all, or is just adding a new Activity
