@@ -356,7 +356,7 @@ public class EditorFixture {
   public EditorFixture closeFile(@NotNull String relativePath) {
     EdtTestUtil.runInEdtAndWait(
       () -> {
-        VirtualFile file = myFrame.findFileByRelativePath(relativePath, true);
+        VirtualFile file = myFrame.findFileByRelativePath(relativePath);
         if (file != null) {
           FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
           manager.closeFile(file);
@@ -528,7 +528,7 @@ public class EditorFixture {
 
   public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab, @NotNull Wait waitForFileOpen) {
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
-    VirtualFile file = myFrame.findFileByRelativePath(relativePath, true);
+    VirtualFile file = myFrame.findFileByRelativePath(relativePath);
     return open(file, tab, waitForFileOpen);
   }
 
