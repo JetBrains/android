@@ -115,8 +115,8 @@ public class NewCppProjectTestUtil {
     guiTest.waitForBackgroundTasks();
 
     // Sanity check we have create the right files
-    guiTest.ideFrame().findFileByRelativePath("app/src/main/cpp/CMakeLists.txt", true);
-    guiTest.ideFrame().findFileByRelativePath("app/src/main/cpp/native-lib.cpp", true);
+    assertThat(guiTest.ideFrame().findFileByRelativePath("app/src/main/cpp/CMakeLists.txt")).isNotNull();
+    assertThat(guiTest.ideFrame().findFileByRelativePath("app/src/main/cpp/native-lib.cpp")).isNotNull();
 
     String mainActivityText = guiTest.getProjectFileText("app/src/main/java/com/example/myapplication/MainActivity.java");
     assertThat(mainActivityText).contains("System.loadLibrary(\"native-lib\")");
