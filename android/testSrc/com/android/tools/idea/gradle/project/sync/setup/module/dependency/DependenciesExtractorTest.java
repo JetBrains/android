@@ -28,6 +28,7 @@ import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder;
 import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub;
+import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStubBuilder;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
@@ -41,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link DependenciesExtractor}.
@@ -136,13 +136,9 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     String gradlePath = ":lib";
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
-    ModuleLibraryStub library = new ModuleLibraryStub() {
-      @Override
-      @NotNull
-      public String getProjectPath() {
-        return gradlePath;
-      }
-    };
+    ModuleLibraryStubBuilder builder = new ModuleLibraryStubBuilder();
+    builder.setProjectPath(gradlePath);
+    ModuleLibraryStub library = builder.build();
 
     myModuleFinder = new ModuleFinder(myProject);
     myModuleFinder.addModule(libModule, ":lib");
