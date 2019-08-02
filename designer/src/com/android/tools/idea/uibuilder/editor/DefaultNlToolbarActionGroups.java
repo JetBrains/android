@@ -39,6 +39,7 @@ import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantActionKt;
 import com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -70,6 +71,10 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
+    if (isInVisualizationTool()) {
+      // There is no north group in visualization for now.
+      return group;
+    }
 
     group.add(DESIGN_MODE.registerForHiddenAction(createDesignModeAction(),
                                                   new SwitchDesignModeAction((NlDesignSurface)mySurface), mySurface, this));
@@ -105,8 +110,17 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
+    if (isInVisualizationTool()) {
+      // Ignore Issue panel in visualisation.
+      group.addAll(getZoomActionsWithShortcuts(mySurface, this));
+      return group;
+    }
     addActionsWithSeparator(group, getZoomActionsWithShortcuts(mySurface, this));
     group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface, this));
     return group;
+  }
+
+  private boolean isInVisualizationTool() {
+    return StudioFlags.NELE_VISUALIZATION.get() && ((NlDesignSurface) mySurface).getSceneMode() == SceneMode.VISUALIZATION;
   }
 }
