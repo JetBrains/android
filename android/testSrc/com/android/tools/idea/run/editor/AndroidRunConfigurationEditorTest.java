@@ -57,7 +57,7 @@ public final class AndroidRunConfigurationEditorTest {
         true,
         moduleSelector -> configurationSpecificEditor);
 
-    DeployTargetContext deployTargetContext = new DeployTargetContext(() -> true, visible -> providers);
+    DeployTargetContext deployTargetContext = new DeployTargetContext(providers);
 
     AndroidTestRunConfiguration configuration2 = Mockito.mock(AndroidTestRunConfiguration.class);
     Mockito.when(configuration2.getDeployTargetContext()).thenReturn(deployTargetContext);

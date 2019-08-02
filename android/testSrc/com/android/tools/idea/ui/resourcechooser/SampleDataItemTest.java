@@ -40,7 +40,7 @@ public class SampleDataItemTest {
   @Test
   public void getResourceUrl() {
     MockPsiFile file = new MockPsiFile(new LightVirtualFile("dummy"), new MockPsiManager(rule.getProject()));
-    file.putUserData(ModuleUtilCore.KEY_MODULE, rule.module);
+    file.putUserData(ModuleUtilCore.KEY_MODULE, rule.getModule());
     file.text = "toto\ntata";
     ResourceChooserItem.SampleDataItem userItem = new ResourceChooserItem.SampleDataItem(ApplicationManager.getApplication().runReadAction(
       new Computable<SampleDataResourceItem>() {
@@ -58,7 +58,7 @@ public class SampleDataItemTest {
     Truth.assertThat(userItem.getResourceUrl()).isEqualTo("@sample/dummy");
 
     ResourceItem predefinedItem = ResourceRepositoryManager
-      .getAppResources(rule.module)
+      .getAppResources(rule.getModule())
       .getResources(PredefinedSampleDataResourceRepository.NAMESPACE, ResourceType.SAMPLE_DATA, "lorem")
       .get(0);
     ResourceChooserItem.SampleDataItem dataItem = new ResourceChooserItem.SampleDataItem((SampleDataResourceItem)predefinedItem);

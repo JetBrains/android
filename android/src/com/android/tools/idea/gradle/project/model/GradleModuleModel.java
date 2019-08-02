@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serialization.PropertyMapping;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
@@ -77,6 +78,17 @@ public class GradleModuleModel implements ModuleModel {
    * Method of constructing a GradleModuleModel without a GradleProject for use in tests ONLY.
    */
   @VisibleForTesting
+  @PropertyMapping({
+    "myModuleName",
+    "myTaskNames",
+    "myGradlePath",
+    "myRootFolderPath",
+    "myGradlePlugins",
+    "myBuildFilePath",
+    "myGradleVersion",
+    "myAgpVersion",
+    "myIsKaptEnabled"
+  })
   public GradleModuleModel(@NotNull String moduleName,
                            @NotNull List<String> taskNames,
                            @NotNull String gradlePath,

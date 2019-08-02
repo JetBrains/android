@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ArrayObjectIdentityExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.BootstrapClassloaderPlaceholder
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ClassLoaderExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ClassStaticsExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.DefaultObjectExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Expander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ExpanderChooser
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Node
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.RootExpander
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference

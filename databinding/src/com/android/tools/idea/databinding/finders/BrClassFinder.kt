@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.databinding.DataBindingProjectComponent
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
+import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -43,7 +43,7 @@ class BrClassFinder(project: Project) : PsiElementFinder() {
       {
         val classes = component.getDataBindingEnabledFacets()
           .asSequence()
-          .mapNotNull(DataBindingClassFactory::getOrCreateBrClassFor)
+          .mapNotNull { facet -> ModuleDataBinding.getInstance(facet).lightBrClass }
           .associateBy { it.qualifiedName }
 
         CachedValueProvider.Result.create<Map<String, PsiClass>>(classes, component)

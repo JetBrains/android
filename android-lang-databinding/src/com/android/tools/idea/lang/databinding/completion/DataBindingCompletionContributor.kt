@@ -153,8 +153,8 @@ open class DataBindingCompletionContributor : CompletionContributor() {
 
     val bindingLayoutInfo = getBindingLayoutInfo(file) ?: return
     result.addAllElements(
-      (bindingLayoutInfo.getItems(DataBindingResourceType.VARIABLE).values
-       + bindingLayoutInfo.getItems(DataBindingResourceType.IMPORT).values)
+      (bindingLayoutInfo.psi.getItems(DataBindingResourceType.VARIABLE).values
+       + bindingLayoutInfo.psi.getItems(DataBindingResourceType.IMPORT).values)
         .map { (name, _, xmlTag) ->
           LookupElementBuilder.create(xmlTag, DataBindingUtil.convertToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
         }

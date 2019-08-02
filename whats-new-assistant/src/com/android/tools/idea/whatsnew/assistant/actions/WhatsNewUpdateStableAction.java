@@ -17,30 +17,8 @@ package com.android.tools.idea.whatsnew.assistant.actions;
 
 import com.android.tools.idea.assistant.AssistActionHandler;
 import com.android.tools.idea.assistant.datamodel.ActionData;
-import com.intellij.ide.IdeBundle;
-import com.intellij.ide.plugins.PluginManagerMain;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.application.ex.ApplicationInfoEx;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.updateSettings.impl.CheckForUpdateResult;
-import com.intellij.openapi.updateSettings.impl.PluginDownloader;
 import com.intellij.openapi.updateSettings.impl.UpdateChecker;
-import com.intellij.openapi.updateSettings.impl.UpdateInstaller;
-import com.intellij.openapi.updateSettings.impl.UpdateSettings;
-import com.intellij.openapi.updateSettings.impl.UpdateStrategy;
-import com.intellij.openapi.updateSettings.impl.UpdatesInfo;
-import com.intellij.util.Url;
-import com.intellij.util.Urls;
-import com.intellij.util.io.URLUtil;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 final class WhatsNewUpdateStableAction implements AssistActionHandler {

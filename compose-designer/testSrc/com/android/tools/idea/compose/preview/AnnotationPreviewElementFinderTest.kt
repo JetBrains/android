@@ -20,28 +20,7 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 
-class AnnotationPreviewElementFinderTest : LightCodeInsightFixtureTestCase() {
-  override fun setUp() {
-    super.setUp()
-
-    @Language("kotlin")
-    val previewAnnotation = myFixture.addFileToProject("src/com/android/tools/preview/Preview.kt", """
-      package com.android.tools.preview
-
-      annotation class Preview(val name: String = "",
-                         val apiLevel: Int = -1,
-                         val theme: String = "",
-                         val locale: String = "")
-    """.trimIndent())
-
-    @Language("kotlin")
-    val composeAnnotation = myFixture.addFileToProject("src/android/compose/Compose.kt", """
-      package androidx.compose
-
-      annotation class Compose()
-    """.trimIndent())
-  }
-
+class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() {
   fun testFindPreviewAnnotations() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """

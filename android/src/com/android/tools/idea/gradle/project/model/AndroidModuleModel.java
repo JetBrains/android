@@ -168,10 +168,11 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @PropertyMapping({"myModuleName", "myRootDirPath", "myAndroidProject", "mySelectedVariantName"})
-  private AndroidModuleModel(@NotNull String moduleName,
-                             @NotNull File rootDirPath,
-                             @NotNull IdeAndroidProject androidProject,
-                             @NotNull String variantName) {
+  @VisibleForTesting
+  AndroidModuleModel(@NotNull String moduleName,
+                     @NotNull File rootDirPath,
+                     @NotNull IdeAndroidProject androidProject,
+                     @NotNull String variantName) {
     myAndroidProject = androidProject;
 
     myProjectSystemId = GRADLE_SYSTEM_ID;

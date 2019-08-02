@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.databinding.viewbinding
 
-import com.android.builder.model.ViewBindingOptions
 import com.android.flags.junit.RestoreFlagRule
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
-import com.android.ide.common.gradle.model.stubs.AndroidProjectStub
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.tools.idea.databinding.isViewBindingEnabled
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.psi.search.PsiShortNamesCache
@@ -39,7 +35,8 @@ import org.junit.rules.RuleChain
 
 @RunsInEdt
 class ViewBindingShortNameCacheTest {
-  private val projectRule = AndroidProjectRule.onDisk()
+  private val projectRule =
+    AndroidProjectRule.withAndroidModel(createAndroidProjectBuilder(viewBindingOptions = {ViewBindingOptionsStub(true)}))
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
   @get:Rule
@@ -57,28 +54,12 @@ class ViewBindingShortNameCacheTest {
   @Before
   fun setUp() {
     StudioFlags.VIEW_BINDING_ENABLED.override(true)
-
-    val androidProject = object : AndroidProjectStub("1.0") {
-      override fun getViewBindingOptions(): ViewBindingOptions {
-        return ViewBindingOptionsStub(true)
-      }
-    }
-    facet.configuration.model = AndroidModuleModel.create(
-      androidProject.name,
-      projectRule.project.baseDir.toIoFile(),
-      androidProject,
-      androidProject.defaultVariant!!,
-      IdeDependenciesFactory()
-    )
-
     assertThat(facet.isViewBindingEnabled()).isTrue()
-
-
   }
 
   @Test
   fun shortNameCacheContainsViewBindingClassesAndFields() {
-    fixture.addFileToProject("res/layout/activity_main.xml", """
+    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>
         <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
             <TextView android:id="@+id/testId"/>

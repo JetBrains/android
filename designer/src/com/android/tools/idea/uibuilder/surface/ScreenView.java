@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
+
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.collect.ImmutableList;
 import java.awt.Dimension;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
 
 /**
  * View of a device/screen/layout.
@@ -36,9 +35,10 @@ import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
 public class ScreenView extends ScreenViewBase {
 
   /**
-   * True if we are previewing a non-layout file in Preview Dialog (e.g. Previewing Vector Drawable), false otherwise.
+   * Whether this {@link ScreenView} has a {@link BorderLayer}, which should happen in almost every scenario, except if we are previewing a
+   * non-layout file in Preview Dialog (e.g. Previewing Vector Drawable).
    */
-  protected final boolean myShowBorder;
+  private final boolean myHasBorderLayer;
 
   private final boolean useImageSize;
 
@@ -51,7 +51,7 @@ public class ScreenView extends ScreenViewBase {
    */
   public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager, boolean useImageSize) {
     super(surface, manager);
-    myShowBorder = !getSurface().isPreviewSurface() || surface.getLayoutType() == LayoutFileType.INSTANCE;
+    myHasBorderLayer = !getSurface().isPreviewSurface() || surface.getLayoutType() == LayoutFileType.INSTANCE;
     this.useImageSize = useImageSize;
   }
 
@@ -82,7 +82,7 @@ public class ScreenView extends ScreenViewBase {
   protected ImmutableList<Layer> createLayers() {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
 
-    if (myShowBorder) {
+    if (myHasBorderLayer) {
       builder.add(new BorderLayer(this));
     }
     if (getSurface().isShowModelNames()) {
@@ -101,5 +101,9 @@ public class ScreenView extends ScreenViewBase {
       builder.add(new DiagnosticsLayer(getSurface()));
     }
     return builder.build();
+  }
+
+  public boolean hasBorderLayer() {
+    return myHasBorderLayer;
   }
 }

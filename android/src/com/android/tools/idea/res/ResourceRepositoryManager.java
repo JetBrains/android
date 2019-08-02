@@ -57,6 +57,7 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -285,6 +286,19 @@ public final class ResourceRepositoryManager implements Disposable {
 
   private static void addGradleLibraries(@NotNull List<Library> list, @NotNull AndroidModuleModel androidModuleModel) {
     list.addAll(androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries());
+  }
+
+  /**
+   * Returns the repository with all resources available to a given module, both framework and non-framework.
+   *
+   * @return the computed repository or null if framework resources cannot be determined for the module
+   * @see #getAppResources()
+   * @see #getFrameworkResources(Set)
+   */
+  @Nullable
+  public ResourceRepository getAllResources() {
+    ResourceRepository frameworkResources = getFrameworkResources(Collections.emptySet());
+    return frameworkResources == null ? null : new AllResourceRepository(getAppResources(), frameworkResources);
   }
 
   /**

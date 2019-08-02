@@ -15,29 +15,69 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory;
-import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass;
+import com.android.tools.idea.databinding.psiclass.BindingClassConfig;
+import com.android.tools.idea.databinding.psiclass.BindingImplClassConfig;
+import com.android.tools.idea.databinding.psiclass.LightBindingClass;
 import com.android.tools.idea.databinding.psiclass.LightBrClass;
+import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.res.binding.BindingLayoutGroup;
+import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetManagerAdapter;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
+import com.intellij.psi.PsiManager;
 import com.intellij.util.messages.MessageBusConnection;
-import net.jcip.annotations.NotThreadSafe;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.WeakHashMap;
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@NotThreadSafe
-public class ModuleDataBinding {
+@ThreadSafe
+public final class ModuleDataBinding {
+  private final Object myLock = new Object();
+
+  /**
+   * A (weak) cache of all generated light binding classes.
+   *
+   * A binding module should generate one or more binding classes per bindable layout, and we cache
+   * everything here. Such a bindable layout should have a {@link BindingLayoutGroup} associated
+   * with it, with the assumption that its own lifetime is tied to the lifetime of the layout
+   * itself. For example, if the user deletes a layout file, its binding group should also be
+   * released, so in turn these cached binding classes would be collected as well.
+   *
+   * See also: {@link #getLightBindingClasses(BindingLayoutGroup)}
+   */
+  @GuardedBy("myLock")
+  private WeakHashMap<BindingLayoutGroup, List<LightBindingClass>> myLightBindingClasses = new WeakHashMap<>();
+
+  /**
+   * The singleton light BR class associated with this module.
+   *
+   * See also: {@link #getLightBrClass()}
+   */
+  @GuardedBy("myLock")
   @Nullable private LightBrClass myLightBrClass;
+
+  /**
+   * The singleton light DataBindingComponent associated with this module.
+   *
+   * See also: {@link #getLightDataBindingComponentClass()}
+   */
+  @GuardedBy("myLock")
   @Nullable private LightDataBindingComponentClass myLightDataBindingComponentClass;
 
   @NotNull
+  @GuardedBy("myLock")
   private DataBindingMode myDataBindingMode = DataBindingMode.NONE;
-  private Module myModule;
+
+  private final Module myModule;
 
   @NotNull
   public static ModuleDataBinding getInstance(@NotNull AndroidFacet facet) {
@@ -54,14 +94,14 @@ public class ModuleDataBinding {
       @Override
       public void facetConfigurationChanged(@NotNull Facet facet) {
         if (facet.getModule() == myModule) {
-          syncWithConfiguration();
+          syncModeWithFacetConfiguration();
         }
       }
     });
-    syncWithConfiguration();
+    syncModeWithFacetConfiguration();
   }
 
-  private void syncWithConfiguration() {
+  private void syncModeWithFacetConfiguration() {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     if (facet != null) {
       AndroidModel androidModel = facet.getConfiguration().getModel();
@@ -72,71 +112,118 @@ public class ModuleDataBinding {
   }
 
   public void setMode(@NotNull DataBindingMode mode) {
-    if (myDataBindingMode != mode) {
-      myDataBindingMode = mode;
-      DataBindingModeTrackingService.getInstance().incrementModificationCount();
+    synchronized (myLock) {
+      if (myDataBindingMode != mode) {
+        myDataBindingMode = mode;
+        DataBindingModeTrackingService.getInstance().incrementModificationCount();
+      }
     }
   }
 
   @NotNull
   public DataBindingMode getDataBindingMode() {
-    return myDataBindingMode;
+    synchronized (myLock) {
+      return myDataBindingMode;
+    }
   }
 
   /**
-   * Convenience method to check if data binding is enabled for the project (covers but support and androidX namespaces).
-   * @return
+   * Returns a list of {@link LightBindingClass} instances corresponding to the layout XML files
+   * related to the passed-in {@link BindingLayoutGroup}.
+   *
+   * If there is only one layout.xml (i.e. single configuration), this will return a single light
+   * class (a "Binding"). If there are multiple layout.xmls (i.e. multi- configuration), this will
+   * return a main light class ("Binding") as well as several additional implementation light
+   * classes ("BindingImpl"s), one for each layout.
+   *
+   * If this is the first time requesting this information, they will be created on the fly.
+   *
+   * This information is backed by a weak map, so when the {@code group} object goes out of scope,
+   * the associated light binding classes will eventually get released.
    */
-  public boolean isEnabled() {
-    return myDataBindingMode != DataBindingMode.NONE;
+  @NotNull
+  public List<LightBindingClass> getLightBindingClasses(@NotNull BindingLayoutGroup group) {
+    synchronized (myLock) {
+      List<LightBindingClass> bindingClasses = myLightBindingClasses.get(group);
+      if (bindingClasses == null) {
+        bindingClasses = new ArrayList<>();
+
+        // Always add a full "Binding" class
+        PsiManager psiManager = PsiManager.getInstance(myModule.getProject());
+        LightBindingClass bindingClass = new LightBindingClass(psiManager, new BindingClassConfig(group));
+        bindingClasses.add(bindingClass);
+
+        // "Impl" classes are only necessary if we have more than a single configuration
+        if (group.getLayouts().size() > 1) {
+          for (int layoutIndex = 0; layoutIndex < group.getLayouts().size(); layoutIndex++) {
+            BindingLayoutInfo layout = group.getLayouts().get(layoutIndex);
+            LightBindingClass bindingImplClass = new LightBindingClass(psiManager, new BindingImplClassConfig(group, layoutIndex));
+            layout.getPsi().setPsiClass(bindingImplClass);
+            bindingClasses.add(bindingImplClass);
+          }
+        }
+        else {
+          group.getMainLayout().getPsi().setPsiClass(bindingClass);
+        }
+
+        myLightBindingClasses.put(group, bindingClasses);
+      }
+      return bindingClasses;
+    }
   }
 
   /**
-   * Each data binding module has exactly one BR class generated for it.
+   * Fetches the singleton light BR class associated with this module.
    *
-   * An external caller should ensure that the current module gets associated with an in-memory
-   * light version of the BR class.
+   * If this is the first time requesting this information, it will be created on the fly.
    *
-   * See also: <a href="https://developer.android.com/topic/libraries/data-binding/observability#observable_objects">official docs</a>
-   *
-   * @see DataBindingClassFactory#getOrCreateBrClassFor(AndroidFacet)
-   */
-  public void setLightBrClass(@NotNull LightBrClass lightBrClass) {
-    myLightBrClass = lightBrClass;
-  }
-
-  /**
-   * Returns the light BR class for this facet if it is already set.
-   *
-   * @return The BR class for this facet, if exists
-   * @see DataBindingClassFactory#getOrCreateBrClassFor(AndroidFacet)
+   * This can return {@code null} if the current module is not associated with an
+   * {@link AndroidFacet} OR if we were not able to obtain enough information from the given facet
+   * at this time (e.g. because we couldn't determine the class's fully-qualified name).
    */
   @Nullable
   public LightBrClass getLightBrClass() {
-    return myLightBrClass;
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    if (facet == null) {
+      return null;
+    }
+
+    synchronized (myLock) {
+      if (myLightBrClass == null) {
+        String qualifiedName = DataBindingUtil.getBrQualifiedName(facet);
+        if (qualifiedName == null) {
+          return null;
+        }
+        myLightBrClass = new LightBrClass(PsiManager.getInstance(facet.getModule().getProject()), facet, qualifiedName);
+      }
+      return myLightBrClass;
+    }
   }
 
   /**
-   * Each data binding <i>app</i> module has exactly one DataBindingComponent class generated for
-   * it.
+   * Fetches the singleton light DataBindingComponent class associated with this module.
    *
-   * An external caller should ensure that the current module, if it's an application module, gets
-   * associated with an in-memory light version of a DataBindingComponent.
+   * If this is the first time requesting this information, it will be created on the fly.
    *
-   * See also: <a href="https://developer.android.com/reference/android/databinding/DataBindingComponent">official docs</a>
-   */
-  public void setLightDataBindingComponentClass(@NotNull LightDataBindingComponentClass lightBindingComponentClass) {
-    myLightDataBindingComponentClass = lightBindingComponentClass;
-  }
-
-  /**
-   * Returns the light DataBindingComponent class for this module if it is already set.
-   *
-   * @see DataBindingClassFactory#getOrCreateDataBindingComponentClassFor(AndroidFacet)
+   * This can return {@code null} if the current module is not associated with an
+   * {@link AndroidFacet} OR if the current module doesn't provide one (e.g. it's not an app
+   * module).
    */
   @Nullable
   public LightDataBindingComponentClass getLightDataBindingComponentClass() {
-    return myLightDataBindingComponentClass;
-  }
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    if (facet == null) {
+      return null;
+    }
+    if (facet.getConfiguration().isLibraryProject()) {
+      return null;
+    }
 
+    synchronized (myLock) {
+      if (myLightDataBindingComponentClass == null) {
+        myLightDataBindingComponentClass = new LightDataBindingComponentClass(PsiManager.getInstance(myModule.getProject()), facet);
+      }
+      return myLightDataBindingComponentClass;
+    }
+  }
 }

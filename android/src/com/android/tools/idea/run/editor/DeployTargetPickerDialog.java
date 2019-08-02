@@ -149,9 +149,6 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
       myRefreshAvdsFuture.set(null);
     });
 
-    DeployTargetState state = deployTargetStates.get(ShowChooserTargetProvider.ID);
-    setDoNotAskOption(new UseSameDevicesOption((ShowChooserTargetProvider.State)state));
-
     setTitle("Select Deployment Target");
     setModal(true);
     init();
@@ -453,40 +450,6 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
 
     @Override
     public void removeModuleChangeListener(@NotNull ActionListener listener) {
-    }
-  }
-
-  private static class UseSameDevicesOption implements DoNotAskOption {
-    @NotNull private final ShowChooserTargetProvider.State myState;
-
-    public UseSameDevicesOption(@NotNull ShowChooserTargetProvider.State state) {
-      myState = state;
-    }
-
-    @Override
-    public boolean isToBeShown() {
-      return !myState.USE_LAST_SELECTED_DEVICE;
-    }
-
-    @Override
-    public void setToBeShown(boolean toBeShown, int exitCode) {
-      myState.USE_LAST_SELECTED_DEVICE = !toBeShown;
-    }
-
-    @Override
-    public boolean canBeHidden() {
-      return true;
-    }
-
-    @Override
-    public boolean shouldSaveOptionsOnCancel() {
-      return true;
-    }
-
-    @NotNull
-    @Override
-    public String getDoNotShowMessage() {
-      return "Use same selection for future launches";
     }
   }
 }

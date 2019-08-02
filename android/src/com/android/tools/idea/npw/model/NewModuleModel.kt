@@ -143,9 +143,22 @@ class NewModuleModel : WizardModel {
         log.error("NewModuleModel did not collect expected information and will not complete. Please report this error.")
       }
 
-      TemplateValueInjector(templateValues)
-        .setProjectDefaults(project.value)
       templateValues[ATTR_APP_TITLE] = applicationName.get()
+      templateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary.get()
+
+      val project = project.value
+      TemplateValueInjector(templateValues).apply {
+        setProjectDefaults(project)
+        setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
+        if (androidSdkInfo.isPresent.get()) {
+          setBuildVersion(androidSdkInfo.value, project)
+        }
+        if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
+          setLanguage(language.value)
+        }
+      }
+
+      renderTemplateModel.valueOrNull?.templateValues?.putAll(templateValues)
     }
 
     @WorkerThread
@@ -154,27 +167,8 @@ class NewModuleModel : WizardModel {
         return false // If here, the user opted to skip creating any module at all, or is just adding a new Activity
       }
 
-      templateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary.get()
-
-      val project = project.value
-
-      val injector = TemplateValueInjector(templateValues)
-      injector.setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
-
-      if (androidSdkInfo.isPresent.get()) {
-        injector.setBuildVersion(androidSdkInfo.value, project)
-      }
-      if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
-        injector.setLanguage(language.value)
-      }
-
-      renderTemplateModel.valueOrNull?.let {
-        templateValues.putAll(it.templateValues) // TODO - Wrong copy direction - Remove next CL's
-        it.templateValues.putAll(templateValues)
-      }
-
       // Returns false if there was a render conflict and the user chose to cancel creating the template
-      return renderModule(true, templateValues, project, moduleName.get())
+      return renderModule(true, templateValues, project.value, moduleName.get())
     }
 
     @WorkerThread

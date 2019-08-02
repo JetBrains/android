@@ -15,14 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import java.io.Serializable;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.model.NdkModuleModel.getNdkVariantName;
 
-public class NdkVariantName {
+public class NdkVariantName implements Serializable {
   @NotNull String variant;
   @NotNull String abi;
   @NotNull String displayName;
+
+  // Used for serialization by the IDE.#
+  @SuppressWarnings("unused")
+  public NdkVariantName() {
+    variant = "";
+    abi = "";
+    displayName = "";
+  }
 
   public NdkVariantName(@NotNull String variant, @NotNull String abi) {
     this.variant = variant;
