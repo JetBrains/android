@@ -101,8 +101,10 @@ import com.android.ide.common.gradle.model.stubs.VariantStub
 import com.android.ide.common.gradle.model.stubs.VectorDrawablesOptionsStub
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.ide.common.gradle.model.stubs.l2JavaLibrary
+import com.android.ide.common.gradle.model.stubs.l2ModuleLibrary
 import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder
 import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStubBuilder
+import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStubBuilder
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
 import com.intellij.serialization.ObjectSerializer
@@ -175,7 +177,8 @@ class ModelSerializationTest {
 
   @Test
   fun level2AndroidLibrary() = assertSerializable {
-    IdeLibraryFactory().create(AndroidLibraryStubBuilder().build()) as com.android.ide.common.gradle.model.level2.IdeAndroidLibrary
+    IdeLibraryFactory().create(
+      AndroidLibraryStubBuilder().build()) as com.android.ide.common.gradle.model.level2.IdeAndroidLibrary
   }
 
   @Test
@@ -185,7 +188,7 @@ class ModelSerializationTest {
 
   @Test
   fun level2ModuleLibrary() = assertSerializable {
-    IdeLibraryFactory().create(com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub()) as IdeModuleLibrary
+    IdeLibraryFactory().create(ModuleLibraryStubBuilder().build()) as IdeModuleLibrary
   }
 
   @Test
@@ -200,9 +203,7 @@ class ModelSerializationTest {
     val level2AndroidLibrary = AndroidLibraryStubBuilder().apply {
       artifactAddress = "androidLibrary"
     }.build()
-    val level2ModuleLibrary = object : com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub() {
-      override fun getArtifactAddress() = "module"
-    }
+    val level2ModuleLibrary = l2ModuleLibrary("module")
 
     val graphStub = DependencyGraphsStub(listOf(javaGraphItem, androidGraphItem, moduleGraphItem), listOf(), listOf(), listOf())
     localDependenciesFactory.setUpGlobalLibraryMap(listOf(GlobalLibraryMapStub(
