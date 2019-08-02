@@ -37,7 +37,6 @@ import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.LerpDouble;
 import com.android.tools.idea.common.scene.LerpPoint;
 import com.android.tools.idea.common.scene.LerpValue;
@@ -162,7 +161,7 @@ public class NavDesignSurface extends DesignSurface {
    * {@code editorPanel} should only be null in tests
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
-    super(project, new SelectionModel(), parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface));
+    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), true);
     setBackground(JBColor.white);
 
     // TODO: add nav-specific issues
