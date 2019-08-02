@@ -21,25 +21,35 @@ import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.StringValueProperty
-import com.android.tools.idea.templates.TemplateMetadata
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_CLASS_NAME
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_MODULE
 import com.intellij.openapi.project.Project
 
 class NewJavaModuleModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker
 ) : ModuleModel(project, templateHandle, projectSyncInvoker, "lib") {
-  @JvmField val packageName = StringValueProperty()
-  @JvmField val className = StringValueProperty("MyClass")
+  @JvmField
+  val packageName = StringValueProperty()
+  @JvmField
+  val className = StringValueProperty("MyClass")
 
-  override fun handleFinished() {
-    val modulePaths = createDefaultTemplateAt(project.basePath!!, moduleName.get()).paths
-    TemplateValueInjector(templateValues)
-      .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
-      .setJavaVersion(project)
-    templateValues[TemplateMetadata.ATTR_CLASS_NAME] = className.get()
-    templateValues[TemplateMetadata.ATTR_IS_NEW_MODULE] = true
-    templateValues[TemplateMetadata.ATTR_IS_LIBRARY_MODULE] = true
-    if (doDryRun()) {
-      render()
+  override val renderer = object : ModuleTemplateRenderer() {
+    override fun init() {
+      super.init()
+      val modulePaths = createDefaultTemplateAt(project.basePath!!, moduleName.get()).paths
+
+      val newValues = mutableMapOf<String, Any>(
+        ATTR_CLASS_NAME to className.get(),
+        ATTR_IS_NEW_MODULE to true,
+        ATTR_IS_LIBRARY_MODULE to true
+      )
+
+      TemplateValueInjector(newValues)
+        .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
+        .setJavaVersion(project)
+
+      templateValues.putAll(newValues)
     }
   }
 }
