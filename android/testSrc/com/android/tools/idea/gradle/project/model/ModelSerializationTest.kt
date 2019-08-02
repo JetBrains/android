@@ -100,6 +100,7 @@ import com.android.ide.common.gradle.model.stubs.TestedTargetVariantStub
 import com.android.ide.common.gradle.model.stubs.VariantStub
 import com.android.ide.common.gradle.model.stubs.VectorDrawablesOptionsStub
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
+import com.android.ide.common.gradle.model.stubs.l2AndroidLibrary
 import com.android.ide.common.gradle.model.stubs.l2JavaLibrary
 import com.android.ide.common.gradle.model.stubs.l2ModuleLibrary
 import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder
@@ -200,9 +201,7 @@ class ModelSerializationTest {
     val moduleGraphItem = GraphItemStub("module", listOf(), "")
 
     val level2JavaLibrary = l2JavaLibrary("javaLibrary")
-    val level2AndroidLibrary = AndroidLibraryStubBuilder().apply {
-      artifactAddress = "androidLibrary"
-    }.build()
+    val level2AndroidLibrary = l2AndroidLibrary("androidLibrary")
     val level2ModuleLibrary = l2ModuleLibrary("module")
 
     val graphStub = DependencyGraphsStub(listOf(javaGraphItem, androidGraphItem, moduleGraphItem), listOf(), listOf(), listOf())
