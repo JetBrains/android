@@ -39,10 +39,7 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_SIMPLE_NAME
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task.Modal
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.util.AndroidBundle.message
 
 class DynamicFeatureModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker, isInstant: Boolean
@@ -58,34 +55,32 @@ class DynamicFeatureModel(
   @JvmField val downloadInstallKind =
     OptionalValueProperty(if (isInstant) DownloadInstallKind.INCLUDE_AT_INSTALL_TIME else DownloadInstallKind.ON_DEMAND_ONLY)
 
-  override fun handleFinished() {
-    object : Modal(project, message(
-      "android.compile.messages.generating.r.java.content.name"), false) {
-      override fun run(indicator: ProgressIndicator) {
-        val modulePaths = createDefaultTemplateAt(myProject.basePath!!, moduleName.get()).paths
-        TemplateValueInjector(templateValues)
-          .setModuleRoots(modulePaths, myProject.basePath!!, moduleName.get(), packageName.get())
-          .setBuildVersion(androidSdkInfo.value, myProject).setBaseFeature(baseApplication.value)
+  override val renderer = object: ModuleTemplateRenderer() {
+    override fun init() {
+      super.init()
+      val modulePaths = createDefaultTemplateAt(project.basePath!!, moduleName.get()).paths
 
-        templateValues.let {
-          it[ATTR_IS_DYNAMIC_FEATURE] = true
-          it[ATTR_MODULE_SIMPLE_NAME] = nameToJavaPackage(moduleName.get())
-          it[ATTR_DYNAMIC_FEATURE_TITLE] = featureTitle.get()
-          it[ATTR_DYNAMIC_FEATURE_ON_DEMAND] = featureOnDemand.get()
-          it[ATTR_DYNAMIC_FEATURE_FUSING] = featureFusing.get()
-          it[ATTR_IS_NEW_MODULE] = true
-          it[ATTR_IS_LIBRARY_MODULE] = false
-          it[ATTR_DYNAMIC_IS_INSTANT_MODULE] = instantModule.get()
+      val newValues = mutableMapOf(
+          ATTR_IS_DYNAMIC_FEATURE to true,
+          ATTR_MODULE_SIMPLE_NAME to nameToJavaPackage(moduleName.get()),
+          ATTR_DYNAMIC_FEATURE_TITLE to featureTitle.get(),
+          ATTR_DYNAMIC_FEATURE_ON_DEMAND to featureOnDemand.get(),
+          ATTR_DYNAMIC_FEATURE_FUSING to featureFusing.get(),
+          ATTR_IS_NEW_MODULE to true,
+          ATTR_IS_LIBRARY_MODULE to false,
+          ATTR_DYNAMIC_IS_INSTANT_MODULE to instantModule.get(),
           // Dynamic delivery conditions
-          it[ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY] = downloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME
-          it[ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY] = downloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS
-          it[ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY] = downloadInstallKind.value == DownloadInstallKind.ON_DEMAND_ONLY
-          it[ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST] = deviceFeatures
-        }
-        if (doDryRun()) {
-          render()
-        }
-      }
-    }.queue()
+          ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY to (downloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME),
+          ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY to (downloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS),
+          ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY to (downloadInstallKind.value == DownloadInstallKind.ON_DEMAND_ONLY),
+          ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST to deviceFeatures
+      )
+
+      TemplateValueInjector(newValues)
+        .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
+        .setBuildVersion(androidSdkInfo.value, project).setBaseFeature(baseApplication.value)
+
+      templateValues.putAll(newValues)
+    }
   }
 }
