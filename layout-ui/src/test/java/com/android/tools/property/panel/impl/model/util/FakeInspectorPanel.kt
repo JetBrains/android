@@ -55,7 +55,7 @@ class FakeInspectorPanel : InspectorPanel {
   }
 
   override fun addComponent(component: JComponent, parent: InspectorLineModel?): InspectorLineModel {
-    val line = FakeInspectorLineModel(FakeLineType.PANEL)
+    val line = FakeComponentLineModel(component)
     lines.add(line)
     addAsChild(line, parent)
     return line
