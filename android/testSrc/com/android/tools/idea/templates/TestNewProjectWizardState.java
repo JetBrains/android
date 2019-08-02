@@ -47,7 +47,7 @@ public class TestNewProjectWizardState {
     myModuleState.put(ATTR_APP_TITLE, APPLICATION_NAME);
     myModuleState.put(ATTR_HAS_APPLICATION_THEME, true);
     myModuleState.put(ATTR_IS_LAUNCHER, true);
-    myModuleState.put(ATTR_IS_NEW_PROJECT, true);
+    myModuleState.put(ATTR_IS_NEW_MODULE, true);
     myModuleState.put(ATTR_THEME_EXISTS, true);
     myModuleState.put(ATTR_CREATE_ACTIVITY, true);
     myModuleState.put(ATTR_IS_LIBRARY_MODULE, false);

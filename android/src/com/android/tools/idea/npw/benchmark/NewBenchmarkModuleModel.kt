@@ -26,7 +26,7 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_MODULE
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task.Modal
 import com.intellij.openapi.project.Project
@@ -51,7 +51,7 @@ class NewBenchmarkModuleModel(
           .setLanguage(language.value)
           .setBuildVersion(minSdk.value, myProject)
         templateValues[ATTR_APP_TITLE] = moduleName.get()
-        templateValues[ATTR_IS_NEW_PROJECT] = false
+        templateValues[ATTR_IS_NEW_MODULE] = false
         templateValues[ATTR_IS_LIBRARY_MODULE] = true
         if (doDryRun()) {
           render()
