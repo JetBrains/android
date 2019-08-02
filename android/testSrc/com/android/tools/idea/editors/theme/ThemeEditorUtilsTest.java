@@ -109,42 +109,10 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertEquals(11, ThemeEditorUtils.getMinApiLevel(myModule));
   }
 
-  public void testResourceResolverVisitor() {
-    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v14.xml", "res/values-v14/styles.xml");
-    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
-    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v21.xml", "res/values-v21/styles.xml");
-
-    AtomicInteger visitedRepos = new AtomicInteger(0);
-    // With only one source set, this should be called just once.
-    ThemeEditorUtils.acceptResourceResolverVisitor(myFacet, (resources, moduleName, variantName, isSelected) -> {
-      assertEquals("main", variantName);
-      visitedRepos.incrementAndGet();
-    });
-    assertEquals(1, visitedRepos.get());
-    // TODO: Test variants
-  }
-
-  @NotNull
-  private static EditedStyleItem findAttribute(@NotNull String name, @NotNull Collection<EditedStyleItem> attributes) {
-    EditedStyleItem item = attributes.stream().filter(input -> {
-      assert input != null;
-      return name.equals(input.getQualifiedName());
-    }).findFirst().get();
-    assertNotNull(item);
-
-    return item;
-  }
-
   public void testGenerateWordEnumeration() {
     assertEquals("", ThemeEditorUtils.generateWordEnumeration(Collections.emptyList()));
     assertEquals("one", ThemeEditorUtils.generateWordEnumeration(Collections.singletonList("one")));
     assertEquals("one and two", ThemeEditorUtils.generateWordEnumeration(Arrays.asList("one", "two")));
     assertEquals("one, two and Three", ThemeEditorUtils.generateWordEnumeration(Arrays.asList("one", "two", "Three")));
-  }
-
-  public void testThemeNamesListOrder() {
-    myFixture.copyFileToProject("themeEditor/styles_alphabetical.xml", "res/values/styles.xml");
-    List<String> themeNames = ThemeEditorUtils.getModuleThemeQualifiedNamesList(myModule);
-    assertThat(themeNames).containsExactly("aTheme", "BTheme", "cTheme", "DTheme").inOrder();
   }
 }

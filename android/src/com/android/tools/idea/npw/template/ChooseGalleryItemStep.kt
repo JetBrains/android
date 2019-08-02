@@ -40,6 +40,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
+import org.jetbrains.android.facet.AndroidFacet
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.Icon
@@ -123,7 +124,6 @@ abstract class ChooseGalleryItemStep(
     model.setRenderTemplateModel(renderModel)
   }
 
-
   /**
    * See also [com.android.tools.idea.actions.NewAndroidComponentAction.update]
    */
@@ -133,20 +133,10 @@ abstract class ChooseGalleryItemStep(
     val androidSdkInfo = model.androidSdkInfo.valueOrNull
     val facet = renderModel.androidFacet
 
-    // Start by assuming API levels are great enough for the Template
-    var moduleApiLevel = Integer.MAX_VALUE
-    var moduleBuildApiLevel = Integer.MAX_VALUE
-    if (androidSdkInfo != null) {
-      moduleApiLevel = androidSdkInfo.minApiLevel
-      moduleBuildApiLevel = androidSdkInfo.buildApiLevel
-    }
-    else if (facet != null) {
-      val moduleInfo = AndroidModuleInfo.getInstance(facet)
-      moduleApiLevel = moduleInfo.minSdkVersion.featureLevel
-      if (moduleInfo.buildSdkVersion != null) {
-        moduleBuildApiLevel = moduleInfo.buildSdkVersion!!.featureLevel
-      }
-    }
+    fun AndroidFacet.getModuleInfo() = AndroidModuleInfo.getInstance(this)
+
+    val moduleApiLevel = androidSdkInfo?.minApiLevel ?: facet?.getModuleInfo()?.minSdkVersion?.featureLevel ?: Integer.MAX_VALUE
+    val moduleBuildApiLevel = androidSdkInfo?.buildApiLevel ?: facet?.getModuleInfo()?.buildSdkVersion?.featureLevel ?: Integer.MAX_VALUE
 
     val project = model.project.valueOrNull
     val isAndroidxProject = project != null && project.isAndroidx()
@@ -154,34 +144,24 @@ abstract class ChooseGalleryItemStep(
       templateData, moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, messageKeys))
   }
 
-  class TemplateRenderer(internal val template: TemplateHandle?) {
-    internal val label: String
-      get() = ActivityGallery.getTemplateImageLabel(template, false)
-
+  open class TemplateRenderer(internal val template: TemplateHandle?) {
+    internal open val label: String get() = ActivityGallery.getTemplateImageLabel(template, false)
     /**
      * Return the image associated with the current template, if it specifies one, or null otherwise.
      */
-    internal val icon: Icon?
-      get() = ActivityGallery.getTemplateIcon(template, false)
-
+    internal open val icon: Icon? get() = ActivityGallery.getTemplateIcon(template, false)
     override fun toString(): String = label
   }
+}
 
-  companion object {
-    private fun getDefaultSelectedTemplateIndex(templateRenderers: List<TemplateRenderer>, emptyItemLabel: String): Int {
-      val emptyItemIndex = templateRenderers.indexOfFirst { it.label == emptyItemLabel }
+fun getDefaultSelectedTemplateIndex(
+  templateRenderers: List<ChooseGalleryItemStep.TemplateRenderer>,
+  emptyItemLabel: String = "Empty Activity"
+): Int = templateRenderers.indices.run {
+  val defaultTemplateIndex = firstOrNull { templateRenderers[it].label == emptyItemLabel }
+  val firstValidTemplateIndex = firstOrNull { templateRenderers[it].template != null }
 
-      if (emptyItemIndex != -1) {
-        return emptyItemIndex
-      }
-
-      val firstValidTemplateIndex = templateRenderers.indexOfFirst { it.template != null }
-
-      assert(firstValidTemplateIndex != -1)
-
-      return firstValidTemplateIndex
-    }
-  }
+  defaultTemplateIndex ?: firstValidTemplateIndex ?: throw IllegalArgumentException("No valid Template found")
 }
 
 @VisibleForTesting

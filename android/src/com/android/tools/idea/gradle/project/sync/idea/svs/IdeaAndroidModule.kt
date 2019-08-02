@@ -27,7 +27,7 @@ import org.gradle.tooling.model.idea.IdeaModule
 import java.util.regex.Pattern
 
 /**
- * This class has been adapted from [com.android.tools.idea.gradle.project.sync.ng.AndroidModule].
+ * The container class for Android module, containing its Android model, Variant models, and dependency modules.
  */
 @UsedInBuildAction
 class IdeaAndroidModule(
@@ -67,11 +67,12 @@ class IdeaAndroidModule(
   }
 
   private fun populateDependencies(dependencies: Dependencies, abi: String?) = dependencies.libraries.forEach { library ->
-    val project = library.project ?: return
+    val project = library.project ?: return@forEach
     addModuleDependency(createUniqueModuleId(library?.buildId ?: "", project), library.projectVariant, abi)
   }
 
-  private fun populateDependencies(dependencyGraphs: DependencyGraphs, abi: String?) = dependencyGraphs.compileDependencies.forEach { item ->
+  private fun populateDependencies(dependencyGraphs: DependencyGraphs,
+                                   abi: String?) = dependencyGraphs.compileDependencies.forEach { item ->
     val matcher = MODULE_ARTIFACT_ADDRESS_PATTERN.matcher(item.artifactAddress)
     if (matcher.matches()) {
       val buildId = matcher.group(1)

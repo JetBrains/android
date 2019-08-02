@@ -65,6 +65,7 @@ class ResourceExplorer private constructor(
   init {
     toolbarViewModel.facetUpdaterCallback = {newValue -> this.facet = newValue}
     resourceExplorerViewModel.facetUpdaterCallback = {newValue -> this.facet = newValue}
+    resourceExplorerViewModel.resourceTypeUpdaterCallback = this::updateResourceType
   }
 
   companion object {
@@ -79,6 +80,7 @@ class ResourceExplorer private constructor(
       val resourceExplorerViewModel = ResourceExplorerViewModel.createResManagerViewModel(facet)
       val toolbarViewModel = ResourceExplorerToolbarViewModel(
         facet,
+        resourceExplorerViewModel.resourceTypes[resourceExplorerViewModel.resourceTypeIndex],
         importersProvider,
         resourceExplorerViewModel.filterOptions)
       val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
@@ -108,6 +110,7 @@ class ResourceExplorer private constructor(
                                                                                          doSelectResourceCallback)
       val toolbarViewModel = ResourceExplorerToolbarViewModel(
         facet,
+        resourceExplorerViewModel.resourceTypes[resourceExplorerViewModel.resourceTypeIndex],
         importersProvider,
         resourceExplorerViewModel.filterOptions)
       val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
@@ -152,6 +155,10 @@ class ResourceExplorer private constructor(
     resourceExplorerViewModel.facet = facet
     resourceImportDragTarget.facet = facet
     toolbarViewModel.facet = facet
+  }
+
+  private fun updateResourceType(resourceType: ResourceType) {
+    toolbarViewModel.resourceType = resourceType
   }
 
   override fun dispose() {

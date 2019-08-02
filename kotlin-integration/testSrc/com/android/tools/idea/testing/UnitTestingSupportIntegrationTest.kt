@@ -16,7 +16,9 @@
 package com.android.tools.idea.testing
 
 import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.TestUsageTrackerListener
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
@@ -296,15 +298,21 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
   private fun checkTestClass(className: String, expectedTests: Set<String>) {
     val passingTests = ConcurrentSkipListSet<String>()
     val failingTests = ConcurrentSkipListSet<String>()
-    val testingFinished = CountDownLatch(1)
+    val testingFinished = CountDownLatch(2)
     val failure = AtomicReference<Throwable>()
 
     val tracker = TestUsageTracker(VirtualTimeScheduler())
+    tracker.listener = object: TestUsageTrackerListener {
+      override fun onNewUsage(loggedUsage: LoggedUsage) {
+        if (loggedUsage.studioEvent.kind == AndroidStudioEvent.EventKind.TEST_RUN) {
+          testingFinished.countDown()
+        }
+      }
+    }
     UsageTracker.setWriterForTest(tracker)
 
     runInEdtAndWait {
       try {
-
         project.messageBus.connect(testRootDisposable).subscribe(SMTRunnerEventsListener.TEST_STATUS, object : SMTRunnerEventsAdapter() {
           override fun onTestingStarted(testsRoot: SMTestProxy.SMRootTestProxy) {
             log("Testing $className started.")

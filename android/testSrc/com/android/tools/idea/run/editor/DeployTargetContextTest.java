@@ -20,19 +20,12 @@ import static org.junit.Assert.assertEquals;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
 public final class DeployTargetContextTest {
-  private boolean mySelectDeviceSnapshotComboBoxVisible;
-
   private DeployTargetProvider myDeviceAndSnapshotComboBoxTargetProvider;
-  private DeployTargetProvider myShowChooserTargetProvider;
-  private DeployTargetProvider myEmulatorTargetProvider;
-  private DeployTargetProvider myUsbDeviceTargetProvider;
   private DeployTargetProvider myCloudTestMatrixTargetProvider;
 
   private DeployTargetContext myContext;
@@ -40,42 +33,19 @@ public final class DeployTargetContextTest {
   @Before
   public void initProviders() {
     myDeviceAndSnapshotComboBoxTargetProvider = new DeviceAndSnapshotComboBoxTargetProvider();
-    myShowChooserTargetProvider = new ShowChooserTargetProvider();
-    myEmulatorTargetProvider = new EmulatorTargetProvider();
-    myUsbDeviceTargetProvider = new UsbDeviceTargetProvider();
     myCloudTestMatrixTargetProvider = new CloudTestMatrixTargetProvider();
   }
 
   @Before
   public void initContext() {
-    myContext = new DeployTargetContext(() -> mySelectDeviceSnapshotComboBoxVisible, this::getDeployTargetProviders);
-  }
-
-  @NotNull
-  private Collection<DeployTargetProvider> getDeployTargetProviders(boolean deviceSnapshotComboBoxVisible) {
-    if (!deviceSnapshotComboBoxVisible) {
-      return Arrays.asList(
-        myShowChooserTargetProvider,
-        myEmulatorTargetProvider,
-        myUsbDeviceTargetProvider,
-        myCloudTestMatrixTargetProvider,
-        new CloudDebuggingTargetProvider());
-    }
-
-    return Arrays.asList(
+    myContext = new DeployTargetContext(Arrays.asList(
       myDeviceAndSnapshotComboBoxTargetProvider,
-      myShowChooserTargetProvider,
-      myEmulatorTargetProvider,
-      myUsbDeviceTargetProvider,
       myCloudTestMatrixTargetProvider,
-      new CloudDebuggingTargetProvider());
+      new CloudDebuggingTargetProvider()));
   }
 
   @Test
   public void getApplicableDeployTargetProvidersVisibleComboBoxAppConfiguration() {
-    // Arrange
-    mySelectDeviceSnapshotComboBoxVisible = true;
-
     // Act
     Object actualProviders = myContext.getApplicableDeployTargetProviders(false);
 
@@ -85,9 +55,6 @@ public final class DeployTargetContextTest {
 
   @Test
   public void getApplicableDeployTargetProvidersVisibleComboBoxTestConfiguration() {
-    // Arrange
-    mySelectDeviceSnapshotComboBoxVisible = true;
-
     // Act
     Object actualProviders = myContext.getApplicableDeployTargetProviders(true);
 
@@ -96,33 +63,7 @@ public final class DeployTargetContextTest {
   }
 
   @Test
-  public void getApplicableDeployTargetProvidersInvisibleComboBoxAppConfiguration() {
-    // Act
-    Object actualProviders = myContext.getApplicableDeployTargetProviders(false);
-
-    // Assert
-    assertEquals(Arrays.asList(myShowChooserTargetProvider, myEmulatorTargetProvider, myUsbDeviceTargetProvider), actualProviders);
-  }
-
-  @Test
-  public void getApplicableDeployTargetProvidersInvisibleComboBoxTestConfiguration() {
-    // Act
-    Object actualProviders = myContext.getApplicableDeployTargetProviders(true);
-
-    // Assert
-    Object expectedProviders = Arrays.asList(
-      myShowChooserTargetProvider,
-      myEmulatorTargetProvider,
-      myUsbDeviceTargetProvider,
-      myCloudTestMatrixTargetProvider);
-
-    assertEquals(expectedProviders, actualProviders);
-  }
-
-  @Test
   public void getCurrentDeployTargetProviderSelectDeviceSnapshotComboBoxIsVisible() {
-    mySelectDeviceSnapshotComboBoxVisible = true;
-
     Object provider = myContext.getCurrentDeployTargetProvider();
 
     assertEquals(myDeviceAndSnapshotComboBoxTargetProvider, provider);
@@ -131,7 +72,6 @@ public final class DeployTargetContextTest {
   @Test
   public void getCurrentDeployTargetProviderTargetSelectionModeEqualsFirebaseDeviceMatrix() {
     // Arrange
-    mySelectDeviceSnapshotComboBoxVisible = true;
     myContext.setTargetSelectionMode(TargetSelectionMode.FIREBASE_DEVICE_MATRIX);
 
     // Act
@@ -139,40 +79,5 @@ public final class DeployTargetContextTest {
 
     // Assert
     assertEquals(myCloudTestMatrixTargetProvider, actualProvider);
-  }
-
-  @Test
-  public void getCurrentDeployTargetProviderTargetSelectionModeEqualsDeviceAndSnapshotComboBox() {
-    myContext.setTargetSelectionMode(TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX);
-
-    Object provider = myContext.getCurrentDeployTargetProvider();
-
-    assertEquals(myShowChooserTargetProvider, provider);
-  }
-
-  @Test
-  public void getCurrentDeployTargetProviderProviderIsFound() {
-    Object provider = myContext.getCurrentDeployTargetProvider();
-
-    assertEquals(myShowChooserTargetProvider, provider);
-  }
-
-  @Test
-  public void getCurrentDeployTargetProviderProviderIsNotFound() {
-    myContext.setTargetSelectionMode("#2-Y2Y3Ob-h72ks%");
-
-    Object provider = myContext.getCurrentDeployTargetProvider();
-
-    assertEquals(myShowChooserTargetProvider, provider);
-  }
-
-  @Test
-  public void getCurrentDeployTargetProviderSetSelectDeviceSnapshotComboBoxVisibleToTrue() {
-    // Act
-    myContext.setTargetSelectionMode(TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX);
-    mySelectDeviceSnapshotComboBoxVisible = true;
-
-    // Assert
-    assertEquals(myDeviceAndSnapshotComboBoxTargetProvider, myContext.getCurrentDeployTargetProvider());
   }
 }

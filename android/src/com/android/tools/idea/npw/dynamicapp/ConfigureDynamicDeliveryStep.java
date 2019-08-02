@@ -58,14 +58,14 @@ public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicFeature
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myBindings.bindTwoWay(new TextProperty(myFeatureTitle), getModel().featureTitle());
-    myBindings.bindTwoWay(new SelectedProperty(myOnDemandCheckBox), getModel().featureOnDemand());
-    myBindings.bindTwoWay(new SelectedProperty(myFusingCheckBox), getModel().featureFusing());
+    myBindings.bindTwoWay(new TextProperty(myFeatureTitle), getModel().featureTitle);
+    myBindings.bindTwoWay(new SelectedProperty(myOnDemandCheckBox), getModel().featureOnDemand);
+    myBindings.bindTwoWay(new SelectedProperty(myFusingCheckBox), getModel().featureFusing);
 
-    myListeners.listenAndFire(getModel().featureOnDemand(), onDemandValue ->
+    myListeners.listenAndFire(getModel().featureOnDemand, onDemandValue ->
       setEnabled(onDemandValue.booleanValue(), myFeatureTitleLabel, myFeatureTitle, myFusingCheckBox));
 
-    myValidatorPanel.registerValidator(getModel().featureTitle(), value ->
+    myValidatorPanel.registerValidator(getModel().featureTitle, value ->
       value.isEmpty() ? new Validator.Result(ERROR, message("android.wizard.validate.empty.name")) : OK);
   }
 
@@ -95,7 +95,7 @@ public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicFeature
 
   @Override
   protected boolean shouldShow() {
-    return !getModel().instantModule().get();
+    return !getModel().instantModule.get();
   }
 
   private static void setEnabled(boolean isEnabled, JComponent... components) {

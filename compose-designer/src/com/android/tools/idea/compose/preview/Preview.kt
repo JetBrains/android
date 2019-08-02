@@ -22,6 +22,7 @@ import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomShortcut
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.editor.SmartAutoRefresher
@@ -75,11 +76,17 @@ import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
 import javax.swing.JPanel
 
+/** Preview element name */
+const val PREVIEW_NAME = "Preview"
+
+/** Package containing the preview definitions */
+const val PREVIEW_PACKAGE = "com.android.tools.preview"
+
 /** Only composables with this annotation will be rendered to the surface */
-const val PREVIEW_ANNOTATION = "com.android.tools.preview.Preview"
+const val PREVIEW_ANNOTATION_FQN = "$PREVIEW_PACKAGE.$PREVIEW_NAME"
 
 /** View included in the runtime library that will wrap the @Composable element so it gets rendered by layoutlib */
-const val COMPOSE_VIEW_ADAPTER = "com.android.tools.preview.ComposeViewAdapter"
+const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
 
 /** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
 const val COMPOSABLE_NAME_ATTR = "tools:composableName"
@@ -111,7 +118,7 @@ private class ComposeAdapterLightVirtualFile(name: String, content: String) : Li
 /**
  * A [FileEditor] that displays a preview of composable elements defined in the given [psiFile].
  *
- * The editor will display previews for all declared `@Composable` methods that also use the `@Preview` (see [PREVIEW_ANNOTATION])
+ * The editor will display previews for all declared `@Composable` methods that also use the `@Preview` (see [PREVIEW_ANNOTATION_FQN])
  * annotation.
  * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` method.
  *
@@ -236,7 +243,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) : Toolba
     ZoomShortcut.ZOOM_OUT.registerForAction(ZoomOutAction, mySurface, this),
     ZoomLabelAction,
     ZoomShortcut.ZOOM_IN.registerForAction(ZoomInAction, mySurface, this),
-    ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction, mySurface, this)
+    ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction, mySurface, this),
+    IssueNotificationAction(surface)
   ))
 }
 
@@ -298,7 +306,7 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
     }
 
     // Indexing might not be ready so we use this hack for now (looking for the import FQCN)
-    return VfsUtil.loadText(file).contains(PREVIEW_ANNOTATION)
+    return VfsUtil.loadText(file).contains(PREVIEW_ANNOTATION_FQN)
 
     // Ideally, we should look at the AST for the @Preview annotations. This currently triggers an IndexNotReadyException
     // dumb mode but we should be able to look at the AST without hitting that.

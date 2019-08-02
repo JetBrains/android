@@ -314,7 +314,8 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
 
-  protected void writeToNewProjectFile(@NotNull String newFileName, @NotNull TestFileName testFileName) throws IOException {
+  protected void writeToNewProjectFile(@NotNull String newFileBasename, @NotNull TestFileName testFileName) throws IOException {
+    String newFileName = newFileBasename + myTestDataExtension;
     runWriteAction(() -> {
       VirtualFile newFile = myProjectBasePath.createChildData(this, newFileName);
       prepareAndInjectInformationForTest(testFileName, newFile);
@@ -322,7 +323,8 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     });
   }
 
-  protected void writeToNewSubModuleFile(@NotNull String newFileName, @NotNull TestFileName testFileName) throws IOException {
+  protected void writeToNewSubModuleFile(@NotNull String newFileBasename, @NotNull TestFileName testFileName) throws IOException {
+    String newFileName = newFileBasename + myTestDataExtension;
     runWriteAction(() -> {
       VirtualFile newFile = mySubModuleBuildFile.getParent().createChildData(this, newFileName);
       prepareAndInjectInformationForTest(testFileName, newFile);

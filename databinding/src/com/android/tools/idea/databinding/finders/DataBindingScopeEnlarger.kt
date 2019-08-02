@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
+import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
@@ -50,8 +50,9 @@ class DataBindingScopeEnlarger : ResolveScopeEnlarger() {
     return CachedValuesManager.getManager(project).getCachedValue(module) {
       val lightClasses = mutableListOf<PsiClass>()
 
-      DataBindingClassFactory.getOrCreateBrClassFor(facet)?.let { lightClasses.add(it) }
-      DataBindingClassFactory.getOrCreateDataBindingComponentClassFor(facet)?.let { lightClasses.add(it) }
+      val moduleDataBinding = ModuleDataBinding.getInstance(facet)
+      moduleDataBinding.lightBrClass?.let { lightClasses.add(it) }
+      moduleDataBinding.lightDataBindingComponentClass?.let { lightClasses.add(it) }
 
       // Light classes don't exist on disk, so you have to use their view provider to get a
       // corresponding virtual file. This same virtual file should be used by finders to verify

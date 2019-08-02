@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.resources.FolderTypeRelationship
+import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.android.tools.idea.ui.resourcemanager.actions.NewResourceValueAction
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialog
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialogViewModel
@@ -48,6 +51,7 @@ import com.intellij.psi.PsiManager
 import org.jetbrains.android.actions.CreateResourceFileAction
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
+import org.jetbrains.android.util.AndroidResourceUtil
 import kotlin.properties.Delegates
 
 /**
@@ -56,6 +60,7 @@ import kotlin.properties.Delegates
  */
 class ResourceExplorerToolbarViewModel(
   facet: AndroidFacet,
+  initialResourceType: ResourceType,
   private val importersProvider: ImportersProvider,
   private val filterOptions: FilterOptions)
   : DataProvider, IdeView {
@@ -67,6 +72,12 @@ class ResourceExplorerToolbarViewModel(
   var updateUICallback = {}
 
   var facetUpdaterCallback: (AndroidFacet) -> Unit = {}
+
+  var resourceType: ResourceType by Delegates.observable(initialResourceType) { _, oldValue, newValue ->
+    if (newValue != oldValue) {
+      updateUICallback()
+    }
+  }
 
   var facet: AndroidFacet = facet
     set(newFacet) {
@@ -85,12 +96,23 @@ class ResourceExplorerToolbarViewModel(
   val addActions
     get() = DefaultActionGroup().apply {
       val actionManager = ActionManager.getInstance()
-      add(actionManager.getAction("NewAndroidImageAsset"))
-      add(actionManager.getAction("NewAndroidVectorAsset"))
-      add(CreateResourceFileAction.getInstance())
-      add(Separator())
-      add(ImportResourceAction())
+      addAll(actionManager.getAction("Android.CreateResourcesActionGroup") as DefaultActionGroup)
+      when (resourceType) {
+        ResourceType.MIPMAP,
+        ResourceType.DRAWABLE -> {
+          add(actionManager.getAction("NewAndroidImageAsset"))
+          add(actionManager.getAction("NewAndroidVectorAsset"))
+          add(Separator())
+          add(ImportResourceAction())
+        }
+        ResourceType.BOOL,
+        ResourceType.COLOR,
+        ResourceType.DIMEN,
+        ResourceType.INTEGER,
+        ResourceType.STRING -> add(NewResourceValueAction(resourceType, facet))
+      }
     }
+
 
   /**
    * Returns the [AnAction] to open the available [com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter]s.
@@ -164,10 +186,25 @@ class ResourceExplorerToolbarViewModel(
    * Implementation of [DataProvider] needed for [CreateResourceFileAction]
    */
   override fun getData(dataId: String): Any? = when (dataId) {
+    CommonDataKeys.PROJECT.name -> facet.module.project
     LangDataKeys.MODULE.name -> facet.module
     LangDataKeys.IDE_VIEW.name -> this
-    CommonDataKeys.VIRTUAL_FILE.name -> facet.mainSourceProvider.resDirectories.firstOrNull()?.toVirtualFile()
+    CommonDataKeys.PSI_ELEMENT.name -> getVirtualFileForResourceType()?.let {
+      PsiManager.getInstance(facet.module.project).findDirectory(it)
+    }
     else -> null
+  }
+
+  /**
+   * Returns one of the existing directories used for the current [ResourceType]. Returns null if there's no directory. This is used to
+   * enable [CreateResourceFileAction] for the current [ResourceType] with a preselected destination.
+   */
+  private fun getVirtualFileForResourceType(): VirtualFile? {
+    val resDirs = facet.mainSourceProvider.resDirectories.mapNotNull { it.toVirtualFile() }
+    return FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()?.let { resourceFolderType ->
+      // TODO: Make a smart suggestion. E.g: Colors may be on a colors or values directory and the first might be preferred.
+      AndroidResourceUtil.getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()
+    }
   }
 
   /**

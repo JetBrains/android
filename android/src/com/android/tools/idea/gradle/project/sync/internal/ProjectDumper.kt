@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
@@ -25,6 +26,7 @@ import com.intellij.facet.FacetManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
@@ -48,6 +50,7 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
 import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.lang.Math.max
 
@@ -477,6 +480,19 @@ class DumpProjectAction : DumbAwareAction("Dump Project Structure") {
     dumper.dump(project)
     val dump = dumper.toString().trimIndent()
     val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_dump")
+    outputFile.writeText(dump)
+    println("Dumped to: file://$outputFile")
+  }
+}
+
+class DumpProjectDataAction : DumbAwareAction("Dump Project Data Nodes") {
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project!!
+    val dataManager = ProjectDataManager.getInstance()
+    val projectPath = getBaseDirPath(project).path
+    val data = dataManager.getExternalProjectData(project, GradleConstants.SYSTEM_ID, projectPath) ?: return
+    val dump = data.externalProjectStructure?.dump() ?: return
+    val outputFile = File(File(projectPath), sanitizeFileName(project.name) + ".project_data_nodes_dump")
     outputFile.writeText(dump)
     println("Dumped to: file://$outputFile")
   }

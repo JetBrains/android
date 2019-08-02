@@ -130,7 +130,7 @@ open class GradleSyncState(
     val JDK_LOCATION_WARNING_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME")
 
     @JvmField
-    val GRADLE_SYNC_TOPIC = Topic<GradleSyncListener>("Project sync with Gradle", GradleSyncListener::class.java)
+    val GRADLE_SYNC_TOPIC = Topic("Project sync with Gradle", GradleSyncListener::class.java)
 
     /**
      * These methods allow the registering of listeners to [GradleSyncState].
@@ -243,13 +243,13 @@ open class GradleSyncState(
     }
 
     shouldRemoveModelsOnFailure = request.variantOnlySyncOptions == null
-    val singleVariant = if (GradleSyncState.isSingleVariantSync()) " single-variant" else ""
-    LOG.info("Started$singleVariant sync with Gradle for project '${project.name}'.")
+    val syncType = if (isSingleVariantSync()) "single-variant" else "full-variants"
+    LOG.info("Started $syncType sync with Gradle for project '${project.name}'.")
 
     setSyncStartedTimeStamp()
     trigger = request.trigger
 
-    addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started with $singleVariant sync", MessageType.INFO, null)
+    addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started", MessageType.INFO, null)
 
     changeNotification.notifyStateChanged()
 
@@ -357,7 +357,7 @@ open class GradleSyncState(
 
     // If we are in use tests also log to stdout to help debugging.
     if (ApplicationManager.getApplication().isUnitTestMode) {
-      System.out.println("***** sync error ${if (error == null) message else error.message}")
+      println("***** sync error ${if (error == null) message else error.message}")
     }
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
@@ -626,8 +626,8 @@ open class GradleSyncState(
 
   private fun getSyncType(): GradleSyncStats.GradleSyncType = when {
     // Check in implied order (Compound requires SVS requires New Sync)
-    GradleSyncState.isCompoundSync() -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_COMPOUND
-    GradleSyncState.isSingleVariantSync() -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT
+    isCompoundSync() -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_COMPOUND
+    isSingleVariantSync() -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT
     else -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_IDEA
   }
 }

@@ -166,8 +166,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
 
-    myListeners.listenAll(getModel().formFactor(), myProjectModel.enableCppSupport).withAndFire(() -> {
-      FormFactor formFactor = getModel().formFactor().get();
+    myListeners.listenAll(getModel().formFactor, myProjectModel.enableCppSupport).withAndFire(() -> {
+      FormFactor formFactor = getModel().formFactor.get();
 
       myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.MOBILE);
       myWearCheck.setVisible(formFactor == FormFactor.WEAR);
@@ -177,8 +177,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   @Override
   protected void onEntering() {
-    FormFactor formFactor = getModel().formFactor().get();
-    TemplateHandle templateHandle = getModel().renderTemplateHandle().getValueOrNull();
+    FormFactor formFactor = getModel().formFactor.get();
+    TemplateHandle templateHandle = getModel().renderTemplateHandle.getValueOrNull();
     int minSdk = templateHandle == null ? formFactor.getMinOfflineApiLevel() : templateHandle.getMetadata().getMinSdk();
 
     myFormFactorSdkControls.startDataLoading(formFactor, minSdk);
@@ -187,10 +187,10 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   @Override
   protected void onProceeding() {
-    getModel().hasCompanionApp().set(
+    getModel().hasCompanionApp.set(
       (myWearCheck.isVisible() && myWearCheck.isSelected()) ||
       (myTvCheck.isVisible() && myTvCheck.isSelected()) ||
-      getModel().formFactor().get() == FormFactor.AUTOMOTIVE // Automotive projects include a mobile module for Android Auto by default
+      getModel().formFactor.get() == FormFactor.AUTOMOTIVE // Automotive projects include a mobile module for Android Auto by default
     );
 
     myInstallRequests.clear();

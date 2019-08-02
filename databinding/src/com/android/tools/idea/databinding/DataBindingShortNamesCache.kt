@@ -17,9 +17,7 @@ package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider
-import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -47,7 +45,7 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
   private val component = project.getComponent(DataBindingProjectComponent::class.java)
-  private val layoutInfoCache: CachedValue<Map<String, List<BindingLayoutInfo>>>
+  private val lightBindingCache: CachedValue<Map<String, List<LightBindingClass>>>
   private val methodsByNameCache: CachedValue<Map<String, List<PsiMethod>>>
   private val fieldsByNameCache: CachedValue<Map<String, List<PsiField>>>
 
@@ -58,53 +56,52 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
-    val layoutInfoProvider = LayoutInfoCacheProvider(component)
+    val bindingCacheProvider = LightBindingCacheProvider(component)
 
-    layoutInfoCache = cachedValuesManager.createCachedValue(layoutInfoProvider, false)
+    lightBindingCache = cachedValuesManager.createCachedValue(bindingCacheProvider, false)
 
     allClassNamesCache = cachedValuesManager.createCachedValue(
       {
-        CachedValueProvider.Result.create(ArrayUtil.toStringArray(layoutInfoCache.value.keys), layoutInfoProvider)
+        CachedValueProvider.Result.create(ArrayUtil.toStringArray(lightBindingCache.value.keys), bindingCacheProvider)
       }, false)
 
     methodsByNameCache = cachedValuesManager.createCachedValue(
       {
-        val allMethods = layoutInfoCache.value.values
-          .toPsiClasses()
+        val allMethods = lightBindingCache.value.values
+          .flatten()
           .flatMap { psiClass -> psiClass.methods.asIterable() }
           .groupBy { method -> method.name }
 
-        CachedValueProvider.Result.create(allMethods, layoutInfoProvider)
+        CachedValueProvider.Result.create(allMethods, bindingCacheProvider)
       }, false)
 
     fieldsByNameCache = cachedValuesManager.createCachedValue(
       {
-        val allFields = layoutInfoCache.value.values
-          .toPsiClasses()
+        val allFields = lightBindingCache.value.values
+          .flatten()
           .flatMap { psiClass -> psiClass.fields.asIterable() }
           .groupBy { field -> field.name }
 
-        CachedValueProvider.Result.create(allFields, layoutInfoProvider)
+        CachedValueProvider.Result.create(allFields, bindingCacheProvider)
       }, false)
 
     allMethodNamesCache = cachedValuesManager.createCachedValue(
       {
         val names = methodsByNameCache.value.keys
-        CachedValueProvider.Result.create(names.toTypedArray(), layoutInfoProvider)
+        CachedValueProvider.Result.create(names.toTypedArray(), bindingCacheProvider)
       }, false)
 
     allFieldNamesCache = cachedValuesManager.createCachedValue(
       {
         val names = fieldsByNameCache.value.keys
-        CachedValueProvider.Result.create(names.toTypedArray(), layoutInfoProvider)
+        CachedValueProvider.Result.create(names.toTypedArray(), bindingCacheProvider)
       }, false)
   }
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
-    val infoList = layoutInfoCache.value[name]?.takeUnless { it.isEmpty() } ?: return PsiClass.EMPTY_ARRAY
-    return infoList
-      .filter { info -> isInScope(info.psiFile, scope) }
-      .map { info -> DataBindingClassFactory.getOrCreatePsiClass(info) }
+    val bindingClasses = lightBindingCache.value[name]?.takeUnless { it.isEmpty() } ?: return PsiClass.EMPTY_ARRAY
+    return bindingClasses
+      .filter { psiClass -> isInScope(psiClass, scope) }
       .toTypedArray()
   }
 
@@ -164,32 +161,26 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
   private fun isInScope(element: PsiElement, scope: GlobalSearchScope) =
     element.containingFile != null && scope.accept(element.containingFile.virtualFile)
 
-  // Helper function for getting PsiClasses out of layoutInfoCache
-  private fun Collection<List<BindingLayoutInfo>>.toPsiClasses(): List<PsiClass> {
-    return this
-      .flatten() // Convert list of List<BindingLayoutInfo> into a single list
-      .map { info -> DataBindingClassFactory.getOrCreatePsiClass(info) }
-  }
+  private class LightBindingCacheProvider(component: DataBindingProjectComponent)
+    : ProjectResourceCachedValueProvider.MergedMapValueProvider<String, LightBindingClass>(component) {
 
-  private class LayoutInfoCacheProvider(component: DataBindingProjectComponent)
-    : ProjectResourceCachedValueProvider.MergedMapValueProvider<String, BindingLayoutInfo>(component) {
-
-    override fun createCacheProvider(facet: AndroidFacet): ResourceCacheValueProvider<Map<String, List<BindingLayoutInfo>>> {
+    override fun createCacheProvider(facet: AndroidFacet): ResourceCacheValueProvider<Map<String, List<LightBindingClass>>> {
       return DelegateLayoutInfoCacheProvider(facet)
     }
   }
 
   private class DelegateLayoutInfoCacheProvider(facet: AndroidFacet)
-    : ResourceCacheValueProvider<Map<String, List<BindingLayoutInfo>>>(facet, null) {
+    : ResourceCacheValueProvider<Map<String, List<LightBindingClass>>>(facet, null) {
 
-    override fun doCompute(): Map<String, List<BindingLayoutInfo>> {
+    override fun doCompute(): Map<String, List<LightBindingClass>> {
       val moduleResources = ResourceRepositoryManager.getInstance(facet).existingModuleResources ?: return defaultValue()
-      val resourceFiles = moduleResources.dataBindingResourceFiles ?: return defaultValue()
-      // Convert "List<Info>" to a map of "Info.className to List<Info>"
-      return resourceFiles.values.groupBy { info -> info.className }
+      val groups = moduleResources.dataBindingResourceFiles ?: return defaultValue()
+      return groups
+        .flatMap { group -> ModuleDataBinding.getInstance(facet).getLightBindingClasses(group) }
+        .groupBy { bindingClass -> bindingClass.name }
     }
 
-    override fun defaultValue(): Map<String, List<BindingLayoutInfo>> {
+    override fun defaultValue(): Map<String, List<LightBindingClass>> {
       return mapOf()
     }
   }

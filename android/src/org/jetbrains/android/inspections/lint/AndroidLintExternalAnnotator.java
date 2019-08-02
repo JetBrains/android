@@ -80,6 +80,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.KotlinFileType;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 
 /**
@@ -136,18 +137,13 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       }
     }
     else if (fileType != StdFileTypes.JAVA
-             && !isKotlin(fileType)
+             && fileType != KotlinFileType.INSTANCE
              && fileType != StdFileTypes.PROPERTIES) {
       return null;
     }
 
     final Set<Issue> issues = getIssuesFromInspections(file.getProject(), file);
     return new State(module, vFile, file.getText(), issues);
-  }
-
-  public static boolean isKotlin(FileType fileType) {
-    // KotlinFileType.getName() is "Kotlin"; we don't have compile-time dependency on the Kotlin plugin and it's not in StdFileTypes
-    return fileType.getName().equals("Kotlin");
   }
 
   @Override
@@ -166,7 +162,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         } else {
           scope = Scope.RESOURCE_FILE_SCOPE;
         }
-      } else if (fileType == StdFileTypes.JAVA || isKotlin(fileType)) {
+      } else if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) {
         scope = Scope.JAVA_FILE_SCOPE;
         if (name.endsWith(DOT_KTS)) {
           scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE);

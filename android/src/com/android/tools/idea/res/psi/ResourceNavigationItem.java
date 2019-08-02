@@ -16,18 +16,16 @@
 package com.android.tools.idea.res.psi;
 
 import com.android.ide.common.resources.ResourceItem;
-import com.android.resources.ResourceType;
 import com.android.utils.HashCodes;
+import com.intellij.ide.util.PsiNavigationSupport;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.pom.Navigatable;
+import com.intellij.psi.PsiElement;
 import java.io.File;
 import javax.swing.Icon;
-import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,36 +60,27 @@ public final class ResourceNavigationItem implements NavigationItem {
 
   @Override
   public void navigate(boolean requestFocus) {
-    NavigationItem target = getNavigationTarget();
+    Navigatable target = getNavigationTarget();
     if (target != null) {
       target.navigate(requestFocus);
     }
   }
 
   @Nullable
-  private NavigationItem getNavigationTarget() {
-    if (myResource.isFileBased()) {
-      return PsiManager.getInstance(myProject).findFile(myFile);
-    }
-
-    if (myResource.getType() == ResourceType.ID) {
-      XmlAttribute xmlAttribute = AndroidResourceUtil.getIdDeclarationAttribute(myProject, myResource);
-      return xmlAttribute == null ? null : (NavigationItem)xmlAttribute.getValueElement();
-    }
-
-    // TODO(sprigogin): Use AndroidResourceUtil.getDeclaringAttributeValue when ag/4888814 is submitted.
-    return (NavigationItem)new ValueResourceInfoImpl(myResource, myFile, myProject).computeXmlElement();
+  private Navigatable getNavigationTarget() {
+    PsiElement psiElement = AndroidResourceToPsiResolver.getInstance().resolveToDeclaration(myResource, myProject);
+    return psiElement == null ? null : PsiNavigationSupport.getInstance().getDescriptor(psiElement);
   }
 
   @Override
   public boolean canNavigate() {
-    NavigationItem target = getNavigationTarget();
+    Navigatable target = getNavigationTarget();
     return target != null && target.canNavigate();
   }
 
   @Override
   public boolean canNavigateToSource() {
-    NavigationItem target = getNavigationTarget();
+    Navigatable target = getNavigationTarget();
     return target != null && target.canNavigateToSource();
   }
 

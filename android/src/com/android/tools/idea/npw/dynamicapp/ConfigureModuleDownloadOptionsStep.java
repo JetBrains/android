@@ -99,7 +99,7 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
                      myLinkText, () -> BrowserUtil.browse(myLinkUrl));
     myFusingPanel.add(myFusingHelp);
     myInstallationOptionCombo.setModel(new DefaultComboBoxModel<>(DownloadInstallKind.values()));
-    myDownloadConditionsForm.setModel(model.deviceFeatures());
+    myDownloadConditionsForm.setModel(model.deviceFeatures);
     myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myRootPanel));
     FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
     myDeviceSupportHint.setForeground(JBColor.GRAY);
@@ -109,22 +109,22 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     super.onWizardStarting(wizard);
 
-    myBindings.bindTwoWay(new TextProperty(myFeatureTitle), getModel().featureTitle());
-    myBindings.bindTwoWay(new SelectedProperty(myFusingCheckBox), getModel().featureFusing());
-    myBindings.bindTwoWay(new SelectedItemProperty<>(myInstallationOptionCombo), getModel().downloadInstallKind());
+    myBindings.bindTwoWay(new TextProperty(myFeatureTitle), getModel().featureTitle);
+    myBindings.bindTwoWay(new SelectedProperty(myFusingCheckBox), getModel().featureFusing);
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myInstallationOptionCombo), getModel().downloadInstallKind);
 
     // Initialize "conditions" sub-form
     BooleanExpression isConditionalPanelActive =
-      new IsEqualToExpression<>(getModel().downloadInstallKind(), Optional.of(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS));
+      new IsEqualToExpression<>(getModel().downloadInstallKind, Optional.of(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS));
     myDownloadConditionsForm
       .init(getModel().getProject(), myValidatorPanel, isConditionalPanelActive);
 
     // Show the "conditions" panel only if the dropdown selection is "with conditions"
-    myListeners.listenAndFire(getModel().downloadInstallKind(), value ->
+    myListeners.listenAndFire(getModel().downloadInstallKind, value ->
       setVisible(value.isPresent() && value.get() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS,
                  myDownloadConditionsForm.myRootPanel));
 
-    myValidatorPanel.registerValidator(getModel().featureTitle(), value ->
+    myValidatorPanel.registerValidator(getModel().featureTitle, value ->
       StringUtil.isEmptyOrSpaces(value) ? new Validator.Result(ERROR, message("android.wizard.validate.empty.name")) : OK);
   }
 
@@ -159,7 +159,7 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
 
   @Override
   protected boolean shouldShow() {
-    return !getModel().instantModule().get();
+    return !getModel().instantModule.get();
   }
 
   private static void setVisible(boolean isVisible, JComponent... components) {

@@ -57,6 +57,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.KotlinLanguage;
 
 public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBase {
   public AndroidLintObsoleteSdkIntInspection() {
@@ -79,6 +80,8 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
           return new AndroidLintQuickFix[]{
             new AndroidLintQuickFix.LocalFixWrappee(new SimplifyBooleanExpressionFix(subExpression, constant))
           };
+        } else if (startElement.getLanguage() == KotlinLanguage.INSTANCE) {
+          return new AndroidLintQuickFix[]{ new RemoveSdkCheckFix(constant) };
         }
       } else {
         // Merge resource folder

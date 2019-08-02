@@ -16,12 +16,9 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
-import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
-import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.asParsed
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.FileSubject
@@ -44,13 +41,12 @@ import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
 import com.android.tools.idea.testing.TestProjectPaths.VARIANT_SPECIFIC_DEPENDENCIES
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Truth.assertAbout
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteAction.run
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.delete
 import com.intellij.openapi.util.io.FileUtil.join
 import com.intellij.openapi.util.io.FileUtil.writeToFile
@@ -113,14 +109,6 @@ abstract class GradleSyncProjectComparisonTest(
   private fun syncAndDumpProject(): String {
     requestSyncAndWait()
     return project.saveAndDump()
-  }
-
-  private fun Project.saveAndDump(): String {
-    save()
-    ApplicationManager.getApplication().saveAll()
-    val dumper = ProjectDumper(androidSdk = TestUtils.getSdk(), offlineRepos = getOfflineM2Repositories())
-    dumper.dump(this)
-    return dumper.toString()
   }
 
   override fun setUp() {
@@ -407,8 +395,4 @@ b/137231583 */
     AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
   }
 }
-
-private fun getOfflineM2Repositories(): List<File> =
-  (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths() + AndroidGradleTests.getLocalRepositoryDirectories())
-    .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
 

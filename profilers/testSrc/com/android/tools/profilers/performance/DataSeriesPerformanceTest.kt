@@ -148,7 +148,8 @@ class DataSeriesPerformanceTest {
 
   private fun logMemoryUsed(metricName: String) {
     val rt = Runtime.getRuntime()
-    System.gc()
+
+    for (x in 0..10) System.gc()
     val usedKB = (rt.totalMemory() - rt.freeMemory()) / 1024
     memoryBenchmark.log(metricName, usedKB)
   }

@@ -95,9 +95,8 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
   override fun findPreviewMethods(uFile: UFile): Set<PreviewElement> {
     val previewMethodsFqNames = mutableSetOf<PreviewElement>()
     uFile.accept(object : UastVisitor {
-      private var stopVisitor = false
-
-      override fun visitElement(node: UElement): Boolean = stopVisitor
+      // Return false so we explore all the elements in the file (in case there are multiple @Preview elements)
+      override fun visitElement(node: UElement): Boolean = false
 
       /**
        * Called for every `@Preview` annotation.
@@ -118,7 +117,7 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
       }
 
       override fun visitAnnotation(node: UAnnotation): Boolean {
-        if (PREVIEW_ANNOTATION == node.qualifiedName) {
+        if (PREVIEW_ANNOTATION_FQN == node.qualifiedName) {
           visitPreviewAnnotation(node)
         }
 

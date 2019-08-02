@@ -211,16 +211,16 @@ public class NavSceneManager extends SceneManager {
     if (getScene().getRoot() != null) {
       rootBounds = getScene().getRoot().fillDrawRect(0, null);
     }
-    super.update();
-    updateRootBounds(rootBounds);
-  }
 
-  @Override
-  protected void postUpdateFromComponent(@NotNull SceneComponent sceneComponent) {
-    NlComponent nlComponent = sceneComponent.getNlComponent();
-    if (NavComponentHelperKt.isNavigation(nlComponent) && nlComponent == getDesignSurface().getCurrentNavigation()) {
-      layoutAll(sceneComponent);
+    super.update();
+
+    SceneComponent root = getScene().getRoot();
+    if (root != null) {
+      root.updateTargets();
+      layoutAll(root);
     }
+
+    updateRootBounds(rootBounds);
   }
 
   private void updateRootBounds(@Nullable @NavCoordinate Rectangle prevRootBounds) {
@@ -397,11 +397,6 @@ public class NavSceneManager extends SceneManager {
   public CompletableFuture<Void> requestRender() {
     boolean wasEmpty = getScene().getRoot() == null || getScene().getRoot().getChildCount() == 0;
     update();
-    SceneComponent root = getScene().getRoot();
-    if (root != null) {
-      root.updateTargets();
-      layoutAll(root);
-    }
     if (wasEmpty) {
       getDesignSurface().zoomToFit();
     }

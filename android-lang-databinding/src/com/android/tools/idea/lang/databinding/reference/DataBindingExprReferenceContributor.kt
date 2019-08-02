@@ -39,7 +39,6 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiReference
@@ -350,11 +349,11 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     run {
       val layoutInfo = getParentLayoutInfo(module, element) ?: return PsiReference.EMPTY_ARRAY
 
-      layoutInfo.getItems(DataBindingResourceType.VARIABLE).values
+      layoutInfo.psi.getItems(DataBindingResourceType.VARIABLE).values
         .firstOrNull { variable -> simpleName == variable.name }
         ?.let { return arrayOf(XmlVariableReference(element, it.xmlTag, it, layoutInfo, module)) }
 
-      layoutInfo.getItems(DataBindingResourceType.IMPORT).values
+      layoutInfo.psi.getItems(DataBindingResourceType.IMPORT).values
         .firstOrNull { import -> simpleName == DataBindingUtil.getAlias(import) }
         ?.let { return arrayOf(XmlImportReference(element, it.xmlTag, it, module)) }
     }
