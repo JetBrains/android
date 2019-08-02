@@ -51,7 +51,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
     val model = model("nav.xml") {
       navigation {
         fragment("fragment1") {
-          deeplink("http://example.com", autoVerify = true)
+          deeplink("deepLink","http://example.com", autoVerify = true)
         }
       }
     }
