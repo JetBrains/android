@@ -27,10 +27,7 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_MODULE
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task.Modal
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.util.AndroidBundle.message
 
 class NewBenchmarkModuleModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker
@@ -39,24 +36,25 @@ class NewBenchmarkModuleModel(
   @JvmField val language = OptionalValueProperty(getInitialSourceLanguage(project))
   @JvmField val minSdk = OptionalValueProperty<VersionItem>()
 
-  override fun handleFinished() {
-    object : Modal(project, message(
-      "android.compile.messages.generating.r.java.content.name"), false) {
-      override fun run(indicator: ProgressIndicator) {
-        val modulePaths = createDefaultTemplateAt(myProject.basePath!!, moduleName.get()).paths
-        TemplateValueInjector(templateValues)
-          .setProjectDefaults(myProject)
-          .setModuleRoots(modulePaths, myProject.basePath!!, moduleName.get(), packageName.get())
-          .setJavaVersion(myProject)
-          .setLanguage(language.value)
-          .setBuildVersion(minSdk.value, myProject)
-        templateValues[ATTR_APP_TITLE] = moduleName.get()
-        templateValues[ATTR_IS_NEW_MODULE] = false
-        templateValues[ATTR_IS_LIBRARY_MODULE] = true
-        if (doDryRun()) {
-          render()
-        }
-      }
-    }.queue()
+  override val renderer = object : ModuleTemplateRenderer() {
+    override fun init() {
+      super.init()
+      val modulePaths = createDefaultTemplateAt(project.basePath!!, moduleName.get()).paths
+
+      val newValues = mutableMapOf<String, Any>(
+          ATTR_APP_TITLE to moduleName.get(),
+          ATTR_IS_NEW_MODULE to true,
+          ATTR_IS_LIBRARY_MODULE to true
+      )
+
+      TemplateValueInjector(newValues)
+        .setBuildVersion(minSdk.value, project)
+        .setProjectDefaults(project)
+        .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
+        .setJavaVersion(project)
+        .setLanguage(language.value)
+
+      templateValues.putAll(newValues)
+    }
   }
 }
