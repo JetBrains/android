@@ -23,14 +23,17 @@ import java.io.File;
 
 public class ProjectIdentifierStub implements ProjectIdentifier {
   @NotNull private final BuildIdentifierStub myBuildIdentifier;
+  @NotNull private final String myProjectPath;
 
-  ProjectIdentifierStub(@NotNull File rootDir) {
+  ProjectIdentifierStub(@NotNull String projectPath, @NotNull File rootDir) {
+    myProjectPath = projectPath;
     myBuildIdentifier = new BuildIdentifierStub(rootDir);
   }
 
+  @NotNull
   @Override
   public String getProjectPath() {
-    return myBuildIdentifier.getRootDir().getPath();
+    return myProjectPath;
   }
 
   @Override
