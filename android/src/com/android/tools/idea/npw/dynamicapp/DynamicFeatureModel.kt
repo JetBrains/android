@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.dynamicapp
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -37,7 +36,7 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_TI
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_IS_INSTANT_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_FEATURE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_SIMPLE_NAME
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
@@ -74,7 +73,7 @@ class DynamicFeatureModel(
           it[ATTR_DYNAMIC_FEATURE_TITLE] = featureTitle.get()
           it[ATTR_DYNAMIC_FEATURE_ON_DEMAND] = featureOnDemand.get()
           it[ATTR_DYNAMIC_FEATURE_FUSING] = featureFusing.get()
-          it[ATTR_IS_NEW_PROJECT] = true
+          it[ATTR_IS_NEW_MODULE] = true
           it[ATTR_IS_LIBRARY_MODULE] = false
           it[ATTR_DYNAMIC_IS_INSTANT_MODULE] = instantModule.get()
           // Dynamic delivery conditions

@@ -36,6 +36,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT
 import com.android.tools.idea.templates.recipe.RenderingContext
@@ -151,6 +152,7 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
       templateValues[ATTR_CPP_FLAGS] = cppFlags.get()
       templateValues[ATTR_TOP_OUT] = project.value.basePath ?: ""
       templateValues[ATTR_KOTLIN_SUPPORT] = language.value === KOTLIN
+      templateValues[ATTR_IS_NEW_PROJECT] = true
 
       TemplateValueInjector(templateValues).setProjectDefaults(project.value)
     }

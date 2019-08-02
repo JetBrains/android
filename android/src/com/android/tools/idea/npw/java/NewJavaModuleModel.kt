@@ -36,7 +36,7 @@ class NewJavaModuleModel(
       .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
       .setJavaVersion(project)
     templateValues[TemplateMetadata.ATTR_CLASS_NAME] = className.get()
-    templateValues[TemplateMetadata.ATTR_IS_NEW_PROJECT] = true
+    templateValues[TemplateMetadata.ATTR_IS_NEW_MODULE] = true
     templateValues[TemplateMetadata.ATTR_IS_LIBRARY_MODULE] = true
     if (doDryRun()) {
       render()
