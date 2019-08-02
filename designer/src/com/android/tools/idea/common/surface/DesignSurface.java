@@ -148,7 +148,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected final LinkedHashMap<NlModel, SceneManager> myModelToSceneManagers = new LinkedHashMap<>();
   protected final JPanel myVisibleSurfaceLayerPanel;
 
-  private final SelectionModel mySelectionModel;
+  private final SelectionModel mySelectionModel = new SelectionModel();
   private final ModelListener myModelListener = new ModelListener() {
     @Override
     public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
@@ -162,6 +162,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
   private LintIssueProvider myLintIssueProvider;
+  /**
+   * Indicate if the content is editable. Note that this only works for editable content (e.g. xml layout file). The non-editable
+   * content (e.g. the image drawable file) can't be edited as well.
+   */
+  private final boolean myIsEditable;
 
   /**
    * Flag to indicate if the surface should resize its content when
@@ -199,19 +204,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public DesignSurface(
     @NotNull Project project,
-    @NotNull SelectionModel selectionModel,
     @NotNull Disposable parentDisposable,
-    @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
+    @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
+    boolean isEditable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
     myProject = project;
+    myIsEditable = isEditable;
 
     setOpaque(true);
     setFocusable(false);
 
     myAnalyticsManager = new DesignerAnalyticsManager(this);
 
-    mySelectionModel = selectionModel;
     // TODO: handle the case when selection are from different NlModels.
     // Manager can be null if the selected component is not part of NlModel. For example, a temporarily NlMode.
     // In that case we don't change focused SceneView.
@@ -484,7 +489,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Update the status of {@link InteractionManager}. It will start or stop listening depending on the current layout type.
    */
   private void reactivateInteractionManager() {
-    if (getLayoutType().isEditable()) {
+    if (isEditable()) {
       myInteractionManager.startListening();
     }
     else {
@@ -1166,6 +1171,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return true;
   }
 
+  /**
+   * @return true if the content is editable (e.g. move position or drag-and-drop), false otherwise.
+   */
+  private boolean isEditable() {
+    return getLayoutType().isEditable() && myIsEditable;
+  }
+
   private static class MyScrollPane extends JBScrollPane {
     private MyScrollPane() {
       super(0);
@@ -1254,7 +1266,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         }
       }
 
-      if (!getLayoutType().isEditable()) {
+      if (!isEditable()) {
         return;
       }
 
