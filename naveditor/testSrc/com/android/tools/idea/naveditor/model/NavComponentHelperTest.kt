@@ -331,7 +331,7 @@ class NavComponentHelperTest2 : NavTestCase() {
           argument("arg")
         }
         navigation("subnav") {
-          deeplink("foo")
+          deeplink("deepLink","foo")
         }
         include("navigation")
       }

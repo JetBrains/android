@@ -42,7 +42,8 @@ import java.awt.event.MouseEvent
  */
 abstract class ComponentListInspectorBuilder(val tagName: String,
                                              val title: String,
-                                             private val cellRenderer: ColoredListCellRenderer<NlComponent>)
+                                             private val cellRenderer: ColoredListCellRenderer<NlComponent>,
+                                             private val comparator: Comparator<NlComponent> = compareBy { it.id })
   : InspectorBuilder<NelePropertyItem> {
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     val component = properties.first?.components?.singleOrNull() ?: return
@@ -50,7 +51,7 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
       return
     }
 
-    val model = SortedListModel<NlComponent>(compareBy { it.id })
+    val model = SortedListModel(comparator)
     refresh(component, model)
 
     val componentList = ComponentList(model, cellRenderer)
