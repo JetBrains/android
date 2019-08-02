@@ -48,7 +48,8 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
   public void runTask(@NotNull final String taskName) {
     final Tree tasksTree = findComponentOfType(getContent(TASK_TREE_CONTENT_NAME).getComponent(), Tree.class);
 
-    Wait.seconds(1).expecting("tree to be populated").until(() -> !tasksTree.isEmpty() && !field("myBusy").ofType(boolean.class).in(tasksTree).get());
+    Wait.seconds(1).expecting("tree to be populated").until(() ->
+        GuiQuery.get(() -> !tasksTree.isEmpty() && !field("myBusy").ofType(boolean.class).in(tasksTree).get()));
 
     GuiTask.execute(() -> expandAll(tasksTree));
 

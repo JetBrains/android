@@ -46,6 +46,11 @@ interface ResourceExplorerViewModel {
   var facetUpdaterCallback: ((facet: AndroidFacet) -> Unit)?
 
   /**
+   * Callback called when the current [ResourceType] is changed. E.g: Selecting a different resource tab.
+   */
+  var resourceTypeUpdaterCallback: ((resourceType: ResourceType) -> Unit)?
+
+  /**
    * The index in [resourceTypes] of the resource type being used. Changing the value
    * of this field should change the resources being shown.
    */

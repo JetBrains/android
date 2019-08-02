@@ -21,8 +21,10 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.binding.BindingLayoutGroup;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -32,14 +34,14 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Set;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +57,8 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
 public abstract class MultiResourceRepository extends LocalResourceRepository implements Disposable {
+  private static final Logger LOG = Logger.getInstance(MultiResourceRepository.class);
+
   @GuardedBy("ITEM_MAP_LOCK")
   @NotNull private ImmutableList<LocalResourceRepository> myLocalResources = ImmutableList.of();
   @GuardedBy("ITEM_MAP_LOCK")
@@ -81,7 +85,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   private final ResourceTable myCachedMaps = new ResourceTable();
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private Map<String, BindingLayoutInfo> myDataBindingResourceFiles = new HashMap<>();
+  private Set<BindingLayoutGroup> myDataBindingResourceFiles = new HashSet<>();
 
   @GuardedBy("ITEM_MAP_LOCK")
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
@@ -238,20 +242,21 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @Override
   @NotNull
-  public Map<String, BindingLayoutInfo> getDataBindingResourceFiles() {
+  public Set<BindingLayoutGroup> getDataBindingResourceFiles() {
     synchronized (ITEM_MAP_LOCK) {
       long modificationCount = getModificationCount();
       if (myDataBindingResourceFilesModificationCount == modificationCount) {
         return myDataBindingResourceFiles;
       }
-      Map<String, BindingLayoutInfo> selected = new HashMap<>();
+
+      Set<BindingLayoutGroup> groups = new HashSet<>();
       for (LocalResourceRepository child : myLocalResources) {
-        Map<String, BindingLayoutInfo> childFiles = child.getDataBindingResourceFiles();
-        if (childFiles != null) {
-          selected.putAll(childFiles);
+        Set<BindingLayoutGroup> childGroups = child.getDataBindingResourceFiles();
+        if (childGroups != null) {
+          groups.addAll(childGroups);
         }
       }
-      myDataBindingResourceFiles = Collections.unmodifiableMap(selected);
+      myDataBindingResourceFiles = Collections.unmodifiableSet(groups);
       myDataBindingResourceFilesModificationCount = modificationCount;
       return myDataBindingResourceFiles;
     }
@@ -311,6 +316,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
         return ArrayListMultimap.create(repositoriesForNamespace.get(0).getResources(namespace, type));
       } else {
         // Merge all items of the given type.
+        Stopwatch stopwatch = LOG.isDebugEnabled() ? Stopwatch.createStarted() : null;
+
         map = ArrayListMultimap.create();
         SetMultimap<String, String> seenQualifiers = HashMultimap.create();
         for (ResourceRepository child : repositoriesForNamespace) {
@@ -327,6 +334,15 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
               seenQualifiers.put(name, qualifiers);
             }
           }
+        }
+
+        if (stopwatch != null) {
+          LOG.debug(String.format(Locale.US,
+                                  "Merged %d resources of type %s in %s for %s.",
+                                  map.size(),
+                                  type,
+                                  stopwatch,
+                                  getClass().getSimpleName()));
         }
       }
 

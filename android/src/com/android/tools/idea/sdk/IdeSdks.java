@@ -127,6 +127,12 @@ public class IdeSdks {
       }
     }
 
+    // b/138107196: Accessing the default project instance from integration tests can deadlock if the default project itself
+    // is in the process of being automatically disposed, which is new in IJ 2019.2
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      return null;
+    }
+
     // There is a possible case that android sdk which path was applied previously (setAndroidSdkPath()) didn't have any
     // platforms downloaded. Hence, no ide android sdk was created and we can't deduce android sdk location from it.
     // Hence, we fallback to the explicitly stored android sdk path here.

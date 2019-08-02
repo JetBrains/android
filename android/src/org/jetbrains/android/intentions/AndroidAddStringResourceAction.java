@@ -51,6 +51,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
+import java.util.List;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -197,13 +198,15 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       return;
     }
 
+    VirtualFile resourceDir;
+    String fileName;
+    List<String> dirNames;
     if (resName != null && ApplicationManager.getApplication().isUnitTestMode()) {
-      String fileName = AndroidResourceUtil.getDefaultResourceFileName(type);
+      fileName = AndroidResourceUtil.getDefaultResourceFileName(type);
       assert fileName != null;
-      VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
+      resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
       assert resourceDir != null;
-      AndroidResourceUtil.createValueResource(project, resourceDir, resName, type, fileName,
-                                              Collections.singletonList(ResourceFolderType.VALUES.getName()), value);
+      dirNames = Collections.singletonList(ResourceFolderType.VALUES.getName());
     }
     else {
       Module facetModule = facet.getModule();
@@ -214,23 +217,26 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
         return;
       }
 
-      VirtualFile resourceDir = dialog.getResourceDirectory();
+      resourceDir = dialog.getResourceDirectory();
       if (resourceDir == null) {
         AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", facetModule));
         return;
       }
-
+      fileName = dialog.getFileName();
       resName = dialog.getResourceName();
-      if (!AndroidResourceUtil
-        .createValueResource(project, resourceDir, resName, type, dialog.getFileName(), dialog.getDirNames(), dialog.getValue())) {
-        return;
-      }
+      dirNames = dialog.getDirNames();
+      value = dialog.getValue();
     }
 
-    doAddStringResource(editor, file, resName, element, type, facet, aPackage);
+    String finalValue = value;
+    String finalResName = resName;
 
-    PsiDocumentManager.getInstance(project).commitAllDocuments();
-    UndoUtil.markPsiFileForUndo(file);
+    if (AndroidResourceUtil.createValueResource(project, resourceDir, finalResName, type, fileName, dirNames, finalValue)) {
+      doAddStringResource(editor, file, finalResName, element, type, facet, aPackage);
+      PsiDocumentManager.getInstance(project).commitAllDocuments();
+      UndoUtil.markPsiFileForUndo(file);
+      PsiManager.getInstance(project).dropResolveCaches();
+    }
   }
 
   private static void doAddStringResource(Editor editor,

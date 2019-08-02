@@ -57,7 +57,7 @@ public class TransportServiceTest extends DataStorePollerTest {
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
-  private TransportService myTransportService = new TransportService(myDataStore, new UnifiedEventsTable(), getPollTicker()::run);
+  private TransportService myTransportService = new TransportService(myDataStore, new UnifiedEventsTable(), getPollTicker()::run, true);
 
   private static final String BYTES_ID_1 = "0123456789";
   private static final String BYTES_ID_2 = "9876543210";

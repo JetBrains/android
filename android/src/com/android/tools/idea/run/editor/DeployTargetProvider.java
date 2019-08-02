@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.DeviceCount;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
-import com.android.tools.idea.run.TargetSelectionMode;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.Executor;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -29,7 +27,6 @@ import com.intellij.ui.ColoredListCellRenderer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.swing.JList;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -41,32 +38,13 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
 
   private static List<DeployTargetProvider> ourTargets;
 
-  public static List<DeployTargetProvider> getProviders() {
-    return getProviders(StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get());
-  }
-
   @NotNull
-  static List<DeployTargetProvider> getProviders(boolean deviceSnapshotComboBoxVisible) {
+  public static List<DeployTargetProvider> getProviders() {
     if (ourTargets == null) {
       ourTargets = Arrays.asList(EP_NAME.getExtensions());
     }
 
-    return filterOutDeviceAndSnapshotComboBoxProvider(ourTargets, deviceSnapshotComboBoxVisible);
-  }
-
-  @NotNull
-  @VisibleForTesting
-  static List<DeployTargetProvider> filterOutDeviceAndSnapshotComboBoxProvider(@NotNull List<DeployTargetProvider> providers,
-                                                                               boolean selectDeviceSnapshotComboBoxVisible) {
-    if (selectDeviceSnapshotComboBoxVisible) {
-      return providers;
-    }
-
-    Object deviceAndSnapshotComboBox = TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX.name();
-
-    return providers.stream()
-                    .filter(provider -> !provider.getId().equals(deviceAndSnapshotComboBox))
-                    .collect(Collectors.toList());
+    return ourTargets;
   }
 
   @NotNull
@@ -82,7 +60,7 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
     return false;
   }
 
-  protected boolean isApplicable(boolean testConfiguration, boolean deviceSnapshotComboBoxVisible) {
+  protected boolean isApplicable(boolean testConfiguration) {
     return true;
   }
 

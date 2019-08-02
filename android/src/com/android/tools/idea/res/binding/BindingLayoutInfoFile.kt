@@ -43,17 +43,17 @@ import com.intellij.util.IncorrectOperationException
  *
  * For even more context, see also https://issuetracker.google.com/120561619
  */
-class BindingLayoutInfoFile(private val info: BindingLayoutInfo) : PsiFile by info.psiFile, PsiClassOwner {
+class BindingLayoutInfoFile(private val layoutPsi: BindingLayoutPsi) : PsiFile by layoutPsi.xmlPsiFile, PsiClassOwner {
   override fun getContainingFile(): PsiFile {
     // Return ourselves instead of delegating to the target XML file, since we're the containing
     // file that also implements PsiClassOwner
     return this
   }
 
-  override fun getClasses(): Array<PsiClass> = arrayOf(info.psiClass!!)
+  override fun getClasses(): Array<PsiClass> = arrayOf(layoutPsi.psiClass!!)
 
   override fun getPackageName(): String {
-    return info.psiClass!!.qualifiedName?.substringBeforeLast('.') ?: ""
+    return layoutPsi.psiClass!!.qualifiedName?.substringBeforeLast('.') ?: ""
   }
 
   override fun setPackageName(packageName: String?) {

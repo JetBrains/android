@@ -22,5 +22,9 @@
     <orderEntry type="module" module-name="intellij.junit" />
     <orderEntry type="module" module-name="intellij.java.execution.impl" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="module" module-name="intellij.platform.externalSystem" />
+    <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
+    <orderEntry type="module" module-name="intellij.gradle" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
   </component>
 </module>

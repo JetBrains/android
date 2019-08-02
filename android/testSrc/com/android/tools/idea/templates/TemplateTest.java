@@ -245,7 +245,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
 
   // TODO: this is used only in TemplateTest. We should pass this value without changing template values.
-  static String ATTR_CREATE_ACTIVITY = "createActivity";
+  final static String ATTR_CREATE_ACTIVITY = "createActivity";
 
   public TemplateTest() {
   }
@@ -372,16 +372,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     templateMap.put(ATTR_PACKAGE_NAME, "test.pkg.in"); // Add in a Kotlin keyword ("in") in the package name to trigger escape code too
   });
 
-  private final ProjectStateCustomizer withAndroidx = ((templateMap, projectMap) -> {
-    projectMap.put(ATTR_ANDROIDX_SUPPORT, true);
-    templateMap.put(ATTR_ANDROIDX_SUPPORT, true);
-  });
-
-  private final ProjectStateCustomizer withAndroidxAndKotlin = ((templateMap, projectMap) -> {
-    withAndroidx.customize(templateMap, projectMap);
-    withKotlin.customize(templateMap, projectMap);
-  });
-
   //--- Activity templates ---
 
   @TemplateCheck
@@ -390,18 +380,8 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testNewBasicActivityWithAndroidX() throws Exception {
-    checkCreateTemplate("activities", "BasicActivity", false, withAndroidx);
-  }
-
-  @TemplateCheck
   public void testNewBasicActivityWithKotlin() throws Exception {
     checkCreateTemplate("activities", "BasicActivity", false, withKotlin);
-  }
-
-  @TemplateCheck
-  public void testNewBasicActivityWithKotlinAndAndroidX() throws Exception {
-    checkCreateTemplate("activities", "BasicActivity", false, withAndroidxAndKotlin);
   }
 
   @TemplateCheck
@@ -565,18 +545,17 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewSettingsActivity() throws Exception {
-    // Note: SettingsActivity is only enabled in the UI for androidx projects
-    checkCreateTemplate("activities", "SettingsActivity", false, withAndroidx);
+    checkCreateTemplate("activities", "SettingsActivity", false);
   }
 
   @TemplateCheck
   public void testNewProjectWithSettingsActivity() throws Exception {
-    checkCreateTemplate("activities", "SettingsActivity", true, withAndroidx);
+    checkCreateTemplate("activities", "SettingsActivity", true);
   }
 
   @TemplateCheck
   public void testNewProjectWithSettingsActivityWithKotlin() throws Exception {
-    checkCreateTemplate("activities", "SettingsActivity", true, withAndroidxAndKotlin);
+    checkCreateTemplate("activities", "SettingsActivity", true, withKotlin);
   }
 
   @TemplateCheck
@@ -689,15 +668,14 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewSliceProvider() throws Exception {
-    // Note: SliceProvider is only enabled in the UI for androidx projects
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "SliceProvider", false, withAndroidx);
+    checkCreateTemplate("other", "SliceProvider", false);
   }
 
   @TemplateCheck
   public void testNewSliceProviderWithKotlin() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "SliceProvider", false, withAndroidxAndKotlin);
+    checkCreateTemplate("other", "SliceProvider", false, withKotlin);
   }
 
   @TemplateCheck
@@ -755,15 +733,15 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testNewSettingsFragmentWithAndroidX() throws Exception {
+  public void testNewSettingsFragment() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("fragments", "SettingsFragment", true, withAndroidx);
+    checkCreateTemplate("fragments", "SettingsFragment", true);
   }
 
   @TemplateCheck
-  public void testNewSettingsFragmentWithAndroidXAndKotlin() throws Exception {
+  public void testNewSettingsFragmentWithKotlin() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("fragments", "SettingsFragment", false, withAndroidxAndKotlin);
+    checkCreateTemplate("fragments", "SettingsFragment", false, withKotlin);
   }
 
   @TemplateCheck
@@ -976,24 +954,6 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   //--- Special cases ---
 
-  public void testCppBasicActivityWithFragments() throws Exception {
-    // Regression test for https://code.google.com/p/android/issues/detail?id=221824
-    if (DISABLED) {
-      return;
-    }
-    myApiSensitiveTemplate = false;
-    File templateFile = findTemplate("activities", "BasicActivity");
-    assertNotNull(templateFile);
-    Stopwatch stopwatch = Stopwatch.createStarted();
-    checkTemplate(templateFile, true, (templateMap, projectMap) -> {
-      projectMap.put(ATTR_CPP_SUPPORT, true);
-      templateMap.put(ATTR_CPP_SUPPORT, true);
-      projectMap.put(ATTR_CPP_FLAGS, "");
-    });
-    stopwatch.stop();
-    System.out.println("Checked " + templateFile.getName() + " with cpp and fragments successfully in " + stopwatch.toString());
-  }
-
   public void testJdk7() throws Exception {
     if (DISABLED) {
       return;
@@ -1064,7 +1024,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     PlatformTestUtil.assertFilesEqual(desired, actual);
   }
 
-  public void testRelatedParameters() throws Exception {
+  public void testRelatedParameters() {
     Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")));
     TemplateMetadata templateMetadata = template.getMetadata();
     assertNotNull(templateMetadata);
@@ -1402,11 +1362,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   private static class Option {
-    private String id;
-    private int minSdk;
-    private int minBuild;
+    private final String id;
+    private final int minSdk;
+    private final int minBuild;
 
-    public Option(String id, int minSdk, int minBuild) {
+    private Option(String id, int minSdk, int minBuild) {
       this.id = id;
       this.minSdk = minSdk;
       this.minBuild = minBuild;
@@ -1459,6 +1419,10 @@ public class TemplateTest extends AndroidGradleTestCase {
       checkLib = "Activity".equals(templateMetadata.getCategory()) &&
                  "Mobile".equals(templateMetadata.getFormFactor()) &&
                  !moduleState.getBoolean(ATTR_CREATE_ACTIVITY);
+
+      if (templateMetadata.getAndroidXRequired()) {
+        setAndroidSupport(true, moduleState, activityState);
+      }
     }
 
     if (!Boolean.TRUE.equals(moduleState.get(ATTR_ANDROIDX_SUPPORT))) {
@@ -1582,7 +1546,7 @@ public class TemplateTest extends AndroidGradleTestCase {
         connection.close();
 
         // Windows work-around: After closing the gradle connection, it's possible that some files (eg local.properties) are locked
-        // for a bit of time. It is also possible that there are Virtual Files that are still syncronizing to the File System, this will
+        // for a bit of time. It is also possible that there are Virtual Files that are still synchronizing to the File System, this will
         // break tear-down, when it tries to delete the project.
         if (SystemInfo.isWindows) {
           System.out.println("Windows: Attempting to delete project Root - " + projectRoot);

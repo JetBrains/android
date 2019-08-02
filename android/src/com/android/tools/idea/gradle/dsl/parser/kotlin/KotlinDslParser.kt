@@ -118,6 +118,16 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         }
         return unquoteString(literal.text)
       }
+      is KtArrayAccessExpression -> {
+        if (resolve) {
+          val property = extraPropertyReferenceName(literal)
+          val gradleDslElement = context.resolveReference(property ?: literal.text, true)
+          if (gradleDslElement is GradleDslSimpleExpression) {
+            return gradleDslElement.value
+          }
+        }
+        return unquoteString(literal.text)
+      }
       // For String and constant literals. Ex : Integers, single-quoted Strings.
       is KtStringTemplateExpression, is KtStringTemplateEntry -> {
         if (!resolve || context.hasCycle()) {
@@ -249,15 +259,25 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
   override fun visitBinaryExpression(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
     var parentBlock = parent
+    val name: GradleNameElement
     // Check the expression is valid.
     if (expression.operationToken != KtTokens.EQ) return
     val left = expression.left ?: return
     val right = expression.right ?: return
-    val name = GradleNameElement.from(left)
-    if (name.isEmpty) return
-    if (name.isQualified) {
-      val nestedElement = getBlockElement(name.qualifyingParts(), parent, null) ?: return
-      parentBlock = nestedElement
+    when (val property = extraPropertyReferenceName(left)) {
+      is String -> {
+        // we have something of the form extra["literalString"] = init
+        parentBlock = getBlockElement(listOf("ext"), parent, null) ?: return
+        name = GradleNameElement.create(property)
+      }
+      else -> {
+        name = GradleNameElement.from(left)
+        if (name.isEmpty) return
+        if (name.isQualified) {
+          val nestedElement = getBlockElement(name.qualifyingParts(), parent, null) ?: return
+          parentBlock = nestedElement
+        }
+      }
     }
     val propertyElement = createExpressionElement(parentBlock, expression, name, right) ?: return
     propertyElement.setUseAssignment(true)

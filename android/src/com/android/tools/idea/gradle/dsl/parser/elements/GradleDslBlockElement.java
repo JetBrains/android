@@ -36,7 +36,7 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    if (APPLY_BLOCK_NAME.equals(element.getFullName()) && element instanceof GradleDslExpressionMap) {
+    if (APPLY_BLOCK_NAME.equals(element.getFullName())) {
       ApplyDslElement applyDslElement = getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
       if (applyDslElement == null) {
         applyDslElement = new ApplyDslElement(this);

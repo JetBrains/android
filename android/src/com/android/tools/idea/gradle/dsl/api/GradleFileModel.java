@@ -18,10 +18,11 @@ package com.android.tools.idea.gradle.dsl.api;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.psi.PsiFile;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface GradleFileModel extends GradleDslModel {
   @NotNull
@@ -38,5 +39,15 @@ public interface GradleFileModel extends GradleDslModel {
 
   void applyChanges();
 
+  @NotNull
   Map<String, List<BuildModelNotification>> getNotifications();
+
+  /**
+   * @return the psi file representing this GradleFileModel. In order to continue using this instance of the model no modifications should
+   * be made to the underlying psi tree of the file for the models lifetime. This method is exposed to allow the PsiFile to be passed into
+   * Intellij IDEA APIs. This method makes no guarantees about the validity of the returned element, callers should perform the necessary
+   * checks before using.
+   */
+  @Nullable
+  PsiFile getPsiFile();
 }

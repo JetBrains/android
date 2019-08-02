@@ -119,7 +119,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_UNIFIED_PIPELINE = Flag.create(
     PROFILER, "unified.pipeline", "Enables new event pipeline to be used for core components.",
     "Toggles usage of gRPC apis to fetch data from perfd and the datastore.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_IMPORT_SESSION = Flag.create(
     PROFILER, "import.session", "Enable the session import dialog",
@@ -207,6 +207,11 @@ public final class StudioFlags {
     "Shows recording options and status of the ongoing recording in the method trace pane.",
     true
   );
+
+  public static final Flag<Boolean> PROFILER_AUDITS = Flag.create(
+    PROFILER, "audits", "Enable profiler audits",
+    "When enabled, profiler workflows such as capturing CPU atrace captures will generate audits",
+    false);
   //endregion
 
   //region Layout Editor
@@ -374,13 +379,6 @@ public final class StudioFlags {
     "deltainstall",
     "Delta install",
     "Upon installing, if application is already on device, only send parts of the apks which have changed (the delta).",
-    true);
-
-  public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE = Flag.create(
-    RUNDEBUG,
-    "select.device.snapshot.combo.box.visible",
-    "Show the Select Device/Snapshot combo box",
-    "Show the Select Device/Snapshot combo box next to the Select Run/Debug Configuration one in the toolbar",
     true);
 
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(

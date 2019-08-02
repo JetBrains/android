@@ -21,10 +21,14 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.testutils.TestUtils;
+import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
+import com.intellij.codeInsight.daemon.impl.IdentifierHighlighterPassFactory;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.module.Module;
@@ -43,6 +47,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.actions.InlineAction;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.util.ArrayList;
@@ -681,6 +686,42 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     // Regression test for https://code.google.com/p/android/issues/detail?id=199247
     // Allow colons in names for attributes
     doTestHighlighting("attrValidation.xml");
+  }
+
+  public void testIdentifierHighlightingStringName() {
+    PsiFile file = myFixture.addFileToProject("res/values/strings.xml",
+                                              //language=XML
+                                              "<resources>" +
+                                              "  <string name='f<caret>oo'>foo</string>" +
+                                              "  <string name='bar'>@string/foo</string>" +
+                                              "</resources>");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+
+    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(() -> {
+      List<HighlightInfo> highlightInfos = myFixture.doHighlighting();
+      assertThat(highlightInfos).hasSize(1);
+      HighlightInfo highlightInfo = Iterables.getOnlyElement(highlightInfos);
+      assertThat(highlightInfo.getSeverity()).isEqualTo(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY);
+      assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
+
+      myFixture.type('X');
+      dispatchEvents();
+
+      highlightInfos = myFixture.doHighlighting();
+      assertThat(highlightInfos).hasSize(1);
+      highlightInfo = Iterables.getOnlyElement(highlightInfos);
+      assertThat(highlightInfo.getSeverity()).isEqualTo(HighlightSeverity.ERROR);
+      assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
+    });
+  }
+
+  public void dispatchEvents() {
+    try {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    }
+    catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {

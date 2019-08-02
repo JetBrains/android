@@ -85,7 +85,7 @@ public class ScreenViewLayer extends Layer {
    * </p>
    *
    * @param screenView The screenView containing the model to render
-   * @param executor   Executor used to debounce the calls to {@link #requestHighQualityScaledImage()}
+   * @param executor   Executor used to debounce the calls to {@link #requestHighQualityScaledImage}
    */
   @VisibleForTesting
   ScreenViewLayer(@NotNull ScreenView screenView, @Nullable ScheduledExecutorService executor) {
@@ -103,7 +103,8 @@ public class ScreenViewLayer extends Layer {
                                                int screenViewX, int screenViewY,
                                                @NotNull Rectangle screenViewVisibleSize,
                                                double xScaleFactor, double yScaleFactor,
-                                               @Nullable BufferedImage existingBuffer) {
+                                               @Nullable BufferedImage existingBuffer,
+                                               boolean screenViewHasBorderLayer) {
     // Extract from the result image only the visible rectangle. The result image might be bigger or smaller than the actual ScreenView
     // size so we need to also rescale.
     int sx1 = (int)Math.round((screenViewVisibleSize.x - screenViewX) * xScaleFactor);
@@ -111,9 +112,13 @@ public class ScreenViewLayer extends Layer {
     int sx2 = sx1 + (int)Math.round(screenViewVisibleSize.width * xScaleFactor);
     int sy2 = sy1 + (int)Math.round(screenViewVisibleSize.height * yScaleFactor);
     BufferedImage image;
-    if (existingBuffer != null &&
-        existingBuffer.getWidth() == screenViewVisibleSize.width &&
-        existingBuffer.getHeight() == screenViewVisibleSize.height) {
+    boolean bufferWithScreenViewSizeExists = existingBuffer != null && existingBuffer.getWidth() == screenViewVisibleSize.width
+                                             && existingBuffer.getHeight() == screenViewVisibleSize.height;
+    if (screenViewHasBorderLayer && bufferWithScreenViewSizeExists) {
+      // Reuse the buffered image if the screen view visible size matches the existing buffer's, and if we're rendering a screen view that
+      // has a border layer. Screen views without a border layer might contain transparent images, e.g. a drawable, and reusing the buffer
+      // might cause the unexpected effect of parts of the old image being rendered on the transparent parts of the new one. Therefore, we
+      // need to force the creation of a new image in this case.
       image = existingBuffer;
     }
     else {
@@ -174,7 +179,7 @@ public class ScreenViewLayer extends Layer {
         cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(), renderedImage,
                                              myScreenView.getX(), myScreenView.getY(),
                                              myScreenViewVisibleSize, xScaleFactor, yScaleFactor,
-                                             previousVisibleImage);
+                                             previousVisibleImage, myScreenView.hasBorderLayer());
         myCachedVisibleImage = cachedVisibleImage;
       }
     }

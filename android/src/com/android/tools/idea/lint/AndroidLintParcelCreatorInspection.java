@@ -38,6 +38,7 @@ public class AndroidLintParcelCreatorInspection extends AndroidLintInspectionBas
     if (fixData != null) {
       return super.getQuickFixes(startElement, endElement, message, fixData);
     } else {
+      // Note: This fix only supports Java; the Kotlin fix is registered via KotlinAndroidQuickFixProvider
       return new AndroidLintQuickFix[]{
         new ParcelableQuickFix(AndroidBundle.message("implement.parcelable.intention.text"), ParcelableQuickFix.Operation.IMPLEMENT),
       };

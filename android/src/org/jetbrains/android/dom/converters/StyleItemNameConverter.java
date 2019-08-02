@@ -114,7 +114,7 @@ public class StyleItemNameConverter extends ResolvingConverter<ResourceUrl> {
       return null;
     }
     return ArrayUtil.getFirstElement(AndroidResourceToPsiResolver.getInstance()
-      .getXmlAttributeNameGotoDeclarationTargets(resource.name, resourceNamespace, context.getXmlElement(), facet));
+      .getXmlAttributeNameGotoDeclarationTargets(resource.name, resourceNamespace, context.getXmlElement()));
   }
 
   @Override

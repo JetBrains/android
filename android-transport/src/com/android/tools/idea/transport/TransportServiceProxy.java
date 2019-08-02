@@ -76,7 +76,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -398,7 +397,7 @@ public class TransportServiceProxy extends ServiceProxy
   public void execute(ExecuteRequest request, StreamObserver<ExecuteResponse> responseObserver) {
     Command command = request.getCommand();
     ExecuteResponse response;
-    if (myCommandHandlers.containsKey(command.getType())) {
+    if (myCommandHandlers.containsKey(command.getType()) && myCommandHandlers.get(command.getType()).shouldHandle(command)) {
       response = myCommandHandlers.get(command.getType()).execute(command);
     }
     else {

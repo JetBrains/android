@@ -23,7 +23,7 @@ public final class CloudTestMatrixTargetProvider extends TestDeployTargetProvide
   }
 
   @Override
-  protected boolean isApplicable(boolean testConfiguration, boolean deviceSnapshotComboBoxVisible) {
+  protected boolean isApplicable(boolean testConfiguration) {
     return testConfiguration;
   }
 }

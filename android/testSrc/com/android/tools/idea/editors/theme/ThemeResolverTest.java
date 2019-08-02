@@ -16,17 +16,14 @@
 package com.android.tools.idea.editors.theme;
 
 import static com.google.common.truth.Truth.assertThat;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -34,11 +31,9 @@ import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.io.IOException;
@@ -67,41 +62,6 @@ public class ThemeResolverTest extends AndroidTestCase {
 
     assertNull("Theme resolver shouldn't resolve styles",
                themeResolver.getTheme(ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance")));
-  }
-
-  public void testLocalThemes() throws IOException {
-    doTestLocalThemes();
-  }
-
-  public void testLocalThemesNamespaced() throws IOException {
-    enableNamespacing("com.example.app");
-    doTestLocalThemes();
-  }
-
-  private void doTestLocalThemes() throws IOException {
-    VirtualFile layoutFile = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");
-    VirtualFile styleFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
-
-    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
-    Configuration configuration = configurationManager.getConfiguration(layoutFile);
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
-
-    assertEquals(1, themeResolver.getLocalThemes().size()); // There are no libraries, so this will only include the project theme.
-    assertEquals(0, themeResolver.getExternalLibraryThemes().size()); // No library themes.
-
-    assertNull("The theme is an app theme and shouldn't be returned for the android namespace",
-               themeResolver.getTheme(ResourceReference.style(ResourceNamespace.ANDROID, "Theme.MyTheme")));
-
-    ResourceNamespace moduleNamespace = ResourceRepositoryManager.getInstance(myModule).getNamespace();
-    ConfiguredThemeEditorStyle theme = themeResolver.getTheme(ResourceReference.style(moduleNamespace, "Theme.MyTheme"));
-    assertNotNull(theme);
-    assertEquals("Theme.MyTheme", theme.getName());
-    assertEquals("Theme", theme.getParent().getName());
-
-    assertEquals(1, theme.getConfiguredValues().size());
-    ConfiguredElement<StyleItemResourceValue> value = Iterables.get(theme.getConfiguredValues(), 0);
-    assertEquals("windowBackground", value.getElement().getAttr().getName());
-    assertEquals("@drawable/pic", value.getElement().getValue());
   }
 
   /** Check that, after a configuration update, the resolver updates the list of themes */

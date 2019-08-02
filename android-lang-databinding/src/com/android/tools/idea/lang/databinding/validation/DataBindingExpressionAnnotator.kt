@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.lang.databinding.validation
 
-import com.android.tools.idea.lang.databinding.psi.DbTokenTypes
+import com.android.tools.idea.lang.databinding.config.DbFile
+import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
+import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbId
@@ -23,10 +25,15 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterL
 import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaExpression
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbVisitor
+import com.android.tools.idea.lang.databinding.reference.PsiParameterReference
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.util.parentOfType
+import com.intellij.psi.xml.XmlAttribute
+import com.intellij.psi.xml.XmlTag
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 
 /**
@@ -39,6 +46,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     try {
       this.holder = holder
       element.accept(this)
+      matchAttributeTypeWhenAtRoot(element)
     }
     finally {
       this.holder = null
@@ -50,6 +58,42 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   }
 
   /**
+   * Matches element type with its associated XML attribute when at the root of the data binding expression.
+   *
+   * As the attribute and its data binding expression may not be resolved properly,
+   * we match their types only when both have at least one candidate type.
+   */
+  private fun matchAttributeTypeWhenAtRoot(rootExpression: PsiElement) {
+    if (rootExpression.parent !is DbFile) {
+      return
+    }
+
+    val dbExprType = (rootExpression.reference as? ModelClassResolvable)?.resolvedType ?: return
+    val attribute = rootExpression.containingFile.context?.parent as? XmlAttribute ?: return
+
+    val isMatchingCandidate: (PsiModelClass) -> Boolean = matched@{ attributeType ->
+      // Possible candidates:
+      // 1) A lambda that can be associated with a SAM, i.e. a class with one overridable method
+      if (rootExpression is PsiDbLambdaExpression && attributeType.allMethods.count { it.isAbstract } == 1) {
+        return@matched true
+      }
+      // 2) The type of our candidate is the same or a subclass of the target type
+      // Note: we use erasures so that, say, Action<ArrayList> could match Action<List>
+      if (attributeType.unwrapped.erasure().isAssignableFrom(dbExprType.unwrapped)) {
+        return@matched true
+      }
+      return@matched false
+    }
+
+    val attributeTypes = attribute.references.filterIsInstance<PsiParameterReference>().map { it.resolvedType }
+    if (attributeTypes.isNotEmpty() && attributeTypes.none { isMatchingCandidate(it) }) {
+      val tagName = attribute.parentOfType<XmlTag>()?.references?.firstNotNullResult { it.resolve() as? PsiClass }?.name
+                    ?: "View"
+      annotateError(rootExpression, SETTER_NOT_FOUND, tagName, attribute.name, dbExprType.type.canonicalText)
+    }
+  }
+
+  /*
    * Data binding expressions are called within the context of a parent ViewDataBinding
    * base class. These classes have a bunch of hidden API methods that users can
    * technically call, but since they are hidden (and stripped), we can't use reflection
@@ -162,5 +206,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     const val UNRESOLVED_IDENTIFIER = "Cannot find identifier '%s'"
 
     const val DUPLICATE_CALLBACK_ARGUMENT = "Callback parameter '%s' is not unique"
+
+    const val SETTER_NOT_FOUND = "Cannot find a setter for <%s %s> that accepts parameter type '%s'"
   }
 }

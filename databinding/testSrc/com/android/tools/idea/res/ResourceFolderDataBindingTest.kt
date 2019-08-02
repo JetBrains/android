@@ -250,46 +250,68 @@ class ResourceFolderDataBindingTest {
   }
 
   /**
-   * asserts all variables in the xml.
-   * Pairs are name to type
+   * Asserts all variables declared in the xml are found up-to-date in the current [BindingLayoutInfo].
+   * See also: [getInfo]
+   *
+   * Note: Pairs are name to type.
    */
   private fun assertVariables(vararg expected: Pair<String, String>) {
-    val variablesInInfo = getInfo()
-      .getItems(DataBindingResourceType.VARIABLE)
-      .values
-      .map {
-        Pair(it.name, it.getExtra(SdkConstants.ATTR_TYPE))
-      }.toSet()
-    assertEquals(expected.toSet(), variablesInInfo)
+    // BindingLayoutInfo classes have both raw and PSI versions of variables - verify that both of
+    // them are up to date.
+
+    val xmlVariables = getInfo()
+      .xml
+      .variables
+      .map { variable -> variable.name to variable.type }
+      .toSet()
+    assertEquals(expected.toSet(), xmlVariables)
+
+    val psiVariables = getInfo()
+      .psi
+      .getItems(DataBindingResourceType.VARIABLE).values
+      .map { variable -> variable.name to variable.typeDeclaration }
+      .toSet()
+    assertEquals(expected.toSet(), psiVariables)
   }
 
   /**
-   * asserts all imports in the xml.
-   * Pairs are type to alias
+   * Asserts all imports declared in the xml are found up-to-date in the current [BindingLayoutInfo]
+   * See also: [getInfo]
+   *
+   * Note: Pairs are type to alias.
    */
   private fun assertImports(vararg expected: Pair<String, String?>) {
-    val importsInInfo = getInfo()
-      .getItems(DataBindingResourceType.IMPORT)
-      .values
-      .map {
-        Pair(it.getExtra(SdkConstants.ATTR_TYPE), it.getExtra(SdkConstants.ATTR_ALIAS))
-      }
+    // BindingLayoutInfo classes have both raw and PSI versions of imports - verify that both of
+    // them are up to date.
+
+    val xmlImports = getInfo()
+      .xml
+      .imports
+      .map { import -> import.type to import.alias }
       .toSet()
-    assertEquals(expected.toSet(), importsInInfo)
+    assertEquals(expected.toSet(), xmlImports)
+
+    val psiImports = getInfo()
+      .psi
+      .getItems(DataBindingResourceType.IMPORT).values
+      .map { import -> import.typeDeclaration to import.getExtra(SdkConstants.ATTR_ALIAS) }
+      .toSet()
+    assertEquals(expected.toSet(), psiImports)
   }
 
   private fun getInfo(): BindingLayoutInfo {
     val appPackage = DataBindingUtil.getGeneratedPackageName(facet)
-    return resources.dataBindingResourceFiles["$appPackage.databinding.LayoutWithDataBindingBinding"]!!
+    return resources.dataBindingResourceFiles
+      .flatMap { group -> group.layouts }
+      .first { layout -> layout.qualifiedName == "$appPackage.databinding.LayoutWithDataBindingBinding" }
   }
 
   private fun getVariableTag(name: String): XmlTag {
     val variable = getInfo()
+      .psi
       .getItems(DataBindingResourceType.VARIABLE)
       .values
-      .firstOrNull {
-        it.name == name
-      }
+      .firstOrNull { it.name == name }
     assertNotNull("cannot find variable with name $name", variable)
     return variable!!.xmlTag
   }

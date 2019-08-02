@@ -21,7 +21,7 @@ import org.junit.runner.RunWith
 
 
 @RunWith(JarTestSuiteRunner::class)
-@JarTestSuiteRunner.ExcludeClasses(ComposePreviewTestSuite::class)
+@JarTestSuiteRunner.ExcludeClasses(ComposePreviewTestSuite::class, ComposeLightCodeInsightFixtureTestCase::class)
 class ComposePreviewTestSuite : IdeaTestSuiteBase() {
   companion object {
 

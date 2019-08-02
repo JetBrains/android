@@ -149,12 +149,16 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     return myFixture.getProject();
   }
 
-  protected void ensureSdkManagerAvailable() {
+  public void ensureSdkManagerAvailable() {
+    ensureSdkManagerAvailable(getTestRootDisposable());
+  }
+
+  public static void ensureSdkManagerAvailable(@NotNull Disposable testRootDisposable) {
     ApplicationManager.getApplication().invokeAndWait(() -> {
       AndroidSdks androidSdks = AndroidSdks.getInstance();
       AndroidSdkData sdkData = androidSdks.tryToChooseAndroidSdk();
       if (sdkData == null) {
-        sdkData = createTestSdkManager();
+        sdkData = AndroidTestBase.createTestSdkManager(testRootDisposable);
         if (sdkData != null) {
           androidSdks.setSdkData(sdkData);
         }
@@ -164,8 +168,8 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   }
 
   @Nullable
-  protected AndroidSdkData createTestSdkManager() {
-    VfsRootAccess.allowRootAccess(getTestRootDisposable(), TestUtils.getSdk().toString());
+  public static AndroidSdkData createTestSdkManager(@NotNull Disposable testRootDisposable) {
+    VfsRootAccess.allowRootAccess(testRootDisposable, TestUtils.getSdk().toString());
     Sdk androidSdk = Sdks.createLatestAndroidSdk();
     AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(androidSdk);
     if (data != null) {

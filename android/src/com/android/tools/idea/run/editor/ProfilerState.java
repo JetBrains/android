@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.ValidationError;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -45,6 +46,8 @@ public class ProfilerState {
   private boolean PROFILING_OKHTTP_ENABLED = true;
   public static final String ENABLE_ADVANCED_OKHTTP_PROFILING_NAME = "android.profiler.okhttp.enabled";
 
+  public static final String ENABLE_UNIFIED_PIPELINE_NAME = "android.profiler.unifiedpipeline.enabled";
+
   private boolean myCheckAdvancedProfiling;
 
   /**
@@ -64,6 +67,7 @@ public class ProfilerState {
   public Properties toProperties() {
     Properties result = new Properties();
     result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ADVANCED_PROFILING_ENABLED));
+    result.setProperty(ENABLE_UNIFIED_PIPELINE_NAME, String.valueOf(StudioFlags.PROFILER_UNIFIED_PIPELINE.get()));
     result.setProperty(ENABLE_ADVANCED_OKHTTP_PROFILING_NAME, String.valueOf(PROFILING_OKHTTP_ENABLED));
     return result;
   }

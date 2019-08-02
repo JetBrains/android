@@ -193,7 +193,9 @@ fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
       SyncIssue.TYPE_INCOMPATIBLE_PLUGIN -> AndroidStudioEvent.GradleSyncIssueType.TYPE_INCOMPATIBLE_PLUGIN
       SyncIssue.TYPE_DEPRECATED_DSL -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_DSL
       SyncIssue.TYPE_DEPRECATED_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION
-      // NOTE: SyncIssue.TYPE_DEPRECATED_DSL_VALUE is ignored since it has the same id as TYPE_DEPRECATED_CONFIGURATION.
+      // NOTE: SyncIssue.TYPE_DEPRECATED_DSL_VALUE is not handled since it has the same value as SyncIssue.TYPE_DEPRECATED_CONFIGURATION
+      // (see http://issuetracker.google.com/138278313). Also because of this bug, from this statement forward, the actual values of the
+      // types on the two sides do not exactly match.
       // SyncIssue.TYPE_DEPRECATED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_DSLVALUE
       SyncIssue.TYPE_MIN_SDK_VERSION_IN_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MIN_SDK_VERSION_IN_MANIFEST
       SyncIssue.TYPE_TARGET_SDK_VERSION_IN_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_TARGET_SDK_VERSION_IN_MANIFEST
@@ -206,6 +208,8 @@ fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
       SyncIssue.TYPE_AMBIGUOUS_PRODUCT_FLAVOR_DEFAULT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AMBIGUOUS_PRODUCT_FLAVOR_DEFAULT
       SyncIssue.TYPE_COMPILE_SDK_VERSION_NOT_SET -> AndroidStudioEvent.GradleSyncIssueType.TYPE_COMPILE_SDK_VERSION_NOT_SET
       SyncIssue.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED
+      SyncIssue.TYPE_USING_DEPRECATED_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_USING_DEPRECATED_CONFIGURATION
+      SyncIssue.TYPE_USING_DEPRECATED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_USING_DEPRECATED_DSL_VALUE
       else -> null.also { LOG.warn("Unknown sync issue type: $this") }
     }
 

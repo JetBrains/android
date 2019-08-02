@@ -19,11 +19,11 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,7 +58,7 @@ public class GoToDeclarationAction extends AbstractAction {
   public void actionPerformed(@Nullable ActionEvent e) {
     Project project = myPanel.getFacet().getModule().getProject();
     assert myItemAtMouseClickLocation != null;
-    XmlTag tag = LocalResourceRepository.getItemTag(project, myItemAtMouseClickLocation);
+    XmlTag tag = AndroidResourceUtil.getItemTag(project, myItemAtMouseClickLocation);
     if (tag == null) {
       // TODO strings can also be defined in gradle, find a way to go there too
       return;

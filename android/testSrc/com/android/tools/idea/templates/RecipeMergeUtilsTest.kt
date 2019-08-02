@@ -28,7 +28,7 @@ class RecipeMergeUtilsTest : TestCase() {
     val dst = ""
     val expected = "include ':a'" + LINE_SEPARATOR +
                    "include ':b'" + LINE_SEPARATOR
-    assertThat(RecipeMergeUtils.mergeGradleSettingsFile(src, dst)).isEqualTo(expected)
+    assertThat(mergeGradleSettingsFile(src, dst)).isEqualTo(expected)
   }
 
   fun testMergeGradleSettingsFileEmptySrc() {
@@ -37,7 +37,7 @@ class RecipeMergeUtilsTest : TestCase() {
               "// Some comment" + LINE_SEPARATOR +
               "   " + LINE_SEPARATOR +
               "   " + LINE_SEPARATOR
-    assertThat(RecipeMergeUtils.mergeGradleSettingsFile(src, dst)).isEqualTo(dst)
+    assertThat(mergeGradleSettingsFile(src, dst)).isEqualTo(dst)
   }
 
   fun testMergeGradleSettingsFileAlreadyInclude() {
@@ -46,7 +46,7 @@ class RecipeMergeUtilsTest : TestCase() {
     val dst = "include ':a'" + LINE_SEPARATOR +
               "// Some comment" + LINE_SEPARATOR
     val expected = dst + src
-    assertThat(RecipeMergeUtils.mergeGradleSettingsFile(src, dst)).isEqualTo(expected)
+    assertThat(mergeGradleSettingsFile(src, dst)).isEqualTo(expected)
   }
 
   fun testMergeGradleSettingsFileNoNewLineComments() {
@@ -57,14 +57,14 @@ class RecipeMergeUtilsTest : TestCase() {
               "  include ':notIncluded // This should not be used" + LINE_SEPARATOR +
               "*/"
     val expected = dst + LINE_SEPARATOR + src
-    assertThat(RecipeMergeUtils.mergeGradleSettingsFile(src, dst)).isEqualTo(expected)
+    assertThat(mergeGradleSettingsFile(src, dst)).isEqualTo(expected)
   }
 
   fun testMergeGradleSettingsFileNoIncludeInSrc() {
     val src = "Not valid input"
     val dst = "include ':a'$LINE_SEPARATOR"
     try {
-      RecipeMergeUtils.mergeGradleSettingsFile(src, dst)
+      mergeGradleSettingsFile(src, dst)
       fail("No exception was caused for non include line.")
     }
     catch (runTimeException: RuntimeException) {

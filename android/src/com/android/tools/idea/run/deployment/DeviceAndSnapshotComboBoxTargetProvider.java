@@ -18,12 +18,12 @@ package com.android.tools.idea.run.deployment;
 import com.android.tools.idea.run.DeviceCount;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.TargetSelectionMode;
+import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.State;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetConfigurable;
 import com.android.tools.idea.run.editor.DeployTargetConfigurableContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.Executor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
@@ -36,7 +36,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
+public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider<State> {
   private boolean myProvidingMultipleTargets;
 
   @NotNull
@@ -53,28 +53,22 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
 
   @NotNull
   @Override
-  public DeployTargetState createState() {
+  public State createState() {
     return new State();
   }
 
-  @VisibleForTesting
-  static final class State extends DeployTargetState {
-  }
-
-  @Override
-  protected boolean isApplicable(boolean testConfiguration, boolean deviceSnapshotComboBoxVisible) {
-    return deviceSnapshotComboBoxVisible;
+  public static final class State extends DeployTargetState {
   }
 
   @NotNull
   @Override
-  public DeployTargetConfigurable createConfigurable(@NotNull Project project,
-                                                     @NotNull Disposable parent,
-                                                     @NotNull DeployTargetConfigurableContext context) {
+  public DeployTargetConfigurable<State> createConfigurable(@NotNull Project project,
+                                                            @NotNull Disposable parent,
+                                                            @NotNull DeployTargetConfigurableContext context) {
     return new Configurable();
   }
 
-  private static final class Configurable implements DeployTargetConfigurable {
+  private static final class Configurable implements DeployTargetConfigurable<State> {
     @Nullable
     @Override
     public JComponent createComponent() {
@@ -82,11 +76,11 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
     }
 
     @Override
-    public void resetFrom(@NotNull Object state, int id) {
+    public void resetFrom(@NotNull State state, int id) {
     }
 
     @Override
-    public void applyTo(@NotNull Object state, int id) {
+    public void applyTo(@NotNull State state, int id) {
     }
   }
 
@@ -100,15 +94,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   }
 
   @Nullable
-  @Override
-  public DeployTarget showPrompt(@NotNull Executor executor,
-                                 @NotNull ExecutionEnvironment environment,
-                                 @NotNull AndroidFacet facet,
-                                 @NotNull DeviceCount count,
-                                 boolean androidInstrumentedTests,
-                                 @NotNull Map providerIdToStateMap,
-                                 int configurationId,
-                                 @NotNull LaunchCompatibilityChecker checker) {
+  public DeployTarget<State> showPrompt(@NotNull AndroidFacet facet) {
     assert requiresRuntimePrompt();
     myProvidingMultipleTargets = false;
 
@@ -121,15 +107,28 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
     return new DeviceAndSnapshotComboBoxTarget(dialog.getSelectedDevices());
   }
 
+  @Nullable
+  @Override
+  public DeployTarget<State> showPrompt(@NotNull Executor executor,
+                                        @NotNull ExecutionEnvironment environment,
+                                        @NotNull AndroidFacet facet,
+                                        @NotNull DeviceCount count,
+                                        boolean androidInstrumentedTests,
+                                        @NotNull Map providerIdToStateMap,
+                                        int configurationId,
+                                        @NotNull LaunchCompatibilityChecker checker) {
+    return showPrompt(facet);
+  }
+
   @NotNull
   @Override
-  public DeployTarget getDeployTarget() {
+  public DeployTarget<State> getDeployTarget() {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  public DeployTarget getDeployTarget(@NotNull Project project) {
+  public DeployTarget<State> getDeployTarget(@NotNull Project project) {
     assert !myProvidingMultipleTargets;
 
     ActionManager manager = ActionManager.getInstance();

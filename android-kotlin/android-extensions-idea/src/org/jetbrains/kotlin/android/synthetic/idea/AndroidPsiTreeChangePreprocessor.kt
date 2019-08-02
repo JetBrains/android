@@ -79,7 +79,7 @@ class AndroidPsiTreeChangePreprocessor : PsiTreeChangePreprocessor, SimpleModifi
                 PsiTreeChangeEventImpl.PsiEventType.PROPERTY_CHANGED)
 
         private fun checkIfLayoutFile(element: PsiElement): Boolean {
-            val xmlFile = element as? XmlFile ?: return false
+            val xmlFile = (element as? XmlFile)?.takeIf { it.isLayoutXmlFile() } ?: return false
 
             val projectFileIndex = ProjectRootManager.getInstance(xmlFile.project).fileIndex
             val module = projectFileIndex.getModuleForFile(xmlFile.virtualFile)
@@ -90,7 +90,7 @@ class AndroidPsiTreeChangePreprocessor : PsiTreeChangePreprocessor, SimpleModifi
                 val resDirectories = resourceManager.getAllModuleResDirectories()
                 val baseDirectory = xmlFile.parent?.parent?.virtualFile
 
-                if (baseDirectory != null && baseDirectory in resDirectories && xmlFile.isLayoutXmlFile()) {
+                if (baseDirectory != null && baseDirectory in resDirectories) {
                     return true
                 }
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,29 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
   fun setUp() {
     fixture.testDataPath = "${getTestDataPath()}/projects/common"
     fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
+
+    // Add a fake "BindingAdapter" to this project so the tests resolve the dependency; this is
+    // easier than finding a way to add a real dependency on the data binding library, which
+    // usually requires Gradle plugin support.
+    val databindingPackage = dataBindingMode.packageName.removeSuffix(".") // Without trailing '.'
+    with(fixture.addFileToProject(
+      "src/${databindingPackage.replace('.', '/')}/BindingAdapter.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        import java.lang.annotation.ElementType;
+        import java.lang.annotation.Target;
+
+        @Target(ElementType.METHOD)
+        public @interface BindingAdapter {
+          String[] value();
+        }
+      """.trimIndent())) {
+      // The following line is needed or else we get an error for referencing a file out of bounds
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
     ModuleDataBinding.getInstance(androidFacet!!).setMode(dataBindingMode)
   }
@@ -481,6 +504,154 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
             <error descr="Callback parameter 'a' is not unique">a</error>,
             <error descr="Callback parameter 'b' is not unique">b</error>,
             <error descr="Callback parameter 'b' is not unique">b</error>, c) -> model.test(a, b)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_attributeTypeMatched() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${dataBindingMode.bindingAdapter};
+
+      public class Model {
+        @BindingAdapter("dummyValue")
+        public void bindDummyValue(View view, String s) {}
+        public String getString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            app:dummyValue="@{model.getString()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_attributeTypeNotMatched() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${dataBindingMode.bindingAdapter};
+
+      public class Model {
+        @BindingAdapter("dummyValue")
+        public void bindDummyValue(View view, String s) {}
+        public int getString() {}
+      }
+      """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            app:dummyValue="@{<error descr="Cannot find a setter for <TextView app:dummyValue> that accepts parameter type 'int'">model.getString()</error>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_listenerAttributeTypeMatched() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${dataBindingMode.bindingAdapter};
+
+      public class Model {
+        @BindingAdapter("android:onClick2")
+        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public String getString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{() -> model.getString()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_listenerAttributeTypeNotMatched() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${dataBindingMode.bindingAdapter};
+
+      public class Model {
+        @BindingAdapter("android:onClick2")
+        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public String getString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{<error descr="Cannot find a setter for <TextView android:onClick2> that accepts parameter type 'java.lang.String'">model.getString()</error>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)

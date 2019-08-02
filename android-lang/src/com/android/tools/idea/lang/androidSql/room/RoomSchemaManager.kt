@@ -16,8 +16,8 @@
 package com.android.tools.idea.lang.androidSql.room
 
 import com.android.support.AndroidxName
-import com.android.tools.idea.kotlin.findAnnotation
 import com.android.tools.idea.kotlin.findArgumentExpression
+import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.kotlin.tryEvaluateConstant
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumn
 import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES
@@ -50,7 +50,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiUtil
 import org.jetbrains.kotlin.asJava.elements.KtLightField
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtExpression
 
 private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
@@ -259,7 +258,12 @@ class RoomSchemaManager(val module: Module, private val cachedValuesManager: Cac
     annotationName: AndroidxName,
     annotationAttributeName: String
   ): KtExpression? {
-    val annotationEntry = kotlinOrigin?.annotationEntries?.findAnnotation(annotationName) ?: return null
+    val annotationEntry =
+      kotlinOrigin
+        ?.annotationEntries
+        ?.firstOrNull { annotationName.isEquals(it.getQualifiedName()) }
+      ?: return null
+
     // Property annotation it is annotation without target
     return if (annotationEntry.useSiteTarget == null) {
       annotationEntry.findArgumentExpression(annotationAttributeName)
@@ -289,7 +293,7 @@ class RoomSchemaManager(val module: Module, private val cachedValuesManager: Cac
     // In that case element.modifierList.findAnnotation(annotationName) returns null because it searches only for annotation with FIELD target
     if (name == null && element is KtLightField) {
       val ktExpression = element.getPropertyAnnotationExpression(annotationName, annotationAttributeName)
-      name = ktExpression?.let { tryEvaluateConstant(it) }
+      name = ktExpression?.tryEvaluateConstant()
       if (name != null) annotation = ktExpression as PsiElement
     }
 
@@ -301,23 +305,7 @@ class RoomSchemaManager(val module: Module, private val cachedValuesManager: Cac
     f(newName())
   }
 
-  fun List<KtAnnotationEntry>.findAnnotation(qualifiedName: AndroidxName): KtAnnotationEntry? {
-    qualifiedName.bothNames { name ->
-      val result = findAnnotation(name)
-      if (result != null) {
-        return result
-      }
-    }
-    return null
-  }
-
-  fun PsiModifierList.findAnnotation(qualifiedName: AndroidxName): PsiAnnotation? {
-    qualifiedName.bothNames { name ->
-      val result = findAnnotation(name)
-      if (result != null) {
-        return result
-      }
-    }
-    return null
+  private fun PsiModifierList.findAnnotation(annotation: AndroidxName): PsiAnnotation? {
+    return findAnnotation(annotation.oldName()) ?: findAnnotation(annotation.newName())
   }
 }
