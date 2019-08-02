@@ -69,21 +69,13 @@ private val logger: Logger get() = logger<NewProjectModel>()
 
 class NewProjectModel : WizardModel() {
   val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
-  @JvmField
   val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
-  @JvmField
   val packageName = StringValueProperty()
-  @JvmField
   val projectLocation = StringValueProperty()
-  @JvmField
   val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))
-  @JvmField
   val cppFlags = StringValueProperty()
-  @JvmField
   val project = OptionalValueProperty<Project>()
-  @JvmField
   val templateValues = hashMapOf<String, Any>()
-  @JvmField
   val language = OptionalValueProperty<Language>()
   /**
    * When the project is created, it contains the list of new Module that should also be created.
