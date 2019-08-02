@@ -229,7 +229,7 @@ class RenderTemplateModel private constructor(
                           commandName,
                           moduleModel.multiTemplateRenderer.apply { incrementRenders() },
                           true,
-                          moduleTemplateValues = moduleModel.templateValues)
+                          moduleTemplateValues = moduleModel.moduleTemplateValues)
 
     /**
      * Design: If there are no kotlin facets in the project, the default should be Java, whether or not you previously chose Kotlin
