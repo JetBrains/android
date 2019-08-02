@@ -26,14 +26,14 @@ import com.android.ide.gradle.model.sources.SourcesAndJavadocParameter
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.tooling.BuildController
-import org.jetbrains.plugins.gradle.model.ProjectImportExtraModelProvider
+import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
 fun getSourcesAndJavadocArtifacts(
   controller: BuildController,
   inputModules: List<AndroidModule>,
   cachedSourcesAndJavadoc: Collection<String>,
-  consumer: ProjectImportExtraModelProvider.BuildModelConsumer
+  consumer: ProjectImportModelProvider.BuildModelConsumer
 ) {
   inputModules.forEach { module ->
     if (!is3Dot5OrNewer(module.androidProject)) return@forEach

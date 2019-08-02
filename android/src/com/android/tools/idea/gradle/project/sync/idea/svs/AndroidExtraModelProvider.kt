@@ -29,14 +29,14 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
-import org.jetbrains.plugins.gradle.model.ProjectImportExtraModelProvider
+import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
-class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions) : ProjectImportExtraModelProvider {
+class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions) : ProjectImportModelProvider {
   override fun populateBuildModels(
     controller: BuildController,
     project: IdeaProject,
-    consumer: ProjectImportExtraModelProvider.BuildModelConsumer
+    consumer: ProjectImportModelProvider.BuildModelConsumer
   ) {
     populateAndroidModels(controller, project, consumer)
     // Requesting ProjectSyncIssues must be performed last since all other model requests may produces addition issues.
@@ -46,7 +46,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
   override fun populateProjectModels(
     controller: BuildController,
     module: IdeaModule?,
-    consumer: ProjectImportExtraModelProvider.ProjectModelConsumer
+    consumer: ProjectImportModelProvider.ProjectModelConsumer
   ) {
     // We don't yet have any Global models so if module equal null we just return
     module
@@ -67,12 +67,12 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
    * If single variant sync is enabled then [findParameterizedAndroidModel] will use Gradle parameterized model builder API
    * in order to stop Gradle from building the variant.
    * All of the requested models are registered back to the external project system via the
-   * [ProjectImportExtraModelProvider.BuildModelConsumer] callback.
+   * [ProjectImportModelProvider.BuildModelConsumer] callback.
    */
   private fun populateAndroidModels(
     controller: BuildController,
     project: IdeaProject,
-    consumer: ProjectImportExtraModelProvider.BuildModelConsumer
+    consumer: ProjectImportModelProvider.BuildModelConsumer
   ) {
     val androidModules: MutableList<AndroidModule> = mutableListOf()
     project.modules.forEach { module ->
@@ -115,7 +115,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
   private fun populateProjectSyncIssues(
     controller: BuildController,
     project: IdeaProject,
-    consumer: ProjectImportExtraModelProvider.BuildModelConsumer
+    consumer: ProjectImportModelProvider.BuildModelConsumer
   ) {
     project.modules.forEach { module ->
       controller.findModel(module.gradleProject, ProjectSyncIssues::class.java)?.also { projectSyncIssues ->
