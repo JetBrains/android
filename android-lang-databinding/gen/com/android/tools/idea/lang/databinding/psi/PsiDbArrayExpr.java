@@ -22,6 +22,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface PsiDbName extends PsiElement {
+public interface PsiDbArrayExpr extends PsiDbExpr {
+
+  @NotNull
+  PsiDbBracketArgument getBracketArgument();
+
+  @NotNull
+  PsiDbExpr getExpr();
 
 }
