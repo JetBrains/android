@@ -64,26 +64,17 @@ class NewModuleModel : WizardModel {
 
   // Note: INVOKE_IMMEDIATELY otherwise Objects may be constructed in the wrong state
   private val bindings = BindingsManager(INVOKE_IMMEDIATELY_STRATEGY)
-  val moduleName = StringValueProperty()
-  val splitName = StringValueProperty("feature")
+  val moduleName = StringValueProperty().apply { addConstraint(String::trim) }
   // A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
   // module, or instead modifies an existing module (for example just adding a new Activity)
   val templateFile = OptionalValueProperty<File>()
   val applicationName: StringProperty
   val projectLocation: StringProperty
-  val packageName = StringValueProperty()
-  private val projectPackageName: StringProperty
-  val enableCppSupport: BoolProperty
+  val packageName: StringValueProperty
   val language: OptionalValueProperty<Language>
-  private val createInExistingProject: Boolean
   val template: ObjectProperty<NamedModuleTemplate>
   val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty()
   val formFactor: ObjectValueProperty<FormFactor>
-
-  init {
-    moduleName.addConstraint(AbstractProperty.Constraint(String::trim))
-    splitName.addConstraint(AbstractProperty.Constraint(String::trim))
-  }
 
   constructor(project: Project,
               moduleParent: String?,
@@ -93,9 +84,7 @@ class NewModuleModel : WizardModel {
     this.moduleParent = moduleParent
     this.projectSyncInvoker = projectSyncInvoker
     this.template = ObjectValueProperty(template)
-    projectPackageName = packageName
-    createInExistingProject = true
-    enableCppSupport = BoolValueProperty()
+    packageName = StringValueProperty()
     language = OptionalValueProperty(getInitialSourceLanguage(project))
     applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
     applicationName.addConstraint(AbstractProperty.Constraint(String::trim))
@@ -113,10 +102,8 @@ class NewModuleModel : WizardModel {
     this.template = ObjectValueProperty(template)
     project = projectModel.project
     this.moduleParent = null
-    projectPackageName = projectModel.packageName
+    packageName = projectModel.packageName
     projectSyncInvoker = projectModel.projectSyncInvoker
-    createInExistingProject = false
-    enableCppSupport = projectModel.enableCppSupport
     applicationName = projectModel.applicationName
     projectLocation = projectModel.projectLocation
     this.templateFile.value = templateFile
@@ -125,8 +112,6 @@ class NewModuleModel : WizardModel {
     language = OptionalValueProperty()
     projectTemplateValues = projectModel.templateValues
     this.formFactor = formFactor
-
-    bindings.bind(packageName, projectPackageName)
   }
 
   override fun dispose() {
