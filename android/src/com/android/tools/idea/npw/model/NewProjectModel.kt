@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,20 +66,30 @@ import java.util.regex.Pattern
 
 private val logger: Logger get() = logger<NewProjectModel>()
 
-class NewProjectModel : WizardModel() {
-  val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
-  val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
-  val packageName = StringValueProperty()
-  val projectLocation = StringValueProperty()
-  val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))
-  val cppFlags = StringValueProperty()
-  val project = OptionalValueProperty<Project>()
-  val templateValues = hashMapOf<String, Any>()
-  val language = OptionalValueProperty<Language>()
-  /**
-   * When the project is created, it contains the list of new Module that should also be created.
-   */
-  val multiTemplateRenderer = MultiTemplateRenderer(null, this.projectSyncInvoker)
+interface ProjectModelData {
+  val projectSyncInvoker: ProjectSyncInvoker
+  val applicationName: StringValueProperty
+  val packageName: StringValueProperty
+  val projectLocation: StringValueProperty
+  val enableCppSupport: BoolValueProperty
+  val cppFlags: StringValueProperty
+  val project: OptionalValueProperty<Project>
+  val projectTemplateValues: MutableMap<String, Any>
+  val language: OptionalValueProperty<Language>
+  val multiTemplateRenderer: MultiTemplateRenderer
+}
+
+class NewProjectModel : WizardModel(), ProjectModelData {
+  override val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
+  override val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
+  override val packageName = StringValueProperty()
+  override val projectLocation = StringValueProperty()
+  override val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))
+  override val cppFlags = StringValueProperty()
+  override val project = OptionalValueProperty<Project>()
+  override val projectTemplateValues = mutableMapOf<String, Any>()
+  override val language = OptionalValueProperty<Language>()
+  override val multiTemplateRenderer = MultiTemplateRenderer(null, this.projectSyncInvoker)
 
   init {
     packageName.addListener {
@@ -145,12 +155,12 @@ class NewProjectModel : WizardModel() {
     override fun init() {
       projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME)
       // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
-      templateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
-      templateValues[ATTR_CPP_FLAGS] = cppFlags.get()
-      templateValues[ATTR_TOP_OUT] = project.value.basePath ?: ""
-      templateValues[ATTR_IS_NEW_PROJECT] = true
+      projectTemplateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
+      projectTemplateValues[ATTR_CPP_FLAGS] = cppFlags.get()
+      projectTemplateValues[ATTR_TOP_OUT] = project.value.basePath ?: ""
+      projectTemplateValues[ATTR_IS_NEW_PROJECT] = true
 
-      TemplateValueInjector(templateValues)
+      TemplateValueInjector(projectTemplateValues)
         .setProjectDefaults(project.value)
         .setLanguage(language.value)
     }
@@ -185,7 +195,7 @@ class NewProjectModel : WizardModel() {
         .withCommandName("New Project")
         .withDryRun(dryRun)
         .withShowErrors(true)
-        .withParams(templateValues)
+        .withParams(projectTemplateValues)
         .build()
 
       projectTemplate.render(context, dryRun)
