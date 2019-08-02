@@ -134,14 +134,17 @@ public final class PredefinedSampleDataResourceRepository extends AbstractResour
   }
 
   @Override
-  public void accept(@NotNull ResourceVisitor visitor) {
+  @NotNull
+  public ResourceVisitor.VisitResult accept(@NotNull ResourceVisitor visitor) {
     if (visitor.shouldVisitNamespace(NAMESPACE) && visitor.shouldVisitResourceType(ResourceType.SAMPLE_DATA)) {
       for (ResourceItem item : myResources.values()) {
         if (visitor.visit(item) == ResourceVisitor.VisitResult.ABORT) {
-          return;
+          return ResourceVisitor.VisitResult.ABORT;
         }
       }
     }
+
+    return ResourceVisitor.VisitResult.CONTINUE;
   }
 
   @Override

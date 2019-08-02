@@ -22,12 +22,12 @@ import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +65,7 @@ public final class StringResource {
     Map<Locale, ResourceItemEntry> localeToTranslationMap = new HashMap<>();
 
     for (ResourceItem item : repository.getItems(key)) {
-      XmlTag tag = LocalResourceRepository.getItemTag(project, item);
+      XmlTag tag = AndroidResourceUtil.getItemTag(project, item);
 
       if (tag != null && "false".equals(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))) {
         translatable = false;

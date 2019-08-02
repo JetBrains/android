@@ -73,20 +73,6 @@ public class ResolutionUtilsTest extends AndroidTestCase {
     assertEquals("AppTheme", ResolutionUtils.getNameFromQualifiedName("AppTheme"));
   }
 
-  public void testFrameworkStyleRead() {
-    VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout1.xml");
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myLayout);
-
-    assertNotNull(ResolutionUtils.getThemeEditorStyle(configuration, "android:TextAppearance", null));
-
-    ConfiguredThemeEditorStyle style = ResolutionUtils.getThemeEditorStyle(configuration, "android:Theme.Holo.Light", null);
-    assertEquals("Theme.Holo.Light", style.getName());
-
-    style = style.getParent();
-    assertEquals("Theme.Light", style.getName());
-    assertNotEmpty(style.getConfiguredValues());
-  }
-
   public void testGetOriginalApiLevel() {
     assertEquals(-1, ResolutionUtils.getOriginalApiLevel(null, getProject()));
 

@@ -73,7 +73,7 @@ public class BuildVariantUpdater {
   @NotNull private final AndroidVariantChangeModuleSetup myAndroidModuleSetupSteps;
   @NotNull private final NdkVariantChangeModuleSetup myNdkModuleSetupSteps;
   @NotNull private final List<BuildVariantView.BuildVariantSelectionChangeListener> mySelectionChangeListeners =
-      ContainerUtil.createLockFreeCopyOnWriteList();
+    ContainerUtil.createLockFreeCopyOnWriteList();
 
   @NotNull
   public static BuildVariantUpdater getInstance(@NotNull Project project) {
@@ -115,15 +115,15 @@ public class BuildVariantUpdater {
 
   /**
    * Updates a module's structure when the user selects a build variant from the tool window.
+   *
    * @param project              the module's project.
    * @param moduleName           the module's name.
    * @param selectedBuildVariant the name of the selected build variant (without ABI).
-   *
    * @return true if there are affected facets.
    */
   public boolean updateSelectedBuildVariant(@NotNull Project project,
-                                     @NotNull String moduleName,
-                                     @NotNull String selectedBuildVariant) {
+                                            @NotNull String moduleName,
+                                            @NotNull String selectedBuildVariant) {
     Module moduleToUpdate = findModule(project, moduleName);
     if (moduleToUpdate == null) {
       logAndShowBuildVariantFailure(String.format("Cannot find module '%1$s'.", moduleName));
@@ -148,10 +148,10 @@ public class BuildVariantUpdater {
 
   /**
    * Updates a module's structure when the user selects an ABI from the tool window.
-   * @param project          the module's project.
-   * @param moduleName       the module's name.
-   * @param selectedAbiName  the name of the selected ABI.
    *
+   * @param project         the module's project.
+   * @param moduleName      the module's name.
+   * @param selectedAbiName the name of the selected ABI.
    * @return true if there are affected facets.
    */
   boolean updateSelectedAbi(@NotNull Project project,
@@ -184,15 +184,15 @@ public class BuildVariantUpdater {
 
   /**
    * Updates a module's structure when the user selects a build variant or ABI.
+   *
    * @param project          the module's project.
    * @param moduleName       the module's name.
    * @param buildVariantName the name of the selected build variant (without abi for non-native modules, with ABI for native modules).
-   *
    * @return true if there are affected facets.
    */
   private boolean updateSelectedVariant(@NotNull Project project,
-                                @NotNull String moduleName,
-                                @NotNull String buildVariantName) {
+                                        @NotNull String moduleName,
+                                        @NotNull String buildVariantName) {
     List<AndroidFacet> affectedAndroidFacets = new ArrayList<>();
     List<NdkFacet> affectedNdkFacets = new ArrayList<>();
     // find all of affected facets, and update the value of selected build variant.
@@ -219,7 +219,7 @@ public class BuildVariantUpdater {
       requestVariantOnlyGradleSync(project, moduleName, buildVariantName, invokeVariantSelectionChangeListeners);
     }
     else {
-      setupCachedVariant(project, buildVariantName, affectedAndroidFacets, affectedNdkFacets, invokeVariantSelectionChangeListeners);
+      setupCachedVariant(project, affectedAndroidFacets, affectedNdkFacets, invokeVariantSelectionChangeListeners);
     }
     return true;
   }
@@ -256,10 +256,8 @@ public class BuildVariantUpdater {
     if (ndkFacet != null) {
       NdkModuleModel ndkModuleModel = getNdkModelIfNotJustDummy(ndkFacet);
       if (ndkModuleModel != null) {
-        String abiBeforeChange = ndkModuleModel.getAbiName(ndkModuleModel.getSelectedVariant().getName());
-
         ndkVariantExists =
-          updateAffectedFacetsForNdkModule(ndkFacet, ndkModuleModel, variantToSelect, affectedAndroidFacets, affectedNdkFacets);
+          updateAffectedFacetsForNdkModule(ndkFacet, ndkModuleModel, variantToSelect, affectedNdkFacets);
 
         // The variant name (without ABI) and ABI name to use for dependent modules.
         variantName = ndkModuleModel.getVariantName(variantToSelect);
@@ -271,7 +269,8 @@ public class BuildVariantUpdater {
       AndroidModuleModel androidModel = getAndroidModel(androidFacet);
       if (androidModel != null) {
         androidVariantExists =
-          updateAffectedFacetsForAndroidModule(project, androidFacet, androidModel, variantName, abiName, affectedAndroidFacets, affectedNdkFacets);
+          updateAffectedFacetsForAndroidModule(project, androidFacet, androidModel, variantName, abiName, affectedAndroidFacets,
+                                               affectedNdkFacets);
       }
     }
     return ndkVariantExists && androidVariantExists;
@@ -280,7 +279,6 @@ public class BuildVariantUpdater {
   private static boolean updateAffectedFacetsForNdkModule(@NotNull NdkFacet ndkFacet,
                                                           @NotNull NdkModuleModel ndkModuleModel,
                                                           @NotNull String variantToSelect,
-                                                          @NotNull List<AndroidFacet> affectedAndroidFacets,
                                                           @NotNull List<NdkFacet> affectedNdkFacets) {
     if (variantToSelect.equals(ndkModuleModel.getSelectedVariant().getName())) {
       return true;
@@ -343,13 +341,20 @@ public class BuildVariantUpdater {
       }
     }
 
-    // Keep feature modules consistent with base module for Dynamic Apps
+    // Keep feature modules consistent with base module for Dynamic Apps.
     // TODO: if feature variant is exposed in the model, change this hard coded imposed 1:1 variant between base and feature
     for (String gradlePath : androidModel.getAndroidProject().getDynamicFeatures()) {
       if (isNotEmpty(gradlePath)) {
         Module dependencyModule = ProjectStructure.getInstance(project).getModuleFinder().findModuleByGradlePath(gradlePath);
-        updateDependencyModule(
-          project, gradlePath, dependencyModule, androidModel.getSelectedVariant().getName(), abiToSelect, affectedAndroidFacets, affectedNdkFacets);
+        if (dependencyModule != null) {
+          AndroidModuleModel depModuleModel = AndroidModuleModel.get(dependencyModule);
+          String variantToSelect = androidModel.getSelectedVariant().getName();
+          // Update only if the target variant is valid for dependency module.
+          if (depModuleModel != null && depModuleModel.getVariantNames().contains(variantToSelect)) {
+            updateDependencyModule(project, gradlePath, dependencyModule, variantToSelect, abiToSelect, affectedAndroidFacets,
+                                   affectedNdkFacets);
+          }
+        }
       }
     }
   }
@@ -381,8 +386,7 @@ public class BuildVariantUpdater {
       if (dependencyNdkModel != null) {
         String projectVariantWithAbi = resolveNewNdkVariant(dependencyNdkModel, projectVariant, abiToSelect);
         if (projectVariantWithAbi != null) {
-          updateAffectedFacetsForNdkModule(
-            dependencyNdkFacet, dependencyNdkModel, projectVariantWithAbi, affectedAndroidFacets, affectedNdkFacets);
+          updateAffectedFacetsForNdkModule(dependencyNdkFacet, dependencyNdkModel, projectVariantWithAbi, affectedNdkFacets);
         }
       }
 
@@ -399,8 +403,8 @@ public class BuildVariantUpdater {
    * In either case, if the target ABI (either selected by the user, or preserved automatically) does not exist (e.g., "debug-x86" exists,
    * but "release-x86" does not), then the dependent modules should use any available ABI for the target variant.
    *
-   * @param ndkModel The NDK model of the current module, which contains the old variant with ABI. E.g., "debug-x86".
-   * @param newVariant The name of the selected variant (without ABI). E.g., "release".
+   * @param ndkModel        The NDK model of the current module, which contains the old variant with ABI. E.g., "debug-x86".
+   * @param newVariant      The name of the selected variant (without ABI). E.g., "release".
    * @param userSelectedAbi The name of the selected ABI. E.g., "x86".
    * @return The variant that to be used for the current module, including the ABI. E.g., "release-x86".
    */
@@ -489,7 +493,6 @@ public class BuildVariantUpdater {
   }
 
   private void setupCachedVariant(@NotNull Project project,
-                                  @NotNull String buildVariantName,
                                   @NotNull List<AndroidFacet> affectedAndroidFacets,
                                   @NotNull List<NdkFacet> affectedNdkFacets,
                                   @NotNull Runnable variantSelectionChangeListeners) {
@@ -509,7 +512,7 @@ public class BuildVariantUpdater {
       public void run(@NotNull ProgressIndicator indicator) {
         getLog().info("Starting setup of cached variant");
         // Setup modules
-        List<IdeModifiableModelsProvider> modelsProviders = setUpModules(buildVariantName, affectedAndroidFacets, affectedNdkFacets, indicator);
+        List<IdeModifiableModelsProvider> modelsProviders = setUpModules(affectedAndroidFacets, affectedNdkFacets, indicator);
 
         // Setup Project
         setUpProject(project, indicator);
@@ -522,15 +525,15 @@ public class BuildVariantUpdater {
 
         if (application.isUnitTestMode()) {
           variantSelectionChangeListeners.run();
-        } else {
+        }
+        else {
           application.invokeLater(variantSelectionChangeListeners);
         }
 
         getLog().info("Finished setup of cached variant");
       }
 
-      private List<IdeModifiableModelsProvider> setUpModules(@NotNull String variant,
-                                                             @NotNull List<AndroidFacet> affectedAndroidFacets,
+      private List<IdeModifiableModelsProvider> setUpModules(@NotNull List<AndroidFacet> affectedAndroidFacets,
                                                              @NotNull List<NdkFacet> affectedNdkFacets,
                                                              @NotNull ProgressIndicator indicator) {
         indicator.setIndeterminate(false);

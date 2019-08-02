@@ -27,7 +27,6 @@ iml_module(
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/platform/configuration-store-impl:intellij.platform.configurationStore.impl",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
@@ -50,5 +49,9 @@ iml_module(
         "//tools/idea/plugins/junit:intellij.junit[module]",
         "//tools/idea/java/execution/impl:intellij.java.execution.impl[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
+        "//tools/idea/plugins/gradle/tooling-extension-impl:intellij.gradle.toolingExtension.impl[module]",
+        "//tools/idea/plugins/gradle:intellij.gradle[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
     ],
 )

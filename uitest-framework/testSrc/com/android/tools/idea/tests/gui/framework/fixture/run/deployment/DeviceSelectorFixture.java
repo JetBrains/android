@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.run.deployment;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.deployment.Device;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction;
 import com.android.tools.idea.tests.gui.framework.fixture.ComboBoxActionFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -34,7 +32,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Assert;
 
 public final class DeviceSelectorFixture {
   @NotNull
@@ -52,16 +49,7 @@ public final class DeviceSelectorFixture {
   public DeviceSelectorFixture(@NotNull Robot robot, @NotNull Project project) {
     myRobot = robot;
 
-    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
-      myComboBox = null;
-      myToolbar = null;
-      myProject = null;
-
-      return;
-    }
-
     JButton button = robot.finder().findByName("deviceAndSnapshotComboBoxButton", JButton.class);
-
     myComboBox = new ComboBoxActionFixture(robot, button);
     myToolbar = UIUtil.getParentOfType(ActionToolbar.class, button);
 
@@ -69,11 +57,6 @@ public final class DeviceSelectorFixture {
   }
 
   public void selectDevice(@NotNull String deviceName) {
-    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
-      selectDeviceWithDialog(deviceName);
-      return;
-    }
-
     Wait.seconds(30).expecting(deviceName).until(() -> anyDeviceNameMatches(device -> device.getName().equals(deviceName)));
     myComboBox.selectItem(deviceName);
   }
@@ -83,8 +66,6 @@ public final class DeviceSelectorFixture {
   }
 
   public void selectDeviceWithKey(@NotNull String key) {
-    Assert.assertTrue(StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get());
-
     waitForDeviceWithKey(key);
 
     ActionManager manager = ActionManager.getInstance();
@@ -113,17 +94,6 @@ public final class DeviceSelectorFixture {
 
   public void troubleshootDeviceConnections(@NotNull IdeFrameFixture ide, @NotNull String appName) {
     ide.selectApp(appName);
-
-    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
-      ide.findRunApplicationButton().click();
-
-      // noinspection deprecation
-      DeployTargetPickerDialogFixture.find(myRobot)
-        .clickHelp();
-
-      return;
-    }
-
     myComboBox.selectItem("Troubleshoot device connections");
 
     // Without typing Enter the combo box stays open and OpenConnectionAssistantSidePanelAction::actionPerformed never gets called. I wonder
@@ -134,49 +104,21 @@ public final class DeviceSelectorFixture {
   }
 
   public void recordEspressoTest(@NotNull IdeFrameFixture ide, @NotNull String deviceName) {
-    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
-      ide.invokeMenuPath("Run", "Record Espresso Test");
-      selectDeviceWithDialog(deviceName);
-
-      return;
-    }
-
     selectDevice(deviceName);
     ide.invokeMenuPath("Run", "Record Espresso Test");
   }
 
   public void runApp(@NotNull IdeFrameFixture ide, @NotNull String appName, @NotNull String deviceName) {
     ide.selectApp(appName);
-
-    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
-      ide.findRunApplicationButton().click();
-      selectDeviceWithDialog(deviceName);
-
-      return;
-    }
-
     selectDevice(deviceName);
+
     ide.findRunApplicationButton().click();
   }
 
   public void debugApp(@NotNull IdeFrameFixture ide, @NotNull String appName, @NotNull String deviceName) {
     ide.selectApp(appName);
-
-    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
-      ide.findDebugApplicationButton().click();
-      selectDeviceWithDialog(deviceName);
-
-      return;
-    }
-
     selectDevice(deviceName);
-    ide.findDebugApplicationButton().click();
-  }
 
-  private void selectDeviceWithDialog(@NotNull String deviceName) {
-    // noinspection deprecation
-    DeployTargetPickerDialogFixture.find(myRobot)
-      .selectDevice(deviceName)
-      .clickOk();
+    ide.findDebugApplicationButton().click();
   }
 }

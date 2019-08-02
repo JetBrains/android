@@ -56,6 +56,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.EdtTestUtil;
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
 import java.io.File;
@@ -328,7 +329,7 @@ public class AndroidGradleTests {
     return testAndroidFacet;
   }
 
-  public static void setUpSdks(@NotNull JavaCodeInsightTestFixture fixture, @NotNull File androidSdkPath) {
+  public static void setUpSdks(@NotNull CodeInsightTestFixture fixture, @NotNull File androidSdkPath) {
     @NotNull Project project = fixture.getProject();
     // We seem to have two different locations where the SDK needs to be specified.
     // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.

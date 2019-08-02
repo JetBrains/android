@@ -24,10 +24,10 @@ import com.android.tools.idea.databinding.index.ViewIdInfo;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
 import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.binding.BindingLayoutInfo;
+import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
@@ -480,7 +480,7 @@ public final class DataBindingUtil {
       return nameOrAlias;
     }
 
-    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(bindingLayoutInfo.getProject());
+    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(bindingLayoutInfo.getPsi().getProject());
     PsiJavaParserFacade parser = psiFacade.getParserFacade();
     PsiType psiType;
     try {

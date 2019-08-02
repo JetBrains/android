@@ -110,6 +110,9 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
     if (element instanceof GradleDslExpressionMap) {
       return ((GradleDslExpressionMap)element).getPropertyElement(FROM, GradleDslSimpleExpression.class);
     }
+    if (element instanceof GradleDslMethodCall) {
+      return ((GradleDslMethodCall) element).getArgumentsElement().getPropertyElement(FROM, GradleDslSimpleExpression.class);
+    }
     return null;
   }
 }

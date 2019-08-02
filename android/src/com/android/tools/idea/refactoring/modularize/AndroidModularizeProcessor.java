@@ -24,7 +24,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -198,7 +197,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
       PsiFile psiFile = AndroidResourceUtil.getItemPsiFile(myProject, resource);
       if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.VALUES) {
         // This is just a value, so we won't move the entire file, just its corresponding XmlTag
-        XmlTag xmlTag = LocalResourceRepository.getItemTag(myProject, resource);
+        XmlTag xmlTag = AndroidResourceUtil.getItemTag(myProject, resource);
         if (xmlTag != null) {
           result.add(new ResourceXmlUsageInfo(xmlTag, resource));
         }

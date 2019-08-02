@@ -21,7 +21,6 @@ import static com.android.tools.idea.run.AndroidRunConfiguration.DO_NOTHING;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
 import static com.android.tools.idea.run.util.LaunchUtils.isWatchFaceApp;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
@@ -56,9 +55,7 @@ public class AndroidRunConfigurations {
       }
     }
 
-    addRunConfiguration(facet, StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()
-                               ? TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX
-                               : TargetSelectionMode.SHOW_DIALOG);
+    addRunConfiguration(facet, TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX);
   }
 
   public void addRunConfiguration(@NotNull AndroidFacet facet, @Nullable TargetSelectionMode targetSelectionMode) {

@@ -22,6 +22,7 @@ import com.android.tools.idea.profilers.StudioLegacyAllocationTracker;
 import com.android.tools.idea.profilers.StudioLegacyCpuTraceProfiler;
 import com.android.tools.idea.profilers.commands.GcCommandHandler;
 import com.android.tools.idea.profilers.commands.LegacyAllocationCommandHandler;
+import com.android.tools.idea.profilers.commands.LegacyCpuTraceCommandHandler;
 import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
@@ -58,6 +59,7 @@ public class ProfilerServiceProxyManager {
 
   public static void registerCommandHandlers(TransportProxy transportProxy) {
     IDevice device = transportProxy.getDevice();
+    ManagedChannel transportChannel = transportProxy.getTransportChannel();
 
     GcCommandHandler gcCommandHandler = new GcCommandHandler(device);
     transportProxy.registerProxyCommandHandler(Commands.Command.CommandType.GC, gcCommandHandler);
@@ -72,6 +74,16 @@ public class ProfilerServiceProxyManager {
                                            (d, p) -> new StudioLegacyAllocationTracker(d, p));
       transportProxy.registerProxyCommandHandler(Commands.Command.CommandType.START_ALLOC_TRACKING, trackAllocationHandler);
       transportProxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_ALLOC_TRACKING, trackAllocationHandler);
+    }
+
+    if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O) {
+      LegacyCpuTraceCommandHandler cpuTraceHandler =
+        new LegacyCpuTraceCommandHandler(device,
+                                         TransportServiceGrpc.newBlockingStub(transportChannel),
+                                         transportProxy.getEventQueue(),
+                                         transportProxy.getBytesCache());
+      transportProxy.registerProxyCommandHandler(Commands.Command.CommandType.START_CPU_TRACE, cpuTraceHandler);
+      transportProxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_CPU_TRACE, cpuTraceHandler);
     }
   }
 }

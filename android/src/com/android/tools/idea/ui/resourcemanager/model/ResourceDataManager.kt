@@ -20,7 +20,6 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.res.LocalResourceRepository
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.ide.CopyProvider
 import com.intellij.openapi.actionSystem.DataContext
@@ -89,8 +88,7 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
     var psiElement: PsiElement? = null
     if (!resourceItem.isFileBased
         && ResourceFolderType.VALUES in FolderTypeRelationship.getRelatedFolders(resourceItem.type)) {
-      psiElement = LocalResourceRepository
-        .getItemTag(facet.module.project, resourceItem)
+      psiElement = AndroidResourceUtil.getItemTag(facet.module.project, resourceItem)
         ?.getAttribute(SdkConstants.ATTR_NAME)?.valueElement
     }
 

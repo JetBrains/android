@@ -81,9 +81,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
@@ -220,8 +222,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       assertThat(actualValue).isEquivalentTo(expectedValue);
     }
 
-    // Only compare the keys.
-    assertThat(actual.getDataBindingResourceFiles().keySet()).isEqualTo(expected.getDataBindingResourceFiles().keySet());
+    // Verify that we generated expected data binding resources by comparing the path to all
+    // XML files we plan to generate layout bindings for.
+    Set<String> actualNames = actual.getDataBindingResourceFiles().stream()
+      .flatMap(group -> group.getLayouts().stream())
+      .map(layout -> layout.getQualifiedName())
+      .collect(Collectors.toSet());
+    Set<String> expectedNames = expected.getDataBindingResourceFiles().stream()
+      .flatMap(group -> group.getLayouts().stream())
+      .map(layout -> layout.getQualifiedName())
+      .collect(Collectors.toSet());
+
+    assertThat(actualNames).isEqualTo(expectedNames);
   }
 
   public void testComputeResourceStrings() {

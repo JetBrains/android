@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -61,6 +62,8 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  */
 public class SampleDataResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository, Disposable {
+  private static final Logger LOG = Logger.getInstance(SampleDataResourceRepository.class);
+
   @NotNull private final ResourceTable myFullTable = new ResourceTable();
   @NotNull private final AndroidFacet myAndroidFacet;
   @NotNull private final ResourceNamespace myNamespace;

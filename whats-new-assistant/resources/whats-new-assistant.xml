@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="3.5.00">
+    version="3.6.00">
   <feature
-      name="What's New in 3.5">
+      name="What's New in 3.6">
     <tutorial
         key="whats-new"
-        label=" What's New in 3.5"
+        label=" What's New in 3.6"
         icon="preview/whats_new_icon.png"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html#3.6"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -38,13 +38,20 @@
           from the main menu.
           ]]>
       </description>
-      <step label="">
+      <step label="Push new classes with Apply Changes">
         <stepElement>
           <section>
             <![CDATA[
-          <br><br><hr><br>
-          <em>Last updated 1/2/2019</em>
-          <br><br>
+            You can now add a class and then deploy that code change to your running app by clicking
+            either <b>Apply Code Changes</b>&nbsp;
+            <img src="https://d.android.com/studio/releases/assistant/3.5.0/toolbar-apply-code-changes.png" width="19" height="19" />
+            or <b>Apply Changes and Restart Activity</b>&nbsp;
+            <img src="https://d.android.com/studio/releases/assistant/3.5.0/toolbar-apply-changes.png" width="19" height="19" />.
+            <br><br>
+            <a href="https://d.android.com/r/studio-wna/3.6.0/apply-changes">Learn more</a>
+            <br><br><hr><br>
+            <em>Last updated 7/25/2019</em>
+            <br><br>
            ]]>
           </section>
         </stepElement>

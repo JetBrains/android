@@ -337,6 +337,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     model.getConfiguration().addListener(myConfigurationListener);
     manager = createSceneManager(model);
     myModelToSceneManagers.put(model, manager);
+
+    if (myIsActive) {
+      model.activate(this);
+    }
     return manager;
   }
 
@@ -423,7 +427,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     addModelImpl(model);
 
-    CompletableFuture<Void> future = requestRender()
+    return requestRender()
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
         zoomToFit();
@@ -434,12 +438,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           listener.modelChanged(this, model);
         }
       }, EdtExecutorService.getInstance());
-
-    if (myIsActive) {
-      model.activate(this);
-    }
-
-    return future;
   }
 
   /**
