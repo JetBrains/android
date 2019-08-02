@@ -26,11 +26,12 @@ import com.android.tools.idea.lang.databinding.psi.impl.*;
 public interface DbTokenTypes {
 
   IElementType ADD_EXPR = new DbElementType("ADD_EXPR");
+  IElementType ARRAY_EXPR = new DbElementType("ARRAY_EXPR");
   IElementType BINARY_AND_EXPR = new DbElementType("BINARY_AND_EXPR");
   IElementType BINARY_OR_EXPR = new DbElementType("BINARY_OR_EXPR");
   IElementType BINARY_XOR_EXPR = new DbElementType("BINARY_XOR_EXPR");
   IElementType BIT_SHIFT_EXPR = new DbElementType("BIT_SHIFT_EXPR");
-  IElementType BRACKET_EXPR = new DbElementType("BRACKET_EXPR");
+  IElementType BRACKET_ARGUMENT = new DbElementType("BRACKET_ARGUMENT");
   IElementType CALL_EXPR = new DbElementType("CALL_EXPR");
   IElementType CAST_EXPR = new DbElementType("CAST_EXPR");
   IElementType CLASS_EXTRACTION_EXPR = new DbElementType("CLASS_EXTRACTION_EXPR");
@@ -128,6 +129,9 @@ public interface DbTokenTypes {
       if (type == ADD_EXPR) {
         return new PsiDbAddExprImpl(node);
       }
+      else if (type == ARRAY_EXPR) {
+        return new PsiDbArrayExprImpl(node);
+      }
       else if (type == BINARY_AND_EXPR) {
         return new PsiDbBinaryAndExprImpl(node);
       }
@@ -140,8 +144,8 @@ public interface DbTokenTypes {
       else if (type == BIT_SHIFT_EXPR) {
         return new PsiDbBitShiftExprImpl(node);
       }
-      else if (type == BRACKET_EXPR) {
-        return new PsiDbBracketExprImpl(node);
+      else if (type == BRACKET_ARGUMENT) {
+        return new PsiDbBracketArgumentImpl(node);
       }
       else if (type == CALL_EXPR) {
         return new PsiDbCallExprImpl(node);

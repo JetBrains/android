@@ -22,9 +22,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface PsiDbBracketExpr extends PsiDbExpr {
+public interface PsiDbBracketArgument extends PsiElement {
 
   @NotNull
-  List<PsiDbExpr> getExprList();
+  PsiDbExpr getExpr();
 
 }
