@@ -64,7 +64,6 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtScriptInitializer
-import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
@@ -383,10 +382,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     isFirstCall : Boolean
   ) : GradleDslExpression? {
     if (methodName == "mapOf") {
-      return getExpressionMap(parentElement, argumentsList, name, argumentsList.arguments)
+      return getExpressionMap(parentElement, psiElement, name, argumentsList.arguments)
     }
     else if (methodName == "listOf") {
-      return getExpressionList(parentElement, argumentsList, name, argumentsList.arguments, false)
+      return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, false)
     }
     else if (methodName == "kotlin") {
       // If the method has one argument, we should check if it's declared under a dependency block in order to resolve it to a dependency,
