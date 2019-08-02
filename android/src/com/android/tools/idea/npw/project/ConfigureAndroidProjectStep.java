@@ -15,13 +15,6 @@
  */
 package com.android.tools.idea.npw.project;
 
-import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
-import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
-import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
-import static java.lang.String.format;
-import static org.jetbrains.android.util.AndroidBundle.message;
-
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.ImageUtils;
@@ -39,12 +32,7 @@ import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.BoolProperty;
-import com.android.tools.idea.observable.core.BoolValueProperty;
-import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.core.OptionalProperty;
-import com.android.tools.idea.observable.core.StringProperty;
-import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
@@ -59,8 +47,11 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.util.ui.ImageUtil;
-import java.awt.Image;
-import java.awt.Rectangle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -68,16 +59,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
+import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
+import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
+import static java.lang.String.format;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * First page in the New Project wizard that sets project/module name, location, and other project-global
@@ -196,6 +184,18 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myTvCheck.setVisible(formFactor == FormFactor.TV);
       myOfflineRepoCheck.setVisible(StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get());
       myUseAndroidxCheck.setVisible(NELE_USE_ANDROIDX_DEFAULT.get() && myProjectModel.isAndroidxAvailable());
+    });
+    myListeners.listenAndFire(androidSdkInfo, sender -> {
+      AndroidVersionsInfo.VersionItem androidVersion = androidSdkInfo.getValueOrNull();
+      boolean isAndroidxOnly = androidVersion != null && androidVersion.getTargetApiLevel() >= 29;
+      if (isAndroidxOnly) {
+        // No more app-compat after Q. Force androidx checkbox selection and disable it from change.
+        myUseAndroidxCheck.setSelected(true);
+        myUseAndroidxCheck.setEnabled(false);
+      }
+      else {
+        myUseAndroidxCheck.setEnabled(true);
+      }
     });
   }
 
