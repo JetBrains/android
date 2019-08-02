@@ -80,9 +80,9 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -224,7 +224,7 @@ public class GradleSyncTest {
 
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
 
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(guiTest.ideFrame().getProject());
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(guiTest.ideFrame().getProject());
     // When serialization of Java model fails, libraries are not set up.
     // Here we confirm that serialization works, because the Java module has the dependency declared in its build.gradle file.
     assertThat(libraryTable.getLibraries()).asList().hasSize(1);
@@ -445,7 +445,7 @@ public class GradleSyncTest {
     Project project = ideFrame.getProject();
 
     // Make sure the library was added.
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
     // Naming scheme follows "Gradle: " + name of the library. See LibraryDependency#setName method
     String libraryName = GradleConstants.SYSTEM_ID.getReadableName() + ": org.apache.http.legacy-" + TestUtils.getLatestAndroidPlatform();
     Library library = libraryTable.getLibraryByName(libraryName);
