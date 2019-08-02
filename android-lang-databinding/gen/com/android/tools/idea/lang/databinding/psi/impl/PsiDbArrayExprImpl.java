@@ -27,14 +27,14 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
 import com.android.tools.idea.lang.databinding.psi.*;
 
-public class PsiDbBracketExprImpl extends PsiDbExprImpl implements PsiDbBracketExpr {
+public class PsiDbArrayExprImpl extends PsiDbExprImpl implements PsiDbArrayExpr {
 
-  public PsiDbBracketExprImpl(@NotNull ASTNode node) {
+  public PsiDbArrayExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiDbVisitor visitor) {
-    visitor.visitBracketExpr(this);
+    visitor.visitArrayExpr(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -44,8 +44,14 @@ public class PsiDbBracketExprImpl extends PsiDbExprImpl implements PsiDbBracketE
 
   @Override
   @NotNull
-  public List<PsiDbExpr> getExprList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, PsiDbExpr.class);
+  public PsiDbBracketArgument getBracketArgument() {
+    return findNotNullChildByClass(PsiDbBracketArgument.class);
+  }
+
+  @Override
+  @NotNull
+  public PsiDbExpr getExpr() {
+    return findNotNullChildByClass(PsiDbExpr.class);
   }
 
 }

@@ -55,8 +55,8 @@ public class DbParser implements PsiParser, LightPsiParser {
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
-    create_token_set_(ADD_EXPR, BINARY_AND_EXPR, BINARY_OR_EXPR, BINARY_XOR_EXPR,
-      BIT_SHIFT_EXPR, BRACKET_EXPR, CALL_EXPR, CAST_EXPR,
+    create_token_set_(ADD_EXPR, ARRAY_EXPR, BINARY_AND_EXPR, BINARY_OR_EXPR,
+      BINARY_XOR_EXPR, BIT_SHIFT_EXPR, CALL_EXPR, CAST_EXPR,
       CLASS_EXTRACTION_EXPR, EQ_COMPARISON_EXPR, EXPR, FUNCTION_REF_EXPR,
       INEQ_COMPARISON_EXPR, INSTANCE_OF_EXPR, LITERAL_EXPR, LOGICAL_AND_EXPR,
       LOGICAL_OR_EXPR, MUL_EXPR, NEGATION_EXPR, NULL_COALESCE_EXPR,
@@ -87,6 +87,20 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, GTGTGT);
     if (!r) r = consumeToken(b, GTGT);
     exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // '[' expr ']'
+  public static boolean bracketArgument(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "bracketArgument")) return false;
+    if (!nextTokenIs(b, LBRACKET)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, LBRACKET);
+    r = r && expr(b, l + 1, -1);
+    r = r && consumeToken(b, RBRACKET);
+    exit_section_(b, m, BRACKET_ARGUMENT, r);
     return r;
   }
 
@@ -626,7 +640,7 @@ public class DbParser implements PsiParser, LightPsiParser {
   // 14: PREFIX(signChangeExpr)
   // 15: PREFIX(castExpr)
   // 16: POSTFIX(callExpr)
-  // 17: BINARY(bracketExpr)
+  // 17: POSTFIX(arrayExpr)
   // 18: POSTFIX(qualRefExpr)
   // 19: ATOM(simpleRefExpr)
   // 20: POSTFIX(functionRefExpr)
@@ -717,10 +731,9 @@ public class DbParser implements PsiParser, LightPsiParser {
         r = true;
         exit_section_(b, l, m, CALL_EXPR, r, true, null);
       }
-      else if (g < 17 && consumeTokenSmart(b, LBRACKET)) {
-        r = report_error_(b, expr(b, l, 17));
-        r = consumeToken(b, RBRACKET) && r;
-        exit_section_(b, l, m, BRACKET_EXPR, r, true, null);
+      else if (g < 17 && bracketArgument(b, l + 1)) {
+        r = true;
+        exit_section_(b, l, m, ARRAY_EXPR, r, true, null);
       }
       else if (g < 18 && qualRefExpr_0(b, l + 1)) {
         r = true;
