@@ -166,7 +166,6 @@ public class DeploymentTest {
   private void connectDevices() throws Exception {
     for (FakeDeviceLibrary.DeviceId id : FakeDeviceLibrary.DeviceId.values()) {
       FakeDevice device = new FakeDeviceLibrary().build(id);
-      device.setShellBridge(DeployerTestUtils.getShell());
       myHandler.connect(device, myAdbServer);
     }
 
