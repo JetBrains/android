@@ -21,6 +21,8 @@ import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.VIEW_BINDING_LAYOUT
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Info for a single, target layout XML file useful for generating a Binding or BindingImpl class
@@ -32,16 +34,20 @@ import com.intellij.openapi.util.ModificationTracker
  *    path. While in practice this shouldn't be null, a user or test configuration may have left
  *    this unset. See also: `MergedManifestSnapshot.getPackage`.
  *    TODO(b/138720985): See if it's possible to make modulePackage non-null
- * @param layoutFolderName The name of the folder that the layout for this binding is located in;
- *    the folder defines the layout's configuration (e.g. "layout-land")
- * @param layoutFileName The name of the layout.xml file
+ * @param layoutFile The virtual file for the layout.xml this binding will be associated with.
+ *    This file is expected to exist directly underneath a layout directory.
  * @param customBindingName A name which, if present, modifies the logic for choosing a name for
  *    a generated binding class.
  */
-class BindingLayoutInfo(private val modulePackage: String?,
-                        layoutFolderName: String,
-                        layoutFileName: String,
+class BindingLayoutInfo(private val facet: AndroidFacet,
+                        private val modulePackage: String?,
+                        layoutFile: VirtualFile,
                         customBindingName: String?) : ModificationTracker {
+  init {
+    // XML layout files should always exist in a parent layout directory
+    assert(layoutFile.parent != null)
+  }
+
   /**
    * The package + name for the binding class we want to generate for this layout.
    *
@@ -78,16 +84,16 @@ class BindingLayoutInfo(private val modulePackage: String?,
    * more expensive parsing pass to happen to lazily generate a PSI tree. Prefer using the raw xml
    * data directly whenever possible.
    */
-  var xml = BindingLayoutXml(layoutFolderName, layoutFileName, customBindingName)
+  var xml = BindingLayoutXml(layoutFile, customBindingName)
     private set
 
   /**
-   * TODO(b/136500593): This should become nullable, or at least changed to be fetched lazily, since
-   *  we don't want to request a PSI representation of this layout until we are sure we need it.
-   *  For now, as we make changes to these classes incrementally and need to support old behavior,
-   *  we always set this immediately after creating an instance of this class.
+   * PSI-related information for this binding.
+   *
+   * It is instantiated lazily. Callers should only access it when they need to. Otherwise, they
+   * should try to get the information they need using the [xml] property.
    */
-  lateinit var psi: BindingLayoutPsi
+  val psi: BindingLayoutPsi by lazy { BindingLayoutPsi(facet, this) }
 
   /**
    * Note: This backing field is lazily loaded but potentially reset by [updateClassData].
@@ -98,7 +104,7 @@ class BindingLayoutInfo(private val modulePackage: String?,
       if (_bindingClassPath == null) {
         if (xml.customBindingName.isNullOrEmpty()) {
           _bindingClassPath = BindingClassPath("$modulePackage.databinding",
-                                               DataBindingUtil.convertToJavaClassName(xml.fileName) + "Binding")
+                                               DataBindingUtil.convertToJavaClassName(xml.file.name) + "Binding")
         }
         else {
           val customBindingName = xml.customBindingName!!

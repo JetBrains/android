@@ -25,6 +25,7 @@ import com.android.tools.idea.res.binding.BindingLayoutGroup
 import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.res.binding.PsiDataBindingResourceItem
+import com.android.tools.idea.res.binding.toPsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.indexing.FileBasedIndex
@@ -112,7 +113,7 @@ class BindingClassConfig(private val group: BindingLayoutGroup) : LightBindingCl
           .getValues(BindingXmlIndex.NAME, BindingXmlIndex.getKeyForFile(xmlFile.virtualFile), GlobalSearchScope.fileScope(xmlFile))
       }
       return group.layouts
-        .flatMap { info -> searchIndexForViewIds(info.psi.xmlPsiFile) }
+        .flatMap { info -> searchIndexForViewIds(info.xml.toPsiFile(info.psi.project)) }
         .flatMap { indexedInfo -> indexedInfo.viewIds }
     }
 
