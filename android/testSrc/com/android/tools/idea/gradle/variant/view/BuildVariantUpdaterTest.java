@@ -331,7 +331,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
       request.generateSourcesOnSuccess = true;
       request.variantOnlySyncOptions =
-        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect, null, true);
+        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect, null, false);
       verify(syncInvoker).requestProjectSync(eq(myProject), eq(request), any());
     }
     finally {

@@ -52,7 +52,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug [-]
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/free/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/free/debug [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/free/debug
+            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/free/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java [-]
@@ -137,7 +137,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -685,7 +685,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             JavaResource (test) : file://<PROJECT>/mainModule/build/generated/res/rs/androidTest/free/debug [-]
             JavaResource        : file://<PROJECT>/mainModule/build/generated/res/rs/free/debug [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/source/buildConfig/androidTest/free/debug [-]
-            JavaSource          : file://<PROJECT>/mainModule/build/generated/source/buildConfig/free/debug
+            JavaSource          : file://<PROJECT>/mainModule/build/generated/source/buildConfig/free/debug [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/mainModule/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/java [-]
@@ -770,7 +770,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             JavaResource (test) : file://<PROJECT>/mainModule/src/testFreeDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/mainModule/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/mainModule/build [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1101,7 +1101,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             JavaResource (test) : file://<PROJECT>/moduleA/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/moduleA/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/moduleA/build/generated/source/buildConfig/debug
+            JavaSource          : file://<PROJECT>/moduleA/build/generated/source/buildConfig/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/java [-]
@@ -1144,7 +1144,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleA/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleA/build [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1459,7 +1459,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             JavaResource (test) : file://<PROJECT>/moduleB/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/moduleB/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/moduleB/build/generated/source/buildConfig/debug
+            JavaSource          : file://<PROJECT>/moduleB/build/generated/source/buildConfig/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/java [-]
@@ -1502,7 +1502,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleB/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleB/build [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1774,14 +1774,14 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/moduleC/build
+            BuildFolderPath     : <PROJECT>/moduleC/build [-]
         CONENT_ENTRY        : file://<PROJECT>/moduleC
             JavaSource          : file://<PROJECT>/moduleC/src/main/java [-]
             JavaResource        : file://<PROJECT>/moduleC/src/main/resources [-]
             JavaSource (test)   : file://<PROJECT>/moduleC/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/moduleC/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/moduleC/.gradle [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleC/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleC/build [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1853,7 +1853,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             JavaResource (test) : file://<PROJECT>/moduleFlavor/build/generated/res/rs/androidTest/free/debug [-]
             JavaResource        : file://<PROJECT>/moduleFlavor/build/generated/res/rs/free/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/androidTest/free/debug [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/free/debug
+            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/free/debug [-]
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/java [-]
@@ -1938,7 +1938,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleFlavor/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleFlavor/build [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1996,7 +1996,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             JavaResource (test) : file://<PROJECT>/modulePlus/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/modulePlus/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/debug
+            JavaSource          : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/debug [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/java [-]
@@ -2039,7 +2039,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             JavaResource (test) : file://<PROJECT>/modulePlus/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/modulePlus/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/modulePlus/build [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK

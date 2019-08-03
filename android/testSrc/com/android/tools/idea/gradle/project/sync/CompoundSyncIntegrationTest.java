@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.GradleBuildListener;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
@@ -34,7 +35,9 @@ public class CompoundSyncIntegrationTest extends SingleVariantSyncIntegrationTes
     return true;
   }
 
+
   public void testCompoundSync() throws Exception {
+    StudioFlags.BUILD_AFTER_SYNC_ENABLED.override(false);
     loadSimpleApplication();
 
     // Register a sync listener to guarantee all sync steps are run and results are correct
@@ -88,6 +91,8 @@ public class CompoundSyncIntegrationTest extends SingleVariantSyncIntegrationTes
 
     assertSourcesNotGenerated("app");
 
+    StudioFlags.BUILD_AFTER_SYNC_ENABLED.override(true);
+
     // Invoke sync with source generation
     GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(getProject(), GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED);
 
@@ -99,6 +104,8 @@ public class CompoundSyncIntegrationTest extends SingleVariantSyncIntegrationTes
     assertTrue(syncFinished.get());
     // Gradle build was not invoked
     assertFalse(buildStarted.get());
+
+    StudioFlags.BUILD_AFTER_SYNC_ENABLED.clearOverride();
   }
 
   private void assertSourcesNotGenerated(@NotNull String moduleName) {

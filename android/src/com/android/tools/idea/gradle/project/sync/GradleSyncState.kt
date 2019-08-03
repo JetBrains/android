@@ -157,7 +157,8 @@ open class GradleSyncState(
     // Since Gradle plugin don't have the concept of selected variant and we don't want to generate sources for all variants, we only
     // activate Compound Sync if Single Variant Sync is also enabled.
     @JvmStatic
-    fun isCompoundSync(): Boolean = StudioFlags.COMPOUND_SYNC_ENABLED.get() && isSingleVariantSync()
+    fun isCompoundSync(): Boolean =
+      StudioFlags.BUILD_AFTER_SYNC_ENABLED.get() && StudioFlags.COMPOUND_SYNC_ENABLED.get() && isSingleVariantSync()
 
     @JvmStatic
     fun isLevel4Model(): Boolean = StudioFlags.L4_DEPENDENCY_MODEL.get()
