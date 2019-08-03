@@ -26,6 +26,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder;
+import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder;
 import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStubBuilder;
@@ -35,6 +36,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.testing.Facets;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
@@ -81,8 +83,10 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
     Library javaLibrary = new JavaLibraryStub(LIBRARY_JAVA, "guava", jarFile);
 
-    myVariant.getMainArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
-    myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
+    IdeDependenciesStubBuilder builder = new IdeDependenciesStubBuilder();
+    builder.setJavaLibraries(ImmutableList.of(javaLibrary));
+    myVariant.getMainArtifact().setLevel2Dependencies(builder.build());
+    myVariant.getInstrumentTestArtifact().setLevel2Dependencies(builder.build());
 
     Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder).onLibraries();
     assertThat(dependencies).hasSize(1);
@@ -114,8 +118,10 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     builder.setLocalJars(Collections.singletonList(localJar.getPath()));
     AndroidLibraryStub library = builder.build();
 
-    myVariant.getMainArtifact().getLevel2Dependencies().addAndroidLibrary(library);
-    myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addAndroidLibrary(library);
+    IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
+    dependenciesStubBuilder.setAndroidLibraries(ImmutableList.of(library));
+    myVariant.getMainArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
+    myVariant.getInstrumentTestArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
 
     DependencySet dependencySet = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder);
     List<LibraryDependency> dependencies = new ArrayList<>(dependencySet.onLibraries());
@@ -143,8 +149,10 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     myModuleFinder = new ModuleFinder(myProject);
     myModuleFinder.addModule(libModule, ":lib");
 
-    myVariant.getMainArtifact().getLevel2Dependencies().addModuleDependency(library);
-    myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addModuleDependency(library);
+    IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
+    dependenciesStubBuilder.setModuleDependencies(ImmutableList.of(library));
+    myVariant.getMainArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
+    myVariant.getInstrumentTestArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
     Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder).onModules();
     assertThat(dependencies).hasSize(1);
 
