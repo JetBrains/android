@@ -165,18 +165,21 @@ public class GradleBuildInvoker {
   }
 
   public void cleanAndGenerateSources() {
-    generateSources(true /* clean project */);
+    generateSources(true /* clean project */, ModuleManager.getInstance(myProject).getModules());
   }
 
   public void generateSources() {
-    generateSources(false /* do not clean project */);
+    generateSources(false /* do not clean project */, ModuleManager.getInstance(myProject).getModules());
   }
 
-  private void generateSources(boolean cleanProject) {
+  public void generateSourcesForModules(@NotNull Module[] modules) {
+    generateSources(false, modules);
+  }
+
+  private void generateSources(boolean cleanProject, @NotNull Module[] modules) {
     BuildMode buildMode = SOURCE_GEN;
     setProjectBuildMode(buildMode);
 
-    Module[] modules = ModuleManager.getInstance(myProject).getModules();
     GradleTaskFinder gradleTaskFinder = GradleTaskFinder.getInstance();
     ListMultimap<Path, String> tasks = gradleTaskFinder.findTasksToExecute(modules, buildMode, TestCompileType.NONE);
     if (cleanProject) {

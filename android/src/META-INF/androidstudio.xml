@@ -90,6 +90,9 @@
     <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
+    <action id="GenerateSourcesModuleAction" class="com.android.tools.idea.gradle.actions.GenerateSourcesModuleAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleModule" />
+    </action>
 
     <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
             icon="StudioIcons.Shell.Toolbar.SDK_MANAGER">
