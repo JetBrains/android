@@ -69,7 +69,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.binding.BindingLayoutGroup;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
-import com.android.tools.idea.res.binding.BindingLayoutPsi;
 import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
 import com.android.tools.idea.resources.base.Base128InputStream;
 import com.android.tools.idea.resources.base.BasicFileResourceItem;
@@ -452,7 +451,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     Set<BindingLayoutGroup> groups = mySources.values().stream()
       .map(resourceFile -> resourceFile instanceof PsiResourceFile ? (((PsiResourceFile)resourceFile).getBindingLayoutInfo()) : null)
       .filter(Objects::nonNull)
-      .collect(Collectors.groupingBy(info -> info.getXml().getFileName()))
+      .collect(Collectors.groupingBy(info -> info.getXml().getFile().getName()))
       .values().stream()
       .map(layouts -> createOrUpdateGroup(myDataBindingResourceFiles, layouts, modificationCount))
       .collect(Collectors.toSet());
@@ -540,15 +539,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
     BindingLayoutInfo info = resourceFile.getBindingLayoutInfo();
     if (info == null) {
-      PsiDirectory folder = resourceFile.getPsiFile().getParent();
-      // If we're here, we have a LAYOUT folder type, so folder is always non-null. See also: isBindingLayoutFile.
-      assert folder != null;
-      String folderName = folder.getName();
-      String fileName = resourceFile.getPsiFile().getName();
       String modulePackage = MergedManifestManager.getSnapshot(myFacet).getPackage();
 
-      info = new BindingLayoutInfo(modulePackage, folderName, fileName, classAttrValue);
-      info.setPsi(new BindingLayoutPsi(myFacet, resourceFile));
+      info = new BindingLayoutInfo(myFacet, modulePackage, resourceFile.getVirtualFile(), classAttrValue);
       resourceFile.setBindingLayoutInfo(info);
     } else {
       info.updateClassData(classAttrValue, modificationCount);

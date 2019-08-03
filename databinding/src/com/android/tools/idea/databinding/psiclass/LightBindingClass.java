@@ -24,6 +24,7 @@ import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
 import com.android.tools.idea.databinding.index.ViewIdInfo;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
+import com.android.tools.idea.res.binding.BindingLayoutPsiUtils;
 import com.android.tools.idea.res.binding.BindingLayoutXml;
 import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
 import com.google.common.collect.ImmutableSet;
@@ -369,8 +370,8 @@ public class LightBindingClass extends AndroidLightClassBase {
     PsiManager psiManager = getManager();
     PsiMethod[] methods = new PsiMethod[]{inflate1Arg, inflate2Arg, inflate3Arg, inflate4Arg, bind, bindWithComponent};
     for (PsiMethod method : methods) {
-      outPsiMethods.add(
-        new LightDataBindingMethod(myConfig.getTargetLayout().getPsi().getXmlPsiFile(), psiManager, method, this, JavaLanguage.INSTANCE));
+      XmlFile xmlFile = BindingLayoutPsiUtils.toPsiFile(myConfig.getTargetLayout().getXml(), project);
+      outPsiMethods.add(new LightDataBindingMethod(xmlFile, psiManager, method, this, JavaLanguage.INSTANCE));
     }
   }
 
@@ -487,7 +488,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     private XmlTag computeTag() {
       final Ref<XmlTag> resultTag = new Ref<>();
 
-      XmlFile xmlFile = myLayoutInfo.getPsi().getXmlPsiFile();
+      XmlFile xmlFile = BindingLayoutPsiUtils.toPsiFile(myLayoutInfo.getXml(), getProject());
       xmlFile.accept(new XmlRecursiveElementWalkingVisitor() {
         @Override
         public void visitXmlTag(XmlTag tag) {
@@ -507,7 +508,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     public PsiFile getContainingFile() {
       // Note: This light field has to be backed by a real file on disk, not a light class, or else
       // renaming breaks.
-      return myLayoutInfo.getPsi().getXmlPsiFile();
+      return BindingLayoutPsiUtils.toPsiFile(myLayoutInfo.getXml(), getProject());
     }
 
     @Override
