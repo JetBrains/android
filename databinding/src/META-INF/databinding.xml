@@ -18,7 +18,7 @@
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.BrShortNamesCache"/>
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingShortNamesCache"/>
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingComponentShortNamesCache"/>
-    <resolveScopeEnlarger implementation="com.android.tools.idea.databinding.finders.DataBindingScopeEnlarger" />
+    <resolveScopeEnlarger implementation="com.android.tools.idea.databinding.finders.BindingScopeEnlarger" />
     <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BrClassFinder" id="dataBinding.BrClassFinder" order="first, before java"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.finders.DataBindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
@@ -39,7 +39,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <resolveScopeEnlarger implementation="com.android.tools.idea.databinding.finders.DataBindingKotlinScopeEnlarger" />
+    <resolveScopeEnlarger implementation="com.android.tools.idea.databinding.finders.BindingKotlinScopeEnlarger" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea">
