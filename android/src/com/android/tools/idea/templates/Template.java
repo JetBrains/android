@@ -21,14 +21,15 @@ import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_IS_INSTANT_MODULE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
 import static com.android.tools.idea.templates.TemplateMetadata.TAG_FORMFACTOR;
 import static com.android.tools.idea.templates.TemplateUtils.hasExtension;
 import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
 
+import com.android.tools.idea.npw.platform.Language;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.analytics.UsageTracker;
@@ -242,7 +243,7 @@ public class Template {
     String title = myMetadata.getTitle();
     if (!dryRun && title != null) {
       Map<String, Object> paramMap = context.getParamMap();
-      Object kotlinSupport = paramMap.get(ATTR_KOTLIN_SUPPORT);
+      boolean kotlinSupport = Language.KOTLIN.toString().equals(paramMap.get(ATTR_LANGUAGE));
       Object kotlinVersion = paramMap.get(ATTR_KOTLIN_VERSION);
       AndroidStudioEvent.Builder aseBuilder =
         AndroidStudioEvent.newBuilder()
@@ -251,7 +252,7 @@ public class Template {
                           .setTemplateRenderer(titleToTemplateRenderer(title))
                           .setKotlinSupport(
                             KotlinSupport.newBuilder()
-                                         .setIncludeKotlinSupport(kotlinSupport instanceof Boolean ? (Boolean)kotlinSupport : false)
+                                         .setIncludeKotlinSupport(kotlinSupport)
                                          .setKotlinSupportVersion(kotlinVersion instanceof String ? (String)kotlinVersion : "unknown"));
       UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
 
