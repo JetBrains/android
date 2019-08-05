@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -51,9 +52,6 @@ class ViewBindingCompletionTest {
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
 
-  private val editorManager
-    get() = FileEditorManager.getInstance(projectRule.project)
-
   private val facet
     get() = projectRule.androidFacet
 
@@ -62,75 +60,92 @@ class ViewBindingCompletionTest {
     StudioFlags.VIEW_BINDING_ENABLED.override(true)
 
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
-    projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING)
-    assertThat(facet.isViewBindingEnabled()).isTrue()
   }
 
   @Test
   fun completeViewBindingClass() {
-    val file = fixture.addClass("""
-      package com.android.example.viewbinding;
-      
-      import com.android.example.viewbinding.databinding.ActivityMainBinding;
+    lateinit var modelFile: VirtualFile
+    projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING) {
+      modelFile = addOrOverwriteFile(
+        "app/src/main/java/com/android/example/viewbinding/Model.java",
+        // language=JAVA
+        """
+          package com.android.example.viewbinding;
 
-      public class Model {
-        ActivityMainB<caret>
-      }
-    """.trimIndent())
+          import com.android.example.viewbinding.databinding.ActivityMainBinding;
 
-    fixture.configureFromExistingVirtualFile(file.containingFile.virtualFile)
+          public class Model {
+            ActivityMainB<caret>
+          }
+        """.trimIndent())
+    }
+    assertThat(facet.isViewBindingEnabled()).isTrue()
+
+    fixture.configureFromExistingVirtualFile(modelFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
-      package com.android.example.viewbinding;
-      
-      import com.android.example.viewbinding.databinding.ActivityMainBinding;
+    fixture.checkResult(
+      // language=JAVA
+      """
+        package com.android.example.viewbinding;
 
-      public class Model {
-        ActivityMainBinding
-      }
-    """.trimIndent())
+        import com.android.example.viewbinding.databinding.ActivityMainBinding;
+
+        public class Model {
+          ActivityMainBinding
+        }
+      """.trimIndent())
   }
 
   @Test
   fun completeViewBindingField() {
-    val file = fixture.addClass("""
-      package com.android.example.viewbinding;
-      
-      import android.app.Activity;
-      import android.os.Bundle;
-      import com.android.example.viewbinding.databinding.ActivityMainBinding;
+    lateinit var activityFile: VirtualFile
+    projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING) {
+      activityFile = addOrOverwriteFile(
+        "app/src/main/java/com/android/example/viewbinding/MainActivity.java",
+        // language=JAVA
+        """
+          package com.android.example.viewbinding;
 
-      public class MainActivity extends Activity {
-          @Override
-          protected void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
-              binding.test<caret>
+          import android.app.Activity;
+          import android.os.Bundle;
+          import com.android.example.viewbinding.databinding.ActivityMainBinding;
+
+          public class MainActivity extends Activity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
+                  binding.test<caret>
+              }
           }
-      }
-    """.trimIndent())
+        """.trimIndent())
+    }
 
-    fixture.configureFromExistingVirtualFile(file.containingFile.virtualFile)
+    assertThat(facet.isViewBindingEnabled()).isTrue()
+
+    fixture.configureFromExistingVirtualFile(activityFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
-      package com.android.example.viewbinding;
-      
-      import android.app.Activity;
-      import android.os.Bundle;
-      import com.android.example.viewbinding.databinding.ActivityMainBinding;
+    fixture.checkResult(
+      // language=JAVA
+      """
+        package com.android.example.viewbinding;
 
-      public class MainActivity extends Activity {
-          @Override
-          protected void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
-              binding.testId
-          }
-      }
-    """.trimIndent())
+        import android.app.Activity;
+        import android.os.Bundle;
+        import com.android.example.viewbinding.databinding.ActivityMainBinding;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
+                binding.testId
+            }
+        }
+      """.trimIndent())
   }
 }

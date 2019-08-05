@@ -55,6 +55,12 @@ class ViewBindingShortNameCacheTest {
   fun setUp() {
     StudioFlags.VIEW_BINDING_ENABLED.override(true)
     assertThat(facet.isViewBindingEnabled()).isTrue()
+    fixture.addFileToProject("src/main/AndroidManifest.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
+        <application />
+      </manifest>
+    """.trimIndent())
   }
 
   @Test
