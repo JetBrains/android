@@ -27,6 +27,7 @@ import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.evaluateString
+import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.UastVisitor
 
@@ -52,13 +53,26 @@ data class PreviewConfiguration(val apiLevel: Int,
 data class PreviewElement(val name: String, val method: String, val configuration: PreviewConfiguration)
 
 interface PreviewElementFinder {
+  /**
+   * Returns all the [PreviewElement]s present in the passed [VirtualFile]
+   */
   fun findPreviewMethods(project: Project, vFile: VirtualFile): Set<PreviewElement> {
     val uFile: UFile = PsiManager.getInstance(project).findFile(vFile)?.toUElement() as? UFile ?: return emptySet<PreviewElement>()
 
     return findPreviewMethods(uFile)
   }
 
+  /**
+   * Returns all the [PreviewElement]s present in the passed [UFile]
+   */
   fun findPreviewMethods(uFile: UFile): Set<PreviewElement>
+
+  /**
+   * Returns whether the given [UElement] belongs to a PreviewElement handled by this [PreviewElementFinder]. Implementations must return
+   * true if they can not determine if the element belongs to a [PreviewElement] or not.
+   * This method will be called to detect changes into [PreviewElement]s and issue a refresh.
+   */
+  fun elementBelongsToPreviewElement(uElement: UElement): Boolean = true
 }
 
 private fun UAnnotation.findAttributeIntValue(name: String, defaultValue: Int) =
@@ -118,4 +132,7 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
 
     return previewMethodsFqNames
   }
+
+  override fun elementBelongsToPreviewElement(uElement: UElement): Boolean =
+    PREVIEW_ANNOTATION_FQN == uElement.getParentOfType<UAnnotation>(false)?.qualifiedName
 }
