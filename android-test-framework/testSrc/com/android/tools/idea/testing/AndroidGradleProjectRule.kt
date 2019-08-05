@@ -18,8 +18,11 @@ package com.android.tools.idea.testing
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.refactoring.toVirtualFile
 import org.junit.Ignore
 import org.junit.runner.Description
 
@@ -30,6 +33,18 @@ import org.junit.runner.Description
  * [CodeInsightTestFixture.setTestDataPath]) and then [load] the project.
  */
 class AndroidGradleProjectRule : NamedExternalResource() {
+  /**
+   * A class representing the root of a Gradle project that has not been completely loaded.
+   */
+  interface ProjectRoot {
+    /**
+     * Creates a new file if one doesn't exist or overwrites it if it does.
+     *
+     * @param relativePath Path relative to [CodeInsightTestFixture.getTestDataPath].
+     */
+    fun addOrOverwriteFile(relativePath: String, contents: String): VirtualFile
+  }
+
   /**
    * This rule is a thin wrapper around [AndroidGradleTestCase], which we delegate to to handle any
    * heavy lifting.
@@ -62,11 +77,30 @@ class AndroidGradleProjectRule : NamedExternalResource() {
   }
 
   /**
-   * Trigger loading the target Android+Gradle project. Be sure to call [fixture]'s
-   * [CodeInsightTestFixture.setTestDataPath] method before calling this.
+   * Triggers loading the target Android Gradle project. Be sure to call [fixture]'s
+   * [CodeInsightTestFixture.setTestDataPath] method before calling this method.
+   *
+   * @param preLoad If specified, gives the caller the opportunity to modify the project before it
+   *   is actually loaded.
    */
-  fun load(projectPath: String) {
-    delegateTestCase.loadProject(projectPath)
+  @JvmOverloads
+  fun load(projectPath: String, preLoad: (ProjectRoot.() -> Unit)? = null) {
+    if (preLoad != null) {
+      val rootFile = delegateTestCase.prepareProjectForImport(projectPath)
+
+      val projectRoot = object : ProjectRoot {
+        override fun addOrOverwriteFile(relativePath: String, contents: String): VirtualFile {
+          return VfsTestUtil.createFile(rootFile.toVirtualFile()!!, relativePath, contents)
+        }
+      }
+
+      delegateTestCase.importProject()
+      projectRoot.preLoad()
+      delegateTestCase.prepareProjectForTest(project, null)
+    }
+    else {
+      delegateTestCase.loadProject(projectPath)
+    }
   }
 
   fun requestSyncAndWait() {
