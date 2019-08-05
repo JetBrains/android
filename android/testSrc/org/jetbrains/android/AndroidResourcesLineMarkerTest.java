@@ -56,22 +56,6 @@ public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
     doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
   }
 
-  public void testJavaFileNavigation8() throws Exception {
-    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
-  }
-
-  public void testJavaFileNavigation9() throws Exception {
-    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
-  }
-
-  public void testJavaFileNavigation10() throws Exception {
-    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
-  }
-
-  public void testJavaFileNavigation11() throws Exception {
-    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
-  }
-
   public void testJavaFileNavigation12() throws Exception {
     myFixture.copyFileToProject(BASE_PATH + "dist_delims.xml", "res/values/strings12.xml");
     doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
@@ -95,10 +79,6 @@ public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
 
   public void testJavaFileNavigationManifest2() throws Exception {
     doJavaFileNavigationTest(2, true, XmlAttributeValue.class);
-  }
-
-  public void testJavaFileNavigationManifest3() throws Exception {
-    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
   }
 
   public void testJavaFileNavigationToSystemResource1() throws Exception {
