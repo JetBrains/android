@@ -8,6 +8,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
@@ -86,11 +87,22 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
       if (ResourceFolderType.VALUES == fileResType) {
         ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
         if (type != null) {
-          return new ResourceReferencePsiElement(new ResourceReference(ResourceNamespace.TODO(), type, s), context.getPsiManager());
+          return new ResourceReferencePsiElement(new ResourceReference(ResourceNamespace.TODO(), type, s), context.getPsiManager(), false);
         }
       }
     }
     return null;
+  }
+
+  @Override
+  public boolean isReferenceTo(@NotNull PsiElement element,
+                               String stringValue,
+                               @Nullable String resolveResult,
+                               ConvertContext context) {
+    if (StudioFlags.RESOLVE_USING_REPOS.get() && element instanceof ResourceReferencePsiElement) {
+      return element.isEquivalentTo(resolve(stringValue, context));
+    }
+    return super.isReferenceTo(element, stringValue, resolveResult, context);
   }
 
   @NotNull
