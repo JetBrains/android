@@ -119,16 +119,19 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
+  public ConfigureJavaLibraryStepFixture<NewModuleWizardFixture> clickNextToJavaLibary() {
+    chooseModuleType(message("android.wizard.module.new.java.library"));
+    clickNextToStep(message("android.wizard.module.config.title"));
+
+    return new ConfigureJavaLibraryStepFixture<>(this, target().getRootPane());
+  }
+
+  @NotNull
   public NewModuleWizardFixture clickNextToStep(String name) {
     GuiTests.findAndClickButton(this, "Next");
     Wait.seconds(5).expecting("next step to appear").until(
       () -> robot().finder().findAll(target(), JLabelMatcher.withText(name).andShowing()).size() == 1);
     return this;
-  }
-
-  @NotNull
-  public ConfigureJavaLibraryStepFixture<NewModuleWizardFixture> getConfigureJavaLibaryStepFixture() {
-    return new ConfigureJavaLibraryStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
