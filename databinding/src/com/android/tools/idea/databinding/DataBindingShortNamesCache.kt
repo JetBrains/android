@@ -21,10 +21,10 @@ import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -101,7 +101,7 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
     val bindingClasses = lightBindingCache.value[name]?.takeUnless { it.isEmpty() } ?: return PsiClass.EMPTY_ARRAY
     return bindingClasses
-      .filter { psiClass -> isInScope(psiClass, scope) }
+      .filter { psiClass -> PsiSearchScopeUtil.isInScope(scope, psiClass) }
       .toTypedArray()
   }
 
@@ -115,7 +115,7 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getMethodsByName(name: String, scope: GlobalSearchScope): Array<PsiMethod> {
     val methods = methodsByNameCache.value[name] ?: return PsiMethod.EMPTY_ARRAY
-    return methods.filter { isInScope(it, scope) }.toTypedArray()
+    return methods.filter { PsiSearchScopeUtil.isInScope(scope, it) }.toTypedArray()
   }
 
   override fun getMethodsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiMethod> {
@@ -143,7 +143,7 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getFieldsByName(name: String, scope: GlobalSearchScope): Array<PsiField> {
     val fields = fieldsByNameCache.value[name] ?: return PsiField.EMPTY_ARRAY
-    return fields.filter { field -> isInScope(field, scope) }.toTypedArray()
+    return fields.filter { field -> PsiSearchScopeUtil.isInScope(scope, field) }.toTypedArray()
   }
 
   override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiField> {
@@ -157,9 +157,6 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun getAllFieldNames(set: HashSet<String>) {
     set.addAll(allFieldNames)
   }
-
-  private fun isInScope(element: PsiElement, scope: GlobalSearchScope) =
-    element.containingFile != null && scope.accept(element.containingFile.virtualFile)
 
   private class LightBindingCacheProvider(component: DataBindingProjectComponent)
     : ProjectResourceCachedValueProvider.MergedMapValueProvider<String, LightBindingClass>(component) {
