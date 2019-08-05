@@ -51,20 +51,37 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
       }
 
       @Compose
+      fun Preview3() {
+        Preview(name = "preview3", configuration = Configuration(width = 1, height = 2)) {
+        }
+      }
+
+      @Compose
       fun NoPreviewCompose() {
 
       }
     """.trimIndent())
 
     val elements = MethodPreviewElementFinder.findPreviewMethods(composeTest.toUElement() as UFile)
-    assertEquals(2, elements.size)
-    val previewConfig = elements.single { it.name == "preview2" }
-    assertEquals("preview2", previewConfig.name)
-    assertEquals(12, previewConfig.configuration.apiLevel)
-    assertNull(previewConfig.configuration.theme)
+    assertEquals(3, elements.size)
+    elements.single { it.name == "preview2" }.let {
+      assertEquals("preview2", it.name)
+      assertEquals(12, it.configuration.apiLevel)
+      assertNull(it.configuration.theme)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+    }
 
-    val emptyConfig = elements.single { it.name != "preview2" }
-    assertEquals("", emptyConfig.name)
-    assertEquals(UNDEFINED_API_LEVEL, emptyConfig.configuration.apiLevel)
+    elements.single { it.name == "preview3" }.let {
+      assertEquals("preview3", it.name)
+      assertEquals(1, it.configuration.width)
+      assertEquals(2, it.configuration.height)
+    }
+
+    elements.single { it.name.isEmpty()}.let {
+      assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+    }
   }
 }
