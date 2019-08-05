@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.resources.ScreenOrientation
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.intellij.openapi.project.Project
@@ -32,12 +31,14 @@ import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.UastVisitor
 
 const val UNDEFINED_API_LEVEL = -1
+const val UNDEFINED_DIMENSION = -1
 
-data class PreviewConfiguration(val apiLevel: Int?,
+data class PreviewConfiguration(val apiLevel: Int,
                                 val theme: String?,
-                                val orientation: ScreenOrientation?) {
+                                val width: Int,
+                                val height: Int) {
   fun applyTo(renderConfiguration: Configuration) {
-    if (apiLevel != null && apiLevel != UNDEFINED_API_LEVEL) {
+    if (apiLevel != UNDEFINED_API_LEVEL) {
       val highestTarget = renderConfiguration.configurationManager.highestApiTarget!!
 
       renderConfiguration.target = CompatibilityRenderTarget(highestTarget, apiLevel, null)
@@ -45,16 +46,6 @@ data class PreviewConfiguration(val apiLevel: Int?,
 
     if (theme != null) {
       renderConfiguration.setTheme(theme)
-    }
-
-    if (orientation != null && orientation != renderConfiguration.deviceState?.orientation) {
-      renderConfiguration
-        .device
-        ?.allStates
-        ?.find { it.orientation == orientation }
-        ?.let {
-          renderConfiguration.deviceState = it
-        }
     }
   }
 }
@@ -70,6 +61,9 @@ interface PreviewElementFinder {
   fun findPreviewMethods(uFile: UFile): Set<PreviewElement>
 }
 
+private fun UAnnotation.findAttributeIntValue(name: String, defaultValue: Int) =
+  findAttributeValue(name)?.evaluate() as? Int ?: defaultValue
+
 /**
  * [PreviewElementFinder] that uses `@Preview` annotations.
  */
@@ -78,15 +72,12 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
    * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
    */
   private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
-    val apiLevel = node.findAttributeValue("apiLevel")?.evaluate() as? Int
+    val apiLevel = node.findAttributeIntValue("apiLevel", UNDEFINED_API_LEVEL)
     val theme = node.findAttributeValue("theme")?.evaluateString()?.nullize()
-    val orientation = when (node.findAttributeValue("orientation")?.asRenderString()) {
-      "Orientation.LANDSCAPE" -> ScreenOrientation.LANDSCAPE
-      null -> null
-      else -> ScreenOrientation.PORTRAIT
-    }
+    val width = node.findAttributeIntValue("width", UNDEFINED_DIMENSION)
+    val height = node.findAttributeIntValue("height", UNDEFINED_DIMENSION)
 
-    return PreviewConfiguration(apiLevel, theme, orientation)
+    return PreviewConfiguration(apiLevel, theme, width, height)
   }
 
   /**
