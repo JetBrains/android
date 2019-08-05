@@ -111,6 +111,28 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     )
   }
 
+  fun testGotoStringFromKotlin() {
+    myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/Activity.kt",
+      """
+        package p1.p2
+
+        import android.app.Activity
+
+        class ExampleActivity: Activity() {
+            fun resource() {
+                R.string.he${caret}llo
+            }
+        }
+      """.trimIndent())
+    assertEquals("values/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n",
+                 describeElements(getDeclarationsFrom(file.virtualFile))
+    )
+  }
+
   fun testGotoDynamicId() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
@@ -123,6 +145,33 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                  "  <EditText android:id=\"@+id/anchor\"/>\n" +
                  "                       ~|~~~~~~~~~~~~ \n",
                  describeElements(getDeclarationsFrom(file))
+    )
+  }
+
+  fun testGotoDynamicIdFromKotlin() {
+    myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
+    myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
+    myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/Activity.kt",
+      """
+        package p1.p2
+
+        import android.app.Activity
+
+        class ExampleActivity: Activity() {
+            fun resource() {
+                R.id.a${caret}nchor
+            }
+        }
+      """.trimIndent())
+    assertEquals("values/ids.xml:2:\n" +
+                 "  <item name=\"anchor\" type=\"id\"/>\n" +
+                 "             ~|~~~~~~~           \n" +
+                 "layout/layout.xml:4:\n" +
+                 "  <EditText android:id=\"@+id/anchor\"/>\n" +
+                 "                       ~|~~~~~~~~~~~~ \n",
+                 describeElements(getDeclarationsFrom(file.virtualFile))
     )
   }
 
@@ -193,13 +242,14 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
 
   fun testGotoStyleableAttr_frameworkAttr() {
     myFixture.copyFileToProject(basePath + "attrs.xml", "res/values/attrs.xml")
-    val psiFile = myFixture.configureByText(
-      "SomeClass.java",
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/ExampleActivity.java",
       //language=JAVA
       """
       package p1.p2;
 
-      import com.android.internal.R;public class SomeClass {
+      import com.android.internal.R;
+      public class SomeClass {
           void f() {
             int attrId = R.styleable.MyView_android_${caret}maxHeight;
           }
@@ -211,7 +261,30 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
       "values/attrs.xml:8:\n" +
       "  <attr name=\"android:maxHeight\" />\n" +
       "             ~|~~~~~~~~~~~~~~~~~~  \n",
-      describeElements(getDeclarationsFrom(psiFile.virtualFile))
+      describeElements(getDeclarationsFrom(file.virtualFile))
+    )
+  }
+
+  fun testGotoStyleableAttr_frameworkAttrKotlin() {
+    myFixture.copyFileToProject(basePath + "attrs.xml", "res/values/attrs.xml")
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/ExampleActivity.kt",
+      """
+      package p1.p2
+      import android.app.Activity
+
+      class ExampleActivity: Activity() {
+          fun resource() {
+              R.styleable.MyView_android_m${caret}axHeight
+          }
+      }
+      """.trimIndent()
+    )
+    assertEquals(
+      "values/attrs.xml:8:\n" +
+      "  <attr name=\"android:maxHeight\" />\n" +
+      "             ~|~~~~~~~~~~~~~~~~~~  \n",
+      describeElements(getDeclarationsFrom(file.virtualFile))
     )
   }
 
@@ -250,6 +323,88 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                  "               ~|~~~~~~              \n",
                  describeElements(getDeclarationsFrom(file))
     )
+  }
+
+  fun testGotoAliasResourceKotlin() {
+    myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
+    myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
+    myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/Activity.kt",
+      """
+        package p1.p2
+
+        import android.app.Activity
+        import p1.p2.R as LibR
+
+        class ExampleActivity: Activity() {
+            fun resource() {
+                LibR.id.a${caret}nchor
+            }
+        }
+      """.trimIndent())
+    assertEquals("values/ids.xml:2:\n" +
+                 "  <item name=\"anchor\" type=\"id\"/>\n" +
+                 "             ~|~~~~~~~           \n" +
+                 "layout/layout.xml:4:\n" +
+                 "  <EditText android:id=\"@+id/anchor\"/>\n" +
+                 "                       ~|~~~~~~~~~~~~ \n",
+                 describeElements(getDeclarationsFrom(file.virtualFile)))
+  }
+
+  fun testGotoStaticallyImportedResourceJava() {
+    myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
+    myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
+    myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/ExampleActivity.java",
+      //language=Java
+      """
+        package p1.p2;
+
+        import android.app.Activity;
+        import static p1.p2.R.id.anchor;
+
+        public class ExampleActivity extends Activity {
+            public static void fun() {
+                anch<caret>or;
+            }
+        }
+      """.trimIndent())
+    assertEquals("values/ids.xml:2:\n" +
+                 "  <item name=\"anchor\" type=\"id\"/>\n" +
+                 "             ~|~~~~~~~           \n" +
+                 "layout/layout.xml:4:\n" +
+                 "  <EditText android:id=\"@+id/anchor\"/>\n" +
+                 "                       ~|~~~~~~~~~~~~ \n",
+                 describeElements(getDeclarationsFrom(file.virtualFile)))
+  }
+
+  fun testGotoStaticallyImportedResourceKotlin() {
+    myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
+    myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
+    myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/Activity.kt",
+      """
+        package p1.p2
+
+        import android.app.Activity
+        import p1.p2.R.id.anchor
+
+        class ExampleActivity: Activity() {
+            fun resource() {
+                a${caret}nchor
+            }
+        }
+      """.trimIndent())
+    assertEquals("values/ids.xml:2:\n" +
+                 "  <item name=\"anchor\" type=\"id\"/>\n" +
+                 "             ~|~~~~~~~           \n" +
+                 "layout/layout.xml:4:\n" +
+                 "  <EditText android:id=\"@+id/anchor\"/>\n" +
+                 "                       ~|~~~~~~~~~~~~ \n",
+                 describeElements(getDeclarationsFrom(file.virtualFile)))
   }
 
   open fun testGotoAarResourceFromCode_libRClass() {
