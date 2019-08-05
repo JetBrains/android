@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
@@ -71,6 +72,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
 
   private static final String SELECTION_TIME = "DeviceAndSnapshotComboBoxAction.selectionTime";
+  private static final String SELECTED_SNAPSHOT = "DeviceAndSnapshotComboBoxAction.selectedSnapshot";
 
   /**
    * Run configurations that aren't {@link AndroidRunConfiguration} or {@link AndroidTestRunConfiguration} can use this key
@@ -87,8 +89,6 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private final AnAction myRunOnMultipleDevicesAction;
   private final AnAction myOpenAvdManagerAction;
   private final Clock myClock;
-
-  private String mySelectedSnapshot;
 
   @SuppressWarnings("unused")
   private DeviceAndSnapshotComboBoxAction() {
@@ -223,12 +223,39 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @Nullable
-  final String getSelectedSnapshot() {
-    return mySelectedSnapshot;
+  final Snapshot getSelectedSnapshot(@NotNull Project project) {
+    Device device = getSelectedDevice(project);
+
+    if (device == null) {
+      return null;
+    }
+
+    Collection<Snapshot> snapshots = device.getSnapshots();
+    Object directoryName = myGetProperties.apply(project).getValue(SELECTED_SNAPSHOT);
+
+    Optional<Snapshot> optionalSnapshot = snapshots.stream()
+      .filter(snapshot -> snapshot.getDirectoryName().equals(directoryName))
+      .findFirst();
+
+    if (!optionalSnapshot.isPresent()) {
+      optionalSnapshot = snapshots.stream().findFirst();
+      return optionalSnapshot.orElse(null);
+    }
+
+    return optionalSnapshot.get();
   }
 
-  final void setSelectedSnapshot(@Nullable String selectedSnapshot) {
-    mySelectedSnapshot = selectedSnapshot;
+  final void setSelectedSnapshot(@NotNull Project project, @Nullable Snapshot selectedSnapshot) {
+    PropertiesComponent properties = myGetProperties.apply(project);
+
+    if (selectedSnapshot == null) {
+      properties.unsetValue(SELECTED_SNAPSHOT);
+    }
+    else {
+      properties.setValue(SELECTED_SNAPSHOT, selectedSnapshot.getDirectoryName());
+    }
+
+    // TODO Do we need to update the execution target manager?
   }
 
   @NotNull
@@ -323,7 +350,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     connectedDevices.stream()
-      .map(device -> newSelectDeviceAndSnapshotAction(project, device))
+      .map(device -> newAction(project, device))
       .forEach(actions::add);
 
     boolean disconnectedDevicesPresent = !disconnectedDevices.isEmpty();
@@ -337,19 +364,27 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     disconnectedDevices.stream()
-      .map(device -> newSelectDeviceAndSnapshotAction(project, device))
+      .map(device -> newAction(project, device))
       .forEach(actions::add);
 
     return actions;
   }
 
   @NotNull
-  private AnAction newSelectDeviceAndSnapshotAction(@NotNull Project project, @NotNull Device device) {
-    return new SelectDeviceAndSnapshotAction.Builder()
-      .setComboBoxAction(this)
-      .setProject(project)
-      .setDevice(device)
-      .build();
+  private AnAction newAction(@NotNull Project project, @NotNull Device device) {
+    Object snapshots = device.getSnapshots();
+
+    if (snapshots.equals(ImmutableList.of()) ||
+        snapshots.equals(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION) ||
+        !mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()) {
+      return new SelectDeviceAndSnapshotAction.Builder()
+        .setComboBoxAction(this)
+        .setProject(project)
+        .setDevice(device)
+        .build();
+    }
+
+    return new SnapshotActionGroup((VirtualDevice)device, this, project);
   }
 
   @Override
@@ -377,13 +412,10 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
         presentation.setText("No Devices");
       }
       else {
-        updateSelectedSnapshot(project);
-
         assert device != null;
-        presentation.setIcon(device.getIcon());
 
-        String name = Devices.getName(device, devices);
-        presentation.setText(mySelectedSnapshot == null ? name : name + " - " + mySelectedSnapshot, false);
+        presentation.setIcon(device.getIcon());
+        presentation.setText(Devices.getText(device, devices, getSelectedSnapshot(project)), false);
       }
     }
 
@@ -421,31 +453,6 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     presentation.setDescription(null);
     presentation.setEnabled(true);
-  }
-
-  private void updateSelectedSnapshot(@NotNull Project project) {
-    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()) {
-      return;
-    }
-
-    Device device = getSelectedDevice(project);
-    assert device != null;
-
-    Collection<String> snapshots = device.getSnapshots();
-
-    if (mySelectedSnapshot == null) {
-      Optional<String> selectedDeviceSnapshot = snapshots.stream().findFirst();
-      selectedDeviceSnapshot.ifPresent(snapshot -> setSelectedSnapshot(snapshot));
-
-      return;
-    }
-
-    if (snapshots.contains(mySelectedSnapshot)) {
-      return;
-    }
-
-    Optional<String> selectedSnapshot = snapshots.stream().findFirst();
-    setSelectedSnapshot(selectedSnapshot.orElse(null));
   }
 
   private static void updateExecutionTargetManager(@NotNull Project project, @Nullable Device device) {

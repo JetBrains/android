@@ -17,10 +17,9 @@ package com.android.tools.idea.run.deployment;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 
+import com.android.emulator.SnapshotOuterClass;
 import com.android.emulator.SnapshotOuterClass.Image;
-import com.android.emulator.SnapshotOuterClass.Snapshot;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import java.nio.file.FileSystem;
@@ -29,37 +28,37 @@ import org.junit.Test;
 
 public final class VirtualDevicesWorkerDelegateTest {
   @Test
-  public void getNameSnapshotProtocolBufferDoesntExist() {
+  public void getSnapshotSnapshotProtocolBufferDoesntExist() {
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
     Path directory = fileSystem.getPath("/usr/local/google/home/testuser/.android/avd/Pixel_2_XL_API_28.avd/snapshots/default_boot");
 
-    Object actualName = VirtualDevicesWorkerDelegate.getName(directory);
+    Object actualName = VirtualDevicesWorkerDelegate.getSnapshot(directory);
 
-    assertEquals("default_boot", actualName);
+    assertEquals(new Snapshot("default_boot"), actualName);
   }
 
   @Test
-  public void getNameImageCountEqualsZero() {
-    assertNull(VirtualDevicesWorkerDelegate.getName(Snapshot.getDefaultInstance(), ""));
+  public void getSnapshotImageCountEqualsZero() {
+    assertNull(VirtualDevicesWorkerDelegate.getSnapshot(SnapshotOuterClass.Snapshot.getDefaultInstance(), ""));
   }
 
   @Test
-  public void getNameLogicalNameIsEmpty() {
-    Snapshot snapshot = Snapshot.newBuilder()
+  public void getSnapshotLogicalNameIsEmpty() {
+    SnapshotOuterClass.Snapshot snapshot = SnapshotOuterClass.Snapshot.newBuilder()
       .addImages(Image.getDefaultInstance())
       .build();
 
     String fallbackName = "default_boot";
-    assertSame(fallbackName, VirtualDevicesWorkerDelegate.getName(snapshot, fallbackName));
+    assertEquals(new Snapshot(fallbackName), VirtualDevicesWorkerDelegate.getSnapshot(snapshot, fallbackName));
   }
 
   @Test
-  public void getName() {
-    Snapshot snapshot = Snapshot.newBuilder()
+  public void getSnapshot() {
+    SnapshotOuterClass.Snapshot snapshot = SnapshotOuterClass.Snapshot.newBuilder()
       .addImages(Image.getDefaultInstance())
       .setLogicalName("My Snapshot")
       .build();
 
-    assertEquals("My Snapshot", VirtualDevicesWorkerDelegate.getName(snapshot, ""));
+    assertEquals(new Snapshot("My Snapshot", ""), VirtualDevicesWorkerDelegate.getSnapshot(snapshot, ""));
   }
 }

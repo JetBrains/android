@@ -39,7 +39,7 @@ public final class DevicesTest {
       .build();
 
     // Act
-    Object actualName = Devices.getName(device1, Collections.singletonList(device2));
+    Object actualName = Devices.getText(device1, Collections.singletonList(device2));
 
     // Assert
     assertEquals("Google Pixel 3", actualName);
