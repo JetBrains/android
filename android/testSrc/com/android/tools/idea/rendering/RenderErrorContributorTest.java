@@ -25,6 +25,8 @@ import com.android.utils.StringHelper;
 import com.android.utils.TraceUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -39,6 +41,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -242,7 +245,11 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       logOperation.addErrors(logger, render);
     }
 
-    return RenderErrorModelFactory.createErrorModel(null, render, null).getIssues().stream().sorted().collect(Collectors.toList());
+    // The error model must be created on a background thread.
+    Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
+      () -> RenderErrorModelFactory.createErrorModel(null, render, null));
+
+    return Futures.getUnchecked(errorModel).getIssues().stream().sorted().collect(Collectors.toList());
   }
 
   public void testPanel() {
