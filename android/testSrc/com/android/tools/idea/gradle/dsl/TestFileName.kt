@@ -493,6 +493,7 @@ enum class TestFileName(val path: String) {
   FILE_TREE_DEPENDENCY_SET_INCLUDES_IN_METHOD_CALL_NOTATION("fileTreeDependency/setIncludesInMethodCallNotation"),
   FILE_TREE_DEPENDENCY_ADD_AND_REMOVE_INCLUDE_WITHOUT_APPLY("fileTreeDependency/addAndRemoveIncludeWithoutApply"),
   FILE_TREE_DEPENDENCY_REMOVE_ONLY_POSSIBLE_IN_MAP_FORM("fileTreeDependency/removeOnlyPossibleInMapForm"),
+  MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT("moduleDependency/insertPsiElementsAfterFileBlockComment"),
   MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION("moduleDependency/parsingWithCompactNotation"),
   MODULE_DEPENDENCY_PARSING_WITH_DEPENDENCY_ON_ROOT("moduleDependency/parsingWithDependencyOnRoot"),
   MODULE_DEPENDENCY_PARSING_WITH_MAP_NOTATION("moduleDependency/parsingWithMapNotation"),
