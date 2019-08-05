@@ -63,6 +63,8 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
@@ -76,6 +78,7 @@ import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.problems.WolfTheProblemSolver;
@@ -1025,7 +1028,10 @@ public class RenderErrorContributor {
     Collection<String> androidViewClassNames = null;
     Module module = logger.getModule();
     if (module != null) {
-      Collection<String> views = getAllViews(module);
+      Ref<Collection<String>> viewsRef = new Ref<>(Collections.emptyList());
+      // We yield to write actions here because UI responsiveness takes priority over typo suggestions.
+      ProgressIndicatorUtils.runWithWriteActionPriority(() -> viewsRef.set(getAllViews(module)), new EmptyProgressIndicator());
+      Collection<String> views = viewsRef.get();
       if (!views.isEmpty()) {
         customViews = Lists.newArrayListWithExpectedSize(Math.max(10, views.size() - 80)); // most will be framework views
         androidViewClassNames = Lists.newArrayListWithExpectedSize(views.size());
