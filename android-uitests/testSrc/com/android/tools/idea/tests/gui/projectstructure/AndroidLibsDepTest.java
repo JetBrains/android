@@ -94,9 +94,9 @@ public class AndroidLibsDepTest {
   private void createAndroidLibrary(@NotNull IdeFrameFixture ideFrame,
                                     @NotNull String moduleName) {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType(DependenciesTestUtil.ANDROID_LIBRARY)
-      .clickNextToStep(DependenciesTestUtil.ANDROID_LIBRARY)
-      .setModuleName(moduleName)
+      .clickNextToAndroidLibrary()
+      .enterModuleName(moduleName)
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
   }

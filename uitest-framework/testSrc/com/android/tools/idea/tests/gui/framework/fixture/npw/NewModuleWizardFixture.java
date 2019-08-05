@@ -58,12 +58,6 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public NewModuleWizardFixture setModuleName(String name) {
-    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).setText(name);
-    return this;
-  }
-
-  @NotNull
   public NewModuleWizardFixture setFileName(String name) {
     TextFieldWithBrowseButton panel = robot().finder().findByLabel(target(), "File name:", TextFieldWithBrowseButton.class);
     new JTextComponentFixture(robot(), robot().finder().findByType(panel, JTextField.class)).setText(name);
@@ -115,6 +109,13 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
     clickNext();
     JRootPane rootPane = findStepWithTitle("Configure your module");
     return new ConfigureDynamicFeatureStepFixture<>(this, rootPane);
+  }
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextToAndroidLibrary() {
+    chooseModuleType(message("android.wizard.module.new.library"));
+    clickNextToStep(message("android.wizard.module.new.library"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
