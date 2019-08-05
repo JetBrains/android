@@ -112,13 +112,48 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     }
   }
 
+  override fun addSourceSet(type: String, name: String, dir: String) {
+    val buildFile = getBuildFilePath(context)
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    val sourceSet = buildModel.android().addSourceSet(name)
+
+    if (type == "manifest") {
+      sourceSet.manifest().srcFile().setValue(dir)
+      io.applyChanges(buildModel)
+      return
+    }
+
+    val srcDirsModel = with(sourceSet) {
+      when (type) {
+        "aidl" -> aidl()
+        "assets" -> assets()
+        "java" -> java()
+        "jni" -> jni()
+        "renderscript" -> renderscript()
+        "res" -> res()
+        "resources" -> resources()
+        else -> throw IllegalArgumentException("Unknown source set category $type")
+      }
+    }.srcDirs()
+
+    val dirExists = srcDirsModel.toList().orEmpty().any { it.toString() == dir }
+
+    if (dirExists) {
+      return
+    }
+
+    srcDirsModel.addListValue().setValue(dir)
+    io.applyChanges(buildModel)
+  }
+
   override fun addClasspath(mavenUrl: String) {
     val mavenUrl = mavenUrl.trim()
 
     referencesExecutor.addClasspath(mavenUrl)
 
-    val toBeAddedDependency = ArtifactDependencySpec.create(mavenUrl) ?:
-                              throw RuntimeException("$mavenUrl is not a valid classpath dependency")
+    val toBeAddedDependency = ArtifactDependencySpec.create(mavenUrl) ?: throw RuntimeException(
+      "$mavenUrl is not a valid classpath dependency")
 
     val project = context.project
     val rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project))
@@ -266,9 +301,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
       }
 
       val sourceText: String = if (hasExtension(from, DOT_FTL))
-          processFreemarkerTemplate(context, from, null) // Perform template substitution of the template prior to merging
-        else
-          readTextFromDisk(sourceFile) ?: return
+        processFreemarkerTemplate(context, from, null) // Perform template substitution of the template prior to merging
+      else
+        readTextFromDisk(sourceFile) ?: return
 
       val contents: String = when {
         targetFile.name == GRADLE_PROJECT_SETTINGS_FILE -> mergeGradleSettingsFile(sourceText, targetText)
@@ -450,8 +485,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
 
   @Throws(IOException::class)
   private fun copyFile(file: VirtualFile, src: VirtualFile, destinationFile: File): Boolean {
-    val relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar) ?:
-                       throw RuntimeException("${file.path} is not a child of $src")
+    val relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar) ?: throw RuntimeException(
+      "${file.path} is not a child of $src")
     if (file.isDirectory) {
       io.mkDir(File(destinationFile, relativePath))
       return true
