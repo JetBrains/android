@@ -71,9 +71,7 @@ public class NewModuleTest {
   public void createNewJavaLibraryWithDefaults() throws Exception {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Java Library")
-      .clickNextToStep("Library name:")
-      .getConfigureJavaLibaryStepFixture()
+      .clickNextToJavaLibary()
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
       .wizard()
@@ -101,9 +99,7 @@ public class NewModuleTest {
   public void createNewJavaLibraryWithNoGitIgnore() throws Exception {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Java Library")
-      .clickNextToStep("Library name:")
-      .getConfigureJavaLibaryStepFixture()
+      .clickNextToJavaLibary()
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
       .enterClassName("MyJavaClass")
