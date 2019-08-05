@@ -67,10 +67,10 @@ import org.jetbrains.android.util.AndroidResourceUtil
  * recognize all mentions of Android resources (XML, * "@+id", R fields) as early as possible. Custom [FindUsagesHandler],
  * [GotoDeclarationHandler] and [RenameHandler] are used to handle all these cases uniformly.
  */
-data class ResourceReferencePsiElement(
+class ResourceReferencePsiElement(
   val resourceReference: ResourceReference,
-  val psiManager: PsiManager
-) : FakePsiElement() {
+  val psiManager: PsiManager,
+  val writable: Boolean = false) : FakePsiElement() {
 
   companion object {
 
@@ -87,7 +87,7 @@ data class ResourceReferencePsiElement(
       }
     }
 
-    private fun convertPsiFile(element: PsiFile) : ResourceReferencePsiElement? {
+    private fun convertPsiFile(element: PsiFile): ResourceReferencePsiElement? {
       if (!AndroidResourceUtil.isInResourceSubdirectory(element, null)) {
         return null
       }
@@ -159,7 +159,9 @@ data class ResourceReferencePsiElement(
 
   override fun isValid() = true
 
-  override fun isWritable() = false
+  override fun isWritable(): Boolean {
+    return writable
+  }
 
   override fun getContainingFile(): PsiFile? = null
 
@@ -178,5 +180,24 @@ data class ResourceReferencePsiElement(
         else -> resourceReference.name
       }
     }
+  }
+
+  override fun equals(other: Any?): Boolean {
+    return (other as? ResourceReferencePsiElement)?.resourceReference == this.resourceReference
+  }
+
+  fun toWritableResourceReferencePsiElement() : ResourceReferencePsiElement? {
+    // Framework resources are not writable.
+    if (this.resourceReference.namespace != ResourceNamespace.ANDROID) {
+      return ResourceReferencePsiElement(this.resourceReference, this.psiManager, true)
+    }
+    return null
+  }
+
+  override fun hashCode(): Int {
+    var result = resourceReference.hashCode()
+    result = 31 * result + psiManager.hashCode()
+    result = 31 * result + writable.hashCode()
+    return result
   }
 }
