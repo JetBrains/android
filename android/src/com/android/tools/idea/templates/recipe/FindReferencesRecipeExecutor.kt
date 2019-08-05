@@ -22,7 +22,6 @@ import java.io.IOException
  * [RecipeExecutor] that collects references as a result of executing instructions in a [Recipe].
  */
 internal class FindReferencesRecipeExecutor(private val myContext: RenderingContext) : RecipeExecutor {
-
   override fun copy(from: File, to: File) {
     if (from.isDirectory) {
       throw RuntimeException("Directories not supported for Find References")
@@ -54,6 +53,8 @@ internal class FindReferencesRecipeExecutor(private val myContext: RenderingCont
   override fun applyPlugin(plugin: String) {
     myContext.plugins.add(plugin)
   }
+
+  override fun addSourceSet(type: String, name: String, dir: String) {}
 
   override fun addClasspath(mavenUrl: String) {
     myContext.classpathEntries.add(mavenUrl)
