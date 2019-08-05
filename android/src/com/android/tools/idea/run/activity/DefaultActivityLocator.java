@@ -19,18 +19,25 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.xml.AndroidManifest.NODE_INTENT;
 
 import com.android.SdkConstants;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DefaultActivityLocatorStats;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
@@ -60,55 +67,85 @@ public class DefaultActivityLocator extends ActivityLocator {
   @NotNull
   @Override
   public String getQualifiedActivityName(@NotNull IDevice device) throws ActivityLocatorException {
-    String activity = computeDefaultActivity(myFacet, device);
-    if (activity == null) {
+    String defaultActivity = computeDefaultActivity(myFacet, device, getActivitiesFromMergedManifest(myFacet));
+    if (defaultActivity == null) {
       throw new ActivityLocatorException(AndroidBundle.message("default.activity.not.found.error"));
     }
-    return activity;
+    return defaultActivity;
   }
 
   @Override
   public void validate() throws ActivityLocatorException {
-    String activity = computeDefaultActivity(myFacet, null);
-    if (activity == null) {
+    // Workaround for b/123339491 since the Mac touchbar icon updater will call this method on the UI thread
+    // This workaround avoids calculating the MergedManifest on the UI thread.
+    boolean usePotentiallyStaleManifest = ApplicationManager.getApplication().isDispatchThread();
+    MergedManifestSnapshot mergedManifest = getMergedManifest(myFacet, usePotentiallyStaleManifest);
+    List<ActivityWrapper> activities = mergedManifest == null ?
+                                       Collections.emptyList() :
+                                       ActivityWrapper.get(mergedManifest.getActivities(), mergedManifest.getActivityAliases());
+    String defaultActivity = computeDefaultActivity(myFacet, null, activities);
+    if (defaultActivity == null) {
       throw new ActivityLocatorException(AndroidBundle.message("default.activity.not.found.error"));
     }
   }
 
-  /** Note: this requires indices to be ready, and may take a while to return if indexing is in progress. */
-  @Nullable
+  /**
+   * Retrieves the list of activities from the merged manifest of the Android module
+   * corresponding to the given facet. The strategy used to obtain this list is determined by
+   * {@link StudioFlags#DEFAULT_ACTIVITY_LOCATOR_STRATEGY}:
+   * <table>
+   *   <tr><td>"BLOCK":</td> <td>Unconditionally block on a fresh view of the merged manifest.</td></tr>
+   *   <tr><td>"STALE":</td> <td>Use a potentially stale view of the merged manifest if the caller is on the EDT.</td></tr>
+   * </table>
+   * For any unrecognized flag value, we use the "BLOCK" strategy.
+   */
   @VisibleForTesting
-  static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final IDevice device, boolean useCachedManifest) {
-    assert !facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
+  static List<ActivityWrapper> getActivitiesFromMergedManifest(@NotNull final AndroidFacet facet) {
+    boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
+    boolean usePotentiallyStaleManifest = onEdt && StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get().equals("STALE");
+    Stopwatch timer = Stopwatch.createStarted();
+    MergedManifestSnapshot mergedManifest = getMergedManifest(facet, usePotentiallyStaleManifest);
+    List<ActivityWrapper> activities = mergedManifest == null ?
+                                       Collections.emptyList() :
+                                       ActivityWrapper.get(mergedManifest.getActivities(), mergedManifest.getActivityAliases());
+    logManifestLatency(onEdt, usePotentiallyStaleManifest, timer.elapsed(TimeUnit.MILLISECONDS));
+    return activities;
+  }
 
-    // Workaround for b/123339491 since the Mac touchbar icon updater will call this method on the UI thread
-    // This workaround avoids calculating the MergedManifest on the UI thread.
-    final MergedManifestSnapshot mergedManifest;
-    if (useCachedManifest) {
+  @Nullable
+  private static MergedManifestSnapshot getMergedManifest(@NotNull final AndroidFacet facet, boolean usePotentiallyStaleManifest) {
+    if (usePotentiallyStaleManifest) {
       AsyncSupplier<MergedManifestSnapshot> manifestSupplier = MergedManifestManager.getMergedManifestSupplier(facet.getModule());
       // This will trigger recomputation of the merged manifest in the background if it's out of date
       // or has never been computed. Doing so won't help us this time, but it will help keep the manifest
       // fresh for future callers.
       manifestSupplier.get();
-      mergedManifest = manifestSupplier.getNow();
+      return manifestSupplier.getNow();
     }
-    else {
-      mergedManifest = MergedManifestManager.getFreshSnapshot(facet.getModule());
-    }
+    return MergedManifestManager.getFreshSnapshot(facet.getModule());
+  }
 
-    if (mergedManifest == null) {
-      return null;
-    }
-
-    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(
-      () -> computeDefaultActivity(ActivityWrapper.get(mergedManifest.getActivities(), mergedManifest.getActivityAliases()), device));
+  private static void logManifestLatency(boolean blocksUiThread, boolean usedPotentiallyStaleManifest, long latencyMs) {
+    AndroidStudioEvent.Builder proto = AndroidStudioEvent.newBuilder()
+      .setKind(AndroidStudioEvent.EventKind.DEFAULT_ACTIVITY_LOCATOR_STATS)
+      .setDefaultActivityLocatorStats(
+        DefaultActivityLocatorStats.newBuilder()
+          .setBlocksUiThread(blocksUiThread)
+          .setIndexBased(false)
+          .setUsedPotentiallyStaleManifest(usedPotentiallyStaleManifest)
+          .setLatencyMs(latencyMs)
+      );
+    UsageTracker.log(proto);
   }
 
   /** Note: this requires indices to be ready, and may take a while to return if indexing is in progress. */
   @Nullable
   @VisibleForTesting
-  private static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final IDevice device) {
-    return computeDefaultActivity(facet, device, ApplicationManager.getApplication().isDispatchThread());
+  static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final IDevice device,
+                                       @NotNull List<ActivityWrapper> activities) {
+    assert !facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
+    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(
+      () -> computeDefaultActivity(activities, device));
   }
 
   @Nullable
