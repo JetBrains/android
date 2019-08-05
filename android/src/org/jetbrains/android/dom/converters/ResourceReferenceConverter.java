@@ -42,6 +42,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNamespaceContext;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -322,6 +323,24 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       result.add(ResourceValue.literal("?attr/"));
       result.add(ResourceValue.literal("?android:attr/"));
     }
+  }
+
+  @Override
+  public boolean isReferenceTo(@NotNull PsiElement element,
+                               String stringValue,
+                               @Nullable ResourceValue resolveResult,
+                               ConvertContext context) {
+    if (StudioFlags.RESOLVE_USING_REPOS.get() && element instanceof ResourceReferencePsiElement) {
+      ResourceReference reference = ((ResourceReferencePsiElement)element).getResourceReference();
+      XmlElement xmlElement = context.getXmlElement();
+      if (xmlElement != null && resolveResult != null) {
+        ResourceNamespace resolvedNamespace = ResourceHelper.resolveResourceNamespace(xmlElement, resolveResult.getPackage());
+        return reference.getNamespace().equals(resolvedNamespace) &&
+               reference.getResourceType().equals(resolveResult.getType()) &&
+               reference.getName().equals(resolveResult.getResourceName());
+      }
+    }
+    return super.isReferenceTo(element, stringValue, resolveResult, context);
   }
 
   @NotNull

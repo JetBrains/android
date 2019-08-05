@@ -450,6 +450,7 @@
                             id="resourceTypeCompletion" order="after javaBasic2ClassName"/>
     <completion.contributor language="TEXT" implementationClass="com.android.tools.idea.run.AndroidActivityAliasCompletionContributor" order="first"/>
 
+    <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidResourceRenameResourceProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
 
@@ -654,8 +655,9 @@
 
 
     <usageTargetProvider implementation="org.jetbrains.android.AndroidUsagesTargetProvider"/>
-    <renameHandler implementation="org.jetbrains.android.AndroidRenameHandler" order="first"/>
+    <renameHandler implementation="org.jetbrains.android.AndroidRenameHandler" order="first" id="androidRenameHandler"/>
     <elementDescriptionProvider implementation="org.jetbrains.android.ResourceFieldElementWrapper$DescriptionProvider" />
+    <renameHandler implementation="org.jetbrains.android.refactoring.renaming.ResourceRenameHandler" order="first, before androidRenameHandler"/>
     <elementDescriptionProvider implementation="com.android.tools.idea.res.psi.ResourceReferencePsiElement$ResourceReferencePsiElementDescriptorProvider"/>
     <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
 

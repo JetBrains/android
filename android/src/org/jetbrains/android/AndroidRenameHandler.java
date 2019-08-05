@@ -6,6 +6,7 @@ import static com.android.SdkConstants.TAG_ITEM;
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -54,6 +55,7 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   @Override
   public boolean isAvailableOnDataContext(@NotNull DataContext dataContext) {
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) return false;
     Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
     if (editor == null) {
       return false;
