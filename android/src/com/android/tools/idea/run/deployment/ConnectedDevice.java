@@ -117,7 +117,7 @@ class ConnectedDevice extends Device {
 
   @NotNull
   @Override
-  final Collection<String> getSnapshots() {
+  final Collection<Snapshot> getSnapshots() {
     throw new UnsupportedOperationException();
   }
 
@@ -128,7 +128,7 @@ class ConnectedDevice extends Device {
   }
 
   @Override
-  final void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot) {
+  final void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot) {
     throw new UnsupportedOperationException();
   }
 }

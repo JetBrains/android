@@ -45,7 +45,7 @@ final class SnapshotActionGroup extends ActionGroup {
   }
 
   @NotNull
-  private AnAction newSelectDeviceAndSnapshotAction(@NotNull String snapshot) {
+  private AnAction newSelectDeviceAndSnapshotAction(@NotNull Snapshot snapshot) {
     return new SelectDeviceAndSnapshotAction.Builder()
       .setComboBoxAction(myComboBoxAction)
       .setProject(myProject)

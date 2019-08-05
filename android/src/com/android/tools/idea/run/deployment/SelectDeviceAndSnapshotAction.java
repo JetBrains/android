@@ -29,13 +29,13 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
   private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
   private final Project myProject;
   private final Device myDevice;
-  private String mySnapshot;
+  private Snapshot mySnapshot;
 
   static final class Builder {
     private DeviceAndSnapshotComboBoxAction myComboBoxAction;
     private Project myProject;
     private Device myDevice;
-    private String mySnapshot;
+    private Snapshot mySnapshot;
 
     @NotNull
     Builder setComboBoxAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
@@ -56,7 +56,7 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
     }
 
     @NotNull
-    Builder setSnapshot(@Nullable String snapshot) {
+    Builder setSnapshot(@Nullable Snapshot snapshot) {
       mySnapshot = snapshot;
       return this;
     }
@@ -81,11 +81,11 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
     Presentation presentation = getTemplatePresentation();
 
     if (builder.mySnapshot != null) {
-      presentation.setText(builder.mySnapshot, false);
+      presentation.setText(builder.mySnapshot.getDisplayName(), false);
       return;
     }
 
-    presentation.setText(Devices.getName(builder.myDevice, builder.myComboBoxAction.getDevices(builder.myProject)), false);
+    presentation.setText(Devices.getText(builder.myDevice, builder.myComboBoxAction.getDevices(builder.myProject)), false);
     presentation.setIcon(builder.myDevice.getIcon());
   }
 
@@ -95,7 +95,7 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
       return;
     }
 
-    Collection<String> snapshots = builder.myDevice.getSnapshots();
+    Collection<Snapshot> snapshots = builder.myDevice.getSnapshots();
 
     if (snapshots.isEmpty() || !builder.myComboBoxAction.areSnapshotsEnabled()) {
       mySnapshot = null;
@@ -103,7 +103,7 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
     }
 
     if (snapshots.equals(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)) {
-      mySnapshot = VirtualDevice.DEFAULT_SNAPSHOT;
+      mySnapshot = Snapshot.DEFAULT;
       return;
     }
 
@@ -112,14 +112,14 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
 
   @Nullable
   @VisibleForTesting
-  String getSnapshot() {
+  Snapshot getSnapshot() {
     return mySnapshot;
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
     myComboBoxAction.setSelectedDevice(myProject, myDevice);
-    myComboBoxAction.setSelectedSnapshot(mySnapshot);
+    myComboBoxAction.setSelectedSnapshot(myProject, mySnapshot);
   }
 
   @Override

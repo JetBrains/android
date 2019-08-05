@@ -17,13 +17,19 @@ package com.android.tools.idea.run.deployment;
 
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class Devices {
   private Devices() {
   }
 
   @NotNull
-  static String getName(@NotNull Device device, @NotNull Collection<Device> devices) {
+  static String getText(@NotNull Device device, @NotNull Collection<Device> devices) {
+    return getText(device, devices, null);
+  }
+
+  @NotNull
+  static String getText(@NotNull Device device, @NotNull Collection<Device> devices, @Nullable Snapshot snapshot) {
     String key = device.getKey();
     String name = device.getName();
 
@@ -39,6 +45,12 @@ final class Devices {
         .append(" [")
         .append(key)
         .append(']');
+    }
+
+    if (snapshot != null) {
+      builder
+        .append(" - ")
+        .append(snapshot);
     }
 
     String reason = device.getValidityReason();
