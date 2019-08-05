@@ -33,6 +33,7 @@ import com.intellij.util.ui.ImageUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.utils.addToStdlib.cast
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Image
@@ -50,6 +51,7 @@ class LayoutRendererTest {
   @get:Rule
   val rule = AndroidProjectRule.withSdk()
 
+  @Ignore("b/134190873")
   @Test
   fun renderLayout() {
     val psiFile = createLayoutFile()
