@@ -15,24 +15,26 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.ide.common.repository.GradleVersion
 import freemarker.template.SimpleNumber
-import freemarker.template.TemplateMethodModelEx
-import freemarker.template.TemplateModel
-import freemarker.template.TemplateModelException
+import freemarker.template.SimpleScalar
+import junit.framework.TestCase
 
 /**
- * Method invoked by FreeMarker to compare two Maven artifact version strings.
+ * Tests for [FmCompareVersionsIgnoringQualifiersMethod].
  */
-class FmCompareVersionsIgnoringQualifiersMethod : TemplateMethodModelEx {
-  override fun exec(args: List<*>): TemplateModel {
-    if (args.size != 2) {
-      throw TemplateModelException("Wrong arguments")
-    }
+class FmCompareVersionsIgnoringQualifiersMethodTest : TestCase() {
+  private fun check(lhs: String, rhs: String, expected: Int) {
+    val method = FmCompareVersionsIgnoringQualifiersMethod()
+    val list = listOf(SimpleScalar(lhs), SimpleScalar(rhs))
+    val result = (method.exec(list) as SimpleNumber).asNumber
+    assertEquals(expected, Integer.signum(result.toInt()))
+  }
 
-    val lhs = GradleVersion.parse(args[0].toString())
-    val rhs = GradleVersion.parse(args[1].toString())
-
-    return SimpleNumber(lhs.compareIgnoringQualifiers(rhs))
+  fun testComparison() {
+    check("1.2.3", "1.1.0", 1)
+    check("1.1.0", "1.1.0", 0)
+    check("1.0.0", "1.1.0", -1)
+    check("1.3.0-alpha4", "1.1.0", 1)
+    check("2.2.0-dev", "1.1.0", 1)
   }
 }
