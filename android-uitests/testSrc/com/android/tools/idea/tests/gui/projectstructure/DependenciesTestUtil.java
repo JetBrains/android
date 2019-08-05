@@ -48,7 +48,6 @@ public class DependenciesTestUtil {
   protected static final String JAVA_LIBRARY = "Java Library";
   protected static final String CLASS_NAME_1 = "ModuleA";
   protected static final String CLASS_NAME_2 = "ModuleB";
-  protected static final String ANDROID_LIBRARY = "Android Library";
   protected static final String LANGUAGE_JAVA = "Java";
   protected static final String LANGUAGE_KOTLIN = "Kotlin";
 
@@ -168,9 +167,9 @@ public class DependenciesTestUtil {
   protected static void createAndroidLibrary(@NotNull IdeFrameFixture ideFrame,
                                              @NotNull String moduleName) {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType(ANDROID_LIBRARY)
-      .clickNextToStep(ANDROID_LIBRARY)
-      .setModuleName(moduleName)
+      .clickNextToAndroidLibrary()
+      .enterModuleName(moduleName)
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
   }
