@@ -94,4 +94,9 @@ interface RecipeExecutor {
    * Add a variable that can be referenced while the template is being rendered.
    */
   fun addGlobalVariable(id: String, value: Any)
+
+  /**
+   * Add source directory or file (if [type] is a manifest).
+   */
+  fun addSourceSet(type: String, name: String, dir: String)
 }
