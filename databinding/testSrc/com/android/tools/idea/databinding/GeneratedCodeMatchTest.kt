@@ -17,13 +17,10 @@ package com.android.tools.idea.databinding
 
 import com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT
 import com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT
-import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT
-import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X
-import org.junit.Assert.fail
-import org.junit.runners.Parameterized.Parameters
-
 import com.android.ide.common.blame.Message
-import com.android.tools.idea.databinding.finders.DataBindingScopeEnlarger
+import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X
+import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT
+import com.android.tools.idea.databinding.utils.findClass
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -31,7 +28,6 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.collect.Lists
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
@@ -42,23 +38,24 @@ import com.intellij.psi.PsiType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import java.io.File
-import java.io.IOException
-import java.util.HashSet
-import java.util.TreeSet
-import java.util.jar.JarFile
 import org.apache.commons.io.FileUtils
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import org.junit.runners.Parameterized.Parameters
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
+import java.io.File
+import java.io.IOException
+import java.util.TreeSet
+import java.util.jar.JarFile
 
 private fun String.pkgToPath(): String {
   return this.replace(".", "/")
@@ -196,10 +193,12 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
+  private val fixture
+    get() = projectRule.fixture as JavaCodeInsightTestFixture
+
   class TestParameters(val mode: DataBindingMode) {
     val projectName: String =
       if (mode == DataBindingMode.ANDROIDX) PROJECT_WITH_DATA_BINDING_ANDROID_X else PROJECT_WITH_DATA_BINDING_SUPPORT
-    val dataBindingComponentClassName: String = mode.dataBindingComponent.pkgToPath()
     val dataBindingLibArtifact: String =
       if (mode == DataBindingMode.ANDROIDX) ANDROIDX_DATA_BINDING_LIB_ARTIFACT else DATA_BINDING_LIB_ARTIFACT
     val dataBindingBaseBindingClass: String = mode.viewDataBinding.pkgToPath() + ".class"
@@ -256,8 +255,6 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     // description set for the Binding subclasses, since otherwise it's just noise to us
     val baseClassInfo = ClassDescriber.collectDescriptionSet(viewDataBindingClass)
 
-    val javaPsiFacade = JavaPsiFacade.getInstance(projectRule.project)
-
     val classMap = classes.mapNotNull<File, ClassReader> { file ->
       try {
         ClassReader(FileUtils.readFileToByteArray(file))
@@ -269,10 +266,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
       }
     }.map { classReader -> classReader.className to classReader }.toMap()
 
-    // Random class in the current module; we just need something so we can resolve it, triggering
-    // a data binding scope-enlargement behind the scenes
-    val moduleScope = (projectRule.fixture as JavaCodeInsightTestFixture)
-      .findClass("com.android.example.appwithdatabinding.MainActivity").resolveScope
+    val context = fixture.findClass("com.android.example.appwithdatabinding.MainActivity")
 
     // The data binding compiler generates a bunch of stuff we don't care about in Studio. The
     // following set is what we want to make sure we generate PSI for.
@@ -287,14 +281,13 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     )
     val generatedClasses = mutableSetOf<String>()
     val missingClasses = mutableSetOf<String>()
-    val manifestPackage = projectRule.androidFacet.manifest!!.`package`.value!!.pkgToPath()
     for (classReader in classMap.values) {
       val className = classReader.className.pathToPkg()
       if (!interestingClasses.contains(className)) {
         continue
       }
       generatedClasses.add(className)
-      val psiClass = javaPsiFacade.findClass(className, moduleScope)
+      val psiClass = fixture.findClass(className, context)
       if (psiClass == null) {
         missingClasses.add(className)
         continue
