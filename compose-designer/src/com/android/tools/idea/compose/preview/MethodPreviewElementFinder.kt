@@ -96,7 +96,8 @@ object MethodPreviewElementFinder : PreviewElementFinder {
         previewElements.add(PreviewElement(previewName, composableMethodName,
                                            PreviewConfiguration(apiLevel = (configuration["apiLevel"] as? Int) ?: UNDEFINED_API_LEVEL,
                                                                 theme = (configuration["theme"] as? String),
-                                                                orientation = null)))
+                                                                width = configuration["width"] as? Int ?: UNDEFINED_DIMENSION,
+                                                                height = configuration["height"] as? Int ?: UNDEFINED_DIMENSION)))
 
       override fun visitCallExpression(node: UCallExpression): Boolean {
         if (node.methodName != PREVIEW_NAME) {

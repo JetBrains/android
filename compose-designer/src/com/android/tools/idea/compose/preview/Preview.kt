@@ -92,14 +92,25 @@ const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
 const val COMPOSABLE_NAME_ATTR = "tools:composableName"
 
 /**
+ * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
+ * is converted to `wrap_content`. Otherwise, the value is returned concatenated with `dp`.
+ */
+private fun dimensionToString(dimension: Int) = if (dimension == UNDEFINED_DIMENSION) {
+  "wrap_content"
+}
+else {
+  "${dimension}dp"
+}
+
+/**
  * Generates the XML string wrapper for one [PreviewElement]
  */
 private fun PreviewElement.toPreviewXmlString() =
   """
       <$COMPOSE_VIEW_ADAPTER xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="${dimensionToString(configuration.width)}"
+        android:layout_height="${dimensionToString(configuration.height)}"
         android:padding="5dp"
         $COMPOSABLE_NAME_ATTR="$method"/>
   """.trimIndent()
