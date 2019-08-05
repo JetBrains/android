@@ -75,9 +75,6 @@ public final class FreemarkerUtils {
     paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
     paramMap.put("compareVersionsIgnoringQualifiers", new FmCompareVersionsIgnoringQualifiersMethod());
 
-    // TODO(qumeric): remove
-    paramMap.put("isAndroidxEnabled", new FmIsAndroidxEnabledMethod(paramMap));
-
     // Dependencies multimap. Doesn't store duplicates, preserves insertion order.
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP, LinkedHashMultimap.create());
 
