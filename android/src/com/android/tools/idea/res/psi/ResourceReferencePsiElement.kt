@@ -16,12 +16,14 @@
 package com.android.tools.idea.res.psi
 
 import com.android.SdkConstants.ATTR_NAME
+import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.AndroidRClassBase
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.getResourceName
 import com.android.tools.idea.res.isValueBased
@@ -31,6 +33,8 @@ import com.intellij.psi.ElementDescriptionLocation
 import com.intellij.psi.ElementDescriptionProvider
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.find.findUsages.FindUsagesHandler
+import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -92,12 +96,18 @@ data class ResourceReferencePsiElement(
     }
 
     private fun convertAndroidLightField(element: AndroidLightField) : ResourceReferencePsiElement? {
-      if (element.containingClass.containingClass !is AndroidRClassBase) {
-        return null
-      }
+      val grandClass = element.containingClass.containingClass as? AndroidRClassBase ?: return null
       val resourceClassName = AndroidResourceUtil.getResourceClassName(element) ?: return null
       val resourceType = ResourceType.fromClassName(resourceClassName) ?: return null
-      return ResourceReferencePsiElement(ResourceReference(ResourceNamespace.TODO(), resourceType, element.name), element.manager)
+      val facet = element.androidFacet
+      val namespacing = facet?.let { ResourceRepositoryManager.getInstance(it).namespacing }
+      val resourceNamespace = if (AaptOptions.Namespacing.DISABLED == namespacing) {
+        ResourceNamespace.RES_AUTO
+      }
+      else {
+        ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
+      }
+      return ResourceReferencePsiElement(ResourceReference(resourceNamespace, resourceType, element.name), element.manager)
     }
 
     /**
