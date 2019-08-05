@@ -17,11 +17,12 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import javax.swing.JComboBox;
+import javax.swing.JRootPane;
+import javax.swing.JTextField;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
 
 public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureAndroidModuleStepFixture, W> {
@@ -32,8 +33,7 @@ public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   public ConfigureAndroidModuleStepFixture<W> enterModuleName(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Application/Library name");
-    replaceText(textField, text);
+    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).setText(text);
     return this;
   }
 

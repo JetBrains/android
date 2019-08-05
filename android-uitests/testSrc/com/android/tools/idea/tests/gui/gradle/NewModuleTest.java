@@ -86,9 +86,9 @@ public class NewModuleTest {
   public void createNewAndroidLibraryWithDefaults() throws Exception {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Android Library")
-      .clickNextToStep("Android Library")
-      .setModuleName("somelibrary")
+      .clickNextToAndroidLibrary()
+      .enterModuleName("somelibrary")
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
 
@@ -119,7 +119,9 @@ public class NewModuleTest {
     guiTest.ideFrame()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNext() // Default Phone & Tablet Module
-      .setModuleName("otherModule")
+      .getConfigureAndroidModuleStep()
+      .enterModuleName("otherModule")
+      .wizard()
       .clickNext()
       .clickNext() // Default "Empty Activity"
       .clickFinish()
