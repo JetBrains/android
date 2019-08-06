@@ -57,7 +57,7 @@ public class CreateNewAppModuleWithDefaultsTest {
            .clickNextPhoneAndTabletModule()
            .enterModuleName("application_module")
            .wizard()
-           .clickNextToStep("Add an Activity to Mobile")
+           .clickNext()
            .chooseActivity("No Activity")
            .clickFinish()
            .waitForGradleProjectSyncToFinish(Wait.seconds(30));
