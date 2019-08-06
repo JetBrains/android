@@ -23,13 +23,10 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import javax.swing.JDialog;
 import javax.swing.JRootPane;
-import javax.swing.JTextField;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,19 +49,6 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
     listFixture.replaceCellReader((list, index) -> ((ModuleGalleryEntry)list.getModel().getElementAt(index)).getName());
     listFixture.clickItem(name);
-    return this;
-  }
-
-  @NotNull
-  public NewModuleWizardFixture setFileName(String name) {
-    TextFieldWithBrowseButton panel = robot().finder().findByLabel(target(), "File name:", TextFieldWithBrowseButton.class);
-    new JTextComponentFixture(robot(), robot().finder().findByType(panel, JTextField.class)).setText(name);
-    return this;
-  }
-
-  @NotNull
-  public NewModuleWizardFixture setSubprojectName(String name) {
-    new JTextComponentFixture(robot(), robot().finder().findByLabel(target(), "Subproject name:", JTextField.class)).setText(name);
     return this;
   }
 
@@ -116,6 +100,13 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
     chooseModuleType(message("android.wizard.module.new.benchmark.module.app"));
     clickNextToStep(message("android.wizard.module.config.title"));
     return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
+  }
+
+  @NotNull
+  public ConfigureNewModuleFromJarStepFixture<NewModuleWizardFixture> clickNextToModuleFromJar() {
+    chooseModuleType(message("android.wizard.module.import.title"));
+    clickNextToStep(message("android.wizard.module.import.library.title"));
+    return new ConfigureNewModuleFromJarStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
