@@ -258,8 +258,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     myResourcePathPrefix = myResourceDir.getPath() + '/';
     myDataBindingEnabled = isDataBindingEnabled(facet);
     myViewBindingEnabled = isViewBindingEnabled(facet);
-    myPsiListener = StudioFlags.INCREMENTAL_RESOURCE_REPOSITORIES.get() ? new IncrementalUpdatePsiListener() : new SimplePsiListener();
     myPsiManager = PsiManager.getInstance(getProject());
+
+    PsiTreeChangeListener psiListener = StudioFlags.INCREMENTAL_RESOURCE_REPOSITORIES.get()
+                                        ? new IncrementalUpdatePsiListener()
+                                        : new SimplePsiListener();
+    myPsiListener = LOG.isDebugEnabled()
+                    ? new LoggingPsiTreeChangeListener(psiListener, LOG)
+                    : psiListener;
 
     Loader loader = new Loader(this, cachingData);
     loader.load();
