@@ -17,7 +17,6 @@ package org.jetbrains.android.formatter;
 
 import com.android.tools.idea.io.TestFileUtils;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -137,7 +136,7 @@ public final class AndroidXmlArrangementTest extends AndroidTestCase {
 
     WriteCommandAction.runWriteCommandAction(project, () -> {
       PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
-      ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(psiFile.getTextRange()));
+      ArrangementEngine.getInstance().arrange(psiFile, Collections.singleton(psiFile.getTextRange()));
     });
   }
 }

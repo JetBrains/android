@@ -40,7 +40,6 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
@@ -241,7 +240,7 @@ public class ViewLoader {
 
   @NotNull
   private ViewLoaderExtension[] getExtensions() {
-    ExtensionsArea area = Extensions.getArea(myModule.getProject());
+    ExtensionsArea area = myModule.getProject().getExtensionArea();
     if (!area.hasExtensionPoint(ViewLoaderExtension.EP_NAME.getName())) {
       return EMPTY_EXTENSION_LIST;
     }
