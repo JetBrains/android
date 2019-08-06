@@ -131,7 +131,7 @@ class PsContextImpl constructor(
   private fun requestGradleModels() {
     if (disableResolveModels) return
     val project = this.project.ideProject
-    gradleSyncEventDispatcher.multicaster.syncStarted(project, false)
+    gradleSyncEventDispatcher.multicaster.syncStarted(project)
     future?.cancel(true)
     gradleSync
       .requestProjectResolved(project, this)

@@ -67,7 +67,7 @@ class FixBuildToolsProcessorTest : AndroidGradleTestCase() {
     val processor = FixBuildToolsProcessor(project, ImmutableList.of(file), "77.7.7", false, false)
     val usages = processor.findUsages()
     GradleSyncState.subscribe(project, object : GradleSyncListener {
-      override fun syncStarted(project: Project, sourceGenerationRequested: Boolean) {
+      override fun syncStarted(project: Project) {
         fail()
       }
     })
@@ -89,7 +89,7 @@ class FixBuildToolsProcessorTest : AndroidGradleTestCase() {
     val usages = processor.findUsages()
     var synced = false
     GradleSyncState.subscribe(project, object : GradleSyncListener {
-      override fun syncStarted(project: Project, sourceGenerationRequested: Boolean) {
+      override fun syncStarted(project: Project) {
         synced = true
       }
     })
