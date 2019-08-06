@@ -73,6 +73,7 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LOW_MEMORY
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_EAP_REPO
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MANIFEST_DIR
@@ -296,6 +297,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
 
   fun setLanguage(language: Language): TemplateValueInjector {
     myTemplateValues[ATTR_LANGUAGE] = language.toString()
+    myTemplateValues[ATTR_KOTLIN_SUPPORT] = language == Language.KOTLIN
     return this
   }
 
