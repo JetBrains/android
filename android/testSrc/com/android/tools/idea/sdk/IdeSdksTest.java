@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_9;
@@ -190,4 +191,42 @@ public class IdeSdksTest extends PlatformTestCase {
     doReturn(JDK_1_9).when(spyJdks).findVersion(same(fakeFile));
     assertFalse(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
   }
+
+  public void testJdkEnvVariableNoDefined() {
+    myIdeSdks.initializeJdkEnvVariable(null);
+    assertThat(myIdeSdks.isJdkEnvVariableDefined()).isFalse();
+    assertThat(myIdeSdks.isJdkEnvVariableValid()).isFalse();
+    assertThat(myIdeSdks.getEnvVariableJdk()).isNull();
+    assertThat(myIdeSdks.getEnvVariableJdkValue()).isNull();
+    assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
+    assertThat(myIdeSdks.setUseEnvVariableJdk(true)).isFalse();
+    assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
+  }
+
+  public void testJdkEnvVariableNotValid() {
+    String invalidPath = "not_a_valid_path";
+    myIdeSdks.initializeJdkEnvVariable(invalidPath);
+    assertThat(myIdeSdks.isJdkEnvVariableDefined()).isTrue();
+    assertThat(myIdeSdks.isJdkEnvVariableValid()).isFalse();
+    assertThat(myIdeSdks.getEnvVariableJdk()).isNull();
+    assertThat(myIdeSdks.getEnvVariableJdkValue()).isEqualTo(invalidPath);
+    assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
+    assertThat(myIdeSdks.setUseEnvVariableJdk(true)).isFalse();
+    assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
+  }
+
+  public void testJdkEnvVariableValid() {
+    String validPath = IdeSdks.getJdkFromJavaHome();
+    myIdeSdks.initializeJdkEnvVariable(validPath);
+    assertThat(myIdeSdks.isJdkEnvVariableDefined()).isTrue();
+    assertThat(myIdeSdks.isJdkEnvVariableValid()).isTrue();
+    assertThat(myIdeSdks.getEnvVariableJdk()).isEqualTo(new File(validPath));
+    assertThat(myIdeSdks.getEnvVariableJdkValue()).isEqualTo(validPath);
+    assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
+    assertThat(myIdeSdks.setUseEnvVariableJdk(false)).isTrue();
+    assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
+    assertThat(myIdeSdks.setUseEnvVariableJdk(true)).isTrue();
+    assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
+  }
+
 }
