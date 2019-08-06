@@ -55,15 +55,12 @@ public class NavNlEditorTest {
 
   @Test
   public void testSelectComponent() throws Exception {
-    IdeFrameFixture frame = guiTest.importProject("Navigation");
+    IdeFrameFixture frame = guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish();
+
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layout = editor.getLayoutEditor(true);
-
-    // This is separate to catch the case where we have a problem opening the file before sync is complete.
-    frame.waitForGradleProjectSyncToFinish();
-
     layout.waitForRenderToFinish();
 
     NlComponentFixture screen = ((NavDesignSurfaceFixture)layout.getSurface()).findDestination("first_screen");
