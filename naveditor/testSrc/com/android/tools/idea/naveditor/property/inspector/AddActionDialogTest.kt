@@ -55,6 +55,11 @@ class AddActionDialogTest : NavTestCase() {
     }
 
     AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f1")!!, DESIGN_SURFACE).runAndClose { dialog ->
+      assertFalse(dialog.dialog.myEnterComboBox.isEnabled)
+      assertFalse(dialog.dialog.myExitComboBox.isEnabled)
+      assertFalse(dialog.dialog.myPopEnterComboBox.isEnabled)
+      assertFalse(dialog.dialog.myPopExitComboBox.isEnabled)
+
       val destinationCombo = dialog.dialog.myDestinationComboBox
       val f2 = model.find("f2")
       for (i in 0 until destinationCombo.itemCount) {
@@ -69,6 +74,11 @@ class AddActionDialogTest : NavTestCase() {
       val action = model.find("foo")!!
       assertEquals(model.find("f2"), action.actionDestination)
       assertEquals(model.find("f1"), dialog.source)
+
+      assertTrue(dialog.dialog.myEnterComboBox.isEnabled)
+      assertTrue(dialog.dialog.myExitComboBox.isEnabled)
+      assertTrue(dialog.dialog.myPopEnterComboBox.isEnabled)
+      assertTrue(dialog.dialog.myPopExitComboBox.isEnabled)
     }
   }
 
@@ -121,6 +131,10 @@ class AddActionDialogTest : NavTestCase() {
       assertFalse(dialog.dialog.myIdTextField.isEnabled)
       assertTrue(dialog.dialog.myDestinationComboBox.isEnabled)
       assertEquals(model.find("f2")!!, dialog.destination)
+      assertTrue(dialog.dialog.myEnterComboBox.isEnabled)
+      assertTrue(dialog.dialog.myExitComboBox.isEnabled)
+      assertTrue(dialog.dialog.myPopEnterComboBox.isEnabled)
+      assertTrue(dialog.dialog.myPopExitComboBox.isEnabled)
     }
   }
 
