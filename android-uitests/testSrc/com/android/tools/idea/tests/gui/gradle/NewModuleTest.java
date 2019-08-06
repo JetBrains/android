@@ -45,10 +45,10 @@ public class NewModuleTest {
 
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Import .JAR/.AAR Package")
-      .clickNextToStep("Import Module from Library")
+      .clickNextToModuleFromJar()
       .setFileName(jarFile)
       .setSubprojectName("localJarLib")
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
       .getEditor()
