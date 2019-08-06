@@ -114,8 +114,7 @@ public class NewModuleTest {
     WizardUtils.createNewProject(guiTest); // Default projects are created with androidx dependencies
     guiTest.ideFrame()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .clickNext() // Default Phone & Tablet Module
-      .getConfigureAndroidModuleStep()
+      .clickNextPhoneAndTabletModule()
       .enterModuleName("otherModule")
       .wizard()
       .clickNext()
@@ -138,8 +137,7 @@ public class NewModuleTest {
     WizardUtils.createNewProject(guiTest); // Default projects are created with androidx dependencies
     guiTest.ideFrame()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .clickNext() // Default Phone & Tablet Module
-      .getConfigureAndroidModuleStep()
+      .clickNextPhoneAndTabletModule()
       .setSourceLanguage("Kotlin")
       .enterModuleName("otherModule")
       .wizard()
