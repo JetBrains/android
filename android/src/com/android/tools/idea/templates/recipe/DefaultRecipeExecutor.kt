@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -147,13 +148,25 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     io.applyChanges(buildModel)
   }
 
+  override fun setExtVar(name: String, value: String) {
+    val rootBuildFile = getGradleBuildFilePath(getBaseDirPath(context.project))
+    // TODO(qumeric) handle it in more reliable way?
+    val buildModel = getBuildModel(rootBuildFile, context.project) ?: return
+    val property = buildModel.buildscript().ext().findProperty(name)
+    if (property.valueType != GradlePropertyModel.ValueType.NONE) {
+      return // we do not override property value if it exists. TODO(qumeric): ask user?
+    }
+    property.setValue(value)
+    io.applyChanges(buildModel)
+  }
+
   override fun addClasspath(mavenUrl: String) {
     val mavenUrl = mavenUrl.trim()
 
     referencesExecutor.addClasspath(mavenUrl)
 
-    val toBeAddedDependency = ArtifactDependencySpec.create(mavenUrl) ?: throw RuntimeException(
-      "$mavenUrl is not a valid classpath dependency")
+    val toBeAddedDependency = ArtifactDependencySpec.create(mavenUrl) ?:
+                              throw RuntimeException("$mavenUrl is not a valid classpath dependency")
 
     val project = context.project
     val rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project))
