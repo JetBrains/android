@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.benchmark
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -60,9 +57,9 @@ class AddBenchmarkModuleTest {
     val ideFrame = guiTest.importSimpleApplication()
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
-      .chooseModuleType("Benchmark Module")
-      .clickNext()
+      .clickNextToBenchmarkModule()
       .setSourceLanguage("Java")
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
       .projectView
@@ -106,9 +103,9 @@ class AddBenchmarkModuleTest {
     val ideFrame = guiTest.importSimpleApplication()
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
-      .chooseModuleType("Benchmark Module")
-      .clickNext()
+      .clickNextToBenchmarkModule()
       .setSourceLanguage("Kotlin")
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
       .projectView
