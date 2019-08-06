@@ -31,6 +31,7 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
@@ -684,12 +685,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull
   private AndroidExtraModelProvider configureAndGetExtraModelProvider() {
     // Here we set up the options for the sync and pass them to the AndroidExtraModelProvider which will decide which will use them
-    // to decide which models t request from Gradle.
+    // to decide which models to request from Gradle.
     Project project = myProjectFinder.findProject(resolverCtx);
     SelectedVariants selectedVariants = null;
     boolean isSingleVariantSync = false;
     boolean shouldGenerateSources = false;
     Collection<String> cachedSourcesAndJavadoc = null;
+    String moduleWithVariantSwitched = null;
 
     if (project != null) {
       isSingleVariantSync = shouldOnlySyncSingleVariant(project);
@@ -697,11 +699,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       if (isSingleVariantSync) {
         SelectedVariantCollector variantCollector = new SelectedVariantCollector(project);
         selectedVariants = variantCollector.collectSelectedVariants();
+        moduleWithVariantSwitched = project.getUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI);
+        project.putUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, null);
       }
       cachedSourcesAndJavadoc = LibraryFilePaths.getInstance(project).retrieveCachedLibs();
     }
 
     SyncActionOptions options = new SyncActionOptions();
+    options.setModuleIdWithVariantSwitched(moduleWithVariantSwitched);
     options.setSingleVariantSyncEnabled(isSingleVariantSync);
     options.setShouldGenerateSources(shouldGenerateSources);
     options.setSelectedVariants(selectedVariants);
