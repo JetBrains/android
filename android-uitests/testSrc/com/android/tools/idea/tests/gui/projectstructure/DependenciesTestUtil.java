@@ -85,7 +85,7 @@ public class DependenciesTestUtil {
 
   protected static void createJavaModule(@NotNull IdeFrameFixture ideFrame) {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .clickNextToJavaLibary()
+      .clickNextToJavaLibrary()
       .wizard()
       .clickFinish() // Use default Java Module name.
       .waitForGradleProjectSyncToFinish();
