@@ -54,9 +54,7 @@ public class CreateNewAppModuleWithDefaultsTest {
   public void createNewAppModuleWithDefaults() throws Exception {
     guiTest.importSimpleApplication()
            .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-           .chooseModuleType("Phone & Tablet Module")
-           .clickNextToStep("Phone & Tablet Module")
-           .getConfigureAndroidModuleStep()
+           .clickNextPhoneAndTabletModule()
            .enterModuleName("application_module")
            .wizard()
            .clickNextToStep("Add an Activity to Mobile")
