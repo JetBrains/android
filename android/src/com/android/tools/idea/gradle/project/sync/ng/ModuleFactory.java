@@ -22,8 +22,10 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
@@ -32,7 +34,6 @@ import static com.intellij.ide.highlighter.ModuleFileType.DOT_DEFAULT_EXTENSION;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleDirPath;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getConfigPath;
 
 class ModuleFactory {
@@ -109,5 +110,34 @@ class ModuleFactory {
       myRootModel.removeOrderEntry(orderEntry);
       return value;
     }
+  }
+
+  /**
+   * Returns the physical path of the module's root directory (the path in the file system.)
+   * <p>
+   * It is important to note that Gradle has its own "logical" path that may or may not be equal to the physical path of a Gradle project.
+   * For example, the sub-project at ${projectRootDir}/apps/app will have the Gradle path :apps:app. Gradle also allows mapping physical
+   * paths to a different logical path. For example, in settings.gradle:
+   * <pre>
+   *   include ':app'
+   *   project(':app').projectDir = new File(rootDir, 'apps/app')
+   * </pre>
+   * In this example, sub-project at ${projectRootDir}/apps/app will have the Gradle path :app.
+   * </p>
+   *
+   * @param build contains information about the root Gradle project and its sub-projects. Such information includes the physical path of
+   *              the root Gradle project and its sub-projects.
+   * @param path  the Gradle "logical" path. This path uses colon as separator, and may or may not be equal to the physical path of a
+   *              Gradle project.
+   * @return the physical path of the module's root directory.
+   */
+  @Nullable
+  private static File getModuleDirPath(@NotNull GradleBuild build, @NotNull String path) {
+    for (BasicGradleProject project : build.getProjects()) {
+      if (project.getPath().equals(path)) {
+        return project.getProjectDirectory();
+      }
+    }
+    return null;
   }
 }
