@@ -45,7 +45,7 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public NewModuleWizardFixture chooseModuleType(String name) {
+  private NewModuleWizardFixture chooseModuleType(String name) {
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
     listFixture.replaceCellReader((list, index) -> ((ModuleGalleryEntry)list.getModel().getElementAt(index)).getName());
     listFixture.clickItem(name);
@@ -59,9 +59,10 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> getConfigureAndroidModuleStep() {
-    JRootPane rootPane = findStepWithTitle("Configure the new module");
-    return new ConfigureAndroidModuleStepFixture<>(this, rootPane);
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextPhoneAndTabletModule() {
+    chooseModuleType(message("android.wizard.module.new.mobile"));
+    clickNextToStep(message("android.wizard.module.new.mobile"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
