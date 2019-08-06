@@ -24,12 +24,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JRootPane;
 import javax.swing.JTextField;
 import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
@@ -71,13 +69,6 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public NewModuleWizardFixture setSourceLanguage(String sourceLanguage) {
-    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Language:", JComboBox.class, true))
-      .selectItem(sourceLanguage);
-    return this;
-  }
-
-  @NotNull
   public NewModuleWizardFixture chooseActivity(String activity) {
     new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class)).clickItem(activity);
     return this;
@@ -87,12 +78,6 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> getConfigureAndroidModuleStep() {
     JRootPane rootPane = findStepWithTitle("Configure the new module");
     return new ConfigureAndroidModuleStepFixture<>(this, rootPane);
-  }
-
-  @NotNull
-  public ConfigureBasicActivityStepFixture<NewModuleWizardFixture> getConfigureActivityStep() {
-    JRootPane rootPane = findStepWithTitle("Configure Activity");
-    return new ConfigureBasicActivityStepFixture<>(this, rootPane);
   }
 
   @NotNull
@@ -124,6 +109,13 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
     clickNextToStep(message("android.wizard.module.config.title"));
 
     return new ConfigureJavaLibraryStepFixture<>(this, target().getRootPane());
+  }
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextToBenchmarkModule() {
+    chooseModuleType(message("android.wizard.module.new.benchmark.module.app"));
+    clickNextToStep(message("android.wizard.module.config.title"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
