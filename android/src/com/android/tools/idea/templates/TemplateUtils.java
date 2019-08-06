@@ -27,7 +27,6 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -340,7 +339,7 @@ public class TemplateUtils {
       // The textRange of psiElement in the file can change after reformatting
       textRange = psiElement == null ? psiFile.getTextRange() : psiElement.getTextRange();
       psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
-      ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(textRange));
+      ArrangementEngine.getInstance().arrange(psiFile, Collections.singleton(textRange));
 
       if (keepDocumentLocked) {
         psiDocumentManager.commitDocument(document);

@@ -16,7 +16,7 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.intellij.openapi.components.BaseComponent;
-import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.UserDataHolderBase;
@@ -124,6 +124,12 @@ final class ProjectStub extends UserDataHolderBase implements Project {
     throw new UnsupportedOperationException("getPicoContainer is not implement in : " + getClass());
   }
 
+  @NotNull
+  @Override
+  public ExtensionsArea getExtensionArea() {
+    throw new UnsupportedOperationException("getExtensionArea is not implement in : " + getClass());
+  }
+
   @Override
   public <T> T getComponent(@NotNull Class<T> interfaceClass, T defaultImplementation) {
     return null;
@@ -138,6 +144,11 @@ final class ProjectStub extends UserDataHolderBase implements Project {
   @NotNull
   public Condition getDisposed() {
     return o -> isDisposed();
+  }
+
+  @Override
+  public <T> T getService(@NotNull Class<T> serviceClass, boolean isCreate) {
+    return null;
   }
 
   @Override
@@ -163,11 +174,5 @@ final class ProjectStub extends UserDataHolderBase implements Project {
 
   @Override
   public void dispose() {
-  }
-
-  @NotNull
-  @Override
-  public <T> T[] getExtensions(@NotNull final ExtensionPointName<T> extensionPointName) {
-    throw new UnsupportedOperationException("getExtensions()");
   }
 }

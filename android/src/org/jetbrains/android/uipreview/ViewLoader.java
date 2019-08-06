@@ -33,7 +33,6 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
@@ -218,7 +217,7 @@ public class ViewLoader {
 
   @NotNull
   private List<ViewLoaderExtension> getExtensions() {
-    ExtensionsArea area = Extensions.getArea(myModule.getProject());
+    ExtensionsArea area = myModule.getProject().getExtensionArea();
     ExtensionPoint<ViewLoaderExtension> point = area.getExtensionPointIfRegistered(ViewLoaderExtension.EP_NAME.getName());
     return point == null ? Collections.emptyList() : point.getExtensionList();
   }
