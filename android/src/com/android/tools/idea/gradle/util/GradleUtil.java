@@ -45,7 +45,7 @@ import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.impl.ApplicationImpl;
+import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
@@ -432,8 +432,8 @@ public final class GradleUtil {
   public static void stopAllGradleDaemonsAndRestart() {
     DefaultGradleConnector.close();
     Application application = ApplicationManager.getApplication();
-    if (application instanceof ApplicationImpl) {
-      ((ApplicationImpl)application).restart(true);
+    if (application instanceof ApplicationEx) {
+      ((ApplicationEx)application).restart(true);
     }
     else {
       application.restart();
