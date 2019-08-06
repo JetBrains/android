@@ -231,7 +231,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
             completionSuggestionsList.addSuggestion(psiMethod, resolvedType.psiClass, resolvedType.substitutor)
           }
           else {
-            completionSuggestionsList.addSuggestion(psiConvertedField, resolvedType.psiClass, resolvedType.substitutor)
+            completionSuggestionsList.addSuggestion(psiConvertedField, resolvedType.psiClass, resolvedType.substitutor, psiMethod)
           }
         }
       }
@@ -240,18 +240,30 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   }
 
   /**
-   * [qualifierClass] is used so indicate which fields should be bolded
+   * @param qualifierClass class that is the active context for this lookup, allowing fields in
+   *   the current class (vs. a base class) to be bolded
+   * @param fromMethod optionally, a method that this field was synthetically generated from; if
+   *   present, it will be mentioned in the lookup as the field's source.
    */
-  private fun MutableList<LookupElement>.addSuggestion(psiField: PsiField, qualifierClass: PsiClass?, substitutor: PsiSubstitutor) {
-    val lookupBuilder = JavaLookupElementBuilder
+  private fun MutableList<LookupElement>.addSuggestion(psiField: PsiField,
+                                                       qualifierClass: PsiClass?,
+                                                       substitutor: PsiSubstitutor,
+                                                       fromMethod: PsiMethod? = null) {
+    var lookupBuilder = JavaLookupElementBuilder
       .forField(psiField, psiField.name, qualifierClass)
       .withTypeText(PsiFormatUtil.formatVariable(psiField, PsiFormatUtilBase.SHOW_TYPE, substitutor))
       .withInsertHandler(onCompletionHandler)
+
+    fromMethod?.presentation?.presentableText?.let { methodText ->
+      lookupBuilder = lookupBuilder.withTailText(" (from $methodText)", true)
+    }
+
     add(lookupBuilder)
   }
 
   /**
-   * [qualifierClass] is used to indicate which methods should be bolded
+   * @param qualifierClass class that is the active context for this lookup, allowing methods in
+   *   the current class (vs. a base class) to be bolded
    */
   private fun MutableList<LookupElement>.addSuggestion(psiMethod: PsiMethod, qualifierClass: PsiClass?, substitutor: PsiSubstitutor) {
     val lookupBuilder = JavaLookupElementBuilder
