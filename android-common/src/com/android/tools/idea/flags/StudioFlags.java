@@ -269,7 +269,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_SPLIT_EDITOR = Flag.create(
     NELE, "split.layout.editor", "Enable design editors and XML side-by-side view.",
     "Enable this flag to display the design editors side-by-side with their text representation.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_RESOURCE_POPUP_PICKER = Flag.create(
     NELE, "show.resource.popup.picker", "Enable popup  resource picker in layout editor.",
