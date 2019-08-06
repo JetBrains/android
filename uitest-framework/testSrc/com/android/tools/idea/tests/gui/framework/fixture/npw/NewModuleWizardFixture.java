@@ -75,7 +75,7 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public ConfigureJavaLibraryStepFixture<NewModuleWizardFixture> clickNextToJavaLibary() {
+  public ConfigureJavaLibraryStepFixture<NewModuleWizardFixture> clickNextToJavaLibrary() {
     clickNextToStep(message("android.wizard.module.new.java.library"), message("android.wizard.module.config.title"));
     return new ConfigureJavaLibraryStepFixture<>(this, target().getRootPane());
   }
