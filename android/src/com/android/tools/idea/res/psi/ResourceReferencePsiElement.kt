@@ -27,23 +27,41 @@ import com.android.tools.idea.res.getResourceName
 import com.android.tools.idea.res.isValueBased
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.res.resourceNamespace
+import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
+import com.intellij.find.findUsages.FindUsagesHandler
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiPolyVariantReference
+import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.FakePsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
+import com.intellij.refactoring.rename.RenameHandler
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
 import org.jetbrains.android.util.AndroidResourceUtil
 
 /**
  * A fake PsiElement that wraps a [ResourceReference].
+ *
+ * Android resources can have multiple definitions, but most editor operations should not need to know how many definitions a given resource
+ * has or which one was used to start a refactoring, e.g. a rename. A [ResourceReferencePsiElement] implements [PsiElement] so can be used
+ * in editor APIs, but abstracts away how the resource was actually defined.
+ *
+ * Most [PsiReference]s related to Android resources resolve to instances of this class (other than R fields, since we don't control
+ * references in Java/Kotlin). We do this instead of using [PsiPolyVariantReference] and resolving to all definitions, because checking if a
+ * resource is defined at all can be done using resource repositories and is faster than determining the exact XML attribute that defines
+ * it. Another reason is that most refactorings (e.g. renaming) are only passed one [PsiElement] as their "target". This class is used to
+ * recognize all mentions of Android resources (XML, * "@+id", R fields) as early as possible. Custom [FindUsagesHandler],
+ * [GotoDeclarationHandler] and [RenameHandler] are used to handle all these cases uniformly.
  */
-data class ResourceReferencePsiElement(val resourceReference: ResourceReference,
-                                       val psiManager: PsiManager) : FakePsiElement() {
+data class ResourceReferencePsiElement(
+  val resourceReference: ResourceReference,
+  val psiManager: PsiManager
+) : FakePsiElement() {
 
   companion object {
 
