@@ -22,8 +22,7 @@ import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.CompletionType
-import com.intellij.codeInsight.completion.JavaLookupElementBuilder
-import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.facet.FacetManager
 import com.intellij.psi.PsiField
@@ -43,7 +42,7 @@ import org.junit.runners.Parameterized
  * expected.
  */
 @RunWith(Parameterized::class)
-class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode) {
+class DataBindingCompletionContributorTest(private val dataBindingMode: DataBindingMode) {
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
@@ -856,14 +855,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     val lookupElements = fixture.completeBasic()
 
     assertThat(lookupElements.size).isEqualTo(2)
-    assertThat(lookupElements[0]).isInstanceOf(LookupElementBuilder::class.java)
-
-    // Create expected suggestion
-    val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
-    val psiField = psiClass.findFieldByName("field1", false)!!
-    val expectedLookupElement = JavaLookupElementBuilder.forField(psiField).withTypeText("Int")
-
-    assertThat(lookupElementBuilder.lookupString).isEqualTo(expectedLookupElement.lookupString)
+    assertThat(lookupElements.map { it.renderedText }).containsExactly("int field1", "String field2")
   }
 
   @Test
@@ -1014,10 +1006,10 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
-    assertThat(fixture.lookupElementStrings).apply {
-      contains("value")
-      doesNotContain("getValue()")
-    }
+
+    assertThat(fixture.lookupElementStrings).doesNotContain("getValue")
+    val lookupElement = fixture.lookupElements!!.first { it.lookupString == "value" }
+    assertThat(lookupElement.renderedText).isEqualTo("String value (from getValue())")
   }
 
   @Test
@@ -1050,11 +1042,12 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
-    assertThat(fixture.lookupElementStrings).apply {
-      contains("good")
-      doesNotContain("isGood()")
-    }
-    val psiField = (fixture.lookupElements!!.first { it.lookupString == "good" }.psiElement) as PsiField
+
+    assertThat(fixture.lookupElementStrings).doesNotContain("isGood")
+    val lookupElement = fixture.lookupElements!!.first { it.lookupString == "good" }
+    assertThat(lookupElement.renderedText).isEqualTo("boolean good (from isGood())")
+
+    val psiField = lookupElement.psiElement as PsiField
     assertThat(psiField.modifierList!!.hasModifierProperty("public")).isTrue()
   }
 
@@ -1088,10 +1081,10 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
-    assertThat(fixture.lookupElementStrings).apply {
-      contains("setName")
-      doesNotContain("name")
-    }
+    assertThat(fixture.lookupElementStrings).doesNotContain("name")
+
+    val lookupElement = fixture.lookupElements!!.first { it.lookupString == "setName" }
+    assertThat(lookupElement.renderedText).isEqualTo("void setName(String name)")
   }
 
   @Test
@@ -1211,13 +1204,9 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
-    val getDataLookupElement = fixture.lookupElements!!.first { it.lookupString == "setData" }
-    val presentation = LookupElementPresentation()
-    getDataLookupElement.renderElement(presentation)
-    // presentation.typeText represents string for the return type, which should contain "Integer" instead of "R".
-    assertThat(presentation.typeText).contains("Integer")
-    // presentation.tailText represents string for parameters, which should contain "String" instead of "T".
-    assertThat(presentation.tailText).contains("String")
+    val lookupElement = fixture.lookupElements!!.first { it.lookupString == "setData" }
+    // Rendered version should have substituted both the return type and arg type
+    assertThat(lookupElement.renderedText).isEqualTo("Integer setData(String data)")
   }
 
   @Test
@@ -1285,10 +1274,23 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
-    val getDataLookupElement = fixture.lookupElements!!.first { it.lookupString == "data" }
-    val presentation = LookupElementPresentation()
-    getDataLookupElement.renderElement(presentation)
-    // presentation.typeText represents string for the return type, which should contain "String" instead of "X" or "Data<X>".
-    assertThat(presentation.typeText).contains("String")
+    val lookupElement = fixture.lookupElements!!.first { it.lookupString == "data" }
+    // The generic "X" type should have been substituted with the proper type
+    assertThat(lookupElement.renderedText).startsWith("String")
   }
+
+  /**
+   * Returns a lookup element's full rendered text, with a "$type $value$tail" format,
+   * e.g. "String name (from getName())"
+   *
+   * The default lookup element string provided by the test fixture only includes the lookup name,
+   * but in many tests we want to ensure that the additional details are correct as well
+   */
+  private val LookupElement.renderedText: String
+    get() {
+      val presentation = LookupElementPresentation()
+      renderElement(presentation)
+
+      return "${presentation.typeText} ${presentation.itemText}${presentation.tailText.orEmpty()}"
+    }
 }
