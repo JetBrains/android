@@ -44,7 +44,7 @@ import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.collect.Iterables;
-import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
@@ -401,7 +401,7 @@ public final class TemplateValueInjector {
   }
 
   private void addKotlinVersion() {
-    assert PluginManager.getPlugin(PluginId.findId(("org.jetbrains.kotlin"))) != null ||
+    assert PluginManagerCore.getPlugin(PluginId.findId(("org.jetbrains.kotlin"))) != null ||
            !GuiTestingService.getInstance().isGuiTestingMode()
       : "Run Test Configuration missing. You should set -Dplugin.path=../../../../prebuilts/tools/common/kotlin-plugin/Kotlin";
 

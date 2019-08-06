@@ -25,10 +25,13 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.android.utils.ILogger;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -52,9 +55,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import static com.android.SdkConstants.TAG_ATTR;
-import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
-import static com.android.SdkConstants.TAG_EAT_COMMENT;
+import static com.android.SdkConstants.*;
 import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
 
 /**
@@ -835,7 +836,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
   @NotNull
   private static String getAndroidPluginVersion() {
-    IdeaPluginDescriptor plugin = PluginManager.getPlugin(PluginId.getId(ANDROID_PLUGIN_ID));
+    IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(PluginId.getId(ANDROID_PLUGIN_ID));
     if (plugin == null) {
       return "unknown";
     }

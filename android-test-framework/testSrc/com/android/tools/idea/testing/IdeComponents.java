@@ -21,7 +21,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.impl.ProjectImpl;
+import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.NotNullLazyKey;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -51,8 +51,8 @@ public final class IdeComponents implements Disposable {
   }
 
   public IdeComponents(@Nullable Project project, @NotNull Disposable disposable) {
-    if (project instanceof ProjectImpl) {
-      if (((ProjectImpl)project).isLight() && disposable == project) {
+    if (project instanceof ProjectEx) {
+      if (((ProjectEx)project).isLight() && disposable == project) {
         throw new AssertionError("Light (in-memory) projects are not disposed between tests, please use other IdeComponents " +
                                  "constructor when using light fixtures.");
       }
