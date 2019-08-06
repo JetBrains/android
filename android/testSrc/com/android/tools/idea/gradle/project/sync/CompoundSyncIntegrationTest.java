@@ -48,9 +48,8 @@ public class CompoundSyncIntegrationTest extends SingleVariantSyncIntegrationTes
     AtomicBoolean syncFinished = new AtomicBoolean(false);
     GradleSyncState.subscribe(getProject(), new GradleSyncListener() {
       @Override
-      public void syncStarted(@NotNull Project project, boolean sourceGenerationRequested) {
+      public void syncStarted(@NotNull Project project) {
         assertSame(getProject(), project);
-        assertTrue(sourceGenerationRequested);
         syncStarted.set(true);
       }
 

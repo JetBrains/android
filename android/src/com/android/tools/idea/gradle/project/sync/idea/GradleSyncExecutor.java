@@ -94,7 +94,7 @@ public class GradleSyncExecutor {
 
   @WorkerThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
-    boolean shouldBuildAfterSync = StudioFlags.BUILD_AFTER_SYNC_ENABLED.get() && request.generateSourcesOnSuccess;
+    boolean shouldBuildAfterSync = StudioFlags.BUILD_AFTER_SYNC_ENABLED.get();
     if (SYNC_WITH_CACHED_MODEL_ONLY || request.useCachedGradleModels) {
       ProjectBuildFileChecksums buildFileChecksums = ProjectBuildFileChecksums.findFor((myProject));
       if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {

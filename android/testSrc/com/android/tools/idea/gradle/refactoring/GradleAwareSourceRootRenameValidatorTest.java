@@ -70,9 +70,7 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
   private void verifyErrorMessage() throws Exception {
     loadSimpleApplication();
     // Generate buildConfig.
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED);
-    request.generateSourcesOnSuccess = true;
-    requestSyncAndWait(request);
+    requestSyncAndWait(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
 
     Project project = getProject();
     File sourceRoot = new File(project.getBasePath(), "app/build/generated/source/buildConfig/debug");
