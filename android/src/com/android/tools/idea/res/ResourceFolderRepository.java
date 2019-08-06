@@ -477,7 +477,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       String name = StringUtil.unescapeXmlEntities(nameValue);
       if (StringUtil.isNotEmpty(name)) {
         if (usedNames.add(name)) {
-          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.VARIABLE, tag, resourceFile);
+          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.VARIABLE, tag);
           items.add(item);
         }
       }
@@ -499,7 +499,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
       if (StringUtil.isNotEmpty(alias)) {
         if (usedAliases.add(type)) {
-          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(alias, DataBindingResourceType.IMPORT, tag, resourceFile);
+          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(alias, DataBindingResourceType.IMPORT, tag);
           items.add(item);
         }
       }
