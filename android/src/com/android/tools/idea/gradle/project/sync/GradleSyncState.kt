@@ -259,8 +259,8 @@ open class GradleSyncState(
     // TODO(b/133154939): Move this out of GradleSyncState, possibly to AndroidProjectComponent.
     if (lastSyncFinishedTimeStamp < 0) GradleSyncResultPublisher.getInstance(project)
 
-    listener?.syncStarted(project, request.generateSourcesOnSuccess)
-    syncPublisher { syncStarted(project, request.generateSourcesOnSuccess) }
+    listener?.syncStarted(project)
+    syncPublisher { syncStarted(project) }
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
     return true

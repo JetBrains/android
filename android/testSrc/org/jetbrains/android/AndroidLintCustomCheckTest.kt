@@ -69,7 +69,6 @@ class AndroidLintCustomCheckTest {
       }
 
       val request = GradleSyncInvoker.Request.testRequest()
-      request.generateSourcesOnSuccess = true // Needed to trigger setup of custom Lint checks.
       myProjectRule.requestSyncAndWait(request)
     }
   }
