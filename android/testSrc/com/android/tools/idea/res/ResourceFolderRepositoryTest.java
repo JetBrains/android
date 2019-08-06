@@ -28,6 +28,7 @@ import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans
 import static com.android.tools.idea.testing.AndroidTestUtils.moveCaret;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.AttrResourceValue;
@@ -59,8 +60,8 @@ import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
@@ -70,6 +71,7 @@ import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.WaitFor;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
 import com.intellij.util.ui.UIUtil;
@@ -3894,7 +3896,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   public void testSerializationEditXmlFileAndLoad() throws Exception {
     VirtualFile file1 = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
-    File file1AsFile = VfsUtilCore.virtualToIoFile(file1);
+    File file1AsFile = virtualToIoFile(file1);
     assertNotNull(file1AsFile);
     ResourceFolderRepository resources = createRepository(true);
     assertNotNull(resources);
@@ -4183,6 +4185,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     );
     assertEquals(2, repository.getResources(RES_AUTO, ResourceType.DRAWABLE).size());
+  }
+
+  public void testBackgroundUpdates() throws Exception {
+    VirtualFile valuesXmlVirtualFile = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    ResourceFolderRepository repository = createRegisteredRepository();
+
+    File valuesXmlFile = virtualToIoFile(valuesXmlVirtualFile);
+    FileUtil.writeToFile(valuesXmlFile, "<resources><string name='from_git'>git</string></resources>");
+    LocalFileSystem.getInstance().refresh(false);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+
+    assertTrue(repository.hasResources(RES_AUTO, ResourceType.STRING, "from_git"));
   }
 
   @Nullable

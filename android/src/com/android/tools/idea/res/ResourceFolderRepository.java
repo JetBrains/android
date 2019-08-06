@@ -85,6 +85,7 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
@@ -727,8 +728,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (resFile instanceof PsiResourceFile) {
       return false;
     }
-    // This schedules a rescan, and when the actual rescanImmediately happens it will purge non-PSI
+    // This schedules a rescan, and when the actual scan happens it will purge non-PSI
     // items as needed, populate psi items, and add to myFileTypes once done.
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Converting to PSI ", psiFile);
+    }
     scheduleScan(psiFile, folderType);
     return true;
   }
@@ -761,6 +765,18 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     synchronized (SCAN_LOCK) {
       return myPendingScans != null && myPendingScans.contains(psiFile);
     }
+  }
+
+  void scheduleScan(@NotNull VirtualFile virtualFile) {
+    ReadAction.run(() -> {
+      PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+      if (psiFile != null) {
+        ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+        if (folderType != null) {
+          scheduleScan(psiFile, folderType);
+        }
+      }
+    });
   }
 
   @VisibleForTesting
@@ -829,6 +845,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
 
     if (psiFile.getProject().isDisposed()) return;
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Rescanning ", psiFile);
+    }
 
     Map<ResourceType, ListMultimap<String, ResourceItem>> result = new HashMap<>();
 
@@ -1853,6 +1873,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private void onSourceRemoved(@NotNull VirtualFile file, @NotNull ResourceItemSource<? extends ResourceItem> source) {
+    LOG.debug("Removing file from repository ", file);
+
     boolean removed = removeItemsFromSource(source);
     if (removed) {
       setModificationCount(ourModificationCounter.incrementAndGet());
