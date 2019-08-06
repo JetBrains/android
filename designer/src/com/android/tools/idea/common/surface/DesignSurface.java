@@ -189,6 +189,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private State myState = State.FULL;
 
+  private final Timer myRepaintTimer = new Timer(15, (actionEvent) -> {
+    repaint();
+  });
+
   public DesignSurface(@NotNull Project project, @NotNull SelectionModel selectionModel, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
@@ -272,7 +276,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * @return The scaling factor between Scene coordinates and un-zoomed, un-offset Swing coordinates.
-   *
+   * <p>
    * TODO: reconsider where this value is stored/who's responsible for providing it. It might make more sense for it to be stored in
    * the Scene or provided by the SceneManager.
    */
@@ -343,6 +347,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Add an {@link NlModel} to DesignSurface and return the associated SceneManager.
    * If it is added before then nothing happens.
+   *
    * @param model the added {@link NlModel}
    */
   @NotNull
@@ -368,6 +373,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, only
    * the refresh will be triggered.
    * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
+   *
    * @param model the added {@link NlModel}
    */
   @NotNull
@@ -389,6 +395,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Remove an {@link NlModel} from DesignSurface. If it had not been added before then nothing happens.
+   *
    * @param model the {@link NlModel} to remove
    * @returns true if the model existed and was removed
    */
@@ -412,6 +419,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Remove an {@link NlModel} from DesignSurface. If it isn't added before then nothing happens.
+   *
    * @param model the {@link NlModel} to remove
    */
   public void removeModel(@NotNull NlModel model) {
@@ -425,6 +433,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Sets the current {@link NlModel} to DesignSurface.
+   *
    * @see #addModel(NlModel)
    * @see #removeModel(NlModel)
    */
@@ -573,13 +582,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  private Timer myRepaintTimer = new Timer(15, (actionEvent) -> { repaint(); });
-
   /**
    * Call this to generate repaints
    */
   public void needsRepaint() {
-     if (!myRepaintTimer.isRunning()) {
+    if (!myRepaintTimer.isRunning()) {
       myRepaintTimer.setRepeats(false);
       myRepaintTimer.start();
     }
@@ -669,14 +676,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * </p><p>
    * If type is {@link ZoomType#IN}, zoom toward the given
    * coordinates (relative to {@link #getLayeredPane()})
-   *
+   * <p>
    * If x or y are negative, zoom toward the center of the viewport.
    * </p>
    *
    * @param type Type of zoom to execute
    * @param x    Coordinate where the zoom will be centered
    * @param y    Coordinate where the zoom will be centered
-   * @return     True if the scaling was changed, false if this was a noop.
+   * @return True if the scaling was changed, false if this was a noop.
    */
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
     SceneView view = getFocusedSceneView();
@@ -727,6 +734,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
+   *
    */
   protected double getFitScale(boolean fitInto) {
     int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
@@ -735,7 +743,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * @param size dimension to fit into the view
+   * @param size    dimension to fit into the view
    * @param fitInto {@link ZoomType#FIT_INTO}
    * @return The scale to make the content fit the design surface
    */
@@ -788,10 +796,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return true;
   }
 
-  /** Scroll to the center of a list of given components. Usually the center of the area containing these elements. */
+  /**
+   * Scroll to the center of a list of given components. Usually the center of the area containing these elements.
+   */
   public abstract void scrollToCenter(@NotNull List<NlComponent> list);
 
-  /** Return true if the designed content is resizable, false otherwise */
+  /**
+   * Return true if the designed content is resizable, false otherwise
+   */
   public abstract boolean isResizeAvailable();
 
   public void setScrollPosition(@SwingCoordinate int x, @SwingCoordinate int y) {
@@ -825,7 +837,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    *
    * @param scale The scale factor. Can be any value but it will be capped between -1 and 10
    *              (value below 0 means zoom to fit)
-   * @return      True if the scaling was changed, false if this was a noop.
+   * @return True if the scaling was changed, false if this was a noop.
    */
   private boolean setScale(double scale) {
     return setScale(scale, -1, -1);
@@ -845,7 +857,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    *              (value below 0 means zoom to fit)
    * @param x     The X coordinate to center the scale to (in the Viewport's view coordinate system)
    * @param y     The Y coordinate to center the scale to (in the Viewport's view coordinate system)
-   * @return      True if the scaling was changed, false if this was a noop.
+   * @return True if the scaling was changed, false if this was a noop.
    */
   @VisibleForTesting
   public boolean setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
@@ -1024,8 +1036,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Return the bounds which SceneView can draw invisible components.<br>
    * The bounds is bigger than the size of SceneView and not overlaps to other SceneViews.
-   *
+   * <p>
    * component in this bounds, which may be outside the SceneView.
+   *
    * @param rectangle The rectangle to receive the dimension. If this is null, a new instance will be created.
    * @see JComponent#getBounds(Rectangle)
    */
@@ -1456,8 +1469,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     return CompletableFuture.allOf(myModelToSceneManagers.values().stream()
-                                                         .map(manager -> manager.requestRender())
-                                                         .toArray(CompletableFuture[]::new));
+                                     .map(manager -> manager.requestRender())
+                                     .toArray(CompletableFuture[]::new));
   }
 
   @NotNull
@@ -1604,6 +1617,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Returns all the selectable components in the design surface
+   *
    * @return the list of components
    */
   @NotNull
