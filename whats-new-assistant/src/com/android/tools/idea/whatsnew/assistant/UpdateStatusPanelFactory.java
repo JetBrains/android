@@ -16,18 +16,25 @@
 package com.android.tools.idea.whatsnew.assistant;
 
 import com.android.tools.idea.assistant.PanelFactory;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Singleton extension that creates Panels that show update status in WNA
  */
 public final class UpdateStatusPanelFactory implements PanelFactory {
-  public static final String FACTORY_ID = "wna.update.status";
+  @NotNull public static final String FACTORY_ID = "wna.update.status";
+  @NotNull private final WhatsNewAssistantMetricsTracker myMetricsTracker;
+
+  public UpdateStatusPanelFactory() {
+    myMetricsTracker = new WhatsNewAssistantMetricsTracker();
+  }
+
 
   @Override
   @NotNull
-  public Panel create() {
-    return new UpdateStatusPanel();
+  public Panel create(@NotNull Project project) {
+    return new UpdateStatusPanel(project);
   }
 
   @Override
@@ -36,11 +43,20 @@ public final class UpdateStatusPanelFactory implements PanelFactory {
     return FACTORY_ID;
   }
 
+  @NotNull
+  public WhatsNewAssistantMetricsTracker getMetricsTracker() {
+    return myMetricsTracker;
+  }
+
   /**
    * WNA's implementation of Panel that kicks off the UpdateChecker when a panel is created,
    * to populate the panel with the list of incompatible plugins, if any
    */
   private static final class UpdateStatusPanel extends Panel {
     // TODO: Apply the rest of ag/8023957 when UpdateChecker refactor is merged
+
+    private UpdateStatusPanel(@NotNull Project project) {
+      WhatsNewAssistantMetricsTracker.getInstance().updateFlow(project);
+    }
   }
 }
