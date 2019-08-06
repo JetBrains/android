@@ -15,25 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.palette2
 
-import com.android.SdkConstants.CARD_VIEW
-import com.android.SdkConstants.FLOATING_ACTION_BUTTON
-import com.android.SdkConstants.FN_GRADLE_PROPERTIES
-import com.android.SdkConstants.RECYCLER_VIEW
-import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlLayoutType
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
-import com.android.tools.idea.projectsystem.EP_NAME
-import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
-import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
-import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel
 import com.android.tools.idea.uibuilder.palette.Palette
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
@@ -57,7 +48,7 @@ class DependencyManagerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     val testProjectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS)
-    PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME, testProjectSystem,
+    PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(project.extensionArea, EP_NAME, testProjectSystem,
                                                                      testRootDisposable)
     panel = mock(PalettePanel::class.java)
     palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT)

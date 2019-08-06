@@ -32,7 +32,7 @@ class GuiTestStarter : IdeStarter() {
 
   override fun getCommandName() = COMMAND_NAME
 
-  override fun premain(args: Array<String>) {
+  override fun premain(args: List<String>) {
     processArgs(args)
     LOG.info("Starting GuiTest activity")
     guiTestThread.start()
@@ -42,7 +42,7 @@ class GuiTestStarter : IdeStarter() {
     super.main(removeGuiTestArgs(args))
   }
 
-  private fun processArgs(args: Array<String>) {
+  private fun processArgs(args: List<String>) {
     val hostArg: String? = args.find { arg -> arg.toLowerCase().startsWith("host") }?.substringAfter("host=") ?: HOST_LOCALHOST
     System.setProperty(GUI_TEST_HOST, hostArg!!.removeSurrounding("\""))
     val portArg: String? = args.find { arg -> arg.toLowerCase().startsWith("port") }?.substringAfter("port=")

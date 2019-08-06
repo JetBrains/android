@@ -15,30 +15,6 @@
  */
 package com.android.tools.idea.common.model;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_ORIENTATION;
-import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.EDIT_TEXT;
-import static com.android.SdkConstants.FRAME_LAYOUT;
-import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.SdkConstants.NS_RESOURCES;
-import static com.android.SdkConstants.RECYCLER_VIEW;
-import static com.android.SdkConstants.TEXT_VIEW;
-import static com.android.SdkConstants.VALUE_VERTICAL;
-import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
-import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -63,7 +39,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.XmlElementFactory;
@@ -71,11 +46,19 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
+import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.*;
 
 /**
  * Model tests. This checks that when a model is updated, we correctly
@@ -386,7 +369,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
-    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+    PlatformTestUtil.registerExtension(myModule.getProject().getExtensionArea(), ProjectSystemUtil.getEP_NAME(),
                                        projectSytem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
@@ -427,7 +410,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
-    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+    PlatformTestUtil.registerExtension(myModule.getProject().getExtensionArea(), ProjectSystemUtil.getEP_NAME(),
                                        projectSytem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
@@ -464,7 +447,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
-    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+    PlatformTestUtil.registerExtension(myModule.getProject().getExtensionArea(), ProjectSystemUtil.getEP_NAME(),
                                        projectSytem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
