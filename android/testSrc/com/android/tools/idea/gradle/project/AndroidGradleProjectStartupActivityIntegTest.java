@@ -15,19 +15,14 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 
@@ -41,7 +36,7 @@ public class AndroidGradleProjectStartupActivityIntegTest extends AndroidGradleT
 
     importProject();
 
-    verify(listener, times(1)).syncStarted(any(), anyBoolean());
+    verify(listener, times(1)).syncStarted(any());
     verify(listener, times(1)).setupStarted(any());
   }
 }

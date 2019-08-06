@@ -279,7 +279,6 @@ public class GradleDependencyManager {
       GradleBuildInvoker.getInstance(project).add(new GradleCompletionTask(project, callback));
     }
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
-    request.generateSourcesOnSuccess = true;
     GradleSyncInvoker.getInstance().requestProjectSync(project, request);
   }
 
