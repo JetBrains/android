@@ -85,12 +85,19 @@ public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
   @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = JDK_1_8;
+  @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
 
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final Map<String, LocalPackage> localPackagesByPrefix = new HashMap<>();
+  private boolean myUseJdkEnvVariable = false;
+  private boolean myIsJdkEnvVariableValid = false;
+  private Boolean myIsJdkEnvVariableDefined;
+  private File myEnvVariableJdk = null;
+  private String myEnvVariableJdkValue = null;
+  private final Object myEnvVariableLock = new Object();
 
   @NotNull
   public static IdeSdks getInstance() {
@@ -206,6 +213,9 @@ public class IdeSdks {
 
   @Nullable
   private File doGetJdkPath(boolean createJdkIfNeeded) {
+    if (isUsingEnvVariableJdk()) {
+      return getEnvVariableJdk();
+    }
     List<Sdk> androidSdks = getEligibleAndroidSdks();
     if (androidSdks.isEmpty() && createJdkIfNeeded) {
       // This happens when user has a fresh installation of Android Studio without an Android SDK, but with a JDK. Android Studio should
@@ -232,6 +242,130 @@ public class IdeSdks {
       }
     }
     return null;
+  }
+
+  /**
+   * Indicate if the user has selected the JDK location pointed by {@value JDK_LOCATION_ENV_VARIABLE_NAME}. This is the default when Studio
+   * starts with a valid {@value JDK_LOCATION_ENV_VARIABLE_NAME}.
+   * @return {@code true} iff {@value JDK_LOCATION_ENV_VARIABLE_NAME} is valid and is the current JDK location selection.
+   */
+  public boolean isUsingEnvVariableJdk() {
+    synchronized (myEnvVariableLock) {
+      initializeJdkEnvVariable();
+      return myUseJdkEnvVariable;
+    }
+  }
+
+  private void initializeJdkEnvVariable() {
+    synchronized (myEnvVariableLock) {
+      if (myIsJdkEnvVariableDefined != null) {
+        return;
+      }
+      initializeJdkEnvVariable(System.getenv(JDK_LOCATION_ENV_VARIABLE_NAME));
+    }
+  }
+
+  @VisibleForTesting
+  void cleanJdkEnvVariableInitialization() {
+    synchronized (myEnvVariableLock) {
+      myIsJdkEnvVariableDefined = null;
+    }
+  }
+
+  @VisibleForTesting
+  void initializeJdkEnvVariable(@Nullable String envVariableValue) {
+    // Read env variable only once and initialize the rest of variables accordingly. myIsJdkEnvVariableDefined null means that this function
+    // has not been called yet.
+    synchronized (myEnvVariableLock) {
+      if (myIsJdkEnvVariableDefined != null) {
+        return;
+      }
+      myEnvVariableJdkValue = envVariableValue;
+      if (myEnvVariableJdkValue == null) {
+        // Environment variable is not defined.
+        myIsJdkEnvVariableDefined = Boolean.FALSE;
+        myEnvVariableJdk = null;
+        myIsJdkEnvVariableValid = false;
+        myUseJdkEnvVariable = false;
+        return;
+      }
+      myIsJdkEnvVariableDefined = Boolean.TRUE;
+      myEnvVariableJdk = validateJdkPath(new File(toSystemDependentName(myEnvVariableJdkValue)));
+      if (myEnvVariableJdk == null) {
+        // Environment variable is defined but not valid
+        myIsJdkEnvVariableValid = false;
+        myUseJdkEnvVariable = false;
+        return;
+      }
+      // Environment variable is defined and valid
+      myIsJdkEnvVariableValid = true;
+      myUseJdkEnvVariable = true;
+    }
+  }
+
+  /**
+   * Check if environment variable {@value JDK_LOCATION_ENV_VARIABLE_NAME} is defined.
+   * @return {@code true} iff the variable is defined
+   */
+  public boolean isJdkEnvVariableDefined() {
+    synchronized (myEnvVariableLock) {
+      initializeJdkEnvVariable();
+      return myIsJdkEnvVariableDefined;
+    }
+  }
+
+  /**
+   * Check if the JDK Location pointed by {@value JDK_LOCATION_ENV_VARIABLE_NAME} is valid
+   * @return {@code true} iff the variable is defined and it points to a valid JDK Location (as checked by
+   *          {@link IdeSdks#validateJdkPath(File)})
+   */
+  public boolean isJdkEnvVariableValid() {
+    synchronized (myEnvVariableLock) {
+      initializeJdkEnvVariable();
+      return myIsJdkEnvVariableValid;
+    }
+  }
+
+  /**
+   * Return the JDK Location pointed by {@value JDK_LOCATION_ENV_VARIABLE_NAME}
+   * @return A valid JDK location iff environment variable {@value JDK_LOCATION_ENV_VARIABLE_NAME} is set to a valid JDK Location
+   */
+  @Nullable
+  public File getEnvVariableJdk() {
+    synchronized (myEnvVariableLock) {
+      initializeJdkEnvVariable();
+      return myEnvVariableJdk;
+    }
+  }
+
+
+  /**
+   * Return the value set to environment variable {@value JDK_LOCATION_ENV_VARIABLE_NAME}
+   * @return The value set, {@code null} if it was not defined.
+   */
+  @Nullable
+  public String getEnvVariableJdkValue() {
+    synchronized (myEnvVariableLock) {
+      initializeJdkEnvVariable();
+      return myEnvVariableJdkValue;
+    }
+  }
+
+  /**
+   * Indicate if {@value JDK_LOCATION_ENV_VARIABLE_NAME} should be used as JDK location or not. This setting can be changed iff the
+   * environment variable points to a valid JDK location.
+   * @param useJdkEnvVariable
+   * @return {@code true} if this setting can be changed.
+   */
+  public boolean setUseEnvVariableJdk(boolean useJdkEnvVariable) {
+    synchronized (myEnvVariableLock) {
+      initializeJdkEnvVariable();
+      if (!isJdkEnvVariableValid()) {
+        return false;
+      }
+      myUseJdkEnvVariable = useJdkEnvVariable;
+      return true;
+    }
   }
 
   /**
@@ -289,6 +423,7 @@ public class IdeSdks {
           throw new IllegalStateException("The resolved path '" + canonicalPath.getPath() + "' was not found");
         }
       }
+      setUseEnvVariableJdk(false);
     }
   }
 
@@ -827,7 +962,7 @@ public class IdeSdks {
    * Look for the Java version currently used in this order:
    *   - System property "java.version" (should be what the IDE is currently using)
    *   - Embedded JDK
-   *   - {@link IdeSdks.DEFAULT_JDK_VERSION}
+   *   - {@link IdeSdks#DEFAULT_JDK_VERSION}
    */
   @NotNull
   public JavaSdkVersion getRunningVersionOrDefault() {
