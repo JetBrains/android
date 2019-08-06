@@ -190,7 +190,7 @@ public class TutorialStep extends JPanel {
             .findFirst()
             .orElseThrow(() -> new AssertionError("No PanelFactory exists for " + factoryId));
 
-          myContents.add(panelFactory.create());
+          myContents.add(panelFactory.create(myProject));
           break;
         default:
           getLog().error("Found a StepElement of unknown type. " + element.toString());
