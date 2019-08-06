@@ -52,12 +52,14 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.PathsList;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.ProjectModel;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.Build;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
@@ -309,7 +311,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // All this stuff also should work for gradle project included into the gradle composite build.
     if(IdeInfo.getInstance().isAndroidStudio()) {
       // Gradle doesn't support running tasks for included projects. Don't create task node if this module belongs to an included projects.
-      if (resolverCtx.getModels().getIncludedBuilds().contains(gradleModule.getProject())) {
+      IdeaProject mainIdeaProject = resolverCtx.getModels().getModel(IdeaProject.class);
+      assert mainIdeaProject != null;
+      if (!mainIdeaProject.equals(gradleModule.getProject())) {
         return emptyList();
       }
     }
@@ -319,7 +323,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
     populateModuleBuildDirs(gradleProject);
-    populateGlobalLibraryMap(gradleProject);
+    populateGlobalLibraryMap();
     if (isAndroidGradleProject()) {
       projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
     }
@@ -344,7 +348,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // Set build folder for root and included projects.
     List<IdeaProject> ideaProjects = new ArrayList<>();
     ideaProjects.add(rootIdeaProject);
-    ideaProjects.addAll(resolverCtx.getModels().getIncludedBuilds());
+    List<Build> includedBuilds = resolverCtx.getModels().getIncludedBuilds();
+    for (Build includedBuild : includedBuilds) {
+      IdeaProject ideaProject = resolverCtx.getModels().getModel(includedBuild, IdeaProject.class);
+      assert ideaProject != null;
+      ideaProjects.add(ideaProject);
+    }
+
     for (IdeaProject ideaProject : ideaProjects) {
       for (IdeaModule ideaModule : ideaProject.getChildren()) {
         GradleProject gradleProject = ideaModule.getGradleProject();
@@ -365,22 +375,23 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   /**
    * Find and set global library map.
    */
-  private void populateGlobalLibraryMap(@NotNull IdeaProject rootIdeaProject) {
+  private void populateGlobalLibraryMap() {
     List<GlobalLibraryMap> globalLibraryMaps = new ArrayList<>();
 
     // Request GlobalLibraryMap for root and included projects.
-    List<IdeaProject> ideaProjects = new ArrayList<>();
-    ideaProjects.add(rootIdeaProject);
-    ideaProjects.addAll(resolverCtx.getModels().getIncludedBuilds());
+    Build mainBuild = resolverCtx.getModels().getMainBuild();
+    List<Build> includedBuilds = resolverCtx.getModels().getIncludedBuilds();
+    List<Build> builds = new ArrayList<>(includedBuilds.size() + 1);
+    builds.add(mainBuild);
+    builds.addAll(includedBuilds);
 
-    for (IdeaProject ideaProject : ideaProjects) {
+    for (Build build : builds) {
       GlobalLibraryMap mapOfCurrentBuild = null;
       // Since GlobalLibraryMap is requested on each module, we need to find the map that was
       // requested at the last, which is the one that contains the most of items.
-      for (IdeaModule ideaModule : ideaProject.getChildren()) {
-        GlobalLibraryMap moduleMap = resolverCtx.getExtraProject(ideaModule, GlobalLibraryMap.class);
-        if (mapOfCurrentBuild == null ||
-            (moduleMap != null && moduleMap.getLibraries().size() > mapOfCurrentBuild.getLibraries().size())) {
+      for (ProjectModel projectModel : build.getProjects()) {
+        GlobalLibraryMap moduleMap = resolverCtx.getModels().getModel(projectModel, GlobalLibraryMap.class);
+        if (mapOfCurrentBuild == null || (moduleMap != null && moduleMap.getLibraries().size() > mapOfCurrentBuild.getLibraries().size())) {
           mapOfCurrentBuild = moduleMap;
         }
       }

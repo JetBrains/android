@@ -37,6 +37,7 @@ import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.JavaProjectTestCase;
 import org.gradle.tooling.ProjectConnection;
+import org.jetbrains.plugins.gradle.model.LegacyIdeaProjectModelAdapter;
 import org.jetbrains.plugins.gradle.model.ProjectImportAction;
 import org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.DefaultProjectResolverContext;
@@ -107,7 +108,12 @@ public class AndroidGradleProjectResolverIdeaTest extends JavaProjectTestCase {
     String projectPath = toSystemDependentName(myProjectModel.getBuildFile().getParent());
     ExternalSystemTaskNotificationListener notificationListener = new ExternalSystemTaskNotificationListenerAdapter() {
     };
-    myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, mock(ProjectConnection.class), notificationListener, true);
+    myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, mock(ProjectConnection.class), notificationListener, true) {
+      @Override
+      public boolean isResolveModulePerSourceSet() {
+        return false;
+      }
+    };
     myResolverCtx.setModels(allModels);
 
     myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myErrorHandler, myProjectFinder, myVariantSelector,
@@ -242,7 +248,7 @@ public class AndroidGradleProjectResolverIdeaTest extends JavaProjectTestCase {
 
     IdeaProjectStub includedProject = new IdeaProjectStub("includedProject");
     IdeaModuleStub includedModule = includedProject.addModule("lib", "clean", "jar");
-    myResolverCtx.getModels().getIncludedBuilds().add(includedProject);
+    myResolverCtx.getModels().getIncludedBuilds().add(new LegacyIdeaProjectModelAdapter(includedProject));
 
     // Verify that task data for included module is not empty.
     Collection<TaskData> taskData = myProjectResolver.populateModuleTasks(includedModule, moduleDataNode, projectNode);
