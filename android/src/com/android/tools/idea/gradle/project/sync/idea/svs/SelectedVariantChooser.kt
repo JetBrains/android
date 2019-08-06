@@ -22,6 +22,7 @@ import com.android.builder.model.Variant
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.SelectedVariants
+import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.UnsupportedMethodException
 import java.util.Collections
@@ -46,19 +47,31 @@ import java.util.LinkedList
 fun chooseSelectedVariants(
   controller: BuildController,
   inputModules: List<AndroidModule>,
-  selectedVariants: SelectedVariants,
-  shouldGenerateSources: Boolean
+  syncActionOptions: SyncActionOptions
 ) {
+  val selectedVariants = syncActionOptions.selectedVariants
+                         ?: throw IllegalStateException("Single variant sync requested, but SelectedVariants were null!")
+  val shouldGenerateSources = syncActionOptions.shouldGenerateSources()
   val modulesById = HashMap<String, AndroidModule>()
   val allModules = LinkedList<String>()
   val visitedModules = HashSet<String>()
+  // The module whose variant selection was changed from UI, the dependency modules should be consistent with this module. Achieve this by
+  // adding this module to the head of allModules so that its dependency modules are resolved first.
+  var moduleWithVariantSwitched: String? = null
 
   inputModules.filter { it.androidProject.variants.isEmpty() }.forEach { module ->
     val id = createUniqueModuleId(module.gradleProject)
     modulesById[id] = module
-    // All app modules must be requested first since they are used to work out which variants to request for their dependencies.
-    if (module.androidProject.projectType == PROJECT_TYPE_APP) allModules.addFirst(id) else allModules.addLast(id)
+    if (id == syncActionOptions.moduleIdWithVariantSwitched) {
+      moduleWithVariantSwitched = id
+    }
+    else {
+      // All app modules must be requested first since they are used to work out which variants to request for their dependencies.
+      if (module.androidProject.projectType == PROJECT_TYPE_APP) allModules.addFirst(id) else allModules.addLast(id)
+    }
   }
+
+  if (moduleWithVariantSwitched != null) allModules.addFirst(moduleWithVariantSwitched)
 
   // This first starts by requesting models for all the modules that can be reached from the app modules (via dependencies) and then
   // requests any other modules that can't be reached.
@@ -118,6 +131,7 @@ private fun selectVariantForDependencyModules(
   shouldGenerateSources: Boolean
 ) {
   androidModule.moduleDependencies.forEach { dependency ->
+    if (visitedModules.contains(dependency.id)) return@forEach
     visitedModules.add(dependency.id)
 
     if (dependency.variant == null) return@forEach
