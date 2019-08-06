@@ -16,6 +16,7 @@
 package com.android.tools.idea.assistant;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.project.Project;
 import java.awt.FlowLayout;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,7 @@ public interface PanelFactory {
     ExtensionPointName.create("com.android.tools.idea.assistant.panelFactory");
 
   @NotNull
-  Panel create();
+  Panel create(@NotNull Project project);
 
   /**
    * Returns a unique String used to find the matching extension. The panel XML should use
