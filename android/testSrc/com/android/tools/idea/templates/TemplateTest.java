@@ -27,10 +27,13 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SU
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
@@ -361,8 +364,10 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   private final ProjectStateCustomizer withKotlin = ((templateMap, projectMap) -> {
+    projectMap.put(ATTR_KOTLIN_SUPPORT, true);
     projectMap.put(ATTR_KOTLIN_VERSION, TestUtils.getKotlinVersionForTests());
     projectMap.put(ATTR_LANGUAGE, Language.KOTLIN.toString());
+    templateMap.put(ATTR_KOTLIN_SUPPORT, true);
     templateMap.put(ATTR_LANGUAGE, Language.KOTLIN.toString());
     templateMap.put(ATTR_PACKAGE_NAME, "test.pkg.in"); // Add in a Kotlin keyword ("in") in the package name to trigger escape code too
   });
@@ -1595,7 +1600,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     // Bug 137161906
     if (projectName.startsWith("BasicActivity") &&
         activityState != null &&
-        Language.KOTLIN.toString().equals(activityState.getString(ATTR_LANGUAGE))) {
+        activityState.hasAttr(ATTR_KOTLIN_SUPPORT) &&
+        activityState.getBoolean(ATTR_KOTLIN_SUPPORT)) {
       return projectName;
     }
 
@@ -1813,10 +1819,11 @@ public class TemplateTest extends AndroidGradleTestCase {
     LoggedUsage usage = usages.get(usages.size() - 1);
     assertEquals(AndroidStudioEvent.EventKind.TEMPLATE_RENDER, usage.getStudioEvent().getKind());
     assertEquals(templateRenderer, usage.getStudioEvent().getTemplateRenderer());
+    assertTrue(paramMap.getOrDefault(ATTR_KOTLIN_SUPPORT, false) instanceof Boolean);
     assertTrue(paramMap.getOrDefault(ATTR_KOTLIN_VERSION, "unknown") instanceof String);
     assertEquals(
       KotlinSupport.newBuilder()
-        .setIncludeKotlinSupport(paramMap.getOrDefault(ATTR_LANGUAGE, "Java").equals(Language.KOTLIN.toString()))
+        .setIncludeKotlinSupport((Boolean)paramMap.getOrDefault(ATTR_KOTLIN_SUPPORT, false))
         .setKotlinSupportVersion((String)paramMap.getOrDefault(ATTR_KOTLIN_VERSION, "unknown")).build(),
       usage.getStudioEvent().getKotlinSupport());
   }
