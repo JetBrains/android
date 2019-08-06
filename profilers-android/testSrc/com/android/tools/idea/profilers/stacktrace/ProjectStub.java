@@ -16,7 +16,7 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.intellij.openapi.components.BaseComponent;
-import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
@@ -136,6 +136,17 @@ final class ProjectStub extends UserDataHolderBase implements Project {
     return o -> isDisposed();
   }
 
+  @Override
+  public <T> T getService(@NotNull Class<T> serviceClass, boolean isCreate) {
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public ExtensionsArea getExtensionArea() {
+    throw new UnsupportedOperationException("getExtensionArea is not implement in : " + getClass());
+  }
+
   @NotNull
   @Override
   public RuntimeException createError(@NotNull Throwable error, @NotNull PluginId pluginId) {
@@ -183,11 +194,5 @@ final class ProjectStub extends UserDataHolderBase implements Project {
 
   @Override
   public void dispose() {
-  }
-
-  @NotNull
-  @Override
-  public <T> T[] getExtensions(@NotNull final ExtensionPointName<T> extensionPointName) {
-    throw new UnsupportedOperationException("getExtensions()");
   }
 }

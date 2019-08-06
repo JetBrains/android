@@ -16,7 +16,7 @@ package com.android.tools.idea.ui.resourcemanager.importer
 import com.android.tools.idea.ui.resourcemanager.plugin.RasterResourceImporter
 import com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.extensions.Extensions
+import com.intellij.openapi.application.ApplicationManager
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertNotNull
@@ -30,7 +30,7 @@ class ImportersProviderTest {
 
   @Test
   fun extensionPointExists() {
-    assertNotNull(Extensions.getArea(null).getExtensionPoint<ResourceImporter>("com.android.resourceImporter"))
+    assertNotNull(ApplicationManager.getApplication().extensionArea.getExtensionPoint<ResourceImporter>("com.android.resourceImporter"))
     assertTrue { ImportersProvider().importers.filterIsInstance<RasterResourceImporter>().any() }
   }
 
