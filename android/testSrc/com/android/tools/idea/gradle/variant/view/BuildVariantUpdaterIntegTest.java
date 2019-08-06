@@ -19,15 +19,22 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.io.Files;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_NATIVE_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
+import static com.google.common.base.Charsets.UTF_8;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 
 public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
   private boolean mySavedSingleVariantSyncSetting = false;
@@ -243,5 +250,66 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug-x86", appNdkModel.getSelectedVariant().getName());
     assertEquals("debug-x86", lib2NdkModel.getSelectedVariant().getName());
     assertEquals("debug-x86", lib3NdkModel.getSelectedVariant().getName());
+  }
+
+  // Test the scenario when there are two app modules in one project, and they share the same set of dependency modules.
+  // When variant selection is changed from UI window for one of the app modules, the selection of dependency modules should
+  // be consistent with the module whose selection was changed from UI.
+  public void testWithSharedDepModules() throws Exception {
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
+    prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
+
+    // Create build file for module app2, so that
+    //         app  -> library2 -> library1
+    //         app2 -> library2 -> library1
+    File buildFilePath = new File(getProjectFolderPath(), join("app2", FN_BUILD_GRADLE));
+    writeToFile(buildFilePath, "apply plugin: 'com.android.application'\n" +
+                               "android {\n" +
+                               "    compileSdkVersion 23\n" +
+                               "}\n" +
+                               "dependencies {\n" +
+                               "    api project(':library2')\n" +
+                               "}");
+
+    // Add app2 to settings file.
+    File settingsFile = new File(getProjectFolderPath(), FN_SETTINGS_GRADLE);
+    String settingsText = Files.asCharSource(settingsFile, UTF_8).read();
+    writeToFile(settingsFile, settingsText.trim() + ", \":app2\"");
+
+    // Create manifest file for app2.
+    File manifest = new File(getProjectFolderPath(), join("app2", "src", "main", ANDROID_MANIFEST_XML));
+    writeToFile(manifest, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                          "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"com.example\">\n" +
+                          "</manifest>");
+
+    requestSyncAndWait();
+    assertEquals("debug", getVariant("app"));
+    assertEquals("debug", getVariant("app2"));
+    assertEquals("debug", getVariant("library1"));
+    assertEquals("debug", getVariant("library2"));
+
+    // Switch selected variant for app from debug to release.
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "release");
+    // Verify that app, library1, library2 are all switched to release. app2 remains as debug.
+    assertEquals("release", getVariant("app"));
+    assertEquals("debug", getVariant("app2"));
+    assertEquals("release", getVariant("library1"));
+    assertEquals("release", getVariant("library2"));
+
+    // Switch selected variant for app from release to debug.
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "debug");
+    // Verify that app, library1, library2 are all switched back to debug.
+    assertEquals("debug", getVariant("app"));
+    assertEquals("debug", getVariant("app2"));
+    assertEquals("debug", getVariant("library1"));
+    assertEquals("debug", getVariant("library2"));
+
+    // Switch selected variant for app2 from debug to release.
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app2", "release");
+    // Verify that app2, library1, library2 are all switched to release. app remains as debug.
+    assertEquals("debug", getVariant("app"));
+    assertEquals("release", getVariant("app2"));
+    assertEquals("release", getVariant("library1"));
+    assertEquals("release", getVariant("library2"));
   }
 }

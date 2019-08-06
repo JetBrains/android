@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.finishBatchUpdate;
 import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.startBatchUpdate;
 import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
@@ -56,6 +57,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Key;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +70,8 @@ import org.jetbrains.annotations.Nullable;
  * Updates the contents/settings of a module when a build variant changes.
  */
 public class BuildVariantUpdater {
+  @NotNull public static final Key<String> MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI =
+    new Key<>("module.with.build.variant.switched.from.ui");
   @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
   @NotNull private final IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @NotNull private final AndroidVariantChangeModuleSetup myAndroidModuleSetupSteps;
@@ -213,15 +217,34 @@ public class BuildVariantUpdater {
     // 2. Build files were not changed, variant to select doesn't exist, which can only happen with single-variant sync, request Variant-only Sync.
     // 3. Build files were not changed, variant to select exists, do module setup for affected modules.
     if (hasBuildFilesChanged(project)) {
+      setVariantSwitchedProperty(project, moduleName);
       requestFullGradleSync(project, invokeVariantSelectionChangeListeners);
     }
     else if (!variantToUpdateExists) {
+      setVariantSwitchedProperty(project, moduleName);
       requestVariantOnlyGradleSync(project, moduleName, buildVariantName, invokeVariantSelectionChangeListeners);
     }
     else {
       setupCachedVariant(project, affectedAndroidFacets, affectedNdkFacets, invokeVariantSelectionChangeListeners);
     }
     return true;
+  }
+
+  private static void setVariantSwitchedProperty(@NotNull Project project,
+                                                 @NotNull String moduleName) {
+    Module moduleToUpdate = findModule(project, moduleName);
+    if (moduleToUpdate == null) {
+      return;
+    }
+    GradleFacet gradleFacet = GradleFacet.getInstance(moduleToUpdate);
+    if (gradleFacet == null) {
+      return;
+    }
+    GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
+    if (gradleModel != null) {
+      project.putUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI,
+                          createUniqueModuleId(gradleModel.getRootFolderPath(), gradleModel.getGradlePath()));
+    }
   }
 
   /**
