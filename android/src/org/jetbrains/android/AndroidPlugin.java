@@ -11,15 +11,18 @@ import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.startup.Actions.moveAction;
 
-public class AndroidPlugin {
+public class AndroidPlugin implements BaseComponent {
   private static final String GROUP_ANDROID_TOOLS = "AndroidToolsGroup";
+  private static final String GROUP_TOOLS = "ToolsMenu";
 
-  public AndroidPlugin() {
+  @Override
+  public void initComponent() {
     VirtualFileSystemOpener.INSTANCE.mount();
     if (!IdeInfo.getInstance().isAndroidStudio()) {
       initializeForNonStudio();
