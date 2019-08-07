@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.stacktrace;
 
-import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -94,11 +93,6 @@ final class ProjectStub extends UserDataHolderBase implements Project {
 
   @Override
   public void save() {
-  }
-
-  @Override
-  public BaseComponent getComponent(@NotNull String name) {
-    return null;
   }
 
   @Nullable
