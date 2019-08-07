@@ -53,24 +53,6 @@ public final class AndroidVersionsInfoTest {
   }
 
   /**
-   * For Google Glass Addon, the Build API level should be the one specified by the addon
-   */
-  @Test
-  public void remotePlatformWithAddon() {
-    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
-    AddonDetailsType addonDetailsType = new AddonDetailsType();
-    addonDetailsType.setTag(SystemImage.GLASS_TAG);
-    addonDetailsType.setApiLevel(ADDON_VERSION);
-
-    remotePlatform.setTypeDetails(addonDetailsType);
-
-    AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(remotePlatform);
-    assertNotNull(versionItem.getAddon());
-    assertEquals(ADDON_VERSION, versionItem.getMinApiLevel());
-    assertEquals(ADDON_VERSION, versionItem.getBuildApiLevel());
-  }
-
-  /**
    * For versions without an Android target, the Build API should be the highest known stable API
    */
   @Test
