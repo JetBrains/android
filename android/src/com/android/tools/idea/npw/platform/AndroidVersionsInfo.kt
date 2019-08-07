@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.platform
+gackage com.android.tools.idea.npw.platform
 
 import com.android.SdkConstants.CPU_ARCH_INTEL_ATOM
 import com.android.repository.api.ProgressIndicator
-import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoManager.RepoLoadedCallback
 import com.android.repository.api.RepoPackage
@@ -125,30 +124,16 @@ open class AndroidVersionsInfo { // open for Mockito
     requestedPaths.add(DetailsTypes.getBuildToolsPath(getRecommendedBuildToolsRevision(sdkHandler, REPO_LOG)))
     for (versionItem in installItems) {
       val androidVersion = versionItem.androidVersion
-      val platformPath = DetailsTypes.getPlatformPath(androidVersion)
 
-      // Check to see if this is installed. If not, request that we install it
-      if (versionItem.addon != null) {
-        // The user selected a non platform SDK (e.g. for Google Glass). Let us install it:
-        requestedPaths.add(versionItem.addon!!.path)
+      // TODO: If the user has no APIs installed that are at least of api level LOWEST_COMPILE_SDK_VERSION,
+      // then we request (for now) to install HIGHEST_KNOWN_STABLE_API.
+      // Instead, we should choose to install the highest stable API possible. However, users having no SDK at all installed is pretty
+      // unlikely, so this logic can wait for a followup CL.
+      if (highestInstalledApiTarget == null ||
+          (androidVersion.apiLevel > highestInstalledApiTarget!!.version.apiLevel && !installedVersions.contains(androidVersion))) {
 
-        // We also need the platform if not already installed:
-        val targetManager = sdkHandler.getAndroidTargetManager(REPO_LOG)
-        if (targetManager.getTargetFromHashString(AndroidTargetHash.getPlatformHashString(androidVersion), REPO_LOG) == null) {
-          requestedPaths.add(platformPath)
-        }
-      }
-      else {
-        // TODO: If the user has no APIs installed that are at least of api level LOWEST_COMPILE_SDK_VERSION,
-        // then we request (for now) to install HIGHEST_KNOWN_STABLE_API.
-        // Instead, we should choose to install the highest stable API possible. However, users having no SDK at all installed is pretty
-        // unlikely, so this logic can wait for a followup CL.
-        if (highestInstalledApiTarget == null ||
-            (androidVersion.apiLevel > highestInstalledApiTarget!!.version.apiLevel && !installedVersions.contains(androidVersion))) {
-
-          // Let us install the HIGHEST_KNOWN_STABLE_API.
-          requestedPaths.add(DetailsTypes.getPlatformPath(AndroidVersion(HIGHEST_KNOWN_STABLE_API, null)))
-        }
+        // Let us install the HIGHEST_KNOWN_STABLE_API.
+        requestedPaths.add(DetailsTypes.getPlatformPath(AndroidVersion(HIGHEST_KNOWN_STABLE_API, null)))
       }
     }
     return getPackageList(requestedPaths, sdkHandler)
@@ -265,9 +250,6 @@ open class AndroidVersionsInfo { // open for Mockito
     val minApiLevelStr: String // Can be a number or a Code Name (eg "L", "N", etc)
     var androidTarget: IAndroidTarget? = null
       private set
-    // TODO: We may no longer need this, as we only show Google Glass if we have it already installed
-    var addon: RemotePackage? = null
-      private set
 
     internal constructor(androidVersion: AndroidVersion, tag: IdDisplay, target: IAndroidTarget?) {
       this.androidVersion = androidVersion
@@ -291,17 +273,11 @@ open class AndroidVersionsInfo { // open for Mockito
     constructor(target: IAndroidTarget) : this(target.version, SystemImage.DEFAULT_TAG, target)
 
     @VisibleForTesting
-    constructor(info: RepoPackage) : this(getAndroidVersion(info), getTag(info)!!, null) {
-      if (info is RemotePackage && SystemImage.GLASS_TAG == getTag(info)) {
-        // If this is Glass then prepare to install this add-on package.
-        // All platform are installed by a different mechanism.
-        addon = info
-      }
-    }
+    constructor(info: RepoPackage) : this(getAndroidVersion(info), getTag(info)!!, null)
 
     val buildApiLevel: Int
       get() = when {
-        addon != null || androidTarget != null && (androidTarget!!.version.isPreview || !androidTarget!!.isPlatform) -> minApiLevel
+        androidTarget != null && (androidTarget!!.version.isPreview || !androidTarget!!.isPlatform) -> minApiLevel
         (highestInstalledVersion?.featureLevel ?: 0) > HIGHEST_KNOWN_STABLE_API -> highestInstalledVersion!!.featureLevel
         else -> HIGHEST_KNOWN_STABLE_API
       }
@@ -335,9 +311,6 @@ open class AndroidVersionsInfo { // open for Mockito
 
     private fun getLabel(version: AndroidVersion, tag: IdDisplay?, target: IAndroidTarget?): String {
       val featureLevel = version.featureLevel
-      if (SystemImage.GLASS_TAG == tag) {
-        return "Glass Development Kit Preview (API $featureLevel)"
-      }
       return if (featureLevel <= HIGHEST_KNOWN_API) {
         when {
           // FIXME(qumeric) duplicate info
