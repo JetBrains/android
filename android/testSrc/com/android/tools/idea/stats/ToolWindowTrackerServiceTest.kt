@@ -16,13 +16,12 @@
 package com.android.tools.idea.stats
 
 import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.testing.IdeComponents
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.util.pico.DefaultPicoContainer
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mock
 import org.mockito.Mockito
@@ -40,7 +39,9 @@ class ToolWindowTrackerServiceTest : AndroidTestCase() {
     MockitoAnnotations.initMocks(this)
     myUsageTracker = TestUsageTracker(VirtualTimeScheduler())
     UsageTracker.setWriterForTest(myUsageTracker)
-    myService = ToolWindowTrackerService(myMockToolWindowManager)
+    val project = project
+    myService = ToolWindowTrackerService(project)
+    (project.picoContainer as DefaultPicoContainer).registerComponentInstance(ToolWindowManager::class.java, myMockToolWindowManager)
   }
 
   override fun tearDown() {
