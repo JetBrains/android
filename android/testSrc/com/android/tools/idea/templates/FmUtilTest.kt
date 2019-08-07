@@ -15,23 +15,28 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.tools.idea.templates.AssetNameConverter.Type
-import freemarker.template.SimpleScalar
-import freemarker.template.TemplateMethodModelEx
-import freemarker.template.TemplateModel
-import freemarker.template.TemplateModelException
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
 /**
- * Method invoked by FreeMarker to convert a layout name into an appropriate
- * Activity class.
+ * Tests for the Freemarker utility functions
  */
-class FmLayoutToActivityMethod : TemplateMethodModelEx {
-  override fun exec(args: List<*>): TemplateModel {
-    if (args.size != 1) {
-      throw TemplateModelException("Wrong arguments")
-    }
+class FmUtilTest {
+  @Test
+  fun testStripSuffix() {
+    // No-op test
+    assertEquals("", "".stripSuffix("", false))
+    assertEquals("", "".stripSuffix("foo", false))
 
-    val name = args[0].toString()
-    return SimpleScalar(AssetNameConverter(Type.LAYOUT, name).getValue(Type.ACTIVITY))
+    // Whole string test
+    assertEquals("", "foo".stripSuffix( "foo", false))
+
+    // Suffix test
+    assertEquals("Foo", "FooBar".stripSuffix( "Bar", false))
+    assertEquals("Foo", "FooBar".stripSuffix("Bar", false))
+
+    // Double Suffix test
+    assertEquals("Foo", "FooBarBar".stripSuffix("Bar", true))
+    assertEquals("FooBar", "FooBarBar".stripSuffix( "Bar", false))
   }
 }
