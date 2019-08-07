@@ -16,17 +16,21 @@
 package com.android.tools.profilers.event
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.model.event.LifecycleAction
 import com.android.tools.adtui.model.event.EventAction
 import com.android.tools.adtui.model.event.KeyboardAction
+import com.android.tools.adtui.model.event.LifecycleAction
 import com.android.tools.adtui.model.event.UserEvent
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EventProfiler
 import com.android.tools.profiler.proto.Interaction
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.NullMonitorStage
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
+import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -163,7 +167,7 @@ class EventMonitorTest {
       .build()
     eventService.addActivityEvent(activity2)
 
-    val series = monitor.activityEvents.rangedSeries.series
+    val series = monitor.lifecycleEvents.activitySeries.series
     assertThat(series).hasSize(2) // fragment shouldn't be returned
 
     assertThat(series[0].value).isInstanceOf(LifecycleAction::class.java)
@@ -196,7 +200,7 @@ class EventMonitorTest {
       .build()
     eventService.addActivityEvent(activity2)
 
-    val series = monitor.fragmentEvents.rangedSeries.series
+    val series = monitor.lifecycleEvents.fragmentSeries.series
     assertThat(series).hasSize(1) // activities shouldn't be returned
 
     assertThat(series[0].value).isInstanceOf(LifecycleAction::class.java)

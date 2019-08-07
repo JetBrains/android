@@ -18,14 +18,14 @@ package com.android.tools.adtui.visualtests;
 
 import static icons.StudioIcons.Profiler.Events.ROTATE_EVENT;
 
+import com.android.tools.adtui.ActivityComponent;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.EventComponent;
-import com.android.tools.adtui.ActivityComponent;
 import com.android.tools.adtui.eventrenderer.EventIconRenderer;
-import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
 import com.android.tools.adtui.eventrenderer.EventRenderer;
+import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
 import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
@@ -35,6 +35,7 @@ import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.event.LifecycleEvent;
+import com.android.tools.adtui.model.event.LifecycleEventModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import java.awt.BorderLayout;
@@ -100,8 +101,6 @@ public class EventVisualTest extends VisualTest {
   private ResizingAxisComponentModel myTimeAxisModel;
 
   private EventModel<ActionType> myUserEventModel;
-  private EventModel<LifecycleEvent> myActivityLifecycleModel;
-  private EventModel<LifecycleEvent> myFragmentLifecycleModel;
 
 
   @Override
@@ -115,9 +114,8 @@ public class EventVisualTest extends VisualTest {
     myFragmentLifecycleData = new DefaultDataSeries<>();
     myUserEventModel = new EventModel<>(new RangedSeries<>(xRange, myUserEventData));
     myEventComponent = new EventComponent<>(myUserEventModel, MOCK_RENDERERS);
-    myActivityLifecycleModel = new EventModel<>(new RangedSeries<>(xRange, myActivityLifecycleData));
-    myFragmentLifecycleModel = new EventModel<>(new RangedSeries<>(xRange, myFragmentLifecycleData));
-    myActivityComponent = new ActivityComponent(myActivityLifecycleModel, myFragmentLifecycleModel);
+    myActivityComponent = new ActivityComponent(new LifecycleEventModel(new RangedSeries<>(xRange, myActivityLifecycleData),
+                                                                        new RangedSeries<>(xRange, myFragmentLifecycleData)));
     myAnimatedRange = new AnimatedTimeRange(xRange, 0);
     myTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
     myOpenActivities = new ArrayList<>();
