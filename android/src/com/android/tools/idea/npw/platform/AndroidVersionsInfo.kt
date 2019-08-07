@@ -73,10 +73,9 @@ open class AndroidVersionsInfo { // open for Mockito
     fun onDataLoadedFinished(items: List<VersionItem>)
   }
 
-  private val myKnownTargetVersions: MutableList<VersionItem> = Lists.newArrayList() // All versions that we know about
-
-  private val myInstalledVersions: MutableSet<AndroidVersion> = Sets.newHashSet()
-  private var myHighestInstalledApiTarget: IAndroidTarget? = null
+  private val knownTargetVersions: MutableList<VersionItem> = Lists.newArrayList() // All versions that we know about
+  private val installedVersions: MutableSet<AndroidVersion> = Sets.newHashSet()
+  private var highestInstalledApiTarget: IAndroidTarget? = null
   /**
    * Load the list of known Android Versions. The list is made of Android Studio pre-known Android versions, and querying
    * the SDK manager for extra installed versions (can be third party SDKs). No remote network connection is needed.
@@ -93,7 +92,7 @@ open class AndroidVersionsInfo { // open for Mockito
   fun getKnownTargetVersions(formFactor: FormFactor, minSdkLevel: Int): MutableList<VersionItem> {
     val minSdkLevel = minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)
     val versionItemList: MutableList<VersionItem> = ArrayList()
-    for (target in myKnownTargetVersions) {
+    for (target in knownTargetVersions) {
       if (isFormFactorAvailable(formFactor, minSdkLevel, target.minApiLevel) ||
           target.androidTarget != null && target.androidTarget!!.version.isPreview) {
         versionItemList.add(target)
@@ -106,7 +105,7 @@ open class AndroidVersionsInfo { // open for Mockito
    * Load the installed android versions from the installed SDK. No network connection needed.
    */
   private fun loadInstalledVersions() {
-    myInstalledVersions.clear()
+    installedVersions.clear()
     var highestInstalledTarget: IAndroidTarget? = null
     for (target in loadInstalledCompilationTargets()) {
       if (target.isPlatform && target.version.featureLevel >= SdkVersionInfo.LOWEST_COMPILE_SDK_VERSION &&
@@ -115,15 +114,15 @@ open class AndroidVersionsInfo { // open for Mockito
         highestInstalledTarget = target
       }
       if (target.version.isPreview || target.additionalLibraries.isNotEmpty()) {
-        myInstalledVersions.add(target.version)
+        installedVersions.add(target.version)
       }
     }
-    myHighestInstalledApiTarget = highestInstalledTarget
+    highestInstalledApiTarget = highestInstalledTarget
   }
 
   @VisibleForTesting
   open val highestInstalledVersion: AndroidVersion? // open for mockito
-    get() = if (myHighestInstalledApiTarget == null) null else myHighestInstalledApiTarget!!.version
+    get() = if (highestInstalledApiTarget == null) null else highestInstalledApiTarget!!.version
 
   fun loadInstallPackageList(installItems: List<VersionItem>): List<UpdatablePackage> {
     val requestedPaths: MutableSet<String> = Sets.newHashSet()
@@ -132,7 +131,7 @@ open class AndroidVersionsInfo { // open for Mockito
     // Install build tools, if not already installed
     requestedPaths.add(DetailsTypes.getBuildToolsPath(getRecommendedBuildToolsRevision(sdkHandler, REPO_LOG)))
     for (versionItem in installItems) {
-      val androidVersion = versionItem.myAndroidVersion
+      val androidVersion = versionItem.androidVersion
       val platformPath = DetailsTypes.getPlatformPath(androidVersion)
 
       // Check to see if this is installed. If not, request that we install it
@@ -151,9 +150,9 @@ open class AndroidVersionsInfo { // open for Mockito
         // then we request (for now) to install HIGHEST_KNOWN_STABLE_API.
         // Instead, we should choose to install the highest stable API possible. However, users having no SDK at all installed is pretty
         // unlikely, so this logic can wait for a followup CL.
-        if (myHighestInstalledApiTarget == null ||
-            androidVersion.apiLevel > myHighestInstalledApiTarget!!.version.apiLevel &&
-            !myInstalledVersions.contains(androidVersion)) {
+        if (highestInstalledApiTarget == null ||
+            androidVersion.apiLevel > highestInstalledApiTarget!!.version.apiLevel &&
+            !installedVersions.contains(androidVersion)) {
 
           // Let us install the HIGHEST_KNOWN_STABLE_API.
           requestedPaths.add(DetailsTypes.getPlatformPath(AndroidVersion(HIGHEST_KNOWN_STABLE_API, null)))
@@ -178,21 +177,21 @@ open class AndroidVersionsInfo { // open for Mockito
    * Load the local definitions of the android compilation targets.
    */
   private fun loadLocalTargetVersions() {
-    myKnownTargetVersions.clear()
+    knownTargetVersions.clear()
     if (AndroidSdkUtils.isAndroidSdkAvailable()) {
       val knownVersions = knownVersions
       for (i in knownVersions.indices) {
-        myKnownTargetVersions.add(VersionItem(knownVersions[i], i + 1))
+        knownTargetVersions.add(VersionItem(knownVersions[i], i + 1))
       }
     }
     for (target in loadInstalledCompilationTargets()) {
       if (target.version.isPreview || target.additionalLibraries.isNotEmpty()) {
-        myKnownTargetVersions.add(VersionItem(target))
+        knownTargetVersions.add(VersionItem(target))
       }
     }
   }
 
-  private fun loadRemoteTargetVersions(myFormFactor: FormFactor,
+  private fun loadRemoteTargetVersions(formFactor: FormFactor,
                                        minSdkLevel: Int,
                                        versionItemList: MutableList<VersionItem>,
                                        completedCallback: ItemsLoaded?) {
@@ -203,8 +202,8 @@ open class AndroidVersionsInfo { // open for Mockito
     val onComplete = RepoLoadedCallback { packages: RepositoryPackages ->
       ApplicationManager.getApplication().invokeLater(
         {
-          addPackages(myFormFactor, versionItemList, packages.newPkgs, minSdkLevel)
-          addOfflineLevels(myFormFactor, versionItemList)
+          addPackages(formFactor, versionItemList, packages.newPkgs, minSdkLevel)
+          addOfflineLevels(formFactor, versionItemList)
           runCallbacks.run()
         }, ModalityState.any())
     }
@@ -212,13 +211,13 @@ open class AndroidVersionsInfo { // open for Mockito
     // We need to pick up addons that don't have a target created due to the base platform not being installed.
     val onLocalComplete = RepoLoadedCallback { packages: RepositoryPackages ->
       ApplicationManager.getApplication().invokeLater(
-        { addPackages(myFormFactor, versionItemList, packages.localPackages.values, minSdkLevel) },
+        { addPackages(formFactor, versionItemList, packages.localPackages.values, minSdkLevel) },
         ModalityState.any())
     }
     val onError = Runnable {
       ApplicationManager.getApplication().invokeLater(
         {
-          addOfflineLevels(myFormFactor, versionItemList)
+          addOfflineLevels(formFactor, versionItemList)
           runCallbacks.run()
         }, ModalityState.any())
     }
@@ -231,13 +230,13 @@ open class AndroidVersionsInfo { // open for Mockito
       runner, StudioDownloader(), StudioSettingsController.getInstance(), false)
   }
 
-  private fun addPackages(myFormFactor: FormFactor,
+  private fun addPackages(formFactor: FormFactor,
                           versionItemList: MutableList<VersionItem>,
                           packages: Collection<RepoPackage?>,
                           minSdkLevel: Int) {
     val sorted = packages.asSequence()
       .filterNotNull()
-      .filter { filterPkgDesc(it, myFormFactor, minSdkLevel) }
+      .filter { filterPkgDesc(it, formFactor, minSdkLevel) }
       .sortedBy { getAndroidVersion(it) }
     var existingApiLevel = -1
     var prevInsertedApiLevel = -1
@@ -254,13 +253,12 @@ open class AndroidVersionsInfo { // open for Mockito
     }
   }
 
-  private fun addOfflineLevels(myFormFactor: FormFactor,
-                               versionItemList: MutableList<VersionItem>) {
+  private fun addOfflineLevels(formFactor: FormFactor, versionItemList: MutableList<VersionItem>) {
     var existingApiLevel = -1
     var prevInsertedApiLevel = -1
     var index = -1
-    for (apiLevel in myFormFactor.minOfflineApiLevel..myFormFactor.maxOfflineApiLevel) {
-      if (myFormFactor.isSupported(null, apiLevel) || apiLevel <= 0) {
+    for (apiLevel in formFactor.minOfflineApiLevel..formFactor.maxOfflineApiLevel) {
+      if (formFactor.isSupported(null, apiLevel) || apiLevel <= 0) {
         continue
       }
       while (apiLevel > existingApiLevel) {
@@ -274,7 +272,7 @@ open class AndroidVersionsInfo { // open for Mockito
   }
 
   inner class VersionItem {
-    val myAndroidVersion: AndroidVersion
+    val androidVersion: AndroidVersion
     val label: String
     val minApiLevel: Int
     val minApiLevelStr: String // Can be a number or a Code Name (eg "L", "N", etc)
@@ -285,7 +283,7 @@ open class AndroidVersionsInfo { // open for Mockito
       private set
 
     internal constructor(androidVersion: AndroidVersion, tag: IdDisplay, target: IAndroidTarget?) {
-      myAndroidVersion = androidVersion
+      this.androidVersion = androidVersion
       label = getLabel(androidVersion, tag, target)
       androidTarget = target
       minApiLevel = androidVersion.featureLevel
@@ -293,7 +291,7 @@ open class AndroidVersionsInfo { // open for Mockito
     }
 
     internal constructor(label: String, minApiLevel: Int) {
-      myAndroidVersion = AndroidVersion(minApiLevel, null)
+      androidVersion = AndroidVersion(minApiLevel, null)
       this.label = label
       this.minApiLevel = minApiLevel
       minApiLevelStr = minApiLevel.toString()
