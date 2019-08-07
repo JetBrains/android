@@ -131,9 +131,9 @@
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module-library">
-      <library name="instantapps-api-1.5">
+      <library name="instantapps-api">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/instantapps-api-1.5.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/instantapps-api-1.8.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
