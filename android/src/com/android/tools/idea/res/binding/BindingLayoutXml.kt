@@ -39,6 +39,14 @@ data class BindingLayoutXml(val file: VirtualFile,
 
   class Import(type: String, val alias: String?) {
     val type: String = type.cleanInnerClassNames()
+
+    /**
+     * The alias of this import or its unqualified type.
+     *
+     * An import is either a type plus an alias, e.g. `<import alias="MyMap" type="java.util.Map"/>`,
+     * or just a pure type, e.g. `<import type="java.util.Map"/>`. In the former case, this
+     * property will return the alias, i.e. "MyMap", while in the latter case, the type, i.e. "Map".
+     */
     val aliasOrType: String = alias ?: type.substringAfterLast('.')
   }
 

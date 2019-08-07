@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.databinding.completion
 
-import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.lang.databinding.config.DbFile
@@ -151,14 +150,17 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   private fun autoCompleteVariablesAndUnqualifiedFunctions(file: DbFile, result: CompletionResultSet) {
     autoCompleteUnqualifiedFunctions(result)
 
-    val bindingLayoutInfo = getBindingLayoutInfo(file) ?: return
-    result.addAllElements(
-      (bindingLayoutInfo.psi.getItems(DataBindingResourceType.VARIABLE).values
-       + bindingLayoutInfo.psi.getItems(DataBindingResourceType.IMPORT).values)
-        .map { (name, _, xmlTag) ->
-          LookupElementBuilder.create(xmlTag, DataBindingUtil.convertToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
-        }
-    )
+    val info = getBindingLayoutInfo(file) ?: return
+
+    val variableTagNamePairs = info.xml.variables.map { variable -> variable.name to info.psi.findVariableTag(variable) }
+    val importTagTypePairs = info.xml.imports.map { import -> import.aliasOrType to info.psi.findImportTag(import) }
+
+    result.addAllElements((variableTagNamePairs + importTagTypePairs).mapNotNull { nameToTag ->
+      val xmlTag = nameToTag.second ?: return
+      val name = nameToTag.first
+      LookupElementBuilder.create(xmlTag, DataBindingUtil.convertToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
+    })
+
     JavaPsiFacade.getInstance(file.project).findPackage(CommonClassNames.DEFAULT_PACKAGE)!!
       .getClasses(ModulesScope.moduleWithLibrariesScope(file.androidFacet!!.module))
       .forEach {
