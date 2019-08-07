@@ -49,15 +49,10 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionExcep
 import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateUtils.knownVersions
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.Lists
-import com.google.common.collect.Sets
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.File
-import java.util.ArrayList
-import java.util.Locale
 
 /**
  * Lists the available Android Versions from local, remote, and statically-defined sources.
@@ -73,8 +68,8 @@ open class AndroidVersionsInfo { // open for Mockito
     fun onDataLoadedFinished(items: List<VersionItem>)
   }
 
-  private val knownTargetVersions: MutableList<VersionItem> = Lists.newArrayList() // All versions that we know about
-  private val installedVersions: MutableSet<AndroidVersion> = Sets.newHashSet()
+  private val knownTargetVersions = mutableListOf<VersionItem>() // All versions that we know about
+  private val installedVersions = mutableSetOf<AndroidVersion>()
   private var highestInstalledApiTarget: IAndroidTarget? = null
   /**
    * Load the list of known Android Versions. The list is made of Android Studio pre-known Android versions, and querying
@@ -91,7 +86,7 @@ open class AndroidVersionsInfo { // open for Mockito
    */
   fun getKnownTargetVersions(formFactor: FormFactor, minSdkLevel: Int): MutableList<VersionItem> {
     val minSdkLevel = minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)
-    val versionItemList: MutableList<VersionItem> = ArrayList()
+    val versionItemList = mutableListOf<VersionItem>()
     for (target in knownTargetVersions) {
       if (isFormFactorAvailable(formFactor, minSdkLevel, target.minApiLevel) ||
           target.androidTarget != null && target.androidTarget!!.version.isPreview) {
@@ -125,7 +120,7 @@ open class AndroidVersionsInfo { // open for Mockito
     get() = if (highestInstalledApiTarget == null) null else highestInstalledApiTarget!!.version
 
   fun loadInstallPackageList(installItems: List<VersionItem>): List<UpdatablePackage> {
-    val requestedPaths: MutableSet<String> = Sets.newHashSet()
+    val requestedPaths = mutableSetOf<String>()
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 
     // Install build tools, if not already installed
@@ -165,9 +160,7 @@ open class AndroidVersionsInfo { // open for Mockito
   /**
    * Get the list of versions, notably by populating the available values from local, remote, and statically-defined sources.
    */
-  fun loadRemoteTargetVersions(formFactor: FormFactor,
-                               minSdkLevel: Int,
-                               itemsLoadedCallback: ItemsLoaded) {
+  fun loadRemoteTargetVersions(formFactor: FormFactor, minSdkLevel: Int, itemsLoadedCallback: ItemsLoaded) {
     val minSdkLevel = minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)
     val versionItemList = getKnownTargetVersions(formFactor, minSdkLevel)
     loadRemoteTargetVersions(formFactor, minSdkLevel, versionItemList, itemsLoadedCallback)
@@ -191,10 +184,9 @@ open class AndroidVersionsInfo { // open for Mockito
     }
   }
 
-  private fun loadRemoteTargetVersions(formFactor: FormFactor,
-                                       minSdkLevel: Int,
-                                       versionItemList: MutableList<VersionItem>,
-                                       completedCallback: ItemsLoaded?) {
+  private fun loadRemoteTargetVersions(
+    formFactor: FormFactor, minSdkLevel: Int, versionItemList: MutableList<VersionItem>, completedCallback: ItemsLoaded?
+  ) {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val runCallbacks = Runnable {
       completedCallback?.onDataLoadedFinished(versionItemList)
@@ -224,9 +216,9 @@ open class AndroidVersionsInfo { // open for Mockito
     val runner = StudioProgressRunner(false, false, "Refreshing Targets", null)
     sdkHandler.getSdkManager(REPO_LOG).load(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
-      ImmutableList.of(onLocalComplete),
-      ImmutableList.of(onComplete),
-      ImmutableList.of(onError),
+      listOf(onLocalComplete),
+      listOf(onComplete),
+      listOf(onError),
       runner, StudioDownloader(), StudioSettingsController.getInstance(), false)
   }
 
@@ -313,25 +305,17 @@ open class AndroidVersionsInfo { // open for Mockito
     }
 
     val buildApiLevel: Int
-      get() = if (addon != null || androidTarget != null && (androidTarget!!.version.isPreview || !androidTarget!!.isPlatform)) {
-          minApiLevel
-        }
-        else if (highestInstalledVersion != null && highestInstalledVersion!!.featureLevel > HIGHEST_KNOWN_STABLE_API) {
-          highestInstalledVersion!!.featureLevel
-        }
-        else {
-          HIGHEST_KNOWN_STABLE_API
-        }
+      get() = when {
+        addon != null || androidTarget != null && (androidTarget!!.version.isPreview || !androidTarget!!.isPlatform) -> minApiLevel
+        (highestInstalledVersion?.featureLevel ?: 0) > HIGHEST_KNOWN_STABLE_API -> highestInstalledVersion!!.featureLevel
+        else -> HIGHEST_KNOWN_STABLE_API
+      }
 
     val buildApiLevelStr: String
-      get() {
-        if (androidTarget == null) {
-          return buildApiLevel.toString()
-        }
-        return if (androidTarget!!.isPlatform) {
-          TemplateMetadata.getBuildApiString(androidTarget!!.version)
-        }
-        else AndroidTargetHash.getTargetHashString(androidTarget!!)
+      get() = when {
+        androidTarget == null -> buildApiLevel.toString()
+        androidTarget!!.isPlatform -> TemplateMetadata.getBuildApiString(androidTarget!!.version)
+        else -> AndroidTargetHash.getTargetHashString(androidTarget!!)
       }
 
     val targetApiLevel: Int
@@ -341,57 +325,44 @@ open class AndroidVersionsInfo { // open for Mockito
       get() {
         val buildApiLevel = buildApiLevel
         if (buildApiLevel >= HIGHEST_KNOWN_API || androidTarget != null && androidTarget!!.version.isPreview) {
-          return if (androidTarget == null) Integer.toString(buildApiLevel) else androidTarget!!.version.apiString
+          return if (androidTarget == null) buildApiLevel.toString() else androidTarget!!.version.apiString
         }
         val installedVersion = highestInstalledVersion
-        return if (installedVersion != null && installedVersion.featureLevel == buildApiLevel) {
+        return if (installedVersion?.featureLevel == buildApiLevel)
           installedVersion.apiString
-        }
-        else buildApiLevel.toString()
+        else
+          buildApiLevel.toString()
       }
 
-    override fun equals(other: Any?): Boolean {
-      return other is VersionItem && other.label == label
-    }
+    override fun equals(other: Any?): Boolean = other is VersionItem && other.label == label
 
-    override fun hashCode(): Int {
-      return label.hashCode()
-    }
+    override fun hashCode(): Int = label.hashCode()
 
-    private fun getLabel(version: AndroidVersion,
-                         tag: IdDisplay?,
-                         target: IAndroidTarget?): String {
+    private fun getLabel(version: AndroidVersion, tag: IdDisplay?, target: IAndroidTarget?): String {
       val featureLevel = version.featureLevel
       if (SystemImage.GLASS_TAG == tag) {
-        return String.format(Locale.US, "Glass Development Kit Preview (API %1\$d)", featureLevel)
+        return "Glass Development Kit Preview (API $featureLevel)"
       }
       return if (featureLevel <= HIGHEST_KNOWN_API) {
-        if (version.isPreview) {
-          String.format("API %1\$s: Android %2\$s (%3\$s preview)",
-                        SdkVersionInfo.getCodeName(featureLevel),
-                        SdkVersionInfo.getVersionString(featureLevel),
-                        SdkVersionInfo.getCodeName(featureLevel))
-        }
-        else if (target == null || target.isPlatform) {
-          SdkVersionInfo.getAndroidName(featureLevel)
-        }
-        else {
-          AndroidTargetHash.getTargetHashString(target)
+        when {
+          // FIXME(qumeric) duplicate info
+          version.isPreview -> "API %s: Android %s (%s preview)".format(
+            SdkVersionInfo.getCodeName(featureLevel),
+            SdkVersionInfo.getVersionString(featureLevel),
+            SdkVersionInfo.getCodeName(featureLevel))
+          target == null || target.isPlatform -> SdkVersionInfo.getAndroidName(featureLevel)
+          else -> AndroidTargetHash.getTargetHashString(target)
         }
       }
       else {
-        if (version.isPreview) {
-          String.format(Locale.US, "API %1\$d: Android (%2\$s)", featureLevel, version.codename)
-        }
-        else {
-          String.format(Locale.US, "API %1\$d: Android", featureLevel)
-        }
+        if (version.isPreview)
+          "API $featureLevel: Android (${version.codename})"
+        else
+          "API $featureLevel: Android"
       }
     }
 
-    override fun toString(): String {
-      return label
-    }
+    override fun toString(): String = label
   }
 
   companion object {
@@ -402,14 +373,13 @@ open class AndroidVersionsInfo { // open for Mockito
       get() = IdeSdks.getInstance().androidSdkPath
 
     /**
-     * @return a list of android compilation targets (platforms and add-on SDKs)
+     * Returns a list of android compilation targets (platforms and add-on SDKs).
      */
     private fun loadInstalledCompilationTargets(): Array<IAndroidTarget> {
-      val targetManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getAndroidTargetManager(
-        REPO_LOG)
-      val result: MutableList<IAndroidTarget> = Lists.newArrayList()
+      val targetManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getAndroidTargetManager(REPO_LOG)
+      val result = mutableListOf<IAndroidTarget>()
       for (target in targetManager.getTargets(REPO_LOG)) {
-        if (target.isPlatform || !target.additionalLibraries.isEmpty()) {
+        if (target.isPlatform || target.additionalLibraries.isNotEmpty()) {
           result.add(target)
         }
       }
@@ -418,53 +388,40 @@ open class AndroidVersionsInfo { // open for Mockito
 
     private fun getPackageList(requestedPaths: Collection<String>,
                                sdkHandler: AndroidSdkHandler): List<UpdatablePackage> {
-      val requestedPackages: MutableList<UpdatablePackage> = ArrayList()
-      val packages = sdkHandler.getSdkManager(
-        REPO_LOG).packages
-      val consolidated: Map<String, UpdatablePackage> = packages.consolidatedPkgs
+      val requestedPackages = mutableListOf<UpdatablePackage>()
+      val packages = sdkHandler.getSdkManager(REPO_LOG).packages
       for (path in requestedPaths) {
-        val p = consolidated[path]
+        val p = packages.consolidatedPkgs[path]
         if (p != null && p.hasRemote()) {
           requestedPackages.add(p)
         }
       }
-      var resolvedPackages: List<UpdatablePackage> = ArrayList()
-      try {
-        resolvedPackages = SdkQuickfixUtils.resolve(requestedPackages, packages)
+      return try {
+        SdkQuickfixUtils.resolve(requestedPackages, packages)
       }
       catch (e: PackageResolutionException) {
         REPO_LOG.logError("Error Resolving Packages", e)
+        listOf()
       }
-      return resolvedPackages
     }
 
-    private fun filterPkgDesc(p: RepoPackage, formFactor: FormFactor, minSdkLevel: Int): Boolean {
-      return isApiType(p) && doFilter(formFactor, minSdkLevel, getTag(p), getFeatureLevel(p))
-    }
+    private fun filterPkgDesc(p: RepoPackage, formFactor: FormFactor, minSdkLevel: Int): Boolean =
+      isApiType(p) && doFilter(formFactor, minSdkLevel, getTag(p), getFeatureLevel(p))
 
-    private fun doFilter(formFactor: FormFactor, minSdkLevel: Int, tag: IdDisplay?, targetSdkLevel: Int): Boolean {
-      return formFactor.isSupported(tag, targetSdkLevel) && targetSdkLevel >= minSdkLevel
-    }
+    private fun doFilter(formFactor: FormFactor, minSdkLevel: Int, tag: IdDisplay?, targetSdkLevel: Int): Boolean =
+      formFactor.isSupported(tag, targetSdkLevel) && targetSdkLevel >= minSdkLevel
 
-    private fun isApiType(repoPackage: RepoPackage): Boolean {
-      return repoPackage.typeDetails is ApiDetailsType
-    }
+    private fun isApiType(repoPackage: RepoPackage): Boolean =
+      repoPackage.typeDetails is ApiDetailsType
 
-    private fun getFeatureLevel(repoPackage: RepoPackage): Int {
-      return getAndroidVersion(repoPackage).featureLevel
-    }
+    private fun getFeatureLevel(repoPackage: RepoPackage): Int =
+      getAndroidVersion(repoPackage).featureLevel
 
-    private fun isFormFactorAvailable(formFactor: FormFactor, minSdkLevel: Int, targetSdkLevel: Int): Boolean {
-      return doFilter(formFactor, minSdkLevel, SystemImage.DEFAULT_TAG, targetSdkLevel)
-    }
+    private fun isFormFactorAvailable(formFactor: FormFactor, minSdkLevel: Int, targetSdkLevel: Int): Boolean =
+      doFilter(formFactor, minSdkLevel, SystemImage.DEFAULT_TAG, targetSdkLevel)
 
-    private fun getAndroidVersion(repoPackage: RepoPackage): AndroidVersion {
-      val details = repoPackage.typeDetails
-      if (details is ApiDetailsType) {
-        return (details as ApiDetailsType).androidVersion
-      }
-      throw RuntimeException("Could not determine version")
-    }
+    private fun getAndroidVersion(repoPackage: RepoPackage): AndroidVersion =
+      (repoPackage.typeDetails as? ApiDetailsType)?.androidVersion ?: throw RuntimeException("Could not determine version")
 
     /**
      * Return the tag for the specified repository package.
