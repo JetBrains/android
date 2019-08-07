@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.res
 
-import com.android.SdkConstants
-import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.res.binding.BindingLayoutInfo
@@ -256,22 +254,12 @@ class ResourceFolderDataBindingTest {
    * Note: Pairs are name to type.
    */
   private fun assertVariables(vararg expected: Pair<String, String>) {
-    // BindingLayoutInfo classes have both raw and PSI versions of variables - verify that both of
-    // them are up to date.
-
-    val xmlVariables = getInfo()
+    val variables = getInfo()
       .xml
       .variables
       .map { variable -> variable.name to variable.type }
       .toSet()
-    assertEquals(expected.toSet(), xmlVariables)
-
-    val psiVariables = getInfo()
-      .psi
-      .getItems(DataBindingResourceType.VARIABLE).values
-      .map { variable -> variable.name to variable.typeDeclaration }
-      .toSet()
-    assertEquals(expected.toSet(), psiVariables)
+    assertEquals(expected.toSet(), variables)
   }
 
   /**
@@ -281,22 +269,12 @@ class ResourceFolderDataBindingTest {
    * Note: Pairs are type to alias.
    */
   private fun assertImports(vararg expected: Pair<String, String?>) {
-    // BindingLayoutInfo classes have both raw and PSI versions of imports - verify that both of
-    // them are up to date.
-
-    val xmlImports = getInfo()
+    val imports = getInfo()
       .xml
       .imports
       .map { import -> import.type to import.alias }
       .toSet()
-    assertEquals(expected.toSet(), xmlImports)
-
-    val psiImports = getInfo()
-      .psi
-      .getItems(DataBindingResourceType.IMPORT).values
-      .map { import -> import.typeDeclaration to import.getExtra(SdkConstants.ATTR_ALIAS) }
-      .toSet()
-    assertEquals(expected.toSet(), psiImports)
+    assertEquals(expected.toSet(), imports)
   }
 
   private fun getInfo(): BindingLayoutInfo {
@@ -307,13 +285,12 @@ class ResourceFolderDataBindingTest {
   }
 
   private fun getVariableTag(name: String): XmlTag {
-    val variable = getInfo()
-      .psi
-      .getItems(DataBindingResourceType.VARIABLE)
-      .values
-      .firstOrNull { it.name == name }
+    val info = getInfo()
+    val variable = info.xml.variables.firstOrNull { it.name == name }
     assertNotNull("cannot find variable with name $name", variable)
-    return variable!!.xmlTag
+    val variableTag = info.psi.findVariableTag(variable!!)
+    assertNotNull("cannot find XML tag for variable with name $name", variableTag)
+    return variableTag!!
   }
 
   companion object {

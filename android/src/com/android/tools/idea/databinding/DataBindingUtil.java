@@ -27,7 +27,6 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
-import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
@@ -430,14 +429,6 @@ public final class DataBindingUtil {
       }
     }
     return getAlias(typeValue, aliasValue);
-  }
-
-  /**
-   * See docs for {@link #getAlias(Import)}
-   */
-  @Nullable
-  public static String getAlias(@NotNull PsiDataBindingResourceItem anImport) {
-    return getAlias(anImport.getTypeDeclaration(), anImport.getExtra(ATTR_ALIAS));
   }
 
   /**

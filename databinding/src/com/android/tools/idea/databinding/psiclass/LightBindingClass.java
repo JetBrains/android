@@ -26,7 +26,6 @@ import com.android.tools.idea.databinding.index.ViewIdInfo;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.tools.idea.res.binding.BindingLayoutPsiUtils;
 import com.android.tools.idea.res.binding.BindingLayoutXml;
-import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.lang.Language;
@@ -70,6 +69,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.List;
+import kotlin.Pair;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
@@ -121,8 +121,8 @@ public class LightBindingClass extends AndroidLightClassBase {
           PsiMethod constructor = createConstructor();
           methods.add(constructor);
 
-          for (PsiDataBindingResourceItem variable : myConfig.getPsiVariables()) {
-            createVariableMethods(variable, methods);
+          for (Pair<BindingLayoutXml.Variable, XmlTag> variableTag : myConfig.getVariableTags()) {
+            createVariableMethods(variableTag, methods);
           }
 
           if (myConfig.shouldGenerateGettersAndStaticMethods()) {
@@ -296,10 +296,13 @@ public class LightBindingClass extends AndroidLightClassBase {
     return true;
   }
 
-  private void createVariableMethods(@NotNull PsiDataBindingResourceItem item, @NotNull List<PsiMethod> outPsiMethods) {
+  private void createVariableMethods(@NotNull Pair<BindingLayoutXml.Variable, XmlTag> variableTag, @NotNull List<PsiMethod> outPsiMethods) {
     PsiManager psiManager = getManager();
 
-    String typeName = item.getExtra(SdkConstants.ATTR_TYPE);
+    BindingLayoutXml.Variable variable = variableTag.getFirst();
+    XmlTag xmlTag = variableTag.getSecond();
+
+    String typeName = variable.getType();
     String variableType = DataBindingUtil.getQualifiedType(typeName, myConfig.getTargetLayout(), true);
     if (variableType == null) {
       return;
@@ -309,18 +312,18 @@ public class LightBindingClass extends AndroidLightClassBase {
       return;
     }
 
-    String javaName = DataBindingUtil.convertToJavaFieldName(item.getName());
+    String javaName = DataBindingUtil.convertToJavaFieldName(variable.getName());
     String capitalizedName = StringUtil.capitalize(javaName);
     LightMethodBuilder setter = createPublicMethod("set" + capitalizedName, PsiType.VOID);
     setter.addParameter(javaName, type);
     if (myConfig.settersShouldBeAbstract()) {
       setter.addModifier("abstract");
     }
-    outPsiMethods.add(new LightDataBindingMethod(item.getXmlTag(), psiManager, setter, this, JavaLanguage.INSTANCE));
+    outPsiMethods.add(new LightDataBindingMethod(xmlTag, psiManager, setter, this, JavaLanguage.INSTANCE));
 
     if (myConfig.shouldGenerateGettersAndStaticMethods()) {
       LightMethodBuilder getter = createPublicMethod("get" + capitalizedName, type);
-      outPsiMethods.add(new LightDataBindingMethod(item.getXmlTag(), psiManager, getter, this, JavaLanguage.INSTANCE));
+      outPsiMethods.add(new LightDataBindingMethod(xmlTag, psiManager, getter, this, JavaLanguage.INSTANCE));
     }
   }
 

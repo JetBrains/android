@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.res.binding
 
-import com.android.SdkConstants
-import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.VIEW_BINDING_LAYOUT
@@ -183,22 +181,11 @@ class BindingLayoutInfo(private val facet: AndroidFacet,
   /**
    * Updates this layout info with a whole new set of `<data>` values.
    *
-   * Both the data model ([xml]) as well as the PSI information ([psi]) are updated.
+   * After calling this, the data model ([xml]) will be updated.
    */
-  fun replaceDataItems(newDataItems: List<PsiDataBindingResourceItem>, modificationCount: Long) {
-    val variables = mutableListOf<BindingLayoutXml.Variable>()
-    val imports = mutableListOf<BindingLayoutXml.Import>()
-    newDataItems.forEach { dataItem ->
-      when {
-        dataItem.type == DataBindingResourceType.VARIABLE -> variables.add(
-          BindingLayoutXml.Variable(dataItem.name, dataItem.typeDeclaration))
-        dataItem.type == DataBindingResourceType.IMPORT -> imports.add(
-          BindingLayoutXml.Import(dataItem.typeDeclaration!!, dataItem.getExtra(SdkConstants.ATTR_ALIAS)))
-      }
-    }
-    xml = xml.copy(variables = variables, imports = imports)
-
-    if (psi.replaceDataItems(newDataItems)) {
+  fun replaceDataItems(variables: List<BindingLayoutXml.Variable>, imports: List<BindingLayoutXml.Import>, modificationCount: Long) {
+    if (xml.variables != variables || xml.imports != imports) {
+      xml = xml.copy(variables = variables, imports = imports)
       this.modificationCount = modificationCount
     }
   }

@@ -18,13 +18,14 @@
 package com.android.tools.idea.res.binding
 
 import com.android.SdkConstants
-import com.android.ide.common.resources.DataBindingResourceType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
+import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -79,36 +80,19 @@ class BindingLayoutPsi internal constructor(val facet: AndroidFacet,
       BindingLayoutInfo.LayoutType.VIEW_BINDING_LAYOUT
     }
 
-  private val _resourceItems = mutableMapOf<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>>()
-  val resourceItems: Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>>
-    get() = _resourceItems
+  private fun findDataTag(): XmlTag? = xmlPsiFile.rootTag?.takeIf { it.name == "layout" }?.findFirstSubTag("data")
 
-  /**
-   * Completely replaces all the `import`/`variable` (i.e. `<data>`) resources in this info.
-   *
-   * Returns `true` if any item was added or removed, or `false` otherwise (even if an underlying
-   * PSI tag's contents changed).
-   */
-  fun replaceDataItems(newDataItems: List<PsiDataBindingResourceItem>): Boolean {
-    val newDataItemsGrouped = newDataItems.associate { item -> item.type to mutableMapOf<String, PsiDataBindingResourceItem>() }
-    for (item in newDataItems) {
-      val itemsByName = newDataItemsGrouped.getValue(item.type)
-      itemsByName[item.name] = item
-    }
-
-    if (newDataItemsGrouped != _resourceItems) {
-      _resourceItems.clear()
-      _resourceItems.putAll(newDataItemsGrouped)
-      return true
-    }
-    return false
+  fun findVariableTag(variable: BindingLayoutXml.Variable): XmlTag? {
+    return findDataTag()?.findSubTags("variable")?.firstOrNull { tag ->
+      variable.name == StringUtil.unescapeXmlEntities(tag.getAttributeValue(SdkConstants.ATTR_NAME).orEmpty()) }
   }
 
-  /**
-   * Given a resource type (e.g. variable or import), returns all "name to resource item" mappings
-   * (e.g. the PSI elements for all variables keyed by the variable name).
-   */
-  fun getItems(type: DataBindingResourceType): Map<String, PsiDataBindingResourceItem> = _resourceItems[type] ?: emptyMap()
+  fun findImportTag(import: BindingLayoutXml.Import): XmlTag? {
+    return findDataTag()?.findSubTags("import")?.firstOrNull { tag ->
+      import.alias == StringUtil.unescapeXmlEntities(tag.getAttributeValue(SdkConstants.ATTR_ALIAS).orEmpty()) ||
+      import.type == StringUtil.unescapeXmlEntities(tag.getAttributeValue(SdkConstants.ATTR_TYPE).orEmpty())
+    }
+  }
 }
 
 /**
