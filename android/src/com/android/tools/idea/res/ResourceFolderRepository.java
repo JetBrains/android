@@ -94,7 +94,10 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -105,6 +108,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -222,6 +226,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @NotNull private final Map<VirtualFile, ResourceItemSource<? extends ResourceItem>> mySources = new HashMap<>();
   @NotNull private final PsiManager myPsiManager;
+  @NotNull private final PsiDocumentManager myPsiDocumentManager;
   @NotNull private Set<BindingLayoutGroup> myDataBindingResourceFiles = new HashSet<>();
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
   @NotNull private final Object SCAN_LOCK = new Object();
@@ -269,6 +274,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     myDataBindingEnabled = isDataBindingEnabled(facet);
     myViewBindingEnabled = isViewBindingEnabled(facet);
     myPsiManager = PsiManager.getInstance(getProject());
+    myPsiDocumentManager = PsiDocumentManager.getInstance(getProject());
 
     PsiTreeChangeListener psiListener = StudioFlags.INCREMENTAL_RESOURCE_REPOSITORIES.get()
                                         ? new IncrementalUpdatePsiListener()
@@ -1003,6 +1009,19 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (isResourceFile(file) && isRelevantFile(file)) {
       PsiFile psiFile = myPsiManager.findFile(file);
       if (psiFile != null) {
+        Document document = myPsiDocumentManager.getDocument(psiFile);
+        if (document != null && myPsiDocumentManager.isUncommited(document)) {
+          // The Document has uncommitted changes, so scanning the PSI will yield stale results. Request a commit and scan once it's done.
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Committing ", document);
+          }
+          ApplicationManager.getApplication().invokeLater(() -> {
+            WriteAction.run(() -> myPsiDocumentManager.commitDocument(document));
+            ReadAction.run(() -> scan(psiFile, folderType));
+          });
+          return;
+        }
+
         scan(psiFile, folderType);
       }
     }
@@ -2122,6 +2141,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     @Nullable private PathString myLastPathString;
 
     @NotNull Set<VirtualFile> myFilesToReparseAsPsi = new HashSet<>();
+    private final FileDocumentManager myFileDocumentManager;
 
     Loader(@NotNull ResourceFolderRepository repository, @Nullable ResourceFolderRepositoryCachingData cachingData) {
       super(VfsUtilCore.virtualToIoFile(repository.myResourceDir).toPath(), null, repository.getNamespace());
@@ -2131,6 +2151,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       myCachingData = cachingData;
       // TODO: Support visibility without relying on ResourceVisibilityLookup.
       myDefaultVisibility = ResourceVisibility.UNDEFINED;
+      myFileDocumentManager = FileDocumentManager.getInstance();
     }
 
     public void load() {
@@ -2211,6 +2232,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             if (folderInfo != null) {
               RepositoryConfiguration configuration = getConfiguration(myRepository, folderInfo.configuration);
               for (VirtualFile file : subDir.getChildren()) {
+
+                // If there is an unsaved Document for this file, data read from persistent cache may be stale and data read using
+                // loadResourceFile below will be stale as it reads straight from disk. Schedule a PSI-based parse.
+                if (myFileDocumentManager.isFileModified(file)) {
+                  myFilesToReparseAsPsi.add(file);
+                  continue;
+                }
+
                 if (folderInfo.folderType == VALUES ? mySources.containsKey(file) : myFileResources.containsKey(file)) {
                   if (isParsableFile(file, folderInfo)) {
                     countCacheHit();
