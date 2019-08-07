@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
-import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.getViewBindingClassName
 import com.android.tools.idea.databinding.index.BindingXmlIndex
@@ -24,10 +23,11 @@ import com.android.tools.idea.databinding.index.ViewIdInfo
 import com.android.tools.idea.res.binding.BindingLayoutGroup
 import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT
-import com.android.tools.idea.res.binding.PsiDataBindingResourceItem
+import com.android.tools.idea.res.binding.BindingLayoutXml
 import com.android.tools.idea.res.binding.toPsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
+import com.intellij.psi.xml.XmlTag
 import com.intellij.util.indexing.FileBasedIndex
 
 /**
@@ -54,9 +54,13 @@ interface LightBindingClassConfig {
   val qualifiedName: String
 
   /**
-   * A list of PSI references to the `<variable>` tags in the source layout.xml file.
+   * A list of all `<variable>` tags paired with their corresponding PSI XML tag.
+   *
+   * Note: Even if a binding is being generated for a target layout, its API may still include
+   * variables from alternate layouts in the group. This is why we need to return the XML tags
+   * explicitly, as they may refer to a layout configuration outside of our own.
    */
-  val psiVariables: Collection<PsiDataBindingResourceItem>
+  val variableTags: List<Pair<BindingLayoutXml.Variable, XmlTag>>
 
   /**
    * Returns a list of all views with IDs that fields should be created for,
@@ -78,6 +82,23 @@ interface LightBindingClassConfig {
    */
   fun settersShouldBeAbstract(): Boolean
 }
+
+private val BindingLayoutGroup.aggregatedVariables: List<Pair<BindingLayoutXml.Variable, XmlTag>>
+  get() {
+    val aggregatedVariables = mutableListOf<Pair<BindingLayoutXml.Variable, XmlTag>>()
+    val alreadySeen = mutableSetOf<String>()
+    for (layout in layouts) {
+      val variables = layout.xml.variables
+      for (variable in variables) {
+        val variableTag = layout.psi.findVariableTag(variable) ?: continue
+        if (alreadySeen.add(variable.name)) {
+          aggregatedVariables.add(variable to variableTag)
+        }
+      }
+    }
+
+    return aggregatedVariables
+  }
 
 /**
  * Used to generate a "Binding" class.
@@ -103,8 +124,8 @@ class BindingClassConfig(private val group: BindingLayoutGroup) : LightBindingCl
   override val className = group.mainLayout.className
   override val qualifiedName = group.mainLayout.qualifiedName
 
-  override val psiVariables: Collection<PsiDataBindingResourceItem>
-    get() = group.aggregatedPsiItems[DataBindingResourceType.VARIABLE].values
+  override val variableTags: List<Pair<BindingLayoutXml.Variable, XmlTag>>
+    get() = group.aggregatedVariables
 
   override val viewIds: List<ViewIdInfo>
     get() {
@@ -145,8 +166,8 @@ class BindingImplClassConfig(private val group: BindingLayoutGroup, private val 
   override val className = targetLayout.className + targetLayout.getImplSuffix()
   override val qualifiedName = targetLayout.qualifiedName + targetLayout.getImplSuffix()
 
-  override val psiVariables: Collection<PsiDataBindingResourceItem>
-    get() = group.aggregatedPsiItems[DataBindingResourceType.VARIABLE].values
+  override val variableTags: List<Pair<BindingLayoutXml.Variable, XmlTag>>
+    get() = group.aggregatedVariables
 
   override val viewIds: List<ViewIdInfo>
     get() = listOf() // Only provided by base "Binding" class.

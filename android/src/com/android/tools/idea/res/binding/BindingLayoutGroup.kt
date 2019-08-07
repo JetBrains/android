@@ -31,8 +31,6 @@ class BindingLayoutGroup(layouts: List<BindingLayoutInfo>) : ModificationTracker
     // Safe to assume non-null because there should always be at least one layout in a group
     get() = layouts.minBy { layout -> layout.xml.folderName.length }!!
 
-  val aggregatedPsiItems = AggregateBindingItemCache(layouts)
-
   /**
    * Forcefully updates all the layouts of the current group (if the passed in list of layouts
    * differs from the current list).

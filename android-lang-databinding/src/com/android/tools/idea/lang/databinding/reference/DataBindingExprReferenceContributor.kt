@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType
@@ -349,13 +348,17 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     run {
       val layoutInfo = getParentLayoutInfo(module, element) ?: return PsiReference.EMPTY_ARRAY
 
-      layoutInfo.psi.getItems(DataBindingResourceType.VARIABLE).values
-        .firstOrNull { variable -> simpleName == variable.name }
-        ?.let { return arrayOf(XmlVariableReference(element, it.xmlTag, it, layoutInfo, module)) }
+      layoutInfo.xml.variables.firstOrNull { it.name == simpleName }?.let { variable ->
+        layoutInfo.psi.findVariableTag(variable)?.let { variableTag ->
+          return arrayOf(XmlVariableReference(element, variableTag, variable, layoutInfo, module))
+        }
+      }
 
-      layoutInfo.psi.getItems(DataBindingResourceType.IMPORT).values
-        .firstOrNull { import -> simpleName == DataBindingUtil.getAlias(import) }
-        ?.let { return arrayOf(XmlImportReference(element, it.xmlTag, it, module)) }
+      layoutInfo.xml.imports.firstOrNull { it.aliasOrType == simpleName }?.let { import ->
+        layoutInfo.psi.findImportTag(import)?.let { importTag ->
+          return arrayOf(XmlImportReference(element, importTag, import, module))
+        }
+      }
     }
 
     // If we're here, we couldn't find a reference inside the XML file. Now, we have to search
