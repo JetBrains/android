@@ -50,12 +50,14 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
+import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
@@ -73,6 +75,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.VfsTestUtil;
 import com.intellij.util.WaitFor;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
 import com.intellij.util.ui.UIUtil;
@@ -93,7 +96,6 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.picocontainer.MutablePicoContainer;
 
 /**
  * Tests for {@link ResourceFolderRepository}.
@@ -128,16 +130,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private ResourceFolderRegistry myRegistry;
 
   @Override
-  public void tearDown() throws Exception {
-    try {
-      overrideCacheService(myOldFileCacheService);
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
-  @Override
   public void setUp() throws Exception {
     super.setUp();
     // Use a file cache that has per-test root directories instead of sharing the system directory.
@@ -151,22 +143,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         return super.getCachingData(project, resourceDir, directExecutor());
       }
     };
-    myOldFileCacheService = overrideCacheService(cache);
+    new IdeComponents(getProject()).replaceApplicationService(ResourceFolderRepositoryFileCache.class, cache);
     myRegistry = ResourceFolderRegistry.getInstance(getProject());
     Path file = cache.getCachingData(getProject(), getResourceDirectory(), null).getCacheFile();
     Files.deleteIfExists(file);
-  }
-
-  private static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
-    MutablePicoContainer applicationContainer = (MutablePicoContainer)ApplicationManager.getApplication().getPicoContainer();
-
-    // Use a file cache that has per-test root directories instead of sharing the system directory.
-    // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
-    ResourceFolderRepositoryFileCache oldCache =
-        (ResourceFolderRepositoryFileCache)applicationContainer.getComponentInstance(ResourceFolderRepositoryFileCache.class.getName());
-    applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache.class.getName());
-    applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache.class.getName(), newCache);
-    return oldCache;
   }
 
   private static void resetScanCounter() {
@@ -4218,6 +4198,57 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     assertTrue(repository.hasResources(RES_AUTO, ResourceType.STRING, "from_git"));
+  }
+
+  public void testUnsavedDocument_noCache() throws Exception {
+    myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    VirtualFile resourceDirectory = getResourceDirectory();
+    VirtualFile stringsXml = VfsTestUtil.createFile(resourceDirectory,
+                                                    "values/strings.xml",
+                                                    // language=XML
+                                                    "<resources>" +
+                                                    "  <string name='onDisk'>foo bar</string>" +
+                                                    "</resources>");
+    myFixture.openFileInEditor(stringsXml);
+    moveCaret(myFixture, "name='|onDisk'");
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DELETE_TO_WORD_END);
+    myFixture.type("inDocument");
+
+    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
+    assertTrue("Unsaved changes in Document", fileDocumentManager.isFileModified(stringsXml));
+    ResourceFolderRepository repository = createRepository(true);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    assertTrue(repository.hasResources(RES_AUTO, ResourceType.STRING, "inDocument"));
+    assertFalse(repository.hasResources(RES_AUTO, ResourceType.STRING, "onDisk"));
+    assertFalse(repository.hasFreshFileCache()); // Make sure we write the cache.
+    assertTrue("Unsaved changes in Document", fileDocumentManager.isFileModified(stringsXml));
+  }
+
+  public void testUnsavedDocument_cache() throws Exception {
+    myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    VirtualFile resourceDirectory = getResourceDirectory();
+    VirtualFile stringsXml = VfsTestUtil.createFile(resourceDirectory,
+                                                    "values/strings.xml",
+                                                    // language=XML
+                                                    "<resources>" +
+                                                    "  <string name='onDisk'>foo bar</string>" +
+                                                    "</resources>");
+    ResourceFolderRepository repository = createRepository(true);
+    assertFalse(repository.hasFreshFileCache()); // Make sure we write the cache.
+
+    myFixture.openFileInEditor(stringsXml);
+    moveCaret(myFixture, "name='|onDisk'");
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DELETE_TO_WORD_END);
+    myFixture.type("inDocument");
+
+    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
+    assertTrue("Unsaved changes in Document", fileDocumentManager.isFileModified(stringsXml));
+
+    ResourceFolderRepository secondRepo = createRepository(true);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    assertTrue(secondRepo.hasResources(RES_AUTO, ResourceType.STRING, "inDocument"));
+    assertFalse(secondRepo.hasResources(RES_AUTO, ResourceType.STRING, "onDisk"));
+    assertTrue("Unsaved changes in Document", fileDocumentManager.isFileModified(stringsXml));
   }
 
   @Nullable
