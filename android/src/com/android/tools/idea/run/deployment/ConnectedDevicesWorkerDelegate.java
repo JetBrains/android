@@ -85,7 +85,6 @@ final class ConnectedDevicesWorkerDelegate extends WorkerDelegate<Collection<Con
     AndroidDevice androidDevice = new ConnectedAndroidDevice(ddmlibDevice, null);
 
     ConnectedDevice.Builder builder = new ConnectedDevice.Builder()
-      .setName("Connected Device")
       .setKey(ddmlibDevice.getSerialNumber())
       .setAndroidDevice(androidDevice);
 
