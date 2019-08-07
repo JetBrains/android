@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
+import com.intellij.serialization.PropertyMapping;
+import java.io.File;
+import java.io.Serializable;
+import java.util.Objects;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
@@ -24,18 +31,12 @@ import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.Serializable;
-
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-
 /**
  * Dependency to a Java module.
  */
 public class JavaModuleDependency implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   @NotNull private final String myModuleName;
   @NotNull private final String myModuleId;
@@ -77,6 +78,12 @@ public class JavaModuleDependency implements Serializable {
     return null;
   }
 
+  @PropertyMapping({
+    "myModuleName",
+    "myModuleId",
+    "myScope",
+    "myExported"
+  })
   public JavaModuleDependency(@NotNull String moduleName, @NotNull String moduleId, @Nullable String scope, boolean exported) {
     myModuleName = moduleName;
     myModuleId = moduleId;
@@ -101,5 +108,30 @@ public class JavaModuleDependency implements Serializable {
 
   public boolean isExported() {
     return myExported;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+      myModuleName,
+      myModuleId,
+      myScope,
+      myExported
+    );
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof JavaModuleDependency)) {
+      return false;
+    }
+    JavaModuleDependency dependency = (JavaModuleDependency) obj;
+    return Objects.equals(myModuleName, dependency.myModuleName)
+           && Objects.equals(myModuleId, dependency.myModuleId)
+           && Objects.equals(myScope, dependency.myScope)
+           && Objects.equals(myExported, dependency.myExported);
   }
 }
