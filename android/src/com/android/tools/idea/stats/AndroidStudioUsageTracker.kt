@@ -32,7 +32,6 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.util.ui.UIUtil
 import java.io.File
 import java.util.concurrent.ScheduledExecutorService
@@ -172,12 +171,6 @@ object AndroidStudioUsageTracker {
                          .setStudioProjectChange(StudioProjectChange.newBuilder()
                                                    .setProjectsOpen(projectsOpen)))
 
-    }
-
-    // Need to setup ToolWindowTrackerService here after project is initialized so service can be retrieved.
-    override fun projectComponentsInitialized(project: Project) {
-      val service = ToolWindowTrackerService.getInstance(project)
-      ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(service, project)
     }
   }
 }
