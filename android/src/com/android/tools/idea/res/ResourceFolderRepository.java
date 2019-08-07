@@ -49,7 +49,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
@@ -69,7 +68,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.binding.BindingLayoutGroup;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
-import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.binding.BindingLayoutXml;
 import com.android.tools.idea.resources.base.Base128InputStream;
 import com.android.tools.idea.resources.base.BasicFileResourceItem;
 import com.android.tools.idea.resources.base.BasicResourceItem;
@@ -470,25 +469,28 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private static void scanDataBindingDataTag(@NotNull PsiResourceFile resourceFile, @Nullable XmlTag dataTag, long modificationCount) {
     BindingLayoutInfo info = resourceFile.getBindingLayoutInfo();
     assert info != null;
-    List<PsiDataBindingResourceItem> items = new ArrayList<>();
     if (dataTag == null) {
-      info.replaceDataItems(items, modificationCount);
+      info.replaceDataItems(Collections.emptyList(), Collections.emptyList(), modificationCount);
       return;
     }
+    List<BindingLayoutXml.Variable> variables = new ArrayList<>();
     Set<String> usedNames = new HashSet<>();
     for (XmlTag tag : dataTag.findSubTags(TAG_VARIABLE)) {
       String nameValue = tag.getAttributeValue(ATTR_NAME);
       if (nameValue == null) {
         continue;
       }
+      String typeValue = tag.getAttributeValue(ATTR_TYPE);
+      String type = typeValue != null ? StringUtil.unescapeXmlEntities(typeValue) : null;
       String name = StringUtil.unescapeXmlEntities(nameValue);
       if (StringUtil.isNotEmpty(name)) {
         if (usedNames.add(name)) {
-          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.VARIABLE, tag);
-          items.add(item);
+          variables.add(new BindingLayoutXml.Variable(nameValue, type));
         }
       }
     }
+
+    List<BindingLayoutXml.Import> imports = new ArrayList<>();
     Set<String> usedAliases = new HashSet<>();
     for (XmlTag tag : dataTag.findSubTags(TAG_IMPORT)) {
       String typeValue = tag.getAttributeValue(ATTR_TYPE);
@@ -498,21 +500,21 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       String type = StringUtil.unescapeXmlEntities(typeValue);
       String aliasValue = tag.getAttributeValue(ATTR_ALIAS);
       String alias = aliasValue == null ? null : StringUtil.unescapeXmlEntities(aliasValue);
-      if (alias == null) {
+      String aliasOrType = alias;
+      if (aliasOrType == null) {
         int lastIndexOfDot = type.lastIndexOf('.');
         if (lastIndexOfDot >= 0) {
-          alias = type.substring(lastIndexOfDot + 1);
+          aliasOrType = type.substring(lastIndexOfDot + 1);
         }
       }
-      if (StringUtil.isNotEmpty(alias)) {
-        if (usedAliases.add(type)) {
-          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(alias, DataBindingResourceType.IMPORT, tag);
-          items.add(item);
+      if (StringUtil.isNotEmpty(aliasOrType)) {
+        if (usedAliases.add(aliasOrType)) {
+          imports.add(new BindingLayoutXml.Import(typeValue, alias));
         }
       }
     }
 
-    info.replaceDataItems(items, modificationCount);
+    info.replaceDataItems(variables, imports, modificationCount);
   }
 
   private boolean isBindingLayoutFile(@NotNull PsiResourceFile resourceFile) {

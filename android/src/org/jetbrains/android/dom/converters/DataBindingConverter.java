@@ -17,12 +17,10 @@ package org.jetbrains.android.dom.converters;
 
 import static com.android.tools.idea.lang.databinding.DataBindingLangUtil.JAVA_LANG;
 
-import com.android.SdkConstants;
-import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.DataBindingLangUtil;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
-import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.binding.BindingLayoutXml;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
@@ -157,12 +155,12 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (!segments.isEmpty()) {
       String alias = null;
       int maxMatchedSegments = 0;
-      for (PsiDataBindingResourceItem psiImport : bindingLayoutInfo.getPsi().getItems(DataBindingResourceType.IMPORT).values()) {
-        String importedType = psiImport.getTypeDeclaration();
+      for (BindingLayoutXml.Import anImport : bindingLayoutInfo.getXml().getImports()) {
+        String importedType = anImport.getType();
         int matchedSegments = getNumberOfMatchedSegments(importedType, segments);
         if (matchedSegments > maxMatchedSegments) {
           maxMatchedSegments = matchedSegments;
-          alias = psiImport.getExtra(SdkConstants.ATTR_ALIAS);
+          alias = anImport.getAlias();
         }
       }
       if (maxMatchedSegments != 0 && alias != null) {
