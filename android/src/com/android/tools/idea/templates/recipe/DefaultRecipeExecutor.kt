@@ -37,6 +37,7 @@ import com.android.tools.idea.templates.FmGetConfigurationNameMethod
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException
 import com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate
+import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APPLICATION_PACKAGE
@@ -51,6 +52,7 @@ import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.TemplateUtils.writeTextFile
 import com.android.tools.idea.templates.mergeGradleSettingsFile
 import com.android.tools.idea.templates.mergeXml
+import com.android.tools.idea.templates.resolveDependency
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.google.common.base.Strings.isNullOrEmpty
 import com.google.common.base.Strings.nullToEmpty
@@ -161,7 +163,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
   }
 
   override fun addClasspath(mavenUrl: String) {
-    val mavenUrl = mavenUrl.trim()
+    val mavenUrl = resolveDependency(RepositoryUrlManager.get(), mavenUrl.trim())
 
     referencesExecutor.addClasspath(mavenUrl)
 
