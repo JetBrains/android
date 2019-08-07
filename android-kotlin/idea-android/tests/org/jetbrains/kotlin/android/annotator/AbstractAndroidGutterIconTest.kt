@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.android.annotator
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
 import com.intellij.util.ui.ColorIcon
@@ -32,51 +31,38 @@ import javax.swing.ImageIcon
 abstract class AbstractAndroidGutterIconTest : KotlinAndroidTestCase() {
 
     fun doTest(path: String) {
-        // Run the test highlighting on old annotators. {@link org.jetbrains.kotlin.android.AndroidResourceReferenceAnnotator}
-        runTestWithFlagSet(path, false)
-        // Run the test highlighting on new external annotators {@link org.jetbrains.kotlin.android.AndroidKotlinResourceExternalAnnotator}
-        runTestWithFlagSet(path, true)
-    }
+        val testFileText = FileUtil.loadFile(File(testDataPath, path))
+        val withRuntime = InTextDirectivesUtils.isDirectiveDefined(testFileText, "// WITH_RUNTIME")
 
-    fun runTestWithFlagSet(path: String, externalAnnotatorSet: Boolean) {
-        StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.override(externalAnnotatorSet)
         try {
-            val testFileText = FileUtil.loadFile(File(testDataPath, path))
-            val withRuntime = InTextDirectivesUtils.isDirectiveDefined(testFileText, "// WITH_RUNTIME")
-
-            try {
-                val drawable = InTextDirectivesUtils.isDirectiveDefined(testFileText, "// DRAWABLE")
-                val color = InTextDirectivesUtils.findListWithPrefixes(testFileText, "// COLOR: ").takeIf { it.isNotEmpty() }?.let {
-                    val components = it.map { it.toInt(16) }
-                    Color(components[0], components[1], components[2])
-                }
-                if (withRuntime) {
-                    ConfigLibraryUtil.configureKotlinRuntime(myFixture.module)
-                }
-
-                copyResourceDirectoryForTest(path)
-
-                val sourceFile = myFixture.copyFileToProject(path, "src/${PathUtil.getFileName(path)}")
-                myFixture.configureFromExistingVirtualFile(sourceFile)
-
-                val gutter = myFixture.findGuttersAtCaret().find {
-                    when {
-                        drawable -> it.icon is ImageIcon
-                        color != null -> (it.icon as? ColorIcon)?.iconColor == color
-                        else -> true
-                    }
-                }
-
-                TestCase.assertNotNull(gutter)
+            val drawable = InTextDirectivesUtils.isDirectiveDefined(testFileText, "// DRAWABLE")
+            val color = InTextDirectivesUtils.findListWithPrefixes(testFileText, "// COLOR: ").takeIf { it.isNotEmpty() }?.let {
+                val components = it.map { it.toInt(16) }
+                Color(components[0], components[1], components[2])
             }
-            finally {
-                if (withRuntime) {
-                    ConfigLibraryUtil.unConfigureKotlinRuntime(myFixture.module)
+            if (withRuntime) {
+                ConfigLibraryUtil.configureKotlinRuntime(myFixture.module)
+            }
+
+            copyResourceDirectoryForTest(path)
+
+            val sourceFile = myFixture.copyFileToProject(path, "src/${PathUtil.getFileName(path)}")
+            myFixture.configureFromExistingVirtualFile(sourceFile)
+
+            val gutter = myFixture.findGuttersAtCaret().find {
+                when {
+                    drawable -> it.icon is ImageIcon
+                    color != null -> (it.icon as? ColorIcon)?.iconColor == color
+                    else -> true
                 }
             }
+
+            TestCase.assertNotNull(gutter)
         }
         finally {
-            StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.clearOverride()
+            if (withRuntime) {
+                ConfigLibraryUtil.unConfigureKotlinRuntime(myFixture.module)
+            }
         }
     }
 

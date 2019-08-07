@@ -22,7 +22,6 @@ import com.android.ide.common.util.PathString;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.rendering.GutterIconRenderer.NavigationTargetProvider;
 import com.android.tools.idea.rendering.TestRenderingUtils;
@@ -49,53 +48,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
-import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Tests for {@link AndroidColorAnnotator}, {@link AndroidJavaResourceExternalAnnotator}, and {@link AndroidXMLResourceExternalAnnotator}.
+ * Tests for {@link AndroidJavaResourceExternalAnnotator}, and {@link AndroidXMLResourceExternalAnnotator}.
  */
-public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
-
-  /** Tests {@link AndroidColorAnnotator} which runs fully during highlighting. */
-  public static class OldAnnotatorsTest extends AndroidGutterIconAnnotatorTest {
-    @Override
-    protected void setUp() throws Exception {
-      super.setUp();
-      StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.override(false);
-    }
-
-    @Override
-    public void tearDown() throws Exception {
-      try {
-        StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.clearOverride();
-      }
-      finally {
-        super.tearDown();
-      }
-    }
-  }
-
-  /** Tests {@link AndroidJavaResourceExternalAnnotator} which runs in the background. */
-  public static class ExternalAnnotatorsTest extends AndroidGutterIconAnnotatorTest {
-    @Override
-    protected void setUp() throws Exception {
-      super.setUp();
-      StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.override(true);
-    }
-
-    @Override
-    public void tearDown() throws Exception {
-      try {
-        StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.clearOverride();
-      }
-      finally {
-        super.tearDown();
-      }
-    }
-  }
+public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
 
   @Override
   protected void setUp() throws Exception {
