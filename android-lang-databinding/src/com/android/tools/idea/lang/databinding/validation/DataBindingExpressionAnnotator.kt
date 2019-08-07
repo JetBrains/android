@@ -25,6 +25,7 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterL
 import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaExpression
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbVisitor
+import com.android.tools.idea.lang.databinding.reference.PsiClassReference
 import com.android.tools.idea.lang.databinding.reference.PsiParameterReference
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
@@ -71,18 +72,10 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     val dbExprType = (rootExpression.reference as? ModelClassResolvable)?.resolvedType ?: return
     val attribute = rootExpression.containingFile.context?.parent as? XmlAttribute ?: return
 
-    val isMatchingCandidate: (PsiModelClass) -> Boolean = matched@{ attributeType ->
-      // Possible candidates:
-      // 1) A lambda that can be associated with a SAM, i.e. a class with one overridable method
-      if (rootExpression is PsiDbLambdaExpression && attributeType.allMethods.count { it.isAbstract } == 1) {
-        return@matched true
-      }
-      // 2) The type of our candidate is the same or a subclass of the target type
+    val isMatchingCandidate: (PsiModelClass) -> Boolean = { attributeType ->
+      // The candidate type is matched when it is the same or a subclass of the target type
       // Note: we use erasures so that, say, Action<ArrayList> could match Action<List>
-      if (attributeType.unwrapped.erasure().isAssignableFrom(dbExprType.unwrapped)) {
-        return@matched true
-      }
-      return@matched false
+      attributeType.unwrapped.erasure().isAssignableFrom(dbExprType.unwrapped)
     }
 
     val attributeTypes = attribute.references.filterIsInstance<PsiParameterReference>().map { it.resolvedType }

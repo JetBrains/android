@@ -43,9 +43,6 @@ internal class PsiMethodReference(element: PsiElement, method: PsiModelMethod, t
   constructor(expr: PsiDbFunctionRefExpr, method: PsiModelMethod)
     : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset))
 
-  constructor(expr: PsiDbInferredFormalParameterList, method: PsiModelMethod)
-    : this(expr, method, expr.textRange.shiftLeft(expr.textOffset))
-
   constructor(attr: XmlAttribute, method: PsiModelMethod)
     : this(attr, method, attr.textRange.shiftLeft(attr.textOffset))
 
