@@ -60,7 +60,7 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
     // in the super class, or we may initialize them via a call from the stage. Doing a check so we don't
     // create more objects than needed in production code.
     if (myActivityComponent == null) {
-      myActivityComponent = new ActivityComponent(getMonitor().getActivityEvents(), getMonitor().getFragmentEvents());
+      myActivityComponent = new ActivityComponent(getMonitor().getLifecycleEvents());
     }
     if (myUserEventComponent == null) {
       myUserEventComponent = new EventComponent<>(getMonitor().getUserEvents(), RENDERERS);

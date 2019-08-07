@@ -15,12 +15,21 @@
  */
 package com.android.tools.adtui.imagediff;
 
-import com.android.tools.adtui.*;
-import com.android.tools.adtui.eventrenderer.*;
-import com.android.tools.adtui.model.*;
-import com.android.tools.adtui.model.event.*;
-
-import java.awt.*;
+import com.android.tools.adtui.ActivityComponent;
+import com.android.tools.adtui.EventComponent;
+import com.android.tools.adtui.eventrenderer.EventRenderer;
+import com.android.tools.adtui.eventrenderer.ExpandingEventRenderer;
+import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.event.EventModel;
+import com.android.tools.adtui.model.event.LifecycleAction;
+import com.android.tools.adtui.model.event.LifecycleEvent;
+import com.android.tools.adtui.model.event.LifecycleEventModel;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -197,8 +206,6 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     private static final String PACKAGE_PREFIX = "com.example.myapplication.";
 
     protected ActivityComponent myActivityComponent;
-    private EventModel<LifecycleEvent> myActivityEventModel;
-    private EventModel<LifecycleEvent> myFragmentEventModel;
 
     private DefaultDataSeries<EventAction<LifecycleEvent>> myActivityData;
     private DefaultDataSeries<EventAction<LifecycleEvent>> myFragmentData;
@@ -214,10 +221,9 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     @Override
     protected void setUp() {
       myActivityData = new DefaultDataSeries<>();
-      myActivityEventModel = new EventModel<>(new RangedSeries<>(myXRange, myActivityData));
       myFragmentData = new DefaultDataSeries<>();
-      myFragmentEventModel = new EventModel<>(new RangedSeries<>(myXRange, myFragmentData));
-      myActivityComponent = new ActivityComponent(myActivityEventModel, myFragmentEventModel);
+      myActivityComponent = new ActivityComponent(new LifecycleEventModel(new RangedSeries<>(myXRange, myActivityData),
+                                                                          new RangedSeries<>(myXRange, myFragmentData)));
       myActivityComponent.setFont(ImageDiffUtil.getDefaultFont());
       myContentPane.add(myActivityComponent, BorderLayout.CENTER);
     }
@@ -249,18 +255,18 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     private static final int ICON_HEIGHT = 16;
 
-    private static final Map<EventTypeDiffEntry, EventRenderer> MOCK_RENDERERS;
+    private static final Map<EventTypeDiffEntry, EventRenderer<EventTypeDiffEntry>> MOCK_RENDERERS;
 
     static {
-      MOCK_RENDERERS = new HashMap();
-      MOCK_RENDERERS.put(EventTypeDiffEntry.TAP, new TouchEventRenderer());
-      MOCK_RENDERERS.put(EventTypeDiffEntry.FRAME_GOOD, new ExpandingEventRenderer(Color.BLUE));
-      MOCK_RENDERERS.put(EventTypeDiffEntry.FRAME_BAD, new ExpandingEventRenderer(Color.RED));
+      MOCK_RENDERERS = new HashMap<>();
+      MOCK_RENDERERS.put(EventTypeDiffEntry.TAP, new TouchEventRenderer<>());
+      MOCK_RENDERERS.put(EventTypeDiffEntry.FRAME_GOOD, new ExpandingEventRenderer<>(Color.BLUE));
+      MOCK_RENDERERS.put(EventTypeDiffEntry.FRAME_BAD, new ExpandingEventRenderer<>(Color.RED));
     }
 
-    protected EventComponent myEventComponent;
+    protected EventComponent<EventTypeDiffEntry> myEventComponent;
 
-    protected EventModel myEventModel;
+    protected EventModel<EventTypeDiffEntry> myEventModel;
 
     private DefaultDataSeries<EventAction<EventTypeDiffEntry>> myData;
 
@@ -279,8 +285,8 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     @Override
     protected void setUp() {
       myData = new DefaultDataSeries<>();
-      myEventModel = new EventModel(new RangedSeries<>(myXRange, myData));
-      myEventComponent = new EventComponent(myEventModel, MOCK_RENDERERS);
+      myEventModel = new EventModel<>(new RangedSeries<>(myXRange, myData));
+      myEventComponent = new EventComponent<>(myEventModel, MOCK_RENDERERS);
       myContentPane.add(myEventComponent, BorderLayout.CENTER);
     }
 
