@@ -39,7 +39,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public final class AndroidVersionsInfoTest {
   private static int DEFAULT_VERSION = 101;
-  private static int ADDON_VERSION   = 102;
   private static int HIGHEST_VERSION = 103;
   private static int PREVIEW_VERSION = 104;
 
@@ -47,7 +46,7 @@ public final class AndroidVersionsInfoTest {
   private AndroidVersionsInfo myMockAndroidVersionsInfo;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     initMocks(this);
     when(myMockAndroidVersionsInfo.getHighestInstalledVersion()).thenReturn(new AndroidVersion(HIGHEST_VERSION, null));
   }
