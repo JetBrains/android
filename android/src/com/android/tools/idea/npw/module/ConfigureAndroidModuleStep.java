@@ -57,6 +57,7 @@ import org.jetbrains.annotations.TestOnly;
 
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
+import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -164,7 +165,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     chooseActivityStep.setShouldShow(!getModel().isLibrary().get());
 
     LicenseAgreementStep licenseAgreementStep =
-      new LicenseAgreementStep(new LicenseAgreementModel(AndroidVersionsInfo.getSdkManagerLocalPath()), myInstallLicenseRequests);
+      new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), myInstallLicenseRequests);
 
     InstallSelectedPackagesStep installPackagesStep =
       new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), AndroidSdks.getInstance().tryToChooseSdkHandler(), false);
