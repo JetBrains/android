@@ -268,81 +268,76 @@ open class AndroidVersionsInfo { // open for Mockito
 
     override fun hashCode(): Int = label.hashCode()
   }
+}
 
-  companion object {
-    private val REPO_LOG: ProgressIndicator = StudioLoggerProgressIndicator(AndroidVersionsInfo::class.java)
-    private val NO_MATCH: IdDisplay = IdDisplay.create("no_match", "No Match")
-    @get:JvmStatic
-    val sdkManagerLocalPath: File?
-      get() = IdeSdks.getInstance().androidSdkPath
+private val REPO_LOG: ProgressIndicator = StudioLoggerProgressIndicator(AndroidVersionsInfo::class.java)
+private val NO_MATCH: IdDisplay = IdDisplay.create("no_match", "No Match")
 
-    private fun getLabel(version: AndroidVersion, target: IAndroidTarget?): String {
-      val featureLevel = version.featureLevel
-      return if (featureLevel <= HIGHEST_KNOWN_API) {
-        when {
-          // FIXME(qumeric) duplicate info
-          version.isPreview -> "API %s: Android %s (%s preview)".format(
-            SdkVersionInfo.getCodeName(featureLevel),
-            SdkVersionInfo.getVersionString(featureLevel),
-            SdkVersionInfo.getCodeName(featureLevel))
-          target == null || target.isPlatform -> SdkVersionInfo.getAndroidName(featureLevel)
-          else -> AndroidTargetHash.getTargetHashString(target)
-        }
-      }
-      else {
-        if (version.isPreview)
-          "API $featureLevel: Android (${version.codename})"
-        else
-          "API $featureLevel: Android"
-      }
+val sdkManagerLocalPath: File?
+  get() = IdeSdks.getInstance().androidSdkPath
+
+private fun getLabel(version: AndroidVersion, target: IAndroidTarget?): String {
+  val featureLevel = version.featureLevel
+  return if (featureLevel <= HIGHEST_KNOWN_API) {
+    when {
+      version.isPreview ->
+        "API %s: Android %s ( preview)".format(SdkVersionInfo.getCodeName(featureLevel), SdkVersionInfo.getVersionString(featureLevel))
+      target == null || target.isPlatform -> SdkVersionInfo.getAndroidName(featureLevel)
+      else -> AndroidTargetHash.getTargetHashString(target)
     }
+  }
+  else {
+    if (version.isPreview)
+      "API $featureLevel: Android (${version.codename})"
+    else
+      "API $featureLevel: Android"
+  }
+}
 
-    /**
-     * Returns a list of android compilation targets (platforms and add-on SDKs).
-     */
-    private fun loadInstalledCompilationTargets(): Array<IAndroidTarget> =
-      AndroidSdks.getInstance().tryToChooseSdkHandler().getAndroidTargetManager(REPO_LOG).getTargets(REPO_LOG).filter {
-        it.isPlatform || it.additionalLibraries.isNotEmpty()
-      }.toTypedArray()
+/**
+ * Returns a list of android compilation targets (platforms and add-on SDKs).
+ */
+private fun loadInstalledCompilationTargets(): Array<IAndroidTarget> =
+  AndroidSdks.getInstance().tryToChooseSdkHandler().getAndroidTargetManager(REPO_LOG).getTargets(REPO_LOG).filter {
+    it.isPlatform || it.additionalLibraries.isNotEmpty()
+  }.toTypedArray()
 
-    private fun getPackageList(requestedPaths: Collection<String>,
-                               sdkHandler: AndroidSdkHandler): List<UpdatablePackage> {
-      val packages = sdkHandler.getSdkManager(REPO_LOG).packages
-      val requestedPackages = requestedPaths.mapNotNull { packages.consolidatedPkgs[it] }.filter { it.hasRemote() }
+private fun getPackageList(requestedPaths: Collection<String>,
+                           sdkHandler: AndroidSdkHandler): List<UpdatablePackage> {
+  val packages = sdkHandler.getSdkManager(REPO_LOG).packages
+  val requestedPackages = requestedPaths.mapNotNull { packages.consolidatedPkgs[it] }.filter { it.hasRemote() }
 
-      return try {
-        SdkQuickfixUtils.resolve(requestedPackages, packages)
-      }
-      catch (e: PackageResolutionException) {
-        REPO_LOG.logError("Error Resolving Packages", e)
-        listOf()
-      }
-    }
+  return try {
+    SdkQuickfixUtils.resolve(requestedPackages, packages)
+  }
+  catch (e: PackageResolutionException) {
+    REPO_LOG.logError("Error Resolving Packages", e)
+    listOf()
+  }
+}
 
-    private fun filterPkgDesc(p: RepoPackage, formFactor: FormFactor, minSdkLevel: Int): Boolean =
-      p.typeDetails is ApiDetailsType && doFilter(formFactor, minSdkLevel, getTag(p), p.getFeatureLevel())
+private fun filterPkgDesc(p: RepoPackage, formFactor: FormFactor, minSdkLevel: Int): Boolean =
+  p.typeDetails is ApiDetailsType && doFilter(formFactor, minSdkLevel, getTag(p), p.getFeatureLevel())
 
-    private fun doFilter(formFactor: FormFactor, minSdkLevel: Int, tag: IdDisplay?, targetSdkLevel: Int): Boolean =
-      formFactor.isSupported(tag, targetSdkLevel) && targetSdkLevel >= minSdkLevel
+private fun doFilter(formFactor: FormFactor, minSdkLevel: Int, tag: IdDisplay?, targetSdkLevel: Int): Boolean =
+  formFactor.isSupported(tag, targetSdkLevel) && targetSdkLevel >= minSdkLevel
 
-    private fun RepoPackage.getFeatureLevel(): Int = getAndroidVersion(this).featureLevel
+private fun RepoPackage.getFeatureLevel(): Int = getAndroidVersion(this).featureLevel
 
-    private fun isFormFactorAvailable(formFactor: FormFactor, minSdkLevel: Int, targetSdkLevel: Int): Boolean =
-      doFilter(formFactor, minSdkLevel, SystemImage.DEFAULT_TAG, targetSdkLevel)
+private fun isFormFactorAvailable(formFactor: FormFactor, minSdkLevel: Int, targetSdkLevel: Int): Boolean =
+  doFilter(formFactor, minSdkLevel, SystemImage.DEFAULT_TAG, targetSdkLevel)
 
-    private fun getAndroidVersion(repoPackage: RepoPackage): AndroidVersion =
-      (repoPackage.typeDetails as? ApiDetailsType)?.androidVersion ?: throw RuntimeException("Could not determine version")
+private fun getAndroidVersion(repoPackage: RepoPackage): AndroidVersion =
+  (repoPackage.typeDetails as? ApiDetailsType)?.androidVersion ?: throw RuntimeException("Could not determine version")
 
-    /**
-     * Return the tag for the specified repository package. We are only interested in 2 package types.
-     */
-    private fun getTag(repoPackage: RepoPackage): IdDisplay? {
-      val details = repoPackage.typeDetails
-      return when {
-        details is AddonDetailsType -> details.tag
-        details is SysImgDetailsType && details.abi == CPU_ARCH_INTEL_ATOM -> details.tag
-        else -> NO_MATCH
-      }
-    }
+/**
+ * Return the tag for the specified repository package. We are only interested in 2 package types.
+ */
+private fun getTag(repoPackage: RepoPackage): IdDisplay? {
+  val details = repoPackage.typeDetails
+  return when {
+    details is AddonDetailsType -> details.tag
+    details is SysImgDetailsType && details.abi == CPU_ARCH_INTEL_ATOM -> details.tag
+    else -> NO_MATCH
   }
 }
