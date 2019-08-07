@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-gackage com.android.tools.idea.npw.platform
+package com.android.tools.idea.npw.platform
 
 import com.android.SdkConstants.CPU_ARCH_INTEL_ATOM
 import com.android.repository.api.ProgressIndicator
@@ -114,28 +114,21 @@ open class AndroidVersionsInfo { // open for Mockito
 
   @VisibleForTesting
   open val highestInstalledVersion: AndroidVersion? // open for mockito
-    get() = if (highestInstalledApiTarget == null) null else highestInstalledApiTarget!!.version
+    get() = highestInstalledApiTarget?.version
 
   fun loadInstallPackageList(installItems: List<VersionItem>): List<UpdatablePackage> {
-    val requestedPaths = mutableSetOf<String>()
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 
-    // Install build tools, if not already installed
-    requestedPaths.add(DetailsTypes.getBuildToolsPath(getRecommendedBuildToolsRevision(sdkHandler, REPO_LOG)))
-    for (versionItem in installItems) {
-      val androidVersion = versionItem.androidVersion
-
-      // TODO: If the user has no APIs installed that are at least of api level LOWEST_COMPILE_SDK_VERSION,
-      // then we request (for now) to install HIGHEST_KNOWN_STABLE_API.
-      // Instead, we should choose to install the highest stable API possible. However, users having no SDK at all installed is pretty
-      // unlikely, so this logic can wait for a followup CL.
-      if (highestInstalledApiTarget == null ||
-          (androidVersion.apiLevel > highestInstalledApiTarget!!.version.apiLevel && !installedVersions.contains(androidVersion))) {
-
+    val requestedPaths = sequence {
+      // Install build tools, if not already installed
+      yield(DetailsTypes.getBuildToolsPath(getRecommendedBuildToolsRevision(sdkHandler, REPO_LOG)))
+      if (highestInstalledApiTarget == null || installItems.any {
+          it.androidVersion.apiLevel > highestInstalledApiTarget!!.version.apiLevel && !installedVersions.contains(it.androidVersion)
+        }) {
         // Let us install the HIGHEST_KNOWN_STABLE_API.
-        requestedPaths.add(DetailsTypes.getPlatformPath(AndroidVersion(HIGHEST_KNOWN_STABLE_API, null)))
+        yield(DetailsTypes.getPlatformPath(AndroidVersion(HIGHEST_KNOWN_STABLE_API, null)))
       }
-    }
+    }.toSet()
     return getPackageList(requestedPaths, sdkHandler)
   }
 
@@ -202,10 +195,9 @@ open class AndroidVersionsInfo { // open for Mockito
       runner, StudioDownloader(), StudioSettingsController.getInstance(), false)
   }
 
-  private fun addPackages(formFactor: FormFactor,
-                          versionItemList: MutableList<VersionItem>,
-                          packages: Collection<RepoPackage?>,
-                          minSdkLevel: Int) {
+  private fun addPackages(
+    formFactor: FormFactor, versionItemList: MutableList<VersionItem>, packages: Collection<RepoPackage?>, minSdkLevel: Int
+  ) {
     val sorted = packages.asSequence()
       .filterNotNull()
       .filter { filterPkgDesc(it, formFactor, minSdkLevel) }
@@ -219,7 +211,7 @@ open class AndroidVersionsInfo { // open for Mockito
         existingApiLevel = if (++index < versionItemList.size) versionItemList[index].minApiLevel else Integer.MAX_VALUE
       }
       if (apiLevel != existingApiLevel && apiLevel != prevInsertedApiLevel) {
-        versionItemList.add(index++, VersionItem(info))
+        versionItemList.add(index++, VersionItem(getAndroidVersion(info)))
         prevInsertedApiLevel = apiLevel
       }
     }
@@ -229,10 +221,8 @@ open class AndroidVersionsInfo { // open for Mockito
     var existingApiLevel = -1
     var prevInsertedApiLevel = -1
     var index = -1
-    for (apiLevel in formFactor.minOfflineApiLevel..formFactor.maxOfflineApiLevel) {
-      if (formFactor.isSupported(null, apiLevel) || apiLevel <= 0) {
-        continue
-      }
+    val supportedOfflineApiLevels = formFactor.minOfflineApiLevel..formFactor.maxOfflineApiLevel
+    supportedOfflineApiLevels.filterNot { formFactor.isSupported(null, it) }.forEach { apiLevel ->
       while (apiLevel > existingApiLevel) {
         existingApiLevel = if (++index < versionItemList.size) versionItemList[index].minApiLevel else Integer.MAX_VALUE
       }
@@ -251,9 +241,9 @@ open class AndroidVersionsInfo { // open for Mockito
     var androidTarget: IAndroidTarget? = null
       private set
 
-    internal constructor(androidVersion: AndroidVersion, tag: IdDisplay, target: IAndroidTarget?) {
+    internal constructor(androidVersion: AndroidVersion, target: IAndroidTarget? = null) {
       this.androidVersion = androidVersion
-      label = getLabel(androidVersion, tag, target)
+      label = getLabel(androidVersion, target)
       androidTarget = target
       minApiLevel = androidVersion.featureLevel
       minApiLevelStr = androidVersion.apiString
@@ -267,13 +257,10 @@ open class AndroidVersionsInfo { // open for Mockito
     }
 
     @VisibleForTesting
-    constructor(minApiLevel: Int) : this(AndroidVersion(minApiLevel, null), SystemImage.DEFAULT_TAG, null)
+    constructor(minApiLevel: Int) : this(AndroidVersion(minApiLevel, null))
 
     @VisibleForTesting
-    constructor(target: IAndroidTarget) : this(target.version, SystemImage.DEFAULT_TAG, target)
-
-    @VisibleForTesting
-    constructor(info: RepoPackage) : this(getAndroidVersion(info), getTag(info)!!, null)
+    constructor(target: IAndroidTarget) : this(target.version, target)
 
     val buildApiLevel: Int
       get() = when {
@@ -293,23 +280,26 @@ open class AndroidVersionsInfo { // open for Mockito
       get() = buildApiLevel
 
     val targetApiLevelStr: String
-      get() {
-        val buildApiLevel = buildApiLevel
-        if (buildApiLevel >= HIGHEST_KNOWN_API || androidTarget != null && androidTarget!!.version.isPreview) {
-          return if (androidTarget == null) buildApiLevel.toString() else androidTarget!!.version.apiString
+      get() = when {
+          buildApiLevel >= HIGHEST_KNOWN_API || androidTarget?.version?.isPreview == true ->
+            androidTarget?.version?.apiString ?: buildApiLevel.toString()
+          highestInstalledVersion?.featureLevel == buildApiLevel -> highestInstalledVersion!!.apiString
+          else -> buildApiLevel.toString()
         }
-        val installedVersion = highestInstalledVersion
-        return if (installedVersion?.featureLevel == buildApiLevel)
-          installedVersion.apiString
-        else
-          buildApiLevel.toString()
-      }
 
     override fun equals(other: Any?): Boolean = other is VersionItem && other.label == label
 
     override fun hashCode(): Int = label.hashCode()
+  }
 
-    private fun getLabel(version: AndroidVersion, tag: IdDisplay?, target: IAndroidTarget?): String {
+  companion object {
+    private val REPO_LOG: ProgressIndicator = StudioLoggerProgressIndicator(AndroidVersionsInfo::class.java)
+    private val NO_MATCH: IdDisplay = IdDisplay.create("no_match", "No Match")
+    @get:JvmStatic
+    val sdkManagerLocalPath: File?
+      get() = IdeSdks.getInstance().androidSdkPath
+
+    private fun getLabel(version: AndroidVersion, target: IAndroidTarget?): String {
       val featureLevel = version.featureLevel
       return if (featureLevel <= HIGHEST_KNOWN_API) {
         when {
@@ -329,16 +319,6 @@ open class AndroidVersionsInfo { // open for Mockito
           "API $featureLevel: Android"
       }
     }
-
-    override fun toString(): String = label
-  }
-
-  companion object {
-    private val REPO_LOG: ProgressIndicator = StudioLoggerProgressIndicator(AndroidVersionsInfo::class.java)
-    private val NO_MATCH: IdDisplay = IdDisplay.create("no_match", "No Match")
-    @get:JvmStatic
-    val sdkManagerLocalPath: File?
-      get() = IdeSdks.getInstance().androidSdkPath
 
     /**
      * Returns a list of android compilation targets (platforms and add-on SDKs).
