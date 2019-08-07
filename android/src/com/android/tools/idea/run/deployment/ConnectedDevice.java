@@ -31,10 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 class ConnectedDevice extends Device {
   static class Builder extends Device.Builder {
-    @NotNull
-    Builder setName(@NotNull String name) {
-      myName = name;
-      return this;
+    Builder() {
+      myName = "Connected Device";
     }
 
     @NotNull

@@ -36,13 +36,6 @@ final class TestConnectedDevice extends ConnectedDevice {
 
     @NotNull
     @Override
-    Builder setName(@NotNull String name) {
-      myName = name;
-      return this;
-    }
-
-    @NotNull
-    @Override
     Builder setKey(@NotNull String key) {
       myKey = key;
       return this;
