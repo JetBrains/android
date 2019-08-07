@@ -42,6 +42,7 @@ import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
+import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableConfigurations
@@ -411,7 +412,7 @@ class ResourceExplorerViewModelImpl(
         val configuration = asset.resourceItem.getReadableConfigurations()
 
         valueMap.put("Configuration", configuration)
-        val value = resourceResolver.resolveResValue(asset.resourceItem.resourceValue)
+        val value = resourceResolver.resolveValue(asset)
         // The resolved value of the resource (eg: Value: Hello World)
         valueMap.put("Value", value?.getReadableValue()?: UNRESOLVED_VALUE)
       }
@@ -427,7 +428,7 @@ class ResourceExplorerViewModelImpl(
     }
     val resourceResolver = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(projectFile).resourceResolver
     return resourceAssetSet.assets.map { asset ->
-      val value = resourceResolver.resolveResValue(asset.resourceItem.resourceValue)
+      val value = resourceResolver.resolveValue(asset)
       var dataTypeName = ""
       dataManager.findPsiElement(asset.resourceItem)?.let { psiElement ->
         dataTypeName = getResourceDataType(asset, psiElement).takeIf { it.isNotBlank() }?.let { "${it} - " } ?: ""
