@@ -53,6 +53,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.File
+import java.util.function.Consumer
 
 /**
  * Lists the available Android Versions from local, remote, and statically-defined sources.
@@ -60,41 +61,31 @@ import java.io.File
  * It is also possible to query the list of packages that the system needs to install to satisfy the requirements of an API level.
  */
 open class AndroidVersionsInfo { // open for Mockito
-  /**
-   * Call back interface to notify the caller that the requested items were loaded.
-   * @see AndroidVersionsInfo.loadRemoteTargetVersions
-   */
-  interface ItemsLoaded {
-    fun onDataLoadedFinished(items: List<VersionItem>)
-  }
-  // TODO(qumeric) make following two lateinit?
-  private var knownTargetVersions = listOf<VersionItem>() // All versions that we know about
-  private var installedVersions = setOf<AndroidVersion>()
+  private lateinit var knownTargetVersions: List<VersionItem>
+  private lateinit var installedVersions: Set<AndroidVersion>
   private var highestInstalledApiTarget: IAndroidTarget? = null
+  @VisibleForTesting
+  open val highestInstalledVersion: AndroidVersion? // open for mockito
+    get() = highestInstalledApiTarget?.version
+
   /**
    * Load the list of known Android Versions. The list is made of Android Studio pre-known Android versions, and querying
    * the SDK manager for extra installed versions (can be third party SDKs). No remote network connection is needed.
    */
   fun loadLocalVersions() {
-    loadLocalTargetVersions()
-    loadInstalledVersions()
-  }
+    // Load the local definitions of the android compilation targets.
+    knownTargetVersions = sequence {
+      if (AndroidSdkUtils.isAndroidSdkAvailable()) {
+        knownVersions.forEachIndexed { i, version ->
+          yield(VersionItem(version, i + 1))
+        }
+      }
+      loadInstalledCompilationTargets()
+        .filter { it.version.isPreview || it.additionalLibraries.isNotEmpty() }
+        .forEach { yield(VersionItem(it)) }
+    }.toList()
 
-  /**
-   * Gets the list of known Android versions. The list can be loaded by calling
-   * [loadLocalVersions] and/or [loadRemoteTargetVersions].
-   */
-  fun getKnownTargetVersions(formFactor: FormFactor, minSdkLevel: Int): MutableList<VersionItem> {
-    val minSdkLevel = minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)
-    return knownTargetVersions.filter {
-      isFormFactorAvailable(formFactor, minSdkLevel, it.minApiLevel) || it.androidTarget != null && it.androidTarget!!.version.isPreview
-    }.toMutableList()
-  }
-
-  /**
-   * Load the installed android versions from the installed SDK. No network connection needed.
-   */
-  private fun loadInstalledVersions() {
+    // Load the installed android versions from the installed SDK.
     val installedCompilationTargets = loadInstalledCompilationTargets()
     installedVersions = installedCompilationTargets.filter {
       it.version.isPreview || it.additionalLibraries.isNotEmpty()
@@ -112,9 +103,15 @@ open class AndroidVersionsInfo { // open for Mockito
     highestInstalledApiTarget = highestInstalledTarget
   }
 
-  @VisibleForTesting
-  open val highestInstalledVersion: AndroidVersion? // open for mockito
-    get() = highestInstalledApiTarget?.version
+  /**
+   * Gets the list of known Android versions. The list can be loaded by calling [loadLocalVersions] and/or [loadRemoteTargetVersions].
+   */
+  fun getKnownTargetVersions(formFactor: FormFactor, minSdkLevel: Int): MutableList<VersionItem> {
+    val minSdkLevel = minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)
+    return knownTargetVersions.filter {
+      isFormFactorAvailable(formFactor, minSdkLevel, it.minApiLevel) || it.androidTarget?.version?.isPreview == true
+    }.toMutableList()
+  }
 
   fun loadInstallPackageList(installItems: List<VersionItem>): List<UpdatablePackage> {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
@@ -129,109 +126,89 @@ open class AndroidVersionsInfo { // open for Mockito
         yield(DetailsTypes.getPlatformPath(AndroidVersion(HIGHEST_KNOWN_STABLE_API, null)))
       }
     }.toSet()
+
     return getPackageList(requestedPaths, sdkHandler)
   }
 
   /**
    * Get the list of versions, notably by populating the available values from local, remote, and statically-defined sources.
    */
-  fun loadRemoteTargetVersions(formFactor: FormFactor, minSdkLevel: Int, itemsLoadedCallback: ItemsLoaded) {
-    val minSdkLevel = minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)
+  fun loadRemoteTargetVersions(formFactor: FormFactor, minSdkLevel: Int, itemsLoadedCallback: Consumer<List<VersionItem>>) {
     val versionItemList = getKnownTargetVersions(formFactor, minSdkLevel)
-    loadRemoteTargetVersions(formFactor, minSdkLevel, versionItemList, itemsLoadedCallback)
-  }
 
-  /**
-   * Load the local definitions of the android compilation targets.
-   */
-  private fun loadLocalTargetVersions() {
-    knownTargetVersions = sequence {
-      if (AndroidSdkUtils.isAndroidSdkAvailable()) {
-        knownVersions.forEachIndexed { i, version ->
-          yield(VersionItem(version, i + 1))
+    fun addPackages(packages: Collection<RepoPackage?>) {
+      val sorted = packages.asSequence()
+        .filterNotNull()
+        .filter { filterPkgDesc(it, formFactor, minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)) }
+        .sortedBy { getAndroidVersion(it) }
+      var existingApiLevel = -1
+      var prevInsertedApiLevel = -1
+      var index = -1
+      for (info in sorted) {
+        val apiLevel = info.getFeatureLevel()
+        while (apiLevel > existingApiLevel) {
+          existingApiLevel = if (++index < versionItemList.size) versionItemList[index].minApiLevel else Integer.MAX_VALUE
+        }
+        if (apiLevel != existingApiLevel && apiLevel != prevInsertedApiLevel) {
+          versionItemList.add(index++, VersionItem(getAndroidVersion(info)))
+          prevInsertedApiLevel = apiLevel
         }
       }
-      loadInstalledCompilationTargets()
-        .filter { it.version.isPreview || it.additionalLibraries.isNotEmpty() }
-        .forEach { yield(VersionItem(it)) }
-    }.toList()
-  }
-
-  private fun loadRemoteTargetVersions(
-    formFactor: FormFactor, minSdkLevel: Int, versionItemList: MutableList<VersionItem>, completedCallback: ItemsLoaded?
-  ) {
-    val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    val runCallbacks = Runnable {
-      completedCallback?.onDataLoadedFinished(versionItemList)
     }
+
+    fun addOfflineLevels() {
+      var existingApiLevel = -1
+      var prevInsertedApiLevel = -1
+      var index = -1
+      val supportedOfflineApiLevels = formFactor.minOfflineApiLevel..formFactor.maxOfflineApiLevel
+      supportedOfflineApiLevels.filterNot { formFactor.isSupported(null, it) }.forEach { apiLevel ->
+        while (apiLevel > existingApiLevel) {
+          existingApiLevel = if (++index < versionItemList.size) versionItemList[index].minApiLevel else Integer.MAX_VALUE
+        }
+        if (apiLevel != existingApiLevel && apiLevel != prevInsertedApiLevel) {
+          versionItemList.add(index++, VersionItem(apiLevel))
+          prevInsertedApiLevel = apiLevel
+        }
+      }
+    }
+
+    val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+
+    val runCallbacks = Runnable { itemsLoadedCallback.accept(versionItemList) }
+
+    fun invokeLater(f: () -> Unit) = ApplicationManager.getApplication().invokeLater(f, ModalityState.any())
+
     val onComplete = RepoLoadedCallback { packages: RepositoryPackages ->
-      ApplicationManager.getApplication().invokeLater(
-        {
-          addPackages(formFactor, versionItemList, packages.newPkgs, minSdkLevel)
-          addOfflineLevels(formFactor, versionItemList)
-          runCallbacks.run()
-        }, ModalityState.any())
+      invokeLater {
+        addPackages(packages.newPkgs)
+        addOfflineLevels()
+        runCallbacks.run()
+      }
     }
 
     // We need to pick up addons that don't have a target created due to the base platform not being installed.
     val onLocalComplete = RepoLoadedCallback { packages: RepositoryPackages ->
-      ApplicationManager.getApplication().invokeLater(
-        { addPackages(formFactor, versionItemList, packages.localPackages.values, minSdkLevel) },
-        ModalityState.any())
+      invokeLater {
+        addPackages(packages.localPackages.values)
+      }
     }
+
     val onError = Runnable {
-      ApplicationManager.getApplication().invokeLater(
-        {
-          addOfflineLevels(formFactor, versionItemList)
-          runCallbacks.run()
-        }, ModalityState.any())
+      invokeLater {
+        addOfflineLevels()
+        runCallbacks.run()
+      }
     }
-    val runner = StudioProgressRunner(false, false, "Refreshing Targets", null)
+
     sdkHandler.getSdkManager(REPO_LOG).load(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       listOf(onLocalComplete),
       listOf(onComplete),
       listOf(onError),
-      runner, StudioDownloader(), StudioSettingsController.getInstance(), false)
+      StudioProgressRunner(false, false, "Refreshing Targets", null),
+      StudioDownloader(), StudioSettingsController.getInstance(), false)
   }
 
-  private fun addPackages(
-    formFactor: FormFactor, versionItemList: MutableList<VersionItem>, packages: Collection<RepoPackage?>, minSdkLevel: Int
-  ) {
-    val sorted = packages.asSequence()
-      .filterNotNull()
-      .filter { filterPkgDesc(it, formFactor, minSdkLevel) }
-      .sortedBy { getAndroidVersion(it) }
-    var existingApiLevel = -1
-    var prevInsertedApiLevel = -1
-    var index = -1
-    for (info in sorted) {
-      val apiLevel = getFeatureLevel(info)
-      while (apiLevel > existingApiLevel) {
-        existingApiLevel = if (++index < versionItemList.size) versionItemList[index].minApiLevel else Integer.MAX_VALUE
-      }
-      if (apiLevel != existingApiLevel && apiLevel != prevInsertedApiLevel) {
-        versionItemList.add(index++, VersionItem(getAndroidVersion(info)))
-        prevInsertedApiLevel = apiLevel
-      }
-    }
-  }
-
-  private fun addOfflineLevels(formFactor: FormFactor, versionItemList: MutableList<VersionItem>) {
-    var existingApiLevel = -1
-    var prevInsertedApiLevel = -1
-    var index = -1
-    val supportedOfflineApiLevels = formFactor.minOfflineApiLevel..formFactor.maxOfflineApiLevel
-    supportedOfflineApiLevels.filterNot { formFactor.isSupported(null, it) }.forEach { apiLevel ->
-      while (apiLevel > existingApiLevel) {
-        existingApiLevel = if (++index < versionItemList.size) versionItemList[index].minApiLevel else Integer.MAX_VALUE
-      }
-      if (apiLevel != existingApiLevel && apiLevel != prevInsertedApiLevel) {
-        versionItemList.add(index++, VersionItem(apiLevel))
-        prevInsertedApiLevel = apiLevel
-      }
-    }
-  }
 
   inner class VersionItem {
     val androidVersion: AndroidVersion
@@ -281,11 +258,11 @@ open class AndroidVersionsInfo { // open for Mockito
 
     val targetApiLevelStr: String
       get() = when {
-          buildApiLevel >= HIGHEST_KNOWN_API || androidTarget?.version?.isPreview == true ->
-            androidTarget?.version?.apiString ?: buildApiLevel.toString()
-          highestInstalledVersion?.featureLevel == buildApiLevel -> highestInstalledVersion!!.apiString
-          else -> buildApiLevel.toString()
-        }
+        buildApiLevel >= HIGHEST_KNOWN_API || androidTarget?.version?.isPreview == true ->
+          androidTarget?.version?.apiString ?: buildApiLevel.toString()
+        highestInstalledVersion?.featureLevel == buildApiLevel -> highestInstalledVersion!!.apiString
+        else -> buildApiLevel.toString()
+      }
 
     override fun equals(other: Any?): Boolean = other is VersionItem && other.label == label
 
@@ -331,7 +308,7 @@ open class AndroidVersionsInfo { // open for Mockito
     private fun getPackageList(requestedPaths: Collection<String>,
                                sdkHandler: AndroidSdkHandler): List<UpdatablePackage> {
       val packages = sdkHandler.getSdkManager(REPO_LOG).packages
-      val requestedPackages = requestedPaths.mapNotNull { packages.consolidatedPkgs[it] }.filter {it.hasRemote()}
+      val requestedPackages = requestedPaths.mapNotNull { packages.consolidatedPkgs[it] }.filter { it.hasRemote() }
 
       return try {
         SdkQuickfixUtils.resolve(requestedPackages, packages)
@@ -343,16 +320,12 @@ open class AndroidVersionsInfo { // open for Mockito
     }
 
     private fun filterPkgDesc(p: RepoPackage, formFactor: FormFactor, minSdkLevel: Int): Boolean =
-      isApiType(p) && doFilter(formFactor, minSdkLevel, getTag(p), getFeatureLevel(p))
+      p.typeDetails is ApiDetailsType && doFilter(formFactor, minSdkLevel, getTag(p), p.getFeatureLevel())
 
     private fun doFilter(formFactor: FormFactor, minSdkLevel: Int, tag: IdDisplay?, targetSdkLevel: Int): Boolean =
       formFactor.isSupported(tag, targetSdkLevel) && targetSdkLevel >= minSdkLevel
 
-    private fun isApiType(repoPackage: RepoPackage): Boolean =
-      repoPackage.typeDetails is ApiDetailsType
-
-    private fun getFeatureLevel(repoPackage: RepoPackage): Int =
-      getAndroidVersion(repoPackage).featureLevel
+    private fun RepoPackage.getFeatureLevel(): Int = getAndroidVersion(this).featureLevel
 
     private fun isFormFactorAvailable(formFactor: FormFactor, minSdkLevel: Int, targetSdkLevel: Int): Boolean =
       doFilter(formFactor, minSdkLevel, SystemImage.DEFAULT_TAG, targetSdkLevel)
@@ -361,8 +334,7 @@ open class AndroidVersionsInfo { // open for Mockito
       (repoPackage.typeDetails as? ApiDetailsType)?.androidVersion ?: throw RuntimeException("Could not determine version")
 
     /**
-     * Return the tag for the specified repository package.
-     * We are only interested in 2 package types.
+     * Return the tag for the specified repository package. We are only interested in 2 package types.
      */
     private fun getTag(repoPackage: RepoPackage): IdDisplay? {
       val details = repoPackage.typeDetails
