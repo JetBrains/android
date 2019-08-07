@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
@@ -34,7 +35,7 @@ import org.jetbrains.plugins.gradle.model.ExtIdeaContentRoot;
  */
 public class JavaModuleContentRoot implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   @NotNull private final File myRootDirPath;
   @NotNull private final Collection<File> mySourceDirPaths;
@@ -151,5 +152,36 @@ public class JavaModuleContentRoot implements Serializable {
   @NotNull
   public Collection<File> getExcludeDirPaths() {
     return myExcludeDirPaths;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+      myRootDirPath,
+      mySourceDirPaths,
+      myGenSourceDirPaths,
+      myTestDirPaths,
+      myGenTestDirPaths,
+      myTestResourceDirPaths,
+      myExcludeDirPaths
+    );
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof JavaModuleContentRoot)) {
+      return false;
+    }
+    JavaModuleContentRoot root = (JavaModuleContentRoot) obj;
+    return Objects.equals(myRootDirPath, root.myRootDirPath)
+           && Objects.equals(mySourceDirPaths, root.mySourceDirPaths)
+           && Objects.equals(myGenSourceDirPaths, root.myGenSourceDirPaths)
+           && Objects.equals(myTestDirPaths, root.myTestDirPaths)
+           && Objects.equals(myGenTestDirPaths, root.myGenTestDirPaths)
+           && Objects.equals(myTestResourceDirPaths, root.myTestResourceDirPaths)
+           && Objects.equals(myExcludeDirPaths, root.myExcludeDirPaths);
   }
 }

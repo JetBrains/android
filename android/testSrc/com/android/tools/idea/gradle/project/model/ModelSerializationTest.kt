@@ -107,6 +107,10 @@ import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilde
 import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStubBuilder
 import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStubBuilder
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.model.java.GradleModuleVersionImpl
+import com.android.tools.idea.gradle.model.java.JarLibraryDependency
+import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot
+import com.android.tools.idea.gradle.model.java.JavaModuleDependency
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
 import com.intellij.serialization.ObjectSerializer
 import com.intellij.serialization.ReadConfiguration
@@ -169,6 +173,26 @@ class ModelSerializationTest {
   @Test
   fun ndkModuleModel() = assertSerializable {
     NdkModuleModel("moduleName", File("some/path"), IdeNativeAndroidProjectImpl(NativeAndroidProjectStub()), listOf())
+  }
+
+  @Test
+  fun gradleModuleVersionImpl() = assertSerializable {
+    GradleModuleVersionImpl("group", "name", "version")
+  }
+
+  @Test
+  fun jarLibraryDependency() = assertSerializable {
+    JarLibraryDependency("name", null, null, null, null, null, false)
+  }
+
+  @Test
+  fun javaModuleContentRoot() = assertSerializable {
+    JavaModuleContentRoot(File("rootDir"), listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
+  }
+
+  @Test
+  fun javaModuleDependency() = assertSerializable {
+    JavaModuleDependency("moduleName", "moduleId", null, false)
   }
 
   /*

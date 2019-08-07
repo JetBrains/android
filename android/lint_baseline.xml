@@ -521,4 +521,35 @@
             line="525"/>
     </issue>
 
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
+            file="src/com/android/tools/idea/gradle/model/java/JavaModuleContentRoot.java"
+            line="179"/>
+    </issue>
+
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
+            file="src/com/android/tools/idea/gradle/model/java/JarLibraryDependency.java"
+            line="148"/>
+    </issue>
+
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
+            file="src/com/android/tools/idea/gradle/model/java/JarLibraryDependency.java"
+            line="149"/>
+    </issue>
+
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
+            file="src/com/android/tools/idea/gradle/model/java/JarLibraryDependency.java"
+            line="150"/>
+    </issue>
 </issues>
