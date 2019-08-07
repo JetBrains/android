@@ -20,6 +20,7 @@ import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
@@ -378,6 +379,21 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
         comboBox.addItem(new LabelAndFileForLocation("JAVA_HOME", validatedPath));
       }
     }
+
+    File envVarPath = ideSdks.getEnvVariableJdk();
+    if (envVarPath != null) {
+      comboBox.addItem(new LabelAndFileForLocation(JDK_LOCATION_ENV_VARIABLE_NAME, envVarPath));
+    }
+    else {
+      // If environment variable is defined but invalid, show anyway so users can see it
+      if (ideSdks.isJdkEnvVariableDefined()) {
+        String value = ideSdks.getEnvVariableJdkValue();
+        if (value != null) {
+          comboBox.addItem(new LabelAndPath(JDK_LOCATION_ENV_VARIABLE_NAME, ideSdks.getEnvVariableJdkValue()));
+        }
+      }
+    }
+
     comboBox.setEditable(true);
     setComboBoxFile(comboBox, getJdkLocation());
 
@@ -388,6 +404,9 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
           Object selectedItem = event.getItem();
           if (selectedItem instanceof LabelAndFileForLocation) {
             ApplicationManager.getApplication().invokeLater(() -> setJdkLocationComboBox(((LabelAndFileForLocation)selectedItem).getFile()));
+          }
+          else if (selectedItem instanceof LabelAndPath) {
+            ApplicationManager.getApplication().invokeLater(() -> comboBox.setSelectedItem(((LabelAndPath)selectedItem).getPath()));
           }
         }
       }
@@ -810,4 +829,30 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       return myLabel + ": " + getSystemDependentPath();
     }
   }
+
+  public static class LabelAndPath {
+    @NotNull private String myLabel;
+    @NotNull private String myPath;
+
+    public LabelAndPath(@NotNull String label, @NotNull String path) {
+      myLabel = label;
+      myPath = path;
+    }
+
+    @NotNull
+    public String getLabel() {
+      return myLabel;
+    }
+
+    @NotNull
+    public String getPath() {
+      return myPath;
+    }
+
+    @Override
+    public String toString() {
+      return myLabel + ": " + myPath;
+    }
+  }
+
 }
