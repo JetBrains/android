@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME;
 import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
 
 import com.android.tools.idea.IdeInfo;
@@ -23,13 +24,17 @@ import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.ide.SaveAndSyncHandler;
 import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationType;
 import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -152,6 +157,16 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
       if (!myGradleProjectInfo.isBuildWithGradle()) {
         // Suggest that Android Studio users use Gradle instead of IDEA project builder.
         myLegacyAndroidProjects.showMigrateToGradleWarning();
+      }
+    }
+    // Check if the Gradle JDK environment variable is valid
+    if (myIdeInfo.isAndroidStudio()) {
+      IdeSdks ideSdks = IdeSdks.getInstance();
+      if (ideSdks.isJdkEnvVariableDefined() && !ideSdks.isJdkEnvVariableValid()) {
+        String msg = JDK_LOCATION_ENV_VARIABLE_NAME + " is being ignored since it is set to an invalid JDK Location:\n"
+                     + ideSdks.getEnvVariableJdkValue();
+        AndroidNotification.getInstance(myProject).showBalloon("", msg, NotificationType.WARNING,
+                                                               SelectJdkFromFileSystemHyperlink.create(myProject));
       }
     }
   }
