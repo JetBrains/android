@@ -19,17 +19,10 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
-import com.intellij.util.text.nullize
-import org.jetbrains.uast.UAnnotation
-import org.jetbrains.uast.UClass
-import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
-import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.evaluateString
-import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.toUElement
-import org.jetbrains.uast.visitor.UastVisitor
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
@@ -68,9 +61,11 @@ interface PreviewElementFinder {
   fun findPreviewMethods(uFile: UFile): Set<PreviewElement>
 
   /**
-   * Returns whether the given [UElement] belongs to a PreviewElement handled by this [PreviewElementFinder]. Implementations must return
+   * Returns whether the given [PsiElement] belongs to a PreviewElement handled by this [PreviewElementFinder]. Implementations must return
    * true if they can not determine if the element belongs to a [PreviewElement] or not.
    * This method will be called to detect changes into [PreviewElement]s and issue a refresh.
+   *
+   * This method can not use UAST for performance reasons since it might be called very frequently.
    */
-  fun elementBelongsToPreviewElement(uElement: UElement): Boolean = true
+  fun elementBelongsToPreviewElement(element: PsiElement): Boolean = true
 }

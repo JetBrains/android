@@ -15,14 +15,17 @@ package com.android.tools.idea.compose.preview
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.android.tools.idea.kotlin.getQualifiedName
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.text.nullize
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.evaluateString
-import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.visitor.UastVisitor
 
 private fun UAnnotation.findAttributeIntValue(name: String, defaultValue: Int) =
@@ -83,6 +86,8 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
     return previewMethodsFqNames
   }
 
-  override fun elementBelongsToPreviewElement(uElement: UElement): Boolean =
-    PREVIEW_ANNOTATION_FQN == uElement.getParentOfType<UAnnotation>(false)?.qualifiedName
+  override fun elementBelongsToPreviewElement(element: PsiElement): Boolean {
+    val annotationEntry: KtAnnotationEntry? = PsiTreeUtil.getParentOfType(element, KtAnnotationEntry::class.java, false)
+    return PREVIEW_ANNOTATION_FQN == annotationEntry?.getQualifiedName()
+  }
 }
