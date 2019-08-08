@@ -22,17 +22,19 @@ import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ThreeState;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,30 +46,47 @@ final class ConnectedDevicesTask implements Callable<Collection<ConnectedDevice>
   @Nullable
   private final LaunchCompatibilityChecker myChecker;
 
+  @NotNull
+  private final Function<Project, Stream<IDevice>> myGetDdmlibDevices;
+
   ConnectedDevicesTask(@NotNull Project project, @Nullable LaunchCompatibilityChecker checker) {
+    this(project, checker, ConnectedDevicesTask::getDdmlibDevices);
+  }
+
+  @VisibleForTesting
+  ConnectedDevicesTask(@NotNull Project project,
+                       @Nullable LaunchCompatibilityChecker checker,
+                       @NotNull Function<Project, Stream<IDevice>> getDdmlibDevices) {
     myProject = project;
     myChecker = checker;
+    myGetDdmlibDevices = getDdmlibDevices;
   }
 
   @NotNull
   @Override
   public Collection<ConnectedDevice> call() {
-    File adb = AndroidSdkUtils.getAdb(myProject);
+    return myGetDdmlibDevices.apply(myProject)
+      .filter(IDevice::isOnline)
+      .map(this::newConnectedDevice)
+      .collect(Collectors.toList());
+  }
+
+  @NotNull
+  private static Stream<IDevice> getDdmlibDevices(@NotNull Project project) {
+    File adb = AndroidSdkUtils.getAdb(project);
 
     if (adb == null) {
-      return Collections.emptyList();
+      return Stream.empty();
     }
 
     Future<AndroidDebugBridge> futureBridge = AdbService.getInstance().getDebugBridge(adb);
 
     if (!futureBridge.isDone()) {
-      return Collections.emptyList();
+      return Stream.empty();
     }
 
     try {
-      return Arrays.stream(futureBridge.get().getDevices())
-        .map(this::newConnectedDevice)
-        .collect(Collectors.toList());
+      return Arrays.stream(futureBridge.get().getDevices());
     }
     catch (InterruptedException exception) {
       // This should never happen. The future is done and can no longer be interrupted.
@@ -75,7 +94,7 @@ final class ConnectedDevicesTask implements Callable<Collection<ConnectedDevice>
     }
     catch (ExecutionException exception) {
       Logger.getInstance(ConnectedDevicesTask.class).warn(exception);
-      return Collections.emptyList();
+      return Stream.empty();
     }
   }
 
