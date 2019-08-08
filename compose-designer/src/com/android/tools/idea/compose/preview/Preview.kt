@@ -81,6 +81,7 @@ import org.jetbrains.uast.toUElement
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
 import javax.swing.JPanel
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance as getInstance
 
 private const val DEBUG = false
 
@@ -342,7 +343,7 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
-    val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
+    val textEditor = getInstance().createEditor(project, file) as TextEditor
     val previewProvider = AnnotationPreviewElementFinder
     val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = previewProvider)
     val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor, previewEditor)
