@@ -29,6 +29,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -36,23 +37,21 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ConnectedDevicesWorkerDelegate extends WorkerDelegate<Collection<ConnectedDevice>> {
+final class ConnectedDevicesTask implements Callable<Collection<ConnectedDevice>> {
   @NotNull
   private final Project myProject;
 
   @Nullable
   private final LaunchCompatibilityChecker myChecker;
 
-  ConnectedDevicesWorkerDelegate(@NotNull Project project, @Nullable LaunchCompatibilityChecker checker) {
-    super(Collections.emptyList());
-
+  ConnectedDevicesTask(@NotNull Project project, @Nullable LaunchCompatibilityChecker checker) {
     myProject = project;
     myChecker = checker;
   }
 
   @NotNull
   @Override
-  public Collection<ConnectedDevice> construct() {
+  public Collection<ConnectedDevice> call() {
     File adb = AndroidSdkUtils.getAdb(myProject);
 
     if (adb == null) {
@@ -75,7 +74,7 @@ final class ConnectedDevicesWorkerDelegate extends WorkerDelegate<Collection<Con
       throw new AssertionError(exception);
     }
     catch (ExecutionException exception) {
-      Logger.getInstance(ConnectedDevicesWorkerDelegate.class).warn(exception);
+      Logger.getInstance(ConnectedDevicesTask.class).warn(exception);
       return Collections.emptyList();
     }
   }
