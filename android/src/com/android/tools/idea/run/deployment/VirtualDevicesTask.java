@@ -33,26 +33,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class VirtualDevicesWorkerDelegate extends WorkerDelegate<Collection<VirtualDevice>> {
+final class VirtualDevicesTask implements Callable<Collection<VirtualDevice>> {
   @Nullable
   private final LaunchCompatibilityChecker myChecker;
 
-  VirtualDevicesWorkerDelegate(@Nullable LaunchCompatibilityChecker checker) {
-    super(Collections.emptyList());
+  VirtualDevicesTask(@Nullable LaunchCompatibilityChecker checker) {
     myChecker = checker;
   }
 
   @NotNull
   @Override
-  public Collection<VirtualDevice> construct() {
+  public Collection<VirtualDevice> call() {
     return AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false).stream()
       .map(this::newDisconnectedDevice)
       .collect(Collectors.toList());
@@ -94,13 +93,13 @@ final class VirtualDevicesWorkerDelegate extends WorkerDelegate<Collection<Virtu
 
       return stream
         .filter(Files::isDirectory)
-        .map(VirtualDevicesWorkerDelegate::getSnapshot)
+        .map(VirtualDevicesTask::getSnapshot)
         .filter(Objects::nonNull)
         .sorted()
         .collect(collector);
     }
     catch (IOException exception) {
-      Logger.getInstance(VirtualDevicesWorkerDelegate.class).warn(snapshots.toString(), exception);
+      Logger.getInstance(VirtualDevicesTask.class).warn(snapshots.toString(), exception);
       return ImmutableList.of();
     }
   }
@@ -119,7 +118,7 @@ final class VirtualDevicesWorkerDelegate extends WorkerDelegate<Collection<Virtu
       return getSnapshot(SnapshotOuterClass.Snapshot.parseFrom(in), snapshotDirectoryName);
     }
     catch (IOException exception) {
-      Logger.getInstance(VirtualDevicesWorkerDelegate.class).warn(snapshotDirectory.toString(), exception);
+      Logger.getInstance(VirtualDevicesTask.class).warn(snapshotDirectory.toString(), exception);
       return null;
     }
   }
