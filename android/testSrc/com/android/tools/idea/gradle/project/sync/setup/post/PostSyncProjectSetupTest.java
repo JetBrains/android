@@ -90,7 +90,7 @@ public class PostSyncProjectSetupTest extends JavaProjectTestCase {
     myProjectStructure = new ProjectStructureStub(project);
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
                                        myDependencySetupIssues, myProjectSetup, myModuleSetup, myVersionUpgrade,
-                                       myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory, myRunManager);
+                                       myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory);
   }
 
   @Override

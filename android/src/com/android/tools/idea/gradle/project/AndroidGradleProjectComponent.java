@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
@@ -50,9 +49,6 @@ import java.util.List;
 import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
 
 public final class AndroidGradleProjectComponent implements ProjectComponent {
-  @NotNull private final GradleProjectInfo myGradleProjectInfo;
-  @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
-  @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final LegacyAndroidProjects myLegacyAndroidProjects;
 
   @Nullable private Disposable myDisposable;
@@ -67,36 +63,19 @@ public final class AndroidGradleProjectComponent implements ProjectComponent {
   }
 
   @SuppressWarnings("unused") // Invoked by IDEA
-  public AndroidGradleProjectComponent(@NotNull Project project,
-                                       @NotNull GradleProjectInfo gradleProjectInfo,
-                                       @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull GradleSyncInvoker gradleSyncInvoker,
-                                       @NotNull GradleBuildInvoker gradleBuildInvoker,
-                                       @NotNull CompilerManager compilerManager,
-                                       @NotNull SupportedModuleChecker supportedModuleChecker,
-                                       @NotNull IdeInfo ideInfo) {
-    this(project, gradleProjectInfo, androidProjectInfo, gradleBuildInvoker, compilerManager,
-         ideInfo, new LegacyAndroidProjects(project));
+  public AndroidGradleProjectComponent(@NotNull Project project) {
+    this(project, new LegacyAndroidProjects(project));
   }
 
   @VisibleForTesting
-  public AndroidGradleProjectComponent(@NotNull Project project,
-                                       @NotNull GradleProjectInfo gradleProjectInfo,
-                                       @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull GradleBuildInvoker gradleBuildInvoker,
-                                       @NotNull CompilerManager compilerManager,
-                                       @NotNull IdeInfo ideInfo,
-                                       @NotNull LegacyAndroidProjects legacyAndroidProjects) {
+  public AndroidGradleProjectComponent(@NotNull Project project, @NotNull LegacyAndroidProjects legacyAndroidProjects) {
     myProject = project;
-    myGradleProjectInfo = gradleProjectInfo;
-    myAndroidProjectInfo = androidProjectInfo;
-    myIdeInfo = ideInfo;
     myLegacyAndroidProjects = legacyAndroidProjects;
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
-    compilerManager.addAfterTask(context -> {
-      if (myGradleProjectInfo.isBuildWithGradle()) {
-        PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(context);
+    CompilerManager.getInstance(myProject).addAfterTask(context -> {
+      if (GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
+        PostProjectBuildTasksExecutor.getInstance(myProject).onBuildCompletion(context);
 
         JpsBuildContext newContext = new JpsBuildContext(context);
         AndroidProjectBuildNotifications.getInstance(myProject).notifyBuildComplete(newContext);
@@ -105,7 +84,7 @@ public final class AndroidGradleProjectComponent implements ProjectComponent {
     });
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via direct Gradle invocation.
-    gradleBuildInvoker.add(result -> {
+    GradleBuildInvoker.getInstance(myProject).add(result -> {
       if (myProject.isDisposed()) return;
       PostProjectBuildTasksExecutor.getInstance(myProject).onBuildCompletion(result);
       GradleBuildContext newContext = new GradleBuildContext(result);
@@ -141,9 +120,10 @@ public final class AndroidGradleProjectComponent implements ProjectComponent {
    */
   @Override
   public void projectOpened() {
-    if (myIdeInfo.isAndroidStudio() && myAndroidProjectInfo.isLegacyIdeaAndroidProject() && !myAndroidProjectInfo.isApkProject()) {
+    if (IdeInfo.getInstance().isAndroidStudio() && AndroidProjectInfo.getInstance(myProject).isLegacyIdeaAndroidProject() && !AndroidProjectInfo.getInstance(myProject)
+      .isApkProject()) {
       myLegacyAndroidProjects.trackProject();
-      if (!myGradleProjectInfo.isBuildWithGradle()) {
+      if (!GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
         // Suggest that Android Studio users use Gradle instead of IDEA project builder.
         myLegacyAndroidProjects.showMigrateToGradleWarning();
       }
@@ -167,7 +147,7 @@ public final class AndroidGradleProjectComponent implements ProjectComponent {
     runConfigurationProducerTypes.add(TestMethodGradleConfigurationProducer.class);
 
     RunConfigurationProducerService runConfigurationProducerManager = RunConfigurationProducerService.getInstance(myProject);
-    if (myIdeInfo.isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       // Make sure the gradle test configurations are ignored in this project. This will modify .idea/runConfigurations.xml
       for (Class<? extends RunConfigurationProducer<?>> type : runConfigurationProducerTypes) {
         runConfigurationProducerManager.getState().ignoredProducers.add(type.getName());

@@ -39,6 +39,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.google.wireless.android.sdk.stats.KotlinSupport;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -69,7 +70,7 @@ import static com.intellij.openapi.util.text.StringUtil.formatDuration;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 
-public class GradleSyncState {
+public final class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
   private static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle sync");
 
@@ -77,8 +78,6 @@ public class GradleSyncState {
   static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<>("Project sync with Gradle", GradleSyncListener.class);
 
   @NotNull private final Project myProject;
-  @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
-  @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final MessageBus myMessageBus;
   @NotNull private final StateChangeNotification myChangeNotification;
   @NotNull private final GradleSyncSummary mySummary;
@@ -126,28 +125,19 @@ public class GradleSyncState {
     return ServiceManager.getService(project, GradleSyncState.class);
   }
 
-  public GradleSyncState(@NotNull Project project,
-                         @NotNull AndroidProjectInfo androidProjectInfo,
-                         @NotNull GradleProjectInfo gradleProjectInfo,
-                         @NotNull GradleFiles gradleFiles,
-                         @NotNull MessageBus messageBus,
-                         @NotNull ProjectStructure projectStructure) {
-    this(project, androidProjectInfo, gradleProjectInfo, gradleFiles, messageBus, projectStructure, new StateChangeNotification(project),
+  public GradleSyncState(@NotNull Project project) {
+    this(project, GradleFiles.getInstance(project), project.getMessageBus(), ProjectStructure.getInstance(project), new StateChangeNotification(project),
          new GradleSyncSummary(project));
   }
 
   @VisibleForTesting
   GradleSyncState(@NotNull Project project,
-                  @NotNull AndroidProjectInfo androidProjectInfo,
-                  @NotNull GradleProjectInfo gradleProjectInfo,
                   @NotNull GradleFiles gradleFiles,
                   @NotNull MessageBus messageBus,
                   @NotNull ProjectStructure projectStructure,
                   @NotNull StateChangeNotification changeNotification,
                   @NotNull GradleSyncSummary summary) {
     myProject = project;
-    myAndroidProjectInfo = androidProjectInfo;
-    myGradleProjectInfo = gradleProjectInfo;
     myMessageBus = messageBus;
     myChangeNotification = changeNotification;
     mySummary = summary;
@@ -435,8 +425,8 @@ public class GradleSyncState {
    */
   public boolean lastSyncFailed() {
     return !isSyncInProgress() &&
-           myGradleProjectInfo.isBuildWithGradle() &&
-           (myAndroidProjectInfo.requiredAndroidModelMissing() || mySummary.hasSyncErrors());
+           GradleProjectInfo.getInstance(myProject).isBuildWithGradle() &&
+           (AndroidProjectInfo.getInstance(myProject).requiredAndroidModelMissing() || mySummary.hasSyncErrors());
   }
 
   public boolean isSyncInProgress() {

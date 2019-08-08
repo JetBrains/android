@@ -86,7 +86,7 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static java.lang.System.currentTimeMillis;
 
-public class PostSyncProjectSetup {
+public final class PostSyncProjectSetup {
   @NotNull private final Project myProject;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final ProjectStructure myProjectStructure;
@@ -100,7 +100,6 @@ public class PostSyncProjectSetup {
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
-  @NotNull private final RunManagerEx myRunManager;
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -108,20 +107,9 @@ public class PostSyncProjectSetup {
   }
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public PostSyncProjectSetup(@NotNull Project project,
-                              @NotNull IdeInfo ideInfo,
-                              @NotNull ProjectStructure projectStructure,
-                              @NotNull GradleProjectInfo gradleProjectInfo,
-                              @NotNull GradleSyncInvoker syncInvoker,
-                              @NotNull GradleSyncState syncState,
-                              @NotNull GradleSyncMessages syncMessages,
-                              @NotNull DependencySetupIssues dependencySetupIssues,
-                              @NotNull PluginVersionUpgrade pluginVersionUpgrade,
-                              @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
-                              @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
-         new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerEx.getInstanceEx(project));
+  public PostSyncProjectSetup(@NotNull Project project) {
+    this(project, IdeInfo.getInstance(), ProjectStructure.getInstance(project), GradleProjectInfo.getInstance(project), GradleSyncInvoker.getInstance(), GradleSyncState.getInstance(project), DependencySetupIssues.getInstance(project), new ProjectSetup(project),
+         new ModuleSetup(project), PluginVersionUpgrade.getInstance(project), VersionCompatibilityChecker.getInstance(), GradleProjectBuilder.getInstance(project), new CommonModuleValidator.Factory());
   }
 
   @VisibleForTesting
@@ -137,8 +125,7 @@ public class PostSyncProjectSetup {
                        @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
-                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
-                       @NotNull RunManagerEx runManager) {
+                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory) {
     myProject = project;
     myIdeInfo = ideInfo;
     myProjectStructure = projectStructure;
@@ -152,7 +139,6 @@ public class PostSyncProjectSetup {
     myVersionCompatibilityChecker = versionCompatibilityChecker;
     myProjectBuilder = projectBuilder;
     myModuleValidatorFactory = moduleValidatorFactory;
-    myRunManager = runManager;
   }
 
   /**
@@ -351,13 +337,13 @@ public class PostSyncProjectSetup {
     if (targetProvider != null) {
       // Store current before run tasks in each configuration to reset them after modifying the template, since modifying
       Map<RunConfiguration, List<BeforeRunTask>> currentTasks = new HashMap<>();
-      for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
+      for (RunConfiguration runConfiguration : RunManagerEx.getInstanceEx(myProject).getConfigurationsList(junitConfigurationType)) {
         currentTasks.put(runConfiguration, new ArrayList<>(runManager.getBeforeRunTasks(runConfiguration)));
       }
 
       // Fix the "JUnit Run Configuration" templates.
       for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
-        RunnerAndConfigurationSettings template = myRunManager.getConfigurationTemplate(configurationFactory);
+        RunnerAndConfigurationSettings template = RunManagerEx.getInstanceEx(myProject).getConfigurationTemplate(configurationFactory);
         AndroidJUnitConfiguration runConfiguration = (AndroidJUnitConfiguration)template.getConfiguration();
         // Set the correct "Make step" in the "JUnit Run Configuration" template.
         setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
@@ -365,7 +351,7 @@ public class PostSyncProjectSetup {
       }
 
       // Fix existing JUnit Configurations.
-      for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
+      for (RunConfiguration runConfiguration : RunManagerEx.getInstanceEx(myProject).getConfigurationsList(junitConfigurationType)) {
         // Keep the previous configurations in existing run configurations
         runManager.setBeforeRunTasks(runConfiguration, currentTasks.get(runConfiguration), false);
       }
