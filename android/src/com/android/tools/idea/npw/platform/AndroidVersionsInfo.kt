@@ -166,7 +166,7 @@ open class AndroidVersionsInfo { // open for Mockito
           existingApiLevel = if (++index < versionItemList.size) versionItemList[index].minApiLevel else Integer.MAX_VALUE
         }
         if (apiLevel != existingApiLevel && apiLevel != prevInsertedApiLevel) {
-          versionItemList.add(index++, VersionItem(apiLevel))
+          versionItemList.add(index++, VersionItem(AndroidVersion(apiLevel)))
           prevInsertedApiLevel = apiLevel
         }
       }
@@ -209,7 +209,6 @@ open class AndroidVersionsInfo { // open for Mockito
       StudioDownloader(), StudioSettingsController.getInstance(), false)
   }
 
-
   inner class VersionItem {
     val androidVersion: AndroidVersion
     val label: String
@@ -218,7 +217,8 @@ open class AndroidVersionsInfo { // open for Mockito
     var androidTarget: IAndroidTarget? = null
       private set
 
-    internal constructor(androidVersion: AndroidVersion, target: IAndroidTarget? = null) {
+    @VisibleForTesting
+    constructor(androidVersion: AndroidVersion, target: IAndroidTarget? = null) {
       this.androidVersion = androidVersion
       label = getLabel(androidVersion, target)
       androidTarget = target
@@ -227,14 +227,11 @@ open class AndroidVersionsInfo { // open for Mockito
     }
 
     internal constructor(label: String, minApiLevel: Int) {
-      androidVersion = AndroidVersion(minApiLevel, null)
+      androidVersion = AndroidVersion(minApiLevel)
       this.label = label
       this.minApiLevel = minApiLevel
       minApiLevelStr = minApiLevel.toString()
     }
-
-    @VisibleForTesting
-    constructor(minApiLevel: Int) : this(AndroidVersion(minApiLevel, null))
 
     @VisibleForTesting
     constructor(target: IAndroidTarget) : this(target.version, target)
