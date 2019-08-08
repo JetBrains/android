@@ -558,6 +558,14 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
+            line="779"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
             line="781"/>
     </issue>
 

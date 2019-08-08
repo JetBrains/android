@@ -735,7 +735,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   *
+   * @see #getFitScale(Dimension, boolean)
    */
   protected double getFitScale(boolean fitInto) {
     int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
@@ -748,7 +748,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param fitInto {@link ZoomType#FIT_INTO}
    * @return The scale to make the content fit the design surface
    */
-  protected double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
+  @VisibleForTesting
+  public double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
     // Fit to zoom
     int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
     int availableHeight = myScrollPane.getHeight() - myScrollPane.getHorizontalScrollBar().getHeight();
