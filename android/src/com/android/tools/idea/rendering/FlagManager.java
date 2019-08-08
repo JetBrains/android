@@ -26,11 +26,11 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.util.Function;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.lang.reflect.Method;
 import java.util.Map;
+import javax.swing.Icon;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The {@linkplain FlagManager} provides access to flags for regions known
@@ -116,24 +116,8 @@ public class FlagManager {
     return getIcon(region);
   }
 
-  private static boolean ourFlagSettingAvailable = true;
-  private static Method ourLanguageFlagMethod;
-
-  /** Whether users want to use flags to represent languages when possible */
   public static boolean showFlagsForLanguages() {
-    if (ourFlagSettingAvailable) {
-      try {
-        if (ourLanguageFlagMethod == null) {
-          ourLanguageFlagMethod = UISettings.class.getDeclaredMethod("getLanguageFlags");
-        }
-        return (boolean)ourLanguageFlagMethod.invoke(UISettings.getInstance());
-      }
-      catch (Throwable t) {
-        ourFlagSettingAvailable = false;
-        return false;
-      }
-    }
-    return true;
+    return UISettings.getInstance().getState().getLanguageFlags();
   }
 
   /**
