@@ -131,7 +131,7 @@ final class ProjectStub extends UserDataHolderBase implements Project {
   }
 
   @Override
-  public <T> T getService(@NotNull Class<T> serviceClass, boolean isCreate) {
+  public <T> T getService(@NotNull Class<T> serviceClass, boolean createIfNeeded) {
     return null;
   }
 
