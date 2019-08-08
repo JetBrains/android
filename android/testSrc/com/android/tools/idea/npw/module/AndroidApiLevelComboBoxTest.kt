@@ -81,4 +81,4 @@ class AndroidApiLevelComboBoxTest {
 private fun createMockVersionItem(minApiLevel: Int): VersionItem =
   Mockito.mock(AndroidVersionsInfo::class.java).apply {
     Mockito.`when`(highestInstalledVersion).thenReturn(AndroidVersion(100, null))
-  }.VersionItem(minApiLevel)
+  }.VersionItem(AndroidVersion(minApiLevel))
