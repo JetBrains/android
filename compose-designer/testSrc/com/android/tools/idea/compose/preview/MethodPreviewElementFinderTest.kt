@@ -144,10 +144,10 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
       }
     })
 
-    assertTrue(MethodPreviewElementFinder.elementBelongsToPreviewElement(previewCall!!.valueArguments[0]))
-    assertTrue(MethodPreviewElementFinder.elementBelongsToPreviewElement(configurationParameter!!))
-    assertFalse(MethodPreviewElementFinder.elementBelongsToPreviewElement(previewMethod!!))
-    assertFalse(MethodPreviewElementFinder.elementBelongsToPreviewElement(localVariable!!))
+    assertTrue(MethodPreviewElementFinder.elementBelongsToPreviewElement(previewCall!!.valueArguments[0].sourcePsi!!))
+    assertTrue(MethodPreviewElementFinder.elementBelongsToPreviewElement(configurationParameter?.sourcePsi!!))
+    assertFalse(MethodPreviewElementFinder.elementBelongsToPreviewElement(previewMethod?.sourcePsi!!))
+    assertFalse(MethodPreviewElementFinder.elementBelongsToPreviewElement(localVariable?.sourcePsi!!))
   }
 
   fun testFindPreviewPackage() {

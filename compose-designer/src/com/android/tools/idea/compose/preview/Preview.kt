@@ -63,11 +63,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
@@ -375,7 +377,7 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
 
     PsiManager.getInstance(project).addPsiTreeChangeListener(object: PsiTreeChangeAdapter() {
       fun elementChanged(eventPsiFile: PsiFile?, psiElement: PsiElement?) {
-        if (eventPsiFile != psiFile) {
+        if (psiElement == null || eventPsiFile != psiFile) {
           return
         }
 
@@ -383,12 +385,18 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
           return
         }
 
-        val uElement = psiElement?.toUElement() ?: return
-        if (uElement.getParentOfType<UComment>(false) != null) {
+        if (PsiTreeUtil.getParentOfType(psiElement, PsiComment::class.java, false) != null) {
           // Ignore comments
           return
         }
-        val isPreviewElementChange = previewProvider.elementBelongsToPreviewElement(uElement)
+
+        val isPreviewElementChange = if (psiElement != null) {
+          previewProvider.elementBelongsToPreviewElement(psiElement)
+        }
+        else {
+          false
+        }
+
         if (isPreviewElementChange) {
           // The change belongs to a PreviewElement declaration. No need to rebuild, we can just refresh
           modificationQueue.queue(refreshPreview)
