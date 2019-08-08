@@ -89,12 +89,12 @@ class PathValidator
     /**
      * Useful for creating a [PathValidator] with all rules enforced.
      */
-    fun withAllRules(pathNotWritable: Severity): Builder {
+    fun withAllRules(): Builder {
       // Note: Order of rules is important, we want to check for invalid slashes, chars, etc before checking if we can write
       withCommonRules()
-      withRule(IS_EMPTY, Severity.ERROR)
-      withRule(PATH_NOT_WRITABLE, pathNotWritable)
-      withRule(NON_EMPTY_DIRECTORY, Severity.WARNING)
+      withError(IS_EMPTY)
+      withError(PATH_NOT_WRITABLE)
+      withWarning(NON_EMPTY_DIRECTORY)
       return this
     }
 
@@ -104,42 +104,38 @@ class PathValidator
     fun withCommonRules(): Builder {
       withCommonTestRules()
       if (SystemInfo.isWindows) {
-        withRule(WINDOWS_PATH_TOO_LONG, Severity.ERROR)
+        withError(WINDOWS_PATH_TOO_LONG)
       }
       return this
     }
 
     /**
      * Contains Common rules but excluding the ones that will not pass build bot.
-     * Only used for unit tests.
      */
     @TestOnly
     fun withCommonTestRules(): Builder {
-      withRule(INVALID_SLASHES, Severity.ERROR)
-      withRule(ILLEGAL_CHARACTER, Severity.ERROR)
-      withRule(ILLEGAL_WINDOWS_FILENAME, if (SystemInfo.isWindows) Severity.ERROR else Severity.WARNING)
-      withRule(WHITESPACE, Severity.WARNING)
-      withRule(NON_ASCII_CHARS, if (SystemInfo.isWindows) Severity.ERROR else Severity.WARNING)
-      withRule(PARENT_DIRECTORY_NOT_WRITABLE, Severity.ERROR)
-      withRule(LOCATION_IS_A_FILE, Severity.ERROR)
-      withRule(LOCATION_IS_ROOT, Severity.ERROR)
-      withRule(PARENT_IS_NOT_A_DIRECTORY, Severity.ERROR)
-      withRule(PATH_INSIDE_ANDROID_STUDIO, Severity.ERROR)
+      withError(INVALID_SLASHES)
+      withError(ILLEGAL_CHARACTER)
+      withWarning(WHITESPACE)
+      if (SystemInfo.isWindows) {
+        withError(ILLEGAL_WINDOWS_FILENAME)
+        withError(NON_ASCII_CHARS)
+      } else {
+        withWarning(ILLEGAL_WINDOWS_FILENAME)
+        withWarning(NON_ASCII_CHARS)
+      }
+      withError(PARENT_DIRECTORY_NOT_WRITABLE)
+      withError(LOCATION_IS_A_FILE)
+      withError(LOCATION_IS_ROOT)
+      withError(PARENT_IS_NOT_A_DIRECTORY)
+      withError(PATH_INSIDE_ANDROID_STUDIO)
       return this
     }
 
-    /**
-     * Add a [Rule] individually, in case [withCommonRules] is too aggressive for
-     * your use-case, or if you want to add a custom one-off rule.
-     */
-    fun withRule(rule: Rule, severity: Severity): Builder {
-      when (severity) {
-        Severity.ERROR -> errors.add(rule)
-        Severity.WARNING -> warnings.add(rule)
-        else -> throw IllegalArgumentException("Can't create rule with invalid severity $severity")
-      }
-      return this
-    }
+
+    fun withError(rule: Rule) = this.apply { errors.add(rule) }
+
+    fun withWarning(rule: Rule) = this.apply { warnings.add(rule) }
 
     @JvmOverloads
     fun build(pathName: String, fileOp: FileOp = FileOpUtils.create()): PathValidator = PathValidator(pathName, errors, warnings, fileOp)
@@ -152,7 +148,7 @@ class PathValidator
      * @param pathName name of the path being validated. Used inside [Validator.Result]'s message.
      */
     @JvmStatic
-    fun createDefault(pathName: String): PathValidator = Builder().withAllRules(Severity.ERROR).build(pathName)
+    fun createDefault(pathName: String): PathValidator = Builder().withAllRules().build(pathName)
   }
 }
 
