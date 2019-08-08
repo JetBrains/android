@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="3500">
+    version="3517">
   <feature
       name="What's New in 3.5">
     <tutorial
         key="whats-new"
         label=" What's New in 3.5"
-        icon="preview/whats_new_icon.png"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html"
+        icon="stable/whats_new_icon.png"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/stable-release-notes.html"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -38,13 +38,222 @@
           from the main menu.
           ]]>
       </description>
-      <step label="">
+      <step label="Quality and Stability improvements">
         <stepElement>
           <section>
             <![CDATA[
-          <br><br><hr><br>
-          <em>Last updated 1/2/2019</em>
-          <br><br>
+            As part of <a href="https://android-developers.googleblog.com/2019/05/android-studio-35-beta.html">Project Marble</a>,
+            this update focuses on improving stability, memory leaks, and hangs, and improvements to
+            core user features. Some of these improvements are described below.
+            <br><br>
+            <b>Memory management settings</b><br><br>
+            <img src="https://d.android.com/studio/releases/assistant/3.5.0/memory-settings-wna.png"
+            width="428"
+            alt="The memory settings, which let you configure maximum amount of RAM for Android
+            Studio processes." />
+            <br><br>
+            If you use a 64-bit operating system that has at least 5 GB of RAM, you can now
+            configure the maximum amount of RAM that your OS should allocate for Android Studio
+            processes, such as the core IDE, Gradle daemon, and Kotlin daemon.
+            <br><br>
+            You can access these new settings by selecting <b>File > Settings</b> (or
+            <b>Android Studio > Preferences</b> on macOS), and then finding the
+            <b>Memory Settings</b> section under <b>Appearance & Behavior > System Settings</b>.
+            <br><br>
+            <a href="https://d.android.com/r/studio-wna/3.5.0/memory-settings">
+            Learn more</a>
+            <br><br>
+            <b>Memory usage report</b><br><br>
+            <img src="https://d.android.com/studio/releases/assistant/3.5.0/memory-usage-report-wna.png"
+            width="428"
+            alt="The memory settings, which let you configure maximum amount of RAM for Android
+            Studio processes." />
+            <br><br>
+            Memory problems in Android Studio are sometimes difficult to reproduce and report. To
+            help solve this problem, Android Studio now includes a memory usage report that you can
+            send to the Android Studio team to help identify the source of memory issues.
+            <br><br>
+            <a href="https://d.android.com/r/studio-wna/3.5.0/memory-usage-report">
+            Learn more</a>
+            <br><br>
+            <b>Windows: Antivirus file I/O optimization</b>
+            <br><br>
+            To help you optimize you antivirus software configuration, Android Studio now automatically
+            checks whether certain project directories are excluded from real-time antivirus scanning
+            and notifies you.
+            <br><br>
+            <a href="https://d.android.com/studio/releases?utm_source=android-studio-3-5&utm_medium=studio-assistant-stable#windows-av-io">
+            Learn more</a>
+            <br><br>
+            <b>App deployment flow</b>
+            <br><br>
+            The IDE has a new drop-down menu that lets you quickly select which device you'd
+            like to deploy your app to. This menu also includes a new option that lets you
+            run your app on multiple devices at once.
+            <br><br>
+            <a href="https://d.android.com/studio/releases?utm_source=android-studio-3-5&utm_medium=studio-assistant-stable#3-5-deploy-flow">
+            Learn more</a>
+            <br><br>
+            <b>Improved Gradle sync and cache detection</b>
+            <br><br>
+            To avoid Gradle sync errors, the IDE now downloads missing dependencies when it detects that
+            Gradle has cleared its build cache.
+            <br><br>
+            <a href="https://d.android.com/studio/releases?utm_source=android-studio-3-5&utm_medium=studio-assistant-stable#3-5-gradle-sync">
+            Learn more</a>
+            <br><br>
+            <b>Improved support for Data Binding</b>
+            <br><br>
+            In addition to adding incremental annotation processing support for Data Binding, the IDE
+            improves smart editor features, such as performance when creating data binding expressions in
+            XML.
+            <br><br>
+            <a href="https://d.android.com/studio/releases?utm_source=android-studio-3-5&utm_medium=studio-assistant-stable#3-5-data-binding">
+            Learn more</a>
+            <br><br>
+            <b>Improved support for C/C++ projects</b>
+            <br><br>
+            Android Studio now supports installing multiple versions of the NDK. And, with Android Gradle
+            plugin 3.5.0 or higher, you can specify the version of the NDK each module in your project
+            should use.
+
+            <br><br>
+            Additionally, you can improve Gradle sync performance by selecting the ABI you want the editor
+            to use. To do so, select select <b>Build</b> &gt; <b>Select Build Variant</b> in the menu bar
+            and, for each module in your project, select the ABI from the <b>Active ABI</b> column.
+            <br><br>
+            <a href="https://d.android.com/studio/releases?utm_source=android-studio-3-5&utm_medium=studio-assistant-stable#3-5-ndk">
+            Learn more</a>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Apply Changes">
+        <stepElement>
+          <section>
+            <![CDATA[
+            Apply Changes lets you push code and resource changes to your running app without
+            restarting your app—and, in some cases, without restarting the current activity. Apply
+            Changes implements a completely new approach for preserving your app’s state by
+            leveraging the runtime instrumentation supported in Android 8.0 (API level 26) or higher.
+            <br><br>
+            To use Apply Changes, do the following:
+            <br><br>
+            <ul>
+            <li>If you want to apply only your code changes without restarting the current activity,
+             click <b>Apply Code Changes</b>&nbsp;
+             <img src="https://d.android.com/studio/releases/assistant/3.5.0/toolbar-apply-code-changes.png" width="19" height="19" />.
+             <br><br>
+             Generally, you should use <b>Apply Code Changes</b> if you have modified code in the
+             body of a method but you have not modified any resources.
+            </li>
+            <li>If you want to apply your resource and code changes without restarting your app,
+             click <b>Apply Changes and Restart Activity</b>&nbsp;
+             <img src="https://d.android.com/studio/releases/assistant/3.5.0/toolbar-apply-changes.png" width="19" height="19" />.
+             This option lets you apply resource and code changes by restarting the current activity
+             without restarting your app.
+            </li>
+            </ul>
+            <a href="https://d.android.com/r/studio-wna/3.5.0/apply-changes">
+            Learn more</a>
+            <br><br>
+            <b>Enable Run fallback</b><br>
+            You can configure Android Studio to automatically <b>Run</b> your app again whenever
+            your changes can't be applied. To enable these settings, follow these steps:
+            <br><br>
+            <ol>
+            <li>Select <b>File > Settings</b> (or <b>Android Studio > Preferences</b> on macOS).</li>
+            <li>Navigate to <b>Build, Execution, Deployment > Deployment</b>.</li>
+            <li>Check the boxes to enable automatic Run fallback for either of the Apply Changes
+            actions.</li>
+            <li>Click <b>OK</b>.</li>
+            </ol>
+            <a href="https://d.android.com/studio/run?utm_source=android-studio-3-5&utm_medium=studio-assistant-stable#apply-changes-run-fallback">
+           Learn more</a>
+           ]]>
+          </section>
+        </stepElement>
+       </step>
+       <step label="Chrome OS Support">
+        <stepElement>
+          <section>
+            <![CDATA[
+            Android Studio now officially supports Chrome OS devices. To get started,
+            download Android Studio on your <a href="https://d.android.com/studio?utm_source=android-studio-3-5&utm_medium=studio-assistant-stable#Requirements">compatible
+            Chrome OS device</a> and follow the <a href="https://d.android.com/studio/install?utm_source=android-studio-3-5&utm_medium=studio-assistant-stable#chrome-os">
+            installation instructions</a>.
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="IntelliJ IDEA 2019.1">
+        <stepElement>
+          <section>
+            <![CDATA[
+           The core Android Studio IDE has been updated with improvements from IntelliJ IDEA through
+           the <a href="https://blog.jetbrains.com/idea/2019/03/intellij-idea-2019-1-is-released-theme-customization-java-12-switch-expressions-debug-inside-docker-containers-and-more/">
+           2019.1 release</a>, such as theme customization and bug fixes.
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Conditional delivery">
+        <stepElement>
+          <section>
+            <![CDATA[
+            Android app bundles now support conditional delivery, which allows you to set certain
+            device configuration requirements—such as, device hardware or software features, user
+            country, and API level—to determine whether a device should automatically download a
+            dynamic feature module at app install.
+            <a href="https://d.android.com/r/studio-wna/3.5.0/conditional-delivery">
+           Learn more</a>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Layout Editor improvements">
+        <stepElement>
+          <section>
+            <![CDATA[
+            Android Studio 3.5 includes several improvements to layout visualization, management, and
+            interaction, such as the following:
+            <br><br>
+            <ul>
+              <li>When working with <code>ConstraintLayout</code>, a new
+              <b>Constraints</b> section in the <b>Attributes</b> panel lists the constraints relationships
+              of the selected UI component.</li>
+              <li>You can now delete a constraint by selecting it and pressing the Delete key.</li>
+              <li>When a view is selected, you can create a constraint by clicking on any of the <b>+</b> icons in the <b>Constraint Widget</b> section of the <b>Attributes</b> panel</li>
+              <li>When creating a constraint, the Layout Editor now shows only the eligible anchor points
+                to which you can constrain.</li>
+            </ul>
+            <a href="https://d.android.com/studio/releases?utm_source=android-studio-3-5&utm_medium=studio-assistant-stable#3-5-layout-editor">
+            Learn more</a>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Android Gradle plugin 3.5.0 updates">
+        <stepElement>
+          <section>
+            <![CDATA[
+            For information on what’s new in Android Gradle plugin 3.5.0, such improved support
+            for incremental annotation processors, read its
+            <a href="https://d.android.com/studio/releases/gradle-plugin?utm_source=android-studio-3-5&utm_medium=studio-assistant-stable#3-5-0">release notes</a>.
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="IntelliJ IDEA 2019.1">
+        <stepElement>
+          <section>
+            <![CDATA[
+           The core Android Studio IDE has been updated with improvements from IntelliJ IDEA through
+           the <a href="https://blog.jetbrains.com/idea/2019/03/intellij-idea-2019-1-is-released-theme-customization-java-12-switch-expressions-debug-inside-docker-containers-and-more/">
+           2019.1 release</a>, such as theme customization and bug fixes.
+           <br><br><hr><br>
+           <em>Last updated 7/29/2019</em>
+           <br><br>
            ]]>
           </section>
         </stepElement>
