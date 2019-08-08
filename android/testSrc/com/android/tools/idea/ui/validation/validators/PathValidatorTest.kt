@@ -22,7 +22,6 @@ import com.android.tools.idea.ui.validation.validators.PathValidator.Builder
 import com.google.common.base.Strings
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Assume
 import org.junit.Before
 import org.junit.Test
@@ -145,13 +144,13 @@ class PathValidatorTest {
   @Test
   fun locationIsAFileMatches() {
     val file = File("/a/b/c/d/e.txt")
-    fileOp!!.createNewFile(file)
+    fileOp.createNewFile(file)
     assertRuleFails(fileOp, LOCATION_IS_A_FILE, file)
   }
 
   @Test
   fun locationIsAFileOk() {
-    fileOp!!.createNewFile(File("/a/b/c/d/e.txt"))
+    fileOp.createNewFile(File("/a/b/c/d/e.txt"))
     val file = File("/a/b/c/d/e2.txt")
     assertRulePasses(fileOp, LOCATION_IS_A_FILE, file)
   }
@@ -204,25 +203,16 @@ class PathValidatorTest {
   @Test
   fun nonEmptyDirectoryOk() {
     val file = File("/a/b/c/d/")
-    fileOp!!.recordExistingFolder(file)
+    fileOp.recordExistingFolder(file)
     assertRulePasses(fileOp, NON_EMPTY_DIRECTORY, file)
   }
 
   @Test
   fun errorsShownBeforeWarnings() {
-    val validator = Builder()
-      .withRule(WHITESPACE, Severity.WARNING)
-      .withRule(ILLEGAL_CHARACTER, Severity.ERROR)
-      .build("test path")
-
+    val validator = Builder().withWarning(WHITESPACE).withError(ILLEGAL_CHARACTER).build("test path")
     // This path validator has its warning registered before its error, but we should still show the error first
     val result = validator.validate(File("whitespace and illegal characters??!"))
     assertThat(result.severity).isEqualTo(Severity.ERROR)
-  }
-
-  @Test
-  fun ruleMustHaveValidSeverity() {
-    assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) { Builder().withRule(ILLEGAL_CHARACTER, Severity.OK) }
   }
 }
 
@@ -231,14 +221,14 @@ private fun assertRuleFails(fileOp: FileOp, rule: Rule, file: File) {
 }
 
 private fun assertRuleFails(fileOp: FileOp, rule: Rule, inputFile: File, failureCause: File) {
-  val validator = Builder().withRule(rule, Severity.ERROR).build("test path", fileOp)
+  val validator = Builder().withError(rule).build("test path", fileOp)
   val result = validator.validate(inputFile)
   assertThat(result.severity).isEqualTo(Severity.ERROR)
   assertThat(result.message).isEqualTo(rule.getMessage(failureCause, "test path"))
 }
 
 private fun assertRulePasses(fileOp: FileOp, rule: Rule, file: File) {
-  val validator = Builder().withRule(rule, Severity.ERROR).build("test path", fileOp)
+  val validator = Builder().withError(rule) .build("test path", fileOp)
   val result = validator.validate(file)
   assertThat(result.severity).isEqualTo(Severity.OK)
 }
