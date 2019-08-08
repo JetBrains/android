@@ -29,6 +29,7 @@ import com.android.tools.idea.lang.databinding.reference.PsiClassReference
 import com.android.tools.idea.lang.databinding.reference.PsiParameterReference
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
+import com.intellij.psi.LambdaUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
@@ -188,10 +189,27 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   override fun visitInferredFormalParameterList(parameters: PsiDbInferredFormalParameterList) {
     super.visitInferredFormalParameterList(parameters)
 
+    annotateIfLambdaParameterCountMismatch(parameters)
     parameters.inferredFormalParameterList.filter { parameter ->
       parameters.inferredFormalParameterList.count { it.text == parameter.text } > 1
     }.forEach {
       annotateError(it, DUPLICATE_CALLBACK_ARGUMENT, it.text)
+    }
+  }
+
+  private fun annotateIfLambdaParameterCountMismatch(parameters: PsiDbInferredFormalParameterList) {
+    val found = parameters.inferredFormalParameterList.size
+    if (found == 0) {
+      return
+    }
+
+    val lambdaExpression = parameters.parent.parent ?: return
+    // The lambdaExpression should reference a functional class from [LambdaExpressionReferenceProvider]
+    val functionalClass = lambdaExpression.references.filterIsInstance<PsiClassReference>().firstOrNull()?.resolve() as? PsiClass ?: return
+    val listenerMethod = LambdaUtil.getFunctionalInterfaceMethod(functionalClass) ?: return
+    val expected = listenerMethod.parameterList.parameters.size
+    if (found != expected) {
+      annotateError(parameters, ARGUMENT_COUNT_MISMATCH, expected, found)
     }
   }
 
@@ -201,5 +219,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     const val DUPLICATE_CALLBACK_ARGUMENT = "Callback parameter '%s' is not unique"
 
     const val SETTER_NOT_FOUND = "Cannot find a setter for <%s %s> that accepts parameter type '%s'"
+
+    const val ARGUMENT_COUNT_MISMATCH = "Unexpected parameter count. Expected %d, found %d."
   }
 }
