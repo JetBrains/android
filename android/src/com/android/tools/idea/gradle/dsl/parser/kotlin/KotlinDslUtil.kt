@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
+import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -39,6 +40,7 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtLambdaArgument
@@ -61,6 +63,17 @@ internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$
 
 internal fun KtCallExpression.isBlockElement() : Boolean {
   return lambdaArguments.size == 1 && (valueArgumentList == null || (valueArgumentList as KtValueArgumentList).arguments.size < 2)
+}
+
+/**
+ * Check if the caller psiElement is one of the parents for the given psiElement.
+ */
+internal fun PsiElement?.isParentOf(psiElement: PsiElement) : Boolean {
+  var psiElement = psiElement
+  while (psiElement != this) {
+    psiElement = psiElement?.parent ?: return false
+  }
+  return true
 }
 
 internal fun KtCallExpression.name() : String? {
@@ -135,7 +148,7 @@ internal fun createLiteral(context : GradleDslElement, value : Any) : PsiElement
         valueText = StringUtil.escapeStringCharacters(unquoted).addQuotes(true)
       }
       else {
-        valueText = StringUtil.escapeStringCharacters(value).addQuotes(false)
+        valueText = StringUtil.escapeStringCharacters(value).addQuotes(true)
       }
       return KtPsiFactory(context.dslFile.project).createExpression(valueText)
     }
@@ -252,7 +265,7 @@ internal fun maybeDeleteIfEmpty(psiElement: PsiElement, dslElement: GradleDslEle
 
 internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: GradleDslElement) {
 
-  var parent = psiElement?.parent ?: return
+  var psiParent = psiElement?.parent ?: return
   val dslParent = getNextValidParent(containingDslElement)
 
   if (!psiElement.isValid()) {
@@ -272,7 +285,7 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
         // Check if the block is empty, then delete it.
         // We should not delete a block if it has KtScript as parent because a script should always have a block even if empty.
         if ((dslParent == null || dslParent.isInsignificantIfEmpty) && psiElement.isNullExpressionOrEmptyBlock() &&
-            parent !is KtScript) {
+            psiParent !is KtScript) {
           psiElement.delete()
         }
       }
@@ -291,17 +304,21 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
             (dslParent == null || dslParent.isInsignificantIfEmpty)) {
           psiElement.delete()
           // If the parent is a KtLambdaExpression, delete it because KtLambdaExpression.getFunctionLiteral() cannot be null.
-          if (parent is KtLambdaExpression) {
-            val newParent = parent.parent
-            parent.delete()
-            parent = newParent
+          if (psiParent is KtLambdaExpression) {
+            val newParent = psiParent.parent
+            psiParent.delete()
+            psiParent = newParent
           }
         }
       }
       is KtCallExpression -> {  // This includes lists and maps as well.
         val argumentsList = psiElement.valueArgumentList
         val blockArguments = psiElement.lambdaArguments
-        if ((argumentsList == null || argumentsList.arguments.isEmpty()) && blockArguments.isEmpty()) {
+        // Handle cases where the element is a block with callExpression as name (ex: getByName("debug")) => arguments are never empty
+        // but if the block {} expression is empty, then we should delete he psiElement.
+        if ((argumentsList == null || argumentsList.arguments.isEmpty()) && blockArguments.isEmpty() ||
+            (argumentsList?.arguments?.size == 1 && dslParent != null && containingDslElement.isBlockElement
+             && containingDslElement is AbstractFlavorTypeDslElement && containingDslElement.methodName == psiElement.name())) {
           psiElement.delete()
         }
       }
@@ -313,10 +330,10 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
       }
       is KtValueArgument -> {
         if (psiElement.getArgumentExpression() == null) {
-          (parent as KtValueArgumentList).removeArgument(psiElement)
+          (psiParent as KtValueArgumentList).removeArgument(psiElement)
           // Delete any space that might remain after the argument deletion.
-          if (parent.firstChild.node.elementType == LPAR && parent.firstChild.nextSibling.node.elementType == WHITE_SPACE) {
-            parent.firstChild.nextSibling.delete()
+          if (psiParent.firstChild.node.elementType == LPAR && psiParent.firstChild.nextSibling.node.elementType == WHITE_SPACE) {
+            psiParent.firstChild.nextSibling.delete()
           }
         }
       }
@@ -324,10 +341,11 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
     }
   }
 
-  if (!psiElement.isValid && dslParent != null && dslParent.isInsignificantIfEmpty) {
-    // If we are deleting the dslElement parent itself ((psiElement == dslParent.psiElement)), move to dslparent as its the new element
+  // If psiParent is a child of the parentDsl psiElement, then we should check if psiParent is empty and should be deleted.
+  if (!psiElement.isValid && dslParent != null && (dslParent.isInsignificantIfEmpty || dslParent.psiElement.isParentOf(psiParent))) {
+    // If we are deleting the dslElement parent itself ((psiElement == dslParent.psiElement)), move to dslParent as it's the new element
     // to be deleted.
-    maybeDeleteIfEmpty(parent, if (psiElement == dslParent.psiElement) dslParent else containingDslElement)
+    maybeDeleteIfEmpty(psiParent, if (psiElement == dslParent.psiElement) dslParent else containingDslElement)
   }
 }
 
@@ -358,8 +376,10 @@ internal fun createMapElement(expression : GradleDslSettableExpression) : PsiEle
   val expressionValue = expression.unsavedValue ?: return null
 
   val psiFactory = KtPsiFactory(parentPsiElement.project)
+  val expressionRightValue =
+    if (expressionValue is KtConstantExpression) expressionValue.text else StringUtil.unquoteString(expressionValue.text).addQuotes(true)
   val argumentStringExpression =
-    "${expression.name.addQuotes(true)} to ${StringUtil.unquoteString(expressionValue.text).addQuotes(true)}"
+    "${expression.name.addQuotes(true)} to $expressionRightValue"
   val mapArgument = psiFactory.createExpression(argumentStringExpression)
 
   val argumentValue = psiFactory.createArgument(mapArgument)

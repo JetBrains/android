@@ -106,6 +106,11 @@ public class PropertyUtil {
     }
     else if (holder instanceof GradleDslMethodCall) {
       GradleDslMethodCall methodCall = (GradleDslMethodCall)holder;
+      if (element == methodCall.getArgumentsElement()) {
+        // In such case we want to delete all the arguments of the methodCall, and since these cannot be null, this implies the methodCall
+        // should be deleted as well.
+        removeElement(methodCall);
+      }
       methodCall.remove(element);
     }
     else {
