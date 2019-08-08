@@ -458,6 +458,10 @@ public final class StudioFlags {
   public static final Flag<Boolean>  DYNAMIC_LAYOUT_INSPECTOR_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector", "Enable dynamic layout inspector",
     "Turns on the dynamic layout inspector.", false);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.editor", "Enable dynamic layout editor",
+    "If enabled, users can edit layout properties with live updates on a device while the dynamic layout inspector is running.",
+    false);
   //endregion
 
   //region Refactorings
