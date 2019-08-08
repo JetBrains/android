@@ -19,7 +19,6 @@ import com.android.repository.io.FileOp
 import com.android.repository.testframework.MockFileOp
 import com.android.tools.adtui.validation.Validator.Severity
 import com.android.tools.idea.ui.validation.validators.PathValidator.Builder
-import com.android.tools.idea.ui.validation.validators.PathValidator.Rule
 import com.google.common.base.Strings
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
@@ -37,12 +36,12 @@ class PathValidatorTest {
 
   @Test
   fun testIsEmptyRuleMatches() {
-    assertRuleFails(fileOp, PathValidator.IS_EMPTY, File(""))
+    assertRuleFails(fileOp, IS_EMPTY, File(""))
   }
 
   @Test
   fun testIsEmptyRuleOk() {
-    assertRulePasses(fileOp, PathValidator.IS_EMPTY, File("/not/empty.txt"))
+    assertRulePasses(fileOp, IS_EMPTY, File("/not/empty.txt"))
   }
 
   @Test
@@ -52,61 +51,61 @@ class PathValidatorTest {
     // where backslashes remain "as is", despite being not supported as path separators
     Assume.assumeFalse(SystemInfo.isWindows)
     val file = File("at\\least/one\\of/these\\slashes/are\\wrong")
-    assertRuleFails(fileOp, PathValidator.INVALID_SLASHES, file)
+    assertRuleFails(fileOp, INVALID_SLASHES, file)
   }
 
   @Test
   fun testInvalidSlashesRuleOk() {
     val slashedPath = String.format("%1\$ca%1\$cb%1\$cc", File.separatorChar) // /a/b/c or \a\b\c
-    assertRulePasses(fileOp, PathValidator.INVALID_SLASHES, File(slashedPath))
+    assertRulePasses(fileOp, INVALID_SLASHES, File(slashedPath))
   }
 
   @Test
   fun illegalCharacterMatches() {
     val file = File("\"bad file name\"!!!.txt")
-    assertRuleFails(fileOp, PathValidator.ILLEGAL_CHARACTER, file)
+    assertRuleFails(fileOp, ILLEGAL_CHARACTER, file)
   }
 
   @Test
   fun illegalCharacterOk() {
-    assertRulePasses(fileOp, PathValidator.ILLEGAL_CHARACTER, File("/no/illegal/chars"))
+    assertRulePasses(fileOp, ILLEGAL_CHARACTER, File("/no/illegal/chars"))
   }
 
   @Test
   fun illegalFilenameMatches() {
     val file = File("/aux/is/reserved/")
     // "aux" is responsible for the reserved keyword failure
-    assertRuleFails(fileOp, PathValidator.ILLEGAL_WINDOWS_FILENAME, file, File("aux"))
+    assertRuleFails(fileOp, ILLEGAL_WINDOWS_FILENAME, file, File("aux"))
   }
 
   @Test
   fun illegalFilenameOk() {
     val file = File("/no/reserved/keywords/")
-    assertRulePasses(fileOp, PathValidator.ILLEGAL_WINDOWS_FILENAME, file)
+    assertRulePasses(fileOp, ILLEGAL_WINDOWS_FILENAME, file)
   }
 
   @Test
   fun whitespaceMatches() {
     val file = File("/no whitespace/is allowed/")
-    assertRuleFails(fileOp, PathValidator.WHITESPACE, file)
+    assertRuleFails(fileOp, WHITESPACE, file)
   }
 
   @Test
   fun whitespaceOk() {
     val file = File("/no/whitespace/is/allowed/")
-    assertRulePasses(fileOp, PathValidator.WHITESPACE, file)
+    assertRulePasses(fileOp, WHITESPACE, file)
   }
 
   @Test
   fun nonAsciiCharsMatches() {
     val file = File("/users/\uD83D\uDCA9/")
-    assertRuleFails(fileOp, PathValidator.NON_ASCII_CHARS, file)
+    assertRuleFails(fileOp, NON_ASCII_CHARS, file)
   }
 
   @Test
   fun nonAsciiCharsOk() {
     val file = File("/users/janedoe/")
-    assertRulePasses(fileOp, PathValidator.NON_ASCII_CHARS, file)
+    assertRulePasses(fileOp, NON_ASCII_CHARS, file)
   }
 
   @Test
@@ -119,65 +118,65 @@ class PathValidatorTest {
     // Because /a/b/ is readonly, it's /a/b/c that finally triggers the failure.
     // This causes the error message to complain about its parent, "a/b/"
     val failureCause = File("/a/b/c")
-    assertRuleFails(fileOp, PathValidator.PARENT_DIRECTORY_NOT_WRITABLE, file, failureCause)
+    assertRuleFails(fileOp, PARENT_DIRECTORY_NOT_WRITABLE, file, failureCause)
   }
 
   @Test
   fun parentDirectoryNotWritableOk() {
     val file = File("/a/b/c/d/e.txt")
-    assertRulePasses(fileOp, PathValidator.PARENT_DIRECTORY_NOT_WRITABLE, file)
+    assertRulePasses(fileOp, PARENT_DIRECTORY_NOT_WRITABLE, file)
   }
 
   @Test
   fun windowsPathTooLongMatches() {
     Assume.assumeTrue(SystemInfo.isWindows)
     val file = File("c:\\" + Strings.repeat("\\abcdefghi", 24))
-    assertRuleFails(fileOp, PathValidator.WINDOWS_PATH_TOO_LONG, file)
+    assertRuleFails(fileOp, WINDOWS_PATH_TOO_LONG, file)
   }
 
   @Test
   fun pathTooLongOk() {
     Assume.assumeTrue(SystemInfo.isWindows)
     val file = File("c:\\" + Strings.repeat("\\abcdefghi", 23))
-    assertRulePasses(fileOp, PathValidator.WINDOWS_PATH_TOO_LONG, file)
+    assertRulePasses(fileOp, WINDOWS_PATH_TOO_LONG, file)
   }
 
   @Test
   fun locationIsAFileMatches() {
     val file = File("/a/b/c/d/e.txt")
     fileOp!!.createNewFile(file)
-    assertRuleFails(fileOp, PathValidator.LOCATION_IS_A_FILE, file)
+    assertRuleFails(fileOp, LOCATION_IS_A_FILE, file)
   }
 
   @Test
   fun locationIsAFileOk() {
     fileOp!!.createNewFile(File("/a/b/c/d/e.txt"))
     val file = File("/a/b/c/d/e2.txt")
-    assertRulePasses(fileOp, PathValidator.LOCATION_IS_A_FILE, file)
+    assertRulePasses(fileOp, LOCATION_IS_A_FILE, file)
   }
 
   @Test
   fun locationIsRootMatches() {
-    assertRuleFails(fileOp, PathValidator.LOCATION_IS_ROOT, File("/"))
+    assertRuleFails(fileOp, LOCATION_IS_ROOT, File("/"))
   }
 
   @Test
   fun locationIsRootOk() {
-    assertRulePasses(fileOp, PathValidator.LOCATION_IS_ROOT, File("/not/root"))
+    assertRulePasses(fileOp, LOCATION_IS_ROOT, File("/not/root"))
   }
 
   @Test
   fun parentIsNotADirectoryMatches() {
     fileOp!!.createNewFile(File("/a/b/c/d/e.txt"))
     val file = File("/a/b/c/d/e.txt/f.txt")
-    assertRuleFails(fileOp, PathValidator.PARENT_IS_NOT_A_DIRECTORY, file)
+    assertRuleFails(fileOp, PARENT_IS_NOT_A_DIRECTORY, file)
   }
 
   @Test
   fun parentIsNotADirectoryOk() {
     fileOp!!.recordExistingFolder(File("/a/b/c/d/e/"))
     val file = File("/a/b/c/d/e/f.txt")
-    assertRulePasses(fileOp, PathValidator.PARENT_IS_NOT_A_DIRECTORY, file)
+    assertRulePasses(fileOp, PARENT_IS_NOT_A_DIRECTORY, file)
   }
 
   @Test
@@ -185,34 +184,34 @@ class PathValidatorTest {
     val file = File("/a/b/c/d/e/")
     fileOp!!.recordExistingFolder(file)
     fileOp!!.setReadOnly(file)
-    assertRuleFails(fileOp, PathValidator.PATH_NOT_WRITABLE, file)
+    assertRuleFails(fileOp, PATH_NOT_WRITABLE, file)
   }
 
   @Test
   fun pathNotWritableOk() {
     val file = File("/a/b/c/d/e/")
-    assertRulePasses(fileOp, PathValidator.PATH_NOT_WRITABLE, file)
+    assertRulePasses(fileOp, PATH_NOT_WRITABLE, file)
   }
 
   @Test
   fun nonEmptyDirectoryMatches() {
     fileOp!!.createNewFile(File("/a/b/c/d/e.txt"))
     val file = File("/a/b/c/d/")
-    assertRuleFails(fileOp, PathValidator.NON_EMPTY_DIRECTORY, file)
+    assertRuleFails(fileOp, NON_EMPTY_DIRECTORY, file)
   }
 
   @Test
   fun nonEmptyDirectoryOk() {
     val file = File("/a/b/c/d/")
     fileOp!!.recordExistingFolder(file)
-    assertRulePasses(fileOp, PathValidator.NON_EMPTY_DIRECTORY, file)
+    assertRulePasses(fileOp, NON_EMPTY_DIRECTORY, file)
   }
 
   @Test
   fun errorsShownBeforeWarnings() {
     val validator = Builder()
-      .withRule(PathValidator.WHITESPACE, Severity.WARNING)
-      .withRule(PathValidator.ILLEGAL_CHARACTER, Severity.ERROR)
+      .withRule(WHITESPACE, Severity.WARNING)
+      .withRule(ILLEGAL_CHARACTER, Severity.ERROR)
       .build("test path")
 
     // This path validator has its warning registered before its error, but we should still show the error first
@@ -222,7 +221,7 @@ class PathValidatorTest {
 
   @Test(expected = java.lang.IllegalArgumentException::class)
   fun ruleMustHaveValidSeverity() {
-    Builder().withRule(PathValidator.ILLEGAL_CHARACTER, Severity.OK)
+    Builder().withRule(ILLEGAL_CHARACTER, Severity.OK)
   }
 }
 
