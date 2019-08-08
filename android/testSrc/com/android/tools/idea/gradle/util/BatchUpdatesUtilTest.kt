@@ -16,65 +16,39 @@
 package com.android.tools.idea.gradle.util
 
 import com.intellij.ide.file.BatchFileChangeListener
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.impl.stores.BatchUpdateListener
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
-import com.intellij.util.messages.MessageBus
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 
 /**
  * Tests for [BatchUpdatesUtil]
  */
 class BatchUpdatesUtilTest : PlatformTestCase() {
+
+  lateinit var mockUpdatePublisher: BatchUpdateListener
+  lateinit var mockFileChangeListener: BatchFileChangeListener
+
+  override fun setUp() {
+    super.setUp()
+    mockUpdatePublisher = mock(BatchUpdateListener::class.java)
+    mockFileChangeListener = mock(BatchFileChangeListener::class.java)
+    val connection = project.messageBus.connect()
+    connection.subscribe(BatchUpdateListener.TOPIC, mockUpdatePublisher)
+    connection.subscribe(BatchFileChangeListener.TOPIC, mockFileChangeListener)
+  }
+
   fun testStartBatchUpdate() {
-    val spyProject = spy(project)
-    val mockMessageBus = mock(MessageBus::class.java)
-    val mockUpdatePublisher = mock(BatchUpdateListener::class.java)
-    val mockFileChangeListener = mock(BatchFileChangeListener::class.java)
-    val spyApplication = spy(ApplicationManager.getApplication())
-    val disposable = Disposer.newDisposable()
-
-    `when`(mockMessageBus.syncPublisher(BatchUpdateListener.TOPIC)).thenReturn(mockUpdatePublisher)
-    `when`(mockMessageBus.syncPublisher(BatchFileChangeListener.TOPIC)).thenReturn(mockFileChangeListener)
-    `when`(spyProject.messageBus).thenReturn(mockMessageBus)
-
-    `when`(spyApplication.messageBus).thenReturn(mockMessageBus)
-    ApplicationManager.setApplication(spyApplication, disposable)
-
-    BatchUpdatesUtil.startBatchUpdate(spyProject)
+    BatchUpdatesUtil.startBatchUpdate(project)
 
     verify(mockUpdatePublisher).onBatchUpdateStarted()
-    verify(mockFileChangeListener).batchChangeStarted(eq(spyProject), any())
-
-    Disposer.dispose(disposable)
+    verify(mockFileChangeListener).batchChangeStarted(project, "batch update")
   }
 
   fun testFinishBatchUpdate() {
-    val spyProject = spy(project)
-    val mockMessageBus = mock(MessageBus::class.java)
-    val mockUpdatePublisher = mock(BatchUpdateListener::class.java)
-    val mockFileChangeListener = mock(BatchFileChangeListener::class.java)
-    val spyApplication = spy(ApplicationManager.getApplication())
-    val disposable = Disposer.newDisposable()
-
-    `when`(mockMessageBus.syncPublisher(BatchUpdateListener.TOPIC)).thenReturn(mockUpdatePublisher)
-    `when`(mockMessageBus.syncPublisher(BatchFileChangeListener.TOPIC)).thenReturn(mockFileChangeListener)
-    `when`(spyProject.messageBus).thenReturn(mockMessageBus)
-
-    `when`(spyApplication.messageBus).thenReturn(mockMessageBus)
-    ApplicationManager.setApplication(spyApplication, disposable)
-
-    BatchUpdatesUtil.finishBatchUpdate(spyProject)
+    BatchUpdatesUtil.finishBatchUpdate(project)
 
     verify(mockUpdatePublisher).onBatchUpdateFinished()
-    verify(mockFileChangeListener).batchChangeCompleted(eq(spyProject))
-
-    Disposer.dispose(disposable)
+    verify(mockFileChangeListener).batchChangeCompleted(project)
   }
 }
