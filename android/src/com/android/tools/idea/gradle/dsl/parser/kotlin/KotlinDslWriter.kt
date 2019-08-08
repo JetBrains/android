@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -119,10 +120,13 @@ class KotlinDslWriter : GradleDslWriter {
         // creating the list and use the KtValueArgumentList of the parent.
         return (parentDsl.psiElement as? KtCallExpression)?.valueArgumentList  // TODO add more tests to verify the code consistency.
       }
-      else {
+      else if (element.name.isEmpty()){
         // This is the case where we are handling a list element
         statementText += "listOf()"
         isRealList = true
+      }
+      else {
+        statementText += "()"
       }
     }
     else if (element is GradleDslExpressionMap) {
@@ -174,7 +178,7 @@ class KotlinDslWriter : GradleDslWriter {
         }
       }
       is KtBlockExpression -> {
-        addedElement = parentPsiElement.addBefore(statement, anchor)
+        addedElement = parentPsiElement.addAfter(statement, anchor)
         if (anchorAfter != null) {
           parentPsiElement.addBefore(lineTerminator, addedElement)
         }
@@ -235,15 +239,23 @@ class KotlinDslWriter : GradleDslWriter {
     val newLiteral = literal.unsavedValue ?: return
     val psiExpression = literal.expression
     if (psiExpression != null) {
-      val replace = psiElement.replace(newLiteral)
+      val replace = psiExpression.replace(newLiteral)
       // Make sure we replaced with the right psi element for the GradleDslLiteral.
       if (replace is KtStringTemplateExpression || replace is KtConstantExpression
           || replace is KtNameReferenceExpression || replace is KtDotQualifiedExpression) {
         literal.setExpression(replace)
       }
     }
+    else if (psiElement is KtCallExpression) {
+      // This element has just been created and will be "propertyName()".
+      val valueArgument = KtPsiFactory(newLiteral.project).createArgument(newLiteral as? KtExpression)
+      val valueArgumentList = psiElement.valueArgumentList
+      val added =
+        valueArgumentList?.addArgumentAfter(valueArgument, valueArgumentList?.arguments?.lastOrNull())?.getArgumentExpression() ?: return
+      literal.setExpression(added)
+    }
     else {
-      // This element has just been created and will either be "propertyName =" or "propertyName()".
+      // This element has just been created and will be "propertyName = ".
       val added = psiElement.addAfter(newLiteral, psiElement.lastChild)
       literal.setExpression(added)
     }
@@ -387,7 +399,12 @@ class KotlinDslWriter : GradleDslWriter {
   override fun createDslExpressionMap(expressionMap: GradleDslExpressionMap): PsiElement? {
     if (expressionMap.psiElement != null) return expressionMap.psiElement
 
-    expressionMap.psiElement = createDslElement(expressionMap) ?: return null
+    val psiElement = createDslElement(expressionMap) ?: return null
+    if (psiElement is KtBinaryExpression) {
+      val emptyMapExpression = KtPsiFactory(psiElement.project).createExpression("mapOf()")
+      val mapElement = psiElement.addAfter(emptyMapExpression, psiElement.lastChild)
+      expressionMap.psiElement = mapElement
+    }
     return expressionMap.psiElement
   }
 

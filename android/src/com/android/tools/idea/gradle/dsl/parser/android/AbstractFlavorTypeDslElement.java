@@ -43,7 +43,7 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
   }
 
   @Nullable
-  public String getMethodName(String methodName) {
+  public String getMethodName() {
     return  methodName;
   }
 
