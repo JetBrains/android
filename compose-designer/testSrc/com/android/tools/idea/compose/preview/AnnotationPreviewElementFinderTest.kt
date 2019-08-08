@@ -102,8 +102,8 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
       }
     })
 
-    assertTrue(AnnotationPreviewElementFinder.elementBelongsToPreviewElement(previewAnnotation!!))
-    assertFalse(AnnotationPreviewElementFinder.elementBelongsToPreviewElement(previewMethod!!))
+    assertTrue(AnnotationPreviewElementFinder.elementBelongsToPreviewElement(previewAnnotation?.sourcePsi!!))
+    assertFalse(AnnotationPreviewElementFinder.elementBelongsToPreviewElement(previewMethod?.sourcePsi!!))
   }
 
   fun testFindPreviewPackage() {

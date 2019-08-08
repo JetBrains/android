@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.kotlin.idea.intentions.isMethodCall
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
@@ -136,17 +142,18 @@ object MethodPreviewElementFinder : PreviewElementFinder {
     return previewElements
   }
 
-  override fun elementBelongsToPreviewElement(uElement: UElement): Boolean {
+  override fun elementBelongsToPreviewElement(element: PsiElement): Boolean {
+    var lambdaCrossed = false
     // Find if uElement belongs to the Preview call. It can be any of the parameters but not part of the lambda call.
     // If we find a call expression, keep looking forward to see if any is the Preview method.
-    var callExpression: UCallExpression? = uElement.getParentOfType<UCallExpression>(UCallExpression::class.java, true,
-                                                                                     ULambdaExpression::class.java)
-    while (callExpression != null) {
-      if (getPreviewMethodCall(callExpression) != null) {
+    var ktCallExpression: KtCallExpression? = PsiTreeUtil.getParentOfType(element, KtCallExpression::class.java, true, KtLambdaExpression::class.java)
+
+    while (ktCallExpression != null) {
+      if (ktCallExpression.isMethodCall(PREVIEW_ANNOTATION_FQN)) {
         return true
       }
 
-      callExpression = callExpression.getParentOfType<UCallExpression>(UCallExpression::class.java, true, ULambdaExpression::class.java)
+      ktCallExpression = PsiTreeUtil.getParentOfType(ktCallExpression, KtCallExpression::class.java, true, KtLambdaExpression::class.java)
     }
 
     return false
