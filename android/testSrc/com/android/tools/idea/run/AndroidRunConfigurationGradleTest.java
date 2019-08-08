@@ -22,7 +22,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ExtensionTestUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -48,7 +48,9 @@ public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
     myRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
 
     // We override the default extension point to prevent the "Gradle Update" UI to show during the test
-    PlatformTestUtil.maskExtensions(PluginVersionUpgradeStep.EXTENSION_POINT_NAME, Collections.singletonList(new MyPluginVersionUpgradeStep()), getTestRootDisposable());
+    ExtensionTestUtil.maskExtensions(PluginVersionUpgradeStep.EXTENSION_POINT_NAME,
+                                     Collections.<PluginVersionUpgradeStep>singletonList(new MyPluginVersionUpgradeStep()),
+                                     getTestRootDisposable());
   }
 
   @Override
