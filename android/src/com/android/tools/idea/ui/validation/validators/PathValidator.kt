@@ -57,23 +57,14 @@ class PathValidator
    *
    * @return [Result.OK] or the first error or warning it encounters.
    */
-  override fun validate(file: File): Result {
+  override fun validate(file: File): Result =
     try {
-      var result = validate(file, Severity.ERROR)
-      if (result !== Result.OK) {
-        return result
-      }
-      result = validate(file, Severity.WARNING)
-      if (result !== Result.OK) {
-        return result
-      }
+      validate(file, Severity.ERROR).takeIf { it != Result.OK } ?: validate(file, Severity.WARNING).takeIf { it != Result.OK } ?: Result.OK
     }
     catch (ex: Exception) {
       logger.warn(ex)
-      return Result(Severity.ERROR, "Invalid file, see Help -> Show Log for more details: $file")
+      Result(Severity.ERROR, "Invalid file, see Help -> Show Log for more details: $file")
     }
-    return Result.OK
-  }
 
   /**
    * Run only the validations whose level match the passed in [Severity].
@@ -81,6 +72,7 @@ class PathValidator
   private fun validate(projectFile: File, severity: Severity): Result {
     assert(severity != Severity.OK)
     val rules = if (severity == Severity.ERROR) errors else warnings
+
     for (rule in rules) {
       val matchingFile = rule.getMatchingFile(fileOp, projectFile)
       if (matchingFile != null) {
@@ -171,7 +163,7 @@ class PathValidator
    * A rule which is run on the target file as is.
    */
   private abstract class SimpleRule : Rule {
-    override fun getMatchingFile(fileOp: FileOp, file: File): File? = if (matches(fileOp, file)) file else null
+    override fun getMatchingFile(fileOp: FileOp, file: File): File? = file.takeIf { matches(fileOp, file) }
 
     protected abstract fun matches(fileOp: FileOp, file: File): Boolean
   }
@@ -180,16 +172,8 @@ class PathValidator
    * A rule which is run on the target file and each of its ancestors, recursively.
    */
   private abstract class RecursiveRule : Rule {
-    override fun getMatchingFile(fileOp: FileOp, file: File): File? {
-      var currFile: File? = file
-      while (currFile != null) {
-        if (matches(fileOp, currFile)) {
-          return currFile
-        }
-        currFile = currFile.parentFile
-      }
-      return null
-    }
+    override fun getMatchingFile(fileOp: FileOp, file: File): File? =
+      generateSequence(file) { it.parentFile }.firstOrNull { matches(fileOp, it) }
 
     protected abstract fun matches(fileOp: FileOp, file: File): Boolean
   }
@@ -204,11 +188,10 @@ class PathValidator
       public override fun matches(fileOp: FileOp, file: File): Boolean =
         File.separatorChar == '/' && file.path.contains("\\") || File.separatorChar == '\\' && file.path.contains("/")
 
-      override fun getMessage(file: File, fieldName: String): String =
-        if (File.separatorChar == '\\')
-          "Your $fieldName contains incorrect slashes ('/')."
-        else
-          "Your $fieldName contains incorrect slashes ('\\')."
+      override fun getMessage(file: File, fieldName: String): String {
+        val incorrectSlash = if (File.separatorChar == '\\') '/' else '\\'
+        return "Your $fieldName contains incorrect slashes ('$incorrectSlash')."
+      }
     }
     val WHITESPACE: Rule = object : RecursiveRule() {
       public override fun matches(fileOp: FileOp, file: File): Boolean = CharMatcher.whitespace().matchesAnyOf(file.name)
@@ -260,10 +243,8 @@ class PathValidator
         return installLocation != null && FileUtil.isAncestor(File(installLocation), file, false)
       }
 
-      override fun getMessage(file: File, fieldName: String): String {
-        val applicationName = ApplicationNamesInfo.getInstance().productName
-        return "The $fieldName is inside $applicationName's install location."
-      }
+      override fun getMessage(file: File, fieldName: String): String =
+        "The $fieldName is inside ${ApplicationNamesInfo.getInstance().productName}'s install location."
     }
     val NON_EMPTY_DIRECTORY: Rule = object : SimpleRule() {
       override fun matches(fileOp: FileOp, file: File): Boolean = fileOp.listFiles(file).isNotEmpty()
