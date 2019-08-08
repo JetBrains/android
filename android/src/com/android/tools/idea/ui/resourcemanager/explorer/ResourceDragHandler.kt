@@ -87,7 +87,7 @@ internal class ResourceDragHandlerImpl (private val importDelegate: ImportResour
         return importDelegate.doImport(t)
       }
 
-      override fun getSourceActions(c: JComponent?) = TransferHandler.LINK
+      override fun getSourceActions(c: JComponent?) = COPY_OR_MOVE
 
       override fun getDragImage() = createDragPreview(assetList, assetList.selectedValue, assetList.selectedIndex)
 
