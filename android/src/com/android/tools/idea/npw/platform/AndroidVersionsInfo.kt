@@ -109,7 +109,7 @@ open class AndroidVersionsInfo { // open for Mockito
   fun getKnownTargetVersions(formFactor: FormFactor, minSdkLevel: Int): MutableList<VersionItem> {
     val minSdkLevel = minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)
     return knownTargetVersions.filter {
-      isFormFactorAvailable(formFactor, minSdkLevel, it.minApiLevel) || it.androidTarget?.version?.isPreview == true
+      formFactor.isAvailable(minSdkLevel, it.minApiLevel) || it.androidTarget?.version?.isPreview == true
     }.toMutableList()
   }
 
@@ -273,24 +273,23 @@ open class AndroidVersionsInfo { // open for Mockito
 private val REPO_LOG: ProgressIndicator = StudioLoggerProgressIndicator(AndroidVersionsInfo::class.java)
 private val NO_MATCH: IdDisplay = IdDisplay.create("no_match", "No Match")
 
-val sdkManagerLocalPath: File?
-  get() = IdeSdks.getInstance().androidSdkPath
+val sdkManagerLocalPath: File? get() = IdeSdks.getInstance().androidSdkPath
 
 private fun getLabel(version: AndroidVersion, target: IAndroidTarget?): String {
   val featureLevel = version.featureLevel
-  return if (featureLevel <= HIGHEST_KNOWN_API) {
-    when {
+
+  if (featureLevel > HIGHEST_KNOWN_API) {
+    return "API $featureLevel: Android ${version.apiString}"  + " (${version.codename} preview)".takeIf { version.isPreview }.orEmpty()
+  }
+
+  return when {
       version.isPreview ->
-        "API %s: Android %s ( preview)".format(SdkVersionInfo.getCodeName(featureLevel), SdkVersionInfo.getVersionString(featureLevel))
+        "API %s: Android %s (%s preview))".format(
+          featureLevel,
+          SdkVersionInfo.getVersionStringSanitized(featureLevel),
+          SdkVersionInfo.getCodeName(featureLevel))
       target == null || target.isPlatform -> SdkVersionInfo.getAndroidName(featureLevel)
       else -> AndroidTargetHash.getTargetHashString(target)
-    }
-  }
-  else {
-    if (version.isPreview)
-      "API $featureLevel: Android (${version.codename})"
-    else
-      "API $featureLevel: Android"
   }
 }
 
@@ -324,11 +323,10 @@ private fun doFilter(formFactor: FormFactor, minSdkLevel: Int, tag: IdDisplay?, 
 
 private fun RepoPackage.getFeatureLevel(): Int = getAndroidVersion(this).featureLevel
 
-private fun isFormFactorAvailable(formFactor: FormFactor, minSdkLevel: Int, targetSdkLevel: Int): Boolean =
-  doFilter(formFactor, minSdkLevel, SystemImage.DEFAULT_TAG, targetSdkLevel)
+private fun FormFactor.isAvailable(minSdkLevel: Int, targetSdkLevel: Int): Boolean =
+  doFilter(this, minSdkLevel, SystemImage.DEFAULT_TAG, targetSdkLevel)
 
-private fun getAndroidVersion(repoPackage: RepoPackage): AndroidVersion =
-  (repoPackage.typeDetails as? ApiDetailsType)?.androidVersion ?: throw RuntimeException("Could not determine version")
+private fun getAndroidVersion(repoPackage: RepoPackage): AndroidVersion = (repoPackage.typeDetails as ApiDetailsType).androidVersion
 
 /**
  * Return the tag for the specified repository package. We are only interested in 2 package types.
