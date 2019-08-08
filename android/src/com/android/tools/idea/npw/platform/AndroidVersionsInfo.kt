@@ -264,6 +264,8 @@ open class AndroidVersionsInfo { // open for Mockito
     override fun equals(other: Any?): Boolean = other is VersionItem && other.label == label
 
     override fun hashCode(): Int = label.hashCode()
+
+    override fun toString(): String = label
   }
 }
 
