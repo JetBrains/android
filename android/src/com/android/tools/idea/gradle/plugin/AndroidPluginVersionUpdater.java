@@ -52,7 +52,6 @@ import static com.intellij.util.ThreeState.*;
 public class AndroidPluginVersionUpdater {
   @NotNull private final Project myProject;
   @NotNull private final GradleSyncState mySyncState;
-  @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final TextSearch myTextSearch;
 
   @NotNull
@@ -61,17 +60,15 @@ public class AndroidPluginVersionUpdater {
   }
 
   public AndroidPluginVersionUpdater(@NotNull Project project, @NotNull GradleSyncState syncState) {
-    this(project, syncState, GradleSyncInvoker.getInstance(), new TextSearch(project));
+    this(project, syncState, new TextSearch(project));
   }
 
   @VisibleForTesting
   AndroidPluginVersionUpdater(@NotNull Project project,
                               @NotNull GradleSyncState syncState,
-                              @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull TextSearch textSearch) {
     myProject = project;
     mySyncState = syncState;
-    mySyncInvoker = syncInvoker;
     myTextSearch = textSearch;
   }
 
@@ -140,8 +137,13 @@ public class AndroidPluginVersionUpdater {
       // TODO add a trigger when the plug-in version changed (right now let as something changed in the project)
       GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
       request.cleanProject = true;
-      mySyncInvoker.requestProjectSync(myProject, request);
+      getGradleSyncInvoker().requestProjectSync(myProject, request);
     }
+  }
+
+  @NotNull
+  protected GradleSyncInvoker getGradleSyncInvoker() {
+    return GradleSyncInvoker.getInstance();
   }
 
   private static void logUpdateError(@NotNull String msg, @NotNull Throwable error) {

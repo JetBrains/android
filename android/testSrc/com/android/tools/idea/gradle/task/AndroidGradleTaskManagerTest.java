@@ -31,7 +31,6 @@ import static org.mockito.Mockito.*;
  * @author Vladislav.Soroka
  */
 public class AndroidGradleTaskManagerTest {
-
   @Test
   public void executeTasks() {
     String projectPath = "projectPath";
@@ -58,15 +57,17 @@ public class AndroidGradleTaskManagerTest {
     GradleProjectInfo gradleProjectInfo = mock(GradleProjectInfo.class);
     when(taskId.findProject()).thenReturn(project);
     when(project.getPicoContainer()).thenReturn(picoContainer);
-    when(picoContainer.getComponentInstance(GradleProjectInfo.class.getName())).thenReturn(gradleProjectInfo);
     when(gradleProjectInfo.isDirectGradleBuildEnabled()).thenReturn(true);
     AndroidGradleBuildConfiguration androidGradleBuildConfiguration = new AndroidGradleBuildConfiguration();
     androidGradleBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
     when(picoContainer.getComponentInstance(AndroidGradleBuildConfiguration.class.getName())).thenReturn(androidGradleBuildConfiguration);
-    when(picoContainer.getComponentInstance(GradleBuildInvoker.class.getName())).thenReturn(gradleBuildInvoker);
     when(gradleBuildInvoker.getProject()).thenReturn(project);
     ModuleManager moduleManager = mock(ModuleManager.class);
+
     when(project.getComponent(ModuleManager.class)).thenReturn(moduleManager);
+    when(project.getService(GradleProjectInfo.class)).thenReturn(gradleProjectInfo);
+    when(project.getService(GradleBuildInvoker.class)).thenReturn(gradleBuildInvoker);
+
     Module module = mock(Module.class);
     when(moduleManager.getModules()).thenReturn(new Module[]{module});
     when(module.getPicoContainer()).thenReturn(picoContainer);

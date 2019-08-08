@@ -40,7 +40,13 @@ public class AndroidPluginVersionUpdaterTest extends JavaProjectTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myVersionUpdater = new AndroidPluginVersionUpdater(getProject(), mySyncState, mySyncInvoker, myTextSearch);
+    myVersionUpdater = new AndroidPluginVersionUpdater(getProject(), mySyncState, myTextSearch) {
+      @NotNull
+      @Override
+      protected GradleSyncInvoker getGradleSyncInvoker() {
+        return mySyncInvoker;
+      }
+    };
   }
 
   @Override

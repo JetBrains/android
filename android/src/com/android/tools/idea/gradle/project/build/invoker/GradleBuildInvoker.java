@@ -80,7 +80,6 @@ import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskT
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
 import static com.intellij.openapi.ui.Messages.*;
 
-
 /**
  * Invokes Gradle tasks directly. Results of tasks execution are displayed in both the "Messages" tool window and the new "Gradle Console"
  * tool window.
@@ -98,7 +97,7 @@ public class GradleBuildInvoker {
 
   @NotNull
   public static GradleBuildInvoker getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleBuildInvoker.class);
+    return project.getService(GradleBuildInvoker.class);
   }
 
   public GradleBuildInvoker(@NotNull Project project, @NotNull FileDocumentManager documentManager) {
