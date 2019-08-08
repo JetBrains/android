@@ -22,13 +22,14 @@ import com.android.tools.idea.ui.validation.validators.PathValidator.Builder
 import com.google.common.base.Strings
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Assume
 import org.junit.Before
 import org.junit.Test
 import java.io.File
 
 class PathValidatorTest {
-  private var fileOp: MockFileOp? = null
+  private lateinit var fileOp: MockFileOp
   @Before
   fun setUp() {
     fileOp = MockFileOp()
@@ -111,8 +112,8 @@ class PathValidatorTest {
   @Test
   fun parentDirectoryNotWritableMatches() {
     val parent = File("/a/b/")
-    fileOp!!.mkdirs(parent)
-    fileOp!!.setReadOnly(parent)
+    fileOp.mkdirs(parent)
+    fileOp.setReadOnly(parent)
     val file = File("/a/b/c/d/e.txt")
 
     // Because /a/b/ is readonly, it's /a/b/c that finally triggers the failure.
@@ -167,14 +168,14 @@ class PathValidatorTest {
 
   @Test
   fun parentIsNotADirectoryMatches() {
-    fileOp!!.createNewFile(File("/a/b/c/d/e.txt"))
+    fileOp.createNewFile(File("/a/b/c/d/e.txt"))
     val file = File("/a/b/c/d/e.txt/f.txt")
     assertRuleFails(fileOp, PARENT_IS_NOT_A_DIRECTORY, file)
   }
 
   @Test
   fun parentIsNotADirectoryOk() {
-    fileOp!!.recordExistingFolder(File("/a/b/c/d/e/"))
+    fileOp.recordExistingFolder(File("/a/b/c/d/e/"))
     val file = File("/a/b/c/d/e/f.txt")
     assertRulePasses(fileOp, PARENT_IS_NOT_A_DIRECTORY, file)
   }
@@ -182,8 +183,8 @@ class PathValidatorTest {
   @Test
   fun pathNotWritableMatches() {
     val file = File("/a/b/c/d/e/")
-    fileOp!!.recordExistingFolder(file)
-    fileOp!!.setReadOnly(file)
+    fileOp.recordExistingFolder(file)
+    fileOp.setReadOnly(file)
     assertRuleFails(fileOp, PATH_NOT_WRITABLE, file)
   }
 
@@ -195,7 +196,7 @@ class PathValidatorTest {
 
   @Test
   fun nonEmptyDirectoryMatches() {
-    fileOp!!.createNewFile(File("/a/b/c/d/e.txt"))
+    fileOp.createNewFile(File("/a/b/c/d/e.txt"))
     val file = File("/a/b/c/d/")
     assertRuleFails(fileOp, NON_EMPTY_DIRECTORY, file)
   }
@@ -219,25 +220,25 @@ class PathValidatorTest {
     assertThat(result.severity).isEqualTo(Severity.ERROR)
   }
 
-  @Test(expected = java.lang.IllegalArgumentException::class)
+  @Test
   fun ruleMustHaveValidSeverity() {
-    Builder().withRule(ILLEGAL_CHARACTER, Severity.OK)
+    assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) { Builder().withRule(ILLEGAL_CHARACTER, Severity.OK) }
   }
 }
 
-private fun assertRuleFails(fileOp: FileOp?, rule: Rule?, file: File?) {
+private fun assertRuleFails(fileOp: FileOp, rule: Rule, file: File) {
   assertRuleFails(fileOp, rule, file, file) // inputFile is itself the cause of failure
 }
 
-private fun assertRuleFails(fileOp: FileOp?, rule: Rule?, inputFile: File?, failureCause: File?) {
-  val validator = Builder().withRule(rule!!, Severity.ERROR).build("test path", fileOp!!)
-  val result = validator.validate(inputFile!!)
+private fun assertRuleFails(fileOp: FileOp, rule: Rule, inputFile: File, failureCause: File) {
+  val validator = Builder().withRule(rule, Severity.ERROR).build("test path", fileOp)
+  val result = validator.validate(inputFile)
   assertThat(result.severity).isEqualTo(Severity.ERROR)
-  assertThat(result.message).isEqualTo(rule.getMessage(failureCause!!, "test path"))
+  assertThat(result.message).isEqualTo(rule.getMessage(failureCause, "test path"))
 }
 
-private fun assertRulePasses(fileOp: FileOp?, rule: Rule?, file: File?) {
-  val validator = Builder().withRule(rule!!, Severity.ERROR).build("test path", fileOp!!)
-  val result = validator.validate(file!!)
+private fun assertRulePasses(fileOp: FileOp, rule: Rule, file: File) {
+  val validator = Builder().withRule(rule, Severity.ERROR).build("test path", fileOp)
+  val result = validator.validate(file)
   assertThat(result.severity).isEqualTo(Severity.OK)
 }
