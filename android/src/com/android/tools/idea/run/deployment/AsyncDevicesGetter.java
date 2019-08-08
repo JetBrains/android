@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,8 +67,8 @@ public class AsyncDevicesGetter {
     myProject = project;
     myMap = map;
 
-    myVirtualDevicesWorker = new Worker<>(() -> new VirtualDevicesWorkerDelegate(myChecker));
-    myConnectedDevicesWorker = new Worker<>(() -> new ConnectedDevicesWorkerDelegate(project, myChecker));
+    myVirtualDevicesWorker = new Worker<>(Collections.emptyList());
+    myConnectedDevicesWorker = new Worker<>(Collections.emptyList());
     myDevicePropertiesFetcher = new DeviceNamePropertiesFetcher(new DefaultCallback<>(), project);
   }
 
@@ -82,7 +83,11 @@ public class AsyncDevicesGetter {
     }
 
     initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
-    return getImpl(myVirtualDevicesWorker.get(), myConnectedDevicesWorker.get());
+
+    Callable<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask(myChecker);
+    Callable<Collection<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(myProject, myChecker);
+
+    return getImpl(myVirtualDevicesWorker.get(virtualDevicesTask), myConnectedDevicesWorker.get(connectedDevicesTask));
   }
 
   /**
