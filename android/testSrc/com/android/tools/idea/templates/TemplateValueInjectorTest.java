@@ -28,7 +28,7 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.intellij.ide.plugins.PluginManagerCore;
-import com.intellij.mock.MockApplicationEx;
+import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
@@ -57,7 +57,7 @@ public class TemplateValueInjectorTest{
     initMocks(this);
 
     myDisposable = Disposer.newDisposable();
-    MockApplicationEx instance = new MockApplicationEx(myDisposable);
+    MockApplication instance = new MockApplication(myDisposable);
     instance.registerService(EmbeddedDistributionPaths.class, new EmbeddedDistributionPaths());
     ApplicationManager.setApplication(instance, myDisposable);
 

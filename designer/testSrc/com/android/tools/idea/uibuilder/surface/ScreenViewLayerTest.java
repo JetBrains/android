@@ -20,7 +20,7 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
-import com.intellij.mock.MockApplicationEx;
+import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
@@ -56,7 +56,7 @@ public class ScreenViewLayerTest {
 
   @Before
   public void setUp() {
-    MockApplicationEx instance = new MockApplicationEx(myDisposable);
+    MockApplication instance = new MockApplication(myDisposable);
     ApplicationManager.setApplication(instance, myDisposable);
   }
 
