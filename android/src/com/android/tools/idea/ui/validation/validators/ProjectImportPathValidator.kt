@@ -13,33 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.validation.validators;
+package com.android.tools.idea.ui.validation.validators
 
-import com.android.tools.adtui.validation.Validator;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
+import com.android.tools.adtui.validation.Validator
+import com.android.tools.idea.ui.validation.validators.PathValidator.Builder
+import java.io.File
 
 /**
  * Checks the given file is a valid location for a existing project directory.
  * Used for Opening and Importing projects.
  * @param path is used as part of the output message.
  */
-public class ProjectImportPathValidator implements Validator<File> {
-  private final PathValidator myPathValidator;
+class ProjectImportPathValidator(path: String) : Validator<File> {
+  private val pathValidator: PathValidator = Builder().apply {
+    withCommonRules()
+  }.build(path)
 
-  public ProjectImportPathValidator(@NotNull String path) {
-    myPathValidator = new PathValidator.Builder().withCommonRules().build(path);
-  }
-
-  @NotNull
-  @Override
-  public Result validate(@NotNull File file) {
-    return myPathValidator.validate(file);
-  }
-
-  @NotNull
-  public Result validate(@NotNull String filePath) {
-    return validate(new File(filePath));
-  }
+  override fun validate(file: File) = pathValidator.validate(file)
 }
