@@ -19,7 +19,9 @@ import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.DomainToPackageExpression;
+import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.validator.ClassNameValidator;
 import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.observable.BindingsManager;
@@ -29,6 +31,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
@@ -56,6 +59,7 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
   private LabelWithEditButton myPackageName;
   private JTextField myClassName;
   private JLabel myLibraryNameLabel;
+  private JComboBox<Language> myLanguageComboBox;
 
   public ConfigureJavaModuleStep(@NotNull NewJavaModuleModel model, String title) {
     super(model, title);
@@ -83,6 +87,9 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
     myValidatorPanel.registerValidator(model.className, new ClassNameValidator());
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
+
+    SelectedItemProperty<Language> language = new SelectedItemProperty<>(myLanguageComboBox);
+    myBindings.bindTwoWay(language, model.language);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
@@ -117,6 +124,7 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
   }
 
   private void createUIComponents() {
+    myLanguageComboBox = new LanguageComboProvider().createComponent();
     myLibraryNameLabel = ContextHelpLabel.create(message("android.wizard.module.help.name"));
   }
 }
