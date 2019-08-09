@@ -23,6 +23,7 @@ import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_IS_RUNNING
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_NOT_FOUND
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.WAITING_FOR_PROCESS
+import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.io.Closeable
@@ -49,6 +50,7 @@ import kotlin.properties.Delegates
  * @param listener a listener to listen events from this class
  * @param deploymentApplicationService a service to be used to look up running processes on a device
  * @param androidLogcatOutputCapture a controller to start and stop listening logcat messages for a device
+ * @param textEmitter a text emitter to output debug messages to be displayed
  * @param pollingIntervalMillis a polling interval to check running remote android processes in milliseconds
  * @param appProcessDiscoveryTimeoutMillis a timeout for the target application discovery used in milliseconds
  */
@@ -58,6 +60,7 @@ class SingleDeviceAndroidProcessMonitor(
   private val listener: SingleDeviceAndroidProcessMonitorStateListener,
   private val deploymentApplicationService: DeploymentApplicationService,
   private val androidLogcatOutputCapture: AndroidLogcatOutputCapture,
+  private val textEmitter: TextEmitter,
   pollingIntervalMillis: Long = POLLING_INTERVAL_MILLIS,
   appProcessDiscoveryTimeoutMillis: Long = APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS
 ) : Closeable {
@@ -111,8 +114,9 @@ class SingleDeviceAndroidProcessMonitor(
 
     val clients = deploymentApplicationService.findClient(targetDevice, targetApplicationId)
     clients.forEach { client ->
-      myMonitoringPids.computeIfAbsent(client.clientData.pid) {
-        androidLogcatOutputCapture.startCapture(targetDevice, client.clientData.pid, targetApplicationId)
+      myMonitoringPids.computeIfAbsent(client.clientData.pid) { pid ->
+        textEmitter.emit("Connected to process ${pid} on device '${targetDevice.name}'.\n", ProcessOutputTypes.STDOUT)
+        androidLogcatOutputCapture.startCapture(targetDevice, pid, targetApplicationId)
       }
     }
     val isTargetProcessFound = clients.isNotEmpty()
