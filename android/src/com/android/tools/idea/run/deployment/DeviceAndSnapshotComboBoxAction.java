@@ -224,6 +224,10 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @Nullable
   final Snapshot getSelectedSnapshot(@NotNull Project project) {
+    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()) {
+      return null;
+    }
+
     Device device = getSelectedDevice(project);
 
     if (device == null) {
