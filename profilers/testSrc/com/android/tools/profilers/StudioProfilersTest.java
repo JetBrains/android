@@ -31,6 +31,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStage;
@@ -1194,6 +1195,25 @@ public final class StudioProfilersTest {
 
     // When energy flag is disabled and device is O, GetDirectStages does not return Energy stage.
     myIdeProfilerServices.enableEnergyProfiler(false);
+    assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDeviceO");
+
+    assertThat(profilers.getDirectStages()).containsExactly(
+      CpuProfilerStage.class,
+      MemoryProfilerStage.class,
+      NetworkProfilerStage.class).inOrder();
+
+    // When custom event flag is enabled and device is O, GetDirectStages returns Custom Event stage.
+    myIdeProfilerServices.enableCustomEventVisualization(true);
+    assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDeviceO");
+
+    assertThat(profilers.getDirectStages()).containsExactly(
+      CpuProfilerStage.class,
+      MemoryProfilerStage.class,
+      NetworkProfilerStage.class,
+      CustomEventProfilerStage.class).inOrder();
+
+    // When custom event flag is disabled and device is O, GetDirectStages does not return Custom Event stage.
+    myIdeProfilerServices.enableCustomEventVisualization(false);
     assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDeviceO");
 
     assertThat(profilers.getDirectStages()).containsExactly(
