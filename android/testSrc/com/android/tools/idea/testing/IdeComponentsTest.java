@@ -16,7 +16,7 @@
 package com.android.tools.idea.testing;
 
 import com.android.tools.idea.gradle.project.sync.SdkSync;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import static org.mockito.Mockito.mock;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link IdeComponents}.
  */
-public class IdeComponentsTest extends IdeaTestCase {
+public class IdeComponentsTest extends PlatformTestCase {
 
   public void testReplaceApplicationService() {
     SdkSync originalSdkSync = SdkSync.getInstance();

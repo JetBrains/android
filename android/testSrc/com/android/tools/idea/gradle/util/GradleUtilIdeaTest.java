@@ -27,14 +27,14 @@ import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link GradleUtil}.
  */
-public class GradleUtilIdeaTest extends IdeaTestCase {
+public class GradleUtilIdeaTest extends PlatformTestCase {
   private File myModuleRootDir;
   private File myBuildFile;
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import kotlin.reflect.KType;
 import org.mockito.Mock;
 
@@ -30,7 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link com.android.tools.idea.gradle.project.common.GradleInitScripts.ContentCreator}.
  */
-public class ContentCreatorTest extends IdeaTestCase {
+public class ContentCreatorTest extends PlatformTestCase {
   @Mock private GradleInitScripts.JavaLibraryPluginJars myJavaLibraryPluginJars;
   private GradleInitScripts.ContentCreator myContentCreator;
 

@@ -22,7 +22,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.gradle.tooling.model.GradleProject;
 import org.mockito.Mock;
 
@@ -38,7 +38,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleModuleModelDataService}.
  */
-public class GradleModuleModelDataServiceTest extends IdeaTestCase {
+public class GradleModuleModelDataServiceTest extends PlatformTestCase {
   @Mock private GradleModuleSetup myModuleSetup;
 
   private IdeModifiableModelsProvider myModelsProvider;

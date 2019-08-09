@@ -25,7 +25,7 @@ import com.intellij.openapi.externalSystem.ExternalSystemManager;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
@@ -44,7 +44,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ImportApkAction}.
  */
-public class ImportApkActionTest extends IdeaTestCase {
+public class ImportApkActionTest extends PlatformTestCase {
   @Mock private ImportApkAction.FileChooserDialogFactory myFileChooserDialogFactory;
   @Mock private FileChooserDialog myFileChooserDialog;
   @Mock private ExternalSystemManager<?, ?, ?, ?, ?> myExternalSystemManager;

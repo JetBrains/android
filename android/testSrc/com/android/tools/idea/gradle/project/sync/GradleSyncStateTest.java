@@ -30,7 +30,7 @@ import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import org.mockito.Mock;
@@ -38,7 +38,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link GradleSyncState}.
  */
-public class GradleSyncStateTest extends IdeaTestCase {
+public class GradleSyncStateTest extends PlatformTestCase {
   @Mock private GradleSyncListener myGradleSyncListener;
   @Mock private StateChangeNotification myChangeNotification;
   @Mock private GradleFiles myGradleFiles;

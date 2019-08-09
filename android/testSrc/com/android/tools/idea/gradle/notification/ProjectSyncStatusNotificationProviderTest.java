@@ -33,14 +33,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link ProjectSyncStatusNotificationProvider}.
  */
-public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
+public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncState mySyncState;
 

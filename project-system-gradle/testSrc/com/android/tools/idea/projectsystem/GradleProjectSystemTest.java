@@ -20,12 +20,12 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
-public class GradleProjectSystemTest extends IdeaTestCase {
+public class GradleProjectSystemTest extends PlatformTestCase {
 
   @Override
   protected void setUp() throws Exception {

@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.framework.detection.DetectedFrameworkDescription;
 import com.intellij.framework.detection.FrameworkDetectionContext;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 import java.util.Collections;
@@ -32,7 +32,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidFrameworkDetector}.
  */
-public class AndroidFrameworkDetectorTest extends IdeaTestCase {
+public class AndroidFrameworkDetectorTest extends PlatformTestCase {
   @Mock private FrameworkDetectionContext myContext;
   @Mock GradleProjectInfo myProjectInfo;
 

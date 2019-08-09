@@ -41,7 +41,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import org.easymock.EasyMock;
@@ -50,7 +50,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 /**
  * Tests for {@link GradleProjectInfo}.
  */
-public class GradleProjectInfoTest extends IdeaTestCase {
+public class GradleProjectInfoTest extends PlatformTestCase {
   private GradleProjectInfo myProjectInfo;
 
   @Override

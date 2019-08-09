@@ -23,7 +23,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.TestActionEvent;
 import org.mockito.Mock;
 
@@ -34,7 +34,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link MakeGradleProjectAction}.
  */
-public class MakeGradleProjectActionTest extends IdeaTestCase {
+public class MakeGradleProjectActionTest extends PlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private ProjectStructure myProjectStructure;
 

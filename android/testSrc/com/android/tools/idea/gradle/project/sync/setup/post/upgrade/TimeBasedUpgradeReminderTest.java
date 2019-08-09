@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -26,7 +26,7 @@ import static java.util.Calendar.*;
 /**
  * Tests for {@link TimeBasedUpgradeReminder}.
  */
-public class TimeBasedUpgradeReminderTest extends IdeaTestCase {
+public class TimeBasedUpgradeReminderTest extends PlatformTestCase {
   private Calendar myCalendar;
   private TimeBasedUpgradeReminder myUpgradeReminder;
 

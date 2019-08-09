@@ -29,14 +29,14 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link Jdks}.
  */
-public class JdksTest extends IdeaTestCase {
+public class JdksTest extends PlatformTestCase {
   private IdeSdks mySpyIdeSdks;
   private EmbeddedDistributionPaths mySpyEmbeddedDistributionPaths;
 

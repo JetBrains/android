@@ -44,7 +44,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.HashSet;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -66,7 +66,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link BuildVariantUpdater}.
  */
-public class BuildVariantUpdaterTest extends IdeaTestCase {
+public class BuildVariantUpdaterTest extends PlatformTestCase {
   @Mock private IdeModifiableModelsProvider myModifiableModelsProvider;
   @Mock private IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @Mock private AndroidModuleSetupStep mySetupStepToInvoke;
