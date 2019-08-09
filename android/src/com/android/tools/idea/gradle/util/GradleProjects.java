@@ -22,13 +22,9 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isE
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
 import static java.lang.Boolean.TRUE;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
@@ -100,20 +96,6 @@ public final class GradleProjects {
   public static File findModuleRootFolderPath(@NotNull Module module) {
     File moduleFilePath = toSystemDependentPath(module.getModuleFilePath());
     return moduleFilePath.getParentFile();
-  }
-
-  /**
-   * Indicates whether Gradle is used to build this project.
-   * Note: {@link AndroidProjectInfo#requiresAndroidModel()} indicates whether a project requires an {@link AndroidModel}.
-   * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model is
-   * Gradle-specific.
-   *
-   * @deprecated use {@link GradleProjectInfo#isBuildWithGradle()}
-   */
-  // TODO remove this method and update clients to use GradleProjectInfo instead.
-  @Deprecated
-  public static boolean isBuildWithGradle(@NotNull Project project) {
-    return GradleProjectInfo.getInstance(project).isBuildWithGradle();
   }
 
   /**
