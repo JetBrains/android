@@ -110,8 +110,9 @@ class ResourceExplorerViewModelImplTest {
 
   @Test
   fun getLibrariesResources() {
+    val libraryName = "myLibrary"
     addAarDependency(projectRule.module,
-                     "myLibrary", "com.resources.test") { file -> FileUtil.copyDir(File(
+                     libraryName, "com.resources.test") { file -> FileUtil.copyDir(File(
       getTestDataDirectory() + "/res"), file) }
 
     val viewModel = createViewModel(projectRule.module)
@@ -124,6 +125,7 @@ class ResourceExplorerViewModelImplTest {
     Truth.assertThat(colorSection[1].assetSets).isNotEmpty()
     Truth.assertThat(colorSection[1].assetSets).isNotEmpty()
     Truth.assertThat(colorSection[1].assetSets[0].assets[0].type).isEqualTo(ResourceType.COLOR)
+    Truth.assertThat(colorSection[1].libraryName).contains(libraryName)
 
     viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.DRAWABLE)
     val drawableSection = viewModel.getCurrentModuleResourceLists().get()
@@ -131,6 +133,7 @@ class ResourceExplorerViewModelImplTest {
     Truth.assertThat(drawableSection[0].assetSets).isEmpty()
     Truth.assertThat(drawableSection[1].assetSets).isNotEmpty()
     Truth.assertThat(drawableSection[1].assetSets[0].assets[0].type).isEqualTo(ResourceType.DRAWABLE)
+    Truth.assertThat(drawableSection[1].libraryName).contains(libraryName)
   }
 
   @RunsInEdt
