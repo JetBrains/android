@@ -166,7 +166,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Whether custom event visualization should be visible
    */
-  private boolean myCustomEventVisualizationEnabled = true;
+  private boolean myCustomEventVisualizationEnabled = false;
 
   /**
    * List of custom CPU profiling configurations.
@@ -489,4 +489,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void enableCpuCaptureStage(boolean enabled) { myIsCaptureStageEnabled = enabled; }
+
+  public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
 }
