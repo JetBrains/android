@@ -21,12 +21,9 @@ import static com.android.SdkConstants.FD_TEMPLATES;
 import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
-import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
@@ -45,9 +42,18 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API_
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT;
 import static com.android.tools.idea.templates.TemplateMetadata.getBuildApiString;
+import static com.android.tools.idea.templates.TemplateTestUtils.createNewProjectState;
+import static com.android.tools.idea.templates.TemplateTestUtils.createRenderingContext;
+import static com.android.tools.idea.templates.TemplateTestUtils.getDefaultModuleTemplate;
+import static com.android.tools.idea.templates.TemplateTestUtils.getLintIssueMessage;
+import static com.android.tools.idea.templates.TemplateTestUtils.getModifiedProjectName;
+import static com.android.tools.idea.templates.TemplateTestUtils.getModuleTemplateForFormFactor;
+import static com.android.tools.idea.templates.TemplateTestUtils.isInterestingApiLevel;
+import static com.android.tools.idea.templates.TemplateTestUtils.setAndroidSupport;
+import static com.android.tools.idea.templates.TemplateTestUtils.validateTemplate;
+import static com.android.tools.idea.templates.TemplateTestUtils.verifyLastLoggedUsage;
 import static com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy;
 import static com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories;
-import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -56,7 +62,6 @@ import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.mock;
 
 import com.android.SdkConstants;
-import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
@@ -67,16 +72,11 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
-import com.android.tools.idea.lint.LintIdeClient;
-import com.android.tools.idea.lint.LintIdeIssueRegistry;
-import com.android.tools.idea.lint.LintIdeRequest;
-import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
-import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -85,23 +85,15 @@ import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.IdeComponents;
-import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.checks.ManifestDetector;
-import com.android.tools.lint.client.api.LintDriver;
-import com.android.tools.lint.client.api.LintRequest;
-import com.android.tools.lint.detector.api.Issue;
-import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.KotlinSupport;
-import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
@@ -129,10 +121,8 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -143,7 +133,6 @@ import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -154,7 +143,7 @@ import org.w3c.dom.Element;
  * <p>
  * Remaining work on templates:
  * Fix type conversion, to make the service and fragment templates work
- *
+ * <p>
  * Remaining work on template test:
  * <ul>
  * <li>Add mechanism to ensure that test coverage is comprehensive (made difficult by </li>
@@ -226,7 +215,7 @@ public class TemplateTest extends AndroidGradleTestCase {
    * quicker feedback on whether something is broken instead of waiting for
    * all the versions for each template first
    */
-  private static final boolean TEST_FEWER_API_VERSIONS = !COMPREHENSIVE;
+  public static final boolean TEST_FEWER_API_VERSIONS = !COMPREHENSIVE;
   private static final boolean TEST_JUST_ONE_MIN_SDK = !COMPREHENSIVE;
   private static final boolean TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE;
   private static final boolean TEST_JUST_ONE_TARGET_SDK_VERSION = !COMPREHENSIVE;
@@ -304,48 +293,6 @@ public class TemplateTest extends AndroidGradleTestCase {
    * {@link #isInterestingApiLevel(int, int)}) api versions
    */
   private boolean myApiSensitiveTemplate;
-
-  /**
-   * Is the given api level interesting for testing purposes? This is used to
-   * skip gaps, such that we for example only check say api 8, 9, 11, 14, etc
-   * -- versions where the <b>templates</b> are doing conditional changes. To
-   * be EXTRA comprehensive, occasionally try returning true unconditionally
-   * here to test absolutely everything.
-   */
-  private boolean isInterestingApiLevel(int api, int manualApi) {
-    // If a manual api version was specified then accept only that version:
-    if (manualApi > 0) {
-      return api == manualApi;
-    }
-
-    // For templates that aren't API sensitive, only test with latest API
-    if (!myApiSensitiveTemplate) {
-      // Use HIGHEST_KNOWN_STABLE_API rather than HIGHEST_KNOWN_API which
-      // can point to preview releases.
-      return api == SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
-    }
-
-    // Always accept the highest known version
-    if (api == SdkVersionInfo.HIGHEST_KNOWN_STABLE_API) {
-      return true;
-    }
-
-    // Relevant versions, used to prune down the set of targets we need to
-    // check on. This is determined by looking at the minApi and minBuildApi
-    // versions found in the template.xml files.
-    switch (api) {
-      case 14:
-      case 16:
-      case 21:
-      case 23:
-        return true;
-      case 25:
-      case 28:
-        return !TEST_FEWER_API_VERSIONS;
-      default:
-        return false;
-    }
-  }
 
   private final ProjectStateCustomizer withKotlin = ((templateMap, projectMap) -> {
     projectMap.put(ATTR_KOTLIN_VERSION, TestUtils.getKotlinVersionForTests());
@@ -910,7 +857,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   @TemplateCheck
   public void testAutomotiveMessagingServiceWithKotlin() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "AutomotiveMessagingService", false , withKotlin);
+    checkCreateTemplate("other", "AutomotiveMessagingService", false, withKotlin);
   }
 
   @TemplateCheck
@@ -1053,6 +1000,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     System.out.println("Checked " + templateFile.getName() + " successfully in " + stopwatch.toString());
   }
 
+  @NotNull
   private File findTemplate(String category, String name) {
     ensureSdkManagerAvailable();
     File templateRootFolder = TemplateManager.getTemplateRootFolder();
@@ -1060,24 +1008,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     File file = new File(templateRootFolder, category + File.separator + name);
     assertTrue(file.getPath(), file.exists());
     return file;
-  }
-
-  private static TestNewProjectWizardState createNewProjectState(boolean createWithProject, AndroidSdkData sdkData, Template moduleTemplate) {
-    TestNewProjectWizardState projectState = new TestNewProjectWizardState(moduleTemplate);
-    TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
-    Template.convertApisToInt(moduleState.getParameters());
-    moduleState.put(ATTR_CREATE_ACTIVITY, createWithProject);
-    moduleState.put(ATTR_MODULE_NAME, "TestModule");
-    moduleState.put(ATTR_PACKAGE_NAME, "test.pkg");
-    new TemplateValueInjector(moduleState.getParameters())
-      .addGradleVersions(null);
-
-    BuildToolInfo buildTool = sdkData.getLatestBuildTool(false);
-    if (buildTool != null) {
-      moduleState.put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
-    }
-
-    return projectState;
   }
 
   private void checkTemplate(File templateFile, boolean createWithProject) throws Exception {
@@ -1102,7 +1032,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     assertNotNull(sdkData);
 
-    TestNewProjectWizardState projectState = createNewProjectState(createWithProject, sdkData, getModuleTemplateForFormFactor(templateFile));
+    TestNewProjectWizardState projectState =
+      createNewProjectState(createWithProject, sdkData, getModuleTemplateForFormFactor(templateFile));
 
     String projectNameBase = templateFile.getName();
 
@@ -1116,7 +1047,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     // the test is comprehensive
     // For now make sure there's at least one
     boolean ranTest = false;
-    int lowestMinApiForProject = Math.max(Integer.parseInt((String)moduleState.get(ATTR_MIN_API)), moduleState.getTemplateMetadata().getMinSdk());
+    int lowestMinApiForProject =
+      Math.max(Integer.parseInt((String)moduleState.get(ATTR_MIN_API)), moduleState.getTemplateMetadata().getMinSdk());
 
     IAndroidTarget[] targets = sdkData.getTargets();
     for (int i = targets.length - 1; i >= 0; i--) {
@@ -1124,7 +1056,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       if (!target.isPlatform()) {
         continue;
       }
-      if (!isInterestingApiLevel(target.getVersion().getApiLevel(), MANUAL_BUILD_API)) {
+      if (!isInterestingApiLevel(target.getVersion().getApiLevel(), MANUAL_BUILD_API, myApiSensitiveTemplate)) {
         continue;
       }
 
@@ -1137,14 +1069,14 @@ public class TemplateTest extends AndroidGradleTestCase {
            minSdk <= SdkVersionInfo.HIGHEST_KNOWN_API;
            minSdk++) {
         // Don't bother checking *every* single minSdk, just pick some interesting ones
-        if (!isInterestingApiLevel(minSdk, MANUAL_MIN_API)) {
+        if (!isInterestingApiLevel(minSdk, MANUAL_MIN_API, myApiSensitiveTemplate)) {
           continue;
         }
 
         for (int targetSdk = minSdk;
              targetSdk <= SdkVersionInfo.HIGHEST_KNOWN_API;
              targetSdk++) {
-          if (!isInterestingApiLevel(targetSdk, MANUAL_TARGET_API)) {
+          if (!isInterestingApiLevel(targetSdk, MANUAL_TARGET_API, myApiSensitiveTemplate)) {
             continue;
           }
 
@@ -1215,7 +1147,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     @Nullable Map<String, Object> overrides,
     @Nullable Map<String, Object> projectOverrides) throws Exception {
 
-    TestTemplateWizardState moduleState =  projectState.getModuleTemplateState();
+    TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     Boolean createActivity = (Boolean)moduleState.get(ATTR_CREATE_ACTIVITY);
     if (createActivity == null) {
       createActivity = true;
@@ -1410,7 +1342,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       moduleState.put(ATTR_IS_LIBRARY_MODULE, true);
       activityState.put(ATTR_IS_LIBRARY_MODULE, true);
       activityState.put(ATTR_HAS_APPLICATION_THEME, false);
-      // For a library project a theme doesn't exist. This is derived in the IDE using FmgetApplicationThemeMethod
+      // For a library project a theme doesn't exist. This is derived in the IDE using FmGetApplicationThemeMethod
       moduleState.put(ATTR_THEME_EXISTS, false);
       checkProjectNow(projectName + "_lib", projectState, activityState);
     }
@@ -1476,8 +1408,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
       assertNotNull(project);
 
-      // Verify that a newly created kotlin project does not have any java files
-      // and has only kotlin files.
+      // Verify that a newly created Kotlin project only kotlin files (e.g. no Java).
       if (getTestName(false).endsWith("WithKotlin")) {
         Path rootPath = projectDir.toPath();
         // Note: Files.walk() stream needs to be closed (or consumed completely), otherwise it will leave locked directories on Windows
@@ -1529,7 +1460,10 @@ public class TemplateTest extends AndroidGradleTestCase {
       }
 
       if (CHECK_LINT) {
-        assertLintsCleanly(project, Severity.INFORMATIONAL, Collections.singleton(ManifestDetector.TARGET_NEWER));
+        String lintMessage = getLintIssueMessage(project, Severity.INFORMATIONAL, Collections.singleton(ManifestDetector.TARGET_NEWER));
+        if (lintMessage != null) {
+          fail(lintMessage);
+        }
         // TODO: Check for other warnings / inspections, such as unused imports?
       }
     }
@@ -1550,31 +1484,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private static void setAndroidSupport(boolean setAndroidx,
-                                        @NotNull TestTemplateWizardState moduleState,
-                                        @Nullable TestTemplateWizardState activityState) {
-    moduleState.put(ATTR_ANDROIDX_SUPPORT, setAndroidx);
-    if (activityState != null) {
-      activityState.put(ATTR_ANDROIDX_SUPPORT, setAndroidx);
-    }
-  }
-
-  private static String getModifiedProjectName(@NotNull String projectName, @Nullable TestTemplateWizardState activityState) {
-    if (SystemInfo.isWindows) {
-      return "app";
-    }
-    // Bug 137161906
-    if (projectName.startsWith("BasicActivity") &&
-        activityState != null &&
-        Language.KOTLIN.toString().equals(activityState.getString(ATTR_LANGUAGE))) {
-      return projectName;
-    }
-
-    String specialChars = "!@#$^&()_+=-.`~";
-    String nonAsciiChars = "你所有的基地都属于我们";
-    return projectName + specialChars + ',' + nonAsciiChars;
-  }
-
   @SuppressWarnings("SameParameterValue")
   private void createProject(@NotNull TestNewProjectWizardState projectState, boolean syncProject) throws Exception {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
@@ -1585,7 +1494,8 @@ public class TemplateTest extends AndroidGradleTestCase {
         iconGenerator.outputName().set("ic_launcher");
         iconGenerator.sourceAsset().setValue(new ImageAsset());
         createProject(projectState, myFixture.getProject(), iconGenerator);
-      } finally {
+      }
+      finally {
         Disposer.dispose(iconGenerator);
       }
       FileDocumentManager.getInstance().saveAllDocuments();
@@ -1633,10 +1543,11 @@ public class TemplateTest extends AndroidGradleTestCase {
         // If this is a new project, instantiate the project-level files
         Template projectTemplate = projectState.getProjectTemplate();
         final RenderingContext projectContext =
-            createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, moduleState.getParameters());
+          createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, moduleState.getParameters());
         projectTemplate.render(projectContext, false);
         // check usage tracker after project render
-        verifyLastLoggedUsage(Template.titleToTemplateRenderer(projectTemplate.getMetadata().getTitle()), projectContext.getParamMap());
+        verifyLastLoggedUsage(myUsageTracker, Template.titleToTemplateRenderer(projectTemplate.getMetadata().getTitle()),
+                              projectContext.getParamMap());
         AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot);
 
         final RenderingContext moduleContext =
@@ -1644,7 +1555,8 @@ public class TemplateTest extends AndroidGradleTestCase {
         Template moduleTemplate = moduleState.getTemplate();
         moduleTemplate.render(moduleContext, false);
         // check usage tracker after module render
-        verifyLastLoggedUsage(Template.titleToTemplateRenderer(moduleTemplate.getMetadata().getTitle()), moduleContext.getParamMap());
+        verifyLastLoggedUsage(myUsageTracker, Template.titleToTemplateRenderer(moduleTemplate.getMetadata().getTitle()),
+                              moduleContext.getParamMap());
         if (moduleState.getBoolean(ATTR_CREATE_ACTIVITY)) {
           TestTemplateWizardState activityTemplateState = projectState.getActivityTemplateState();
           Template activityTemplate = activityTemplateState.getTemplate();
@@ -1653,7 +1565,8 @@ public class TemplateTest extends AndroidGradleTestCase {
             createRenderingContext(activityTemplate, project, moduleRoot, moduleRoot, activityTemplateState.getParameters());
           activityTemplate.render(activityContext, false);
           // check usage tracker after activity render
-          verifyLastLoggedUsage(Template.titleToTemplateRenderer(activityTemplate.getMetadata().getTitle()), activityContext.getParamMap());
+          verifyLastLoggedUsage(myUsageTracker, Template.titleToTemplateRenderer(activityTemplate.getMetadata().getTitle()),
+                                activityContext.getParamMap());
           moduleContext.getFilesToOpen().addAll(activityContext.getFilesToOpen());
         }
       }
@@ -1667,146 +1580,17 @@ public class TemplateTest extends AndroidGradleTestCase {
     assertEmpty(errors);
   }
 
-  @NotNull
-  private static RenderingContext createRenderingContext(@NotNull Template projectTemplate,
-                                                         @NotNull Project project,
-                                                         @NotNull File projectRoot,
-                                                         @NotNull File moduleRoot,
-                                                         @Nullable Map<String, Object> parameters) {
-    RenderingContext.Builder builder = RenderingContext.Builder.newContext(projectTemplate, project)
-      .withOutputRoot(projectRoot)
-      .withModuleRoot(moduleRoot);
-
-    if (parameters != null) {
-      builder.withParams(parameters);
-    }
-
-    return builder.build();
-  }
-
-  /**
-   * Validates this template to make sure it's supported
-   *
-   * @param currentMinSdk the minimum SDK in the project, or -1 or 0 if unknown (e.g. codename)
-   * @param buildApi      the build API, or -1 or 0 if unknown (e.g. codename)
-   * @return an error message, or null if there is no problem
-   */
-  @Nullable
-  private static String validateTemplate(TemplateMetadata metadata, int currentMinSdk, int buildApi) {
-    if (!metadata.isSupported()) {
-      return "This template requires a more recent version of Android Studio. Please update.";
-    }
-    int templateMinSdk = metadata.getMinSdk();
-    if (templateMinSdk > currentMinSdk && currentMinSdk >= 1) {
-      return String.format("This template requires a minimum SDK version of at least %1$d, and the current min version is %2$d",
-                           templateMinSdk, currentMinSdk);
-    }
-    int templateMinBuildApi = metadata.getMinBuildApi();
-    if (templateMinBuildApi > buildApi && buildApi >= 1) {
-      return String.format("This template requires a build target API version of at least %1$d, and the current version is %2$d",
-                           templateMinBuildApi, buildApi);
-    }
-
-    return null;
-  }
-
-  private static void assertLintsCleanly(@NotNull Project project, @NotNull Severity maxSeverity, @NotNull Set<Issue> ignored) {
-    BuiltinIssueRegistry registry = new LintIdeIssueRegistry();
-    Map<Issue, Map<File, List<ProblemData>>> map = new HashMap<>();
-    LintIdeClient client = LintIdeClient.forBatch(project, map, new AnalysisScope(project), new HashSet<>(registry.getIssues()));
-    List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
-    LintRequest request = new LintIdeRequest(client, project, null, modules, false);
-    EnumSet<Scope> scope = EnumSet.allOf(Scope.class);
-    scope.remove(Scope.CLASS_FILE);
-    scope.remove(Scope.ALL_CLASS_FILES);
-    scope.remove(Scope.JAVA_LIBRARIES);
-    request.setScope(scope);
-    LintDriver driver = new LintDriver(registry, client, request);
-    driver.analyze();
-    if (!map.isEmpty()) {
-      for (Map<File, List<ProblemData>> fileListMap : map.values()) {
-        for (Map.Entry<File, List<ProblemData>> entry : fileListMap.entrySet()) {
-          File file = entry.getKey();
-          List<ProblemData> problems = entry.getValue();
-          for (ProblemData problem : problems) {
-            Issue issue = problem.getIssue();
-            if (ignored.contains(issue)) {
-              continue;
-            }
-            if (issue.getDefaultSeverity().compareTo(maxSeverity) < 0) {
-              fail("Found lint issue " + issue.getId() + " with severity " + issue.getDefaultSeverity() + " in " + file + " at " +
-                   problem.getTextRange() + ": " + problem.getMessage());
-            }
-          }
-        }
-      }
-    }
-  }
-
-  @NotNull
-  private static Template getModuleTemplateForFormFactor(@NotNull File templateFile) {
-    Template activityTemplate = Template.createFromPath(templateFile);
-    Template moduleTemplate = getDefaultModuleTemplate();
-    TemplateMetadata activityMetadata = activityTemplate.getMetadata();
-    assertNotNull(activityMetadata);
-    String activityFormFactorName = activityMetadata.getFormFactor();
-    if (activityFormFactorName != null) {
-      FormFactor activityFormFactor = FormFactor.get(activityFormFactorName);
-      TemplateManager manager = TemplateManager.getInstance();
-      List<File> applicationTemplates = manager.getTemplatesInCategory(CATEGORY_APPLICATION);
-      for (File formFactorTemplateFile : applicationTemplates) {
-        TemplateMetadata metadata = manager.getTemplateMetadata(formFactorTemplateFile);
-        if (metadata != null && metadata.getFormFactor() != null && FormFactor.get(metadata.getFormFactor()) == activityFormFactor) {
-          moduleTemplate = Template.createFromPath(formFactorTemplateFile);
-          break;
-        }
-      }
-    }
-    return moduleTemplate;
-  }
-
-  @NotNull
-  private static Template getDefaultModuleTemplate() {
-    return Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME);
-  }
-
-  /**
-   * Checks that the most recent log in myUsageTracker is a AndroidStudioEvent.EventKind.TEMPLATE_RENDER event with expected info.
-   *
-   * @param templateRenderer the expected value of usage.getStudioEvent().getTemplateRenderer(),
-   *                         where usage is the most recent logged usage
-   * @param paramMap         the paramMap, containing kotlin support info for template render event
-   */
-  private void verifyLastLoggedUsage(@NotNull AndroidStudioEvent.TemplateRenderer templateRenderer, @NotNull Map<String, Object> paramMap) {
-    List<LoggedUsage> usages = myUsageTracker.getUsages();
-    assertFalse(usages.isEmpty());
-    // get last logged usage
-    LoggedUsage usage = usages.get(usages.size() - 1);
-    assertEquals(AndroidStudioEvent.EventKind.TEMPLATE_RENDER, usage.getStudioEvent().getKind());
-    assertEquals(templateRenderer, usage.getStudioEvent().getTemplateRenderer());
-    assertTrue(paramMap.getOrDefault(ATTR_KOTLIN_VERSION, "unknown") instanceof String);
-    assertEquals(
-      KotlinSupport.newBuilder()
-        .setIncludeKotlinSupport(paramMap.getOrDefault(ATTR_LANGUAGE, "Java").equals(Language.KOTLIN.toString()))
-        .setKotlinSupportVersion((String)paramMap.getOrDefault(ATTR_KOTLIN_VERSION, "unknown")).build(),
-      usage.getStudioEvent().getKotlinSupport());
-  }
-
-  //--- Interfaces ---
+  //--- Interfaces, annotations and helper classes ---
 
   public interface ProjectStateCustomizer {
     void customize(@NotNull Map<String, Object> templateMap, @NotNull Map<String, Object> projectMap);
   }
-
-  //--- Annotations ---
 
   @Documented
   @Retention(RetentionPolicy.RUNTIME)
   @Target({METHOD})
   public @interface TemplateCheck {
   }
-
-  //--- Helper classes ---
 
   // Create a dummy version of this class that just collects all the templates it will test when it is run.
   // It is important that this class is not run by JUnit!
