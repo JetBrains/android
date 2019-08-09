@@ -46,7 +46,8 @@ class AndroidProcessMonitorManager(
                                         device,
                                         monitorListener,
                                         deploymentApplicationService,
-                                        logcatCaptor)
+                                        logcatCaptor,
+                                        textEmitter)
     }
 ) : Closeable {
   @GuardedBy("this")
