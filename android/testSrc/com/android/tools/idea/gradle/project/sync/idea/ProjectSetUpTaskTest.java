@@ -68,7 +68,6 @@ public class ProjectSetUpTaskTest extends AndroidGradleTestCase {
     SyncViewManager syncViewManager = mock(SyncViewManager.class);
     ArgumentCaptor<BuildEvent> eventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
     new IdeComponents(getProject()).replaceProjectService(SyncViewManager.class, syncViewManager);
-    GradleSyncMessages syncMessages = new IdeComponents(getProject()).mockProjectService(GradleSyncMessages.class);
 
     // Invoke method to test.
     mySetupTask.onFailure(myTaskId, "sync failed", null);
@@ -78,6 +77,5 @@ public class ProjectSetUpTaskTest extends AndroidGradleTestCase {
     List<BuildEvent> capturedEvents = eventCaptor.getAllValues();
     assertThat(capturedEvents).hasSize(1);
     assertThat(capturedEvents.get(0)).isInstanceOf(FinishBuildEvent.class);
-    verify(syncMessages, times(1)).report(any(SyncMessage.class));
   }
 }
