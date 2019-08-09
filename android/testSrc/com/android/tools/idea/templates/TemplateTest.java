@@ -103,6 +103,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
@@ -152,11 +153,7 @@ import org.w3c.dom.Element;
  * Test for template instantiation.
  * <p>
  * Remaining work on templates:
- * <ul>
- * <li>Make the project templates work for API=1 (currently requires API 7); with API 1
- * you get a build error because included libraries have targetSdkVersion higher than 1</li>
- * <li>Fix type conversion, to make the service and fragment templates work</li>
- * </ul>
+ * Fix type conversion, to make the service and fragment templates work
  *
  * Remaining work on template test:
  * <ul>
@@ -168,7 +165,6 @@ import org.w3c.dom.Element;
  * <li>Test creating a project <b>without</b> a template</li>
  * </ul>
  */
-@SuppressWarnings("deprecation") // We need to move away from the old Wizard framework usage
 public class TemplateTest extends AndroidGradleTestCase {
   /**
    * A UsageTracker implementation that allows introspection of logged metrics in tests.
@@ -219,13 +215,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   /**
-   * The following templates parameters are not very interesting (change only one small bit of text etc). We can skip them when not running
-   * in comprehensive mode.
+   * The following templates parameters are not very interesting (change only one small bit of text etc).
+   * We can skip them when not running in comprehensive mode.
+   * TODO(qumeric): update or remove
    */
-  private static final Set<String> SKIPPABLE_PARAMETERS = ImmutableSet.of(
-    "instantAppActivityRouteType",
-    "enableProGuard" // not exposed in UI
-  );
+  private static final Set<String> SKIPPABLE_PARAMETERS = ImmutableSet.of();
 
   /**
    * Flags used to quickly check each template once (for one version), to get
@@ -243,9 +237,6 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   // TODO: this is used only in TemplateTest. We should pass this value without changing template values.
   final static String ATTR_CREATE_ACTIVITY = "createActivity";
-
-  public TemplateTest() {
-  }
 
   @Override
   protected boolean createDefaultProject() {
@@ -313,7 +304,6 @@ public class TemplateTest extends AndroidGradleTestCase {
    * {@link #isInterestingApiLevel(int, int)}) api versions
    */
   private boolean myApiSensitiveTemplate;
-
 
   /**
    * Is the given api level interesting for testing purposes? This is used to
@@ -1098,7 +1088,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     new TemplateValueInjector(moduleState.getParameters())
       .addGradleVersions(null);
 
-    BuildToolInfo buildTool = sdkData.getLatestBuildTool();
+    BuildToolInfo buildTool = sdkData.getLatestBuildTool(false);
     if (buildTool != null) {
       moduleState.put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     }
@@ -1465,10 +1455,10 @@ public class TemplateTest extends AndroidGradleTestCase {
       projectDir = getBaseDirPath(project);
       moduleState.put(ATTR_TOP_OUT, projectDir.getPath());
 
-      System.out.println("Checking project " + projectName + " in " + project.getBaseDir());
+      System.out.println("Checking project " + projectName + " in " + ProjectUtil.guessProjectDir(project));
       createProject(projectState, CHECK_LINT);
 
-      File projectRoot = virtualToIoFile(project.getBaseDir());
+      File projectRoot = virtualToIoFile(ProjectUtil.guessProjectDir(project));
       if (activityState != null && !moduleState.getBoolean(ATTR_CREATE_ACTIVITY)) {
         activityState.put(ATTR_TOP_OUT, projectDir.getPath());
         ApplicationManager.getApplication().runWriteAction(() -> {
@@ -1619,14 +1609,14 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     // Update to latest plugin / gradle and sync model
     File projectRoot = new File(moduleState.getString(ATTR_TOP_OUT));
-    assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
+    assertEquals(projectRoot, virtualToIoFile(ProjectUtil.guessProjectDir(myFixture.getProject())));
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
 
     File gradleFile = new File(projectRoot, SdkConstants.FN_BUILD_GRADLE);
-    String origContent = com.google.common.io.Files.toString(gradleFile, UTF_8);
+    String origContent = com.google.common.io.Files.asCharSource(gradleFile, UTF_8).read();
     String newContent = updateLocalRepositories(origContent, getLocalRepositoriesForGroovy());
     if (!newContent.equals(origContent)) {
-      com.google.common.io.Files.write(newContent, gradleFile, UTF_8);
+      com.google.common.io.Files.asCharSink(gradleFile, UTF_8).write(newContent);
     }
 
     refreshProjectFiles();
