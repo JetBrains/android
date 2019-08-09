@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.property2
 
 import com.android.tools.idea.naveditor.property2.inspector.ActionInspectorBuilder
 import com.android.tools.idea.naveditor.property2.inspector.ActionListInspectorBuilder
+import com.android.tools.idea.naveditor.property2.inspector.ActivityInspectorBuilder
 import com.android.tools.idea.naveditor.property2.inspector.AnimationInspectorBuilder
 import com.android.tools.idea.naveditor.property2.inspector.ArgumentInspectorBuilder
 import com.android.tools.idea.naveditor.property2.inspector.DeepLinkInspectorBuilder
@@ -56,6 +57,7 @@ class NavPropertiesView(model: NelePropertiesModel) : PropertiesView<NelePropert
     tab.builders.add(GraphInspectorBuilder(editorProvider))
     tab.builders.add(NameInspectorBuilder(editorProvider))
 
+    tab.builders.add(ActivityInspectorBuilder(editorProvider))
     tab.builders.add(AnimationInspectorBuilder(editorProvider))
     tab.builders.add(DefaultValueInspectorBuilder())
     tab.builders.add(ActionInspectorBuilder(editorProvider))

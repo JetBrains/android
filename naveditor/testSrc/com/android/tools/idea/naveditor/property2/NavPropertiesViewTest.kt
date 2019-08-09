@@ -32,6 +32,9 @@ import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 import com.android.tools.property.panel.impl.model.util.FakeLineType
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ACTION
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DATA
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DATA_PATTERN
 import org.jetbrains.android.facet.AndroidFacet
 
 class NavPropertiesViewTest : NavTestCase() {
@@ -59,12 +62,16 @@ class NavPropertiesViewTest : NavTestCase() {
     checkEditor(panel, 1, ANDROID_URI, ATTR_ID)
     checkEditor(panel, 2, ANDROID_URI, ATTR_LABEL)
     checkEditor(panel, 3, ANDROID_URI, ATTR_NAME)
-    checkTitle(panel, 4, "Arguments")
-    checkPanel(panel, 5)
-    checkTitle(panel, 6, "Deep Links")
-    checkPanel(panel, 7)
+    checkTitle(panel, 4, "Activity")
+    checkEditor(panel, 5, AUTO_URI, ATTR_ACTION)
+    checkEditor(panel, 6, AUTO_URI, ATTR_DATA)
+    checkEditor(panel, 7, AUTO_URI, ATTR_DATA_PATTERN)
+    checkTitle(panel, 8, "Arguments")
+    checkPanel(panel, 9)
+    checkTitle(panel, 10, "Deep Links")
+    checkPanel(panel, 11)
 
-    assertEquals(8, panel.lines.size)
+    assertEquals(12, panel.lines.size)
   }
 
   fun testAction() {
