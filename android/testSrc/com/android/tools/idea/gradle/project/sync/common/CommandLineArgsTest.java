@@ -37,7 +37,7 @@ import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -45,7 +45,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link CommandLineArgs}.
  */
-public class CommandLineArgsTest extends IdeaTestCase {
+public class CommandLineArgsTest extends PlatformTestCase {
   @Mock private ApplicationInfo myApplicationInfo;
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleInitScripts myInitScripts;

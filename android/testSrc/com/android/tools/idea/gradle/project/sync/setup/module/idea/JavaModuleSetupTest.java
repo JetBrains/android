@@ -36,14 +36,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link JavaModuleSetup}.
  */
-public class JavaModuleSetupTest extends IdeaTestCase {
+public class JavaModuleSetupTest extends PlatformTestCase {
   @Mock private ModuleSetupContext myContext;
   @Mock private JavaModuleModel myJavaModel;
   @Mock private JavaModuleSetupStep mySetupStep1;

@@ -30,11 +30,11 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.startup.impl.StartupManagerImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.startup.StartupManager
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.PlatformTestCase
 import com.intellij.util.messages.MessageBusConnection
 import org.mockito.Mockito.*
 
-class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
+class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
   private lateinit var gradleProjectInfo: GradleProjectInfo
   private lateinit var syncManager: ProjectSystemSyncManager

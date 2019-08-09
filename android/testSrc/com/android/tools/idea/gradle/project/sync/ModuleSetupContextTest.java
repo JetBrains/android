@@ -23,7 +23,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.MODULES_BY_GRADLE_PATH_KEY;
@@ -32,7 +32,7 @@ import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueMod
 /**
  * Tests for {@link ModuleSetupContext}.
  */
-public class ModuleSetupContextTest extends IdeaTestCase {
+public class ModuleSetupContextTest extends PlatformTestCase {
   private IdeModifiableModelsProviderImpl myModelsProvider;
 
   @Override

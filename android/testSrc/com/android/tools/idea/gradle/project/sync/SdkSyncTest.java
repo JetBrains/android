@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -29,7 +29,7 @@ import java.io.File;
 /**
  * Tests for {@link SdkSync}.
  */
-public class SdkSyncTest extends IdeaTestCase {
+public class SdkSyncTest extends PlatformTestCase {
   private LocalProperties myLocalProperties;
   private File myAndroidSdkPath;
   private IdeSdks myIdeSdks;

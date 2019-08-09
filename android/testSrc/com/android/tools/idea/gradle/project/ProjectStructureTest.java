@@ -28,7 +28,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link ProjectStructure}.
  */
-public class ProjectStructureTest extends IdeaTestCase {
+public class ProjectStructureTest extends PlatformTestCase {
   private ProjectStructure myProjectStructure;
 
   @Override

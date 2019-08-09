@@ -36,7 +36,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.Computable;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -49,7 +49,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 /**
  * Tests for {@link ArtifactsByConfigurationModuleSetupStep}.
  */
-public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
+public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCase {
   private ArtifactsByConfigurationModuleSetupStep mySetupStep;
 
   @Override

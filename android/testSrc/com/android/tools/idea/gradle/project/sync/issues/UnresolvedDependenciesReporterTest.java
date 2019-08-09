@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.mockito.Mock;
 
@@ -38,7 +38,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
-public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
+public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
   @Mock private SyncIssue mySyncIssue;
   @Mock private GradleSettings myGradleSettings;
 

@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPlugi
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -36,7 +36,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link PluginVersionUpgrade}.
  */
-public class PluginVersionUpgradeTest extends IdeaTestCase {
+public class PluginVersionUpgradeTest extends PlatformTestCase {
   @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep1;
   @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep2;
   @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep3;

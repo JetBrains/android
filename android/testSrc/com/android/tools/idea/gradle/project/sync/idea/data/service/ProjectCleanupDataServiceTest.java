@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanup
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ProjectCleanupDataService}.
  */
-public class ProjectCleanupDataServiceTest extends IdeaTestCase {
+public class ProjectCleanupDataServiceTest extends PlatformTestCase {
   @Mock private IdeInfo myIdeInfo;
   @Mock private ProjectCleanup myProjectCleanup;
   @Mock private IdeModifiableModelsProvider myModelsProvider;

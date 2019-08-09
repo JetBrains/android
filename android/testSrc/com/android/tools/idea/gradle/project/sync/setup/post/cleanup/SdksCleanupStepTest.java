@@ -31,7 +31,7 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,7 +50,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link SdksCleanupStep}.
  */
-public class SdksCleanupStepTest extends IdeaTestCase {
+public class SdksCleanupStepTest extends PlatformTestCase {
   @Nullable private Sdk myJdk;
   @Nullable private Sdk mySdk;
 
