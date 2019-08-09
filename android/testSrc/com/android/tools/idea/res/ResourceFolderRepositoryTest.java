@@ -46,6 +46,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
@@ -107,6 +108,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT1 = "resourceRepository/layout.xml";
   private static final String LAYOUT2 = "resourceRepository/layout2.xml";
   private static final String LAYOUT_ID_SCAN = "resourceRepository/layout_for_id_scan.xml";
+  private static final String LAYOUT_WITHOUT_IDS = "resourceRepository/layout_without_ids.xml";
+  private static final String LAYOUT_WITH_ONE_ID = "resourceRepository/layout_with_one_id.xml";
   private static final String LAYOUT_WITH_DATA_BINDING = "resourceRepository/layout_with_data_binding.xml";
   private static final String VALUES1 = "resourceRepository/values.xml";
   private static final String VALUES_EMPTY = "resourceRepository/empty.xml";
@@ -3551,6 +3554,24 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertThat(items).hasSize(1);
     //noinspection ConstantConditions
     assertThat(items.get(0).getResourceValue().getValue()).isEqualTo("Fixed Animations Demo");
+  }
+
+  /**
+   * Test for http://b/138841328.
+   */
+  public void testLoadAfterExternalChangeToLayout() throws Exception {
+    myFixture.copyFileToProject(LAYOUT_WITHOUT_IDS, "res/layout/layout.xml");
+
+    ResourceFolderRepository resources = createRepository(true);
+    assertThat(resources.getResources(RES_AUTO, ResourceType.ID)).isEmpty();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout")).hasSize(1);
+
+    TestUtils.waitForFileSystemTick();
+    myFixture.copyFileToProject(LAYOUT_WITH_ONE_ID, "res/layout/layout.xml");
+
+    ResourceFolderRepository resourcesReloaded = createRepository(false);
+    assertThat(resourcesReloaded.getResources(RES_AUTO, ResourceType.ID, "foo")).hasSize(1);
+    assertThat(resourcesReloaded.getResources(RES_AUTO, ResourceType.LAYOUT, "layout")).hasSize(1);
   }
 
   public void testIdScanFromLayout() {

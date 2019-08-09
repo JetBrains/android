@@ -195,6 +195,7 @@ public abstract class BasicResourceItemBase implements BasicResourceItem, Resour
                                                   @NotNull List<RepositoryConfiguration> configurations,
                                                   @NotNull List<ResourceSourceFile> sourceFiles,
                                                   @NotNull List<ResourceNamespace.Resolver> namespaceResolvers) throws IOException {
+    assert !configurations.isEmpty();
     int encodedType = stream.readInt();
     boolean isFileBased = (encodedType & 0x1) != 0;
     ResourceType resourceType = ResourceType.values()[encodedType >>> 1];
@@ -205,7 +206,8 @@ public abstract class BasicResourceItemBase implements BasicResourceItem, Resour
     ResourceVisibility visibility = ResourceVisibility.values()[stream.readInt()];
 
     if (isFileBased) {
-      return BasicFileResourceItem.deserialize(stream, resourceType, name, visibility, configurations);
+      LoadableResourceRepository repository = configurations.get(0).getRepository();
+      return repository.deserializeFileResourceItem(stream, resourceType, name, visibility, configurations);
     }
 
     return BasicValueResourceItemBase.deserialize(stream, resourceType, name, visibility, configurations, sourceFiles, namespaceResolvers);
