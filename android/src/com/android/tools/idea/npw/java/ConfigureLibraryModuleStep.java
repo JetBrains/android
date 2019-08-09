@@ -48,7 +48,7 @@ import java.util.Collection;
 import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleModel> {
+public class ConfigureLibraryModuleStep extends SkippableWizardStep<NewLibraryModuleModel> {
   @NotNull private final StudioWizardStepPanel myRootPanel;
   @NotNull private ValidatorPanel myValidatorPanel;
   private final BindingsManager myBindings = new BindingsManager();
@@ -61,7 +61,7 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
   private JLabel myLibraryNameLabel;
   private JComboBox<Language> myLanguageComboBox;
 
-  public ConfigureJavaModuleStep(@NotNull NewJavaModuleModel model, String title) {
+  public ConfigureLibraryModuleStep(@NotNull NewLibraryModuleModel model, String title) {
     super(model, title);
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);

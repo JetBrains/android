@@ -24,20 +24,21 @@ import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Icon
 
-class NewJavaModuleDescriptionProvider : ModuleDescriptionProvider {
+class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project?): Collection<ModuleGalleryEntry> = listOf(JavaModuleTemplateGalleryEntry())
 
   private class JavaModuleTemplateGalleryEntry : ModuleGalleryEntry {
-    private val templateHandle =
-      TemplateHandle(TemplateManager.getInstance().getTemplateFile(Template.CATEGORY_APPLICATION, "Java Library")!!)
+    private val templateHandle = TemplateHandle(TemplateManager.getInstance().getTemplateFile(
+        Template.CATEGORY_APPLICATION, message("android.wizard.module.new.java.or.kotlin.library"))!!)
 
     override val icon: Icon? = getTemplateIcon(templateHandle, false)
     override val name: String = templateHandle.metadata.title!!
     override val description: String? = templateHandle.metadata.description
     override fun toString(): String = name
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
-      ConfigureJavaModuleStep(NewJavaModuleModel(model.project.value, templateHandle, model.projectSyncInvoker), name)
+      ConfigureLibraryModuleStep(NewLibraryModuleModel(model.project.value, templateHandle, model.projectSyncInvoker), name)
   }
 }
