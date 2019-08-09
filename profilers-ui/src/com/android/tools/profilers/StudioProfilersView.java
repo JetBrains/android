@@ -34,6 +34,8 @@ import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuCaptureStageView;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
+import com.android.tools.profilers.customevent.CustomEventProfilerStage;
+import com.android.tools.profilers.customevent.CustomEventProfilerStageView;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStageView;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -156,6 +158,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
     myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);
+    myBinder.bind(CustomEventProfilerStage.class, CustomEventProfilerStageView::new);
 
     myProfiler.addDependency(this)
       .onChange(ProfilerAspect.STAGE, this::updateStageView)
@@ -557,7 +560,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       CpuProfilerStage.class, "CPU",
       MemoryProfilerStage.class, "MEMORY",
       NetworkProfilerStage.class, "NETWORK",
-      EnergyProfilerStage.class, "ENERGY");
+      EnergyProfilerStage.class, "ENERGY",
+      CustomEventProfilerStage.class, "CUSTOM EVENTS");
 
     @Override
     protected void customizeCellRenderer(@NotNull JList list, Class value, int index, boolean selected, boolean hasFocus) {

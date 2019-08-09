@@ -48,6 +48,8 @@ import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.customevent.CustomEventProfiler;
+import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfiler;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.event.EventProfiler;
@@ -187,8 +189,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myStage.enter();
 
     myUpdater = new Updater(timer);
+
+    // Order in which events are added to profilersBuilder will be order they appear in monitor stage
     ImmutableList.Builder<StudioProfiler> profilersBuilder = new ImmutableList.Builder<>();
     profilersBuilder.add(new EventProfiler(this));
+
+    // Show the custom event monitor in the monitor stage view when enabled right under the activity bar
+    if (myIdeServices.getFeatureConfig().isCustomEventVisualizationEnabled()) {
+      profilersBuilder.add(new CustomEventProfiler(this));
+    }
     profilersBuilder.add(new CpuProfiler(this));
     profilersBuilder.add(new MemoryProfiler(this));
     profilersBuilder.add(new NetworkProfiler(this));
@@ -860,6 +869,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                                               : myDevice != null && myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
     if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled() && isEnergyStageEnabled) {
       listBuilder.add(EnergyProfilerStage.class);
+    }
+
+    // Show the custom event stage in the dropdown list of profiling options when enabled
+    if (getIdeServices().getFeatureConfig().isCustomEventVisualizationEnabled()) {
+      listBuilder.add(CustomEventProfilerStage.class);
     }
     return listBuilder.build();
   }
