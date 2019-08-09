@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.net.HttpConfigurable;
 
 import java.io.File;
@@ -23,7 +23,7 @@ import java.io.File;
 /**
  * Tests for {@link GradleProperties}.
  */
-public class GradlePropertiesTest extends IdeaTestCase {
+public class GradlePropertiesTest extends PlatformTestCase {
   private GradleProperties myProperties;
   private HttpConfigurable myOriginalIdeSettings;
 

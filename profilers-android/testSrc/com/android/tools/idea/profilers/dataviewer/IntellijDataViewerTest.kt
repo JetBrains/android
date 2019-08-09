@@ -20,9 +20,9 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.json.JsonFileType
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileTypes.PlainTextFileType
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.PlatformTestCase
 
-class IntellijDataViewerTest : IdeaTestCase() {
+class IntellijDataViewerTest : PlatformTestCase() {
   fun testCanCreateRawTextViewer() {
     val dummyText = "ASDF ".repeat(100)
     val viewer = IntellijDataViewer.createRawTextViewer(dummyText.toByteArray())

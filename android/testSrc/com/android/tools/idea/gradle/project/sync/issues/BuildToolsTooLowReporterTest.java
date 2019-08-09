@@ -33,7 +33,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.ArrayList;
 import java.util.List;
 import org.mockito.Mock;
@@ -41,7 +41,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link BuildToolsTooLowReporter}.
  */
-public class BuildToolsTooLowReporterTest extends IdeaTestCase {
+public class BuildToolsTooLowReporterTest extends PlatformTestCase {
   @Mock private SyncIssue mySyncIssue;
   @Mock private SdkBuildToolsTooLowErrorHandler myErrorHandler;
   private GradleSyncMessagesStub mySyncMessages;

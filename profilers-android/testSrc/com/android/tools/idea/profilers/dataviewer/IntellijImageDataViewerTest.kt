@@ -17,9 +17,9 @@ package com.android.tools.idea.profilers.dataviewer
 
 import com.android.tools.profilers.dataviewer.DataViewer
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.PlatformTestCase
 
-class IntellijImageDataViewerTest : IdeaTestCase() {
+class IntellijImageDataViewerTest : PlatformTestCase() {
   fun testCanCreateImageViewer() {
     val viewer = IntellijImageDataViewer.createImageViewer(
       IntellijImageDataViewerTest::class.java.getResource("/image.png").readBytes())!!

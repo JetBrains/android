@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
@@ -26,7 +26,7 @@ import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 /**
  * Tests for {@link AndroidModuleCleanupStep}.
  */
-public class AndroidModuleCleanupStepTest extends IdeaTestCase {
+public class AndroidModuleCleanupStepTest extends PlatformTestCase {
   private AndroidModuleCleanupStep myCleanupStep;
 
   @Override

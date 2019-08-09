@@ -21,7 +21,7 @@ import com.intellij.ide.util.treeView.PresentableNodeDescriptor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import java.io.File;
 import java.util.List;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link SourceFolderNode}.
  */
-public class SourceFolderNodeTest extends IdeaTestCase {
+public class SourceFolderNodeTest extends PlatformTestCase {
   private SourceFolderNode myNode;
   private VirtualFile myFolder;
   private PresentationData myPresentation;

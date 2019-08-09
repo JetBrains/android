@@ -20,13 +20,13 @@ import static org.mockito.Mockito.mock;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 /**
  * Tests for {@link GradleTestArtifactSearchScopeSetupStep}.
  */
-public class TestArtifactSearchScopeSetupStepGradleTest extends IdeaTestCase {
+public class TestArtifactSearchScopeSetupStepGradleTest extends PlatformTestCase {
   private GradleTestArtifactSearchScopeSetupStep mySetupStep;
 
   @Override

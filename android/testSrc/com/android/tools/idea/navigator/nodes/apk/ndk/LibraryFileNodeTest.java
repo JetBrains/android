@@ -19,7 +19,7 @@ import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link LibraryFileNode}.
  */
-public class LibraryFileNodeTest extends IdeaTestCase {
+public class LibraryFileNodeTest extends PlatformTestCase {
   private NativeLibrary myLibrary;
   private PresentationData myPresentation;
   private LibraryFileNode myNode;
