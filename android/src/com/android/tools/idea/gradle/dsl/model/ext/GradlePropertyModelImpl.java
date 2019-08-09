@@ -295,7 +295,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     // Unlike maps, we don't create a placeholder element. This is since we need to retain and update order in the list.
     // This would be hard to create an intuitive api to do this, so instead we always create an empty string as the new item.
-    GradleDslLiteral literal = new GradleDslLiteral(element, GradleNameElement.fake(myName));
+    GradleDslLiteral literal = new GradleDslLiteral(element, GradleNameElement.empty());
     literal.setValue("");
 
     GradleDslExpressionList list = (GradleDslExpressionList)element;
@@ -424,7 +424,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     else {
       holder = (GradlePropertiesDslElement)myPropertyHolder;
     }
-    return holder.getOriginalElementForNameAndType(myName, myPropertyType) != null;
+
+    GradleDslElement originalElement = holder.getOriginalElementForNameAndType(myName, myPropertyType);
+    GradleDslElement holderOriginalElement = findOriginalElement(holder.getParent(), holder);
+    // For a property element to be modified : it should either be under a modified state itself, or should have made a modification
+    // to the original state of the dsl tree.
+    return originalElement != null && (originalElement.isModified() || isElementModified(holderOriginalElement, holder));
   }
 
   @Override
