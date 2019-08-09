@@ -187,6 +187,9 @@ public class ResourceSerializationUtil {
     stream.setStringCache(stringCache); // Enable string instance sharing to minimize memory consumption.
 
     int n = stream.readInt();
+    if (n == 0) {
+      return; // Nothing to load.
+    }
     List<RepositoryConfiguration> configurations = new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
       String configQualifier = stream.readString();
@@ -222,23 +225,6 @@ public class ResourceSerializationUtil {
       BasicResourceItemBase item = BasicResourceItemBase.deserialize(stream, configurations, newSourceFiles, newNamespaceResolvers);
       resourceConsumer.accept(item);
     }
-  }
-
-  /**
-   * Checks that contents of the given stream starting from the current position match the expected sequence of bytes.
-   *
-   * @param expectedContents the sequence of bytes expected to be present in the stream
-   * @param stream the stream to read the data from
-   * @return true if the stream contents match, false otherwise
-   */
-  public static boolean validateContents(@NotNull byte[] expectedContents, @NotNull Base128InputStream stream) throws IOException {
-    for (byte expected : expectedContents) {
-      byte b = stream.readByte();
-      if (b != expected) {
-        return false;
-      }
-    }
-    return true;
   }
 
   /**

@@ -48,6 +48,7 @@ import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
 
+import com.android.ide.common.rendering.api.DensityBasedResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.resources.ResourceFile;
@@ -55,8 +56,10 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceMergerItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.ValueResourceNameValidator;
+import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
+import com.android.resources.Density;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -70,6 +73,7 @@ import com.android.tools.idea.res.binding.BindingLayoutGroup;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.tools.idea.res.binding.BindingLayoutXml;
 import com.android.tools.idea.resources.base.Base128InputStream;
+import com.android.tools.idea.resources.base.BasicDensityBasedFileResourceItem;
 import com.android.tools.idea.resources.base.BasicFileResourceItem;
 import com.android.tools.idea.resources.base.BasicResourceItem;
 import com.android.tools.idea.resources.base.BasicValueResourceItemBase;
@@ -176,7 +180,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * Increment when making changes that may affect content of repository cache files.
    * Used together with CachingData.codeVersion. Important for developer builds.
    */
-  static final String CACHE_FILE_FORMAT_VERSION = "1";
+  static final String CACHE_FILE_FORMAT_VERSION = "2";
   private static final byte[] CACHE_FILE_HEADER = "Resource cache".getBytes(UTF_8);
   /**
    * Maximum fraction of resources out of date in the cache for the cache to be considered fresh.
@@ -227,8 +231,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * If {@code cachingData} is not null, an attempt is made
    * to load resources from the cache file specified in {@code cachingData}. While loading from the cache resources
    * defined in the XML files that changed recently are skipped. Whether an XML has changed or not is determined by
-   * comparing the file modification time obtained by calling {@link VirtualFile#getModificationStamp()} with
-   * the modification time stored in the cache.
+   * comparing the combined hash of the file modification time and the length obtained by calling
+   * {@link VirtualFile#getTimeStamp()} and {@link VirtualFile#getLength()} with the hash value stored in the cache.
+   * The checks are located in {@link #deserializeResourceSourceFile} and {@link #deserializeFileResourceItem}.
    * <p>
    * The remaining resources are then loaded by parsing XML files that were not present in the cache or were newer
    * than their cached versions.
@@ -905,8 +910,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           // to update the id's:
           Set<String> idsBefore = new HashSet<>();
           synchronized (ITEM_MAP_LOCK) {
-            ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, ResourceType.ID);
-            if (map != null) {
+            ListMultimap<String, ResourceItem> idMultimap = myFullTable.get(myNamespace, ResourceType.ID);
+            if (idMultimap != null) {
               List<PsiResourceItem> idItems = new ArrayList<>();
               for (PsiResourceItem item : psiResourceFile) {
                 if (item.getType() == ResourceType.ID) {
@@ -918,7 +923,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 // Note that ResourceFile has a flat map (not a multimap) so it doesn't
                 // record all items (unlike the myItems map) so we need to remove the map
                 // items manually, can't just do map.remove(item.getName(), item)
-                List<ResourceItem> mapItems = map.get(id);
+                List<ResourceItem> mapItems = idMultimap.get(id);
                 if (mapItems != null && !mapItems.isEmpty()) {
                   List<ResourceItem> toDelete = new ArrayList<>(mapItems.size());
                   for (ResourceItem mapItem : mapItems) {
@@ -927,7 +932,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                     }
                   }
                   for (ResourceItem delete : toDelete) {
-                    map.remove(delete.getName(), delete);
+                    idMultimap.remove(delete.getName(), delete);
                   }
                 }
               }
@@ -1680,13 +1685,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         PsiResourceFile psiResourceFile = (PsiResourceFile)resFile;
         ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName, xmlTag);
         synchronized (ITEM_MAP_LOCK) {
-          ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, ResourceType.ID);
-          if (map != null) {
+          ListMultimap<String, ResourceItem> idMultimap = myFullTable.get(myNamespace, ResourceType.ID);
+          if (idMultimap != null) {
             boolean madeChanges = false;
 
             if (item != null) {
               // Found the relevant item: delete it and create a new one in a new location
-              map.remove(oldName, item);
+              idMultimap.remove(oldName, item);
               if (psiResourceFile.isSourceOf(item)) {
                 psiResourceFile.removeItem((PsiResourceItem)item);
               }
@@ -1697,7 +1702,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               String newName = newResourceUrl.name;
               if (newResourceUrl.urlType == ResourceUrl.UrlType.CREATE && isValidResourceName(newName)) {
                 PsiResourceItem newItem = PsiResourceItem.forXmlTag(newName, ResourceType.ID, myNamespace, xmlTag, true);
-                map.put(newName, newItem);
+                idMultimap.put(newName, newItem);
                 psiResourceFile.addItem(newItem);
                 madeChanges = true;
               }
@@ -2010,11 +2015,96 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     return Collections.singleton(myResourceDir);
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * This override is needed because this repository uses {@link VfsResourceFile} that is a subclass of
+   * {@link ResourceSourceFile} used by {@link RepositoryLoader}. If the combined hash of file timestamp
+   * and length doesn't match the stream, the method returns an invalid {@link VfsResourceFile} containing
+   * a null {@link VirtualFile} reference. Validity of of the {@link VfsResourceFile} is checked later
+   * inside the {@link Loader#addResourceItem} method. This process creates few objects that are discarded
+   * later, but an alternative of returning null instead of an invalid {@link VfsResourceFile} would lead
+   * to pretty unnatural nullability conditions in {@link RepositoryLoader}.
+   * @see VfsResourceFile#serialize
+   */
   @Override
   @NotNull
-  public ResourceSourceFile deserializeResourceSourceFile(
+  public VfsResourceFile deserializeResourceSourceFile(
       @NotNull Base128InputStream stream, @NotNull List<RepositoryConfiguration> configurations) throws IOException {
-    return VfsResourceFile.deserialize(stream, configurations);
+    String relativePath = stream.readString();
+    if (relativePath == null) {
+      throw Base128InputStream.StreamFormatException.invalidFormat();
+    }
+    int configIndex = stream.readInt();
+    RepositoryConfiguration configuration = configurations.get(configIndex);
+    VirtualFile virtualFile =
+        ((ResourceFolderRepository)configuration.getRepository()).getResourceDir().findFileByRelativePath(relativePath);
+    if (!stream.validateContents(FileTimeStampLengthHasher.hash(virtualFile))) {
+      virtualFile = null;
+    }
+
+    return new VfsResourceFile(virtualFile, configuration);
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * This override is needed because this repository uses {@link VfsFileResourceItem} that is a subclass of
+   * {@link BasicFileResourceItem} used by {@link RepositoryLoader}. If the combined hash of file timestamp
+   * and length doesn't match the stream, the method returns an invalid {@link VfsFileResourceItem} containing
+   * a null {@link VirtualFile} reference. Validity of of the {@link VfsFileResourceItem} is checked later
+   * inside the {@link Loader#addResourceItem} method. This process creates few objects that are discarded
+   * later, but an alternative of returning null instead of an invalid {@link VfsFileResourceItem} would lead
+   * to pretty unnatural nullability conditions in {@link RepositoryLoader}.
+   * @see VfsFileResourceItem#serialize
+   * @see BasicFileResourceItem#serialize
+   */
+  @Override
+  @NotNull
+  public BasicFileResourceItem deserializeFileResourceItem(@NotNull Base128InputStream stream,
+                                                           @NotNull ResourceType resourceType,
+                                                           @NotNull String name,
+                                                           @NotNull ResourceVisibility visibility,
+                                                           @NotNull List<RepositoryConfiguration> configurations) throws IOException {
+    String relativePath = stream.readString();
+    if (relativePath == null) {
+      throw Base128InputStream.StreamFormatException.invalidFormat();
+    }
+    int configIndex = stream.readInt();
+    RepositoryConfiguration configuration = configurations.get(configIndex);
+    int encodedDensity = stream.readInt();
+
+    VirtualFile virtualFile =
+        ((ResourceFolderRepository)configuration.getRepository()).getResourceDir().findFileByRelativePath(relativePath);
+    boolean idGenerating = false;
+    String folderName = new PathString(relativePath).getParentFileName();
+    if (folderName != null) {
+      ResourceFolderType folderType = ResourceFolderType.getFolderType(folderName);
+      idGenerating = folderType != null && FolderTypeRelationship.isIdGeneratingFolderType(folderType);
+    }
+    if (idGenerating) {
+      if (!stream.validateContents(FileTimeStampLengthHasher.hash(virtualFile))) {
+        virtualFile = null;
+      }
+
+      if (encodedDensity == 0) {
+        return new VfsFileResourceItem(resourceType, name, configuration, visibility, relativePath, virtualFile);
+      }
+
+      Density density = Density.values()[encodedDensity - 1];
+      return new VfsDensityBasedFileResourceItem(resourceType, name, configuration, visibility, relativePath, virtualFile, density);
+    }
+    else {
+      // The resource item corresponding to a file that is not id-generating is valid regardless of the changes to
+      // the contents of the file. BasicFileResourceItem and BasicDensityBasedFileResourceItem are sufficient in
+      // this case since there is no need for timestamp/length check.
+      if (encodedDensity == 0) {
+        return new BasicFileResourceItem(resourceType, name, configuration, visibility, relativePath);
+      }
+
+      Density density = Density.values()[encodedDensity - 1];
+      return new BasicDensityBasedFileResourceItem(resourceType, name, configuration, visibility, relativePath, density);
+    }
   }
 
   /**
@@ -2075,7 +2165,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
       byte[] fileHeader = getCacheFileHeader(myCachingData);
       try (Base128InputStream stream = new Base128InputStream(myCachingData.getCacheFile())) {
-        if (!ResourceSerializationUtil.validateContents(fileHeader, stream)) {
+        if (!stream.validateContents(fileHeader)) {
           return; // Cache file header doesn't match.
         }
         ResourceSerializationUtil.readResourcesFromStream(stream, Maps.newHashMapWithExpectedSize(1000), null, myRepository,
@@ -2198,7 +2288,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           }
         }
 
-        BasicFileResourceItem item = createFileResourceItem(file, folderInfo.resourceType, configuration);
+        BasicFileResourceItem item = createFileResourceItem(file, folderInfo.resourceType, configuration, folderInfo.isIdGenerating);
         addResourceItem(item, (ResourceFolderRepository)item.getRepository());
       }
     }
@@ -2282,15 +2372,23 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     protected void addResourceItem(@NotNull BasicResourceItem item, @NotNull ResourceFolderRepository repository) {
       if (item instanceof BasicValueResourceItemBase) {
         VfsResourceFile sourceFile = (VfsResourceFile)((BasicValueResourceItemBase)item).getSourceFile();
-        if (sourceFile.isValid()) {
+        VirtualFile virtualFile = sourceFile.getVirtualFile();
+        if (virtualFile != null && virtualFile.isValid() && !virtualFile.isDirectory()) {
           sourceFile.addItem(item);
-          mySources.put(sourceFile.getVirtualFile(), sourceFile);
+          mySources.put(virtualFile, sourceFile);
+        }
+      }
+      else if (item instanceof VfsFileResourceItem) {
+        VfsFileResourceItem fileResourceItem = (VfsFileResourceItem)item;
+        VirtualFile virtualFile = fileResourceItem.getVirtualFile();
+        if (virtualFile != null && virtualFile.isValid() && !virtualFile.isDirectory()) {
+          myFileResources.put(virtualFile, fileResourceItem);
         }
       }
       else if (item instanceof BasicFileResourceItem) {
         BasicFileResourceItem fileResourceItem = (BasicFileResourceItem)item;
         VirtualFile virtualFile = getVirtualFile(fileResourceItem.getSource());
-        if (virtualFile != null) {
+        if (virtualFile != null && virtualFile.isValid() && !virtualFile.isDirectory()) {
           myFileResources.put(virtualFile, fileResourceItem);
         }
       }
@@ -2299,11 +2397,47 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     }
 
+    @NotNull
+    private BasicFileResourceItem createFileResourceItem(@NotNull PathString file,
+                                                         @NotNull ResourceType resourceType,
+                                                         @NotNull RepositoryConfiguration configuration,
+                                                         boolean idGenerating) {
+      String resourceName = getResourceName(file);
+      ResourceVisibility visibility = getVisibility(resourceType, resourceName);
+      Density density = null;
+      if (DensityBasedResourceValue.isDensityBasedResourceType(resourceType)) {
+        DensityQualifier densityQualifier = configuration.getFolderConfiguration().getDensityQualifier();
+        if (densityQualifier != null) {
+          density = densityQualifier.getValue();
+        }
+      }
+      return createFileResourceItem(file, resourceType, resourceName, configuration, visibility, density, idGenerating);
+    }
+
     @Override
     @NotNull
     protected ResourceSourceFile createResourceSourceFile(@NotNull PathString file, @NotNull RepositoryConfiguration configuration) {
       VirtualFile virtualFile = getVirtualFile(file);
       return new VfsResourceFile(virtualFile, configuration);
+    }
+
+    @NotNull
+    private BasicFileResourceItem createFileResourceItem(@NotNull PathString file,
+                                                         @NotNull ResourceType type,
+                                                         @NotNull String name,
+                                                         @NotNull RepositoryConfiguration configuration,
+                                                         @NotNull ResourceVisibility visibility,
+                                                         @Nullable Density density,
+                                                         boolean idGenerating) {
+      if (!idGenerating) {
+        return super.createFileResourceItem(file, type, name, configuration, visibility, density);
+      }
+
+      VirtualFile virtualFile = getVirtualFile(file);
+      String relativePath = getResRelativePath(file);
+      return density == null ?
+             new VfsFileResourceItem(type, name, configuration, visibility, relativePath, virtualFile) :
+             new VfsDensityBasedFileResourceItem(type, name, configuration, visibility, relativePath, virtualFile, density);
     }
 
     @Override
