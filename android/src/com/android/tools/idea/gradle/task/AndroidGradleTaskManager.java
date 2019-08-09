@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.task;
 
+import static org.jetbrains.plugins.gradle.service.task.GradleTaskManager.appendInitScriptArgument;
+
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.GradleProjects;
@@ -25,17 +27,13 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.jetbrains.plugins.gradle.service.task.GradleTaskManager.appendInitScriptArgument;
 
 /**
  * Executes Gradle tasks.
@@ -106,9 +104,10 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
   private static GradleBuildInvoker findGradleInvoker(ExternalSystemTaskId id, String projectPath) {
     Project project = id.findProject();
     if (project != null && GradleProjectInfo.getInstance(project).isDirectGradleBuildEnabled()) {
+      // Make sure this is an Android project. IDEA manages non-Android Gradle projects itself.
+      // TODO(b/139179869): Replace with the common way to detect Android-Gradle projects.
       ModuleManager moduleManager = ModuleManager.getInstance(project);
       for (Module module : moduleManager.getModules()) {
-
         if (projectPath.equals(ExternalSystemApiUtil.getExternalProjectPath(module)) && GradleProjects.isIdeaAndroidModule(module)) {
           return GradleBuildInvoker.getInstance(project);
         }
