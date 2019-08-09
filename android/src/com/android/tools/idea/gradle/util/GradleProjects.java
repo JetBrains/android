@@ -96,12 +96,6 @@ public final class GradleProjects {
     return GradleSettings.getInstance(project).isOfflineWork();
   }
 
-  @Nullable
-  public static AndroidModel getAndroidModel(@NotNull Module module) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    return androidFacet != null ? androidFacet.getConfiguration().getModel() : null;
-  }
-
   /**
    * Returns the modules to build based on the current selection in the 'Project' tool window. If the module that corresponds to the project
    * is selected, all the modules in such projects are returned. If there is no selection, an empty array is returned.
