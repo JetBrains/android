@@ -28,7 +28,7 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_MODULE
 import com.intellij.openapi.project.Project
 
-class NewJavaModuleModel(
+class NewLibraryModuleModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker
 ) : ModuleModel(project, templateHandle, projectSyncInvoker, "lib") {
   @JvmField
