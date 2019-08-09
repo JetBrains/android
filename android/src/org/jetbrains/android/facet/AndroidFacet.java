@@ -99,7 +99,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   /**
    * Indicates whether the project requires a {@link AndroidProject} (obtained from a build system. To check if a project is a "Gradle
-   * project," please use the method {@link GradleProjects#isBuildWithGradle(Project)}.
+   * project," please use the method {@link com.android.tools.idea.gradle.project.GradleProjectInfo#isBuildWithGradle()}.
    *
    * @return {@code true} if the project has a {@code AndroidProject}; {@code false} otherwise.
    */
