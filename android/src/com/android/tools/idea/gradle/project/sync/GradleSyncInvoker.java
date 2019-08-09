@@ -34,7 +34,6 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
-import com.android.tools.idea.gradle.project.build.output.AndroidGradleSyncTextConsoleView;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
@@ -52,7 +51,6 @@ import com.intellij.build.events.Failure;
 import com.intellij.build.events.impl.FailureResultImpl;
 import com.intellij.build.events.impl.FinishBuildEventImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
-import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
@@ -324,11 +322,7 @@ public class GradleSyncInvoker {
     String workingDir = toCanonicalPath(getBaseDirPath(project).getPath());
     DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Preparing for sync", workingDir, currentTimeMillis());
     SyncViewManager syncManager = ServiceManager.getService(project, SyncViewManager.class);
-    syncManager.onEvent(taskId, new StartBuildEventImpl(buildDescriptor, "Running pre sync checks...").withContentDescriptorSupplier(
-      () -> {
-        AndroidGradleSyncTextConsoleView consoleView = new AndroidGradleSyncTextConsoleView(project);
-        return new RunContentDescriptor(consoleView, null, consoleView.getComponent(), "Gradle Sync");
-      }));
+    syncManager.onEvent(taskId, new StartBuildEventImpl(buildDescriptor, "Running pre sync checks..."));
     return taskId;
   }
 
