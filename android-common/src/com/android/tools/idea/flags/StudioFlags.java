@@ -358,7 +358,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NAV_NEW_PROPERTY_PANEL = Flag.create(
     NAV_EDITOR, "new.property", "Enable the new Property Panel",
     "Enable the new Property Panel",
-    false);
+    true);
   //endregion
 
   //region Run/Debug
