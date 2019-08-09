@@ -87,6 +87,8 @@ const val PREVIEW_PACKAGE = "com.android.tools.preview"
 /** Only composables with this annotation will be rendered to the surface */
 const val PREVIEW_ANNOTATION_FQN = "$PREVIEW_PACKAGE.$PREVIEW_NAME"
 
+const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.Composable"
+
 /** View included in the runtime library that will wrap the @Composable element so it gets rendered by layoutlib */
 const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
 

@@ -29,6 +29,7 @@ import org.jetbrains.uast.ULambdaExpression
 import org.jetbrains.uast.ULiteralExpression
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.getContainingUFile
+import org.jetbrains.uast.getContainingUMethod
 import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.resolveToUElement
 import org.jetbrains.uast.visitor.UastVisitor
@@ -126,14 +127,18 @@ object MethodPreviewElementFinder : PreviewElementFinder {
 
       override fun visitCallExpression(node: UCallExpression): Boolean {
         val previewUMethod = getPreviewMethodCall(node) ?: return false
-        val composableMethod = node.getParentOfType<UMethod>() ?: return false
-        val composableMethodClass = composableMethod.uastParent as UClass
-        val composableMethodName = "${composableMethodClass.qualifiedName}.${composableMethod.name}"
+        val composableMethod = node.getContainingUMethod() ?: return false
 
-        val parameters = callExpressionToDataMap(node, previewUMethod)
-        visitPreviewMethodCall(composableMethodName,
-                               parameters["name"] as? String ?: "",
-                               parameters["configuration"] as? Map<String, Any> ?: emptyMap())
+        // The method must also be annotated with @Composable
+        if (composableMethod.annotations.any { COMPOSABLE_ANNOTATION_FQN == it.qualifiedName }) {
+          val composableMethodClass = composableMethod.uastParent as UClass
+          val composableMethodName = "${composableMethodClass.qualifiedName}.${composableMethod.name}"
+
+          val parameters = callExpressionToDataMap(node, previewUMethod)
+          visitPreviewMethodCall(composableMethodName,
+                                 parameters["name"] as? String ?: "",
+                                 parameters["configuration"] as? Map<String, Any> ?: emptyMap())
+        }
 
         return super.visitCallExpression(node)
       }
