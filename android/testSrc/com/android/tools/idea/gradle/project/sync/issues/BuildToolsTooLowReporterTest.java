@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
-import static com.android.builder.model.SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,7 +58,7 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
   }
 
   public void testGetSupportedIssueType() {
-    assertSame(TYPE_BUILD_TOOLS_TOO_LOW, myIssueReporter.getSupportedIssueType());
+    assertSame(SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW, myIssueReporter.getSupportedIssueType());
   }
 
   public void testReport() {
@@ -69,6 +68,7 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
     String minVersion = "25";
     when(mySyncIssue.getData()).thenReturn(minVersion);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
+    when(mySyncIssue.getType()).thenReturn(SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW);
 
     Module module = getModule();
     List<NotificationHyperlink> quickFixes = new ArrayList<>();
