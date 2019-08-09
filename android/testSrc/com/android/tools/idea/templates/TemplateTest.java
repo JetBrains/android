@@ -66,7 +66,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
@@ -88,6 +87,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -922,7 +922,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                                                       myFixture.getProject(),
                                                       new File(myFixture.getTempDirPath()),
                                                       new File("dummy"),
-                                                      null);
+                                                      ImmutableMap.of());
     template.render(context, false);
     FileDocumentManager.getInstance().saveAllDocuments();
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
@@ -1030,10 +1030,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
 
     AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-    assertNotNull(sdkData);
 
-    TestNewProjectWizardState projectState =
-      createNewProjectState(createWithProject, sdkData, getModuleTemplateForFormFactor(templateFile));
+    TestNewProjectWizardState projectState = createNewProjectState(createWithProject, sdkData, getModuleTemplateForFormFactor(templateFile));
 
     String projectNameBase = templateFile.getName();
 
