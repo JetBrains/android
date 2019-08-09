@@ -19,10 +19,8 @@ import com.android.tools.adtui.DragAndDropList
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel
 import com.android.tools.adtui.model.trackgroup.TrackModel
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import java.awt.Container
 import javax.swing.JLabel
 import javax.swing.JList
 
@@ -33,13 +31,11 @@ class TrackGroupTest {
     val trackGroupModel = TrackGroupModel("Group")
     trackGroupModel.addTrackModel(TrackModel(true, TestTrackRendererType.FOO, "Foo"))
     trackGroupModel.addTrackModel(TrackModel("text", TestTrackRendererType.BAR, "Bar"))
-    val trackGroup = TrackGroup(trackGroupModel, TestTrackRendererFactory())
+    val trackGroupComponent = TrackGroup(trackGroupModel, TestTrackRendererFactory()).component
 
-    assertTrue(trackGroup.component is Container)
-    val trackGroupComponent = trackGroup.component as Container
-    assertEquals(trackGroupComponent.componentCount, 2)
-    assertTrue(trackGroupComponent.getComponent(0) is JLabel)
-    assertTrue(trackGroupComponent.getComponent(1) is JList<*>)
-    assertEquals((trackGroupComponent.getComponent(1) as DragAndDropList<*>).model.size, 2)
+    assertThat(trackGroupComponent.componentCount).isEqualTo(2)
+    assertThat(trackGroupComponent.getComponent(0)).isInstanceOf(JLabel::class.java)
+    assertThat(trackGroupComponent.getComponent(1)).isInstanceOf(JList::class.java)
+    assertThat((trackGroupComponent.getComponent(1) as DragAndDropList<*>).model.size).isEqualTo(2)
   }
 }
