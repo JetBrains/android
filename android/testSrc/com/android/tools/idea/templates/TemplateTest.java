@@ -963,28 +963,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  public void testJdk5() throws Exception {
-    if (DISABLED) {
-      return;
-    }
-    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-    assertNotNull(sdkData);
-
-    IAndroidTarget[] targets = sdkData.getTargets();
-    IAndroidTarget target = targets[targets.length - 1];
-    Map<String, Object> overrides = new HashMap<>();
-    overrides.put(ATTR_JAVA_VERSION, "1.5");
-    TestNewProjectWizardState state = createNewProjectState(true, sdkData, getDefaultModuleTemplate());
-
-    // TODO: Allow null activity state!
-    File activity = findTemplate("activities", "BasicActivity");
-    TestTemplateWizardState activityState = state.getActivityTemplateState();
-    assertNotNull(activity);
-    activityState.setTemplateLocation(activity);
-
-    checkApiTarget(14, 18, target, state, "Test15", null, overrides, null);
-  }
-
   public void testTemplateFormatting() throws Exception {
     Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")).getCanonicalFile());
     RenderingContext context = createRenderingContext(template,
