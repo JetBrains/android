@@ -202,7 +202,7 @@ class ResourceExplorerToolbarViewModel(
    * enable [CreateResourceFileAction] for the current [ResourceType] with a preselected destination.
    */
   private fun getVirtualFileForResourceType(): VirtualFile? {
-    val resDirs = facet.mainSourceProvider.resDirectories.mapNotNull { it.toVirtualFile() }
+    val resDirs = facet.mainIdeaSourceProvider.resDirectories
     val subDir = FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()?.let { resourceFolderType ->
       // TODO: Make a smart suggestion. E.g: Colors may be on a colors or values directory and the first might be preferred.
       AndroidResourceUtil.getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()
