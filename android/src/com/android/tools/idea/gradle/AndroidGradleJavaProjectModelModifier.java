@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE;
-import static com.android.tools.idea.gradle.util.GradleProjects.getAndroidModel;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE;
@@ -197,7 +196,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       return null;
     }
 
-    if (getAndroidModel(module) != null) {
+    // TODO(b/139177813): Do not rely on synced model to choose the way to update the build file.
+    if (com.android.tools.idea.model.AndroidModel.get(module) != null) {
       AndroidModel android = buildModel.android();
       CompileOptionsModel compileOptions = android.compileOptions();
       compileOptions.sourceCompatibility().setLanguageLevel(level);
