@@ -255,6 +255,31 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
+  public void getSelectedSnapshotSnapshotsDisabled() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 3 XL API 28")
+      .setKey("Pixel_3_XL_API_28")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setSnapshots(ImmutableList.of(new Snapshot("Snapshot 1", "snap_2019-07-31_14-14-25")))
+      .build();
+
+    Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
+
+    AnAction action = new DeviceAndSnapshotComboBoxAction(
+      () -> false,
+      project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
+      myClock);
+
+    // Act
+    action.update(myEvent);
+
+    // Assert
+    assertEquals("Pixel 3 XL API 28", myPresentation.getText());
+  }
+
+  @Test
   public void createPopupActionGroupActionsIsEmpty() {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
