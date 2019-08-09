@@ -56,6 +56,8 @@ class SingleDeviceAndroidProcessMonitorTest {
   lateinit var mockDeploymentAppService: DeploymentApplicationService
   @Mock
   lateinit var mockLogcatCaptor: AndroidLogcatOutputCapture
+  @Mock
+  lateinit var mockTextEmitter: TextEmitter
 
   @Before
   fun setUp() {
@@ -82,6 +84,7 @@ class SingleDeviceAndroidProcessMonitorTest {
       },
       mockDeploymentAppService,
       mockLogcatCaptor,
+      mockTextEmitter,
       1,
       TEST_TIMEOUT_MILLIS
     )
@@ -120,6 +123,7 @@ class SingleDeviceAndroidProcessMonitorTest {
       },
       mockDeploymentAppService,
       mockLogcatCaptor,
+      mockTextEmitter,
       1,
       TEST_TIMEOUT_MILLIS
     )
@@ -159,6 +163,7 @@ class SingleDeviceAndroidProcessMonitorTest {
       },
       mockDeploymentAppService,
       mockLogcatCaptor,
+      mockTextEmitter,
       1,
       TEST_TIMEOUT_MILLIS
     )
@@ -193,6 +198,7 @@ class SingleDeviceAndroidProcessMonitorTest {
       },
       mockDeploymentAppService,
       mockLogcatCaptor,
+      mockTextEmitter,
       1,
       1
     )
