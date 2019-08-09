@@ -119,7 +119,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
   private static XmlFile getAndroidManifestPsi(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      VirtualFile manifest = LocalFileSystem.getInstance().findFileByIoFile(facet.getMainSourceProvider().getManifestFile());
+      VirtualFile manifest = facet.getMainIdeaSourceProvider().getManifestFile();
       if (manifest != null) {
         PsiFile psiFile = PsiManager.getInstance(module.getProject()).findFile(manifest);
         if (psiFile instanceof XmlFile) {
