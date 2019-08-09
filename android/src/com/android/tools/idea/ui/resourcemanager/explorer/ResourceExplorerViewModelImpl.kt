@@ -491,9 +491,9 @@ data class ResourceSection(
 
 private fun userReadableLibraryName(lib: AarResourceRepository) =
   lib.libraryName?.let {
-    GradleCoordinate.parseCoordinateString(it)?.artifactId
+    GradleCoordinate.parseCoordinateString(it)?.artifactId ?: it
   }
-  ?: ""
+  ?: "library - failed name"
 
 /**
  * For a resolved resource, returns the readable name of the declared resource data type. This is usually the root of the element defined in
