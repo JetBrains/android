@@ -41,33 +41,4 @@ public class GradleProjectsTest extends IdeaTestCase {
     assertTrue(AndroidProjectInfo.getInstance(myProject).requiresAndroidModel());
   }
 
-  public void testGetSelectedModules() {
-    createAndAddGradleFacet(myModule);
-
-    DataContext dataContext = createMock(DataContext.class);
-    Module[] data = {myModule};
-    expect(dataContext.getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName())).andReturn(data);
-
-    replay(dataContext);
-
-    Module[] selectedModules = GradleProjects.getModulesToBuildFromSelection(myProject, dataContext);
-    assertSame(data, selectedModules);
-
-    verify(dataContext);
-  }
-
-  public void testGetSelectedModulesWithModuleWithoutAndroidGradleFacet() {
-    DataContext dataContext = createMock(DataContext.class);
-    Module[] data = {myModule};
-    expect(dataContext.getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName())).andReturn(data);
-
-    replay(dataContext);
-
-    Module[] selectedModules = GradleProjects.getModulesToBuildFromSelection(myProject, dataContext);
-    assertNotSame(data, selectedModules);
-    assertEquals(1, selectedModules.length);
-    assertSame(myModule, selectedModules[0]);
-
-    verify(dataContext);
-  }
 }

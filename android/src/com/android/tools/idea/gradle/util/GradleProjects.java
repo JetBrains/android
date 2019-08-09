@@ -96,22 +96,6 @@ public final class GradleProjects {
     return GradleSettings.getInstance(project).isOfflineWork();
   }
 
-  /**
-   * Returns the modules to build based on the current selection in the 'Project' tool window. If the module that corresponds to the project
-   * is selected, all the modules in such projects are returned. If there is no selection, an empty array is returned.
-   *
-   * @param project     the given project.
-   * @param dataContext knows the modules that are selected. If {@code null}, this method gets the {@code DataContext} from the 'Project'
-   *                    tool window directly.
-   * @return the modules to build based on the current selection in the 'Project' tool window.
-   * @deprecated use {@link GradleProjectInfo#getModulesToBuildFromSelection(DataContext)}
-   */
-  @Deprecated
-  @NotNull
-  public static Module[] getModulesToBuildFromSelection(@NotNull Project project, @Nullable DataContext dataContext) {
-    return GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(dataContext);
-  }
-
   @Nullable
   public static File findModuleRootFolderPath(@NotNull Module module) {
     File moduleFilePath = toSystemDependentPath(module.getModuleFilePath());
