@@ -32,6 +32,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
+import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import java.util.concurrent.CountDownLatch
@@ -90,13 +91,13 @@ class SingleDeviceAndroidProcessMonitorTest {
     assertThat(latchForStart.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
 
     assertThat(latchForEnd.count).isEqualTo(1)
-    verify(mockLogcatCaptor).startCapture(eq(mockDevice) ?: mockDevice, eq(123), eq(TARGET_APP_NAME))
+    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).startCapture(eq(mockDevice) ?: mockDevice, eq(123), eq(TARGET_APP_NAME))
 
     // Now the target process finishes.
     `when`(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf())
 
     assertThat(latchForEnd.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
-    verify(mockLogcatCaptor).stopCapture(eq(mockDevice) ?: mockDevice)
+    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).stopCapture(eq(mockDevice) ?: mockDevice)
   }
 
   @Test
@@ -128,14 +129,14 @@ class SingleDeviceAndroidProcessMonitorTest {
     assertThat(latchForStart.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
 
     assertThat(latchForEnd.count).isEqualTo(1)
-    verify(mockLogcatCaptor).startCapture(eq(mockDevice) ?: mockDevice, eq(123), eq(TARGET_APP_NAME))
+    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).startCapture(eq(mockDevice) ?: mockDevice, eq(123), eq(TARGET_APP_NAME))
 
     // Now kill the target process by close.
     monitor.close()
 
     assertThat(latchForEnd.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
-    verify(mockLogcatCaptor).stopCapture(eq(mockDevice) ?: mockDevice)
-    verify(mockClient).kill()
+    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).stopCapture(eq(mockDevice) ?: mockDevice)
+    verify(mockClient, timeout(TEST_TIMEOUT_MILLIS)).kill()
   }
 
   @Test
@@ -167,13 +168,13 @@ class SingleDeviceAndroidProcessMonitorTest {
     assertThat(latchForStart.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
 
     assertThat(latchForEnd.count).isEqualTo(1)
-    verify(mockLogcatCaptor).startCapture(eq(mockDevice) ?: mockDevice, eq(123), eq(TARGET_APP_NAME))
+    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).startCapture(eq(mockDevice) ?: mockDevice, eq(123), eq(TARGET_APP_NAME))
 
     // Now detach the target process by close.
     monitor.detachAndClose()
 
     assertThat(latchForEnd.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
-    verify(mockLogcatCaptor).stopCapture(eq(mockDevice) ?: mockDevice)
+    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).stopCapture(eq(mockDevice) ?: mockDevice)
     verify(mockClient, never()).kill()
   }
 
@@ -196,7 +197,7 @@ class SingleDeviceAndroidProcessMonitorTest {
       1
     )
     assertThat(latch.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
-    verify(mockLogcatCaptor).stopCapture(eq(mockDevice) ?: mockDevice)
+    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).stopCapture(eq(mockDevice) ?: mockDevice)
   }
 
   private fun createMockClient(pid: Int): Client {
