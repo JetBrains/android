@@ -21,7 +21,7 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -35,7 +35,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 /**
  * Tests for {@link ContentEntries}.
  */
-public class ContentEntriesTest extends IdeaTestCase {
+public class ContentEntriesTest extends PlatformTestCase {
   public void testFindContentEntryWithFileInContentEntry() {
     List<ContentEntry> contentEntries = new ArrayList<>();
     ContentEntry contentEntry = createContentEntry(getModule());

@@ -24,7 +24,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link JavaFacetModuleSetupStep}.
  */
-public class JavaFacetModuleSetupStepTest extends IdeaTestCase {
+public class JavaFacetModuleSetupStepTest extends PlatformTestCase {
   private IdeModifiableModelsProvider myModelsProvider;
   private JavaFacetModuleSetupStep mySetupStep;
 

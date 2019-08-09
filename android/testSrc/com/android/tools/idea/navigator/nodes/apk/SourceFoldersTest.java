@@ -22,7 +22,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 /**
  * Tests for {@link SourceFolders}.
  */
-public class SourceFoldersTest extends IdeaTestCase {
+public class SourceFoldersTest extends PlatformTestCase {
   private Module myAppModule;
   private VirtualFile mySrcFolder;
   private VirtualFile myMypackageFolder;

@@ -22,7 +22,7 @@ import com.google.common.base.Strings;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.Headers;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,7 +34,7 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.List;
 
-public class StudioDownloaderTest extends IdeaTestCase {
+public class StudioDownloaderTest extends PlatformTestCase {
   private static final String LOCALHOST = "127.0.0.1";
   private static final String EXPECTED_NO_CACHE_HEADERS = "Pragma: no-cache\nCache-control: no-cache\n";
   private static final String EXPECTED_HEADERS_IF_CACHING_ALLOWED = ""; // none

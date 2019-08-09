@@ -27,13 +27,13 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.mock.MockModule;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.Collections;
 
 /**
  * Tests for {@link AndroidGradleProjectStartupActivity}.
  */
-public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
+public class AndroidGradleProjectStartupActivityTest extends PlatformTestCase {
   private GradleProjectInfo myGradleProjectInfo;
   private AndroidGradleProjectStartupActivity myStartupActivity;
   private GradleSyncInvoker mySyncInvoker;

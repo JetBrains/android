@@ -28,7 +28,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.ui.ColumnInfo;
 
 import static org.mockito.Mockito.mock;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link AbstractDeclaredDependenciesTableModel}.
  */
-public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
+public class AbstractDeclaredDependenciesTableModelTest extends PlatformTestCase {
   private PsLibraryAndroidDependency myLibraryDependency;
   private PsUISettings myUISettings;
 

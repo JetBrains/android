@@ -22,7 +22,7 @@ import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
 import com.intellij.ide.wizard.CommitStepException
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.PlatformTestCase
 import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
@@ -33,7 +33,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
 
-class KeystoreStepTest : IdeaTestCase() {
+class KeystoreStepTest : PlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
   private lateinit var facets: MutableList<AndroidFacet>
   private lateinit var myAndroidFacet1: AndroidFacet

@@ -59,7 +59,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
@@ -78,7 +78,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link AndroidGradleProjectResolver}.
  */
-public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
+public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
   @Mock private ProjectImportErrorHandler myErrorHandler;
   @Mock private ProjectFinder myProjectFinder;

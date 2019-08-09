@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.build;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 import java.util.Arrays;
@@ -29,7 +29,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleBuildState}.
  */
-public class GradleBuildStateTest extends IdeaTestCase {
+public class GradleBuildStateTest extends PlatformTestCase {
   @Mock private GradleBuildListener myListener;
 
   private BuildContext myContext;

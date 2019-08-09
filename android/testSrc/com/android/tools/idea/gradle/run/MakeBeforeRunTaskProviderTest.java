@@ -38,7 +38,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.ThreeState;
 import org.apache.commons.io.FileUtils;
 import org.gradle.tooling.model.GradleProject;
@@ -64,7 +64,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
+public class MakeBeforeRunTaskProviderTest extends PlatformTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private IdeAndroidProject myIdeAndroidProject;
   @Mock private AndroidDevice myDevice;

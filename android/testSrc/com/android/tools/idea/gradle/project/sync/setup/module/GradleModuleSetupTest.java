@@ -41,7 +41,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import org.gradle.tooling.model.GradleProject;
@@ -50,7 +50,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link GradleModuleSetup}.
  */
-public class GradleModuleSetupTest extends IdeaTestCase {
+public class GradleModuleSetupTest extends PlatformTestCase {
   @Mock private GradleModuleModels myModuleModels;
   @Mock private GradleSyncState mySyncState;
 

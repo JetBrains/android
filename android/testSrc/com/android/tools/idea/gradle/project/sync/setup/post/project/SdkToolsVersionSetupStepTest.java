@@ -26,7 +26,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import org.mockito.Mock;
@@ -43,7 +43,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SdkToolsVersionSetupStep}.
  */
-public class SdkToolsVersionSetupStepTest extends IdeaTestCase {
+public class SdkToolsVersionSetupStepTest extends PlatformTestCase {
   @Mock private IdeSdks myIdeSdks;
 
   private File sdkDir;

@@ -21,14 +21,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.project.AndroidKtsSupportNotification;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link GradleKtsBuildFilesWarningStep}
  */
-public class GradleKtsBuildFilesWarningStepTest extends IdeaTestCase {
+public class GradleKtsBuildFilesWarningStepTest extends PlatformTestCase {
 
   @Mock private AndroidKtsSupportNotification myNotification;
   @NotNull private GradleKtsBuildFilesWarningStep myWarningStep = new GradleKtsBuildFilesWarningStep();

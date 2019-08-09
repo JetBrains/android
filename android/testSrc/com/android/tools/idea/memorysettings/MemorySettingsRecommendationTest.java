@@ -23,9 +23,9 @@ import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
-public class MemorySettingsRecommendationTest extends IdeaTestCase {
+public class MemorySettingsRecommendationTest extends PlatformTestCase {
   public void testRecommend() {
     assertEquals(getRecommended(1280, 5120, 20), -1);
     assertEquals(getRecommended(1280, 5120, 100), 1536);
