@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.event.LifecycleEventModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerTrackRendererType;
-import java.awt.Component;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,7 +30,7 @@ public class LifecycleTrackRenderer
   implements TrackRenderer<LifecycleEventModel, ProfilerTrackRendererType> {
   @NotNull
   @Override
-  public Component render(@NotNull TrackModel<LifecycleEventModel, ProfilerTrackRendererType> trackModel) {
+  public JComponent render(@NotNull TrackModel<LifecycleEventModel, ProfilerTrackRendererType> trackModel) {
     return new ActivityComponent(trackModel.getDataModel());
   }
 }

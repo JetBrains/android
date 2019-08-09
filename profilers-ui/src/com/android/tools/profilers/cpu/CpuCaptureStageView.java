@@ -86,10 +86,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                                                     int index,
                                                     boolean isSelected,
                                                     boolean cellHasFocus) {
-        if (!trackGroupMap.containsKey(value.getId())) {
-          trackGroupMap.put(value.getId(), new TrackGroup(value, TRACK_RENDERER_FACTORY));
-        }
-        return trackGroupMap.get(value.getId()).getComponent();
+        return trackGroupMap.computeIfAbsent(value.getId(), id -> new TrackGroup(value, TRACK_RENDERER_FACTORY)).getComponent();
       }
     });
     return trackGroupList;
