@@ -62,6 +62,8 @@ import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.mock;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.UiThread;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
@@ -90,8 +92,6 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.KotlinSupport;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -113,6 +113,7 @@ import com.intellij.util.WaitFor;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -127,6 +128,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.gradle.tooling.BuildLauncher;
@@ -221,8 +223,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static final boolean TEST_JUST_ONE_TARGET_SDK_VERSION = !COMPREHENSIVE;
 
   private static boolean ourValidatedTemplateManager;
-
-  private final StringEvaluator myStringEvaluator = new StringEvaluator();
 
   // TODO: this is used only in TemplateTest. We should pass this value without changing template values.
   final static String ATTR_CREATE_ACTIVITY = "createActivity";
@@ -1031,7 +1031,8 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
 
-    TestNewProjectWizardState projectState = createNewProjectState(createWithProject, sdkData, getModuleTemplateForFormFactor(templateFile));
+    TestNewProjectWizardState projectState =
+      createNewProjectState(createWithProject, sdkData, getModuleTemplateForFormFactor(templateFile));
 
     String projectNameBase = templateFile.getName();
 
@@ -1346,30 +1347,24 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private void checkProjectNow(@NotNull String projectName,
-                               @NotNull TestNewProjectWizardState projectState,
-                               @Nullable TestTemplateWizardState activityState) throws Exception {
+  private void checkProjectNow(
+    @NotNull String projectName,
+    @NotNull TestNewProjectWizardState projectState,
+    @Nullable TestTemplateWizardState activityState
+  ) throws Exception {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
-    // Do not add non-unicode characters on Windows
     String modifiedProjectName = getModifiedProjectName(projectName, activityState);
 
-    assertNull(myFixture);
+    moduleState.put(ATTR_MODULE_NAME, modifiedProjectName);
+    setUpFixture(modifiedProjectName);
+    @NotNull Project project = Objects.requireNonNull(getProject());
+    new IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
+    AndroidGradleTests.setUpSdks(myFixture, findSdkPath());
+    @NotNull File projectDir = getBaseDirPath(project);
+    moduleState.put(ATTR_TOP_OUT, projectDir.getPath());
 
-    File projectDir = null;
+    System.out.println("Checking project " + projectName + " in " + ProjectUtil.guessProjectDir(project));
     try {
-      moduleState.put(ATTR_MODULE_NAME, modifiedProjectName);
-      IdeaTestFixtureFactory factory = IdeaTestFixtureFactory.getFixtureFactory();
-      TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = factory.createFixtureBuilder(modifiedProjectName);
-      myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-      myFixture.setUp();
-
-      Project project = getProject();
-      new IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
-      AndroidGradleTests.setUpSdks(myFixture, findSdkPath());
-      projectDir = getBaseDirPath(project);
-      moduleState.put(ATTR_TOP_OUT, projectDir.getPath());
-
-      System.out.println("Checking project " + projectName + " in " + ProjectUtil.guessProjectDir(project));
       createProject(projectState, CHECK_LINT);
 
       File projectRoot = virtualToIoFile(ProjectUtil.guessProjectDir(project));
@@ -1384,86 +1379,18 @@ public class TemplateTest extends AndroidGradleTestCase {
           activityState.populateDirectoryParameters();
           RenderingContext context = createRenderingContext(template, project, moduleRoot, moduleRoot, activityState.getParameters());
           template.render(context, false);
-          // Add in icons if necessary
-          if (activityState.getTemplateMetadata() != null && activityState.getTemplateMetadata().getIconName() != null) {
-            File drawableFolder = new File(FileUtil.join(activityState.getString(ATTR_RES_OUT)),
-                                           FileUtil.join("drawable"));
-            //noinspection ResultOfMethodCallIgnored
-            drawableFolder.mkdirs();
-            String fileName = myStringEvaluator.evaluate(activityState.getTemplateMetadata().getIconName(),
-                                                         activityState.getParameters());
-            File iconFile = new File(drawableFolder, fileName + DOT_XML);
-            File sourceFile = new File(getTestDataPath(), FileUtil.join("drawables", "progress_horizontal.xml"));
-            try {
-              FileUtil.copy(sourceFile, iconFile);
-            }
-            catch (IOException e) {
-              fail(e.getMessage());
-            }
-          }
+
+          addIconsIfNecessary(activityState);
         });
       }
 
-      assertNotNull(project);
-
       // Verify that a newly created Kotlin project only kotlin files (e.g. no Java).
       if (getTestName(false).endsWith("WithKotlin")) {
-        Path rootPath = projectDir.toPath();
-        // Note: Files.walk() stream needs to be closed (or consumed completely), otherwise it will leave locked directories on Windows
-        List<Path> allPaths = Files.walk(rootPath).collect(toList());
-        assertFalse(allPaths.stream().anyMatch(path -> path.toString().endsWith(".java")));
-        assertTrue(allPaths.stream().anyMatch(path -> path.toString().endsWith(".kt")));
+        verifyLanguageFiles(projectDir, Language.KOTLIN);
       }
 
-      GradleConnector connector = GradleConnector.newConnector();
-      connector.forProjectDirectory(projectRoot);
-      ((DefaultGradleConnector)connector).daemonMaxIdleTime(10000, TimeUnit.MILLISECONDS);
-      ProjectConnection connection = connector.connect();
-      BuildLauncher buildLauncher = connection.newBuild().forTasks("assembleDebug");
-
-      List<String> commandLineArguments = new ArrayList<>();
-      GradleInitScripts initScripts = GradleInitScripts.getInstance();
-      initScripts.addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
-      buildLauncher.withArguments(ArrayUtil.toStringArray(commandLineArguments));
-      @SuppressWarnings("resource")
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      try {
-        buildLauncher.setStandardOutput(baos).setStandardError(baos).run();
-      }
-      //// Use the following commented out code to debug the generated project in case of a failure.
-      catch (Exception e) {
-        //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
-        //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
-        //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
-        throw new Exception(baos.toString("UTF-8"), e);
-      }
-      finally {
-        connection.close();
-
-        // Windows work-around: After closing the gradle connection, it's possible that some files (eg local.properties) are locked
-        // for a bit of time. It is also possible that there are Virtual Files that are still synchronizing to the File System, this will
-        // break tear-down, when it tries to delete the project.
-        if (SystemInfo.isWindows) {
-          System.out.println("Windows: Attempting to delete project Root - " + projectRoot);
-          new WaitFor(60000) {
-            @Override
-            protected boolean condition() {
-              if (!FileUtil.delete(projectRoot)) {
-                System.out.println("Windows: delete project Root failed - time = " + System.currentTimeMillis());
-              }
-              return projectRoot.mkdir();
-            }
-          };
-        }
-      }
-
-      if (CHECK_LINT) {
-        String lintMessage = getLintIssueMessage(project, Severity.INFORMATIONAL, Collections.singleton(ManifestDetector.TARGET_NEWER));
-        if (lintMessage != null) {
-          fail(lintMessage);
-        }
-        // TODO: Check for other warnings / inspections, such as unused imports?
-      }
+      invokeGradle(projectDir);
+      lintIfNeeded(project);
     }
     finally {
       if (myFixture != null) {
@@ -1474,11 +1401,125 @@ public class TemplateTest extends AndroidGradleTestCase {
       Project[] openProjects = ProjectManagerEx.getInstanceEx().getOpenProjects();
       assertTrue(openProjects.length <= 1); // 1: the project created by default by the test case
 
-      // Clean up; ensure that we don't bleed contents through to the next iteration
-      if (projectDir != null && projectDir.exists()) {
-        FileUtil.delete(projectDir);
-        LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir);
+      cleanupProjectFiles(projectDir);
+    }
+  }
+
+  private void setUpFixture(String projectName) {
+    assertNull(myFixture);
+    IdeaTestFixtureFactory factory = IdeaTestFixtureFactory.getFixtureFactory();
+    TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = factory.createFixtureBuilder(projectName);
+    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
+    try {
+      myFixture.setUp();
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e); // should never happen
+    }
+  }
+
+  @UiThread
+  void addIconsIfNecessary(@NotNull TestTemplateWizardState activityState) {
+    if (activityState.getTemplateMetadata() != null && activityState.getTemplateMetadata().getIconName() != null) {
+      File drawableFolder = new File(FileUtil.join(activityState.getString(ATTR_RES_OUT)), FileUtil.join("drawable"));
+      //noinspection ResultOfMethodCallIgnored
+      drawableFolder.mkdirs();
+      String fileName = new StringEvaluator().evaluate(
+        activityState.getTemplateMetadata().getIconName(), activityState.getParameters());
+      File iconFile = new File(drawableFolder, fileName + DOT_XML);
+      File sourceFile = new File(getTestDataPath(), FileUtil.join("drawables", "progress_horizontal.xml"));
+      try {
+        FileUtil.copy(sourceFile, iconFile);
       }
+      catch (IOException e) {
+        fail(e.getMessage());
+      }
+    }
+  }
+
+  static void verifyLanguageFiles(@NotNull File projectDir, @NotNull Language language) throws IOException {
+    Path rootPath = projectDir.toPath();
+    // Note: Files.walk() stream needs to be closed (or consumed completely), otherwise it will leave locked directories on Windows
+    List<Path> allPaths = Files.walk(rootPath).collect(toList());
+    if (language == Language.KOTLIN) {
+      assertFalse(allPaths.stream().anyMatch(path -> path.toString().endsWith(".java")));
+      assertTrue(allPaths.stream().anyMatch(path -> path.toString().endsWith(".kt")));
+    }
+    else {
+      assertFalse(allPaths.stream().anyMatch(path -> path.toString().endsWith(".kt")));
+      assertTrue(allPaths.stream().anyMatch(path -> path.toString().endsWith(".java")));
+    }
+  }
+
+  private static void invokeGradle(@NotNull File projectRoot) {
+    GradleConnector connector = GradleConnector.newConnector();
+    connector.forProjectDirectory(projectRoot);
+    ((DefaultGradleConnector)connector).daemonMaxIdleTime(10000, TimeUnit.MILLISECONDS);
+    ProjectConnection connection = connector.connect();
+    BuildLauncher buildLauncher = connection.newBuild().forTasks("assembleDebug");
+
+    List<String> commandLineArguments = new ArrayList<>();
+    GradleInitScripts initScripts = GradleInitScripts.getInstance();
+    initScripts.addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
+    buildLauncher.withArguments(ArrayUtil.toStringArray(commandLineArguments));
+    @SuppressWarnings("resource")
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try {
+      buildLauncher.setStandardOutput(baos).setStandardError(baos).run();
+    }
+    //// Use the following commented out code to debug the generated project in case of a failure.
+    catch (Exception e) {
+      //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
+      //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
+      //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
+      String exceptionMessage = "";
+      try {
+        exceptionMessage = baos.toString("UTF-8");
+      }
+      catch (UnsupportedEncodingException uee) {
+        // Never happens
+      }
+      throw new RuntimeException(exceptionMessage, e);
+    }
+    finally {
+      shutDownGradleConnection(connection, projectRoot);
+    }
+  }
+
+  private static void shutDownGradleConnection(@NotNull ProjectConnection connection, @NotNull File projectRoot) {
+    connection.close();
+
+    // Windows work-around: After closing the gradle connection, it's possible that some files (eg local.properties) are locked
+    // for a bit of time. It is also possible that there are Virtual Files that are still synchronizing to the File System, this will
+    // break tear-down, when it tries to delete the project.
+    if (SystemInfo.isWindows) {
+      System.out.println("Windows: Attempting to delete project Root - " + projectRoot);
+      new WaitFor(60000) {
+        @Override
+        protected boolean condition() {
+          if (!FileUtil.delete(projectRoot)) {
+            System.out.println("Windows: delete project Root failed - time = " + System.currentTimeMillis());
+          }
+          return projectRoot.mkdir();
+        }
+      };
+    }
+  }
+
+  private static void lintIfNeeded(@NotNull Project project) {
+    if (CHECK_LINT) {
+      String lintMessage = getLintIssueMessage(project, Severity.INFORMATIONAL, Collections.singleton(ManifestDetector.TARGET_NEWER));
+      if (lintMessage != null) {
+        fail(lintMessage);
+      }
+      // TODO: Check for other warnings / inspections, such as unused imports?
+    }
+  }
+
+  static private void cleanupProjectFiles(@NotNull File projectDir) {
+    if (projectDir.exists()) {
+      FileUtil.delete(projectDir);
+      LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir);
     }
   }
 
