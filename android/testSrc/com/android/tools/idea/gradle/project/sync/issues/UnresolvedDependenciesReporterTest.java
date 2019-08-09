@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -54,6 +55,7 @@ public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
     new IdeComponents(getProject()).replaceProjectService(GradleSettings.class, myGradleSettings);
     myReporter = new UnresolvedDependenciesReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
+    when(mySyncIssue.getType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
   }
 
   public void testReportWithoutDependencyAndExtraInfo() {
