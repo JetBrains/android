@@ -17,9 +17,11 @@ package com.android.tools.idea.npw.java
 
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
+import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_CLASS_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
@@ -33,6 +35,8 @@ class NewJavaModuleModel(
   val packageName = StringValueProperty()
   @JvmField
   val className = StringValueProperty("MyClass")
+  @JvmField
+  val language = OptionalValueProperty(RenderTemplateModel.getInitialSourceLanguage(project))
 
   override val renderer = object : ModuleTemplateRenderer() {
     override fun init() {
@@ -48,6 +52,7 @@ class NewJavaModuleModel(
       TemplateValueInjector(newValues)
         .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
         .setJavaVersion(project)
+        .setLanguage(language.value)
 
       templateValues.putAll(newValues)
     }
