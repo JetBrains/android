@@ -74,10 +74,25 @@ public class NewModuleTest {
       .clickNextToJavaLibrary()
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
+      .setSourceLanguage("Java")
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyClass.java")).isFile();
+  }
+
+  @Test
+  public void createNewKotlinLibraryWithDefaults() throws Exception {
+    guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .clickNextToJavaLibrary()
+      .enterLibraryName("mylib")
+      .enterPackageName("my.test")
+      .setSourceLanguage("Kotlin")
+      .wizard()
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
+    assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyClass.kt")).isFile();
   }
 
   @Test
@@ -93,20 +108,6 @@ public class NewModuleTest {
     String gradleFileContents = guiTest.getProjectFileText("somelibrary/build.gradle");
     assertThat(gradleFileContents).contains("apply plugin: 'com.android.library'");
     assertThat(gradleFileContents).contains("consumerProguardFiles");
-  }
-
-  @Test
-  public void createNewJavaLibraryWithNoGitIgnore() throws Exception {
-    guiTest.importSimpleApplication()
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .clickNextToJavaLibrary()
-      .enterLibraryName("mylib")
-      .enterPackageName("my.test")
-      .enterClassName("MyJavaClass")
-      .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
-    assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyJavaClass.java")).isFile();
   }
 
   @Test
