@@ -17,7 +17,7 @@ package com.android.tools.adtui.trackgroup;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
-import java.awt.Component;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 public class Track {
   private final JPanel myComponent;
 
-  private Track(@NotNull TrackModel trackModel, @NotNull Component trackComponent) {
+  private Track(@NotNull TrackModel trackModel, @NotNull JComponent trackComponent) {
     myComponent = new JPanel(new TabularLayout("150px,*"));
     myComponent.add(new JLabel(trackModel.getTitle()), new TabularLayout.Constraint(0, 0));
     myComponent.add(trackComponent, new TabularLayout.Constraint(0, 1));
@@ -52,7 +52,7 @@ public class Track {
    * @return the UI component of this Track.
    */
   @NotNull
-  public Component getComponent() {
+  public JComponent getComponent() {
     return myComponent;
   }
 }

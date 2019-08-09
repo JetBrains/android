@@ -28,7 +28,7 @@ import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.google.common.collect.ImmutableMap;
-import java.awt.Component;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -43,7 +43,7 @@ public class UserEventTrackRenderer implements TrackRenderer<EventModel<UserEven
 
   @NotNull
   @Override
-  public Component render(@NotNull TrackModel<EventModel<UserEvent>, ProfilerTrackRendererType> trackModel) {
+  public JComponent render(@NotNull TrackModel<EventModel<UserEvent>, ProfilerTrackRendererType> trackModel) {
     return new EventComponent<>(trackModel.getDataModel(), RENDERERS);
   }
 }
