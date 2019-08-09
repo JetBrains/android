@@ -344,16 +344,13 @@ public class TemplateTest extends AndroidGradleTestCase {
     // check on. This is determined by looking at the minApi and minBuildApi
     // versions found in the template.xml files.
     switch (api) {
-      case 1:
-      case 7:
-      case 11:
       case 14:
+      case 16:
       case 21:
+      case 23:
         return true;
-      case 9:
-      case 13:
-      case 8:
-      case 3:
+      case 25:
+      case 28:
         return !TEST_FEWER_API_VERSIONS;
       default:
         return false;
