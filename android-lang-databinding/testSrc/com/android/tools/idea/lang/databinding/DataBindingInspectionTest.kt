@@ -729,4 +729,78 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.checkHighlighting()
   }
+
+  @Test
+  fun testDataBindingInspection_functionExpressionMatched() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${dataBindingMode.bindingAdapter};
+
+      public class Model {
+        @BindingAdapter("android:onClick2")
+        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public void testClick(View view) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{model::testClick}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_functionExpressionMisMatched() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${dataBindingMode.bindingAdapter};
+
+      public class Model {
+        @BindingAdapter("android:onClick2")
+        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public void testClick(String str) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{<error descr="Listener class 'android.view.View.OnClickListener' with method 'onClick' did not match signature of any method 'android:onClick2'">model::testClick</error>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
 }
