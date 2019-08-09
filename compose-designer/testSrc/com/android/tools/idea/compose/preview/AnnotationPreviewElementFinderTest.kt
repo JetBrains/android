@@ -27,27 +27,33 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
       import com.android.tools.preview.Preview
-      import androidx.compose.Compose
+      import androidx.compose.Composable
 
-      @Compose
+      @Composable
       @Preview
       fun Preview1() {
       }
 
-      @Compose
+      @Composable
       @Preview(name = "preview2", apiLevel = 12)
       fun Preview2() {
       }
 
-      @Compose
+      @Composable
       @Preview(name = "preview3", width = 1, height = 2)
       fun Preview3() {
       }
 
-      @Compose
-      fun NoPreviewCompose() {
+      @Composable
+      fun NoPreviewComposable() {
 
       }
+
+      @Preview
+      fun NoComposablePreview() {
+
+      }
+
     """.trimIndent())
 
     val elements = AnnotationPreviewElementFinder.findPreviewMethods(composeTest.toUElement() as UFile)
@@ -78,9 +84,9 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
       import com.android.tools.preview.Preview
-      import androidx.compose.Compose
+      import androidx.compose.Composable
 
-      @Compose
+      @Composable
       @Preview(name = "preview3", width = 1, height = 2)
       fun Preview3() {
       }
@@ -88,7 +94,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
 
     var previewAnnotation: UAnnotation? = null
     var previewMethod: UMethod? = null
-    composeTest.toUElement()?.accept(object: AbstractUastVisitor() {
+    composeTest.toUElement()?.accept(object : AbstractUastVisitor() {
       override fun visitAnnotation(node: UAnnotation): Boolean {
         if ("com.android.tools.preview.Preview" == node.qualifiedName) {
           previewAnnotation = node
@@ -121,19 +127,19 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
       import com.android.notpreview.Preview
-      import androidx.compose.Compose
+      import androidx.compose.Composable
 
-      @Compose
+      @Composable
       @Preview
       fun Preview1() {
       }
 
-      @Compose
+      @Composable
       @Preview(name = "preview2", apiLevel = 12)
       fun Preview2() {
       }
 
-      @Compose
+      @Composable
       @Preview(name = "preview3", width = 1, height = 2)
       fun Preview3() {
       }

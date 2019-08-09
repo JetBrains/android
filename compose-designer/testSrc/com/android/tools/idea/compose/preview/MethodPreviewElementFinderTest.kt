@@ -30,29 +30,36 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
       import com.android.tools.preview.Preview
       import com.android.tools.preview.Configuration
-      import androidx.compose.Compose
+      import androidx.compose.Composable
 
-      @Compose
+      @Composable
       fun Preview1() {
         Preview() {
         }
       }
 
-      @Compose
+      @Composable
       fun Preview2() {
         Preview(name = "preview2", configuration = Configuration(apiLevel = 12)) {
         }
       }
 
-      @Compose
+      @Composable
       fun Preview3() {
         Preview(name = "preview3", configuration = Configuration(width = 1, height = 2)) {
         }
       }
 
-      @Compose
-      fun NoPreviewCompose() {
+      @Composable
+      fun NoPreviewComposable() {
 
+      }
+
+      fun PreviewMethodNotComposable() {
+        Preview(name = "preview3", configuration = Configuration(width = 1, height = 2)) {
+          Button {
+          }
+        }
       }
     """.trimIndent())
 
@@ -83,19 +90,19 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
       import com.android.tools.preview.Preview
-      import androidx.compose.Compose
+      import androidx.compose.Composable
 
-      @Compose
+      @Composable
       fun Row(children: () -> Unit) {
 
       }
 
-      @Compose
+      @Composable
       fun Button() {
       }
 
       // Test comment
-      @Compose
+      @Composable
       fun PreviewMethod() {
         Preview(name = "preview3", configuration = Configuration(width = 1, height = 2)) {
           val i = 1
@@ -165,19 +172,19 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
       import com.android.notpreview.Preview
-      import androidx.compose.Compose
+      import androidx.compose.Composable
 
-      @Compose
+      @Composable
       fun Row(children: () -> Unit) {
 
       }
 
-      @Compose
+      @Composable
       fun Button() {
       }
 
       // Test comment
-      @Compose
+      @Composable
       fun PreviewMethod() {
         Preview(name = "preview3", configuration = Configuration(width = 1, height = 2)) {
           Row {

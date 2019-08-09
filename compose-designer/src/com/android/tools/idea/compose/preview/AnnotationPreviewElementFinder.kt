@@ -26,6 +26,7 @@ import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.evaluateString
+import org.jetbrains.uast.getContainingUMethod
 import org.jetbrains.uast.visitor.UastVisitor
 
 private fun UAnnotation.findAttributeIntValue(name: String, defaultValue: Int) =
@@ -59,15 +60,9 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
       /**
        * Called for every `@Preview` annotation.
        */
-      private fun visitPreviewAnnotation(previewAnnotation: UAnnotation) {
-        val uMethod = previewAnnotation.uastParent as UMethod
-
-        if (!uMethod.parameterList.isEmpty) {
-          error("Preview methods must not have any parameters")
-        }
-
-        val uClass: UClass = uMethod.uastParent as UClass
-        val composableMethod = "${uClass.qualifiedName}.${uMethod.name}"
+      private fun visitPreviewAnnotation(previewAnnotation: UAnnotation, annotatedMethod: UMethod) {
+        val uClass: UClass = annotatedMethod.uastParent as UClass
+        val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
         val previewName = previewAnnotation.findAttributeValue("name")?.evaluateString() ?: ""
 
         previewMethodsFqNames.add(PreviewElement(previewName, composableMethod,
@@ -76,7 +71,17 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
 
       override fun visitAnnotation(node: UAnnotation): Boolean {
         if (PREVIEW_ANNOTATION_FQN == node.qualifiedName) {
-          visitPreviewAnnotation(node)
+          val uMethod = node.getContainingUMethod()
+          uMethod?.let {
+            if (!it.parameterList.isEmpty) {
+              error("Preview methods must not have any parameters")
+            }
+
+            // The method must also be annotated with @Composable
+            if (it.annotations.any { COMPOSABLE_ANNOTATION_FQN == it.qualifiedName }) {
+              visitPreviewAnnotation(node, it)
+            }
+          }
         }
 
         return super.visitAnnotation(node)
