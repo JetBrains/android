@@ -17,10 +17,8 @@ package com.android.tools.adtui.trackgroup
 
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackModel
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import java.awt.Container
 import javax.swing.JCheckBox
 import javax.swing.JLabel
 
@@ -29,11 +27,9 @@ class TrackTest {
   @Test
   fun createTrack() {
     val trackModel = TrackModel(true, TestTrackRendererType.FOO, "foo")
-    val track = Track.create(trackModel, FooTrackRenderer())
-    assertTrue(track.component is Container)
-    val trackComponent = track.component as Container
-    assertEquals(trackComponent.componentCount, 2)
-    assertTrue(trackComponent.getComponent(0) is JLabel)
-    assertTrue(trackComponent.getComponent(1) is JCheckBox)
+    val trackComponent = Track.create(trackModel, FooTrackRenderer()).component
+    assertThat(trackComponent.componentCount).isEqualTo(2)
+    assertThat(trackComponent.getComponent(0)).isInstanceOf(JLabel::class.java)
+    assertThat(trackComponent.getComponent(1)).isInstanceOf(JCheckBox::class.java)
   }
 }
