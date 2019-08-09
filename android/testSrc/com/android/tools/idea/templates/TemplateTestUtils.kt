@@ -57,8 +57,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import java.io.File
 import java.util.EnumSet
-import java.util.HashMap
-import java.util.HashSet
 
 /**
  * Is the given api level interesting for testing purposes? This is used to skip gaps,
@@ -73,9 +71,8 @@ fun isInterestingApiLevel(api: Int, manualApi: Int, apiSensitiveTemplate: Boolea
   !apiSensitiveTemplate -> api == SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
   // Always accept the highest known version
   api == SdkVersionInfo.HIGHEST_KNOWN_STABLE_API -> true
-  // Relevant versions, used to prune down the set of targets we need to
-  // check on. This is determined by looking at the minApi and minBuildApi
-  // versions found in the template.xml files.
+  // Relevant versions, used to prune down the set of targets we need to check on.
+  // This is determined by looking at the minApi and minBuildApi versions found in the template.xml files.
   else -> when (api) {
     14, 16, 21, 23 -> true
     25, 28 -> !TEST_FEWER_API_VERSIONS
@@ -85,11 +82,12 @@ fun isInterestingApiLevel(api: Int, manualApi: Int, apiSensitiveTemplate: Boolea
 
 fun createNewProjectState(createWithProject: Boolean, sdkData: AndroidSdkData, moduleTemplate: Template): TestNewProjectWizardState {
   val projectState = TestNewProjectWizardState(moduleTemplate)
-  val moduleState = projectState.moduleTemplateState
-  Template.convertApisToInt(moduleState.parameters)
-  moduleState.put(ATTR_CREATE_ACTIVITY, createWithProject)
-  moduleState.put(ATTR_MODULE_NAME, "TestModule")
-  moduleState.put(ATTR_PACKAGE_NAME, "test.pkg")
+  val moduleState = projectState.moduleTemplateState.apply {
+    Template.convertApisToInt(parameters)
+    put(ATTR_CREATE_ACTIVITY, createWithProject)
+    put(ATTR_MODULE_NAME, "TestModule")
+    put(ATTR_PACKAGE_NAME, "test.pkg")
+  }
   TemplateValueInjector(moduleState.parameters).addGradleVersions(null)
   val buildTool = sdkData.getLatestBuildTool(false)
   if (buildTool != null) {
@@ -102,16 +100,14 @@ fun getModuleTemplateForFormFactor(templateFile: File): Template {
   val activityTemplate = Template.createFromPath(templateFile)
   val moduleTemplate = defaultModuleTemplate
   val activityMetadata = activityTemplate.metadata!!
-  val activityFormFactorName = activityMetadata.formFactor
-  if (activityFormFactorName != null) {
-    val activityFormFactor = get(activityFormFactorName)
-    val manager: TemplateManager? = TemplateManager.getInstance()
-    val applicationTemplates: List<File?> = manager!!.getTemplatesInCategory(CATEGORY_APPLICATION)
-    for (formFactorTemplateFile in applicationTemplates) {
-      val metadata = manager.getTemplateMetadata(formFactorTemplateFile!!)
-      if (metadata != null && metadata.formFactor != null && get(metadata.formFactor!!) === activityFormFactor) {
-        return Template.createFromPath(formFactorTemplateFile)
-      }
+  val activityFormFactorName = activityMetadata.formFactor ?: return moduleTemplate
+  val activityFormFactor = get(activityFormFactorName)
+  val manager = TemplateManager.getInstance()
+  val applicationTemplates = manager!!.getTemplatesInCategory(CATEGORY_APPLICATION)
+  for (formFactorTemplateFile in applicationTemplates) {
+    val metadata = manager.getTemplateMetadata(formFactorTemplateFile!!)
+    if (metadata?.formFactor != null && get(metadata.formFactor!!) === activityFormFactor) {
+      return Template.createFromPath(formFactorTemplateFile)
     }
   }
   return moduleTemplate
@@ -130,34 +126,24 @@ fun createRenderingContext(
 /**
  * Runs lint and returns a message with information about the first issue with severity at least X or null if there are no such issues.
  */
-fun getLintIssueMessage(project: Project, maxSeverity: Severity, ignored: Set<Issue?>): String? {
+fun getLintIssueMessage(project: Project, maxSeverity: Severity, ignored: Set<Issue>): String? {
   val registry = LintIdeIssueRegistry()
-  val map: Map<Issue, Map<File, List<ProblemData>>> = HashMap()
-  val client = LintIdeClient.forBatch(project, map, AnalysisScope(project), HashSet<Issue?>(registry.issues))
+  val map = mutableMapOf<Issue, Map<File, List<ProblemData>>>()
+  val client = LintIdeClient.forBatch(project, map, AnalysisScope(project), registry.issues.toSet())
   val modules = ModuleManager.getInstance(project).modules.toList()
   val request = LintIdeRequest(client, project, null, modules, false)
-  val scope = EnumSet.allOf(Scope::class.java)
-  scope.remove(Scope.CLASS_FILE)
-  scope.remove(Scope.ALL_CLASS_FILES)
-  scope.remove(Scope.JAVA_LIBRARIES)
+  val scope = EnumSet.allOf(Scope::class.java).apply {
+    remove(Scope.CLASS_FILE)
+    remove(Scope.ALL_CLASS_FILES)
+    remove(Scope.JAVA_LIBRARIES)
+  }
   request.setScope(scope)
-  val driver = LintDriver(registry, client, request)
-  driver.analyze()
-  if (map.isNotEmpty()) {
-    for (fileListMap in map.values) {
-      for (entry in fileListMap.entries) {
-        val file = entry.key
-        val problems = entry.value
-        for (problem in problems) {
-          val issue = problem.issue
-          if (ignored.contains(issue)) {
-            continue
-          }
-          if (issue.defaultSeverity < maxSeverity) {
-            return "Found lint issue " + issue.id + " with severity " + issue.defaultSeverity.toString() + " in " + file.toString() + " at " +
-                   problem.textRange.toString() + ": " + problem.message
-          }
-        }
+  LintDriver(registry, client, request).analyze()
+  map.values.forEach { fileListMap ->
+    fileListMap.forEach { (file, problems) ->
+      val problem = problems.filterNot { it.issue in ignored }.firstOrNull { it.issue.defaultSeverity < maxSeverity }
+      if (problem != null) {
+        return "Found lint issue ${problem.issue.id} with severity ${problem.issue.defaultSeverity} in $file at ${problem.textRange}: ${problem.message}"
       }
     }
   }
@@ -176,39 +162,31 @@ fun setAndroidSupport(setAndroidx: Boolean, moduleState: TestTemplateWizardState
  * @param buildApi      the build API, or -1 or 0 if unknown (e.g. codename)
  * @return an error message, or null if there is no problem
  */
-fun validateTemplate(metadata: TemplateMetadata?, currentMinSdk: Int, buildApi: Int): String? {
-  if (!metadata!!.isSupported) {
-    return "This template requires a more recent version of Android Studio. Please update."
-  }
+fun validateTemplate(metadata: TemplateMetadata, currentMinSdk: Int, buildApi: Int): String? {
   val templateMinSdk = metadata.minSdk
-  if (currentMinSdk in 1 until templateMinSdk) {
-    return "This template requires a minimum SDK version of at least $templateMinSdk, and the current min version is $currentMinSdk"
-  }
   val templateMinBuildApi = metadata.minBuildApi
-  return if (buildApi in 1 until templateMinBuildApi) {
-    "This template requires a build target API version of at least $templateMinBuildApi, and the current version is $buildApi"
+  return when {
+    !metadata.isSupported -> "This template requires a more recent version of Android Studio. Please update."
+    currentMinSdk in 1 until templateMinSdk ->
+      "This template requires a minimum SDK version of at least $templateMinSdk, and the current min version is $currentMinSdk"
+    buildApi in 1 until templateMinBuildApi ->
+      "This template requires a build target API version of at least $templateMinBuildApi, and the current version is $buildApi"
+    else -> null
   }
-  else null
 }
 
-fun getModifiedProjectName(projectName: String,
-                           activityState: TestTemplateWizardState?): String {
-  if (SystemInfo.isWindows) {
-    return "app"
-  }
-
+private const val specialChars = "!@#$^&()_+=-.`~"
+private const val nonAsciiChars = "你所有的基地都属于我们"
+fun getModifiedProjectName(projectName: String, activityState: TestTemplateWizardState?): String = when {
+  SystemInfo.isWindows -> "app"
   // Bug 137161906
-  if (projectName.startsWith("BasicActivity") && activityState != null &&
-      Language.KOTLIN.toString() == activityState.getString(ATTR_LANGUAGE)) {
-    return projectName
-  }
-  val specialChars = "!@#$^&()_+=-.`~"
-  val nonAsciiChars = "你所有的基地都属于我们"
-  return "$projectName$specialChars,$nonAsciiChars"
+  projectName.startsWith("BasicActivity") && activityState != null &&
+  Language.KOTLIN.toString() == activityState.getString(ATTR_LANGUAGE) -> projectName
+  else -> "$projectName$specialChars,$nonAsciiChars"
 }
 
 /**
- * Checks that the most recent log in myUsageTracker is a AndroidStudioEvent.EventKind.TEMPLATE_RENDER event with expected info.
+ * Checks that the most recent log in usageTracker is a [EventKind.TEMPLATE_RENDER] event with expected info.
  *
  * @param templateRenderer the expected value of usage.getStudioEvent().getTemplateRenderer(), where usage is the most recent logged usage
  * @param paramMap         the paramMap, containing kotlin support info for template render event
