@@ -190,8 +190,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    */
   override fun refresh() {
-    surface.models.forEach { surface.removeModel(it) }
-    val renders = previewProvider.findPreviewMethods(project, file)
+    val newModels = previewProvider.findPreviewMethods(project, file)
       .onEach {
         if (DEBUG) {
           println("""
@@ -222,8 +221,11 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
         model
       }
-      .map { surface.addModel(it) }
       .toList()
+
+    // All models are now ready, remove the old ones and add the new ones
+    surface.models.forEach { surface.removeModel(it) }
+    val renders = newModels.map { surface.addModel(it) }
 
     CompletableFuture.allOf(*(renders.toTypedArray()))
       .whenComplete { _, ex ->
