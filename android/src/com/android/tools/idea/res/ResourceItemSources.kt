@@ -19,7 +19,6 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.binding.BindingLayoutInfo
-import com.android.tools.idea.resources.base.Base128InputStream
 import com.android.tools.idea.resources.base.Base128OutputStream
 import com.android.tools.idea.resources.base.BasicResourceItem
 import com.android.tools.idea.resources.base.RepositoryConfiguration
@@ -120,25 +119,6 @@ internal class VfsResourceFile(
   override fun serialize(stream: Base128OutputStream, configIndexes: ObjectIntHashMap<String>) {
     stream.writeString(relativePath)
     stream.writeInt(configIndexes[configuration.folderConfiguration.qualifierString])
-    stream.writeLong(virtualFile?.let { virtualFile.timeStamp } ?: 0)
-  }
-
-  companion object {
-    /**
-     * Creates a [VfsResourceFile] by reading its contents from the given stream. The returned [VfsResourceFile]
-     * will be invalid (see the [isValid] method) if the corresponding virtual file doesn't exist or is newer
-     * than the serialized timestamp.
-     */
-    @JvmStatic
-    @Throws(IOException::class)
-    fun deserialize(stream: Base128InputStream, configurations: List<RepositoryConfiguration>): VfsResourceFile {
-      val relativePath = stream.readString()
-      val configIndex = stream.readInt()
-      val timeStamp = stream.readLong()
-      val configuration = configurations[configIndex]
-      val virtualFile = relativePath?.let { (configuration.repository as ResourceFolderRepository).resourceDir.findFileByRelativePath(it) }
-          ?.let { if (it.timeStamp == timeStamp) it else null }
-      return VfsResourceFile(virtualFile, configuration)
-    }
+    stream.write(FileTimeStampLengthHasher.hash(virtualFile))
   }
 }
