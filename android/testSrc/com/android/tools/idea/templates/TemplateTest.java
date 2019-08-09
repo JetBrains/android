@@ -680,19 +680,19 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewListFragment() throws Exception {
-    myApiSensitiveTemplate = true;
+    myApiSensitiveTemplate = false;
     checkCreateTemplate("fragments", "ListFragment");
   }
 
   @TemplateCheck
   public void testNewListFragmentWithKotlin() throws Exception {
-    myApiSensitiveTemplate = true;
+    myApiSensitiveTemplate = false;
     checkCreateTemplate("fragments", "ListFragment", false, withKotlin);
   }
 
   @TemplateCheck
   public void testNewModalBottomSheet() throws Exception {
-    myApiSensitiveTemplate = true;
+    myApiSensitiveTemplate = false;
     checkCreateTemplate("fragments", "ModalBottomSheet");
   }
 
@@ -891,31 +891,37 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testAutomotiveMediaService() throws Exception {
+    myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "AutomotiveMediaService", false);
   }
 
   @TemplateCheck
   public void testAutomotiveMediaServiceWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "AutomotiveMediaService", false, withKotlin);
   }
 
   @TemplateCheck
   public void testAutomotiveMessagingService() throws Exception {
+    myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "AutomotiveMessagingService");
   }
 
   @TemplateCheck
   public void testAutomotiveMessagingServiceWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "AutomotiveMessagingService", false , withKotlin);
   }
 
   @TemplateCheck
   public void testWatchFaceService() throws Exception {
+    myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "WatchFaceService");
   }
 
   @TemplateCheck
   public void testWatchFaceServiceWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "WatchFaceService", true, withKotlin);
   }
 
