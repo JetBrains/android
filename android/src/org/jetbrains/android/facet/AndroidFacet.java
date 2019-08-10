@@ -137,7 +137,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     else {
       SourceProvider mainSourceSet = getMainSourceProvider();
       if (myMainIdeaSourceSet == null || myMainIdeaSourceSetCreatedFor != mainSourceSet) {
-        myMainIdeaSourceSet = IdeaSourceProvider.create(mainSourceSet);
+        myMainIdeaSourceSet = IdeaSourceProvider.toIdeaProvider(mainSourceSet);
         myMainIdeaSourceSetCreatedFor = mainSourceSet;
       }
     }
