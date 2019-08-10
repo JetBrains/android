@@ -25,11 +25,11 @@ import com.intellij.openapi.updateSettings.impl.UpdatesInfo;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.BuildNumber;
 import com.intellij.openapi.util.JDOMUtil;
+import com.intellij.testFramework.PlatformTestCase;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
 
 /** Test of {@link UpdateStrategy} with {@link AndroidStudioUpdateStrategyCustomization}. */
-public final class AndroidStudioUpdateStrategyTest extends AndroidTestCase {
+public final class AndroidStudioUpdateStrategyTest extends PlatformTestCase {
 
   public void testUpdateStrategyDoesNotPreferSamePlatformVersion() throws Exception {
     @Language("XML") String updatesXml =
