@@ -169,6 +169,7 @@ public class PostProjectBuildTasksExecutor {
 
       if (isSyncNeeded(buildMode, errorCount)) {
         GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_BUILD_SYNC_NEEDED_AFTER_BUILD);
+        request.generateSourcesOnSuccess = false;
         // Start sync once other events have finished (b/76017112).
         runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSync(myProject, request));
       }

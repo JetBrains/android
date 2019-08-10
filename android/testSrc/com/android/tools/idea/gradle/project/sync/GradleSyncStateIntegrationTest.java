@@ -48,7 +48,6 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     try {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
-      StudioFlags.BUILD_AFTER_SYNC_ENABLED.override(true);
 
       loadSimpleApplication();
 
@@ -63,7 +62,6 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     finally {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
       StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
-      StudioFlags.BUILD_AFTER_SYNC_ENABLED.clearOverride();
     }
   }
 }

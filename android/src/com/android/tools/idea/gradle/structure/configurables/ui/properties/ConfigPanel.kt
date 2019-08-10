@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
+import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.FocusEvent
@@ -80,7 +81,7 @@ open class ConfigPanel<in ModelT>(
     }
 
     context.add(object : GradleSyncListener {
-      override fun syncStarted(project: Project) = refresh()
+      override fun syncStarted(project: Project, sourceGenerationRequested: Boolean) = refresh()
       override fun syncSucceeded(project: Project) = refresh()
       override fun syncFailed(project: Project, errorMessage: String) = refresh()
       override fun syncSkipped(project: Project) = refresh()
