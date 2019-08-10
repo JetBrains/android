@@ -83,7 +83,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             JavaResource (test) : file://<PROJECT>/app/src/testRelease/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testRelease/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testRelease/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK

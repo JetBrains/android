@@ -310,6 +310,7 @@ public final class GradleModuleImporter extends ModuleImporter {
       gradleSettingsFile.addModule(name, targetFile);
     }
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_IMPORT_MODULES_COPIED);
+    request.generateSourcesOnSuccess = false;
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
   }
 

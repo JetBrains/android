@@ -42,7 +42,7 @@ public class GradleProjectEventListener implements GradleSyncListener, GradleBui
   private final Object myLock = new Object();
 
   @Override
-  public void syncStarted(@NotNull Project project) {
+  public void syncStarted(@NotNull Project project, boolean sourceGenerationRequested) {
     reset();
     synchronized (myLock) {
       mySyncStarted = true;

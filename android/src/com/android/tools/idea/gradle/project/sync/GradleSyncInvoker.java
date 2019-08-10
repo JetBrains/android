@@ -234,7 +234,7 @@ public class GradleSyncInvoker {
     }
 
     CountDownLatch latch =
-      (ApplicationManager.getApplication().isUnitTestMode() && GradleSyncState.isCompoundSync())
+      (ApplicationManager.getApplication().isUnitTestMode() && request.generateSourcesOnSuccess && GradleSyncState.isCompoundSync())
       ? createSourceGenerationLatch(project)
       : null;
 
@@ -341,6 +341,7 @@ public class GradleSyncInvoker {
     public final GradleSyncStats.Trigger trigger;
 
     public boolean runInBackground = true;
+    public boolean generateSourcesOnSuccess = true;
     public boolean cleanProject;
     public boolean useCachedGradleModels;
     public boolean skipAndroidPluginUpgrade;
@@ -352,7 +353,9 @@ public class GradleSyncInvoker {
     @VisibleForTesting
     @NotNull
     public static Request testRequest() {
-      return new Request(TRIGGER_TEST_REQUESTED);
+      Request request = new Request(TRIGGER_TEST_REQUESTED);
+      request.generateSourcesOnSuccess = false;
+      return request;
     }
 
     public Request(@NotNull GradleSyncStats.Trigger trigger) {
@@ -375,6 +378,7 @@ public class GradleSyncInvoker {
       Request request = (Request)o;
       return trigger == request.trigger &&
              runInBackground == request.runInBackground &&
+             generateSourcesOnSuccess == request.generateSourcesOnSuccess &&
              cleanProject == request.cleanProject &&
              useCachedGradleModels == request.useCachedGradleModels &&
              skipAndroidPluginUpgrade == request.skipAndroidPluginUpgrade &&
@@ -386,7 +390,7 @@ public class GradleSyncInvoker {
     @Override
     public int hashCode() {
       return Objects
-        .hash(trigger, runInBackground, cleanProject, useCachedGradleModels, skipAndroidPluginUpgrade,
+        .hash(trigger, runInBackground, generateSourcesOnSuccess, cleanProject, useCachedGradleModels, skipAndroidPluginUpgrade,
               forceFullVariantsSync, skipPreSyncChecks, variantOnlySyncOptions);
     }
 
@@ -395,6 +399,7 @@ public class GradleSyncInvoker {
       return "RequestSettings{" +
              "trigger=" + trigger +
              ", runInBackground=" + runInBackground +
+             ", generateSourcesOnSuccess=" + generateSourcesOnSuccess +
              ", cleanProject=" + cleanProject +
              ", useCachedGradleModels=" + useCachedGradleModels +
              ", skipAndroidPluginUpgrade=" + skipAndroidPluginUpgrade +

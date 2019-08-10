@@ -329,8 +329,9 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
 
       // Check the BuildAction has its property set to generate sources and the sync request not
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
+      request.generateSourcesOnSuccess = true;
       request.variantOnlySyncOptions =
-        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect, null, false);
+        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect, null, true);
       verify(syncInvoker).requestProjectSync(eq(myProject), eq(request), any());
     }
     finally {
@@ -360,6 +361,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
 
       // Check the BuildAction has its property set to not generate sources and the sync request does
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
+      request.generateSourcesOnSuccess = true;
       request.variantOnlySyncOptions =
         new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect);
       verify(syncInvoker).requestProjectSync(eq(myProject), eq(request), any());
