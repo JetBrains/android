@@ -187,14 +187,14 @@ class ResourceFolderManager(
     val mainResDirectories = readFromModel(
       facet,
       moduleModel,
-      IdeaSourceProvider::getCurrentSourceProviders,
+      IdeaSourceProvider.Companion::getCurrentSourceProviders,
       AndroidModuleModel::getMainArtifact
     )
 
     val testResDirectories = readFromModel(
       facet,
       moduleModel,
-      IdeaSourceProvider::getCurrentTestSourceProviders,
+      IdeaSourceProvider.Companion::getCurrentTestSourceProviders,
       AndroidModuleModel::getArtifactForAndroidTest
     )
 
