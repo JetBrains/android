@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.projectsystem
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
@@ -47,8 +46,8 @@ abstract class SyncWithSourceGenerationListener : GradleSyncListener, GradleBuil
   override fun syncTaskCreated(project: Project, request: GradleSyncInvoker.Request) {
   }
 
-  override fun syncStarted(project: Project) {
-    sourceGenerationFuture = if (StudioFlags.BUILD_AFTER_SYNC_ENABLED.get()) CompletableFuture() else null
+  override fun syncStarted(project: Project, sourceGenerationRequested: Boolean) {
+    sourceGenerationFuture = if (sourceGenerationRequested) CompletableFuture() else null
   }
 
   override fun setupStarted(project: Project) {}

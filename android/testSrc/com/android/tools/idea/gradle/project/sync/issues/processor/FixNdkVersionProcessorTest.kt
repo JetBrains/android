@@ -69,7 +69,7 @@ class FixNdkVersionProcessorTest : AndroidGradleTestCase() {
     val usages = processor.findUsages()
     var synced = false
     GradleSyncState.subscribe(project, object : GradleSyncListener {
-      override fun syncStarted(project: Project) {
+      override fun syncStarted(project: Project, sourceGenerationRequested: Boolean) {
         synced = true
       }
     })
