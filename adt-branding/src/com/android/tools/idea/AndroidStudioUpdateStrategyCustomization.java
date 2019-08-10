@@ -24,6 +24,15 @@ public class AndroidStudioUpdateStrategyCustomization extends UpdateStrategyCust
     return androidStudioVersion(build1) == androidStudioVersion(build2);
   }
 
+  @Override
+  public boolean isNewerVersion(@NotNull BuildNumber candidateBuild, @NotNull BuildNumber currentBuild) {
+    if (androidStudioVersion(candidateBuild) == androidStudioVersion(currentBuild)) {
+      return super.isNewerVersion(candidateBuild, currentBuild);
+    } else {
+      return androidStudioVersion(candidateBuild) > androidStudioVersion(currentBuild);
+    }
+  }
+
   private static int androidStudioVersion(BuildNumber buildNumber) {
     return buildNumber.getComponents()[3];
   }
