@@ -15,24 +15,34 @@
  */
 package com.android.tools.idea.assistant.view;
 
-import com.android.tools.idea.assistant.datamodel.StepData;
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
+import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JTextPane;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Generic view for tutorial content. Represents a single view in a collection
@@ -104,6 +114,11 @@ public class TutorialCard extends CardViewPanel {
     initScrollValues();
   }
 
+  /**
+   * Resets the scroll values of the window to the top
+   * IMPORTANT: Do not add PSI/VFS calls here, it is called by SwingUtilities.invokeLater
+   */
+  @UiThread
   private void initScrollValues() {
     JScrollBar verticalScrollBar = myContentsScroller.getVerticalScrollBar();
     JScrollBar horizontalScrollBar = myContentsScroller.getHorizontalScrollBar();
@@ -188,8 +203,13 @@ public class TutorialCard extends CardViewPanel {
     myContentsScroller.getViewport().setOpaque(false);
     myContentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-    // reset the scroll bars after render see b/77530149
-    ApplicationManager.getApplication().invokeLater(() -> initScrollValues());
+    // Reset the scroll bars after render, see b/77530149
+    // We must use SwingUtilities.invokeLater here instead of Application.invokeLater because the latter causes initScrollValues
+    // to be called earlier than the UIUtils.setHtml calls above complete, scrolling the window back to the bottom.
+    // UIUtils.setHtml uses SwingUtilities.invokeLater, so we need to run initScrollValues on the same queue to ensure it comes
+    // after UIUtils.setHtml is done. This is pure UI code, it doesn't touch VFS or PSI.
+    //noinspection WrongInvokeLater
+    SwingUtilities.invokeLater(() -> initScrollValues());
   }
 
   private static class TutorialDescription extends JTextPane {
