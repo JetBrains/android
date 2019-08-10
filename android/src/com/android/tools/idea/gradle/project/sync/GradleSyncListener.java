@@ -32,7 +32,7 @@ public interface GradleSyncListener extends EventListener {
   default void syncTaskCreated(@NotNull Project project, @NotNull GradleSyncInvoker.Request request) {
   }
 
-  default void syncStarted(@NotNull Project project) {
+  default void syncStarted(@NotNull Project project, boolean sourceGenerationRequested) {
   }
 
   default void setupStarted(@NotNull Project project) {

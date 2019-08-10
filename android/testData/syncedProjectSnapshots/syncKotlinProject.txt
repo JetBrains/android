@@ -96,7 +96,7 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug
             JavaSource          : file://<PROJECT>/app/build/generated/source/kapt/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/debugUnitTest [-]
@@ -630,7 +630,7 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/awesomeandroidlibrary/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/awesomeandroidlibrary/build/generated/source/buildConfig/debug
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/java
@@ -674,7 +674,7 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/awesomeandroidlibrary/build [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/awesomeandroidlibrary/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK

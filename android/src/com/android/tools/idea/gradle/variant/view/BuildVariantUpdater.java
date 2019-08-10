@@ -508,6 +508,9 @@ public class BuildVariantUpdater {
       request.variantOnlySyncOptions =
         new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName,
                                    isCompoundSyncEnabled);
+      // TODO: It is not necessary to generate source for all modules (when not in compound-sync), only the modules that have variant
+      // changes need to be re-generated. Need to change generateSource functions to accept specified modules.
+      request.generateSourcesOnSuccess = true;
       GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener(variantSelectionChangeListeners));
     }
   }
