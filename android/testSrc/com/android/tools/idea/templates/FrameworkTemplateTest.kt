@@ -45,6 +45,7 @@ class FrameworkTemplateTest : TemplateTestBase() {
     )
     val state = createNewProjectState(true, sdkData, defaultModuleTemplate)
 
+    ensureSdkManagerAvailable()
     // TODO: Allow null activity state!
     val activity = findTemplate("activities", "BasicActivity")
     state.activityTemplateState.setTemplateLocation(activity)
