@@ -16,179 +16,180 @@
 package com.android.tools.idea.res.binding
 
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT
-import com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.VIEW_BINDING_LAYOUT
+import com.android.tools.idea.model.MergedManifestManager
 import com.intellij.openapi.util.ModificationTracker
-import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.facet.AndroidFacet
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassOwner
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.util.IncorrectOperationException
 
 /**
- * Info for a single, target layout XML file useful for generating a Binding or BindingImpl class
- * (assuming it is a data binding or view binding layout).
+ * Information for a single, target layout XML file that is useful for generating a Binding or BindingImpl class
+ * (assuming it is a data binding or a view binding layout).
  *
  * See also: [BindingLayoutGroup], which owns one (or more) related [BindingLayoutInfo] instances.
- *
- * @param modulePackage The package for the current module, useful when generating this binding's
- *    path. While in practice this shouldn't be null, a user or test configuration may have left
- *    this unset. See also: `MergedManifestSnapshot.getPackage`.
- *    TODO(b/138720985): See if it's possible to make modulePackage non-null
- * @param layoutFile The virtual file for the layout.xml this binding will be associated with.
- *    This file is expected to exist directly underneath a layout directory.
- * @param customBindingName A name which, if present, modifies the logic for choosing a name for
- *    a generated binding class.
  */
-class BindingLayoutInfo(private val facet: AndroidFacet,
-                        private val modulePackage: String?,
-                        layoutFile: VirtualFile,
-                        customBindingName: String?) : ModificationTracker {
-  init {
-    // XML layout files should always exist in a parent layout directory
-    assert(layoutFile.parent != null)
-  }
+class BindingLayoutInfo(var data: BindingLayoutData) : ModificationTracker {
+  internal var modificationCount: Long = 0
 
   /**
-   * The package + name for the binding class we want to generate for this layout.
-   *
-   * The package for a binding class is usually a subpackage of [modulePackage], but it can be
-   * fully customized based on the value passed in for `customBindingName`
-   *
-   * See also: [getImplSuffix], if you want to generate the path to a binding impl class instead.
+   * The PSI element representing this layout file, useful if a user wants to navigate
+   * when their cursor is on an "XyzBinding" class name.
    */
-  private class BindingClassPath(val packageName: String, val className: String)
+  val navigationElement: PsiElement = BindingLayoutInfoFile()
 
   /**
-   * The different android layouts that we create [BindingLayoutInfo] for, depending on whether data binding or view binding is
-   * switched on.
+   * The PSI for a "BindingImpl" class generated for this layout file. It is created externally so
+   * it can potentially be null until it is set.
    *
-   * [VIEW_BINDING_LAYOUT] bindings are generated for legacy views - those that are not data binding views.
+   * NOTE: This is a code smell - it's a field that this class never uses, but rather it relies on
+   * an external class to set it. Ideally, we can fix this, perhaps by removing the field
+   * completely (and having somewhere else own it). The main consumer of this class at the time
+   * of writing this comment is `BindingLayoutInfoFile`. It may no longer be necessary if we end
+   * up backing a LightBindingClass with its own light file, instead of with its XML file.
    *
-   * [DATA_BINDING_LAYOUT] bindings are generated for views using data binding. They start with `<layout>` and `<data>`
-   * tags.
-   *
-   * When both are enabled, data binding layouts will be of type [DATA_BINDING_LAYOUT], the rest will be [VIEW_BINDING_LAYOUT].
-   *
-   * Note: This enum is used by DataBindingXmlIndex and is serialized and de-serialized. Please only append.
+   * See also: `DataBindingClassFactory.getOrCreateBindingClassesFor`
    */
-  enum class LayoutType {
-    VIEW_BINDING_LAYOUT,
-    DATA_BINDING_LAYOUT
-  }
+  // TODO(davidherman): The DataBindingClassFactory class mentioned above doesn't exist.
+  var psiClass: PsiClass? = null
 
   /**
-   * Relevant, non-PSI information related to or extracted from the XML layout associated with this
-   * binding.
-   *
-   * Note: This information can also be requested through the [psi] field, but doing so may cause a
-   * more expensive parsing pass to happen to lazily generate a PSI tree. Prefer using the raw xml
-   * data directly whenever possible.
+   * Note: This backing field is lazily set by []getBindingClassName] but potentially reset by the [setData] method.
    */
-  var xml = BindingLayoutXml(layoutFile, customBindingName)
-    private set
+  private var bindingClassNameCached: BindingClassName? = null
 
-  /**
-   * PSI-related information for this binding.
-   *
-   * It is instantiated lazily. Callers should only access it when they need to. Otherwise, they
-   * should try to get the information they need using the [xml] property.
-   */
-  val psi: BindingLayoutPsi by lazy { BindingLayoutPsi(facet, this) }
-
-  /**
-   * Note: This backing field is lazily loaded but potentially reset by [updateClassData].
-   */
-  private var _bindingClassPath: BindingClassPath? = null
-  private val bindingClassPath: BindingClassPath
-    get() {
-      if (_bindingClassPath == null) {
-        if (xml.customBindingName.isNullOrEmpty()) {
-          _bindingClassPath = BindingClassPath("$modulePackage.databinding",
-                                               DataBindingUtil.convertToJavaClassName(xml.file.name) + "Binding")
-        }
-        else {
-          val customBindingName = xml.customBindingName!!
-          val firstDotIndex = customBindingName.indexOf('.')
-
-          if (firstDotIndex < 0) {
-            _bindingClassPath = BindingClassPath("$modulePackage.databinding", customBindingName)
-          }
-          else {
-            val lastDotIndex = customBindingName.lastIndexOf('.')
-            val packageName = if (firstDotIndex == 0) {
-              // A custom name like ".ExampleBinding" generates a binding class in the module package
-              modulePackage + customBindingName.substring(0, lastDotIndex)
-            }
-            else {
-              customBindingName.substring(0, lastDotIndex)
-            }
-            val className = customBindingName.substring(lastDotIndex + 1)
-            _bindingClassPath = BindingClassPath(packageName, className)
-          }
-        }
-      }
-
-      return _bindingClassPath!!
+  private fun getBindingClassName(): BindingClassName {
+    var className = bindingClassNameCached
+    if (className == null) {
+      className = computeBindingClassName()
+      bindingClassNameCached = className
     }
 
-  val packageName
-    get() = bindingClassPath.packageName
-  val className
-    get() = bindingClassPath.className
-  val qualifiedName
-    get() = "${packageName}.${className}"
+    return className
+  }
 
-  internal var modificationCount: Long = 0
+  private fun computeBindingClassName(): BindingClassName {
+    val modulePackage = MergedManifestManager.getSnapshot(data.facet).getPackage()
+
+    if (data.customBindingName.isNullOrEmpty()) {
+      return BindingClassName("$modulePackage.databinding",
+                                    DataBindingUtil.convertToJavaClassName(data.file.name) + "Binding")
+    }
+    else {
+      val customBindingName = data.customBindingName!!
+      val firstDotIndex = customBindingName.indexOf('.')
+
+      if (firstDotIndex < 0) {
+        return BindingClassName("$modulePackage.databinding", customBindingName)
+      }
+      else {
+        val lastDotIndex = customBindingName.lastIndexOf('.')
+        val packageName = if (firstDotIndex == 0) {
+          // A custom name like ".ExampleBinding" generates a binding class in the module package.
+          modulePackage + customBindingName.substring(0, lastDotIndex)
+        }
+        else {
+          customBindingName.substring(0, lastDotIndex)
+        }
+        val simpleClassName = customBindingName.substring(lastDotIndex + 1)
+        return BindingClassName(packageName, simpleClassName)
+      }
+    }
+  }
+
+  val packageName
+    get() = getBindingClassName().packageName
+  val className
+    get() = getBindingClassName().className
+  val qualifiedClassName
+    get() = getBindingClassName().qualifiedClassName
 
   /**
    * Returns the unique "Impl" suffix for this specific layout configuration.
    *
    * In multi-layout configurations, a general "Binding" class will be generated as well as a
    * unique "Impl" version for each configuration. This method returns what that exact "Impl"
-   * suffix should be, which can safely be appended to [qualifiedName] or [className].
+   * suffix should be, which can safely be appended to [qualifiedClassName] or [className].
    */
   fun getImplSuffix(): String {
-    val folderName = xml.folderName
+    val folderName = data.file.parent.name
     return when {
       folderName.isEmpty() -> "Impl"
       folderName.startsWith("layout-") ->
-        DataBindingUtil.convertToJavaClassName(folderName.substringAfter("layout-")) + "Impl"
+          DataBindingUtil.convertToJavaClassName(folderName.substringAfter("layout-")) + "Impl"
       folderName.startsWith("layout") -> "Impl"
       else -> DataBindingUtil.convertToJavaClassName(folderName) + "Impl"
     }
   }
 
   /**
-   * Given an alias or (unqualified) type name, returns the (qualified) type it resolves to, if such
-   * a rule is registered with this layout (e.g.
-   * `"Calc"` for `<import alias='Calc' type='org.example.math.calc.Calculator'>` or
-   * `"Map"` for `<import type='java.util.Map'>`)
+   * Replaces the value of the [data] property and sets a new modification count if the new value of
+   * the [data] property is different from the old one.
    */
-  fun resolveImport(aliasOrType: String): String? = xml.imports.find { import -> import.aliasOrType == aliasOrType }?.type
-
-  /**
-   * Updates settings for generating the final Binding name for this layout.
-   */
-  fun updateClassData(customBindingName: String?, modificationCount: Long) {
-    if (xml.customBindingName == customBindingName) {
-      return
-    }
-
-    xml = xml.copy(customBindingName = customBindingName)
-    _bindingClassPath = null // Causes this to regenerate lazily next time
-
-    this.modificationCount = modificationCount
-  }
-
-  /**
-   * Updates this layout info with a whole new set of `<data>` values.
-   *
-   * After calling this, the data model ([xml]) will be updated.
-   */
-  fun replaceDataItems(variables: List<BindingLayoutXml.Variable>, imports: List<BindingLayoutXml.Import>, modificationCount: Long) {
-    if (xml.variables != variables || xml.imports != imports) {
-      xml = xml.copy(variables = variables, imports = imports)
+  fun setData(newData: BindingLayoutData, modificationCount: Long) {
+    if (newData != this.data) {
+      this.data = newData
       this.modificationCount = modificationCount
+      bindingClassNameCached = null
     }
   }
 
   override fun getModificationCount(): Long = modificationCount
+
+  /**
+   * The package + name for the binding class generated for this layout.
+   *
+   * The package for a binding class is usually a subpackage of module's package, but it can be
+   * fully customized based on the value of [BindingLayoutData.customBindingName].
+   *
+   * See also: [getImplSuffix], if you want to generate the path to a binding impl class instead.
+   */
+  private class BindingClassName(val packageName: String, val className: String) {
+    val qualifiedClassName
+      get() = "${packageName}.${className}"
+  }
+
+  /**
+   * This class represents an XML file that hosts binding logic - in other words, in addition
+   * to being a regular XML file, it is also aware that it owns a binding class.
+   *
+   * Additional notes:
+   *
+   * We create a custom [PsiFile] implementation for [BindingLayoutInfo] files, to work around
+   * the fact that binding otherwise causes the IntelliJ code coverage runner to crash.
+   *
+   * The reason this happens is that binding code is somewhat special, since binding classes are
+   * generated from an XML file (e.g. `activity_main.xml` generates `ActivityMainBinding`). These
+   * generated binding classes point back at the XML as its parent file.
+   *
+   * The IntelliJ code coverage runner, however, assumes that every class it iterates over belongs
+   * to a containing file which is a [PsiClassOwner] - in other words, a class belongs to a file that
+   * contains one or more classes. This would usually make sense, such as a Java class living inside
+   * a Java file, except in our case, XML files are NOT owners of classes.
+   *
+   * Therefore, we create a special-case file which is REALLY just an XML file that also implements
+   * [PsiClassOwner] to indicate the fact that this XML file does, indeed, own a class.
+   *
+   * For even more context, see also https://issuetracker.google.com/120561619.
+   */
+  inner class BindingLayoutInfoFile : PsiFile by DataBindingUtil.findXmlFile(data)!!, PsiClassOwner {
+
+    override fun getContainingFile(): PsiFile {
+      // Return ourselves instead of delegating to the target XML file, since we're the containing
+      // file that also implements PsiClassOwner.
+      return this
+    }
+
+    override fun getClasses(): Array<PsiClass> = arrayOf(psiClass!!)
+
+    override fun getPackageName(): String {
+      return psiClass!!.qualifiedName?.substringBeforeLast('.') ?: ""
+    }
+
+    override fun setPackageName(packageName: String?) {
+      throw IncorrectOperationException("Cannot set package name for generated binding classes")
+    }
+  }
 }
+

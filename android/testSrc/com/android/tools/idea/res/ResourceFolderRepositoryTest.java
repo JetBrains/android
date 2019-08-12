@@ -231,11 +231,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // XML files we plan to generate layout bindings for.
     Set<String> actualNames = actual.getDataBindingResourceFiles().stream()
       .flatMap(group -> group.getLayouts().stream())
-      .map(layout -> layout.getQualifiedName())
+      .map(layout -> layout.getQualifiedClassName())
       .collect(Collectors.toSet());
     Set<String> expectedNames = expected.getDataBindingResourceFiles().stream()
       .flatMap(group -> group.getLayouts().stream())
-      .map(layout -> layout.getQualifiedName())
+      .map(layout -> layout.getQualifiedClassName())
       .collect(Collectors.toSet());
 
     assertThat(actualNames).isEqualTo(expectedNames);

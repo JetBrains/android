@@ -83,7 +83,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
 
           val variableNamesSet = dataBindingResourceFiles
             .flatMap { group -> group.layouts }
-            .flatMap { layout -> layout.xml.variables }
+            .flatMap { layout -> layout.data.variables.values }
             .map { item -> item.name }
             .toMutableSet()
           collectVariableNamesFromUserBindables()?.let { bindables -> variableNamesSet.addAll(bindables) }

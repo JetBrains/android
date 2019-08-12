@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
+import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.getViewBindingClassName
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.IndexedLayoutInfo
 import com.android.tools.idea.databinding.index.ViewIdInfo
+import com.android.tools.idea.res.binding.BindingLayoutData
 import com.android.tools.idea.res.binding.BindingLayoutGroup
 import com.android.tools.idea.res.binding.BindingLayoutInfo
-import com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT
-import com.android.tools.idea.res.binding.BindingLayoutXml
-import com.android.tools.idea.res.binding.toPsiFile
+import com.android.tools.idea.res.binding.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
@@ -60,7 +60,7 @@ interface LightBindingClassConfig {
    * variables from alternate layouts in the group. This is why we need to return the XML tags
    * explicitly, as they may refer to a layout configuration outside of our own.
    */
-  val variableTags: List<Pair<BindingLayoutXml.Variable, XmlTag>>
+  val variableTags: List<Pair<BindingLayoutData.Variable, XmlTag>>
 
   /**
    * Returns a list of all views with IDs that fields should be created for,
@@ -83,15 +83,15 @@ interface LightBindingClassConfig {
   fun settersShouldBeAbstract(): Boolean
 }
 
-private val BindingLayoutGroup.aggregatedVariables: List<Pair<BindingLayoutXml.Variable, XmlTag>>
+private val BindingLayoutGroup.aggregatedVariables: List<Pair<BindingLayoutData.Variable, XmlTag>>
   get() {
-    val aggregatedVariables = mutableListOf<Pair<BindingLayoutXml.Variable, XmlTag>>()
+    val aggregatedVariables = mutableListOf<Pair<BindingLayoutData.Variable, XmlTag>>()
     val alreadySeen = mutableSetOf<String>()
     for (layout in layouts) {
-      val variables = layout.xml.variables
-      for (variable in variables) {
-        val variableTag = layout.psi.findVariableTag(variable) ?: continue
-        if (alreadySeen.add(variable.name)) {
+      val layoutData = layout.data
+      for (variable in layoutData.variables.values) {
+        val variableTag = DataBindingUtil.findVariableTag(layoutData, variable.name)
+        if (variableTag != null && alreadySeen.add(variable.name)) {
           aggregatedVariables.add(variable to variableTag)
         }
       }
@@ -112,19 +112,19 @@ class BindingClassConfig(private val group: BindingLayoutGroup) : LightBindingCl
 
   override val superName: String
     get() {
-      // Main layout generates a binding class that inherits from the ViewDataBinding classes
-      return if (targetLayout.psi.layoutType === DATA_BINDING_LAYOUT) {
-        ModuleDataBinding.getInstance(targetLayout.psi.facet).dataBindingMode.viewDataBinding
+      // Main layout generates a binding class that inherits from the ViewDataBinding classes.
+      return if (targetLayout.data.layoutType === DATA_BINDING_LAYOUT) {
+        ModuleDataBinding.getInstance(targetLayout.data.facet).dataBindingMode.viewDataBinding
       }
       else {
-        targetLayout.psi.project.getViewBindingClassName()
+        targetLayout.data.facet.module.project.getViewBindingClassName()
       }
     }
 
   override val className = group.mainLayout.className
-  override val qualifiedName = group.mainLayout.qualifiedName
+  override val qualifiedName = group.mainLayout.qualifiedClassName
 
-  override val variableTags: List<Pair<BindingLayoutXml.Variable, XmlTag>>
+  override val variableTags: List<Pair<BindingLayoutData.Variable, XmlTag>>
     get() = group.aggregatedVariables
 
   override val viewIds: List<ViewIdInfo>
@@ -134,7 +134,9 @@ class BindingClassConfig(private val group: BindingLayoutGroup) : LightBindingCl
           .getValues(BindingXmlIndex.NAME, BindingXmlIndex.getKeyForFile(xmlFile.virtualFile), GlobalSearchScope.fileScope(xmlFile))
       }
       return group.layouts
-        .flatMap { info -> searchIndexForViewIds(info.xml.toPsiFile(info.psi.project)) }
+        .mapNotNull { info -> DataBindingUtil.findXmlFile(info.data) }
+        // TODO(davidherman): Can this cause an infinite recursion? If not, please explain why.
+        .flatMap { xmlFile -> searchIndexForViewIds(xmlFile) }
         .flatMap { indexedInfo -> indexedInfo.viewIds }
     }
 
@@ -161,12 +163,12 @@ class BindingImplClassConfig(private val group: BindingLayoutGroup, private val 
    * Its name is always this layout's name without the impl suffix.
    */
   override val superName: String
-    get() = targetLayout.qualifiedName
+    get() = targetLayout.qualifiedClassName
 
   override val className = targetLayout.className + targetLayout.getImplSuffix()
-  override val qualifiedName = targetLayout.qualifiedName + targetLayout.getImplSuffix()
+  override val qualifiedName = targetLayout.qualifiedClassName + targetLayout.getImplSuffix()
 
-  override val variableTags: List<Pair<BindingLayoutXml.Variable, XmlTag>>
+  override val variableTags: List<Pair<BindingLayoutData.Variable, XmlTag>>
     get() = group.aggregatedVariables
 
   override val viewIds: List<ViewIdInfo>
