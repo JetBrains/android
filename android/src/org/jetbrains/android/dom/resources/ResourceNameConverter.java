@@ -2,12 +2,15 @@ package org.jetbrains.android.dom.resources;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueResourceNameValidator;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.LocalQuickFixProvider;
 import com.intellij.openapi.module.Module;
@@ -15,6 +18,8 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.CustomReferenceConverter;
@@ -30,6 +35,8 @@ import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,6 +68,29 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
       type = ResourceType.ATTR;
     }
     return s == null ? null : ValueResourceNameValidator.getErrorText(s, type);
+  }
+
+  @Nullable
+  @Override
+  public PsiElement resolve(String s, ConvertContext context) {
+    XmlElement element = context.getXmlElement();
+    XmlTag tag = element instanceof XmlTag ? (XmlTag)element : PsiTreeUtil.getParentOfType(element, XmlTag.class);
+    if (tag == null || s == null) {
+      return null;
+    }
+
+    final AndroidFacet facet = AndroidFacet.getInstance(tag);
+    if (facet != null) {
+      LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
+      ResourceFolderType fileResType = resourceManager.getFileResourceFolderType(tag.getContainingFile());
+      if (ResourceFolderType.VALUES == fileResType) {
+        ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
+        if (type != null) {
+          return new ResourceReferencePsiElement(new ResourceReference(ResourceNamespace.TODO(), type, s), context.getPsiManager());
+        }
+      }
+    }
+    return null;
   }
 
   @NotNull

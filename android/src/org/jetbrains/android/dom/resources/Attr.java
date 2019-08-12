@@ -16,18 +16,25 @@
 
 package org.jetbrains.android.dom.resources;
 
-import com.intellij.util.xml.*;
 import com.android.ide.common.rendering.api.AttributeFormat;
-import org.jetbrains.android.dom.converters.FormatConverter;
-
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.intellij.util.xml.Convert;
+import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.GenericDomValue;
+import com.intellij.util.xml.Required;
 import java.util.List;
+import org.jetbrains.android.dom.AndroidDomElement;
+import org.jetbrains.android.dom.converters.AttrNameConverter;
+import org.jetbrains.android.dom.converters.FormatConverter;
 
 /**
  * @author coyote
  */
-public interface Attr extends ResourceElement {
-  @Override
-  GenericAttributeValue<String> getName();
+public interface Attr extends GenericDomValue, AndroidDomElement {
+
+  @Required
+  @Convert(AttrNameConverter.class)
+  GenericAttributeValue<ResourceReference> getName();
 
   @Convert(FormatConverter.class)
   GenericAttributeValue<List<AttributeFormat>> getFormat();
