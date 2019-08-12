@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.event.EventModel;
@@ -100,11 +101,14 @@ public class CpuCaptureStage extends Stage {
   private final CpuCaptureHandler myCpuCaptureHandler;
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
   private final TrackGroupListModel myTrackGroupListModel = new TrackGroupListModel();
-  private final Range myDataSelectionRangeUs = new Range();
+  private final CpuCaptureMinimapModel myMinimapModel;
   private State myState = State.PARSING;
 
   // Accessible only when in state analyzing
   private CpuCapture myCapture;
+
+  @SuppressWarnings("FieldCanBeLocal")
+  private final AspectObserver myObserver = new AspectObserver();
 
   /**
    * Create a capture stage that loads a given trace id. If a trace id is not found null will be returned.
@@ -131,7 +135,10 @@ public class CpuCaptureStage extends Stage {
    */
   private CpuCaptureStage(@NotNull StudioProfilers profilers, @NotNull String configurationName, @NotNull File captureFile) {
     super(profilers);
+
     myCpuCaptureHandler = new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configurationName);
+    myMinimapModel = new CpuCaptureMinimapModel(profilers);
+    getAspect().addDependency(myObserver).onChange(Aspect.STATE, this::captureStateChanged);
   }
 
   public State getState() {
@@ -146,6 +153,16 @@ public class CpuCaptureStage extends Stage {
     return myCpuCaptureHandler;
   }
 
+  @NotNull
+  public TrackGroupListModel getTrackGroupListModel() {
+    return myTrackGroupListModel;
+  }
+
+  @NotNull
+  public CpuCaptureMinimapModel getMinimapModel() {
+    return myMinimapModel;
+  }
+
   private void setState(State state) {
     myState = state;
     myAspect.changed(Aspect.STATE);
@@ -157,21 +174,31 @@ public class CpuCaptureStage extends Stage {
     return myCapture;
   }
 
-  private void initTrackGroupListModel(CpuCapture cpuCapture) {
-    myTrackGroupListModel.clear();
+  private void captureStateChanged() {
+    switch (getState()) {
+      case PARSING:
+        myTrackGroupListModel.clear();
+        break;
+      case ANALYZING:
+        myMinimapModel.setMaxRange(getCapture().getRange());
+        initTrackGroupList(myMinimapModel.getRangeSelectionModel().getSelectionRange());
+        break;
+    }
+  }
 
+  private void initTrackGroupList(@NotNull Range selectionRange) {
     // Interaction
     TrackGroupModel interaction = new TrackGroupModel("Interaction");
     interaction.addTrackModel(
       new TrackModel<>(
-        new EventModel<>(new RangedSeries<>(myDataSelectionRangeUs, new UserEventDataSeries(getStudioProfilers()))),
+        new EventModel<>(new RangedSeries<>(selectionRange, new UserEventDataSeries(getStudioProfilers()))),
         ProfilerTrackRendererType.USER_INTERACTION,
         "User"));
     interaction.addTrackModel(
       new TrackModel<>(
         new LifecycleEventModel(
-          new RangedSeries<>(myDataSelectionRangeUs, new LifecycleEventDataSeries(getStudioProfilers(), false)),
-          new RangedSeries<>(myDataSelectionRangeUs, new LifecycleEventDataSeries(getStudioProfilers(), true))),
+          new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), false)),
+          new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), true))),
         ProfilerTrackRendererType.APP_LIFECYCLE,
         "Lifecycle"));
     myTrackGroupListModel.addTrackGroupModel(interaction);
@@ -181,11 +208,6 @@ public class CpuCaptureStage extends Stage {
     // Threads
 
     // CPU cores
-  }
-
-  @NotNull
-  public TrackGroupListModel getTrackGroupListModel() {
-    return myTrackGroupListModel;
   }
 
   @Override
@@ -198,9 +220,7 @@ public class CpuCaptureStage extends Stage {
       }
       else {
         myCapture = capture;
-        myDataSelectionRangeUs.set(myCapture.getRange());
         setState(State.ANALYZING);
-        initTrackGroupListModel(capture);
       }
     });
   }
